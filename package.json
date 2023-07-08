@@ -4,7 +4,7 @@
   "description": "centralized searching & synchronized cross-platform bookmarking system",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch --clear-screen=false index.ts"
+    "dev": "tsx watch --clear-screen=false ./src/index.ts"
   },
   "keywords": [
     "search",
