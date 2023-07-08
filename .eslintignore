@@ -1,2 +1,6 @@
-public/js/vue.esm-browser.prod.js
-mongo-init.js
+!.*
+coverage*
+lib
+node_modules
+pnpm-lock.yaml
+package-lock.json
