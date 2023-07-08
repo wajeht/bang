@@ -1,0 +1,12 @@
+{
+  "name": "bang",
+  "version": "0.0.1",
+  "description": "centralized searching & synchronized cross-platform bookmarking system",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["search", "bookmark", "sync", "wajeht"],
+  "author": "wajeht",
+  "license": "MIT"
+}
