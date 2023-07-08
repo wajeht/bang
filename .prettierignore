@@ -1,0 +1,6 @@
+node_modules
+coverage
+public/js/vue.esm-browser.prod.js
+logs
+mongo-data
+package-lock.json

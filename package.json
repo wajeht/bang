@@ -4,7 +4,12 @@
   "description": "centralized searching & synchronized cross-platform bookmarking system",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch --clear-screen=false ./src/index.ts"
+    "dev": "tsx watch --clear-screen=false ./src/index.ts",
+    "update:deps": " npx npm-check -u",
+    "format:check": "prettier --check .",
+    "format": "prettier --write .",
+    "lint:check": "eslint .",
+    "lint": "eslint --fix ."
   },
   "keywords": [
     "search",
@@ -19,6 +24,11 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.17",
+    "eslint": "^8.44.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^3.0.0",
     "tsx": "^3.12.7"
   }
 }
