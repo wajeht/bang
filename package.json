@@ -6,11 +6,12 @@
 	"scripts": {
 		"dev": "tsx watch --clear-screen=false ./src/index.ts",
 		"update:deps": " npx npm-check -u",
+		"check:deps": "npx depcheck",
 		"format:check": "prettier --check .",
 		"format": "prettier --write .",
 		"lint:check": "eslint .",
 		"lint": "eslint --fix .",
-    "test": "vitest"
+		"test": "vitest"
 	},
 	"keywords": [
 		"search",
