@@ -1,26 +1,12 @@
 {
 	"compilerOptions": {
-		// module: Specify module code generation
-		"module": "ESNext",
-
-		// moduleResolution: Determine how module imports/exports are resolved
-		"moduleResolution": "bundler",
-
-		// esModuleInterop: Emit __importDefault helper for modules with a single default export
+		"target": "ESNext",
+		"module": "commonjs",
 		"esModuleInterop": true,
-
-		// allowSyntheticDefaultImports: Allow default imports from modules with no default export
-		"allowSyntheticDefaultImports": true,
-
-		// allowImportingTsExtensions: Allow import statements for Typescript (.ts, .tsx) files
-		"allowImportingTsExtensions": true,
-
-		// resolveJsonModule: Allow importing .json files as modules
+		// "allowSyntheticDefaultImports": true,
+		// "allowImportingTsExtensions": true,
+		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
-
-		// target: Set the JavaScript language level for the emitted JavaScript
-		"target": "ES2022",
-
 		"types": [
 			"unplugin-icons/types/vue",
 			"node",
@@ -28,50 +14,34 @@
 			"vite/client",
 			"vitest/globals"
 		],
-
-		// declaration: Generate corresponding .d.ts file
-		"declaration": true,
-
-		// declarationMap: Generate a sourcemap for .d.ts files
-		"declarationMap": true,
-
-		// composite: Enable project compilation
-		"composite": true,
-
-		// outDir: Specify output directory for generated files
+		// "declaration": true,
+		// "declarationMap": true,
+		// "composite": true,
+		// "incremental": true,
 		"outDir": "dist",
-
-		// noEmit: Do not emit output (e.g., do not write output files)
-		"noEmit": true,
-
-		// sourceMap: Generate corresponding .map file
-		"sourceMap": true,
-
-		// lib: Specify library files to be included in the compilation
-		"lib": ["ES2020", "DOM", "DOM.Iterable"],
-
-		// useDefineForClassFields: Use the ECMAScript standard behavior for class fields
-		"useDefineForClassFields": true,
-
-		// strict: Enable all strict type-checking options
+		// "noEmit": true,
+		// "sourceMap": true,
+		// "lib": ["ES2020", "DOM", "DOM.Iterable"],
+		// "useDefineForClassFields": true,
 		"strict": true,
-
-		// skipLibCheck: Skip type checking of all declaration files (*.d.ts)
-		"skipLibCheck": true,
-
-		// jsx: Specify JSX code generation
-		"jsx": "preserve",
-
-		// noUnusedLocals: Report errors on unused locals
-		"noUnusedLocals": true,
-
-		// noUnusedParameters: Report errors on unused parameters
-		"noUnusedParameters": true,
-
-		// noFallthroughCasesInSwitch: Report error for fallthrough cases in switch statement
-		"noFallthroughCasesInSwitch": true
+		"skipLibCheck": true
+		// "jsx": "preserve",
+		// "noUnusedLocals": true,
+		// "noUnusedParameters": true,
+		// "noFallthroughCasesInSwitch": true
 	},
-
-	// include: A list of glob patterns that match the files to be included in the compilation
-	"include": ["src", "vite.config.ts", "vite-env.d.ts", "components.d.ts"]
+	"include": ["./src/**/*.ts", "./src/**/*.json", "./src/**/*.d.ts", "./src/**/*.vue", ".env"],
+	"exclude": [
+		"./dist/**/*",
+		"./node_modules",
+		"./logs",
+		"./src/**/*.spec.ts",
+		"./src/**/*.test.ts",
+		".adminjs",
+		".vscode",
+		"./mongo-data",
+		"./src/views/App.vue",
+		"./src/views/main.ts",
+		"./public"
+	]
 }

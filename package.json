@@ -17,8 +17,8 @@
 		"format": "prettier --write .",
 		"lint:check": "eslint .",
 		"lint": "eslint --fix .",
-		"test": "vitest",
-		"test:run": "vitest --run",
+		"test:watch": "vitest",
+		"test": "vitest --run",
 		"prepare": "husky install"
 	},
 	"keywords": [
