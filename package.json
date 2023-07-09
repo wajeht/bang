@@ -27,22 +27,29 @@
 		"sync",
 		"wajeht"
 	],
+	"prisma": {
+		"schema": "./src/db/schema.prisma"
+	},
 	"author": "wajeht",
 	"license": "MIT",
 	"dependencies": {
+		"@faker-js/faker": "^8.0.2",
+		"@prisma/client": "^4.16.2",
 		"compression": "^1.7.4",
 		"concurrently": "^8.2.0",
 		"cors": "^2.8.5",
 		"dotenv": "^16.3.1",
 		"express": "^4.18.2",
 		"helmet": "^7.0.0",
+		"http-status-codes": "^2.2.0",
+		"prisma": "^4.16.2",
 		"vue": "^3.3.4",
 		"zod": "^3.21.4"
 	},
 	"devDependencies": {
 		"@iconify/json": "^2.2.88",
 		"@testing-library/jest-dom": "^5.16.5",
-		"@testing-library/vue": "^7.0.0",
+		"@testing-library/vue": "^6.6.1",
 		"@types/compression": "^1.7.2",
 		"@types/cors": "^2.8.13",
 		"@types/express": "^4.17.17",
