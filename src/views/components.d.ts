@@ -6,10 +6,10 @@
 export {}
 
 declare module 'vue' {
-  export interface GlobalComponents {
-    ICarbonAccessibility: typeof import('~icons/carbon/accessibility')['default']
-    'ILucide:alignJustify': typeof import('~icons/lucide/align-justify')['default']
-    IMdiAccountBox: typeof import('~icons/mdi/account-box')['default']
-    Test: typeof import('./components/Test.vue')['default']
-  }
+	export interface GlobalComponents {
+		ICarbonAccessibility: typeof import('~icons/carbon/accessibility')['default'];
+		'ILucide:alignJustify': typeof import('~icons/lucide/align-justify')['default'];
+		IMdiAccountBox: typeof import('~icons/mdi/account-box')['default'];
+		Test: typeof import('./components/Test.vue')['default'];
+	}
 }
