@@ -20,7 +20,7 @@ export async function userSeeder() {
 		}));
 
 		await db.user.createMany({
-            data: usersData
+			data: usersData,
 		});
 
 		console.log('Seeders created successfully.');
