@@ -25,13 +25,13 @@ export default defineConfig({
 	plugins: [
 		vue(),
 		AutoImport({
-			imports: ['vue'],
+			imports: ['vue', 'vitest'],
 			dts: './auto-imports.d.ts',
 		}),
 		Components({
 			dts: './components.d.ts',
 			globalNamespaces: ['global'],
-			directoryAsNamespace: true,
+			exclude: [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/, /[\\/]\.nuxt[\\/]/],
 			dirs: ['./components'],
 			resolvers: [
 				IconsResolver({

@@ -21,7 +21,13 @@
 		// target: Set the JavaScript language level for the emitted JavaScript
 		"target": "ES2022",
 
-		"types": ["unplugin-icons/types/vue", "node", "./node_modules/@types/node"],
+		"types": [
+			"unplugin-icons/types/vue",
+			"node",
+			"./node_modules/@types/node",
+			"vite/client",
+			"vitest/globals"
+		],
 
 		// declaration: Generate corresponding .d.ts file
 		"declaration": true,
