@@ -4,7 +4,8 @@ export default defineConfig({
 	test: {
 		clearMocks: true,
 		globals: true,
-		setupFiles: [],
+		setupFiles: ["./src/tests/vue-test-setup.ts"],
 		exclude: ['node_modules'],
+    environment: 'jsdom',
 	},
 });
