@@ -1,5 +1,5 @@
 import { userSeeder } from './user.seeder';
 
-(async () => {
+(async function main() {
 	await userSeeder();
 })();
