@@ -1,15 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 
-export default class AppMiddlewares {
-	public static notFoundHandler(req: Request, res: Response, next: NextFunction) {
-		return res.status(404).send({
-			message: 'Resource not found',
-		});
-	}
+export function notFoundHandler(req: Request, res: Response, next: NextFunction) {
+	return res.status(404).send({
+		message: 'Resource not found',
+	});
+}
 
-	public static errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
-		return res.status(500).send({
-			message: 'Internal server error',
-		});
-	}
+export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
+	return res.status(500).send({
+		message: 'Internal server error',
+	});
 }

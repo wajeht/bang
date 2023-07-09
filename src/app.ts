@@ -2,7 +2,7 @@ import express from 'express';
 const app = express();
 
 import api from './api/api.routes';
-import AppMiddlewares from './app.middlewares';
+import * as AppMiddlewares from './app.middlewares';
 
 app.use('/api', api);
 
