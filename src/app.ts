@@ -16,9 +16,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.resolve(path.join(process.cwd(), 'public')), { maxAge: '24h' }));
 
 app.use('/api', api);
-app.use('*', appMiddlewares.vueHandler);
-
 app.use(appMiddlewares.notFoundHandler);
+
+app.use('*', appMiddlewares.vueHandler);
+app.use(appMiddlewares.notFoundHandler);
+
 app.use(appMiddlewares.errorHandler);
 
 export default app;
