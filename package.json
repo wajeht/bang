@@ -51,6 +51,7 @@
 	},
 	"devDependencies": {
 		"@iconify/json": "^2.2.88",
+		"@tailwindcss/typography": "^0.5.9",
 		"@testing-library/jest-dom": "^5.16.5",
 		"@testing-library/vue": "^6.6.1",
 		"@types/compression": "^1.7.2",
