@@ -7,6 +7,12 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    ICarbonAccessibility: typeof import('~icons/carbon/accessibility')['default']
+    'IFa:cat': typeof import('~icons/fa/cat')['default']
+    'ILucide:alignJustify': typeof import('~icons/lucide/align-justify')['default']
+    'IMdi:cactus': typeof import('~icons/mdi/cactus')['default']
+    'IMdi:cat': typeof import('~icons/mdi/cat')['default']
+    IMdiAccountBox: typeof import('~icons/mdi/account-box')['default']
     Test: typeof import('./components/Test.vue')['default']
   }
 }

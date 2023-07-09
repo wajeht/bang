@@ -1,5 +1,9 @@
 import { defineConfig } from 'vite';
+
 import Components from 'unplugin-vue-components/vite';
+import Icons from 'unplugin-icons/vite';
+import IconsResolver from 'unplugin-icons/resolver';
+
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -17,7 +21,23 @@ if (process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'development') {
 }
 
 export default defineConfig({
-	plugins: [vue(), Components({ dts: true, dirs: ['./components'] })],
+	plugins: [
+		vue(),
+		Components({
+			dts: true,
+      globalNamespaces: ['global'],
+      directoryAsNamespace: true,
+			dirs: ['./components'],
+			resolvers: [
+				IconsResolver({
+					componentPrefix: 'i',
+				}),
+			],
+		}),
+		Icons({
+      compiler: 'vue3',
+    }),
+	],
 	root: './src/views/',
 	define: {
 		'process.env': process.env,
@@ -38,7 +58,7 @@ export default defineConfig({
 		reportCompressedSize: true,
 		chunkSizeWarningLimit: 1600,
 		emptyOutDir: false,
-    sourcemap: true,
+		sourcemap: true,
 		rollupOptions,
 	},
 });
