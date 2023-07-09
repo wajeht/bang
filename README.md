@@ -12,7 +12,8 @@ centralized searching & synchronized cross-platform bookmarking system
 - **Zod** for types/validation
 - **Prisma** for db cliinet
 - **Tailwind** for rapid styling
-- **Vue** beacuse this is a dashboard app
+- **DaisyUI** for some components
+- **Vue** because this is a dashboard app
 - and of course **Typescript** for everything ❤️
 
 # © License
