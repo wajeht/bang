@@ -3,7 +3,7 @@
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"editor.formatOnSave": true,
 	"editor.rulers": [100],
-	"eslint.probe": ["javascript", "json", "typescript", "yaml"],
+	"eslint.probe": ["javascript", "json", "typescript", "yaml", "vue"],
 	"eslint.rules.customizations": [{ "rule": "*", "severity": "warn" }],
 	"typescript.tsdk": "node_modules/typescript/lib"
 }
