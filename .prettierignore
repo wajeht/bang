@@ -8,3 +8,5 @@ pnpm-lock.yaml
 # See https://github.com/all-contributors/cli/issues/347
 .all-contributorsrc
 package-lock.json
+./src/views/components.d.ts
+./src/views/auto-imports.d.ts
