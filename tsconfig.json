@@ -41,6 +41,7 @@
 		".vscode",
 		"./mongo-data",
 		"./src/views/main.ts",
+		"./src/views/router.ts",
 		"./public"
 	]
 }

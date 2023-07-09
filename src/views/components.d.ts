@@ -7,11 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
-    ICarbonAccessibility: typeof import('~icons/carbon/accessibility')['default']
-    'ILucide:alignJustify': typeof import('~icons/lucide/align-justify')['default']
-    IMdiAccountBox: typeof import('~icons/mdi/account-box')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    Test: typeof import('./components/Test/Test.vue')['default']
   }
 }
