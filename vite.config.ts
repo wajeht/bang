@@ -25,7 +25,7 @@ export default defineConfig({
 	plugins: [
 		vue(),
 		AutoImport({
-			imports: ['vue', 'vitest'],
+			imports: ['vue', 'vitest', 'vue-router', 'pinia'],
 			dts: './auto-imports.d.ts',
 		}),
 		Components({

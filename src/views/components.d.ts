@@ -10,6 +10,8 @@ declare module 'vue' {
     ICarbonAccessibility: typeof import('~icons/carbon/accessibility')['default']
     'ILucide:alignJustify': typeof import('~icons/lucide/align-justify')['default']
     IMdiAccountBox: typeof import('~icons/mdi/account-box')['default']
-    Test: typeof import('./components/Test.vue')['default']
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
+    Test: typeof import('./components/Test/Test.vue')['default']
   }
 }
