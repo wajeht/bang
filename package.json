@@ -19,7 +19,8 @@
 		"lint": "eslint --fix .",
 		"test:watch": "vitest",
 		"test": "vitest --run",
-		"prepare": "husky install"
+		"prepare": "husky install",
+		"db:seed": "tsx ./src/database/seeds/seed.ts"
 	},
 	"keywords": [
 		"search",
@@ -28,7 +29,8 @@
 		"wajeht"
 	],
 	"prisma": {
-		"schema": "./src/db/schema.prisma"
+		"schema": "./src/database/schema.prisma",
+		"seed": "tsc ./src/database/seeds/seed.ts"
 	},
 	"author": "wajeht",
 	"license": "MIT",
@@ -42,7 +44,6 @@
 		"express": "^4.18.2",
 		"helmet": "^7.0.0",
 		"http-status-codes": "^2.2.0",
-		"prisma": "^4.16.2",
 		"vue": "^3.3.4",
 		"zod": "^3.21.4"
 	},
@@ -53,6 +54,7 @@
 		"@types/compression": "^1.7.2",
 		"@types/cors": "^2.8.13",
 		"@types/express": "^4.17.17",
+		"@types/node": "^20.4.1",
 		"@typescript-eslint/eslint-plugin": "^5.61.0",
 		"@typescript-eslint/parser": "^5.61.0",
 		"@vitejs/plugin-vue": "^4.2.3",
@@ -64,6 +66,7 @@
 		"jsdom": "^22.1.0",
 		"postcss": "^8.4.25",
 		"prettier": "^3.0.0",
+		"prisma": "^4.16.2",
 		"tailwindcss": "^3.3.2",
 		"tsx": "^3.12.7",
 		"typescript": "^5.1.6",

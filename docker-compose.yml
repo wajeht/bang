@@ -1,0 +1,42 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: ${DB_HOST}
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    networks:
+      - bang-network
+    volumes:
+      - postgres-data:/data/postgres
+
+  bang:
+    container_name: bang
+    restart: unless-stopped
+    build:
+      context: ./
+      dockerfile: ./Dockerfile.dev
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+      - ${VUE_PORT}:${VUE_PORT}
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - bang-network
+
+volumes:
+  postgres-data:
+    driver: local
+
+networks:
+  bang-network:
+    driver: bridge

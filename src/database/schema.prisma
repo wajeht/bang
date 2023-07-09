@@ -1,21 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DB_URL")
 }
 
 model users {
-  id                  String    @id @default(cuid())
-  username            String    @unique @db.VarChar(50)
-  first_name          String
-  last_name           String
-  email               String    @unique
-  password            String
-  role                String    @default("user")
-  profile_picture_url String?
-  verification_token  String?
-  verified            Boolean?  @default(false)
-  verified_at         DateTime?
-  deleted_at          DateTime  @db.Timestamp
-  created_at          DateTime  @default(now())
-  updated_at          DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  username          String    @unique @db.VarChar(50)
+  firstName         String
+  lastName          String
+  email             String    @unique
+  password          String
+  role              String    @default("user")
+  profilePictureUrl String?
+  verificationToken String?
+  verified          Boolean?  @default(false)
+  verifiedAt        DateTime?
+  deletedAt         DateTime  @db.Timestamp
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
