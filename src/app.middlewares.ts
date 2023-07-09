@@ -3,7 +3,9 @@ import { Request, Response, NextFunction } from 'express';
 
 export async function vueHandler(req: Request, res: Response, next: NextFunction) {
 	try {
-		return res.sendFile(path.resolve(path.join(process.cwd(), 'public', 'index.html')));
+		const vueDist = path.resolve(path.join(process.cwd(), 'public', 'index.html'));
+		res.setHeader('Content-Type', 'text/html');
+		return res.sendFile(vueDist);
 	} catch (e) {
 		next(e);
 	}
