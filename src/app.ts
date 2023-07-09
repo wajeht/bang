@@ -1,8 +1,8 @@
 import express from 'express';
 const app = express();
 
-app.get('/', (req, res) => {
-	res.send('Hello World!');
-});
+import api from './api/api.routes';
+
+app.use('/api', api);
 
 export default app;
