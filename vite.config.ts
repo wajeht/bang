@@ -25,8 +25,8 @@ export default defineConfig({
 		vue(),
 		Components({
 			dts: true,
-      globalNamespaces: ['global'],
-      directoryAsNamespace: true,
+			globalNamespaces: ['global'],
+			directoryAsNamespace: true,
 			dirs: ['./components'],
 			resolvers: [
 				IconsResolver({
@@ -35,8 +35,8 @@ export default defineConfig({
 			],
 		}),
 		Icons({
-      compiler: 'vue3',
-    }),
+			compiler: 'vue3',
+		}),
 	],
 	root: './src/views/',
 	define: {
