@@ -5,7 +5,7 @@
 	"main": "./src/server.ts",
 	"scripts": {
 		"start": "node ./dist/server.js",
-		"dev": "concurrently 'npm:dev:ui' 'npm:dev:api'",
+    "dev": "concurrently --kill-others --names \"EXPRESS,VUE\" -c \"bgGreen.black,bgYellow.black\" \"npm run dev:api\" \"npm run dev:ui\"",
 		"dev:api": "tsx watch --clear-screen=false ./src/server.ts",
 		"dev:ui": "vite",
 		"build": "npm run build:ui && npm run build:api",
