@@ -7,6 +7,7 @@ dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')) });
 const schema = z.object({
 	VUE_PORT: z.string().transform(Number),
 	SERVER_PORT: z.string().transform(Number),
+	DB_URL: z.string(),
 	NODE_ENV: z.enum(['production', 'development', 'testing']),
 });
 
