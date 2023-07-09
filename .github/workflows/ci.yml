@@ -6,28 +6,6 @@ on:
   pull_request:
 
 jobs:
-  format:
-    name: Prettier format
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [19.x]
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm i
-
-      - name: Format codes
-        run: npm run format
-
   lint:
     name: ESLint
     runs-on: ubuntu-latest
@@ -71,3 +49,33 @@ jobs:
 
       - name: Test codes
         run: npm run test
+
+  format:
+    name: Prettier format
+    runs-on: ubuntu-latest
+    depends-on: [lint, test]
+
+    strategy:
+      matrix:
+        node-version: [19.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Format codes
+        run: npm run format
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        with:
+          commit_message: 'style: format files'
