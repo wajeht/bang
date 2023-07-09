@@ -3,8 +3,9 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
 	test: {
 		clearMocks: true,
-		exclude: ['node_modules'],
 		globals: true,
 		setupFiles: [],
+		exclude: ['node_modules'],
+		include: ['**/*.{tests,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
 	},
 });
