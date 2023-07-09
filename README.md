@@ -9,6 +9,8 @@ centralized searching & synchronized cross-platform bookmarking system
 - **Node** with **Express** for API
 - **Vitest** for both API and UI testing
 - **Postgres** because relational all the way
+- **Zod** for types/validation
+- **Prisma** for db cliinet
 - **Tailwind** for rapid styling
 - **Vue** beacuse this is a dashboard app
 - and of course **Typescript** for everything ❤️
