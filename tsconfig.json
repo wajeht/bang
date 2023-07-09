@@ -1,16 +1,26 @@
 {
 	"compilerOptions": {
 		"declaration": true,
+    "composite": true,
 		"declarationMap": true,
 		"esModuleInterop": true,
-		"module": "esnext",
-		"moduleResolution": "node",
-		"outDir": "lib",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+    "useDefineForClassFields": true,
+		"outDir": "dist",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
 		"resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "jsx": "preserve",
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
 		"target": "ES2022"
 	},
-	"include": ["src"]
+	"include": ["src", "vite.config.ts", "vite-env.d.ts"]
 }
