@@ -40,7 +40,6 @@
 		".adminjs",
 		".vscode",
 		"./mongo-data",
-		"./src/views/App.vue",
 		"./src/views/main.ts",
 		"./public"
 	]

@@ -107,3 +107,8 @@ src/templates/tempCodeRunnerFile.js
 src/public/css/style.css
 mongo-volume
 mongo-data
+
+mongo-data
+mongo-data/*
+public/assets
+public/assets/*
