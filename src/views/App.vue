@@ -2,7 +2,7 @@
 const states = reactive({ count: 0 });
 
 const increment = () => {
-  states.count++;
+	states.count++;
 };
 </script>
 
@@ -13,6 +13,6 @@ const increment = () => {
 	<i-carbon-accessibility />
 	<i-mdi-account-box style="font-size: 2em; color: red" />
 
-  <p>{{ states.count }}</p>
-  <button @click="increment">Click</button>
+	<p>{{ states.count }}</p>
+	<button @click="increment">Click</button>
 </template>

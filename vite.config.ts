@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 import Components from 'unplugin-vue-components/vite';
 import Icons from 'unplugin-icons/vite';
 import IconsResolver from 'unplugin-icons/resolver';
-import AutoImport from 'unplugin-auto-import/vite'
+import AutoImport from 'unplugin-auto-import/vite';
 
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
@@ -24,12 +24,12 @@ if (process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'development') {
 export default defineConfig({
 	plugins: [
 		vue(),
-    AutoImport({
-      imports: ['vue'],
-      dts: './auto-imports.d.ts',
-    }),
+		AutoImport({
+			imports: ['vue'],
+			dts: './auto-imports.d.ts',
+		}),
 		Components({
-      dts: './components.d.ts',
+			dts: './components.d.ts',
 			globalNamespaces: ['global'],
 			directoryAsNamespace: true,
 			dirs: ['./components'],
