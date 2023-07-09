@@ -1,26 +1,69 @@
 {
 	"compilerOptions": {
-		"declaration": true,
-		"composite": true,
-		"declarationMap": true,
-		"esModuleInterop": true,
+		// module: Specify module code generation
 		"module": "ESNext",
+
+		// moduleResolution: Determine how module imports/exports are resolved
 		"moduleResolution": "bundler",
-		"useDefineForClassFields": true,
-		"outDir": "dist",
-		"lib": ["ES2020", "DOM", "DOM.Iterable"],
-		"resolveJsonModule": true,
+
+		// esModuleInterop: Emit __importDefault helper for modules with a single default export
+		"esModuleInterop": true,
+
+		// allowSyntheticDefaultImports: Allow default imports from modules with no default export
 		"allowSyntheticDefaultImports": true,
+
+		// allowImportingTsExtensions: Allow import statements for Typescript (.ts, .tsx) files
 		"allowImportingTsExtensions": true,
+
+		// resolveJsonModule: Allow importing .json files as modules
+		"resolveJsonModule": true,
+
+		// target: Set the JavaScript language level for the emitted JavaScript
+		"target": "ES2022",
+
+		// declaration: Generate corresponding .d.ts file
+		"declaration": true,
+
+		// declarationMap: Generate a sourcemap for .d.ts files
+		"declarationMap": true,
+
+		// composite: Enable project compilation
+		"composite": true,
+
+		// outDir: Specify output directory for generated files
+		"outDir": "dist",
+
+		// noEmit: Do not emit output (e.g., do not write output files)
 		"noEmit": true,
-		"jsx": "preserve",
-		"skipLibCheck": true,
+
+		// sourceMap: Generate corresponding .map file
 		"sourceMap": true,
+
+		// lib: Specify library files to be included in the compilation
+		"lib": ["ES2020", "DOM", "DOM.Iterable"],
+
+		// useDefineForClassFields: Use the ECMAScript standard behavior for class fields
+		"useDefineForClassFields": true,
+
+		// strict: Enable all strict type-checking options
 		"strict": true,
+
+		// skipLibCheck: Skip type checking of all declaration files (*.d.ts)
+		"skipLibCheck": true,
+
+		// jsx: Specify JSX code generation
+		"jsx": "preserve",
+
+		// noUnusedLocals: Report errors on unused locals
 		"noUnusedLocals": true,
+
+		// noUnusedParameters: Report errors on unused parameters
 		"noUnusedParameters": true,
-		"noFallthroughCasesInSwitch": true,
-		"target": "ES2022"
+
+		// noFallthroughCasesInSwitch: Report error for fallthrough cases in switch statement
+		"noFallthroughCasesInSwitch": true
 	},
+
+	// include: A list of glob patterns that match the files to be included in the compilation
 	"include": ["src", "vite.config.ts", "vite-env.d.ts"]
 }
