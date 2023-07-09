@@ -1,14 +1,13 @@
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
+import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	test: {
 		clearMocks: true,
 		globals: true,
-		setupFiles: ["./src/tests/vue-test-setup.ts"],
+		setupFiles: ['./src/tests/vue-test-setup.ts'],
 		exclude: ['node_modules'],
-    environment: 'jsdom',
+		environment: 'jsdom',
 	},
-  plugins: [vue()],
+	plugins: [vue()],
 });
