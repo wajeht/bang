@@ -53,7 +53,7 @@ jobs:
   format:
     name: Prettier format
     runs-on: ubuntu-latest
-    depends-on: [lint, test]
+    needs: [lint, test]
 
     strategy:
       matrix:
