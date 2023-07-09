@@ -7,19 +7,22 @@ datasource db {
   url      = env("DB_URL")
 }
 
-model users {
-  id                  String    @id @default(cuid())
-  username            String    @unique @db.VarChar(50)
-  first_name          String
-  last_name           String
-  email               String    @unique
-  password            String
-  role                String    @default("user")
-  profile_picture_url String?
-  verification_token  String?
-  verified            Boolean?  @default(false)
-  verified_at         DateTime?
-  deleted_at          DateTime  @db.Timestamp
-  created_at          DateTime  @default(now())
-  updated_at          DateTime  @updatedAt
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  username           String    @unique @db.VarChar(50)
+  email              String    @unique
+  password           String
+  role               Role      @default(USER)
+  verification_token String?
+  verified           Boolean?  @default(false)
+  verified_at        DateTime?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  @@map(name: "users") // use "users" as the table name
 }
