@@ -2,9 +2,9 @@
 	"name": "bang",
 	"version": "0.0.1",
 	"description": "centralized searching & synchronized cross-platform bookmarking system",
-	"main": "index.js",
+	"main": "./src/server.ts",
 	"scripts": {
-		"dev": "tsx watch --clear-screen=false ./src/index.ts",
+		"dev": "tsx watch --clear-screen=false ./src/server.ts",
 		"update:deps": " npx npm-check -u",
 		"check:deps": "npx depcheck",
 		"format:check": "prettier --check .",
