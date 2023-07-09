@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import Components from 'unplugin-vue-components/vite';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -16,7 +17,7 @@ if (process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'development') {
 }
 
 export default defineConfig({
-	plugins: [vue()],
+	plugins: [vue(), Components({ dts: true, dirs: ['./components'] })],
 	root: './src/views/',
 	define: {
 		'process.env': process.env,
@@ -37,6 +38,7 @@ export default defineConfig({
 		reportCompressedSize: true,
 		chunkSizeWarningLimit: 1600,
 		emptyOutDir: false,
+    sourcemap: true,
 		rollupOptions,
 	},
 });

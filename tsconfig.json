@@ -21,6 +21,8 @@
 		// target: Set the JavaScript language level for the emitted JavaScript
 		"target": "ES2022",
 
+		"types": ["unplugin-icons/types/vue", "node", "./node_modules/@types/node"],
+
 		// declaration: Generate corresponding .d.ts file
 		"declaration": true,
 
@@ -65,5 +67,5 @@
 	},
 
 	// include: A list of glob patterns that match the files to be included in the compilation
-	"include": ["src", "vite.config.ts", "vite-env.d.ts"]
+	"include": ["src", "vite.config.ts", "vite-env.d.ts", "components.d.ts"]
 }
