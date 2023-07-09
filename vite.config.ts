@@ -38,7 +38,7 @@ export default defineConfig({
 		reportCompressedSize: true,
 		chunkSizeWarningLimit: 1600,
 		emptyOutDir: false,
-    sourcemap: true,
+		sourcemap: true,
 		rollupOptions,
 	},
 });
