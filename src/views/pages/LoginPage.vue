@@ -10,5 +10,5 @@
 
 		<!-- social login -->
 		<SocialLoginCard :register-with-email-button="true" />
-	                                                                                        </RegularLayout>
+	</RegularLayout>
 </template>
