@@ -40,9 +40,13 @@
 					<!-- notice -->
 					<div class="text-sm pl-1">
 						Signing up signifies that you have read and agree to the
-						<RouterLink to="/terms" class="link hover:link-primary">Terms of Service</RouterLink>
+						<RouterLink to="/terms-of-service" class="link hover:link-primary"
+							>Terms of Service</RouterLink
+						>
 						and our
-						<RouterLink to="/privacy" class="link hover:link-primary">Privacy Policy</RouterLink>.
+						<RouterLink to="/privacy-policy" class="link hover:link-primary"
+							>Privacy Policy</RouterLink
+						>.
 					</div>
 				</div>
 			</div>

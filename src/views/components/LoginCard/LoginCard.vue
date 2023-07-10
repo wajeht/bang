@@ -1,3 +1,11 @@
+<script setup lang="ts">
+const router = useRouter();
+
+function goToDashboardPage() {
+	router.push('/dashboard');
+}
+</script>
+
 <template>
 	<div class="card w-full max-w-[400px] bg-base-100 shadow-xl gap-10">
 		<!-- login card -->
@@ -38,7 +46,7 @@
 
 			<!-- button -->
 			<div class="flex flex-col gap-2">
-				<button class="btn btn-primary w-full">Login</button>
+				<button @click="goToDashboardPage" class="btn btn-primary w-full">Login</button>
 			</div>
 		</div>
 	</div>
