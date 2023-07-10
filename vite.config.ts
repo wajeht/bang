@@ -32,7 +32,7 @@ export default defineConfig({
 			dts: './components.d.ts',
 			globalNamespaces: ['global'],
 			exclude: [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/, /[\\/]\.nuxt[\\/]/],
-			dirs: ['./components'],
+			dirs: ['./components', './layouts'],
 			resolvers: [
 				IconsResolver({
 					componentPrefix: 'i',

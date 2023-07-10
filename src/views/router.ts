@@ -1,25 +1,36 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Auth from './pages/Auth.vue';
-import NotFound from './pages/NotFound.vue';
-import Dashboard from './pages/Dashboard.vue';
+import LoginPage from './pages/LoginPage.vue';
+import RegisterPage from './pages/RegisterPage.vue';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.vue';
+import NotFoundPage from './pages/NotFoundPage.vue';
 
 const router = createRouter({
 	history: createWebHistory(),
 	routes: [
 		{
 			path: '/',
-			name: 'Dashboard',
-			component: Dashboard,
+			name: 'Bang',
+			component: LoginPage,
 		},
 		{
-			path: '/auth',
-			name: 'Auth',
-			component: Auth,
+			path: '/login',
+			name: 'Login',
+			component: LoginPage,
+		},
+		{
+			path: '/register',
+			name: 'Register',
+			component: RegisterPage,
+		},
+		{
+			path: '/forgot-password',
+			name: 'Forgot Password',
+			component: ForgotPasswordPage,
 		},
 		{
 			path: '/:pathMatch(.*)*',
 			name: 'NotFound',
-			component: NotFound,
+			component: NotFoundPage,
 		},
 	],
 });

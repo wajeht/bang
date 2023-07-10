@@ -7,7 +7,24 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    DashboardLayout: typeof import('./layouts/DashboardLayout.vue')['default']
+    ForgotPasswordCard: typeof import('./components/ForgotPasswordCard/ForgotPasswordCard.vue')['default']
+    'IDevicon:email': typeof import('~icons/devicon/email')['default']
+    'IDevicon:github': typeof import('~icons/devicon/github')['default']
+    'IDevicon:gmail': typeof import('~icons/devicon/gmail')['default']
+    'IDevicon:google': typeof import('~icons/devicon/google')['default']
+    'IDevicon:mail': typeof import('~icons/devicon/mail')['default']
+    'IMdi:emailOutline': typeof import('~icons/mdi/email-outline')['default']
+    'IMdi:github': typeof import('~icons/mdi/github')['default']
+    Login: typeof import('./components/Login/Login.vue')['default']
+    LoginCard: typeof import('./components/LoginCard/LoginCard.vue')['default']
+    Or: typeof import('./components/Or/Or.vue')['default']
+    Register: typeof import('./components/Register/Register.vue')['default']
+    RegisterCard: typeof import('./components/RegisterCard/RegisterCard.vue')['default']
+    RegularLayout: typeof import('./layouts/RegularLayout.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SocialLogin: typeof import('./components/SocialLoginCard/SocialLogin.vue')['default']
+    SocialLoginCard: typeof import('./components/SocialLoginCard/SocialLoginCard.vue')['default']
   }
 }
