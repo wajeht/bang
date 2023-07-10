@@ -11,7 +11,11 @@
 					<label class="label">
 						<span class="label-text">Username</span>
 					</label>
-					<input type="email" placeholder="username" class="input input-bordered w-full" />
+					<input
+						type="email"
+						placeholder="username"
+						class="input input-bordered focus:input-primary w-full"
+					/>
 				</div>
 
 				<!-- email -->
@@ -19,7 +23,11 @@
 					<label class="label">
 						<span class="label-text">Email</span>
 					</label>
-					<input type="email" placeholder="name@email.com" class="input input-bordered w-full" />
+					<input
+						type="email"
+						placeholder="name@email.com"
+						class="input input-bordered focus:input-primary w-full"
+					/>
 				</div>
 
 				<!-- password -->
@@ -27,7 +35,11 @@
 					<label class="label">
 						<span class="label-text">Password</span>
 					</label>
-					<input type="password" placeholder="************" class="input input-bordered w-full" />
+					<input
+						type="password"
+						placeholder="************"
+						class="input input-bordered focus:input-primary w-full"
+					/>
 				</div>
 
 				<div class="flex flex-col mt-2 gap-1">

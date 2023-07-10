@@ -24,6 +24,7 @@ declare module 'vue' {
     RegularLayout: typeof import('./layouts/RegularLayout.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Sidebar: typeof import('./components/Sidebar/Sidebar.vue')['default']
     SocialLogin: typeof import('./components/SocialLoginCard/SocialLogin.vue')['default']
     SocialLoginCard: typeof import('./components/SocialLoginCard/SocialLoginCard.vue')['default']
   }

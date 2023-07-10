@@ -8,7 +8,11 @@
 					<label class="label">
 						<span class="label-text">Email</span>
 					</label>
-					<input type="email" placeholder="email@mail.com" class="input input-bordered w-full" />
+					<input
+						type="email"
+						placeholder="email@mail.com"
+						class="input input-bordered focus:input-primary w-full"
+					/>
 				</div>
 			</div>
 
