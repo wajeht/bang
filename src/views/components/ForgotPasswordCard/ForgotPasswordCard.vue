@@ -8,17 +8,14 @@
 					<label class="label">
 						<span class="label-text">Email</span>
 					</label>
-					<input
-						type="email"
-						placeholder="email@mail.com"
-						class="input input-bordered focus:input-primary w-full"
-					/>
+					<input type="email" placeholder="email@mail.com" class="input input-bordered w-full" />
 				</div>
 			</div>
 
 			<!-- button -->
 			<div class="flex flex-col gap-2">
-				<button class="btn btn-primary w-full">Reset</button>
+				<button class="btn btn-neutral w-full">Reset</button>
+				<button class="btn btn-outline w-full" @click="$router.go(-1)">Go back</button>
 			</div>
 		</div>
 	</div>

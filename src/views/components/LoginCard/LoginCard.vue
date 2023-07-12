@@ -19,11 +19,7 @@ function goToDashboardPage() {
 					<label class="label">
 						<span class="label-text">Email</span>
 					</label>
-					<input
-						type="email"
-						placeholder="name@email.com"
-						class="input input-bordered focus:input-primary w-full"
-					/>
+					<input type="email" placeholder="name@email.com" class="input input-bordered w-full" />
 				</div>
 
 				<!-- password -->
@@ -31,30 +27,24 @@ function goToDashboardPage() {
 					<label class="label">
 						<span class="label-text">Password</span>
 					</label>
-					<input
-						type="password"
-						placeholder="************"
-						class="input input-bordered focus:input-primary w-full"
-					/>
+					<input type="password" placeholder="************" class="input input-bordered w-full" />
 				</div>
 
 				<div class="flex justify-between items-center mt-1">
 					<!-- remember -->
 					<label class="label cursor-pointer gap-2">
-						<input type="checkbox" :checked="false" class="checkbox checked:checkbox-primary" />
+						<input type="checkbox" :checked="false" class="checkbox" />
 						<span class="label-text text-base">Remember me</span>
 					</label>
 
 					<!-- forgot -->
-					<RouterLink to="/forgot-password" class="link hover:link-primary"
-						>Forgot password?</RouterLink
-					>
+					<RouterLink to="/forgot-password" class="link">Forgot password?</RouterLink>
 				</div>
 			</div>
 
 			<!-- button -->
 			<div class="flex flex-col gap-2">
-				<button @click="goToDashboardPage" class="btn btn-primary w-full">Login</button>
+				<button @click="goToDashboardPage" class="btn btn-neutral w-full">Login</button>
 			</div>
 		</div>
 	</div>
