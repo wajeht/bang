@@ -5,15 +5,13 @@
 		<!-- fotgot password -->
 		<ForgotPasswordCard />
 
-		<!-- or -->
-		<Or />
+		<!-- <Or /> -->
 
-		<!-- social login -->
-		<SocialLoginCard
+		<!-- <SocialLoginCard
 			:register-button="true"
 			:login-button="true"
 			:google-button="false"
 			:github-button="false"
-		/>
+		/> -->
 	</RegularLayout>
 </template>

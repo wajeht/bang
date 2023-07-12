@@ -7,6 +7,7 @@ import NotFoundPage from './pages/NotFoundPage.vue';
 import TermsOfServicePage from './pages/TermsOfServicePage.vue';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage.vue';
 import DashboardPage from './pages/DashboardPage.vue';
+import HomePage from './pages/HomePage.vue';
 
 const router = createRouter({
 	history: createWebHistory(),
@@ -14,7 +15,7 @@ const router = createRouter({
 		{
 			path: '/',
 			name: 'Bang',
-			component: LoginPage,
+			component: HomePage,
 		},
 		{
 			path: '/login',
