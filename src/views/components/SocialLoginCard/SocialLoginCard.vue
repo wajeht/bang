@@ -39,22 +39,6 @@ const props = withDefaults(defineProps<Props>(), {
 					</button>
 				</RouterLink>
 
-				<!-- login email -->
-				<RouterLink v-if="props.loginWithEmailButton" to="/login">
-					<button class="btn w-full">
-						<i-mdi:email-outline />
-						Login with Email
-					</button>
-				</RouterLink>
-
-				<!-- signup email -->
-				<RouterLink v-if="props.registerWithEmailButton" to="/register">
-					<button class="btn w-full">
-						<i-mdi:email-outline />
-						Sign up with Email
-					</button>
-				</RouterLink>
-
 				<!-- google -->
 				<button
 					v-if="props.googleButton"
@@ -63,6 +47,22 @@ const props = withDefaults(defineProps<Props>(), {
 					<i-devicon:google />
 					Login with Google
 				</button>
+
+				<!-- login email -->
+				<RouterLink v-if="props.loginWithEmailButton" to="/login">
+					<button class="btn w-full btn-neutral">
+						<i-mdi:email-outline />
+						Login with Email
+					</button>
+				</RouterLink>
+
+				<!-- signup email -->
+				<RouterLink v-if="props.registerWithEmailButton" to="/register">
+					<button class="btn w-full btn-neutral">
+						<i-mdi:email-outline />
+						Sign up with Email
+					</button>
+				</RouterLink>
 
 				<!-- github -->
 				<button

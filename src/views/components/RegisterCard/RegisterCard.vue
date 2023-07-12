@@ -49,7 +49,7 @@
 
 			<!-- button -->
 			<div class="flex flex-col gap-2">
-				<button class="btn btn-neutral w-full">Register</button>
+				<button class="btn btn-neutral w-full" @click="$router.push('/login')">Register</button>
 			</div>
 		</div>
 	</div>

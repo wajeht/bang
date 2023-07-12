@@ -8,6 +8,8 @@ import TermsOfServicePage from './pages/TermsOfServicePage.vue';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage.vue';
 import DashboardPage from './pages/DashboardPage.vue';
 import HomePage from './pages/HomePage.vue';
+import LearnMorePage from './pages/LearnMorePage.vue';
+import ResetPasswordPage from './pages/ResetPasswordPage.vue';
 
 const router = createRouter({
 	history: createWebHistory(),
@@ -16,6 +18,11 @@ const router = createRouter({
 			path: '/',
 			name: 'Bang',
 			component: HomePage,
+		},
+		{
+			path: '/learn-more',
+			name: 'Learn more',
+			component: LearnMorePage,
 		},
 		{
 			path: '/login',
@@ -46,6 +53,11 @@ const router = createRouter({
 			path: '/forgot-password',
 			name: 'Forgot Password',
 			component: ForgotPasswordPage,
+		},
+		{
+			path: '/reset-password',
+			name: 'Reset Password',
+			component: ResetPasswordPage,
 		},
 		{
 			path: '/:pathMatch(.*)*',

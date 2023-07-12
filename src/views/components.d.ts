@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     DashboardLayout: typeof import('./layouts/DashboardLayout.vue')['default']
+    Footer: typeof import('./components/Footer/Footer.vue')['default']
     ForgotPasswordCard: typeof import('./components/ForgotPasswordCard/ForgotPasswordCard.vue')['default']
     'IDevicon:email': typeof import('~icons/devicon/email')['default']
     'IDevicon:github': typeof import('~icons/devicon/github')['default']
@@ -22,6 +23,7 @@ declare module 'vue' {
     Register: typeof import('./components/Register/Register.vue')['default']
     RegisterCard: typeof import('./components/RegisterCard/RegisterCard.vue')['default']
     RegularLayout: typeof import('./layouts/RegularLayout.vue')['default']
+    ResetPasswordCard: typeof import('./components/ResetPasswordCard/ResetPasswordCard.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Sidebar: typeof import('./components/Sidebar/Sidebar.vue')['default']

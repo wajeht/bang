@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-	<RegularLayout class="flex flex-col gap-6">
+	<RegularLayout>
 		<h1 class="text-black">Ooops! You weren't supposed to see this!</h1>
 	</RegularLayout>
 </template>

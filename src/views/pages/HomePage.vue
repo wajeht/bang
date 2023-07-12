@@ -13,7 +13,7 @@
 
 			<!-- button -->
 			<div class="flex gap-4 mt-4">
-				<RouterLink to="/about" class="btn btn-outline">Learn more</RouterLink>
+				<RouterLink to="/learn-more" class="btn btn-outline">Learn more</RouterLink>
 				<RouterLink to="/register" class="btn btn-neutral">Register</RouterLink>
 			</div>
 		</div>

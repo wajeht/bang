@@ -2,6 +2,6 @@
 
 <template>
 	<RegularLayout>
-		<h1 class="text-black">Privacy Policy</h1>
+		<h1 class="text-black">Learn More Page</h1>
 	</RegularLayout>
 </template>
