@@ -1,3 +1,5 @@
+<script setup lang="ts"></script>
+
 <template>
 	<div class="card w-full max-w-[400px] bg-base-100 shadow-xl gap-10">
 		<div class="card-body gap-6">
@@ -14,7 +16,9 @@
 
 			<!-- button -->
 			<div class="flex flex-col gap-2">
-				<button class="btn btn-neutral w-full">Reset</button>
+				<button class="btn btn-neutral w-full" @click="$router.push('/reset-password')">
+					Submit
+				</button>
 				<button class="btn btn-outline w-full" @click="$router.go(-1)">Go back</button>
 			</div>
 		</div>

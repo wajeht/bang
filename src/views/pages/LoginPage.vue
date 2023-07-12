@@ -1,14 +1,16 @@
 <script setup lang="ts"></script>
 
 <template>
-	<RegularLayout class="flex flex-col gap-6">
-		<!-- login -->
-		<LoginCard />
+	<RegularLayout>
+		<div class="flex flex-col w-full items-center gap-6">
+			<!-- login -->
+			<LoginCard />
 
-		<!-- or -->
-		<Or />
+			<!-- or -->
+			<Or />
 
-		<!-- social login -->
-		<SocialLoginCard :register-with-email-button="true" />
+			<!-- social login -->
+			<SocialLoginCard :register-with-email-button="true" />
+		</div>
 	</RegularLayout>
 </template>
