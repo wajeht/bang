@@ -1,8 +1,13 @@
 <script setup lang="ts"></script>
 
 <template>
-	<div class="bg-base-200 h-screen w-screen flex">
-		<Sidebar />
-		<slot class="flex-grow" />
+	<div class="h-screen flex flex-col">
+		<Navbar />
+		<div class="flex w-full h-full bg-base-200">
+			<Sidebar />
+			<div class="p-7">
+				<slot class="" />
+			</div>
+		</div>
 	</div>
 </template>
