@@ -6,6 +6,7 @@ const mounted = ref(true);
 const fw = ref<InstanceType<typeof Fireworks>>();
 const options = ref<FireworksOptions>({
 	opacity: 0.5,
+	explosion: 5,
 	brightness: {
 		min: 1,
 		max: 100,
