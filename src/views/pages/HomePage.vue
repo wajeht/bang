@@ -27,7 +27,7 @@ watch(fw, () => startFireworks());
 	<RegularLayout class="bg-transparent">
 		<div class="flex flex-col items-center gap-7">
 			<!-- title -->
-			<h1 class="font-bold text-7xl">Bang</h1>
+			<h1 role="button" @click="startFireworks" class="font-bold text-7xl">Bang</h1>
 
 			<!-- description -->
 			<p class="text-2xl text-center">
