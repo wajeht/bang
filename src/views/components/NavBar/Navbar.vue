@@ -1,7 +1,7 @@
 <template>
 	<div class="navbar bg-base-100">
 		<div class="flex-1">
-			<a class="btn btn-ghost normal-case text-xl">daisyUI</a>
+			<!-- <router-link class="btn btn-ghost normal-case text-xl" to="/dashboard"> Bang </router-link> -->
 		</div>
 		<div class="flex-none gap-2">
 			<div class="form-control">
@@ -16,13 +16,24 @@
 					class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
 				>
 					<li>
-						<a class="justify-between">
+						<router-link
+							to="/dashboard/profile"
+							:class="[$route.path.startsWith('/dashboard/profile') ? 'active' : '']"
+						>
 							Profile
-							<span class="badge">New</span>
-						</a>
+						</router-link>
 					</li>
-					<li><a>Settings</a></li>
-					<li><a>Logout</a></li>
+					<li>
+						<router-link
+							to="/dashboard/settings"
+							:class="[$route.path.startsWith('/dashboard/settings') ? 'active' : '']"
+						>
+							Settings
+						</router-link>
+					</li>
+					<li>
+						<router-link class="justify-between" to="/"> Logout </router-link>
+					</li>
 				</ul>
 			</div>
 		</div>

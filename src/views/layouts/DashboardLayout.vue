@@ -1,12 +1,12 @@
 <script setup lang="ts"></script>
 
 <template>
-	<div class="h-screen flex flex-col">
-		<Navbar />
-		<div class="flex w-full h-full bg-base-200">
-			<Sidebar />
+	<div class="h-screen flex">
+		<Sidebar />
+		<div class="bg-base-200 w-full">
+			<Navbar />
 			<div class="p-7">
-				<slot class="" />
+				<slot />
 			</div>
 		</div>
 	</div>
