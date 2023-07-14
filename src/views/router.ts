@@ -19,7 +19,7 @@ import ProfilePage from './pages/Dashboard/ProfilePage.vue';
 import SettingsPage from './pages/Dashboard/SettingsPage.vue';
 
 const router = createRouter({
-	history: createWebHistory(),
+	history: createWebHistory('/'),
 	routes: [
 		// public pages
 		{ path: '/', name: 'Bang', component: HomePage },
@@ -38,6 +38,10 @@ const router = createRouter({
 		{ path: '/dashboard/profile', name: 'Profile', component: ProfilePage },
 		{ path: '/dashboard/settings', name: 'Settings', component: SettingsPage },
 	],
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	scrollBehavior(to, from, savedPosition) {
+		return { top: 0 };
+	},
 });
 
 export default router;
