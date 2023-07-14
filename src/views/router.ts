@@ -19,7 +19,7 @@ import ProfilePage from './pages/Dashboard/ProfilePage.vue';
 import SettingsPage from './pages/Dashboard/SettingsPage.vue';
 
 const router = createRouter({
-	history: createWebHistory('/'),
+	history: createWebHistory(process.env.BASE_URL),
 	routes: [
 		// public pages
 		{ path: '/', name: 'Bang', component: HomePage },
@@ -47,6 +47,7 @@ const router = createRouter({
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 router.beforeEach(async (to, from, next) => {
 	document.title = to.name as string;
+	next();
 });
 
 export default router;
