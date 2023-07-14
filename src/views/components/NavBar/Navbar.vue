@@ -5,7 +5,11 @@
 		</div>
 		<div class="flex-none gap-2">
 			<div class="form-control">
-				<input type="text" placeholder="Search" class="input input-bordered w-24 md:w-auto" />
+				<input
+					type="text"
+					placeholder="Search"
+					class="input input-sm input-bordered w-24 md:w-auto"
+				/>
 			</div>
 			<div class="dropdown dropdown-end">
 				<label tabindex="0" class="btn btn-ghost btn-circle avatar">
