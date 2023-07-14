@@ -44,4 +44,9 @@ const router = createRouter({
 	},
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+router.beforeEach(async (to, from, next) => {
+	document.title = to.name as string;
+});
+
 export default router;
