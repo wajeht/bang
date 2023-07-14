@@ -12,6 +12,16 @@ export function vueHandler(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
+export function apiNotFoundHandle(req: Request, res: Response, next: NextFunction) {
+	const isApiPrefix = req.url.match(/\/api\/v\d\//g);
+	if (isApiPrefix) {
+		return res.status(StatusCodes.NOT_FOUND).send({
+			message: 'Resource not found',
+		});
+	}
+	next();
+}
+
 export function notFoundHandler(req: Request, res: Response, next: NextFunction) {
 	return res.status(StatusCodes.NOT_FOUND).send({
 		message: 'Resource not found',

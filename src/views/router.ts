@@ -19,7 +19,7 @@ import ProfilePage from './pages/Dashboard/ProfilePage.vue';
 import SettingsPage from './pages/Dashboard/SettingsPage.vue';
 
 const router = createRouter({
-	history: createWebHistory(process.env.BASE_URL),
+	history: createWebHistory(),
 	routes: [
 		// public pages
 		{ path: '/', name: 'Bang', component: HomePage },

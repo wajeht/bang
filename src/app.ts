@@ -18,6 +18,20 @@ app.use(express.static(path.resolve(path.join(process.cwd(), 'public')), { maxAg
 app.use('/api', api);
 app.use(appMiddlewares.notFoundHandler);
 
+app.use((req, res, next) => {
+	// matching /api/v[number]/
+	const isApiPrefix = req.url.match(/\/api\/v\d\//g);
+
+	// console.log(req.url);
+	if (isApiPrefix) {
+		return res.status(StatusCodes.NOT_FOUND).send({
+			message: 'Resource not found',
+		});
+	}
+
+	next();
+});
+
 app.use('*', appMiddlewares.vueHandler);
 app.use(appMiddlewares.notFoundHandler);
 
