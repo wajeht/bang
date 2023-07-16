@@ -28,14 +28,6 @@
 						</router-link>
 					</li>
 					<li>
-						<router-link
-							to="/dashboard/settings"
-							:class="[$route.path.startsWith('/dashboard/settings') ? 'active' : '']"
-						>
-							Settings
-						</router-link>
-					</li>
-					<li>
 						<router-link class="justify-between" to="/"> Logout </router-link>
 					</li>
 				</ul>
