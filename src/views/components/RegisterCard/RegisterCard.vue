@@ -51,6 +51,12 @@
 			<div class="flex flex-col gap-2">
 				<button class="btn btn-neutral w-full" @click="$router.push('/login')">Register</button>
 			</div>
+
+			<!-- already have an account -->
+			<div class="flex justify-between">
+				<p>Already have an account?</p>
+				<router-link to="/login" class="link">Login</router-link>
+			</div>
 		</div>
 	</div>
 </template>

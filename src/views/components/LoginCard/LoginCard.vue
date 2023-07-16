@@ -38,13 +38,19 @@ function goToDashboardPage() {
 					</label>
 
 					<!-- forgot -->
-					<RouterLink to="/forgot-password" class="link">Forgot password?</RouterLink>
+					<router-link to="/forgot-password" class="link">Forgot password?</router-link>
 				</div>
 			</div>
 
 			<!-- button -->
 			<div class="flex flex-col gap-2">
 				<button @click="goToDashboardPage" class="btn btn-neutral w-full">Login</button>
+			</div>
+
+			<!-- dont have an account yet -->
+			<div class="flex justify-between">
+				<p>Don't have an account yet?</p>
+				<router-link to="/register" class="link">Register</router-link>
 			</div>
 		</div>
 	</div>

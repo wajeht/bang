@@ -7,10 +7,10 @@
 			<RegisterCard />
 
 			<!-- or -->
-			<Or />
+			<!-- <Or /> -->
 
 			<!-- social login -->
-			<SocialLoginCard :login-with-email-button="true" />
+			<!-- <SocialLoginCard :login-with-email-button="true" /> -->
 		</div>
 	</RegularLayout>
 </template>
