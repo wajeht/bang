@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { RollupOptions } from 'rollup';
 
 import Components from 'unplugin-vue-components/vite';
 import Icons from 'unplugin-icons/vite';
@@ -11,7 +12,7 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: path.join(process.cwd(), '.env') });
 
-const rollupOptions = {};
+const rollupOptions: RollupOptions = {};
 
 if (process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'development') {
 	rollupOptions.output = {
@@ -48,6 +49,7 @@ export default defineConfig({
 		'process.env': process.env,
 	},
 	server: {
+		hmr: true,
 		host: '0.0.0.0',
 		port: process.env.VUE_PORT as unknown as number,
 		proxy: {

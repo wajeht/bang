@@ -1,7 +1,8 @@
 {
 	"compilerOptions": {
 		"target": "ESNext",
-		"module": "commonjs",
+		"module": "CommonJS",
+		// "moduleResolution": "NodeNext",
 		"esModuleInterop": true,
 		// "allowSyntheticDefaultImports": true,
 		// "allowImportingTsExtensions": true,
@@ -9,28 +10,36 @@
 		"resolveJsonModule": true,
 		"types": [
 			"unplugin-icons/types/vue",
-			"node",
 			"./node_modules/@types/node",
 			"vite/client",
-			"vitest/globals"
+			"vitest/globals",
+			"node"
 		],
 		// "declaration": true,
 		// "declarationMap": true,
 		// "composite": true,
 		// "incremental": true,
 		"outDir": "dist",
+		"removeComments": true,
 		// "noEmit": true,
 		// "sourceMap": true,
 		// "lib": ["ES2020", "DOM", "DOM.Iterable"],
 		// "useDefineForClassFields": true,
 		"strict": true,
-		"skipLibCheck": true
-		// "jsx": "preserve",
+		"skipLibCheck": true,
+		"jsx": "preserve"
 		// "noUnusedLocals": true,
 		// "noUnusedParameters": true,
 		// "noFallthroughCasesInSwitch": true
 	},
-	"include": ["./src/**/*.ts", "./src/**/*.json", "./src/**/*.d.ts", "./src/**/*.vue", ".env"],
+	"include": [
+		"./src/**/*.ts",
+		"./src/**/*.json",
+		"./src/**/*.d.ts",
+		"./src/**/*.vue",
+		"./.env",
+		"./vite.config.ts"
+	],
 	"exclude": [
 		"./dist/**/*",
 		"./node_modules",
