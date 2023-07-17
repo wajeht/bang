@@ -4,7 +4,7 @@
 	"description": "centralized searching & synchronized cross-platform bookmarking system",
 	"main": "./src/server.ts",
 	"scripts": {
-		"start": "node ./dist/server.js",
+		"start": "node ./dist/src/server.js",
 		"dev": "concurrently --kill-others --names \"EXPRESS,VUE\" -c \"bgGreen.black,bgYellow.black\" \"npm run dev:api\" \"npm run dev:ui\"",
 		"dev:api": "tsx watch --clear-screen=false ./src/server.ts",
 		"dev:ui": "vite",
