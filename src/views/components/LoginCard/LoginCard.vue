@@ -1,10 +1,5 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
-const router = useRouter();
-
-function goToDashboardPage() {
-	router.push('/dashboard');
-}
 
 export type States = {
 	email: string;

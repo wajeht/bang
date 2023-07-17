@@ -12,3 +12,15 @@ export async function postLogin(req: Request, res: Response) {
 		message: 'postLogin() ok',
 	});
 }
+
+export async function postForgotPassword(req: Request, res: Response) {
+	return res.status(StatusCodes.OK).json({
+		message: 'postLogin() ok',
+	});
+}
+
+export async function postResetPassword(req: Request, res: Response) {
+	return res.status(StatusCodes.OK).json({
+		message: 'postLogin() ok',
+	});
+}
