@@ -13,13 +13,18 @@ function goToDashboardPage() {
 			<!-- title -->
 			<h2 class="card-title">Login</h2>
 			<!-- form -->
-			<div class="form-control w-full gap-2">
+			<form class="form-control w-full gap-2">
 				<!-- email -->
 				<div>
 					<label class="label">
 						<span class="label-text">Email</span>
 					</label>
-					<input type="email" placeholder="name@email.com" class="input input-bordered w-full" />
+					<input
+						autocomplete="email"
+						type="email"
+						placeholder="name@email.com"
+						class="input input-bordered w-full"
+					/>
 				</div>
 
 				<!-- password -->
@@ -27,7 +32,12 @@ function goToDashboardPage() {
 					<label class="label">
 						<span class="label-text">Password</span>
 					</label>
-					<input type="password" placeholder="************" class="input input-bordered w-full" />
+					<input
+						autocomplete="current-password"
+						type="password"
+						placeholder="************"
+						class="input input-bordered w-full"
+					/>
 				</div>
 
 				<div class="flex justify-between items-center mt-1">
@@ -40,7 +50,7 @@ function goToDashboardPage() {
 					<!-- forgot -->
 					<router-link to="/forgot-password" class="link">Forgot password?</router-link>
 				</div>
-			</div>
+			</form>
 
 			<!-- button -->
 			<div class="flex flex-col gap-2">

@@ -1,6 +1,8 @@
 import path from 'path';
+
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { ZodError } from 'zod';
 
 export function vueHandler(req: Request, res: Response, next: NextFunction) {
 	try {
@@ -29,6 +31,13 @@ export function notFoundHandler(req: Request, res: Response, next: NextFunction)
 }
 
 export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
+	if (err instanceof ZodError) {
+		return res.status(StatusCodes.BAD_REQUEST).send({
+			message: 'Validation error',
+			error: err.errors,
+		});
+	}
+
 	return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
 		message: 'Internal server error',
 	});

@@ -13,7 +13,7 @@
 			</div>
 			<div class="dropdown dropdown-end">
 				<label tabindex="0" class="btn btn-ghost btn-circle avatar">
-					<div class="w-10 rounded-full bg-neutral-500"></div>
+					<div class="w-10 rounded-full bg-neutral"></div>
 				</label>
 				<ul
 					tabindex="0"

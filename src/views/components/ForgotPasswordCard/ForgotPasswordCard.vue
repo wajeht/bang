@@ -15,12 +15,9 @@
 			</div>
 
 			<!-- button -->
-			<div class="flex flex-col gap-2">
-				<button class="btn btn-neutral w-full" @click="$router.push('/reset-password')">
-					Submit
-				</button>
-				<button class="btn btn-outline w-full" @click="$router.go(-1)">Go back</button>
-			</div>
+			<button class="btn btn-neutral w-full" @click="$router.push('/reset-password')">
+				Submit
+			</button>
 		</div>
 	</div>
 </template>
