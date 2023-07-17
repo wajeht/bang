@@ -12,10 +12,13 @@ const states = reactive<StatesWithLoading>({
 	loading: false,
 });
 
+const router = useRouter();
+
 async function login(inputs: Omit<States, 'error'>) {
 	try {
 		states.loading = true;
 		await axios.post('/api/v1/auth/login', inputs);
+		router.push('/dashboard');
 	} catch (error) {
 		if (error instanceof AxiosError) {
 			states.error = error.response?.data.error;

@@ -12,7 +12,7 @@ export const postForgotPasswordSchema = z.object({
 
 export const postResetPasswordSchema = z.object({
 	password: z.string().min(8).max(255),
-	passwordConfirmation: z.string().min(8).max(255),
+	confirmPassword: z.string().min(8).max(255),
 });
 
 export const postLoginSchema = z.object({

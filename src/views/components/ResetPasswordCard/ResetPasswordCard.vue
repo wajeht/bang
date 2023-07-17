@@ -1,8 +1,51 @@
 <script setup lang="ts">
-const router = useRouter();
+import { ZodIssue } from 'zod';
 
-function goToDashboardPage() {
-	router.push('/dashboard');
+export type States = {
+	email: string;
+	password: string;
+	confirmPassword: string;
+	error: ZodIssue[];
+};
+
+export type Props = { error: ZodIssue[]; loading?: boolean };
+
+export type Emits = {
+	(e: 'reset-password', inputs: Omit<States, 'error'>): void;
+};
+
+const props = defineProps<Props>();
+
+const emits = defineEmits<Emits>();
+
+const states = reactive<States>({
+	email: '',
+	password: '',
+	confirmPassword: '',
+	error: props.error,
+});
+
+onUpdated(() => {
+	states.error = props.error;
+});
+
+function onSubmit() {
+	const { error, ...rest } = states;
+	emits('reset-password', rest);
+}
+
+function computedError(type: keyof States) {
+	return computed(() => {
+		return states.error.find((e) => e.path[0] === type)?.message;
+	}).value;
+}
+
+function clearError(type: keyof States) {
+	states.error.forEach((e) => {
+		if (e.path[0] === type) {
+			states.error.splice(states.error.indexOf(e), 1);
+		}
+	});
 }
 </script>
 
@@ -15,25 +58,31 @@ function goToDashboardPage() {
 			<!-- form -->
 			<div class="form-control w-full gap-2">
 				<!-- password -->
-				<div>
-					<label class="label">
-						<span class="label-text">Password</span>
-					</label>
-					<input type="password" placeholder="************" class="input input-bordered w-full" />
-				</div>
+				<FormInput
+					v-model="states.password"
+					type="password"
+					label="Password"
+					placeholder="••••••••"
+					autocomplete="current-password"
+					:error="computedError('password')"
+					@update:model-value="clearError('password')"
+				/>
 
 				<!-- confirm password -->
-				<div>
-					<label class="label">
-						<span class="label-text">Confirm Password</span>
-					</label>
-					<input type="password" placeholder="************" class="input input-bordered w-full" />
-				</div>
+				<FormInput
+					v-model="states.confirmPassword"
+					type="password"
+					label="Confirm Password"
+					placeholder="••••••••"
+					autocomplete="next-password"
+					:error="computedError('confirmPassword')"
+					@update:model-value="clearError('confirmPassword')"
+				/>
 			</div>
 
 			<!-- button -->
 			<div class="flex flex-col gap-2">
-				<button @click="goToDashboardPage" class="btn btn-neutral w-full">Reset</button>
+				<Button :label="'Submit'" :loading="props.loading" @click="onSubmit" />
 			</div>
 		</div>
 	</div>
