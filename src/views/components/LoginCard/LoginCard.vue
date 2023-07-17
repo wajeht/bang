@@ -1,8 +1,56 @@
 <script setup lang="ts">
+import { ZodIssue } from 'zod';
 const router = useRouter();
 
 function goToDashboardPage() {
 	router.push('/dashboard');
+}
+
+export type States = {
+	email: string;
+	password: string;
+	remember: boolean;
+	error: ZodIssue[];
+};
+
+export type Props = { error: ZodIssue[]; loading?: boolean };
+
+export type Emits = {
+	(e: 'login', inputs: Omit<States, 'error'>): void;
+};
+
+const props = defineProps<Props>();
+
+const emits = defineEmits<Emits>();
+
+const states = reactive<States>({
+	email: '',
+	password: '',
+	remember: false,
+	error: props.error,
+});
+
+onUpdated(() => {
+	states.error = props.error;
+});
+
+function onLogin() {
+	const { error, ...rest } = states;
+	emits('login', rest);
+}
+
+function computedError(type: keyof States) {
+	return computed(() => {
+		return states.error.find((e) => e.path[0] === type)?.message;
+	}).value;
+}
+
+function clearError(type: keyof States) {
+	states.error.forEach((e) => {
+		if (e.path[0] === type) {
+			states.error.splice(states.error.indexOf(e), 1);
+		}
+	});
 }
 </script>
 
@@ -15,30 +63,26 @@ function goToDashboardPage() {
 			<!-- form -->
 			<form class="form-control w-full gap-2">
 				<!-- email -->
-				<div>
-					<label class="label">
-						<span class="label-text">Email</span>
-					</label>
-					<input
-						autocomplete="email"
-						type="email"
-						placeholder="name@email.com"
-						class="input input-bordered w-full"
-					/>
-				</div>
+				<FormInput
+					v-model="states.email"
+					type="email"
+					label="Email"
+					placeholder="email@domain.com"
+					autocomplete="email"
+					:error="computedError('email')"
+					@update:model-value="clearError('email')"
+				/>
 
 				<!-- password -->
-				<div>
-					<label class="label">
-						<span class="label-text">Password</span>
-					</label>
-					<input
-						autocomplete="current-password"
-						type="password"
-						placeholder="************"
-						class="input input-bordered w-full"
-					/>
-				</div>
+				<FormInput
+					v-model="states.password"
+					type="password"
+					label="Password"
+					placeholder="••••••••"
+					autocomplete="current-password"
+					:error="computedError('password')"
+					@update:model-value="clearError('password')"
+				/>
 
 				<div class="flex justify-between items-center mt-1">
 					<!-- remember -->
@@ -54,7 +98,7 @@ function goToDashboardPage() {
 
 			<!-- button -->
 			<div class="flex flex-col gap-2">
-				<button @click="goToDashboardPage" class="btn btn-neutral w-full">Login</button>
+				<Button :label="'Login'" :loading="props.loading" @click="onLogin" />
 			</div>
 
 			<!-- dont have an account yet -->
