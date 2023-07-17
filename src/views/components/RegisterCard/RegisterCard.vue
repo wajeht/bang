@@ -1,3 +1,56 @@
+<script setup lang="ts">
+import { ZodIssue } from 'zod';
+
+export type States = {
+	username: string;
+	email: string;
+	password: string;
+	agree: boolean;
+	error: ZodIssue[];
+};
+
+export type Props = { error: ZodIssue[]; loading?: boolean };
+
+export type Emits = {
+	(e: 'register', inputs: Omit<States, 'error'>): void;
+};
+
+const props = defineProps<Props>();
+
+const emits = defineEmits<Emits>();
+
+const states = reactive<States>({
+	username: '',
+	email: '',
+	password: '',
+	agree: false,
+	error: props.error,
+});
+
+onUpdated(() => {
+	states.error = props.error;
+});
+
+function onRegister() {
+	const { error, ...rest } = states;
+	emits('register', rest);
+}
+
+function computedError(type: keyof States) {
+	return computed(() => {
+		return states.error.find((e) => e.path[0] === type)?.message;
+	}).value;
+}
+
+function clearError(type: keyof States) {
+	states.error.forEach((e) => {
+		if (e.path[0] === type) {
+			states.error.splice(states.error.indexOf(e), 1);
+		}
+	});
+}
+</script>
+
 <template>
 	<div class="card w-full max-w-[400px] bg-base-100 shadow-xl gap-10">
 		<!-- login card -->
@@ -5,35 +58,44 @@
 			<!-- title -->
 			<h2 class="card-title">Register</h2>
 			<!-- form -->
-			<div class="form-control w-full gap-2">
+			<form class="form-control w-full gap-2">
 				<!-- username -->
-				<div>
-					<label class="label">
-						<span class="label-text">Username</span>
-					</label>
-					<input type="email" placeholder="username" class="input input-bordered w-full" />
-				</div>
+				<FormInput
+					v-model="states.username"
+					@update:model-value="clearError('username')"
+					type="text"
+					label="Username"
+					placeholder="username"
+					autocomplete="username"
+					:error="computedError('username')"
+				/>
 
 				<!-- email -->
-				<div>
-					<label class="label">
-						<span class="label-text">Email</span>
-					</label>
-					<input type="email" placeholder="name@email.com" class="input input-bordered w-full" />
-				</div>
+				<FormInput
+					v-model="states.email"
+					type="email"
+					label="Email"
+					placeholder="email@domain.com"
+					autocomplete="email"
+					:error="computedError('email')"
+					@update:model-value="clearError('email')"
+				/>
 
 				<!-- password -->
-				<div>
-					<label class="label">
-						<span class="label-text">Password</span>
-					</label>
-					<input type="password" placeholder="************" class="input input-bordered w-full" />
-				</div>
+				<FormInput
+					v-model="states.password"
+					type="password"
+					label="Password"
+					placeholder="••••••••"
+					autocomplete="current-password"
+					:error="computedError('password')"
+					@update:model-value="clearError('password')"
+				/>
 
 				<div class="flex flex-col mt-2 gap-1">
 					<!-- agree -->
 					<label class="label cursor-pointer gap-2 justify-start">
-						<input type="checkbox" :checked="false" class="checkbox" />
+						<input type="checkbox" v-model="states.agree" :checked="false" class="checkbox" />
 						<span class="label-text text-base">I agree</span>
 					</label>
 
@@ -45,11 +107,11 @@
 						<RouterLink to="/privacy-policy" class="link">Privacy Policy</RouterLink>.
 					</div>
 				</div>
-			</div>
+			</form>
 
 			<!-- button -->
 			<div class="flex flex-col gap-2">
-				<button class="btn btn-neutral w-full" @click="$router.push('/login')">Register</button>
+				<Button :label="'Register'" :loading="props.loading" @click="onRegister" />
 			</div>
 
 			<!-- already have an account -->

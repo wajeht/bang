@@ -7,11 +7,17 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    Button: typeof import('./components/UI/Button.vue')['default']
     DashboardLayout: typeof import('./layouts/DashboardLayout.vue')['default']
     Footer: typeof import('./components/Footer/Footer.vue')['default']
     ForgotPasswordCard: typeof import('./components/ForgotPasswordCard/ForgotPasswordCard.vue')['default']
+    Form: typeof import('./components/UI/Form.vue')['default']
+    FormInput: typeof import('./components/UI/FormInput.vue')['default']
+    'IBi:eye': typeof import('~icons/bi/eye')['default']
+    'IBi:eyeSlash': typeof import('~icons/bi/eye-slash')['default']
     'IBi:gear': typeof import('~icons/bi/gear')['default']
     'ICi:command': typeof import('~icons/ci/command')['default']
+    'ICi:eyeSlash': typeof import('~icons/ci/eye-slash')['default']
     'IDevicon:google': typeof import('~icons/devicon/google')['default']
     'IIc:outlineBookmarks': typeof import('~icons/ic/outline-bookmarks')['default']
     'IMdi:emailOutline': typeof import('~icons/mdi/email-outline')['default']
