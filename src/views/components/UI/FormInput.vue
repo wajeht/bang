@@ -24,6 +24,10 @@ const computedValidationLabelErrorClass = computed(() => {
 	return props.error ? 'text-error' : '';
 });
 
+const computedPasswordType = computed(() => {
+  return props.type === 'password' && props.modelValue.length;
+});
+
 function onInput(event: Event) {
 	const target = event.target as HTMLInputElement;
 	emits('update:modelValue', target.value);
@@ -55,7 +59,7 @@ function togglePassword() {
 			<!-- password -->
 			<div
 				role="button"
-				v-if="type === 'password'"
+				v-if="computedPasswordType"
 				class="absolute right-0 top-0 h-full flex items-center mr-3"
 			>
 				<i-bi:eye-slash v-if="states.password" @click="togglePassword" />
