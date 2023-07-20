@@ -25,7 +25,7 @@ const computedValidationLabelErrorClass = computed(() => {
 });
 
 const computedPasswordType = computed(() => {
-  return props.type === 'password' && props.modelValue.length;
+	return props.type === 'password' && props.modelValue.length;
 });
 
 function onInput(event: Event) {

@@ -9,7 +9,7 @@ export async function createUser(
 			email: user.email,
 			password: user.password,
 			username: user.username,
-      role: Role.USER,
+			role: Role.USER,
 		},
 	});
 
