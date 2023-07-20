@@ -9,7 +9,6 @@ import api from './api/api.routes';
 import * as appMiddlewares from './app.middlewares';
 
 app.set('trust proxy', true);
-
 app.use(cors());
 app.use(
 	helmet({
