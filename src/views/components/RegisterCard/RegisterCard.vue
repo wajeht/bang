@@ -11,9 +11,7 @@ export type States = {
 
 export type Props = { error: ZodIssue[]; loading?: boolean };
 
-export type Emits = {
-	(e: 'register', inputs: Omit<States, 'error'>): void;
-};
+export type Emits = { (e: 'register', inputs: Omit<States, 'error'>): void };
 
 const props = defineProps<Props>();
 
@@ -30,6 +28,14 @@ const states = reactive<States>({
 onUpdated(() => {
 	states.error = props.error;
 });
+
+function clear() {
+	states.username = '';
+	states.email = '';
+	states.password = '';
+	states.agree = false;
+	states.error = [];
+}
 
 function onRegister() {
 	const { error, ...rest } = states;
@@ -49,6 +55,16 @@ function clearError(type: keyof States) {
 		}
 	});
 }
+
+watch(
+	() => props.loading,
+	(prev, curr) => {
+		if (prev === true && curr === false) {
+			clear();
+		}
+	},
+	{ immediate: true },
+);
 </script>
 
 <template>
@@ -67,6 +83,7 @@ function clearError(type: keyof States) {
 					label="Username"
 					placeholder="username"
 					autocomplete="username"
+					:disabled="props.loading"
 					:error="computedError('username')"
 				/>
 
@@ -76,6 +93,7 @@ function clearError(type: keyof States) {
 					type="email"
 					label="Email"
 					placeholder="email@domain.com"
+					:disabled="props.loading"
 					autocomplete="email"
 					:error="computedError('email')"
 					@update:model-value="clearError('email')"
@@ -87,6 +105,7 @@ function clearError(type: keyof States) {
 					type="password"
 					label="Password"
 					placeholder="••••••••"
+					:disabled="props.loading"
 					autocomplete="current-password"
 					:error="computedError('password')"
 					@update:model-value="clearError('password')"
@@ -94,10 +113,18 @@ function clearError(type: keyof States) {
 
 				<div class="flex flex-col mt-2 gap-1">
 					<!-- agree -->
-					<label class="label cursor-pointer gap-2 justify-start">
-						<input type="checkbox" v-model="states.agree" :checked="false" class="checkbox" />
-						<span class="label-text text-base">I agree</span>
-					</label>
+					<div class="w-fit">
+						<label :class="[props.loading ? '' : 'cursor-pointer', 'label gap-2 justify-start']">
+							<input
+								type="checkbox"
+								:disabled="props.loading"
+								v-model="states.agree"
+								:checked="false"
+								class="checkbox"
+							/>
+							<span class="label-text text-base">I agree</span>
+						</label>
+					</div>
 
 					<!-- notice -->
 					<div class="text-sm pl-1">

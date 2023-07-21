@@ -2,13 +2,9 @@
 import axios, { AxiosError } from 'axios';
 import type { States } from '../components/RegisterCard/RegisterCard.vue';
 
-export type StatesWithLoading = States & { loading: boolean };
+export type StatesWithLoading = Pick<States, 'error' > & { loading: boolean };
 
 const states = reactive<StatesWithLoading>({
-	username: '',
-	email: '',
-	password: '',
-	agree: false,
 	error: [],
 	loading: false,
 });
@@ -16,7 +12,11 @@ const states = reactive<StatesWithLoading>({
 async function register(inputs: Omit<States, 'error'>) {
 	try {
 		states.loading = true;
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
 		await axios.post('/api/v1/auth/register', inputs);
+
 	} catch (error) {
 		if (error instanceof AxiosError) {
 			states.error = error.response?.data.error;
@@ -31,7 +31,11 @@ async function register(inputs: Omit<States, 'error'>) {
 	<RegularLayout>
 		<div class="flex flex-col w-full items-center gap-6">
 			<!-- login -->
-			<RegisterCard @register="register" :error="states.error" :loading="states.loading" />
+			<RegisterCard
+				@register="register"
+				:error="states.error"
+				:loading="states.loading"
+			/>
 
 			<!-- or -->
 			<!-- <Or /> -->
