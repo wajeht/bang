@@ -8,7 +8,7 @@ export async function postRegister(
 	req: Request<{}, {}, PostRegisterSchema>,
 	res: Response,
 ): Promise<void> {
-	const user = await AuthServices.createUser(req.body);
+	await AuthServices.createUser(req.body);
 
 	res.status(StatusCodes.OK).json({
 		message: 'postRegister() ok',

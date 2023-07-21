@@ -5,8 +5,8 @@ import db from '../../../database/db';
 export const postRegisterSchema = z.object({
 	username: z
 		.string()
-		.min(3)
-		.max(255)
+		.min(3, 'Username must be at least 3 characters')
+		.max(255, 'Username must not exceed 255 characters')
 		.refine(
 			async (username) => {
 				const foundUser = await db.user.findUnique({
@@ -22,7 +22,7 @@ export const postRegisterSchema = z.object({
 		),
 	email: z
 		.string()
-		.email()
+		.email('Invalid email format')
 		.refine(
 			async (email) => {
 				const foundUser = await db.user.findUnique({
@@ -36,22 +36,43 @@ export const postRegisterSchema = z.object({
 				message: 'Email already exists in the database',
 			},
 		),
-	password: z.string().min(8).max(255),
+	password: z
+		.string()
+		.min(3, 'Password must be at least 3 characters')
+		.max(255, 'Password must not exceed 255 characters'),
 });
 
 export const postForgotPasswordSchema = z.object({
 	email: z.string().email(),
 });
 
-export const postResetPasswordSchema = z.object({
-	password: z.string().min(8).max(255),
-	confirmPassword: z.string().min(8).max(255),
-});
+export const postResetPasswordSchema = z
+	.object({
+		password: z
+			.string()
+			.min(3, 'Password must be at least 3 characters')
+			.max(255, 'Password must not exceed 255 characters'),
+		confirmPassword: z
+			.string()
+			.min(3, 'Confirm Password must be at least 3 characters')
+			.max(255, 'Confirm Password must not exceed 255 characters'),
+	})
+	.refine(
+		({ password, confirmPassword }) => {
+			return password === confirmPassword;
+		},
+		{
+			message: 'Passwords do not match',
+		},
+	);
 
 export const postLoginSchema = z
 	.object({
-		email: z.string().email(),
-		password: z.string().min(8).max(255),
+		email: z.string().email('Invalid email format'),
+		password: z
+			.string()
+			.min(3, 'Password must be at least 3 characters')
+			.max(255, 'Password must not exceed 255 characters'),
 	})
 	.refine(
 		async ({ email, password }) => {
