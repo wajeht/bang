@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
+import axios, { AxiosError } from 'axios';
 
 export type States = {
 	username: string;
@@ -7,48 +8,34 @@ export type States = {
 	password: string;
 	agree: boolean;
 	error: ZodIssue[];
+	loading: boolean;
 };
-
-export type Props = { error: ZodIssue[]; loading?: boolean };
-
-export type Emits = { (e: 'register', inputs: Omit<States, 'error'>): void };
-
-const props = defineProps<Props>();
-
-const emits = defineEmits<Emits>();
 
 const states = reactive<States>({
 	username: '',
 	email: '',
 	password: '',
 	agree: false,
-	error: props.error,
+	error: [],
+	loading: false,
 });
 
-onUpdated(() => {
-	states.error = props.error;
-});
-
-function clear() {
+function clearInputs(): void {
 	states.username = '';
 	states.email = '';
 	states.password = '';
 	states.agree = false;
 	states.error = [];
+	states.loading = false;
 }
 
-function onRegister() {
-	const { error, ...rest } = states;
-	emits('register', rest);
-}
-
-function computedError(type: keyof States) {
+function computedError(type: keyof States): string | undefined {
 	return computed(() => {
 		return states.error.find((e) => e.path[0] === type)?.message;
 	}).value;
 }
 
-function clearError(type: keyof States) {
+function clearError(type: keyof States): void {
 	states.error.forEach((e) => {
 		if (e.path[0] === type) {
 			states.error.splice(states.error.indexOf(e), 1);
@@ -56,15 +43,25 @@ function clearError(type: keyof States) {
 	});
 }
 
-watch(
-	() => props.loading,
-	(prev, curr) => {
-		if (prev === true && curr === false) {
-			clear();
+async function register(): Promise<void> {
+	try {
+		states.loading = true;
+
+		const { error, loading, ...inputs } = states;
+
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+
+		await axios.post('/api/v1/auth/register', inputs);
+
+		clearInputs();
+	} catch (error) {
+		if (error instanceof AxiosError) {
+			states.error = error.response?.data.error;
 		}
-	},
-	{ immediate: true },
-);
+	} finally {
+		states.loading = false;
+	}
+}
 </script>
 
 <template>
@@ -83,7 +80,7 @@ watch(
 					label="Username"
 					placeholder="username"
 					autocomplete="username"
-					:disabled="props.loading"
+					:disabled="states.loading"
 					:error="computedError('username')"
 				/>
 
@@ -93,7 +90,7 @@ watch(
 					type="email"
 					label="Email"
 					placeholder="email@domain.com"
-					:disabled="props.loading"
+					:disabled="states.loading"
 					autocomplete="email"
 					:error="computedError('email')"
 					@update:model-value="clearError('email')"
@@ -105,7 +102,7 @@ watch(
 					type="password"
 					label="Password"
 					placeholder="••••••••"
-					:disabled="props.loading"
+					:disabled="states.loading"
 					autocomplete="current-password"
 					:error="computedError('password')"
 					@update:model-value="clearError('password')"
@@ -114,10 +111,10 @@ watch(
 				<div class="flex flex-col mt-2 gap-1">
 					<!-- agree -->
 					<div class="w-fit">
-						<label :class="[props.loading ? '' : 'cursor-pointer', 'label gap-2 justify-start']">
+						<label :class="[states.loading ? '' : 'cursor-pointer', 'label gap-2 justify-start']">
 							<input
 								type="checkbox"
-								:disabled="props.loading"
+								:disabled="states.loading"
 								v-model="states.agree"
 								:checked="false"
 								class="checkbox"
@@ -138,7 +135,7 @@ watch(
 
 			<!-- button -->
 			<div class="flex flex-col gap-2">
-				<Button :label="'Register'" :loading="props.loading" @click="onRegister" />
+				<Button :label="'Register'" :loading="states.loading" @click="register" />
 			</div>
 
 			<!-- already have an account -->
