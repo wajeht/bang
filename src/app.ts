@@ -11,8 +11,8 @@ import * as appMiddlewares from './app.middlewares';
 app.use(
 	helmet({
 		contentSecurityPolicy: {
+      useDefaults: true,
 			directives: {
-        'default-src': "'self'",
 				'script-src': ["'self'", 'https://plausible.jaw.dev'],
 			},
 		},
