@@ -1,34 +1,33 @@
 import express from 'express';
 import catchAsyncHandler from 'express-async-handler';
+import { validateRequest } from 'zod-express-middleware';
 
 const auth = express.Router();
-
-import { validate } from '../../api.middlewares';
 
 import * as authControllers from './auth.controllers';
 import * as authValidations from './auth.validations';
 
 auth.post(
 	'/login',
-	validate({ body: authValidations.postLoginSchema }),
+	validateRequest({ body: authValidations.postLoginSchema }),
 	catchAsyncHandler(authControllers.postLogin),
 );
 
 auth.post(
 	'/register',
-	validate({ body: authValidations.postRegisterSchema }),
+	validateRequest({ body: authValidations.postRegisterSchema }),
 	catchAsyncHandler(authControllers.postRegister),
 );
 
 auth.post(
 	'/reset-password',
-	validate({ body: authValidations.postResetPasswordSchema }),
+	validateRequest({ body: authValidations.postResetPasswordSchema }),
 	catchAsyncHandler(authControllers.postLogin),
 );
 
 auth.post(
 	'/forgot-password',
-	validate({ body: authValidations.postForgotPasswordSchema }),
+	validateRequest({ body: authValidations.postForgotPasswordSchema }),
 	catchAsyncHandler(authControllers.postLogin),
 );
 
