@@ -1,47 +1,71 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
+import axios, { AxiosError } from 'axios';
 
 export type States = {
 	email: string;
 	password: string;
 	remember: boolean;
+	loading: boolean;
 	error: ZodIssue[];
 };
-
-export type Props = { error: ZodIssue[]; loading?: boolean };
-
-export type Emits = {
-	(e: 'login', inputs: Omit<States, 'error'>): void;
-};
-
-const props = defineProps<Props>();
-
-const emits = defineEmits<Emits>();
 
 const states = reactive<States>({
 	email: '',
 	password: '',
 	remember: false,
-	error: props.error,
+	loading: false,
+	error: [],
 });
 
-onUpdated(() => {
-	states.error = props.error;
-});
-
-function onLogin() {
-	const { error, ...rest } = states;
-	emits('login', rest);
+function clearInputs() {
+	states.email = '';
+	states.password = '';
+	states.remember = false;
+	states.error = [];
+	states.loading = false;
 }
 
-function computedError(type: keyof States) {
+async function login(): Promise<void> {
+	try {
+		states.loading = true;
+
+		const { error, loading, ...inputs } = states;
+
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+
+		await axios.post('/api/v1/auth/login', inputs);
+
+		clearInputs();
+	} catch (error) {
+		if (error instanceof AxiosError) {
+			states.error = error.response?.data.error;
+		}
+	} finally {
+		states.loading = false;
+	}
+}
+
+function computedError(type: keyof States): string | undefined {
 	return computed(() => {
-		return states.error.find((e) => e.path[0] === type)?.message;
+		return states.error.find((e) => {
+			if (e.path.length === 0 && e.code === 'custom') {
+				return e;
+			}
+
+			if (e.path[0] === type) {
+				return e;
+			}
+		})?.message;
 	}).value;
 }
 
 function clearError(type: keyof States) {
 	states.error.forEach((e) => {
+		if (e.path.length === 0 && e.code === 'custom') {
+			states.error.splice(states.error.indexOf(e), 1);
+		}
+
 		if (e.path[0] === type) {
 			states.error.splice(states.error.indexOf(e), 1);
 		}
@@ -64,6 +88,7 @@ function clearError(type: keyof States) {
 					label="Email"
 					placeholder="email@domain.com"
 					autocomplete="email"
+					:disabled="states.loading"
 					:error="computedError('email')"
 					@update:model-value="clearError('email')"
 				/>
@@ -74,6 +99,7 @@ function clearError(type: keyof States) {
 					type="password"
 					label="Password"
 					placeholder="••••••••"
+					:disabled="states.loading"
 					autocomplete="current-password"
 					:error="computedError('password')"
 					@update:model-value="clearError('password')"
@@ -93,7 +119,7 @@ function clearError(type: keyof States) {
 
 			<!-- button -->
 			<div class="flex flex-col gap-2">
-				<Button :label="'Login'" :loading="props.loading" @click="onLogin" />
+				<Button :label="'Login'" :loading="states.loading" @click="login" />
 			</div>
 
 			<!-- dont have an account yet -->

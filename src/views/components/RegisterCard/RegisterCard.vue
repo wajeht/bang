@@ -31,12 +31,24 @@ function clearInputs(): void {
 
 function computedError(type: keyof States): string | undefined {
 	return computed(() => {
-		return states.error.find((e) => e.path[0] === type)?.message;
+		return states.error.find((e) => {
+			if (e.path.length === 0 && e.code === 'custom') {
+				return e;
+			}
+
+			if (e.path[0] === type) {
+				return e;
+			}
+		})?.message;
 	}).value;
 }
 
-function clearError(type: keyof States): void {
+function clearError(type: keyof States) {
 	states.error.forEach((e) => {
+		if (e.path.length === 0 && e.code === 'custom') {
+			states.error.splice(states.error.indexOf(e), 1);
+		}
+
 		if (e.path[0] === type) {
 			states.error.splice(states.error.indexOf(e), 1);
 		}
