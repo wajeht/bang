@@ -12,6 +12,7 @@ app.use(
 	helmet({
 		contentSecurityPolicy: {
 			directives: {
+        'default-src': "'self'",
 				'script-src': ["'self'", 'https://plausible.jaw.dev'],
 			},
 		},
