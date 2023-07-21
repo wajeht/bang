@@ -8,8 +8,6 @@ const app = express();
 import api from './api/api.routes';
 import * as appMiddlewares from './app.middlewares';
 
-app.set('trust proxy', true);
-app.use(cors());
 app.use(
 	helmet({
 		contentSecurityPolicy: {
@@ -19,6 +17,8 @@ app.use(
 		},
 	}),
 );
+app.use(cors());
+app.set('trust proxy', true);
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
