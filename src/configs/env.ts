@@ -9,12 +9,10 @@ const schema = z.object({
 	SERVER_PORT: z.string().transform(Number),
 	DB_URL: z.string(),
 	NODE_ENV: z.enum(['production', 'development', 'testing']),
-  EMAIL: z.object({
-    HOST: z.string(),
-    PORT: z.string().transform(Number),
-    AUTH_EMAIL: z.string(),
-    AUTH_PASS: z.string(),
-  }),
+	EMAIL_HOST: z.string(),
+	EMAIL_PORT: z.string().transform(Number),
+	EMAIL_AUTH_EMAIL: z.string(),
+	EMAIL_AUTH_PASS: z.string(),
 });
 
 const parsed = schema.safeParse(process.env);

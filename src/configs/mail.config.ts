@@ -1,10 +1,10 @@
 import env from './env';
 
 export default {
-	host: env.EMAIL.HOST,
-	port: env.EMAIL.PORT,
+	host: env.EMAIL_HOST,
+	port: env.EMAIL_PORT,
 	auth: {
-		user: env.EMAIL.AUTH_EMAIL,
-		pass: env.EMAIL.AUTH_PASS,
+		user: env.EMAIL_AUTH_EMAIL,
+		pass: env.EMAIL_AUTH_PASS,
 	},
 };
