@@ -5,21 +5,32 @@ import compression from 'compression';
 import helmet from 'helmet';
 const app = express();
 
+import env from './configs/env';
 import api from './api/api.routes';
 import * as appMiddlewares from './app.middlewares';
 
 app.use(
 	helmet({
 		contentSecurityPolicy: {
-      useDefaults: true,
+			useDefaults: true,
 			directives: {
 				'script-src': ["'self'", 'https://plausible.jaw.dev'],
 			},
 		},
 	}),
 );
-app.use(cors());
-app.set('trust proxy', true);
+
+app.use(
+	cors({
+		origin: [
+			`http://localhost:${env.VUE_PORT}`,
+			`http://localhost:${env.SERVER_PORT}`,
+			'https://bang.jaw.dev',
+		],
+		credentials: true,
+	}),
+);
+
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
