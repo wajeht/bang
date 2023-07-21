@@ -3,6 +3,18 @@ import path from 'path';
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { ZodError } from 'zod';
+import { NotFoundError, ValidationError } from './api/api.errors';
+
+import env from './configs/env';
+
+export interface CustomResponse {
+	status: boolean;
+	statusCode: number;
+	requestUrl: string;
+	message: string;
+	data: unknown;
+	error?: unknown;
+}
 
 export function vueHandler(req: Request, res: Response, next: NextFunction) {
 	try {
@@ -15,30 +27,77 @@ export function vueHandler(req: Request, res: Response, next: NextFunction) {
 }
 
 export function apiNotFoundHandle(req: Request, res: Response, next: NextFunction) {
-	const isApiPrefix = req.url.match(/\/api\/v\d\//g);
+	const resonse: CustomResponse = {
+		status: false,
+		statusCode: StatusCodes.NOT_FOUND,
+		requestUrl: req.originalUrl,
+		message: 'Resource not found',
+		data: [],
+	};
+
+	const { statusCode, ...rest } = resonse;
+
+	const isApiPrefix = req.url.match(/^\/api\/v\d\//) || req.url.match(/^\/api\//);
+
 	if (isApiPrefix) {
-		return res.status(StatusCodes.NOT_FOUND).send({
-			message: 'Resource not found',
-		});
+		return res.status(statusCode).send(rest);
 	}
+
 	next();
 }
 
 export function notFoundHandler(req: Request, res: Response, next: NextFunction) {
-	return res.status(StatusCodes.NOT_FOUND).send({
+	const resonse: CustomResponse = {
+		status: false,
+		statusCode: StatusCodes.NOT_FOUND,
+		requestUrl: req.originalUrl,
 		message: 'Resource not found',
-	});
+		data: [],
+	};
+
+	const { statusCode, ...rest } = resonse;
+
+	return res.status(statusCode).send(rest);
 }
 
-export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
+export function errorHandler(
+	err: Error,
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): Response {
+	const response: CustomResponse = {
+		status: false,
+		statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+		requestUrl: req.originalUrl,
+		message: 'Internal server error',
+		data: [],
+	};
+
 	if (err instanceof ZodError) {
-		return res.status(StatusCodes.BAD_REQUEST).send({
-			message: 'Validation error',
-			error: err.errors,
-		});
+		response.message = 'Validation error';
+		response.statusCode = StatusCodes.UNPROCESSABLE_ENTITY;
+		response.error = err.issues;
 	}
 
-	return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-		message: 'Internal server error',
-	});
+	if (err instanceof NotFoundError) {
+		response.message = err.message;
+		response.statusCode = err.statusCode;
+	}
+
+	if (err instanceof ValidationError) {
+		response.message = err.message;
+		response.statusCode = err.statusCode;
+	}
+
+	if (env.NODE_ENV == 'development') {
+		response.message = err.message;
+		// not instance of zod err
+		if (!(err instanceof ZodError)) {
+			response.error = err.stack;
+		}
+	}
+
+	const { statusCode, ...rest } = response;
+	return res.status(statusCode).send(rest);
 }
