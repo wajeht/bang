@@ -9,16 +9,7 @@ import env from './configs/env';
 import api from './api/api.routes';
 import * as appMiddlewares from './app.middlewares';
 
-app.use(
-	helmet({
-		contentSecurityPolicy: {
-			useDefaults: true,
-			directives: {
-				'script-src': ["'self'", 'https://plausible.jaw.dev'],
-			},
-		},
-	}),
-);
+app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(
 	cors({
