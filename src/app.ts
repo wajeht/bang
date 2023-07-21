@@ -8,7 +8,16 @@ const app = express();
 import api from './api/api.routes';
 import * as appMiddlewares from './app.middlewares';
 
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(
+	helmet({
+		contentSecurityPolicy: {
+			directives: {
+				...helmet.contentSecurityPolicy.getDefaultDirectives(),
+				'default-src': ["'self'", 'plausible.jaw.dev '],
+			},
+		},
+	}),
+);
 app.use(cors());
 app.use(compression());
 app.use(express.json());
