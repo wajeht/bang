@@ -8,13 +8,13 @@ export async function hashPassword(password: string) {
 }
 
 export async function createUser(user: Pick<User, 'email' | 'password' | 'username'>) {
-  const hashedPassword = await hashPassword(user.password)
+	const hashedPassword = await hashPassword(user.password);
 
 	const createdUser = await db.user.create({
 		data: {
 			email: user.email,
 			password: hashedPassword,
-      username: user.username,
+			username: user.username,
 		},
 	});
 

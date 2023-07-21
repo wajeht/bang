@@ -7,7 +7,7 @@ export type Props = {
 	label?: string;
 	type: InputTypes;
 	placeholder?: string;
-  disabled?: boolean;
+	disabled?: boolean;
 	autocomplete?: string;
 };
 
@@ -54,7 +54,7 @@ function togglePassword() {
 				@input="onInput"
 				:placeholder="props.placeholder"
 				:autocomplete="props.autocomplete"
-        :disabled="props.disabled"
+				:disabled="props.disabled"
 				:class="[computedValidationInputErrorClass, 'input input-bordered w-full pr-10']"
 			/>
 
