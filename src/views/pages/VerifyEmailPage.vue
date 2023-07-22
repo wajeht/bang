@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ZodIssue } from 'zod';
 import axios, { AxiosError } from 'axios';
 import type { Props as AlertType } from '../components/Alert/Alert.vue';
 import { useRouteQuery } from '@vueuse/router';
@@ -10,23 +9,17 @@ const router = useRouter();
 type Status = 'success' | 'error' | 'idle' | 'loading';
 
 export type States = {
-	loading: boolean;
-	message: string;
 	token: string;
 	status: Status;
 	email: string;
 	alert: AlertType;
-	error: ZodIssue[];
 };
 
 const states = reactive<States>({
-	loading: false,
-	message: '',
 	token: '',
 	status: 'idle',
 	email: '',
 	alert: {} as AlertType,
-	error: [],
 });
 
 onMounted(async () => {
@@ -80,7 +73,6 @@ const computedTitleLang = computed(() => {
 
 async function verifyEmail() {
 	try {
-		states.loading = true;
 		states.status = 'loading';
 
 		await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -120,7 +112,6 @@ async function verifyEmail() {
 			}
 		}
 	} finally {
-		states.loading = false;
 	}
 }
 </script>
