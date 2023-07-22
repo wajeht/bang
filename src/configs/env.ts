@@ -13,6 +13,7 @@ const schema = z.object({
 	EMAIL_PORT: z.string().transform(Number),
 	EMAIL_AUTH_EMAIL: z.string(),
 	EMAIL_AUTH_PASS: z.string(),
+	PASSWORD_SALT: z.string().transform(Number),
 });
 
 const parsed = schema.safeParse(process.env);
