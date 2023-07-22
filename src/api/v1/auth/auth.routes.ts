@@ -1,6 +1,7 @@
 import express from 'express';
 import catchAsyncHandler from 'express-async-handler';
-import { validateRequest } from 'zod-express-middleware';
+
+import { validate } from '../../api.middlewares';
 
 const auth = express.Router();
 
@@ -9,25 +10,25 @@ import * as authValidations from './auth.validations';
 
 auth.post(
 	'/login',
-	validateRequest({ body: authValidations.postLoginSchema }),
+	validate({ body: authValidations.postLoginSchema }),
 	catchAsyncHandler(authControllers.postLogin),
 );
 
 auth.post(
 	'/register',
-	validateRequest({ body: authValidations.postRegisterSchema }),
+	validate({ body: authValidations.postRegisterSchema }),
 	catchAsyncHandler(authControllers.postRegister),
 );
 
 auth.post(
 	'/reset-password',
-	validateRequest({ body: authValidations.postResetPasswordSchema }),
+	validate({ body: authValidations.postResetPasswordSchema }),
 	catchAsyncHandler(authControllers.postLogin),
 );
 
 auth.post(
 	'/forgot-password',
-	validateRequest({ body: authValidations.postForgotPasswordSchema }),
+	validate({ body: authValidations.postForgotPasswordSchema }),
 	catchAsyncHandler(authControllers.postLogin),
 );
 

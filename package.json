@@ -53,8 +53,7 @@
 		"pinia-plugin-persistedstate": "^3.1.0",
 		"vue": "^3.3.4",
 		"vue-router": "^4.2.4",
-		"zod": "^3.21.4",
-		"zod-express-middleware": "^1.4.0"
+		"zod": "^3.21.4"
 	},
 	"devDependencies": {
 		"@fireworks-js/vue": "^2.10.7",
