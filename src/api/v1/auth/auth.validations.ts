@@ -119,6 +119,28 @@ export const postVerifyEmailSchema = z
 		{
 			message: 'Invalid email or token!',
 		},
+	)
+	.refine(
+		async ({ email, token }) => {
+			const foundUser = await db.user.findUnique({
+				where: {
+					email,
+					verification_token: token,
+				},
+			});
+
+			const tokenExpired =
+				new Date().getTime() - foundUser!.verification_token_expires_at!.getTime() > 10 * 60 * 1000;
+
+			if (tokenExpired) {
+				return false;
+			}
+
+			return true;
+		},
+		{
+			message: 'Token has expired!',
+		},
 	);
 
 export type PostForgotPasswordSchema = z.infer<typeof postForgotPasswordSchema>;
