@@ -10,6 +10,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage.vue';
 import HomePage from './pages/HomePage.vue';
 import LearnMorePage from './pages/LearnMorePage.vue';
 import ResetPasswordPage from './pages/ResetPasswordPage.vue';
+import VerifyEmailPage from './pages/VerifyEmailPage.vue';
 
 // dashboard pages
 import DashboardPage from './pages/Dashboard/DashboardPage.vue';
@@ -28,6 +29,7 @@ const router = createRouter({
 		{ path: '/terms-of-service', name: 'Terms of Service', component: TermsOfServicePage },
 		{ path: '/privacy-policy', name: 'Privacy Policy', component: PrivacyPolicyPage },
 		{ path: '/register', name: 'Register', component: RegisterPage },
+		{ path: '/verify-email', name: 'Verify Email', component: VerifyEmailPage },
 		{ path: '/forgot-password', name: 'Forgot Password', component: ForgotPasswordPage },
 		{ path: '/reset-password', name: 'Reset Password', component: ResetPasswordPage },
 		{ path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFoundPage },
