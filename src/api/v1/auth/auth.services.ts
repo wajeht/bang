@@ -1,5 +1,6 @@
 import { User } from '../../../types/user';
 import { hashPassword, generateToken } from './auth.utils';
+import { VERIFICATION_TOKEN_EXPIRES_AT } from './auth.enums';
 
 import db from '../../../database/db';
 
@@ -13,7 +14,7 @@ export async function createUser(user: Pick<User, 'email' | 'password' | 'userna
 			password: hashedPassword,
 			username: user.username,
 			verification_token: verificationToken,
-			verification_token_expires_at: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+			verification_token_expires_at: VERIFICATION_TOKEN_EXPIRES_AT,
 		},
 	});
 

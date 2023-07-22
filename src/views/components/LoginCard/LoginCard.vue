@@ -63,6 +63,8 @@ async function login(): Promise<void> {
 		clearInputs();
 	} catch (error) {
 		if (error instanceof AxiosError) {
+			states.error = error.response?.data.error;
+
 			if (error.response?.status && error.response.status >= 500) {
 				states.alert = {
 					type: 'error',
@@ -71,7 +73,21 @@ async function login(): Promise<void> {
 				};
 				return;
 			}
-			states.error = error.response?.data.error;
+
+			if (error.response?.status && error.response.status >= 400) {
+				if (
+					error.response.data?.error &&
+					error.response.data?.length === 1 &&
+					error.response.data?.error[0]?.code === 'custom'
+				) {
+					states.alert = {
+						type: 'error',
+						message: error?.response?.data?.error[0]?.message ?? error.response.data?.message,
+						icon: true,
+					};
+					return;
+				}
+			}
 		}
 	} finally {
 		states.loading = false;

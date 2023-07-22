@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 import bcrypt from 'bcryptjs';
 import db from '../../../database/db';
 
@@ -74,103 +74,117 @@ export const postLoginSchema = z
 			.min(3, 'Password must be at least 3 characters')
 			.max(255, 'Password must not exceed 255 characters'),
 	})
-	.refine(
-		async ({ email, password }) => {
-			// Retrieve the user from the database based on the provided email
-			const foundUser = await db.user.findUnique({
-				where: {
-					email,
+	.refine(async ({ email }) => {
+		const foundUser = await db.user.findFirst({
+			where: {
+				email,
+				verified: false,
+			},
+		});
+
+		if (foundUser) {
+			throw new ZodError([
+				{
+					path: [],
+					message: 'You have not verified your email!',
+					code: 'custom',
 				},
-			});
+			]);
+		}
 
-			// If no user is found, or the password does not match, return false
-			if (!foundUser || !(await bcrypt.compare(password, foundUser.password))) {
-				return false;
-			}
+		return true;
+	})
+	.refine(async ({ email, password }) => {
+		const foundUser = await db.user.findUnique({
+			where: {
+				email,
+			},
+		});
 
-			// If the email and password match, return true
-			return true;
-		},
-		{
-			message: 'Email or password is incorrect',
-		},
-	);
+		if (!foundUser || !(await bcrypt.compare(password, foundUser.password))) {
+			throw new ZodError([
+				{
+					path: ['email'],
+					message: 'Email or password is incorrect',
+					code: 'custom',
+				},
+			]);
+		}
+
+		return true;
+	});
 
 export const postVerifyEmailSchema = z
 	.object({
 		token: z.string(),
 		email: z.string().email('Invalid email format'),
 	})
-	.refine(
-		async ({ email }) => {
-			const foundUser = await db.user.findFirst({
-				where: {
-					email,
-					verified: true,
-					verification_token: null,
-					verification_token_expires_at: null,
-					verified_at: {
-						not: null,
-					},
+	.refine(async ({ email }) => {
+		const foundUser = await db.user.findFirst({
+			where: {
+				email,
+				verified: true,
+				verification_token: null,
+				verification_token_expires_at: null,
+				verified_at: {
+					not: null,
 				},
-			});
+			},
+		});
 
-			if (foundUser) {
-				return false;
+		if (foundUser) {
+			throw new ZodError([
+				{
+					path: ['email'],
+					message: 'You have already verified your email!',
+					code: 'already_verified',
+				},
+			]);
+		}
+
+		return true;
+	})
+	.refine(async ({ email, token }) => {
+		const foundUser = await db.user.findFirst({
+			where: {
+				email,
+				verification_token: token,
+			},
+		});
+
+		let tokenExpired: boolean | null;
+
+		if (foundUser && foundUser.verification_token_expires_at) {
+			tokenExpired =
+				new Date().getTime() - foundUser.verification_token_expires_at.getTime() > 10 * 60 * 1000;
+
+			if (tokenExpired) {
+				throw new ZodError([
+					{ path: ['token'], message: 'Token has expired!', code: 'token_expired' },
+				]);
 			}
 
 			return true;
-		},
-		{
-			message: 'You have already verified your email!',
-		},
-	)
-	.refine(
-		async ({ email, token }) => {
-			const foundUser = await db.user.findFirst({
-				where: {
-					email,
-					verification_token: token,
-				},
-			});
+		}
 
-			let tokenExpired: boolean | null;
+		throw new Error('Invalid email or token!'); // Exit on first fail check
+	})
+	.refine(async ({ email, token }) => {
+		const foundUser = await db.user.findUnique({
+			where: {
+				email,
+				verification_token: token,
+			},
+		});
 
-			if (foundUser && foundUser.verification_token_expires_at) {
-				tokenExpired =
-					new Date().getTime() - foundUser!.verification_token_expires_at.getTime() >
-					10 * 60 * 1000;
+		if (!foundUser) {
+			throw new ZodError([
+				{ path: ['email'], message: 'Invalid email or token!', code: 'invalid_email_or_token' },
+			]);
+		}
 
-				if (tokenExpired) {
-					return false;
-				}
-
-				return true;
-			}
-		},
-		{
-			message: 'Token has expired!',
-		},
-	)
-	.refine(
-		async ({ email, token }) => {
-			const foundUser = await db.user.findUnique({
-				where: {
-					email,
-					verification_token: token,
-				},
-			});
-
-			if (!foundUser) {
-				return false;
-			}
-
-			return true;
-		},
-		{
-			message: 'Invalid email or token!',
-		},
-	);
+		return true;
+	});
 
 export type PostForgotPasswordSchema = z.infer<typeof postForgotPasswordSchema>;
 export type PostResetPasswordSchema = z.infer<typeof postResetPasswordSchema>;
