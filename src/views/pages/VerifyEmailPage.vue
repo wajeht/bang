@@ -107,7 +107,7 @@ async function verifyEmail() {
 			if (error.response?.status && error.response.status >= 400) {
 				states.alert = {
 					type: 'error',
-					message: error.response.data.error[0].message,
+					message: error?.response?.data?.error[0]?.message ?? error.response.data?.message,
 					icon: true,
 				};
 			}

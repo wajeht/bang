@@ -102,6 +102,57 @@ export const postVerifyEmailSchema = z
 		email: z.string().email('Invalid email format'),
 	})
 	.refine(
+		async ({ email }) => {
+			const foundUser = await db.user.findFirst({
+				where: {
+					email,
+					verified: true,
+					verification_token: null,
+					verification_token_expires_at: null,
+					verified_at: {
+						not: null,
+					},
+				},
+			});
+
+			if (foundUser) {
+				return false;
+			}
+
+			return true;
+		},
+		{
+			message: 'You have already verified your email!',
+		},
+	)
+	.refine(
+		async ({ email, token }) => {
+			const foundUser = await db.user.findFirst({
+				where: {
+					email,
+					verification_token: token,
+				},
+			});
+
+			let tokenExpired: boolean | null;
+
+			if (foundUser && foundUser.verification_token_expires_at) {
+				tokenExpired =
+					new Date().getTime() - foundUser!.verification_token_expires_at.getTime() >
+					10 * 60 * 1000;
+
+				if (tokenExpired) {
+					return false;
+				}
+
+				return true;
+			}
+		},
+		{
+			message: 'Token has expired!',
+		},
+	)
+	.refine(
 		async ({ email, token }) => {
 			const foundUser = await db.user.findUnique({
 				where: {
@@ -118,28 +169,6 @@ export const postVerifyEmailSchema = z
 		},
 		{
 			message: 'Invalid email or token!',
-		},
-	)
-	.refine(
-		async ({ email, token }) => {
-			const foundUser = await db.user.findUnique({
-				where: {
-					email,
-					verification_token: token,
-				},
-			});
-
-			const tokenExpired =
-				new Date().getTime() - foundUser!.verification_token_expires_at!.getTime() > 10 * 60 * 1000;
-
-			if (tokenExpired) {
-				return false;
-			}
-
-			return true;
-		},
-		{
-			message: 'Token has expired!',
 		},
 	);
 
