@@ -90,7 +90,7 @@ async function register(): Promise<void> {
 
 		states.alert = {
 			type: 'success',
-			message: 'Thanks for joining',
+			message: 'Thanks for registering! Please check your email to verify your account.',
 			icon: true,
 		};
 
