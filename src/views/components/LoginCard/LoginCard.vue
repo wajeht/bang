@@ -105,67 +105,70 @@ function clearError(type: keyof States) {
 </script>
 
 <template>
-	<div class="card w-full max-w-[400px] bg-base-100 shadow-xl gap-10">
-		<!-- login card -->
-		<div class="card-body gap-6">
-			<!-- title -->
-			<h2 class="card-title">Login</h2>
+	<div class="w-full max-w-[400px] flex flex-col gap-6">
+		<!-- error -->
+		<Alert
+			v-if="computedAlertExists"
+			:type="states.alert.type"
+			:message="states.alert.message"
+			:icon="states.alert.icon"
+		/>
 
-			<!-- error -->
-			<Alert
-				v-if="computedAlertExists"
-				:type="states.alert.type"
-				:message="states.alert.message"
-				:icon="states.alert.icon"
-			/>
+		<!-- card -->
+		<div class="card bg-base-100 shadow-xl gap-10">
+			<!-- body -->
+			<div class="card-body gap-6">
+				<!-- title -->
+				<h2 class="card-title">Login</h2>
 
-			<!-- form -->
-			<form class="form-control w-full gap-2">
-				<!-- email -->
-				<FormInput
-					v-model="states.email"
-					type="email"
-					label="Email"
-					placeholder="email@domain.com"
-					autocomplete="email"
-					:disabled="states.loading"
-					:error="computedError('email')"
-					@update:model-value="clearError('email')"
-				/>
+				<!-- form -->
+				<form class="form-control w-full gap-2">
+					<!-- email -->
+					<FormInput
+						v-model="states.email"
+						type="email"
+						label="Email"
+						placeholder="email@domain.com"
+						autocomplete="email"
+						:disabled="states.loading"
+						:error="computedError('email')"
+						@update:model-value="clearError('email')"
+					/>
 
-				<!-- password -->
-				<FormInput
-					v-model="states.password"
-					type="password"
-					label="Password"
-					placeholder="••••••••"
-					:disabled="states.loading"
-					autocomplete="current-password"
-					:error="computedError('password')"
-					@update:model-value="clearError('password')"
-				/>
+					<!-- password -->
+					<FormInput
+						v-model="states.password"
+						type="password"
+						label="Password"
+						placeholder="••••••••"
+						:disabled="states.loading"
+						autocomplete="current-password"
+						:error="computedError('password')"
+						@update:model-value="clearError('password')"
+					/>
 
-				<div class="flex justify-between items-center mt-1">
-					<!-- remember -->
-					<label class="label cursor-pointer gap-2">
-						<input type="checkbox" :checked="false" class="checkbox" />
-						<span class="label-text text-base">Remember me</span>
-					</label>
+					<div class="flex justify-between items-center mt-1">
+						<!-- remember -->
+						<label class="label cursor-pointer gap-2">
+							<input type="checkbox" :checked="false" class="checkbox" />
+							<span class="label-text text-base">Remember me</span>
+						</label>
 
-					<!-- forgot -->
-					<router-link to="/forgot-password" class="link">Forgot password?</router-link>
+						<!-- forgot -->
+						<router-link to="/forgot-password" class="link">Forgot password?</router-link>
+					</div>
+				</form>
+
+				<!-- button -->
+				<div class="flex flex-col gap-2">
+					<Button :label="'Login'" :loading="states.loading" @click="login" />
 				</div>
-			</form>
 
-			<!-- button -->
-			<div class="flex flex-col gap-2">
-				<Button :label="'Login'" :loading="states.loading" @click="login" />
-			</div>
-
-			<!-- dont have an account yet -->
-			<div class="flex justify-between">
-				<p>Don't have an account yet?</p>
-				<router-link to="/register" class="link">Register</router-link>
+				<!-- dont have an account yet -->
+				<div class="flex justify-between">
+					<p>Don't have an account yet?</p>
+					<router-link to="/register" class="link">Register</router-link>
+				</div>
 			</div>
 		</div>
 	</div>

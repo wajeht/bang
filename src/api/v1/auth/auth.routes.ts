@@ -32,4 +32,10 @@ auth.post(
 	catchAsyncHandler(authControllers.postLogin),
 );
 
+auth.post(
+	'/verify-email',
+	validate({ body: authValidations.postVerifyEmailSchema }),
+	catchAsyncHandler(authControllers.postVerifyEmail)
+);
+
 export default auth;

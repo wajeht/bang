@@ -114,92 +114,95 @@ async function register(): Promise<void> {
 </script>
 
 <template>
-	<div class="card w-full max-w-[400px] bg-base-100 shadow-xl gap-10">
-		<!-- login card -->
-		<div class="card-body gap-6">
-			<!-- title -->
-			<h2 class="card-title">Register</h2>
+	<div class="w-full max-w-[400px] flex flex-col gap-6">
+		<!-- error -->
+		<Alert
+			v-if="computedAlertExists"
+			:type="states.alert.type"
+			:message="states.alert.message"
+			:icon="states.alert.icon"
+		/>
 
-			<!-- error -->
-			<Alert
-				v-if="computedAlertExists"
-				:type="states.alert.type"
-				:message="states.alert.message"
-				:icon="states.alert.icon"
-			/>
+		<!-- card -->
+		<div class="card bg-base-100 shadow-xl gap-10">
+			<!-- body card -->
+			<div class="card-body gap-6">
+				<!-- title -->
+				<h2 class="card-title">Register</h2>
 
-			<!-- form -->
-			<form class="form-control w-full gap-2">
-				<!-- username -->
-				<FormInput
-					v-model="states.username"
-					@update:model-value="clearError('username')"
-					type="text"
-					label="Username"
-					placeholder="username"
-					autocomplete="username"
-					:disabled="states.loading"
-					:error="computedError('username')"
-				/>
+				<!-- form -->
+				<form class="form-control w-full gap-2">
+					<!-- username -->
+					<FormInput
+						v-model="states.username"
+						@update:model-value="clearError('username')"
+						type="text"
+						label="Username"
+						placeholder="username"
+						autocomplete="username"
+						:disabled="states.loading"
+						:error="computedError('username')"
+					/>
 
-				<!-- email -->
-				<FormInput
-					v-model="states.email"
-					type="email"
-					label="Email"
-					placeholder="email@domain.com"
-					:disabled="states.loading"
-					autocomplete="email"
-					:error="computedError('email')"
-					@update:model-value="clearError('email')"
-				/>
+					<!-- email -->
+					<FormInput
+						v-model="states.email"
+						type="email"
+						label="Email"
+						placeholder="email@domain.com"
+						:disabled="states.loading"
+						autocomplete="email"
+						:error="computedError('email')"
+						@update:model-value="clearError('email')"
+					/>
 
-				<!-- password -->
-				<FormInput
-					v-model="states.password"
-					type="password"
-					label="Password"
-					placeholder="••••••••"
-					:disabled="states.loading"
-					autocomplete="current-password"
-					:error="computedError('password')"
-					@update:model-value="clearError('password')"
-				/>
+					<!-- password -->
+					<FormInput
+						v-model="states.password"
+						type="password"
+						label="Password"
+						placeholder="••••••••"
+						:disabled="states.loading"
+						autocomplete="current-password"
+						:error="computedError('password')"
+						@update:model-value="clearError('password')"
+					/>
 
-				<div class="flex flex-col mt-2 gap-1">
-					<!-- agree -->
-					<div class="w-fit">
-						<label :class="[states.loading ? '' : 'cursor-pointer', 'label gap-2 justify-start']">
-							<input
-								type="checkbox"
-								:disabled="states.loading"
-								v-model="states.agree"
-								:checked="false"
-								class="checkbox"
-							/>
-							<span class="label-text text-base">I agree</span>
-						</label>
+					<div class="flex flex-col mt-2 gap-1">
+						<!-- agree -->
+						<div class="w-fit">
+							<label :class="[states.loading ? '' : 'cursor-pointer', 'label gap-2 justify-start']">
+								<input
+									type="checkbox"
+									:disabled="states.loading"
+									v-model="states.agree"
+									:checked="false"
+									class="checkbox"
+								/>
+								<span class="label-text text-base">I agree</span>
+							</label>
+						</div>
+
+						<!-- notice -->
+						<div class="text-sm pl-1">
+							Signing up signifies that you have read and agree to the
+							<RouterLink to="/terms-of-service" class="link">Terms of Service</RouterLink>
+							and our
+							<RouterLink to="/privacy-policy" class="link">Privacy Policy</RouterLink>.
+						</div>
 					</div>
+				</form>
 
-					<!-- notice -->
-					<div class="text-sm pl-1">
-						Signing up signifies that you have read and agree to the
-						<RouterLink to="/terms-of-service" class="link">Terms of Service</RouterLink>
-						and our
-						<RouterLink to="/privacy-policy" class="link">Privacy Policy</RouterLink>.
-					</div>
+				<!-- button -->
+				<div class="flex flex-col gap-2">
+					<Button :label="'Register'" :loading="states.loading" @click="register" />
 				</div>
-			</form>
 
-			<!-- button -->
-			<div class="flex flex-col gap-2">
-				<Button :label="'Register'" :loading="states.loading" @click="register" />
-			</div>
-
-			<!-- already have an account -->
-			<div class="flex justify-between">
-				<p>Already have an account?</p>
-				<router-link to="/login" class="link">Login</router-link>
+				<!-- already have an account -->
+				<div class="flex justify-between">
+					<p>Already have an account?</p>
+					<router-link to="/login" class="link">Login</router-link>
+				</div>
 			</div>
 		</div>
 	</div>

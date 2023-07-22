@@ -55,7 +55,8 @@ async function forgotPassword(): Promise<void> {
 
 		states.alert = {
 			type: 'success',
-			message: 'If you have an account, you will receive an email with instructions on how to reset your password in a few minutes.',
+			message:
+				'If you have an account, you will receive an email with instructions on how to reset your password in a few minutes.',
 			icon: true,
 		};
 
@@ -105,35 +106,40 @@ function clearError(type: keyof States) {
 </script>
 
 <template>
-	<div class="card w-full max-w-[400px] bg-base-100 shadow-xl gap-10">
-		<div class="card-body gap-6">
-			<!-- title -->
-			<h2 class="card-title">Forgot password</h2>
+	<div class="w-full max-w-[400px] flex flex-col gap-6">
+		<!-- error -->
+		<Alert
+			v-if="computedAlertExists"
+			:type="states.alert.type"
+			:message="states.alert.message"
+			:icon="states.alert.icon"
+		/>
 
-			<!-- error -->
-			<Alert
-				v-if="computedAlertExists"
-				:type="states.alert.type"
-				:message="states.alert.message"
-				:icon="states.alert.icon"
-			/>
+		<!-- login card -->
+		<div class="card bg-base-100 shadow-xl gap-10">
+			<!-- login card -->
+			<div class="card-body gap-6">
+				<!-- title -->
+				<h2 class="card-title">Forgot password</h2>
 
-			<form class="form-control w-full gap-2">
-				<!-- email -->
-				<FormInput
-					v-model="states.email"
-					type="email"
-					label="Email"
-					placeholder="email@domain.com"
-					:disabled="states.loading"
-					autocomplete="email"
-					:error="computedError('email')"
-					@update:model-value="clearError('email')"
-				/>
-			</form>
+				<!-- form -->
+				<form class="form-control w-full gap-2">
+					<!-- email -->
+					<FormInput
+						v-model="states.email"
+						type="email"
+						label="Email"
+						placeholder="email@domain.com"
+						:disabled="states.loading"
+						autocomplete="email"
+						:error="computedError('email')"
+						@update:model-value="clearError('email')"
+					/>
+				</form>
 
-			<!-- button -->
-			<Button :label="'Submit'" :loading="states.loading" @click="forgotPassword" />
+				<!-- button -->
+				<Button :label="'Submit'" :loading="states.loading" @click="forgotPassword" />
+			</div>
 		</div>
 	</div>
 </template>

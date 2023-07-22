@@ -2,6 +2,7 @@
 import { ZodIssue } from 'zod';
 import axios, { AxiosError } from 'axios';
 import type { Props as AlertType } from '../Alert/Alert.vue';
+import { useRouteQuery } from '@vueuse/router';
 
 const router = useRouter();
 
@@ -25,14 +26,22 @@ const states = reactive<States>({
 	error: [],
 });
 
-onMounted(() => {
-	const url = new URL(window.location.href);
-	const token = url.searchParams.get('token');
-	const email = url.searchParams.get('email');
+onMounted(async () => {
+	const email = useRouteQuery('email');
+	const token = useRouteQuery('token');
 
-	if (token && email) {
-		states.token = token;
-		states.email = email;
+	if (!token.value?.length || !email.value?.length) {
+		states.alert = {
+			type: 'error',
+			message: 'Invalid token or email!',
+			icon: true,
+		};
+		return;
+	}
+
+	if (token.value && token.value) {
+		states.token = token.value as string;
+		states.email = email.value as string;
 	}
 });
 
@@ -109,7 +118,8 @@ async function resetPassword(): Promise<void> {
 
 		states.alert = {
 			type: 'success',
-			message: 'Youre password has been reset. We\'ll redirect you to the login page in a few seconds.',
+			message:
+				"Youre password has been reset. We'll redirect you to the login page in a few seconds.",
 			icon: true,
 		};
 
@@ -135,49 +145,52 @@ async function resetPassword(): Promise<void> {
 </script>
 
 <template>
-	<div class="card w-full max-w-[400px] bg-base-100 shadow-xl gap-10">
-		<!-- login card -->
-		<form class="card-body gap-6">
-			<!-- title -->
-			<h2 class="card-title">Reset Password</h2>
+	<div class="w-full max-w-[400px] flex flex-col gap-6">
+		<!-- error -->
+		<Alert
+			v-if="computedAlertExists"
+			:type="states.alert.type"
+			:message="states.alert.message"
+			:icon="states.alert.icon"
+		/>
 
-			<!-- error -->
-			<Alert
-				v-if="computedAlertExists"
-				:type="states.alert.type"
-				:message="states.alert.message"
-				:icon="states.alert.icon"
-			/>
+		<!-- card card -->
+		<div class="card bg-base-100 shadow-xl gap-10">
+			<!-- body -->
+			<div class="card-body gap-6">
+				<!-- title -->
+				<h2 class="card-title">Reset Password</h2>
 
-			<!-- form -->
-			<div class="form-control w-full gap-2">
-				<!-- password -->
-				<FormInput
-					v-model="states.password"
-					type="password"
-					label="Password"
-					placeholder="••••••••"
-					autocomplete="current-password"
-					:error="computedError('password')"
-					@update:model-value="clearError('password')"
-				/>
+				<!-- form -->
+				<form class="form-control w-full gap-2">
+					<!-- password -->
+					<FormInput
+						v-model="states.password"
+						type="password"
+						label="Password"
+						placeholder="••••••••"
+						autocomplete="current-password"
+						:error="computedError('password')"
+						@update:model-value="clearError('password')"
+					/>
 
-				<!-- confirm password -->
-				<FormInput
-					v-model="states.confirmPassword"
-					type="password"
-					label="Confirm Password"
-					placeholder="••••••••"
-					autocomplete="next-password"
-					:error="computedError('confirmPassword')"
-					@update:model-value="clearError('confirmPassword')"
-				/>
+					<!-- confirm password -->
+					<FormInput
+						v-model="states.confirmPassword"
+						type="password"
+						label="Confirm Password"
+						placeholder="••••••••"
+						autocomplete="next-password"
+						:error="computedError('confirmPassword')"
+						@update:model-value="clearError('confirmPassword')"
+					/>
+				</form>
+
+				<!-- button -->
+				<div class="flex flex-col gap-2">
+					<Button :label="'Submit'" :loading="states.loading" @click="resetPassword" />
+				</div>
 			</div>
-
-			<!-- button -->
-			<div class="flex flex-col gap-2">
-				<Button :label="'Submit'" :loading="states.loading" @click="resetPassword" />
-			</div>
-		</form>
+		</div>
 	</div>
 </template>

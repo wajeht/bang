@@ -96,7 +96,33 @@ export const postLoginSchema = z
 		},
 	);
 
+export const postVerifyEmailSchema = z
+	.object({
+		token: z.string(),
+		email: z.string().email('Invalid email format'),
+	})
+	.refine(
+		async ({ email, token }) => {
+			const foundUser = await db.user.findUnique({
+				where: {
+					email,
+					verification_token: token,
+				},
+			});
+
+			if (!foundUser) {
+				return false;
+			}
+
+			return true;
+		},
+		{
+			message: 'Invalid email or token!',
+		},
+	);
+
 export type PostForgotPasswordSchema = z.infer<typeof postForgotPasswordSchema>;
 export type PostResetPasswordSchema = z.infer<typeof postResetPasswordSchema>;
 export type PostRegisterSchema = z.infer<typeof postRegisterSchema>;
 export type PostLoginSchema = z.infer<typeof postLoginSchema>;
+export type PostVerifyEmailSchema = z.infer<typeof postVerifyEmailSchema>;

@@ -38,6 +38,7 @@
 		"@faker-js/faker": "^8.0.2",
 		"@prisma/client": "^5.0.0",
 		"@vueuse/core": "^10.2.1",
+		"@vueuse/router": "^10.2.1",
 		"axios": "^1.4.0",
 		"bcryptjs": "^2.4.3",
 		"compression": "^1.7.4",

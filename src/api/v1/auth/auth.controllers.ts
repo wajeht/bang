@@ -16,19 +16,17 @@ export async function postRegister(
 }
 
 export async function postLogin(req: Request, res: Response): Promise<void> {
-	res.status(StatusCodes.OK).json({
-		message: 'postLogin() ok',
-	});
+	throw new Error('postRegister() not implemented');
 }
 
 export async function postForgotPassword(req: Request, res: Response): Promise<void> {
-	res.status(StatusCodes.OK).json({
-		message: 'postLogin() ok',
-	});
+	throw new Error('postRegister() not implemented');
 }
 
 export async function postResetPassword(req: Request, res: Response): Promise<void> {
-	res.status(StatusCodes.OK).json({
-		message: 'postLogin() ok',
-	});
+	throw new Error('postRegister() not implemented');
+}
+
+export async function postVerifyEmail(req: Request, res: Response): Promise<void> {
+	throw new Error('postRegister() not implemented');
 }
