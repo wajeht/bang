@@ -14,6 +14,7 @@ const schema = z.object({
 	EMAIL_AUTH_EMAIL: z.string(),
 	EMAIL_AUTH_PASS: z.string(),
 	PASSWORD_SALT: z.string().transform(Number),
+	DOMAIN: z.string(),
 });
 
 const parsed = schema.safeParse(process.env);

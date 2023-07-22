@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import * as AuthServices from './auth.services';
+import mail from '../../../services/emails';
 
 import type { PostRegisterSchema } from './auth.validations';
 
@@ -8,7 +9,13 @@ export async function postRegister(
 	req: Request<{}, {}, PostRegisterSchema>,
 	res: Response,
 ): Promise<void> {
-	await AuthServices.createUser(req.body);
+	const user = await AuthServices.createUser(req.body);
+
+	await mail.sendVerifyEmail({
+		email: user.email,
+		token: user.verification_token!,
+		name: user.username,
+	});
 
 	res.status(StatusCodes.OK).json({
 		message: 'postRegister() ok',
