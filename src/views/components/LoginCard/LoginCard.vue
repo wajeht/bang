@@ -32,8 +32,6 @@ async function login(): Promise<void> {
 
 		const { error, loading, ...inputs } = states;
 
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-
 		await axios.post('/api/v1/auth/login', inputs);
 
 		clearInputs();

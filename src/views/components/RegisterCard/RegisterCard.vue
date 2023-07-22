@@ -61,8 +61,6 @@ async function register(): Promise<void> {
 
 		const { error, loading, ...inputs } = states;
 
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-
 		await axios.post('/api/v1/auth/register', inputs);
 
 		clearInputs();

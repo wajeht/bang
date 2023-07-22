@@ -1,43 +1,63 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
+import axios, { AxiosError } from 'axios';
 
 export type States = {
 	email: string;
+	loading: boolean;
 	error: ZodIssue[];
 };
 
-export type Props = { error: ZodIssue[]; loading?: boolean };
-
-export type Emits = {
-	(e: 'forgot-password', inputs: Omit<States, 'error'>): void;
-};
-
-const props = defineProps<Props>();
-
-const emits = defineEmits<Emits>();
-
 const states = reactive<States>({
 	email: '',
-	error: props.error,
+	loading: false,
+	error: [],
 });
 
-onUpdated(() => {
-	states.error = props.error;
-});
-
-function onSubmit() {
-	const { error, ...rest } = states;
-	emits('forgot-password', rest);
+function clearInputs() {
+	states.email = '';
+	states.error = [];
+	states.loading = false;
 }
 
-function computedError(type: keyof States) {
+async function forgotPassword(): Promise<void> {
+	try {
+		states.loading = true;
+
+		const { error, loading, ...inputs } = states;
+
+		await axios.post('/api/v1/auth/forgot-password', inputs);
+
+		clearInputs();
+	} catch (error) {
+		if (error instanceof AxiosError) {
+			states.error = error.response?.data.error;
+		}
+	} finally {
+		states.loading = false;
+	}
+}
+
+function computedError(type: keyof States): string | undefined {
 	return computed(() => {
-		return states.error.find((e) => e.path[0] === type)?.message;
+		return states.error.find((e) => {
+			if (e.path.length === 0 && e.code === 'custom') {
+				return e;
+			}
+
+			if (e.path[0] === type) {
+				return e;
+			}
+		})?.message;
 	}).value;
 }
 
 function clearError(type: keyof States) {
 	states.error.forEach((e) => {
+		if (e.path.length === 0 && e.code === 'custom') {
+			states.error.splice(states.error.indexOf(e), 1);
+		}
+
 		if (e.path[0] === type) {
 			states.error.splice(states.error.indexOf(e), 1);
 		}
@@ -56,6 +76,7 @@ function clearError(type: keyof States) {
 					type="email"
 					label="Email"
 					placeholder="email@domain.com"
+					:disabled="states.loading"
 					autocomplete="email"
 					:error="computedError('email')"
 					@update:model-value="clearError('email')"
@@ -63,7 +84,7 @@ function clearError(type: keyof States) {
 			</div>
 
 			<!-- button -->
-			<Button :label="'Submit'" :loading="props.loading" @click="onSubmit" />
+			<Button :label="'Submit'" :loading="states.loading" @click="forgotPassword" />
 		</div>
 	</div>
 </template>
