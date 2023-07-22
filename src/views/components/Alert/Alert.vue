@@ -1,11 +1,15 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+
 export type Props = {
 	type: 'success' | 'info' | 'warning' | 'error';
 	icon?: boolean;
 	message: string;
 };
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+	icon: false,
+});
 
 const computedClass = computed(() => {
 	switch (props.type) {

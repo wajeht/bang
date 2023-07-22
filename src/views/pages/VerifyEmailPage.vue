@@ -3,6 +3,7 @@ import axios, { AxiosError } from 'axios';
 import type { Props as AlertType } from '../components/Alert/Alert.vue';
 import { useRouteQuery } from '@vueuse/router';
 import { reactive, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
 const router = useRouter();
 

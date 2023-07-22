@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Fireworks } from '@fireworks-js/vue';
 import type { FireworksOptions } from '@fireworks-js/vue';
+import { ref, watch } from 'vue';
 
 const mounted = ref(true);
 const fw = ref<InstanceType<typeof Fireworks>>();

@@ -2,6 +2,7 @@
 import { ZodIssue } from 'zod';
 import axios, { AxiosError } from 'axios';
 import type { Props as AlertType } from '../Alert/Alert.vue';
+import { computed, reactive } from 'vue';
 
 export type States = {
 	username: string;

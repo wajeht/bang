@@ -3,6 +3,8 @@ import { ZodIssue } from 'zod';
 import axios, { AxiosError } from 'axios';
 import type { Props as AlertType } from '../Alert/Alert.vue';
 import { useRouteQuery } from '@vueuse/router';
+import { useRouter } from 'vue-router';
+import { computed, onMounted, reactive } from 'vue';
 
 const router = useRouter();
 

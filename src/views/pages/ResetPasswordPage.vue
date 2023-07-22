@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import axios, { AxiosError } from 'axios';
 import type { States } from '../components/ResetPasswordCard/ResetPasswordCard.vue';
+import { reactive } from 'vue';
+import { useRouter } from 'vue-router';
 
-export type StatesWithLoading = States & { loading: boolean };
+export type StatesWithLoading = Omit<States, 'alert'> & { loading: boolean };
 
 const states = reactive<StatesWithLoading>({
 	email: '',
 	password: '',
+	token: '',
 	confirmPassword: '',
 	error: [],
 	loading: false,

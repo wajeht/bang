@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, reactive } from 'vue';
+
 export type InputTypes = 'text' | 'email' | 'password' | 'checkbox' | 'number';
 
 export type Props = {

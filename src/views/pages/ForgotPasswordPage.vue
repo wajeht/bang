@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import axios, { AxiosError } from 'axios';
 import type { States } from '../components/ForgotPasswordCard/ForgotPasswordCard.vue';
+import { useRouter } from 'vue-router';
+import { reactive } from 'vue';
 
-export type StatesWithLoading = States & { loading: boolean };
+export type StatesWithLoading = Omit<States, 'alert'> & { loading: boolean };
 
 const states = reactive<StatesWithLoading>({
 	email: '',
