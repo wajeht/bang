@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
 import axios, { AxiosError } from 'axios';
+import type { Props as AlertType } from '../Alert/Alert.vue';
 
 export type States = {
 	username: string;
 	email: string;
 	password: string;
 	agree: boolean;
+	alert: AlertType;
 	error: ZodIssue[];
 	loading: boolean;
 };
@@ -15,6 +17,7 @@ const states = reactive<States>({
 	username: '',
 	email: '',
 	password: '',
+	alert: {} as AlertType,
 	agree: false,
 	error: [],
 	loading: false,
@@ -27,6 +30,8 @@ function clearInputs(): void {
 	states.agree = false;
 	states.error = [];
 	states.loading = false;
+
+	clearAlert(true);
 }
 
 function computedError(type: keyof States): string | undefined {
@@ -55,6 +60,26 @@ function clearError(type: keyof States) {
 	});
 }
 
+function clearAlert(slowly = false): void {
+	if (slowly) {
+		setTimeout(() => (states.alert = {} as AlertType), 5000);
+		return;
+	}
+	states.alert = {} as AlertType;
+}
+
+const computedAlertExists = computed(() => {
+	return Object.values(states.alert).some((e) => {
+		if (typeof e === 'string') {
+			return e.length > 0;
+		}
+		if (typeof e === 'boolean') {
+			return e;
+		}
+		return true;
+	});
+});
+
 async function register(): Promise<void> {
 	try {
 		states.loading = true;
@@ -63,9 +88,23 @@ async function register(): Promise<void> {
 
 		await axios.post('/api/v1/auth/register', inputs);
 
+		states.alert = {
+			type: 'success',
+			message: 'Thanks for joining',
+			icon: true,
+		};
+
 		clearInputs();
 	} catch (error) {
 		if (error instanceof AxiosError) {
+			if (error.response?.status && error.response.status >= 500) {
+				states.alert = {
+					type: 'error',
+					message: 'Something went wrong, please try again later!',
+					icon: true,
+				};
+				return;
+			}
 			states.error = error.response?.data.error;
 		}
 	} finally {
@@ -80,6 +119,15 @@ async function register(): Promise<void> {
 		<div class="card-body gap-6">
 			<!-- title -->
 			<h2 class="card-title">Register</h2>
+
+			<!-- error -->
+			<Alert
+				v-if="computedAlertExists"
+				:type="states.alert.type"
+				:message="states.alert.message"
+				:icon="states.alert.icon"
+			/>
+
 			<!-- form -->
 			<form class="form-control w-full gap-2">
 				<!-- username -->

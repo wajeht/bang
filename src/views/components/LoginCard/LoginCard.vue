@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
 import axios, { AxiosError } from 'axios';
+import type { Props as AlertType } from '../Alert/Alert.vue';
 
 export type States = {
 	email: string;
 	password: string;
 	remember: boolean;
 	loading: boolean;
+	alert: AlertType;
 	error: ZodIssue[];
 };
 
@@ -14,6 +16,7 @@ const states = reactive<States>({
 	email: '',
 	password: '',
 	remember: false,
+	alert: {} as AlertType,
 	loading: false,
 	error: [],
 });
@@ -24,7 +27,29 @@ function clearInputs() {
 	states.remember = false;
 	states.error = [];
 	states.loading = false;
+
+	clearAlert(true);
 }
+
+function clearAlert(slowly = false): void {
+	if (slowly) {
+		setTimeout(() => (states.alert = {} as AlertType), 5000);
+		return;
+	}
+	states.alert = {} as AlertType;
+}
+
+const computedAlertExists = computed(() => {
+	return Object.values(states.alert).some((e) => {
+		if (typeof e === 'string') {
+			return e.length > 0;
+		}
+		if (typeof e === 'boolean') {
+			return e;
+		}
+		return true;
+	});
+});
 
 async function login(): Promise<void> {
 	try {
@@ -37,6 +62,14 @@ async function login(): Promise<void> {
 		clearInputs();
 	} catch (error) {
 		if (error instanceof AxiosError) {
+			if (error.response?.status && error.response.status >= 500) {
+				states.alert = {
+					type: 'error',
+					message: 'Something went wrong, please try again later!',
+					icon: true,
+				};
+				return;
+			}
 			states.error = error.response?.data.error;
 		}
 	} finally {
@@ -77,6 +110,15 @@ function clearError(type: keyof States) {
 		<div class="card-body gap-6">
 			<!-- title -->
 			<h2 class="card-title">Login</h2>
+
+			<!-- error -->
+			<Alert
+				v-if="computedAlertExists"
+				:type="states.alert.type"
+				:message="states.alert.message"
+				:icon="states.alert.icon"
+			/>
+
 			<!-- form -->
 			<form class="form-control w-full gap-2">
 				<!-- email -->

@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    Alert: typeof import('./components/Alert/Alert.vue')['default']
     Button: typeof import('./components/UI/Button.vue')['default']
     DashboardLayout: typeof import('./layouts/DashboardLayout.vue')['default']
     Footer: typeof import('./components/Footer/Footer.vue')['default']
@@ -17,6 +18,15 @@ declare module 'vue' {
     'IBi:gear': typeof import('~icons/bi/gear')['default']
     'ICi:command': typeof import('~icons/ci/command')['default']
     'IIc:outlineBookmarks': typeof import('~icons/ic/outline-bookmarks')['default']
+    'IMaterialSymbols:checkCircleOutlineRounded': typeof import('~icons/material-symbols/check-circle-outline-rounded')['default']
+    'IMaterialSymbols:checkOutline': typeof import('~icons/material-symbols/check-outline')['default']
+    'IMaterialSymbols:crossOutline': typeof import('~icons/material-symbols/cross-outline')['default']
+    'IMaterialSymbols:dangerousOutline': typeof import('~icons/material-symbols/dangerous-outline')['default']
+    'IMaterialSymbols:dangerOutline': typeof import('~icons/material-symbols/danger-outline')['default']
+    'IMaterialSymbols:infoOutline': typeof import('~icons/material-symbols/info-outline')['default']
+    'IMaterialSymbols:warningOutline': typeof import('~icons/material-symbols/warning-outline')['default']
+    'IMaterialSymbols:wrongOutline': typeof import('~icons/material-symbols/wrong-outline')['default']
+    'IMaterialSymbols:xOutline': typeof import('~icons/material-symbols/x-outline')['default']
     LoginCard: typeof import('./components/LoginCard/LoginCard.vue')['default']
     Navbar: typeof import('./components/NavBar/Navbar.vue')['default']
     Or: typeof import('./components/Or/Or.vue')['default']
