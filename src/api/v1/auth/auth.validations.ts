@@ -229,9 +229,7 @@ export const postVerifyEmailSchema = z
 				new Date().getTime() - foundUser.verification_token_expires_at.getTime() > 10 * 60 * 1000;
 
 			if (tokenExpired) {
-				throw new ZodError([
-					{ path: ['alert'], message: 'Token has expired!', code: 'custom' },
-				]);
+				throw new ZodError([{ path: ['alert'], message: 'Token has expired!', code: 'custom' }]);
 			}
 
 			return true;
