@@ -64,8 +64,6 @@ async function forgotPassword(): Promise<void> {
 		clearInputs();
 	} catch (error) {
 		if (error instanceof AxiosError) {
-			states.error = error.response?.data.error;
-
 			if (error.response?.status && error.response.status >= 500) {
 				states.alert = {
 					type: 'error',
@@ -76,6 +74,7 @@ async function forgotPassword(): Promise<void> {
 			}
 
 			if (error.response?.status && error.response.status >= 400) {
+				states.error = error.response?.data.error;
 				if (
 					error.response.data?.error &&
 					error.response.data?.error.length === 1 &&

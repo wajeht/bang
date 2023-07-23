@@ -144,15 +144,15 @@ export const postLoginSchema = z
 			.min(3, 'Password must be at least 3 characters')
 			.max(255, 'Password must not exceed 255 characters'),
 	})
-	.refine(async ({ email }) => {
-		const foundUser = await db.user.findFirst({
+	.refine(async ({ email, password }) => {
+		const unverifiedUser = await db.user.findFirst({
 			where: {
 				email,
 				verified: false,
 			},
 		});
 
-		if (foundUser) {
+		if (unverifiedUser) {
 			throw new ZodError([
 				{
 					path: ['alert'],
@@ -162,16 +162,14 @@ export const postLoginSchema = z
 			]);
 		}
 
-		return true;
-	})
-	.refine(async ({ email, password }) => {
-		const foundUser = await db.user.findUnique({
+		const verifiedFoundUser = await db.user.findUnique({
 			where: {
 				email,
+				verified: true,
 			},
 		});
 
-		if (!foundUser || !(await bcrypt.compare(password, foundUser.password))) {
+		if (!verifiedFoundUser) {
 			throw new ZodError([
 				{
 					path: ['alert'],
@@ -180,6 +178,27 @@ export const postLoginSchema = z
 				},
 			]);
 		}
+
+		// try {
+		// 	const passwordMatch = await bcrypt.compare(password, verifiedFoundUser.password);
+		// 	if (!passwordMatch) {
+		// 		throw new ZodError([
+		// 			{
+		// 				path: ['alert'],
+		// 				message: 'Email or password is incorrect',
+		// 				code: 'custom',
+		// 			},
+		// 		]);
+		// 	}
+		// } catch (error) {
+		// 	throw new ZodError([
+		// 		{
+		// 			path: ['alert'],
+		// 			message: 'Email or password is incorrect',
+		// 			code: 'custom',
+		// 		},
+		// 	]);
+		// }
 
 		return true;
 	});

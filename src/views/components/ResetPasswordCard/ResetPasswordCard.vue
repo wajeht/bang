@@ -131,11 +131,7 @@ async function resetPassword(): Promise<void> {
 		reidreToLoginPageIn(5); // 5 seconds because clear alert is 5 seconds
 	} catch (error) {
 		if (error instanceof AxiosError) {
-			states.error = error.response?.data.error;
-
-			if (error.response?.status && error.response?.status >= 500) {
-				console.log('asdfasdfasdfasdf');
-
+			if (error.response?.status && error.response.status >= 500) {
 				states.alert = {
 					type: 'error',
 					message: 'Something went wrong, please try again later!',
@@ -144,7 +140,8 @@ async function resetPassword(): Promise<void> {
 				return;
 			}
 
-			if (error.response?.status && error.response?.status >= 400) {
+			if (error.response?.status && error.response.status >= 400) {
+				states.error = error.response?.data.error;
 				if (
 					error.response.data?.error &&
 					error.response.data?.error.length === 1 &&

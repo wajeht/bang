@@ -106,7 +106,24 @@ async function register(): Promise<void> {
 				};
 				return;
 			}
-			states.error = error.response?.data.error;
+
+			if (error.response?.status && error.response.status >= 400) {
+				states.error = error.response?.data.error;
+				if (
+					error.response.data?.error &&
+					error.response.data?.error.length === 1 &&
+					error.response.data?.error[0]?.code === 'custom' &&
+					error.response.data?.error[0].path.length === 1 &&
+					error.response.data?.error[0]?.path[0] === 'alert'
+				) {
+					states.alert = {
+						type: 'error',
+						message: error?.response?.data?.error[0]?.message ?? error.response.data?.message,
+						icon: true,
+					};
+					return;
+				}
+			}
 		}
 	} finally {
 		states.loading = false;
