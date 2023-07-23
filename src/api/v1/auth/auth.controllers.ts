@@ -18,9 +18,7 @@ export async function postRegister(
 		name: user.username,
 	});
 
-	res.status(StatusCodes.OK).json({
-		message: 'ok',
-	});
+	res.status(StatusCodes.OK).json({ status: true });
 }
 
 export async function postLogin(req: Request, res: Response): Promise<void> {
@@ -28,11 +26,22 @@ export async function postLogin(req: Request, res: Response): Promise<void> {
 }
 
 export async function postForgotPassword(req: Request, res: Response): Promise<void> {
-	throw new Error('postRegister() not implemented');
+	const user = await AuthServices.setUserResetPasswordToken(req.body.email);
+
+	if (user) {
+		await mail.sendResetPassword({
+			email: user.email,
+			token: user.reset_password_token!,
+			name: user.username,
+		});
+	}
+
+	res.status(StatusCodes.OK).json({ status: true });
 }
 
 export async function postResetPassword(req: Request, res: Response): Promise<void> {
-	throw new Error('postRegister() not implemented');
+	await AuthServices.resetUserPassword(req.body.email, req.body.password);
+	res.status(StatusCodes.OK).json({ status: true });
 }
 
 export async function postVerifyEmail(

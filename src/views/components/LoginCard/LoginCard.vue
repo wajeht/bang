@@ -77,8 +77,10 @@ async function login(): Promise<void> {
 			if (error.response?.status && error.response.status >= 400) {
 				if (
 					error.response.data?.error &&
-					error.response.data?.length === 1 &&
-					error.response.data?.error[0]?.code === 'custom'
+					error.response.data?.error.length === 1 &&
+					error.response.data?.error[0]?.code === 'custom' &&
+					error.response.data?.error[0].path.length === 1 &&
+					error.response.data?.error[0]?.path[0] === 'alert'
 				) {
 					states.alert = {
 						type: 'error',

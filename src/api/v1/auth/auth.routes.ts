@@ -23,13 +23,13 @@ auth.post(
 auth.post(
 	'/reset-password',
 	validate({ body: authValidations.postResetPasswordSchema }),
-	catchAsyncHandler(authControllers.postLogin),
+	catchAsyncHandler(authControllers.postResetPassword),
 );
 
 auth.post(
 	'/forgot-password',
 	validate({ body: authValidations.postForgotPasswordSchema }),
-	catchAsyncHandler(authControllers.postLogin),
+	catchAsyncHandler(authControllers.postForgotPassword),
 );
 
 auth.post(

@@ -94,7 +94,6 @@ async function verifyEmail() {
 
 		setTimeout(() => router.push('/login'), 5000);
 	} catch (error) {
-		states.status = 'error';
 		if (error instanceof AxiosError) {
 			if (error.response?.status && error.response.status >= 500) {
 				states.alert = {
@@ -102,14 +101,24 @@ async function verifyEmail() {
 					message: 'Something went wrong, please try again later!',
 					icon: true,
 				};
+				return;
 			}
 
 			if (error.response?.status && error.response.status >= 400) {
-				states.alert = {
-					type: 'error',
-					message: error?.response?.data?.error[0]?.message ?? error.response.data?.message,
-					icon: true,
-				};
+				if (
+					error.response.data?.error &&
+					error.response.data?.error.length === 1 &&
+					error.response.data?.error[0]?.code === 'custom' &&
+					error.response.data?.error[0].path.length === 1 &&
+					error.response.data?.error[0]?.path[0] === 'alert'
+				) {
+					states.alert = {
+						type: 'error',
+						message: error?.response?.data?.error[0]?.message ?? error.response.data?.message,
+						icon: true,
+					};
+					return;
+				}
 			}
 		}
 	} finally {

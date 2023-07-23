@@ -5,6 +5,7 @@ import type { Props as AlertType } from '../Alert/Alert.vue';
 import { useRouteQuery } from '@vueuse/router';
 import { useRouter } from 'vue-router';
 import { computed, onMounted, reactive } from 'vue';
+import { createGlobalState } from '@vueuse/core';
 
 const router = useRouter();
 
@@ -60,7 +61,7 @@ function clearInputs() {
 
 function computedError(type: keyof States): string | undefined {
 	return computed(() => {
-		return states.error.find((e) => {
+		return states.error?.find((e) => {
 			if (e.path.length === 0 && e.code === 'custom') {
 				return e;
 			}
@@ -130,7 +131,11 @@ async function resetPassword(): Promise<void> {
 		reidreToLoginPageIn(5); // 5 seconds because clear alert is 5 seconds
 	} catch (error) {
 		if (error instanceof AxiosError) {
-			if (error.response?.status && error.response.status >= 500) {
+			states.error = error.response?.data.error;
+
+			if (error.response?.status && error.response?.status >= 500) {
+				console.log('asdfasdfasdfasdf');
+
 				states.alert = {
 					type: 'error',
 					message: 'Something went wrong, please try again later!',
@@ -138,7 +143,23 @@ async function resetPassword(): Promise<void> {
 				};
 				return;
 			}
-			states.error = error.response?.data.error;
+
+			if (error.response?.status && error.response?.status >= 400) {
+				if (
+					error.response.data?.error &&
+					error.response.data?.error.length === 1 &&
+					error.response.data?.error[0]?.code === 'custom' &&
+					error.response.data?.error[0].path.length === 1 &&
+					error.response.data?.error[0]?.path[0] === 'alert'
+				) {
+					states.alert = {
+						type: 'error',
+						message: error?.response?.data?.error[0]?.message ?? error.response.data?.message,
+						icon: true,
+					};
+					return;
+				}
+			}
 		}
 	} finally {
 		states.loading = false;
