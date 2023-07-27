@@ -22,7 +22,7 @@ export async function postRegister(
 		name: user.username,
 	});
 
-	res.status(StatusCodes.OK).json({ status: true });
+	res.status(StatusCodes.OK).json({ message: 'ok' });
 }
 
 export async function postLogin(req: Request, res: Response): Promise<void> {
@@ -65,7 +65,7 @@ export async function postForgotPassword(req: Request, res: Response): Promise<v
 		});
 	}
 
-	res.status(StatusCodes.OK).json({ status: true });
+	res.status(StatusCodes.OK).json({ message: 'ok' });
 }
 
 export async function postResetPassword(req: Request, res: Response): Promise<void> {
@@ -89,9 +89,7 @@ export async function postVerifyEmail(
 		},
 	});
 
-	res.status(StatusCodes.OK).json({
-		message: 'ok',
-	});
+	res.status(StatusCodes.OK).json({ message: 'ok' });
 }
 
 export async function postLogout(req: Request, res: Response): Promise<void> {
