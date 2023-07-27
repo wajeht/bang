@@ -3,6 +3,9 @@ import { ZodIssue } from 'zod';
 import axios, { AxiosError } from 'axios';
 import type { Props as AlertType } from '../Alert/Alert.vue';
 import { computed, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 export type States = {
 	email: string;
@@ -56,11 +59,13 @@ async function login(): Promise<void> {
 	try {
 		states.loading = true;
 
-		const { error, loading, ...inputs } = states;
+		const { error, loading, alert, ...inputs } = states;
 
 		await axios.post('/api/v1/auth/login', inputs);
 
 		clearInputs();
+
+		router.push('/dashboard');
 	} catch (error) {
 		if (error instanceof AxiosError) {
 			if (error.response?.status && error.response.status >= 500) {
@@ -168,7 +173,12 @@ function clearError(type: keyof States) {
 					<div class="flex justify-between items-center mt-1">
 						<!-- remember -->
 						<label class="label cursor-pointer gap-2">
-							<input type="checkbox" :checked="false" class="checkbox" />
+							<input
+								type="checkbox"
+								:checked="states.remember"
+								v-model="states.remember"
+								class="checkbox"
+							/>
 							<span class="label-text text-base">Remember me</span>
 						</label>
 

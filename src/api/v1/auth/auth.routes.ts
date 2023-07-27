@@ -15,6 +15,8 @@ auth.post(
 	catchAsyncHandler(authControllers.postLogin),
 );
 
+auth.post('/logout', catchAsyncHandler(authControllers.postLogout));
+
 auth.post(
 	'/register',
 	validate({ body: authValidations.postRegisterSchema }),

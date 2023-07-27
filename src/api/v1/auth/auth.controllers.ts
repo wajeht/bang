@@ -1,8 +1,12 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
+
 import * as AuthServices from './auth.services';
+import * as AuthUtils from './auth.utils';
+
 import mail from '../../../services/emails';
 import db from '../../../database/db';
+import env from '../../../configs/env';
 
 import type { PostRegisterSchema, PostVerifyEmailSchema } from './auth.validations';
 
@@ -22,7 +26,32 @@ export async function postRegister(
 }
 
 export async function postLogin(req: Request, res: Response): Promise<void> {
-	throw new Error('postRegister() not implemented');
+	const remember = req.body.remember;
+
+	const user = await db.user.findFirst({
+		where: {
+			email: req.body.email,
+		},
+	});
+
+	const payload = {
+		id: user!.id,
+		email: user!.email,
+		username: user!.username,
+		role: user!.role,
+		profile_picture_url: user!.profile_picture_url,
+	};
+
+	const token = await AuthUtils.generateJwtToken(payload, remember ? '7d' : undefined);
+
+	const cookieOptions = {
+		httpOnly: true,
+		secure: env.NODE_ENV === 'production',
+	};
+
+	res.cookie('token', token, cookieOptions);
+
+	res.status(StatusCodes.OK).json({ message: 'ok' });
 }
 
 export async function postForgotPassword(req: Request, res: Response): Promise<void> {
@@ -63,4 +92,9 @@ export async function postVerifyEmail(
 	res.status(StatusCodes.OK).json({
 		message: 'ok',
 	});
+}
+
+export async function postLogout(req: Request, res: Response): Promise<void> {
+	res.clearCookie('token');
+	res.status(StatusCodes.OK).json({ message: 'ok' });
 }

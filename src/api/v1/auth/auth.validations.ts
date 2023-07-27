@@ -143,6 +143,7 @@ export const postLoginSchema = z.object({
 		.string()
 		.min(3, 'Password must be at least 3 characters')
 		.max(255, 'Password must not exceed 255 characters'),
+	remember: z.boolean().optional().default(false),
 });
 
 export const postLoginSchemaExtra = postLoginSchema.refine(async ({ email, password }) => {

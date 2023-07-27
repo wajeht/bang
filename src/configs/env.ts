@@ -15,6 +15,8 @@ const schema = z.object({
 	EMAIL_AUTH_PASS: z.string(),
 	PASSWORD_SALT: z.string().transform(Number),
 	DOMAIN: z.string(),
+	JWT_SECRET: z.string(),
+	JWT_EXPIRES_IN: z.string(),
 });
 
 const parsed = schema.safeParse(process.env);
