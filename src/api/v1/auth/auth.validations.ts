@@ -67,19 +67,20 @@ export const postForgotPasswordSchema = z.object({
 		}),
 });
 
-export const postResetPasswordSchema = z
-	.object({
-		password: z
-			.string()
-			.min(3, 'Password must be at least 3 characters')
-			.max(255, 'Password must not exceed 255 characters'),
-		confirmPassword: z
-			.string()
-			.min(3, 'Confirm Password must be at least 3 characters')
-			.max(255, 'Confirm Password must not exceed 255 characters'),
-		email: z.string().email('Invalid email format'),
-		token: z.string(),
-	})
+export const postResetPasswordSchema = z.object({
+	password: z
+		.string()
+		.min(3, 'Password must be at least 3 characters')
+		.max(255, 'Password must not exceed 255 characters'),
+	confirmPassword: z
+		.string()
+		.min(3, 'Confirm Password must be at least 3 characters')
+		.max(255, 'Confirm Password must not exceed 255 characters'),
+	email: z.string().email('Invalid email format'),
+	token: z.string(),
+});
+
+export const postResetPasswordSchemaExtra = postResetPasswordSchema
 	.refine(({ password, confirmPassword }) => {
 		if (password !== confirmPassword) {
 			throw new ZodError([
@@ -136,40 +137,52 @@ export const postResetPasswordSchema = z
 		}
 	});
 
-export const postLoginSchema = z
-	.object({
-		email: z.string().email('Invalid email format'),
-		password: z
-			.string()
-			.min(3, 'Password must be at least 3 characters')
-			.max(255, 'Password must not exceed 255 characters'),
-	})
-	.refine(async ({ email, password }) => {
-		const unverifiedUser = await db.user.findFirst({
-			where: {
-				email,
-				verified: false,
+export const postLoginSchema = z.object({
+	email: z.string().email('Invalid email format'),
+	password: z
+		.string()
+		.min(3, 'Password must be at least 3 characters')
+		.max(255, 'Password must not exceed 255 characters'),
+});
+
+export const postLoginSchemaExtra = postLoginSchema.refine(async ({ email, password }) => {
+	const unverifiedUser = await db.user.findFirst({
+		where: {
+			email,
+			verified: false,
+		},
+	});
+
+	if (unverifiedUser) {
+		throw new ZodError([
+			{
+				path: ['alert'],
+				message: 'You have not verified your email!',
+				code: 'custom',
 			},
-		});
+		]);
+	}
 
-		if (unverifiedUser) {
-			throw new ZodError([
-				{
-					path: ['alert'],
-					message: 'You have not verified your email!',
-					code: 'custom',
-				},
-			]);
-		}
+	const verifiedFoundUser = await db.user.findUnique({
+		where: {
+			email,
+			verified: true,
+		},
+	});
 
-		const verifiedFoundUser = await db.user.findUnique({
-			where: {
-				email,
-				verified: true,
+	if (!verifiedFoundUser) {
+		throw new ZodError([
+			{
+				path: ['alert'],
+				message: 'Email or password is incorrect',
+				code: 'custom',
 			},
-		});
+		]);
+	}
 
-		if (!verifiedFoundUser) {
+	try {
+		const passwordMatch = await bcrypt.compare(password, verifiedFoundUser.password);
+		if (!passwordMatch) {
 			throw new ZodError([
 				{
 					path: ['alert'],
@@ -178,36 +191,25 @@ export const postLoginSchema = z
 				},
 			]);
 		}
+	} catch (error) {
+		throw new ZodError([
+			{
+				path: ['alert'],
+				message: 'Email or password is incorrect',
+				code: 'custom',
+			},
+		]);
+	}
 
-		// try {
-		// 	const passwordMatch = await bcrypt.compare(password, verifiedFoundUser.password);
-		// 	if (!passwordMatch) {
-		// 		throw new ZodError([
-		// 			{
-		// 				path: ['alert'],
-		// 				message: 'Email or password is incorrect',
-		// 				code: 'custom',
-		// 			},
-		// 		]);
-		// 	}
-		// } catch (error) {
-		// 	throw new ZodError([
-		// 		{
-		// 			path: ['alert'],
-		// 			message: 'Email or password is incorrect',
-		// 			code: 'custom',
-		// 		},
-		// 	]);
-		// }
+	return true;
+});
 
-		return true;
-	});
+export const postVerifyEmailSchema = z.object({
+	token: z.string(),
+	email: z.string().email('Invalid email format'),
+});
 
-export const postVerifyEmailSchema = z
-	.object({
-		token: z.string(),
-		email: z.string().email('Invalid email format'),
-	})
+export const postVerifyEmailSchemaExtra = postVerifyEmailSchema
 	.refine(async ({ email }) => {
 		const foundUser = await db.user.findFirst({
 			where: {
@@ -224,7 +226,7 @@ export const postVerifyEmailSchema = z
 		if (foundUser) {
 			throw new ZodError([
 				{
-					path: ['email'],
+					path: ['alert'],
 					message: 'You have already verified your email!',
 					code: 'custom',
 				},

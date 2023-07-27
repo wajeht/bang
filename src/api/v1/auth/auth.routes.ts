@@ -11,6 +11,7 @@ import * as authValidations from './auth.validations';
 auth.post(
 	'/login',
 	validate({ body: authValidations.postLoginSchema }),
+	validate({ body: authValidations.postLoginSchemaExtra }),
 	catchAsyncHandler(authControllers.postLogin),
 );
 
@@ -23,6 +24,7 @@ auth.post(
 auth.post(
 	'/reset-password',
 	validate({ body: authValidations.postResetPasswordSchema }),
+	validate({ body: authValidations.postResetPasswordSchemaExtra }),
 	catchAsyncHandler(authControllers.postResetPassword),
 );
 
@@ -35,6 +37,7 @@ auth.post(
 auth.post(
 	'/verify-email',
 	validate({ body: authValidations.postVerifyEmailSchema }),
+	validate({ body: authValidations.postVerifyEmailSchemaExtra }),
 	catchAsyncHandler(authControllers.postVerifyEmail),
 );
 

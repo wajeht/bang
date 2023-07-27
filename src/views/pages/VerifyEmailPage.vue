@@ -95,6 +95,8 @@ async function verifyEmail() {
 		setTimeout(() => router.push('/login'), 5000);
 	} catch (error) {
 		if (error instanceof AxiosError) {
+			states.status = 'error';
+
 			if (error.response?.status && error.response.status >= 500) {
 				states.alert = {
 					type: 'error',
