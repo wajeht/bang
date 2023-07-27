@@ -42,7 +42,7 @@ export async function postLogin(req: Request, res: Response): Promise<void> {
 		profile_picture_url: user!.profile_picture_url,
 	};
 
-	const token = await AuthUtils.generateJwtToken(payload, remember ? '7d' : undefined);
+	const token = await AuthUtils.generateJwtToken(payload, remember ? '7d' : '1d');
 
 	res.cookie('token', token, {
 		httpOnly: true,
