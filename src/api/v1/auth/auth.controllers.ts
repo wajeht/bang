@@ -28,21 +28,21 @@ export async function postRegister(
 export async function postLogin(req: Request, res: Response): Promise<void> {
 	const remember = req.body.remember;
 
-	const user = await db.user.findFirst({
+	const foundUser = await db.user.findFirst({
 		where: {
 			email: req.body.email,
 		},
 	});
 
-	const payload = {
-		id: user!.id,
-		email: user!.email,
-		username: user!.username,
-		role: user!.role,
-		profile_picture_url: user!.profile_picture_url,
+	const payloadUser = {
+		id: foundUser!.id,
+		email: foundUser!.email,
+		username: foundUser!.username,
+		role: foundUser!.role,
+		profile_picture_url: foundUser!.profile_picture_url,
 	};
 
-	const token = await AuthUtils.generateJwtToken(payload, remember ? '7d' : '1d');
+	const token = await AuthUtils.generateJwtToken(payloadUser, remember ? '7d' : '1d');
 
 	res.cookie('token', token, {
 		httpOnly: true,
@@ -51,7 +51,7 @@ export async function postLogin(req: Request, res: Response): Promise<void> {
 		expires: remember ? AuthUtils.generateDay('7d') : AuthUtils.generateDay('1d'),
 	});
 
-	res.status(StatusCodes.OK).json({ message: 'ok' });
+	res.status(StatusCodes.OK).json({ message: 'ok', user: payloadUser });
 }
 
 export async function postForgotPassword(req: Request, res: Response): Promise<void> {

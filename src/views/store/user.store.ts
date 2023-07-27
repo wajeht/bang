@@ -1,31 +1,31 @@
 import { defineStore } from 'pinia';
 
-import { User } from '../../types';
+import { User as IUser } from '../../types';
 
-export interface UserWithToken {
-	info: Pick<User, 'id' | 'username' | 'email' | 'role' | 'profile_picture_url'>;
-	token: string;
-}
+type User = Pick<IUser, 'id' | 'username' | 'email' | 'profile_picture_url'> & {
+	role: IUser['role'] | '';
+};
+type UserInfo = {
+	loggedIn: boolean;
+	user: User;
+};
 
 export const useUserStore = defineStore({
 	id: 'user',
-	state: (): UserWithToken => ({
-		token: '',
-		info: {} as Pick<User, 'id' | 'username' | 'email' | 'role' | 'profile_picture_url'>,
+	state: (): UserInfo => ({
+		loggedIn: false,
+		user: {
+			id: '',
+			username: '',
+			email: '',
+			role: '',
+			profile_picture_url: '',
+		},
 	}),
-	getters: {
-		getUserInfo(): UserWithToken['info'] {
-			return this.info;
-		},
-	},
-	actions: {
-		setInfo(info: UserWithToken['info']) {
-			this.info = { ...this.info, ...info };
-		},
-	},
+	actions: {},
 	persist: {
-		key: 'token',
-		storage: localStorage,
-		paths: ['token'],
+		key: 'user',
+		storage: window.localStorage,
+		paths: ['loggedIn', 'user'],
 	},
 });

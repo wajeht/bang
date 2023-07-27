@@ -4,8 +4,10 @@ import axios, { AxiosError } from 'axios';
 import type { Props as AlertType } from '../Alert/Alert.vue';
 import { computed, reactive } from 'vue';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '../../store/user.store';
 
 const router = useRouter();
+const userStore = useUserStore();
 
 export type States = {
 	email: string;
@@ -61,9 +63,12 @@ async function login(): Promise<void> {
 
 		const { error, loading, alert, ...inputs } = states;
 
-		await axios.post('/api/v1/auth/login', inputs);
+		const { data } = await axios.post('/api/v1/auth/login', inputs);
 
 		clearInputs();
+
+		userStore.loggedIn = true;
+		userStore.user = data.user;
 
 		router.push('/dashboard');
 	} catch (error) {

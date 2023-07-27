@@ -1,4 +1,4 @@
-import express from 'express'
+import express from 'express';
 const commands = express.Router();
 
 import * as commandControllers from './command.controllers';
