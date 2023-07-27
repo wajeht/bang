@@ -48,7 +48,7 @@ export async function postLogin(req: Request, res: Response): Promise<void> {
 		httpOnly: true,
 		secure: env.NODE_ENV === 'production',
 		signed: true,
-		expires: remember ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+		expires: remember ? AuthUtils.generateDay('7d') : AuthUtils.generateDay('1d'),
 	});
 
 	res.status(StatusCodes.OK).json({ message: 'ok' });
