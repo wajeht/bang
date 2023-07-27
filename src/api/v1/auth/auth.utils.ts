@@ -4,6 +4,10 @@ import jwt from 'jsonwebtoken';
 
 import env from '../../../configs/env';
 
+export async function verifyJwtToken(token: string) {
+	return jwt.verify(token, env.JWT_SECRET);
+}
+
 export async function generateJwtToken(payload: any, expiresIn?: string) {
 	return jwt.sign(payload, env.JWT_SECRET, {
 		expiresIn: expiresIn ?? env.JWT_EXPIRES_IN,

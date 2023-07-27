@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
+import { UnauthorizedError } from './api.errors';
+import * as AuthUtils from '../api/v1/auth/auth.utils';
 
 export interface RequestValidators {
 	params?: any;
@@ -29,4 +31,31 @@ export function validate(validators: RequestValidators) {
 			}
 		}
 	};
+}
+
+export async function checkAuth(req: Request, res: Response, next: NextFunction) {
+	try {
+		const token = req.signedCookies['token'];
+
+		if (!token) {
+			throw new UnauthorizedError('Unauthorized');
+		}
+
+		const payload = await AuthUtils.verifyJwtToken(token);
+
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		req.user = payload;
+
+		next();
+	} catch (error) {
+		const url = req.originalUrl;
+
+		if (!url.includes('/api')) {
+			res.redirect('/login');
+			return;
+		}
+
+		next(error);
+	}
 }

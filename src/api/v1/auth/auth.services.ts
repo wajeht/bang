@@ -1,12 +1,12 @@
 import { User } from '../../../types/user';
-import { hashPassword, generateToken } from './auth.utils';
+import { hashPassword, generateRandomToken } from './auth.utils';
 import { VERIFICATION_TOKEN_EXPIRES_AT, RESET_PASSWORD_TOKEN_EXPIRES_AT } from './auth.enums';
 
 import db from '../../../database/db';
 
 export async function createUser(user: Pick<User, 'email' | 'password' | 'username'>) {
 	const hashedPassword = await hashPassword(user.password);
-	const verificationToken = await generateToken();
+	const verificationToken = await generateRandomToken();
 
 	const createdUser = await db.user.create({
 		data: {
@@ -22,7 +22,7 @@ export async function createUser(user: Pick<User, 'email' | 'password' | 'userna
 }
 
 export async function setUserResetPasswordToken(email: string) {
-	const resetPasswordToken = await generateToken();
+	const resetPasswordToken = await generateRandomToken();
 
 	const foundUser = await db.user.findUnique({
 		where: {

@@ -44,12 +44,12 @@ export async function postLogin(req: Request, res: Response): Promise<void> {
 
 	const token = await AuthUtils.generateJwtToken(payload, remember ? '7d' : undefined);
 
-	const cookieOptions = {
+	res.cookie('token', token, {
 		httpOnly: true,
 		secure: env.NODE_ENV === 'production',
-	};
-
-	res.cookie('token', token, cookieOptions);
+		signed: true,
+		expires: remember ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+	});
 
 	res.status(StatusCodes.OK).json({ message: 'ok' });
 }

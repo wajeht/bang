@@ -17,6 +17,8 @@ const schema = z.object({
 	DOMAIN: z.string(),
 	JWT_SECRET: z.string(),
 	JWT_EXPIRES_IN: z.string(),
+	COOKIE_SECRET: z.string(),
+	COOKIE_EXPIRES_IN: z.string(),
 });
 
 const parsed = schema.safeParse(process.env);
