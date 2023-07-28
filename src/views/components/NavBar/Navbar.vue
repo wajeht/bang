@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import axios from 'axios';
-
 import { useRouter } from 'vue-router';
+import { useUserStore } from '../../store/user.store';
+
 const router = useRouter();
+const userStore = useUserStore();
 
 async function logout() {
 	try {
-		await axios.post('/api/v1/auth/logout');
+		await userStore.logout();
 		router.push('/');
 	} catch (error) {
 		console.error(error);

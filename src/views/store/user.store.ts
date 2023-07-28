@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
-
 import { User as IUser } from '../../types';
+import axios from 'axios';
 
 type User = Pick<IUser, 'id' | 'username' | 'email' | 'profile_picture_url'> & {
 	role: IUser['role'] | '';
@@ -22,7 +22,33 @@ export const useUserStore = defineStore({
 			profile_picture_url: '',
 		},
 	}),
-	actions: {},
+	actions: {
+		clearUser() {
+			this.loggedIn = false;
+			this.user = {
+				id: '',
+				username: '',
+				email: '',
+				role: '',
+				profile_picture_url: '',
+			};
+		},
+		async checkAuth() {
+			try {
+				await axios.get('/api/v1/auth/check');
+			} catch (error) {
+				this.clearUser();
+			}
+		},
+		async logout() {
+			try {
+				await axios.post('/api/v1/auth/logout');
+				this.clearUser();
+			} catch (error) {
+				this.clearUser();
+			}
+		},
+	},
 	persist: {
 		key: 'user',
 		storage: window.localStorage,
