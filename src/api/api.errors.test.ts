@@ -6,6 +6,7 @@ import {
 	NotFoundError,
 	UnauthorizedError,
 	ValidationError,
+	ForbiddenError
 } from './api.errors';
 
 describe('api.errors', () => {
@@ -19,6 +20,12 @@ describe('api.errors', () => {
 		const error = new NotFoundError('not found');
 		expect(error.message).toBe('not found');
 		expect(error.statusCode).toBe(StatusCodes.NOT_FOUND);
+	});
+
+	test('ForbiddenError', () => {
+		const error = new ForbiddenError('forbidden');
+		expect(error.message).toBe('forbidden');
+		expect(error.statusCode).toBe(StatusCodes.FORBIDDEN);
 	});
 
 	test('APICallsExceededError', () => {

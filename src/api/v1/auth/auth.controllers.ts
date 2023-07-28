@@ -11,6 +11,10 @@ import env from '../../../configs/env';
 
 import type { PostRegisterSchema, PostVerifyEmailSchema } from './auth.validations';
 
+export async function check(req: Request, res: Response): Promise<void> {
+	res.status(StatusCodes.OK).json({ message: 'ok' });
+}
+
 export async function postRegister(
 	req: Request<{}, {}, PostRegisterSchema>,
 	res: Response,
