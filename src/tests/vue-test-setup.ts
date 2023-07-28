@@ -6,7 +6,7 @@ export const setup = () => {
 
 process.env.VUE_PORT = '3000';
 process.env.SERVER_PORT = '8000';
-process.env.DB_URL = 'mongodb://localhost:27017/mydb';
+process.env.DB_URL = 'postgresql://username:password@localhost:5432/bang';
 process.env.NODE_ENV = 'testing';
 process.env.EMAIL_HOST = 'smtp.example.com';
 process.env.EMAIL_PORT = '587';
