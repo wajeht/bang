@@ -8,12 +8,6 @@ interface MailData {
 	html: string;
 }
 
-const map = {
-	'verify-email': {
-		template: import('./verify-email'),
-	},
-};
-
 const transporter = nodemailer.createTransport(emailConfig);
 
 export async function sendMail({ to, subject, html }: MailData): Promise<void> {
