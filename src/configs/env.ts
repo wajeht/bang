@@ -12,6 +12,7 @@ const schema = z.object({
 	EMAIL_HOST: z.string(),
 	EMAIL_PORT: z.string().transform(Number),
 	EMAIL_AUTH_EMAIL: z.string(),
+	EMAIL_AUTH_EMAIL_ALIAS: z.string(),
 	EMAIL_AUTH_PASS: z.string(),
 	PASSWORD_SALT: z.string().transform(Number),
 	DOMAIN: z.string(),

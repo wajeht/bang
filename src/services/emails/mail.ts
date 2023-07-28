@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport(emailConfig);
 
 export async function sendMail({ to, subject, html }: MailData): Promise<void> {
 	const mailOptions = {
-		from: env.EMAIL_AUTH_EMAIL,
+		from: env.EMAIL_AUTH_EMAIL_ALIAS,
 		to,
 		subject,
 		html,
