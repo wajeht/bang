@@ -90,7 +90,13 @@ router.beforeEach(async (to, from, next) => {
 			next();
 		}
 	} else {
-		const dashboardPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
+		const dashboardPaths = [
+			'/login',
+			'/register',
+			'/forgot-password',
+			'/reset-password',
+			'/verify-email',
+		];
 
 		if (userStore.loggedIn && dashboardPaths.includes(to.path)) {
 			next({ name: 'Dashboard' });

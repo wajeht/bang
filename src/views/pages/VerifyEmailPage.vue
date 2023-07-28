@@ -121,6 +121,12 @@ async function verifyEmail() {
 					};
 					return;
 				}
+
+				states.alert = {
+					type: 'error',
+					message: error?.response?.data?.error[0]?.message ?? error.response.data?.message,
+					icon: true,
+				};
 			}
 		}
 	} finally {
