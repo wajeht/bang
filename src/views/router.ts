@@ -72,6 +72,11 @@ const router = createRouter({
 	},
 });
 
+router.isReady().then(async () => {
+	const userStore = useUserStore();
+	await userStore.checkAuth();
+});
+
 router.beforeEach(async (to, from, next) => {
 	const userStore = useUserStore();
 	document.title = to.name as string;
