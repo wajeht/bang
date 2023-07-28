@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from 'http-status-codes';
 import { it, expect, describe, vi } from 'vitest';
 import { postRegister, postForgotPassword } from './auth.controllers';
