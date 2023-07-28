@@ -76,14 +76,18 @@ router.beforeEach(async (to, from, next) => {
 	const userStore = useUserStore();
 	document.title = to.name as string;
 
-	if (to.matched.some((record) => record.meta.requiredAuth)) {
+	const isPathRestricted = to.matched.some((record) => record.meta.requiredAuth);
+
+	if (isPathRestricted) {
 		if (!userStore.loggedIn) {
 			next({ name: 'Login' });
 		} else {
 			next();
 		}
 	} else {
-		if (userStore.loggedIn && to.name === 'Login') {
+		const dashboardPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
+
+		if (userStore.loggedIn && dashboardPaths.includes(to.path)) {
 			next({ name: 'Dashboard' });
 		} else {
 			next();
