@@ -65,7 +65,7 @@ jobs:
         run: npm i
 
       - name: Migrate database
-        run: npx prisma migrate deploy
+        run: npx prisma db push
 
       - name: Test codes
         run: npm run test
