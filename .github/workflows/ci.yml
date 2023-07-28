@@ -47,7 +47,7 @@ jobs:
         ports:
           - 5432:5432
     env:
-      DATABASE_URL: postgresql://username:password@localhost:5432/bang
+      DB_URL: postgresql://username:password@localhost:5432/bang
 
     strategy:
       matrix:
