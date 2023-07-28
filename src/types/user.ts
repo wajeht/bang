@@ -1,6 +1,7 @@
-import { Role as PrismaRole } from '@prisma/client';
-
-export type Role = PrismaRole;
+export enum Role {
+	USER = 'USER',
+	ADMIN = 'ADMIN',
+}
 
 export interface User {
 	id: string;
