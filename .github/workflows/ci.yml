@@ -38,6 +38,7 @@ jobs:
         env:
           POSTGRES_USER: username
           POSTGRES_PASSWORD: password
+          POSTGRES_DB: bang
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -62,6 +63,9 @@ jobs:
 
       - name: Install dependencies
         run: npm i
+
+      - name: Migrate database
+        run: npx prisma migrate deploy
 
       - name: Test codes
         run: npm run test
