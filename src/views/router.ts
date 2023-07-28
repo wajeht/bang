@@ -74,7 +74,9 @@ const router = createRouter({
 
 router.isReady().then(async () => {
 	const userStore = useUserStore();
-	await userStore.checkAuth();
+	if (router.currentRoute.value.meta.requiredAuth) {
+		await userStore.checkAuth();
+	}
 });
 
 router.beforeEach(async (to, from, next) => {

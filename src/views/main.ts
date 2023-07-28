@@ -1,4 +1,4 @@
-import { createApp } from 'vue';
+import { createApp, markRaw } from 'vue';
 import { createPinia } from 'pinia';
 
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
@@ -11,8 +11,12 @@ const pinia = createPinia();
 
 const app = createApp(App);
 
-app.use(router);
+pinia.use(({ store }) => {
+	store.router = markRaw(router);
+});
+
 app.use(pinia);
+app.use(router);
 pinia.use(piniaPluginPersistedstate);
 
 app.mount('#app');

@@ -40,6 +40,8 @@ export const useUserStore = defineStore({
 			try {
 				await axios.get('/api/v1/auth/check');
 			} catch (error) {
+				// @ts-ignore
+				this.router.push('/login');
 				this.clearUser();
 			}
 		},
@@ -47,8 +49,12 @@ export const useUserStore = defineStore({
 			try {
 				await axios.post('/api/v1/auth/logout');
 				this.clearUser();
+				// @ts-ignore
+				this.router.push('/login');
 			} catch (error) {
 				this.clearUser();
+				// @ts-ignore
+				this.router.push('/login');
 			}
 		},
 	},
