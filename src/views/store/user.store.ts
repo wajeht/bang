@@ -1,31 +1,57 @@
 import { defineStore } from 'pinia';
+import { User as IUser } from '../../types';
+import axios from 'axios';
 
-import { User } from '../../types';
-
-export interface UserWithToken {
-	info: Pick<User, 'id' | 'username' | 'email' | 'role'>;
-	token: string;
-}
+type User = Pick<IUser, 'id' | 'username' | 'email' | 'profile_picture_url'> & {
+	role: IUser['role'] | '';
+};
+type UserInfo = {
+	loggedIn: boolean;
+	user: User;
+};
 
 export const useUserStore = defineStore({
 	id: 'user',
-	state: (): UserWithToken => ({
-		token: '',
-		info: {} as Pick<User, 'id' | 'username' | 'email' | 'role'>,
-	}),
-	getters: {
-		getUserInfo(): UserWithToken['info'] {
-			return this.info;
+	state: (): UserInfo => ({
+		loggedIn: false,
+		user: {
+			id: '',
+			username: '',
+			email: '',
+			role: '',
+			profile_picture_url: '',
 		},
-	},
+	}),
 	actions: {
-		setInfo(info: UserWithToken['info']) {
-			this.info = { ...this.info, ...info };
+		clearUser() {
+			this.loggedIn = false;
+			this.user = {
+				id: '',
+				username: '',
+				email: '',
+				role: '',
+				profile_picture_url: '',
+			};
+		},
+		async checkAuth() {
+			try {
+				await axios.get('/api/v1/auth/check');
+			} catch (error) {
+				this.clearUser();
+			}
+		},
+		async logout() {
+			try {
+				await axios.post('/api/v1/auth/logout');
+				this.clearUser();
+			} catch (error) {
+				this.clearUser();
+			}
 		},
 	},
 	persist: {
-		key: 'token',
-		storage: localStorage,
-		paths: ['token'],
+		key: 'user',
+		storage: window.localStorage,
+		paths: ['loggedIn', 'user'],
 	},
 });

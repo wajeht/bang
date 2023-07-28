@@ -13,16 +13,20 @@ enum Role {
 }
 
 model User {
-  id                 String    @id @default(cuid())
-  username           String    @unique @db.VarChar(50)
-  email              String    @unique
-  password           String
-  role               Role      @default(USER)
-  verification_token String?
-  verified           Boolean?  @default(false)
-  verified_at        DateTime?
-  created_at         DateTime  @default(now())
-  updated_at         DateTime  @updatedAt
+  id                              String    @id @default(cuid())
+  username                        String    @unique @db.VarChar(50)
+  email                           String    @unique
+  password                        String
+  role                            Role      @default(USER)
+  profile_picture_url             String?   @db.VarChar(255)
+  verification_token              String?
+  verification_token_expires_at   DateTime?
+  reset_password_token            String?
+  reset_password_token_expires_at DateTime?
+  verified                        Boolean?  @default(false)
+  verified_at                     DateTime?
+  created_at                      DateTime  @default(now())
+  updated_at                      DateTime  @updatedAt
 
   @@map(name: "users") // use "users" as the table name
 }

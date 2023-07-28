@@ -16,6 +16,16 @@ services:
     volumes:
       - postgres-data:/data/postgres
 
+  mailhog:
+    container_name: mailhot
+    restart: unless-stopped
+    image: mailhog/mailhog
+    ports:
+      - 1025:1025 # smtp server
+      - 8025:8025 # web ui
+    networks:
+      - bang-network
+
   bang:
     container_name: bang
     restart: unless-stopped
@@ -30,6 +40,7 @@ services:
       - /usr/src/app/node_modules
     depends_on:
       - postgres
+      - mailhog
     networks:
       - bang-network
 

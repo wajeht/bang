@@ -1,37 +1,10 @@
-<script setup lang="ts">
-import axios, { AxiosError } from 'axios';
-import type { States } from '../components/RegisterCard/RegisterCard.vue';
-
-export type StatesWithLoading = States & { loading: boolean };
-
-const states = reactive<StatesWithLoading>({
-	username: '',
-	email: '',
-	password: '',
-	agree: false,
-	error: [],
-	loading: false,
-});
-
-async function register(inputs: Omit<States, 'error'>) {
-	try {
-		states.loading = true;
-		await axios.post('/api/v1/auth/register', inputs);
-	} catch (error) {
-		if (error instanceof AxiosError) {
-			states.error = error.response?.data.error;
-		}
-	} finally {
-		states.loading = false;
-	}
-}
-</script>
+<script setup lang="ts"></script>
 
 <template>
 	<RegularLayout>
 		<div class="flex flex-col w-full items-center gap-6">
 			<!-- login -->
-			<RegisterCard @register="register" :error="states.error" :loading="states.loading" />
+			<RegisterCard />
 
 			<!-- or -->
 			<!-- <Or /> -->

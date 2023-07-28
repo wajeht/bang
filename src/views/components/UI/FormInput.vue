@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, reactive } from 'vue';
+
 export type InputTypes = 'text' | 'email' | 'password' | 'checkbox' | 'number';
 
 export type Props = {
@@ -7,6 +9,7 @@ export type Props = {
 	label?: string;
 	type: InputTypes;
 	placeholder?: string;
+	disabled?: boolean;
 	autocomplete?: string;
 };
 
@@ -22,6 +25,10 @@ const computedValidationInputErrorClass = computed(() => {
 
 const computedValidationLabelErrorClass = computed(() => {
 	return props.error ? 'text-error' : '';
+});
+
+const computedPasswordType = computed(() => {
+	return props.type === 'password' && props.modelValue.length;
 });
 
 function onInput(event: Event) {
@@ -49,13 +56,14 @@ function togglePassword() {
 				@input="onInput"
 				:placeholder="props.placeholder"
 				:autocomplete="props.autocomplete"
+				:disabled="props.disabled"
 				:class="[computedValidationInputErrorClass, 'input input-bordered w-full pr-10']"
 			/>
 
 			<!-- password -->
 			<div
 				role="button"
-				v-if="type === 'password'"
+				v-if="computedPasswordType"
 				class="absolute right-0 top-0 h-full flex items-center mr-3"
 			>
 				<i-bi:eye-slash v-if="states.password" @click="togglePassword" />

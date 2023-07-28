@@ -1,17 +1,20 @@
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "username" VARCHAR(50) NOT NULL,
-    "first_name" TEXT NOT NULL,
-    "last_name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
-    "role" TEXT NOT NULL DEFAULT 'user',
-    "profile_picture_url" TEXT,
+    "role" "Role" NOT NULL DEFAULT 'USER',
+    "profile_picture_url" VARCHAR(255),
     "verification_token" TEXT,
+    "verification_token_expires_at" TIMESTAMP(3),
+    "reset_password_token" TEXT,
+    "reset_password_token_expires_at" TIMESTAMP(3),
     "verified" BOOLEAN DEFAULT false,
     "verified_at" TIMESTAMP(3),
-    "deleted_at" TIMESTAMP NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 

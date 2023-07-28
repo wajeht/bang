@@ -32,6 +32,23 @@ jobs:
     name: Unit tests
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: username
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: bang
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      DB_URL: postgresql://username:password@localhost:5432/bang
+
     strategy:
       matrix:
         node-version: [19.x]
@@ -46,6 +63,9 @@ jobs:
 
       - name: Install dependencies
         run: npm i
+
+      - name: Migrate database
+        run: npx prisma db push
 
       - name: Test codes
         run: npm run test

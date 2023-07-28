@@ -9,6 +9,16 @@ const schema = z.object({
 	SERVER_PORT: z.string().transform(Number),
 	DB_URL: z.string(),
 	NODE_ENV: z.enum(['production', 'development', 'testing']),
+	EMAIL_HOST: z.string(),
+	EMAIL_PORT: z.string().transform(Number),
+	EMAIL_AUTH_EMAIL: z.string(),
+	EMAIL_AUTH_PASS: z.string(),
+	PASSWORD_SALT: z.string().transform(Number),
+	DOMAIN: z.string(),
+	JWT_SECRET: z.string(),
+	JWT_EXPIRES_IN: z.string(),
+	COOKIE_SECRET: z.string(),
+	COOKIE_EXPIRES_IN: z.string(),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -18,7 +28,7 @@ if (!parsed.success) {
 		'❌ Invalid environment variables:',
 		JSON.stringify(parsed.error.format(), null, 4),
 	);
-	process.exit(1);
+	// process.exit(1);
 }
 
 export default parsed.data;

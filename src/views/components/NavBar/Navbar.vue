@@ -1,3 +1,20 @@
+<script setup lang="ts">
+import { useRouter } from 'vue-router';
+import { useUserStore } from '../../store/user.store';
+
+const router = useRouter();
+const userStore = useUserStore();
+
+async function logout() {
+	try {
+		await userStore.logout();
+		router.push('/');
+	} catch (error) {
+		console.error(error);
+	}
+}
+</script>
+
 <template>
 	<div class="navbar bg-base-100">
 		<div class="flex-1">
@@ -24,11 +41,18 @@
 							to="/dashboard/profile"
 							:class="[$route.path.startsWith('/dashboard/profile') ? 'active' : '']"
 						>
+							<i-ic:outline-person />
 							Profile
 						</router-link>
 					</li>
-					<li>
-						<router-link class="justify-between" to="/"> Logout </router-link>
+
+					<div class="divider my-0"></div>
+
+					<li @click="logout">
+						<span class="text-error">
+							<i-ic:outline-logout />
+							Logout
+						</span>
 					</li>
 				</ul>
 			</div>

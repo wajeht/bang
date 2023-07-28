@@ -1,29 +1,46 @@
 import express from 'express';
-const auth = express.Router();
+import catchAsyncHandler from 'express-async-handler';
 
 import { validate } from '../../api.middlewares';
+
+const auth = express.Router();
 
 import * as authControllers from './auth.controllers';
 import * as authValidations from './auth.validations';
 
-auth.post('/login', validate({ body: authValidations.postLoginSchema }), authControllers.postLogin);
+auth.post(
+	'/login',
+	validate({ body: authValidations.postLoginSchema }),
+	validate({ body: authValidations.postLoginSchemaExtra }),
+	catchAsyncHandler(authControllers.postLogin),
+);
+
+auth.post('/logout', catchAsyncHandler(authControllers.postLogout));
 
 auth.post(
 	'/register',
 	validate({ body: authValidations.postRegisterSchema }),
-	authControllers.postRegister,
+	catchAsyncHandler(authControllers.postRegister),
 );
 
 auth.post(
 	'/reset-password',
 	validate({ body: authValidations.postResetPasswordSchema }),
-	authControllers.postLogin,
+	validate({ body: authValidations.postResetPasswordSchemaExtra }),
+	catchAsyncHandler(authControllers.postResetPassword),
 );
 
 auth.post(
 	'/forgot-password',
 	validate({ body: authValidations.postForgotPasswordSchema }),
-	authControllers.postLogin,
+	catchAsyncHandler(authControllers.postForgotPassword),
+);
+
+auth.post(
+	'/verify-email',
+	validate({ body: authValidations.postVerifyEmailSchema }),
+	validate({ body: authValidations.postVerifyEmailSchemaExtra }),
+	catchAsyncHandler(authControllers.postVerifyEmail),
 );
 
 export default auth;

@@ -1,47 +1,130 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
+import axios, { AxiosError } from 'axios';
+import type { Props as AlertType } from '../Alert/Alert.vue';
+import { computed, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '../../store/user.store';
+
+const router = useRouter();
+const userStore = useUserStore();
 
 export type States = {
 	email: string;
 	password: string;
 	remember: boolean;
+	loading: boolean;
+	alert: AlertType;
 	error: ZodIssue[];
 };
-
-export type Props = { error: ZodIssue[]; loading?: boolean };
-
-export type Emits = {
-	(e: 'login', inputs: Omit<States, 'error'>): void;
-};
-
-const props = defineProps<Props>();
-
-const emits = defineEmits<Emits>();
 
 const states = reactive<States>({
 	email: '',
 	password: '',
 	remember: false,
-	error: props.error,
+	alert: {} as AlertType,
+	loading: false,
+	error: [],
 });
 
-onUpdated(() => {
-	states.error = props.error;
-});
+function clearInputs() {
+	states.email = '';
+	states.password = '';
+	states.remember = false;
+	states.error = [];
+	states.loading = false;
 
-function onLogin() {
-	const { error, ...rest } = states;
-	emits('login', rest);
+	clearAlert(true);
 }
 
-function computedError(type: keyof States) {
+function clearAlert(slowly = false): void {
+	if (slowly) {
+		setTimeout(() => (states.alert = {} as AlertType), 5000);
+		return;
+	}
+	states.alert = {} as AlertType;
+}
+
+const computedAlertExists = computed(() => {
+	return Object.values(states.alert).some((e) => {
+		if (typeof e === 'string') {
+			return e.length > 0;
+		}
+		if (typeof e === 'boolean') {
+			return e;
+		}
+		return true;
+	});
+});
+
+async function login(): Promise<void> {
+	try {
+		states.loading = true;
+
+		const { error, loading, alert, ...inputs } = states;
+
+		const { data } = await axios.post('/api/v1/auth/login', inputs);
+
+		clearInputs();
+
+		userStore.loggedIn = true;
+		userStore.user = data.user;
+
+		router.push('/dashboard');
+	} catch (error) {
+		if (error instanceof AxiosError) {
+			if (error.response?.status && error.response.status >= 500) {
+				states.alert = {
+					type: 'error',
+					message: 'Something went wrong, please try again later!',
+					icon: true,
+				};
+				return;
+			}
+
+			if (error.response?.status && error.response.status >= 400) {
+				states.error = error.response?.data.error;
+				if (
+					error.response.data?.error &&
+					error.response.data?.error.length === 1 &&
+					error.response.data?.error[0]?.code === 'custom' &&
+					error.response.data?.error[0].path.length === 1 &&
+					error.response.data?.error[0]?.path[0] === 'alert'
+				) {
+					states.alert = {
+						type: 'error',
+						message: error?.response?.data?.error[0]?.message ?? error.response.data?.message,
+						icon: true,
+					};
+					return;
+				}
+			}
+		}
+	} finally {
+		states.loading = false;
+	}
+}
+
+function computedError(type: keyof States): string | undefined {
 	return computed(() => {
-		return states.error.find((e) => e.path[0] === type)?.message;
+		return states.error.find((e) => {
+			if (e.path.length === 0 && e.code === 'custom') {
+				return e;
+			}
+
+			if (e.path[0] === type) {
+				return e;
+			}
+		})?.message;
 	}).value;
 }
 
 function clearError(type: keyof States) {
 	states.error.forEach((e) => {
+		if (e.path.length === 0 && e.code === 'custom') {
+			states.error.splice(states.error.indexOf(e), 1);
+		}
+
 		if (e.path[0] === type) {
 			states.error.splice(states.error.indexOf(e), 1);
 		}
@@ -50,56 +133,75 @@ function clearError(type: keyof States) {
 </script>
 
 <template>
-	<div class="card w-full max-w-[400px] bg-base-100 shadow-xl gap-10">
-		<!-- login card -->
-		<div class="card-body gap-6">
-			<!-- title -->
-			<h2 class="card-title">Login</h2>
-			<!-- form -->
-			<form class="form-control w-full gap-2">
-				<!-- email -->
-				<FormInput
-					v-model="states.email"
-					type="email"
-					label="Email"
-					placeholder="email@domain.com"
-					autocomplete="email"
-					:error="computedError('email')"
-					@update:model-value="clearError('email')"
-				/>
+	<div class="w-full max-w-[400px] flex flex-col gap-6">
+		<!-- error -->
+		<Alert
+			v-if="computedAlertExists"
+			:type="states.alert.type"
+			:message="states.alert.message"
+			:icon="states.alert.icon"
+		/>
 
-				<!-- password -->
-				<FormInput
-					v-model="states.password"
-					type="password"
-					label="Password"
-					placeholder="••••••••"
-					autocomplete="current-password"
-					:error="computedError('password')"
-					@update:model-value="clearError('password')"
-				/>
+		<!-- card -->
+		<div class="card bg-base-100 shadow-xl gap-10">
+			<!-- body -->
+			<div class="card-body gap-6">
+				<!-- title -->
+				<h2 class="card-title">Login</h2>
 
-				<div class="flex justify-between items-center mt-1">
-					<!-- remember -->
-					<label class="label cursor-pointer gap-2">
-						<input type="checkbox" :checked="false" class="checkbox" />
-						<span class="label-text text-base">Remember me</span>
-					</label>
+				<!-- form -->
+				<form class="form-control w-full gap-2">
+					<!-- email -->
+					<FormInput
+						v-model="states.email"
+						type="email"
+						label="Email"
+						placeholder="email@domain.com"
+						autocomplete="email"
+						:disabled="states.loading"
+						:error="computedError('email')"
+						@update:model-value="clearError('email')"
+					/>
 
-					<!-- forgot -->
-					<router-link to="/forgot-password" class="link">Forgot password?</router-link>
+					<!-- password -->
+					<FormInput
+						v-model="states.password"
+						type="password"
+						label="Password"
+						placeholder="••••••••"
+						:disabled="states.loading"
+						autocomplete="current-password"
+						:error="computedError('password')"
+						@update:model-value="clearError('password')"
+					/>
+
+					<div class="flex justify-between items-center mt-1">
+						<!-- remember -->
+						<label class="label cursor-pointer gap-2">
+							<input
+								type="checkbox"
+								:checked="states.remember"
+								v-model="states.remember"
+								class="checkbox"
+							/>
+							<span class="label-text text-base">Remember me</span>
+						</label>
+
+						<!-- forgot -->
+						<router-link to="/forgot-password" class="link">Forgot password?</router-link>
+					</div>
+				</form>
+
+				<!-- button -->
+				<div class="flex flex-col gap-2">
+					<Button :label="'Login'" :loading="states.loading" @click="login" />
 				</div>
-			</form>
 
-			<!-- button -->
-			<div class="flex flex-col gap-2">
-				<Button :label="'Login'" :loading="props.loading" @click="onLogin" />
-			</div>
-
-			<!-- dont have an account yet -->
-			<div class="flex justify-between">
-				<p>Don't have an account yet?</p>
-				<router-link to="/register" class="link">Register</router-link>
+				<!-- dont have an account yet -->
+				<div class="flex justify-between">
+					<p>Don't have an account yet?</p>
+					<router-link to="/register" class="link">Register</router-link>
+				</div>
 			</div>
 		</div>
 	</div>
