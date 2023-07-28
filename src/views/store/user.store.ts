@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { defineStore } from 'pinia';
 import { User as IUser } from '../../types';
 import axios from 'axios';
@@ -24,7 +25,9 @@ export const useUserStore = defineStore({
 	}),
 	actions: {
 		clearUser() {
+			// @ts-ignore
 			this.loggedIn = false;
+			// @ts-ignore
 			this.user = {
 				id: '',
 				username: '',
@@ -49,6 +52,7 @@ export const useUserStore = defineStore({
 			}
 		},
 	},
+	// @ts-ignore
 	persist: {
 		key: 'user',
 		storage: window.localStorage,

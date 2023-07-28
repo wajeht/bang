@@ -61,6 +61,7 @@ export default defineConfig({
 		chunkSizeWarningLimit: 1600,
 		emptyOutDir: false,
 		sourcemap: true,
+		target: 'esnext',
 		rollupOptions,
 	},
 });
