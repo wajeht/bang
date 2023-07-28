@@ -17,7 +17,7 @@ export async function postRegister(
 ): Promise<void> {
 	const user = await AuthServices.createUser(req.body);
 
-	await mail.sendVerifyEmail({
+	mail.sendVerifyEmail({
 		email: user.email,
 		token: user.verification_token!,
 		name: user.username,
@@ -59,7 +59,7 @@ export async function postForgotPassword(req: Request, res: Response): Promise<v
 	const user = await AuthServices.setUserResetPasswordToken(req.body.email);
 
 	if (user) {
-		await mail.sendResetPassword({
+		mail.sendResetPassword({
 			email: user.email,
 			token: user.reset_password_token!,
 			name: user.username,
