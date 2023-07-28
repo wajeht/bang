@@ -36,7 +36,6 @@
 	"author": "wajeht",
 	"license": "MIT",
 	"dependencies": {
-		"@faker-js/faker": "^8.0.2",
 		"@prisma/client": "^5.0.0",
 		"@vueuse/core": "^10.2.1",
 		"@vueuse/router": "^10.2.1",
@@ -60,6 +59,7 @@
 		"zod": "^3.21.4"
 	},
 	"devDependencies": {
+		"@faker-js/faker": "^8.0.2",
 		"@fireworks-js/vue": "^2.10.7",
 		"@iconify/json": "^2.2.92",
 		"@tailwindcss/typography": "^0.5.9",
