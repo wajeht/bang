@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 import * as AuthServices from './auth.services';
 import * as AuthUtils from './auth.utils';
 
-import mail from '../../../services/emails';
+import * as mail from '../../../services/emails';
 import db from '../../../database/db';
 import env from '../../../configs/env';
 

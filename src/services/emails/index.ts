@@ -1,9 +1,3 @@
-import { sendMail } from './mail';
-import { sendVerifyEmail } from './verify-email';
-import { sendResetPassword } from './reset-password';
-
-export default {
-	sendMail,
-	sendVerifyEmail,
-	sendResetPassword,
-};
+export { sendMail } from './mail';
+export { sendVerifyEmail } from './verify-email';
+export { sendResetPassword } from './reset-password';
