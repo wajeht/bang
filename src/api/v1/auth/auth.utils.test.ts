@@ -18,7 +18,7 @@ describe('verifyJwtToken', () => {
 		const decodedToken = (await utils.verifyJwtToken(token)) as JwtPayload;
 
 		delete decodedToken.exp;
-        delete decodedToken.iat;
+		delete decodedToken.iat;
 
 		expect(decodedToken).toEqual(payload);
 	});
