@@ -20,7 +20,8 @@
 		"test:watch": "vitest",
 		"test": "vitest --run",
 		"prepare": "husky install",
-		"db:seed": "tsx ./src/database/seeds/seed.ts"
+		"db:seed": "tsx ./src/database/seeds/seed.ts",
+		"db:push": "npx prisma db push"
 	},
 	"keywords": [
 		"search",
