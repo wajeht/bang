@@ -43,28 +43,27 @@ export const postRegisterSchema = z.object({
 });
 
 export const postForgotPasswordSchema = z.object({
-	email: z
-		.string()
-		.email('Invalid email format')
-		.refine(async (email) => {
-			const foundUser = await db.user.findFirst({
-				where: {
-					email,
-				},
-			});
+	email: z.string().email('Invalid email format'),
+});
 
-			if (foundUser?.verified === false) {
-				throw new ZodError([
-					{
-						path: ['alert'],
-						message: 'You have not verified your email!',
-						code: 'custom',
-					},
-				]);
-			}
+export const postForgotPasswordSchemaExtra = postForgotPasswordSchema.refine(async (email) => {
+	const foundUser = await db.user.findFirst({
+		where: {
+			email: email as unknown as string
+		},
+	});
 
-			return true;
-		}),
+	if (foundUser?.verified === false) {
+		throw new ZodError([
+			{
+				path: ['alert'],
+				message: 'You have not verified your email!',
+				code: 'custom',
+			},
+		]);
+	}
+
+	return true;
 });
 
 export const postResetPasswordSchema = z.object({

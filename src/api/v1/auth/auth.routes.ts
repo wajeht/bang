@@ -33,6 +33,7 @@ auth.post(
 auth.post(
 	'/forgot-password',
 	validate({ body: authValidations.postForgotPasswordSchema }),
+	validate({ body: authValidations.postForgotPasswordSchemaExtra }),
 	catchAsyncHandler(authControllers.postForgotPassword),
 );
 
