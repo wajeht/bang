@@ -27,6 +27,20 @@ model User {
   verified_at                     DateTime?
   created_at                      DateTime  @default(now())
   updated_at                      DateTime  @updatedAt
+  bookmarks                       Bookmark[]
 
   @@map(name: "users") // use "users" as the table name
+}
+
+model Bookmark {
+  id         String   @id @default(cuid())
+  title      String
+  url        String
+  image_url  String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id])
+
+  @@map(name: "bookmarks") // use "bookmarks" as the table name
 }
