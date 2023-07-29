@@ -3,11 +3,11 @@ import db from '../db';
 
 export async function userSeeder() {
 	try {
-		console.log('Dropping existing records...');
+		console.log('Dropping existing user records...');
 		// Delete existing records
 		await db.user.deleteMany();
 
-		console.log('Creating new seeders...');
+		console.log('Creating new user seeders...');
 		// Generate new seeders
 		const usersData = Array.from({ length: 10 }, () => ({
 			username: faker.internet.userName(),
@@ -23,7 +23,7 @@ export async function userSeeder() {
 			data: usersData,
 		});
 
-		console.log('Seeders created successfully.');
+		console.log('User seeders created successfully.');
 	} catch (error) {
 		console.log(error);
 	} finally {
