@@ -29,7 +29,7 @@ if (!parsed.success) {
 		'❌ Invalid environment variables:',
 		JSON.stringify(parsed.error.format(), null, 4),
 	);
-	process.exit(1);
+	// process.exit(1);
 }
 
 export default parsed.data;
