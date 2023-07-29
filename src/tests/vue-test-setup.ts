@@ -11,6 +11,7 @@ process.env.NODE_ENV = 'testing';
 process.env.EMAIL_HOST = 'localhost';
 process.env.EMAIL_PORT = '1025';
 process.env.EMAIL_AUTH_EMAIL = 'example@example.com';
+process.env.EMAIL_AUTH_ALIAS = 'example@example.com';
 process.env.EMAIL_AUTH_PASS = 'your_email_password';
 process.env.PASSWORD_SALT = 'your_password_salt';
 process.env.DOMAIN = 'example.com';
