@@ -6,6 +6,7 @@
 	"scripts": {
 		"start": "npx prisma generate && npx prisma migrate deploy && node ./dist/src/server.js",
 		"dev": "concurrently --kill-others --names \"EXPRESS,VUE\" -c \"bgGreen.black,bgYellow.black\" \"npm run dev:api\" \"npm run dev:ui\"",
+		"dev:docker": "npx prisma generate && npx prisma db push && npm run dev",
 		"dev:api": "tsx watch --clear-screen=false ./src/server.ts",
 		"dev:ui": "vite",
 		"build": "npm run build:ui && npm run build:api",
