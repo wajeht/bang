@@ -6,7 +6,7 @@ import {
 	NotFoundError,
 	UnauthorizedError,
 	ValidationError,
-	ForbiddenError
+	ForbiddenError,
 } from './api.errors';
 
 describe('api.errors', () => {

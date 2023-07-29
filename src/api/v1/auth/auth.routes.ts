@@ -20,7 +20,6 @@ auth.post(
 	catchAsyncHandler(authControllers.postLogin),
 );
 
-
 auth.post(
 	'/register',
 	validate({ body: authValidations.postRegisterSchema }),

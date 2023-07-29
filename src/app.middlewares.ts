@@ -4,7 +4,12 @@ import path from 'path';
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { ZodError } from 'zod';
-import { NotFoundError, ForbiddenError, UnauthorizedError, ValidationError } from './api/api.errors';
+import {
+	NotFoundError,
+	ForbiddenError,
+	UnauthorizedError,
+	ValidationError,
+} from './api/api.errors';
 
 import env from './configs/env';
 

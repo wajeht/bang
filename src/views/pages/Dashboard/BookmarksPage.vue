@@ -1,41 +1,40 @@
 <script setup lang="ts">
-import axios, { AxiosError } from 'axios'
-import { reactive, onMounted } from 'vue'
+import axios, { AxiosError } from 'axios';
+import { reactive, onMounted } from 'vue';
 
 const states = reactive({
 	loading: false,
 	error: '',
 	bookmarks: [],
-})
+});
 
 onMounted(async () => {
-	await getBookmarks()
-})
+	await getBookmarks();
+});
 
 async function refetchBookmarks() {
-	await getBookmarks()
+	await getBookmarks();
 }
 
 async function getBookmarks() {
 	try {
-		states.loading = true
-		const response = await axios.get('/api/v1/bookmarks')
-		states.bookmarks = response.data.data
+		states.loading = true;
+		const response = await axios.get('/api/v1/bookmarks');
+		states.bookmarks = response.data.data;
 	} catch (error) {
 		if (error instanceof Error) {
-			states.error = error.message
+			states.error = error.message;
 			return;
 		}
 
 		if (error instanceof AxiosError) {
-			states.error = error.response?.data.message
+			states.error = error.response?.data.message;
 			return;
 		}
 	} finally {
-		states.loading = false
+		states.loading = false;
 	}
 }
-
 </script>
 
 <template>

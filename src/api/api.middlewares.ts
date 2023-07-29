@@ -4,6 +4,19 @@ import { ZodError } from 'zod';
 import { UnauthorizedError } from './api.errors';
 import * as AuthUtils from '../api/v1/auth/auth.utils';
 
+declare global {
+	// eslint-disable-next-line no-var
+	var loggedInUser: {
+		id: string;
+		name: string;
+		email: string;
+		profile_picture_url: string;
+		role: string;
+		iat: number;
+		exp: number;
+	};
+}
+
 export interface RequestValidators {
 	params?: any;
 	body?: any;
@@ -46,6 +59,16 @@ export async function checkAuth(req: Request, res: Response, next: NextFunction)
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		req.user = payload;
+
+		global.loggedInUser = payload as {
+			id: string;
+			name: string;
+			email: string;
+			profile_picture_url: string;
+			role: string;
+			iat: number;
+			exp: number;
+		};
 
 		next();
 	} catch (error) {
