@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import db from '../../../database/db';
 
-import type { getBookmarkSchemaType } from './bookmark.validations';
+import type { getBookmarkSchemaType, postBookmarkSchemaType } from './bookmark.validations';
 
 export async function getBookmarks(req: Request, res: Response): Promise<void> {
 	const user = await db.user.findUnique({
@@ -33,9 +33,22 @@ export async function getBookmark(
 	});
 }
 
-export async function postBookmark(req: Request, res: Response): Promise<void> {
+export async function postBookmark(req: Request<{}, {}, postBookmarkSchemaType>, res: Response): Promise<void> {
+
+	const bookmark = await db.bookmark.create({
+		data: {
+			title: req.body.title,
+			url: req.body.url,
+			user_id: req.body.user_id,
+			description: req.body.description ?? null,
+			favicon_url: req.body.favicon_url ?? null,
+			image_url: req.body.image_url ?? null,
+		},
+	});
+
 	res.status(StatusCodes.OK).json({
 		message: 'ok',
+		data: [bookmark],
 	});
 }
 

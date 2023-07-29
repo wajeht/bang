@@ -12,13 +12,16 @@ bookmarks.get('/', catchAsyncHandler(bookmarkController.getBookmarks));
 
 bookmarks.get(
 	'/:id',
-	validate({
-		params: bookmarkValidations.getBookmarkSchema,
-	}),
+	validate({ params: bookmarkValidations.getBookmarkSchema }),
 	catchAsyncHandler(bookmarkController.getBookmark),
 );
 
-bookmarks.post('/:id', bookmarkController.postBookmark);
+bookmarks.post(
+	'/',
+	validate({ body: bookmarkValidations.postBookmarkSchema }),
+	validate({ body: bookmarkValidations.postBookmarkSchemaExtra }),
+	catchAsyncHandler(bookmarkController.postBookmark),
+);
 
 bookmarks.patch('/:id', bookmarkController.patchBookmark);
 
