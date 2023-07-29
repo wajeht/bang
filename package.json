@@ -31,7 +31,7 @@
 	],
 	"prisma": {
 		"schema": "./src/database/schema.prisma",
-		"seed": "tsc ./src/database/seeds/seed.ts"
+		"seed": "tsx ./src/database/seeds/seed.ts"
 	},
 	"author": "wajeht",
 	"license": "MIT",
