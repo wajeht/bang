@@ -1,4 +1,4 @@
-FROM node:19-alpine
+FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
@@ -10,5 +10,7 @@ RUN npm install
 COPY ./ .
 
 EXPOSE 8080
+
+RUN npx prisma generate
 
 CMD ["npm", "run", "dev"]
