@@ -18,11 +18,17 @@ function generateVerifyEmailHTML(props: Props): string {
 }
 
 export async function sendVerifyEmail(props: Props): Promise<void> {
-	const html = generateVerifyEmailHTML(props);
+	try {
+		const html = generateVerifyEmailHTML(props);
 
-	await sendMail({
-		to: props.email,
-		subject: 'Verify your email',
-		html,
-	});
+		sendMail({
+			to: props.email,
+			subject: 'Verify your email',
+			html,
+		});
+
+		console.log(`Verify email sent to ${props.email}`);
+	} catch (error) {
+		console.error('Error while sending verify email: ', error);
+	}
 }

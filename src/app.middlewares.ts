@@ -4,7 +4,12 @@ import path from 'path';
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { ZodError } from 'zod';
-import { NotFoundError, ValidationError } from './api/api.errors';
+import {
+	NotFoundError,
+	ForbiddenError,
+	UnauthorizedError,
+	ValidationError,
+} from './api/api.errors';
 
 import env from './configs/env';
 
@@ -82,6 +87,16 @@ export function errorHandler(
 	}
 
 	if (err instanceof NotFoundError) {
+		response.message = err.message;
+		response.statusCode = err.statusCode;
+	}
+
+	if (err instanceof ForbiddenError) {
+		response.message = err.message;
+		response.statusCode = err.statusCode;
+	}
+
+	if (err instanceof UnauthorizedError) {
 		response.message = err.message;
 		response.statusCode = err.statusCode;
 	}

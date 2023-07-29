@@ -19,11 +19,17 @@ function generateResetPasswordHTML(props: Props): string {
 }
 
 export async function sendResetPassword(props: Props): Promise<void> {
-	const html = generateResetPasswordHTML(props);
+	try {
+		const html = generateResetPasswordHTML(props);
 
-	await sendMail({
-		to: props.email,
-		subject: 'Reset password',
-		html,
-	});
+		sendMail({
+			to: props.email,
+			subject: 'Reset password',
+			html,
+		});
+
+		console.log(`Reset password email sent to ${props.email}`);
+	} catch (error) {
+		console.error('Error while sending reset password email: ', error);
+	}
 }

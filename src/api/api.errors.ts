@@ -1,5 +1,14 @@
 import { StatusCodes } from 'http-status-codes';
 
+export class ForbiddenError extends Error {
+	public statusCode: StatusCodes;
+	constructor(message: string) {
+		super();
+		this.message = message;
+		this.statusCode = StatusCodes.FORBIDDEN;
+	}
+}
+
 export class UnauthorizedError extends Error {
 	public statusCode: StatusCodes;
 	constructor(message: string) {

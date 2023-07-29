@@ -1,6 +1,5 @@
-import { createApp } from 'vue';
+import { createApp, markRaw } from 'vue';
 import { createPinia } from 'pinia';
-import { useUserStore } from './store/user.store';
 
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import router from './router';
@@ -12,11 +11,12 @@ const pinia = createPinia();
 
 const app = createApp(App);
 
-app.use(router);
-app.use(pinia);
-pinia.use(piniaPluginPersistedstate);
+pinia.use(({ store }) => {
+	store.router = markRaw(router);
+});
 
-const userStore = useUserStore();
-await userStore.checkAuth();
+app.use(pinia);
+app.use(router);
+pinia.use(piniaPluginPersistedstate);
 
 app.mount('#app');

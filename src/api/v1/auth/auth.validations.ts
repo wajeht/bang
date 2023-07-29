@@ -6,65 +6,64 @@ export const postRegisterSchema = z.object({
 	username: z
 		.string()
 		.min(3, 'Username must be at least 3 characters')
-		.max(255, 'Username must not exceed 255 characters')
-		.refine(
-			async (username) => {
-				const foundUser = await db.user.findUnique({
-					where: {
-						username,
-					},
-				});
-				return !foundUser;
-			},
-			{
-				message: 'Username already exists',
-			},
-		),
-	email: z
-		.string()
-		.email('Invalid email format')
-		.refine(
-			async (email) => {
-				const foundUser = await db.user.findUnique({
-					where: {
-						email,
-					},
-				});
-				return !foundUser;
-			},
-			{
-				message: 'Email already exists in the database',
-			},
-		),
+		.max(255, 'Username must not exceed 255 characters'),
+	email: z.string().email('Invalid email format'),
 	password: z
 		.string()
 		.min(3, 'Password must be at least 3 characters')
 		.max(255, 'Password must not exceed 255 characters'),
 });
 
-export const postForgotPasswordSchema = z.object({
-	email: z
-		.string()
-		.email('Invalid email format')
-		.refine(async (email) => {
-			const foundUser = await db.user.findFirst({
+export const postRegisterSchemaExtra = postRegisterSchema
+	.refine(
+		async (username) => {
+			const foundUser = await db.user.findUnique({
 				where: {
-					email,
+					username: username as unknown as string,
 				},
 			});
+			return !foundUser;
+		},
+		{
+			message: 'Username already exists',
+		},
+	)
+	.refine(
+		async (email) => {
+			const foundUser = await db.user.findUnique({
+				where: {
+					email: email as unknown as string,
+				},
+			});
+			return !foundUser;
+		},
+		{
+			message: 'Email already exists in the database',
+		},
+	);
 
-			if (foundUser?.verified === false) {
-				throw new ZodError([
-					{
-						path: ['alert'],
-						message: 'You have not verified your email!',
-						code: 'custom',
-					},
-				]);
-			}
+export const postForgotPasswordSchema = z.object({
+	email: z.string().email('Invalid email format'),
+});
 
-			return true;
-		}),
+export const postForgotPasswordSchemaExtra = postForgotPasswordSchema.refine(async (email) => {
+	const foundUser = await db.user.findFirst({
+		where: {
+			email: email as unknown as string,
+		},
+	});
+
+	if (foundUser?.verified === false) {
+		throw new ZodError([
+			{
+				path: ['alert'],
+				message: 'You have not verified your email!',
+				code: 'custom',
+			},
+		]);
+	}
+
+	return true;
 });
 
 export const postResetPasswordSchema = z.object({
