@@ -25,5 +25,5 @@ process.env.DB_URL = 'postgresql://username:password@localhost:5432/bang';
 process.env.EMAIL_HOST = 'localhost';
 process.env.EMAIL_PORT = '1025';
 process.env.EMAIL_AUTH_EMAIL = 'example@example.com';
-process.env.EMAIL_AUTH_ALIAS = 'example@example.com';
+process.env.EMAIL_AUTH_EMAIL_ALIAS = 'example@example.com';
 process.env.EMAIL_AUTH_PASS = 'your_email_password';
