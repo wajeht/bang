@@ -33,8 +33,10 @@ export async function getBookmark(
 	});
 }
 
-export async function postBookmark(req: Request<{}, {}, postBookmarkSchemaType>, res: Response): Promise<void> {
-
+export async function postBookmark(
+	req: Request<{}, {}, postBookmarkSchemaType>,
+	res: Response,
+): Promise<void> {
 	const bookmark = await db.bookmark.create({
 		data: {
 			title: req.body.title,
