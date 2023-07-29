@@ -17,9 +17,9 @@ process.env.COOKIE_EXPIRES_IN = '30d';
 
 process.env.DB_PORT = '5432';
 process.env.DB_HOST = 'localhost';
-process.env.DB_USERNAME="username"
-process.env.DB_PASSWORD="password"
-process.env.DB_DATABASE="bang"
+process.env.DB_USERNAME = 'username';
+process.env.DB_PASSWORD = 'password';
+process.env.DB_DATABASE = 'bang';
 process.env.DB_URL = 'postgresql://username:password@localhost:5432/bang';
 
 process.env.EMAIL_HOST = 'localhost';
