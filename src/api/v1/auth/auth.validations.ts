@@ -16,10 +16,10 @@ export const postRegisterSchema = z.object({
 
 export const postRegisterSchemaExtra = postRegisterSchema
 	.refine(
-		async (username) => {
+		async ({ username }) => {
 			const foundUser = await db.user.findUnique({
 				where: {
-					username: username as unknown as string,
+					username,
 				},
 			});
 			return !foundUser;
@@ -29,10 +29,10 @@ export const postRegisterSchemaExtra = postRegisterSchema
 		},
 	)
 	.refine(
-		async (email) => {
+		async ({ email }) => {
 			const foundUser = await db.user.findUnique({
 				where: {
-					email: email as unknown as string,
+					email,
 				},
 			});
 			return !foundUser;
@@ -46,7 +46,7 @@ export const postForgotPasswordSchema = z.object({
 	email: z.string().email('Invalid email format'),
 });
 
-export const postForgotPasswordSchemaExtra = postForgotPasswordSchema.refine(async (email) => {
+export const postForgotPasswordSchemaExtra = postForgotPasswordSchema.refine(async ({ email }) => {
 	const foundUser = await db.user.findFirst({
 		where: {
 			email: email as unknown as string,
