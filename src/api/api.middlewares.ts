@@ -83,6 +83,6 @@ export async function checkAuth(req: Request, res: Response, next: NextFunction)
 			next(error);
 		}
 
-		res.redirect(`/login?redirectUrl=${req.query.q}`);
+		res.redirect(`/login?redirectUrl=http://localhost:3000/api/v1/search?q=${req.query.q}`);
 	}
 }
