@@ -14,7 +14,7 @@ services:
     networks:
       - bang-network
     volumes:
-      - postgres-data:/data/postgres
+      - postgres-data:/var/lib/postgresql/data
 
   mailhog:
     container_name: mailhot
