@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import axios, { AxiosError } from 'axios';
 import { reactive, onMounted } from 'vue';
+import { useUrlSearchParams } from '@vueuse/core';
 
 const states = reactive({
 	loading: false,
@@ -12,8 +13,20 @@ onMounted(async () => {
 	await getBookmarks();
 });
 
+onMounted(() => {
+	const param = useUrlSearchParams();
+
+	if (param.add) {
+		console.log(param.add);
+	}
+});
+
 async function refetchBookmarks() {
 	await getBookmarks();
+}
+
+async function addBookmark() {
+	// ....
 }
 
 async function getBookmarks() {
