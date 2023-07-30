@@ -18,13 +18,23 @@ bookmarks.get(
 
 bookmarks.post(
 	'/',
-	validate({ body: bookmarkValidations.postBookmarkSchema }),
-	validate({ body: bookmarkValidations.postBookmarkSchemaExtra }),
+	validate({
+		body: bookmarkValidations.postBookmarkSchema,
+		db: bookmarkValidations.postBookmarkSchemaExtra,
+	}),
 	catchAsyncHandler(bookmarkController.postBookmark),
 );
 
-bookmarks.patch('/:id', bookmarkController.patchBookmark);
+bookmarks.delete(
+	'/:id',
+	validate({
+		params: bookmarkValidations.deleteBookmarkParamsSchema,
+		body: bookmarkValidations.deleteBookmarkBodySchema,
+		db: bookmarkValidations.deleteBookmarkSchemaExtra,
+	}),
+	catchAsyncHandler(bookmarkController.deleteBookmark),
+);
 
-bookmarks.delete('/:id', bookmarkController.deleteBookmark);
+bookmarks.patch('/:id', bookmarkController.patchBookmark);
 
 export default bookmarks;

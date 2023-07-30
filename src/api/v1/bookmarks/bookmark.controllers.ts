@@ -3,7 +3,12 @@ import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import db from '../../../database/db';
 
-import type { getBookmarkSchemaType, postBookmarkSchemaType } from './bookmark.validations';
+import type {
+	getBookmarkSchemaType,
+	postBookmarkSchemaType,
+	deleteBookmarkBodySchemaType,
+	deleteBookmarkParamsSchemaType,
+} from './bookmark.validations';
 
 export async function getBookmarks(req: Request, res: Response): Promise<void> {
 	const user = await db.user.findUnique({
@@ -54,13 +59,21 @@ export async function postBookmark(
 	});
 }
 
-export async function patchBookmark(req: Request, res: Response): Promise<void> {
+export async function deleteBookmark(
+	req: Request<deleteBookmarkParamsSchemaType, {}, deleteBookmarkBodySchemaType>,
+	res: Response,
+): Promise<void> {
+	const bookmark = await db.bookmark.delete({
+		where: { id: req.params.id, user_id: req.body.user_id },
+	});
+
 	res.status(StatusCodes.OK).json({
 		message: 'ok',
+		data: [bookmark],
 	});
 }
 
-export async function deleteBookmark(req: Request, res: Response): Promise<void> {
+export async function patchBookmark(req: Request, res: Response): Promise<void> {
 	res.status(StatusCodes.OK).json({
 		message: 'ok',
 	});

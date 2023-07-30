@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from 'express';
-import { ZodError } from 'zod';
+import { ZodError, z } from 'zod';
 import { UnauthorizedError } from './api.errors';
 import * as AuthUtils from '../api/v1/auth/auth.utils';
 
@@ -18,12 +18,16 @@ declare global {
 }
 
 export interface RequestValidators {
-	params?: any;
-	body?: any;
-	query?: any;
+	query?: z.Schema<any>;
+	params?: z.Schema<any>;
+	body?: z.Schema<any>;
 }
 
-export function validate(validators: RequestValidators) {
+export interface ExtraValidators {
+	db?: z.Schema<any>;
+}
+
+export function validate(validators: RequestValidators & ExtraValidators) {
 	return async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			if (validators.params) {
@@ -34,6 +38,9 @@ export function validate(validators: RequestValidators) {
 			}
 			if (validators.query) {
 				req.query = await validators.query.parseAsync(req.query);
+			}
+			if (validators.db) {
+				await validators.db.parseAsync({ ...req.params, ...req.body, ...req.query });
 			}
 			next();
 		} catch (error) {
