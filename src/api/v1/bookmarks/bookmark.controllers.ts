@@ -79,7 +79,6 @@ export async function patchBookmark(
 	req: Request<patchBookmarkParamsSchemaType, {}, patchBookmarkBodySchemaType>,
 	res: Response,
 ): Promise<void> {
-
 	const bookmark = await db.bookmark.update({
 		where: { id: req.params.id, user_id: req.body.user_id },
 		data: {
