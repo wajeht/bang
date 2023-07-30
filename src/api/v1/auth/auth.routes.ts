@@ -15,36 +15,43 @@ auth.post('/logout', catchAsyncHandler(authControllers.postLogout));
 
 auth.post(
 	'/login',
-	validate({ body: authValidations.postLoginSchema }),
-	validate({ body: authValidations.postLoginSchemaExtra }),
+	validate({ body: authValidations.postLoginSchema, db: authValidations.postLoginSchemaExtra }),
 	catchAsyncHandler(authControllers.postLogin),
 );
 
 auth.post(
 	'/register',
-	validate({ body: authValidations.postRegisterSchema }),
-	validate({ body: authValidations.postRegisterSchemaExtra }),
+	validate({
+		body: authValidations.postRegisterSchema,
+		db: authValidations.postRegisterSchemaExtra,
+	}),
 	catchAsyncHandler(authControllers.postRegister),
 );
 
 auth.post(
 	'/reset-password',
-	validate({ body: authValidations.postResetPasswordSchema }),
-	validate({ body: authValidations.postResetPasswordSchemaExtra }),
+	validate({
+		body: authValidations.postResetPasswordSchema,
+		db: authValidations.postResetPasswordSchemaExtra,
+	}),
 	catchAsyncHandler(authControllers.postResetPassword),
 );
 
 auth.post(
 	'/forgot-password',
-	validate({ body: authValidations.postForgotPasswordSchema }),
-	validate({ body: authValidations.postForgotPasswordSchemaExtra }),
+	validate({
+		body: authValidations.postForgotPasswordSchema,
+		db: authValidations.postForgotPasswordSchemaExtra,
+	}),
 	catchAsyncHandler(authControllers.postForgotPassword),
 );
 
 auth.post(
 	'/verify-email',
-	validate({ body: authValidations.postVerifyEmailSchema }),
-	validate({ body: authValidations.postVerifyEmailSchemaExtra }),
+	validate({
+		body: authValidations.postVerifyEmailSchema,
+		db: authValidations.postVerifyEmailSchemaExtra,
+	}),
 	catchAsyncHandler(authControllers.postVerifyEmail),
 );
 
