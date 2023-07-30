@@ -7,6 +7,6 @@ import * as bangController from './bang.controllers';
 
 const bangs = express.Router();
 
-bangs.get('/query', catchAsyncHandler(bangController.getQuery));
+bangs.get('/search', catchAsyncHandler(bangController.getQuery));
 
 export default bangs;

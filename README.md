@@ -21,7 +21,7 @@ centralized searching & synchronized cross-platform bookmarking system
 ```javascript
 javascript: (function () {
 	const searchQuery = encodeURIComponent(window.location.href);
-	window.location.href = 'http://localhost:8080/api/v1/bangs/query?q=!add ' + searchQuery;
+	window.location.href = 'http://localhost:8080/api/v1/bangs/search?q=!add ' + searchQuery;
 })();
 ```
 
