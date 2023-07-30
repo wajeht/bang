@@ -63,6 +63,5 @@ async function getBookmarks() {
 			<span v-if="states.error" class="text-xs">{{ states.error }}</span>
 			<pre v-if="!states.error && !states.loading" class="text-xs">{{ states.bookmarks }}</pre>
 		</div>
-
 	</DashboardLayout>
 </template>
