@@ -108,7 +108,7 @@ function toggleModal() {
 </script>
 
 <template>
-	<button class="btn" @click="toggleModal">Toggle modal</button>
+	<button class="btn-xs btn-neutral rounded-md" @click="toggleModal">Add Bookmark</button>
 
 	<div class="modal" :class="{ 'modal-open': states.showModal }">
 		<div class="modal-box">

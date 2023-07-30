@@ -56,6 +56,7 @@ async function getBookmarks() {
 		<div class="flex gap-2 items-center">
 			<h1 class="text-black">Bookmarks Page</h1>
 			<button @click="refetchBookmarks" class="btn-xs btn-neutral rounded-md">Refetch</button>
+			<AddBookmarkModal :url="states.addUrl" @add="addBookmark" />
 		</div>
 		<div>
 			<span v-if="states.loading" class="text-xs">Loading...</span>
@@ -63,6 +64,5 @@ async function getBookmarks() {
 			<pre v-if="!states.error && !states.loading" class="text-xs">{{ states.bookmarks }}</pre>
 		</div>
 
-		<AddBookmarkModal :url="states.addUrl" @add="addBookmark" />
 	</DashboardLayout>
 </template>
