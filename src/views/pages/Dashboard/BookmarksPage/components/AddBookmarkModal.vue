@@ -2,7 +2,7 @@
 import { ZodIssue } from 'zod';
 import { computed, reactive, onMounted, nextTick } from 'vue';
 import axios, { AxiosError } from 'axios';
-import { useUserStore } from '../../../store/user.store';
+import { useUserStore } from '../../../../store/user.store';
 
 const userStore = useUserStore();
 
@@ -34,11 +34,22 @@ type Emits = { (e: 'add', bookmark: any): void };
 
 const emits = defineEmits<Emits>();
 
+async function getTitleOfAUrl(url: string): Promise<string | undefined> {
+	try {
+		const { data } = await axios.get(`/api/v1/search/title?url=${url}`);
+		console.log(data.title,'xxxxxxxxxxxxxxxxxxxxxxxxx');
+		return data.title;
+	} catch(error) {
+		console.log(error);
+		return undefined;
+	}
+}
+
 onMounted(() => {
-	nextTick(() => {
+	nextTick(async () => {
 		if (props.url) {
 			states.url = props.url;
-			states.title = props.url;
+			states.title = await getTitleOfAUrl(props.url) ?? '';
 			toggleModal();
 		}
 	});

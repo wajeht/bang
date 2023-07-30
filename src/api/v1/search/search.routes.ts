@@ -8,5 +8,6 @@ import * as searchController from './search.controllers';
 const search = express.Router();
 
 search.get('/', catchAsyncHandler(searchController.getSearch));
+search.get('/title', catchAsyncHandler(searchController.getUrlTitle));
 
 export default search;

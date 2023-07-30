@@ -7,7 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
-    AddBookmarkModal: typeof import('./pages/Dashboard/BookmarksPage/AddBookmarkModal.vue')['default']
+    AddBookmarkModal: typeof import('./pages/Dashboard/BookmarksPage/components/AddBookmarkModal.vue')['default']
     Alert: typeof import('./components/Alert/Alert.vue')['default']
     BookmarksPage: typeof import('./pages/Dashboard/BookmarksPage/BookmarksPage.vue')['default']
     Button: typeof import('./components/UI/Button.vue')['default']
