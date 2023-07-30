@@ -143,8 +143,12 @@ function clearError(type: keyof States) {
 <template>
 	<div class="w-full max-w-[400px] flex flex-col gap-6">
 		<!-- error -->
-		<Alert v-if="computedAlertExists" :type="states.alert.type" :message="states.alert.message"
-			:icon="states.alert.icon" />
+		<Alert
+			v-if="computedAlertExists"
+			:type="states.alert.type"
+			:message="states.alert.message"
+			:icon="states.alert.icon"
+		/>
 
 		<!-- card -->
 		<div class="card bg-base-100 shadow-xl gap-10">
@@ -156,19 +160,38 @@ function clearError(type: keyof States) {
 				<!-- form -->
 				<form class="form-control w-full gap-2">
 					<!-- email -->
-					<FormInput v-model="states.email" type="email" label="Email" placeholder="email@domain.com"
-						autocomplete="email" :disabled="states.loading" :error="computedError('email')"
-						@update:model-value="clearError('email')" />
+					<FormInput
+						v-model="states.email"
+						type="email"
+						label="Email"
+						placeholder="email@domain.com"
+						autocomplete="email"
+						:disabled="states.loading"
+						:error="computedError('email')"
+						@update:model-value="clearError('email')"
+					/>
 
 					<!-- password -->
-					<FormInput v-model="states.password" type="password" label="Password" placeholder="••••••••"
-						:disabled="states.loading" autocomplete="current-password" :error="computedError('password')"
-						@update:model-value="clearError('password')" />
+					<FormInput
+						v-model="states.password"
+						type="password"
+						label="Password"
+						placeholder="••••••••"
+						:disabled="states.loading"
+						autocomplete="current-password"
+						:error="computedError('password')"
+						@update:model-value="clearError('password')"
+					/>
 
 					<div class="flex justify-between items-center mt-1">
 						<!-- remember -->
 						<label class="label cursor-pointer gap-2">
-							<input type="checkbox" :checked="states.remember" v-model="states.remember" class="checkbox" />
+							<input
+								type="checkbox"
+								:checked="states.remember"
+								v-model="states.remember"
+								class="checkbox"
+							/>
 							<span class="label-text text-base">Remember me</span>
 						</label>
 
