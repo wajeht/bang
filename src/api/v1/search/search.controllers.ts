@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Request, Response } from 'express';
 import env from '../../../configs/env';
 
 export async function getSearch(req: Request, res: Response): Promise<void> {
+	// @ts-ignore
 	const [command, url] = req.query.q.split(' ');
 
 	if (command === '!add') {
