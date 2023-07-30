@@ -37,9 +37,9 @@ const emits = defineEmits<Emits>();
 async function getTitleOfAUrl(url: string): Promise<string | undefined> {
 	try {
 		const { data } = await axios.get(`/api/v1/search/title?url=${url}`);
-		console.log(data.title,'xxxxxxxxxxxxxxxxxxxxxxxxx');
+		console.log(data.title, 'xxxxxxxxxxxxxxxxxxxxxxxxx');
 		return data.title;
-	} catch(error) {
+	} catch (error) {
 		console.log(error);
 		return undefined;
 	}
@@ -49,7 +49,7 @@ onMounted(() => {
 	nextTick(async () => {
 		if (props.url) {
 			states.url = props.url;
-			states.title = await getTitleOfAUrl(props.url) ?? '';
+			states.title = (await getTitleOfAUrl(props.url)) ?? '';
 			toggleModal();
 		}
 	});

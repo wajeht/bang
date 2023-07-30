@@ -7,11 +7,11 @@ export async function getTitleOfAUrl(url: string) {
 		},
 	});
 
-    // get the text from the response
-    const text = await response.data;
+	// get the text from the response
+	const text = await response.data;
 
-    // get the title from the text
+	// get the title from the text
 	const title = text.match(/<title[^>]*>([^<]+)<\/title>/)[1];
 
-    console.log(title);
+	console.log(title);
 }
