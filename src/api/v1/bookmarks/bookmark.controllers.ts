@@ -8,6 +8,8 @@ import type {
 	postBookmarkSchemaType,
 	deleteBookmarkBodySchemaType,
 	deleteBookmarkParamsSchemaType,
+	patchBookmarkBodySchemaType,
+	patchBookmarkParamsSchemaType,
 } from './bookmark.validations';
 
 export async function getBookmarks(req: Request, res: Response): Promise<void> {
@@ -73,8 +75,24 @@ export async function deleteBookmark(
 	});
 }
 
-export async function patchBookmark(req: Request, res: Response): Promise<void> {
+export async function patchBookmark(
+	req: Request<patchBookmarkParamsSchemaType, {}, patchBookmarkBodySchemaType>,
+	res: Response,
+): Promise<void> {
+
+	const bookmark = await db.bookmark.update({
+		where: { id: req.params.id, user_id: req.body.user_id },
+		data: {
+			title: req.body.title ?? undefined,
+			url: req.body.url ?? undefined,
+			description: req.body.description ?? undefined,
+			favicon_url: req.body.favicon_url ?? undefined,
+			image_url: req.body.image_url ?? undefined,
+		},
+	});
+
 	res.status(StatusCodes.OK).json({
 		message: 'ok',
+		data: [bookmark],
 	});
 }

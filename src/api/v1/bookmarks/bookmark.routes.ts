@@ -35,6 +35,14 @@ bookmarks.delete(
 	catchAsyncHandler(bookmarkController.deleteBookmark),
 );
 
-bookmarks.patch('/:id', bookmarkController.patchBookmark);
+bookmarks.patch(
+	'/:id',
+	validate({
+		params: bookmarkValidations.patchBookmarkParamsSchema,
+		body: bookmarkValidations.patchBookmarkBodySchema,
+		db: bookmarkValidations.patchBookmarkSchemaExtra,
+	}),
+	catchAsyncHandler(bookmarkController.patchBookmark),
+);
 
 export default bookmarks;
