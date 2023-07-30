@@ -79,13 +79,10 @@ export async function checkAuth(req: Request, res: Response, next: NextFunction)
 
 		next();
 	} catch (error) {
-		const url = req.originalUrl;
-
-		if (!url.includes('/api')) {
-			res.redirect('/login');
-			return;
+		if (req.get('Content-Type') === 'application/json') {
+			next(error);
 		}
 
-		next(error);
+		res.redirect(`/login?redirectUrl=${req.query.q}`);
 	}
 }

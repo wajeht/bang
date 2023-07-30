@@ -2,7 +2,7 @@
 import { ZodIssue } from 'zod';
 import axios, { AxiosError } from 'axios';
 import type { Props as AlertType } from '../Alert/Alert.vue';
-import { computed, reactive } from 'vue';
+import { computed, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '../../store/user.store';
 import { useUrlSearchParams } from '@vueuse/core';
@@ -14,6 +14,7 @@ export type States = {
 	email: string;
 	password: string;
 	remember: boolean;
+	redirectUrl: string;
 	loading: boolean;
 	alert: AlertType;
 	error: ZodIssue[];
@@ -23,6 +24,7 @@ const states = reactive<States>({
 	email: '',
 	password: '',
 	remember: false,
+	redirectUrl: '',
 	alert: {} as AlertType,
 	loading: false,
 	error: [],
@@ -58,6 +60,19 @@ const computedAlertExists = computed(() => {
 	});
 });
 
+onMounted(() => {
+	const param = useUrlSearchParams();
+
+	if (param.redirectUrl) {
+		states.redirectUrl = param.redirectUrl as string;
+		states.alert = {
+			type: 'info',
+			message: 'You need to login first!',
+			icon: true,
+		};
+	}
+});
+
 async function login(): Promise<void> {
 	try {
 		states.loading = true;
@@ -73,7 +88,7 @@ async function login(): Promise<void> {
 
 		const param = useUrlSearchParams();
 
-		if (param.redirectUrl) {
+		if (states.redirectUrl) {
 			window.location.href = param.redirectUrl as string;
 			return;
 		}
