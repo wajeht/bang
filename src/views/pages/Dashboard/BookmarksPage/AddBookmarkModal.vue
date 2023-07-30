@@ -14,6 +14,7 @@ type States = {
 	url: string;
 	favicon_url: string;
 	description: string;
+	extra_fields: boolean;
 };
 
 const states = reactive<States>({
@@ -24,6 +25,7 @@ const states = reactive<States>({
 	url: '',
 	favicon_url: '',
 	description: '',
+	extra_fields: false,
 });
 
 const props = defineProps<{ url?: string }>();
@@ -149,27 +151,43 @@ function toggleModal() {
 					@update:model-value="clearError('url')"
 				/>
 
-				<!-- favicon_url -->
-				<FormInput
-					v-model="states.favicon_url"
-					type="url"
-					label="Favicon URL"
-					placeholder="example.com/favicon.ico"
-					:disabled="states.loading"
-					:error="computedError('favicon_url')"
-					@update:model-value="clearError('favicon_url')"
-				/>
+				<!-- extra toggle -->
+				<div class="w-fit">
+					<label class="cursor-pointer label gap-2 justify-start">
+						<input
+							type="checkbox"
+							v-model="states.extra_fields"
+							:disabled="states.loading"
+							:checked="states.extra_fields"
+							class="toggle toggle-sm"
+						/>
+						<span class="label-text text-base">Extra fields</span>
+					</label>
+				</div>
 
-				<!-- description -->
-				<FormInput
-					v-model="states.description"
-					type="textarea"
-					label="Description"
-					placeholder="description"
-					:disabled="states.loading"
-					:error="computedError('description')"
-					@update:model-value="clearError('description')"
-				/>
+				<div v-if="states.extra_fields" class="form-control w-full gap-2">
+					<!-- favicon_url -->
+					<FormInput
+						v-model="states.favicon_url"
+						type="url"
+						label="Favicon URL"
+						placeholder="example.com/favicon.ico"
+						:disabled="states.loading"
+						:error="computedError('favicon_url')"
+						@update:model-value="clearError('favicon_url')"
+					/>
+
+					<!-- description -->
+					<FormInput
+						v-model="states.description"
+						type="textarea"
+						label="Description"
+						placeholder="description"
+						:disabled="states.loading"
+						:error="computedError('description')"
+						@update:model-value="clearError('description')"
+					/>
+				</div>
 			</div>
 
 			<!-- button actions -->
