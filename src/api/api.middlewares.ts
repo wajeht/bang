@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { ZodError, z } from 'zod';
 import { UnauthorizedError } from './api.errors';
 import * as AuthUtils from '../api/v1/auth/auth.utils';
+import { domain } from '../utils';
 
 declare global {
 	// eslint-disable-next-line no-var
@@ -83,6 +84,6 @@ export async function checkAuth(req: Request, res: Response, next: NextFunction)
 			next(error);
 		}
 
-		res.redirect(`/login?redirectUrl=http://localhost:3000/api/v1/search?q=${req.query.q}`);
+		res.redirect(`/login?redirectUrl=${domain}/api/v1/search?q=${req.query.q}`);
 	}
 }
