@@ -17,10 +17,11 @@ centralized searching & synchronized cross-platform bookmarking system
 - and of course **Typescript** for everything ❤️
 
 # 💻 Booklet
+
 ```javascript
-javascript:(function() {
-  const searchQuery = encodeURIComponent(window.location.href);
-  window.location.href = 'http://localhost:8080/api/v1/bangs/query?q=!add ' + searchQuery;
+javascript: (function () {
+	const searchQuery = encodeURIComponent(window.location.href);
+	window.location.href = 'http://localhost:8080/api/v1/bangs/query?q=!add ' + searchQuery;
 })();
 ```
 
