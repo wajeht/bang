@@ -3,12 +3,14 @@ import { Request, Response } from 'express';
 
 import { domain } from '../../../utils';
 
+const DOMAIN = domain();
+
 export async function getSearch(req: Request, res: Response): Promise<void> {
 	// @ts-ignore
 	const [command, url] = req.query.q.split(' ');
 
 	if (command === '!add') {
-		res.redirect(`${domain}/dashboard/bookmarks?add=${url}`);
+		res.redirect(`${DOMAIN}/dashboard/bookmarks?add=${url}`);
 		return;
 	}
 

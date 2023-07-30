@@ -5,6 +5,8 @@ import { UnauthorizedError } from './api.errors';
 import * as AuthUtils from '../api/v1/auth/auth.utils';
 import { domain } from '../utils';
 
+const DOMAIN = domain();
+
 declare global {
 	// eslint-disable-next-line no-var
 	var loggedInUser: {
@@ -84,6 +86,6 @@ export async function checkAuth(req: Request, res: Response, next: NextFunction)
 			next(error);
 		}
 
-		res.redirect(`/login?redirectUrl=${domain}/api/v1/search?q=${req.query.q}`);
+		res.redirect(`/login?redirectUrl=${DOMAIN}/api/v1/search?q=${req.query.q}`);
 	}
 }
