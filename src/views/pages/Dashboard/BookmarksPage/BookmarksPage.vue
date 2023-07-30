@@ -17,7 +17,7 @@ onMounted(async () => {
 onMounted(() => {
 	const param = useUrlSearchParams();
 
-	if (param.add.length) {
+	if (param.add !== undefined) {
 		states.addUrl = param.add as string;
 	}
 });

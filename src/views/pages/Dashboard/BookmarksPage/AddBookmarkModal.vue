@@ -32,11 +32,11 @@ const emits = defineEmits<Emits>();
 
 onMounted(() => {
 	nextTick(() => {
-		if (props.url?.length) {
+		if (props.url) {
 			states.url = props.url;
 			states.title = props.url;
+			toggleModal();
 		}
-		toggleModal();
 	});
 });
 
