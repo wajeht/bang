@@ -1,6 +1,6 @@
 import app from './app';
 import ENV from './configs/env';
-import db from './database/db'
+import db from './database/db';
 
 const server = app.listen(ENV.SERVER_PORT, async () => {
 	try {
