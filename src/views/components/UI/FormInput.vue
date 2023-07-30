@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
 
-export type InputTypes = 'text' | 'email' | 'password' | 'checkbox' | 'number';
+export type InputTypes = 'text' | 'email' | 'password' | 'checkbox' | 'number' | 'textarea' | 'url';
 
 export type Props = {
 	modelValue: string;
@@ -9,6 +9,7 @@ export type Props = {
 	label?: string;
 	type: InputTypes;
 	placeholder?: string;
+	required?: boolean;
 	disabled?: boolean;
 	autocomplete?: string;
 };
@@ -20,7 +21,7 @@ const states = reactive({ password: false });
 const props = defineProps<Props>();
 
 const computedValidationInputErrorClass = computed(() => {
-	return props.error ? 'input-error' : '';
+	return props.error ? `${props.type !== 'textarea' ? 'input-error' : 'textarea-error'}` : '';
 });
 
 const computedValidationLabelErrorClass = computed(() => {
@@ -45,11 +46,24 @@ function togglePassword() {
 	<div class="form-control w-full">
 		<!-- label -->
 		<label v-if="props.label" class="label">
-			<span class="label-text">{{ props.label }}</span>
+			<span class="label-text"
+				>{{ props.label }} <span class="text-error" v-if="props.required">*</span></span
+			>
 		</label>
 
+		<!-- textarea -->
+		<textarea
+			v-if="type === 'textarea'"
+			:class="[computedValidationInputErrorClass, 'textarea textarea-bordered w-full text-[1rem]']"
+			:value="props.modelValue"
+			@input="onInput"
+			:placeholder="props.placeholder"
+			:disabled="props.disabled"
+			:autocomplete="props.autocomplete"
+		/>
+
 		<!-- input -->
-		<div class="relative">
+		<div v-if="type !== 'textarea'" class="relative">
 			<input
 				:type="props.type === 'password' && states.password ? 'text' : props.type"
 				:value="props.modelValue"

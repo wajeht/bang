@@ -7,6 +7,7 @@ const states = reactive({
 	loading: false,
 	error: '',
 	bookmarks: [],
+	addUrl: '',
 });
 
 onMounted(async () => {
@@ -16,8 +17,8 @@ onMounted(async () => {
 onMounted(() => {
 	const param = useUrlSearchParams();
 
-	if (param.add) {
-		console.log(param.add);
+	if (param.add.length) {
+		states.addUrl = param.add as string;
 	}
 });
 
@@ -25,8 +26,8 @@ async function refetchBookmarks() {
 	await getBookmarks();
 }
 
-async function addBookmark() {
-	// ....
+function addBookmark(bookmark: any) {
+	states.bookmarks.unshift(bookmark as never);
 }
 
 async function getBookmarks() {
@@ -61,5 +62,7 @@ async function getBookmarks() {
 			<span v-if="states.error" class="text-xs">{{ states.error }}</span>
 			<pre v-if="!states.error && !states.loading" class="text-xs">{{ states.bookmarks }}</pre>
 		</div>
+
+		<AddBookmarkModal :url="states.addUrl" @add="addBookmark" />
 	</DashboardLayout>
 </template>
