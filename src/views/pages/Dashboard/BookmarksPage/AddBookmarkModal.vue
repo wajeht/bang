@@ -12,6 +12,7 @@ type States = {
 	error: ZodIssue[];
 	title: string;
 	url: string;
+	favicon_url: string;
 	description: string;
 };
 
@@ -21,6 +22,7 @@ const states = reactive<States>({
 	error: [],
 	title: '',
 	url: '',
+	favicon_url: '',
 	description: '',
 });
 
@@ -73,6 +75,7 @@ async function add() {
 		const post = {
 			title: states.title,
 			url: states.url,
+			favicon_url: states.favicon_url,
 			description: states.description,
 			user_id: userStore.user?.id,
 		};
@@ -81,10 +84,15 @@ async function add() {
 			delete post.description;
 		}
 
+		if (post.favicon_url === '') {
+			delete post.favicon_url;
+		}
+
 		const { data } = await axios.post('/api/v1/bookmarks', post);
 
 		states.title = '';
 		states.url = '';
+		states.favicon_url = '';
 		states.description = '';
 
 		emits('add', data.data[0]);
@@ -139,6 +147,17 @@ function toggleModal() {
 					:disabled="states.loading"
 					:error="computedError('url')"
 					@update:model-value="clearError('url')"
+				/>
+
+				<!-- favicon_url -->
+				<FormInput
+					v-model="states.favicon_url"
+					type="url"
+					label="Favicon URL"
+					placeholder="example.com/favicon.ico"
+					:disabled="states.loading"
+					:error="computedError('favicon_url')"
+					@update:model-value="clearError('favicon_url')"
 				/>
 
 				<!-- description -->
