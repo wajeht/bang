@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Request, Response } from 'express';
-import { domain } from '../../../utils';
+import { DOMAIN } from '../../../utils';
 import axios from 'axios';
-
-const DOMAIN = domain();
 
 export async function getSearch(req: Request, res: Response): Promise<void> {
 	// @ts-ignore

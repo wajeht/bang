@@ -3,9 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { ZodError, z } from 'zod';
 import { UnauthorizedError } from './api.errors';
 import * as AuthUtils from '../api/v1/auth/auth.utils';
-import { domain } from '../utils';
-
-const DOMAIN = domain();
+import { DOMAIN } from '../utils';
 
 declare global {
 	// eslint-disable-next-line no-var
