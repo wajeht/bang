@@ -5,7 +5,7 @@ function domain(): string {
 		return `http://localhost:${env.VUE_PORT}`;
 	}
 
-	return `https://${env.DOMAIN}`;
+	return env.DOMAIN;
 }
 
 export default domain();
