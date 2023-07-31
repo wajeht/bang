@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue';
 import axios from 'axios';
-import z from 'zod'
+import z from 'zod';
 
 export type InputTypes = 'text' | 'email' | 'password' | 'checkbox' | 'number' | 'textarea' | 'url';
 
@@ -49,7 +49,6 @@ function togglePassword() {
 }
 
 async function validateFaviconUrl() {
-
 	const urlSchema = z.string().url();
 	try {
 		urlSchema.parse(props.modelValue);
