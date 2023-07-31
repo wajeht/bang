@@ -36,6 +36,7 @@ export async function getSearch(req: Request, res: Response): Promise<void> {
 
 export async function getUrlInfo(req: Request, res: Response): Promise<void> {
 	const { url } = req.query;
+	// @ts-ignore
 	const response = await axios.get(url);
 	const text = await response.data;
 
@@ -59,6 +60,7 @@ export async function getUrlInfo(req: Request, res: Response): Promise<void> {
 
 	// Convert relative favicon URL to absolute if necessary
 	if (favicon_url && !favicon_url.startsWith('http')) {
+		// @ts-ignore
 		const base = new URL(url);
 		favicon_url = new URL(favicon_url, base).toString();
 	}

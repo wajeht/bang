@@ -30,7 +30,7 @@ model User {
   updated_at                      DateTime   @updatedAt
   bookmarks                       Bookmark[]
 
-  @@map(name: "users") // use "users" as the table name
+  @@map(name: "users")
 }
 
 model Bookmark {
@@ -45,5 +45,5 @@ model Bookmark {
   user        User     @relation(fields: [user_id], references: [id])
   user_id     String
 
-  @@map(name: "bookmarks") // use "bookmarks" as the table name
+  @@map(name: "bookmarks")
 }
