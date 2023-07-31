@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue';
 import axios from 'axios';
-import { onMounted } from 'vue';
+import z from 'zod'
 
 export type InputTypes = 'text' | 'email' | 'password' | 'checkbox' | 'number' | 'textarea' | 'url';
 
@@ -20,12 +20,12 @@ export type Props = {
 export type Emits = { (e: 'update:modelValue', value: string): void };
 
 const emits = defineEmits<Emits>();
+const props = defineProps<Props>();
 const states = reactive({
 	password: false,
 	validFaviconUrl: false,
 	validatingFaviconUrl: false,
 });
-const props = defineProps<Props>();
 
 const computedValidationInputErrorClass = computed(() => {
 	return props.error ? `${props.type !== 'textarea' ? 'input-error' : 'textarea-error'}` : '';
@@ -49,7 +49,15 @@ function togglePassword() {
 }
 
 async function validateFaviconUrl() {
-	await new Promise((resolve) => setTimeout(resolve, 100));
+
+	const urlSchema = z.string().url();
+	try {
+		urlSchema.parse(props.modelValue);
+	} catch (error) {
+		return;
+	}
+
+	await new Promise((resolve) => setTimeout(resolve, 1000));
 
 	states.validatingFaviconUrl = true;
 	try {
