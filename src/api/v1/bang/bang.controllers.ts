@@ -6,7 +6,8 @@ import { URL } from 'url';
 
 export async function getSearch(req: Request, res: Response): Promise<void> {
 	// @ts-ignore
-	const [command, url] = req.query.q.split(' ');
+	const [command, ...url] = req.query.q.split(' ');
+
 
 	if (command === '!add') {
 		res.redirect(`${DOMAIN}/dashboard/bookmarks?url=${url}`);
@@ -14,7 +15,7 @@ export async function getSearch(req: Request, res: Response): Promise<void> {
 	}
 
 	if (command === '!g') {
-		res.redirect(`https://www.google.com/search?q=${url}`);
+		res.redirect(`https://www.google.com/search?q=${url.join(' ')}`);
 		return;
 	}
 
