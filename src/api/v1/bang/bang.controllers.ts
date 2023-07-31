@@ -8,7 +8,6 @@ export async function getSearch(req: Request, res: Response): Promise<void> {
 	// @ts-ignore
 	const [command, ...url] = req.query.q.split(' ');
 
-
 	if (command === '!add') {
 		res.redirect(`${DOMAIN}/dashboard/bookmarks?url=${url}`);
 		return;
