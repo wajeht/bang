@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
-import { computed, reactive, onMounted, nextTick } from 'vue';
 import axios, { AxiosError } from 'axios';
 import { useUserStore } from '../../../../store/user.store';
+import { computed, reactive, onMounted, nextTick } from 'vue';
 
 const userStore = useUserStore();
 
@@ -14,7 +14,6 @@ type States = {
 	url: string;
 	favicon_url: string;
 	description: string;
-	extra_fields: boolean;
 };
 
 const states = reactive<States>({
@@ -25,7 +24,6 @@ const states = reactive<States>({
 	url: '',
 	favicon_url: '',
 	description: '',
-	extra_fields: false,
 });
 
 const props = defineProps<{ url?: string }>();
@@ -34,22 +32,32 @@ type Emits = { (e: 'add', bookmark: any): void };
 
 const emits = defineEmits<Emits>();
 
-async function getTitleOfAUrl(url: string): Promise<string | undefined> {
+async function getUrlInfo(
+	url: string,
+): Promise<{ title: string; url: string; description: string; favicon_url: string }> {
 	try {
-		const { data } = await axios.get(`/api/v1/search/title?url=${url}`);
-		console.log(data.title, 'xxxxxxxxxxxxxxxxxxxxxxxxx');
-		return data.title;
+		const { data } = await axios.get(`/api/v1/bangs//url?url=${url}`);
+		return data.data[0];
 	} catch (error) {
-		console.log(error);
-		return undefined;
+		return {
+			title: '',
+			url: '',
+			description: '',
+			favicon_url: '',
+		};
 	}
 }
 
 onMounted(() => {
 	nextTick(async () => {
 		if (props.url) {
+			const urlInfo = await getUrlInfo(props.url);
+
 			states.url = props.url;
-			states.title = (await getTitleOfAUrl(props.url)) ?? '';
+			states.title = urlInfo.title;
+			states.favicon_url = urlInfo.favicon_url;
+			states.description = urlInfo.description;
+
 			toggleModal();
 		}
 	});
@@ -162,43 +170,28 @@ function toggleModal() {
 					@update:model-value="clearError('url')"
 				/>
 
-				<!-- extra toggle -->
-				<div class="w-fit">
-					<label class="cursor-pointer label gap-2 justify-start">
-						<input
-							type="checkbox"
-							v-model="states.extra_fields"
-							:disabled="states.loading"
-							:checked="states.extra_fields"
-							class="toggle toggle-sm"
-						/>
-						<span class="label-text text-base">Extra fields</span>
-					</label>
-				</div>
+				<!-- favicon_url -->
+				<FormInput
+					v-model="states.favicon_url"
+					type="url"
+					label="Favicon URL"
+					:url-icon="true"
+					placeholder="example.com/favicon.ico"
+					:disabled="states.loading"
+					:error="computedError('favicon_url')"
+					@update:model-value="clearError('favicon_url')"
+				/>
 
-				<div v-if="states.extra_fields" class="form-control w-full gap-2">
-					<!-- favicon_url -->
-					<FormInput
-						v-model="states.favicon_url"
-						type="url"
-						label="Favicon URL"
-						placeholder="example.com/favicon.ico"
-						:disabled="states.loading"
-						:error="computedError('favicon_url')"
-						@update:model-value="clearError('favicon_url')"
-					/>
-
-					<!-- description -->
-					<FormInput
-						v-model="states.description"
-						type="textarea"
-						label="Description"
-						placeholder="description"
-						:disabled="states.loading"
-						:error="computedError('description')"
-						@update:model-value="clearError('description')"
-					/>
-				</div>
+				<!-- description -->
+				<FormInput
+					v-model="states.description"
+					type="textarea"
+					label="Description"
+					placeholder="description"
+					:disabled="states.loading"
+					:error="computedError('description')"
+					@update:model-value="clearError('description')"
+				/>
 			</div>
 
 			<!-- button actions -->

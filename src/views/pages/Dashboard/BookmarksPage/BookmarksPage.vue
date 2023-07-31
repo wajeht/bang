@@ -7,7 +7,7 @@ const states = reactive({
 	loading: false,
 	error: '',
 	bookmarks: [],
-	addUrl: '',
+	url: '',
 });
 
 onMounted(async () => {
@@ -17,8 +17,8 @@ onMounted(async () => {
 onMounted(() => {
 	const param = useUrlSearchParams();
 
-	if (param.add !== undefined) {
-		states.addUrl = param.add as string;
+	if (param.url !== undefined) {
+		states.url = param.url as string;
 	}
 });
 
@@ -56,7 +56,7 @@ async function getBookmarks() {
 		<div class="flex gap-2 items-center">
 			<h1 class="text-black">Bookmarks Page</h1>
 			<button @click="refetchBookmarks" class="btn-xs btn-neutral rounded-md">Refetch</button>
-			<AddBookmarkModal :url="states.addUrl" @add="addBookmark" />
+			<AddBookmarkModal :url="states.url" @add="addBookmark" />
 		</div>
 		<div>
 			<span v-if="states.loading" class="text-xs">Loading...</span>
