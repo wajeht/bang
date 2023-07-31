@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import db from '../../../database/db';
-import { screenshot } from '../../../utils';
+import { screenshot, uploadFile } from '../../../utils';
 
 import type {
 	getBookmarkSchemaType,
@@ -56,7 +56,11 @@ export async function postBookmark(
 		},
 	});
 
-	const image_url = await screenshot(bookmark.url);
+	let image_url: string;
+
+	image_url = await screenshot(bookmark.url);
+
+	image_url = await uploadFile(image_url, `${bookmark.id}.png`);
 
 	await db.bookmark.update({
 		where: { id: bookmark.id },
