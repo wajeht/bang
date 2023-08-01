@@ -15,7 +15,7 @@ const server = app.listen(ENV.SERVER_PORT, async () => {
 	}
 });
 
-export async function gracefulShutdown() {
+export async function gracefulShutdown(): Promise<void> {
 	console.log('**** Received kill signal, shutting down gracefully. ****');
 	server.close(async () => {
 		try {

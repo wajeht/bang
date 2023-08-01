@@ -8,7 +8,12 @@ import * as bangValidations from './bang.validations';
 
 const bang = express.Router();
 
-bang.get('/search', catchAsyncHandler(bangController.getSearch));
+bang.get(
+	'/search',
+	validate({ query: bangValidations.getSearchSchema }),
+	catchAsyncHandler(bangController.getSearch),
+);
+
 bang.get(
 	'/url',
 	validate({ query: bangValidations.getUrlInfoSchema }),

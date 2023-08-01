@@ -54,7 +54,7 @@ export function validate(validators: RequestValidators & ExtraValidators) {
 	};
 }
 
-export async function checkAuth(req: Request, res: Response, next: NextFunction) {
+export async function checkAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
 	try {
 		const token = req.signedCookies['token'];
 

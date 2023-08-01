@@ -16,7 +16,7 @@ app.use(
 		contentSecurityPolicy: {
 			directives: {
 				...helmet.contentSecurityPolicy.getDefaultDirectives(),
-				'default-src': ["'self'", 'plausible.jaw.dev '],
+				'default-src': ["'self'", 'plausible.jaw.dev'],
 			},
 		},
 	}),
