@@ -2,13 +2,12 @@
 export type Props = {
 	label: string;
 	loading?: boolean;
-	loadingLabel?: string
+	loadingLabel?: string;
 	disabled?: boolean;
 	class?: string;
 };
 
-const props = withDefaults(defineProps<Props>(), {
-});
+const props = withDefaults(defineProps<Props>(), {});
 </script>
 
 <template>

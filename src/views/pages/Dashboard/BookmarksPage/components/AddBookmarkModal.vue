@@ -30,7 +30,7 @@ const states = reactive<States>({
 	description: '',
 });
 
-type Props = { url?: string; };
+type Props = { url?: string };
 
 const props = defineProps<Props>();
 
@@ -48,7 +48,6 @@ async function getUrlInfo(url: string) {
 				states.error = error.response?.data.error;
 			}
 		}
-
 	} finally {
 		states.loading = false;
 	}
@@ -126,7 +125,6 @@ async function add(): Promise<void> {
 	}
 
 	try {
-
 		const post = {
 			title: states.title,
 			url: states.url,
@@ -194,30 +192,67 @@ const computedAddButtonLang = computed(() => {
 			<!-- form -->
 			<div class="py-4 form-control w-full gap-2">
 				<!-- title -->
-				<FormInput v-if="states.expanded" v-model="states.title" type="text" label="Title" placeholder="title"
-					:required="true" :disabled="states.loading" :error="computedError('title')"
-					@update:model-value="clearError('title')" />
+				<FormInput
+					v-if="states.expanded"
+					v-model="states.title"
+					type="text"
+					label="Title"
+					placeholder="title"
+					:required="true"
+					:disabled="states.loading"
+					:error="computedError('title')"
+					@update:model-value="clearError('title')"
+				/>
 
 				<!-- url -->
-				<FormInput v-model="states.url" type="url" label="URL" :required="true" placeholder="example.com"
-					:disabled="states.loading" :error="computedError('url')" @update:model-value="clearError('url')" />
+				<FormInput
+					v-model="states.url"
+					type="url"
+					label="URL"
+					:required="true"
+					placeholder="example.com"
+					:disabled="states.loading"
+					:error="computedError('url')"
+					@update:model-value="clearError('url')"
+				/>
 
 				<!-- favicon_url -->
-				<FormInput v-model="states.favicon_url" v-if="states.expanded" type="url" label="Favicon URL"
-					:url-icon="true" placeholder="example.com/favicon.ico" :disabled="states.loading"
-					:error="computedError('favicon_url')" @update:model-value="clearError('favicon_url')" />
+				<FormInput
+					v-model="states.favicon_url"
+					v-if="states.expanded"
+					type="url"
+					label="Favicon URL"
+					:url-icon="true"
+					placeholder="example.com/favicon.ico"
+					:disabled="states.loading"
+					:error="computedError('favicon_url')"
+					@update:model-value="clearError('favicon_url')"
+				/>
 
 				<!-- description -->
-				<FormInput v-if="states.expanded" v-model="states.description" type="textarea" label="Description"
-					placeholder="description" :disabled="states.loading" :error="computedError('description')"
-					@update:model-value="clearError('description')" />
+				<FormInput
+					v-if="states.expanded"
+					v-model="states.description"
+					type="textarea"
+					label="Description"
+					placeholder="description"
+					:disabled="states.loading"
+					:error="computedError('description')"
+					@update:model-value="clearError('description')"
+				/>
 			</div>
 
 			<!-- button actions -->
 			<div class="modal-action">
 				<Button label="Cancel" @click="toggleModal" :disabled="states.loading" />
-				<Button :label="computedAddButtonLang" @click="add" :disabled="states.loading" :loading="states.loading"
-					loading-label="Loading..." class="btn-neutral" />
+				<Button
+					:label="computedAddButtonLang"
+					@click="add"
+					:disabled="states.loading"
+					:loading="states.loading"
+					loading-label="Loading..."
+					class="btn-neutral"
+				/>
 			</div>
 		</div>
 	</div>
