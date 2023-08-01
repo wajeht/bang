@@ -36,7 +36,7 @@ export async function getSearch(req: Request, res: Response): Promise<void> {
 	});
 }
 
-export async function getUrlInfo(req: Request<{}, {}, {}, getUrlInfoSchemaType>, res: Response): Promise<void> {
+export async function getUrlInfo(req: Request<unknown, unknown, unknown, getUrlInfoSchemaType>, res: Response): Promise<void> {
 	const { url } = req.query;
 	const response = await axios.get(url);
 	const text = await response.data;

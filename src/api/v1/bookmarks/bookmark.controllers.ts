@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import db from '../../../database/db';
@@ -32,7 +31,7 @@ export async function getBookmarks(req: Request, res: Response): Promise<void> {
 }
 
 export async function getBookmark(
-	req: Request<getBookmarkSchemaType, {}, {}>,
+	req: Request<getBookmarkSchemaType>,
 	res: Response,
 ): Promise<void> {
 	const bookmark = await db.bookmark.findUnique({
@@ -46,7 +45,7 @@ export async function getBookmark(
 }
 
 export async function postBookmark(
-	req: Request<{}, {}, postBookmarkSchemaType>,
+	req: Request<unknown, unknown, postBookmarkSchemaType>,
 	res: Response,
 ): Promise<void> {
 	const bookmark = await db.bookmark.create({
@@ -80,7 +79,7 @@ export async function postBookmark(
 }
 
 export async function deleteBookmark(
-	req: Request<deleteBookmarkParamsSchemaType, {}, deleteBookmarkBodySchemaType>,
+	req: Request<deleteBookmarkParamsSchemaType, unknown, deleteBookmarkBodySchemaType>,
 	res: Response,
 ): Promise<void> {
 	const bookmark = await db.bookmark.delete({
@@ -94,7 +93,7 @@ export async function deleteBookmark(
 }
 
 export async function patchBookmark(
-	req: Request<patchBookmarkParamsSchemaType, {}, patchBookmarkBodySchemaType>,
+	req: Request<patchBookmarkParamsSchemaType, unknown, patchBookmarkBodySchemaType>,
 	res: Response,
 ): Promise<void> {
 	const bookmark = await db.bookmark.update({

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
@@ -16,7 +15,7 @@ export async function check(req: Request, res: Response): Promise<void> {
 }
 
 export async function postRegister(
-	req: Request<{}, {}, PostRegisterSchema>,
+	req: Request<unknown, unknown, PostRegisterSchema>,
 	res: Response,
 ): Promise<void> {
 	const user = await AuthServices.createUser(req.body);
@@ -79,7 +78,7 @@ export async function postResetPassword(req: Request, res: Response): Promise<vo
 }
 
 export async function postVerifyEmail(
-	req: Request<{}, {}, PostVerifyEmailSchema>,
+	req: Request<unknown, unknown, PostVerifyEmailSchema>,
 	res: Response,
 ): Promise<void> {
 	await db.user.update({
