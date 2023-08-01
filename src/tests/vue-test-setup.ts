@@ -26,7 +26,7 @@ process.env.MINIO_ENDPOINT = 'localhost';
 process.env.MINIO_PORT = '9000';
 process.env.MINIO_ACCESS_KEY = 'your_minio_access_key';
 process.env.MINIO_SECRET_KEY = 'your_minio_secret_key';
-process.env.MINIO_PUBLIC_BUCKET = 'bang'
+process.env.MINIO_PUBLIC_BUCKET = 'bang';
 
 process.env.EMAIL_HOST = 'localhost';
 process.env.EMAIL_PORT = '1025';
