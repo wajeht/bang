@@ -101,11 +101,11 @@ async function add() {
 			user_id: userStore.user?.id,
 		};
 
-		if (post.description === '') {
+		if (post.description === '' || post.description === null) {
 			delete post.description;
 		}
 
-		if (post.favicon_url === '') {
+		if (post.favicon_url === '' || post.favicon_url === null) {
 			delete post.favicon_url;
 		}
 
