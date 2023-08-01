@@ -17,7 +17,11 @@ export async function getBookmarks(req: Request, res: Response): Promise<void> {
 	const user = await db.user.findUnique({
 		where: { id: req.user.id },
 		include: {
-			bookmarks: true,
+			bookmarks: {
+				orderBy: {
+					created_at: 'desc',
+				},
+			},
 		},
 	});
 
