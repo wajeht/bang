@@ -3,8 +3,10 @@ import { ZodIssue } from 'zod';
 import axios, { AxiosError } from 'axios';
 import { useUserStore } from '../../../../store/user.store';
 import { computed, reactive, onMounted, nextTick } from 'vue';
+import { useRouter } from 'vue-router';
 
 const userStore = useUserStore();
+const router = useRouter();
 
 type States = {
 	showModal: boolean;
@@ -14,6 +16,7 @@ type States = {
 	url: string;
 	favicon_url: string;
 	description: string;
+	expanded: boolean;
 };
 
 const states = reactive<States>({
@@ -22,46 +25,64 @@ const states = reactive<States>({
 	error: [],
 	title: '',
 	url: '',
+	expanded: false,
 	favicon_url: '',
 	description: '',
 });
 
-const props = defineProps<{ url?: string }>();
+type Props = { url?: string; };
+
+const props = defineProps<Props>();
 
 type Emits = { (e: 'add', bookmark: any): void };
 
 const emits = defineEmits<Emits>();
 
-async function getUrlInfo(
-	url: string,
-): Promise<{ title: string; url: string; description: string; favicon_url: string }> {
+async function getUrlInfo(url: string) {
 	try {
 		const { data } = await axios.get(`/api/v1/bangs//url?url=${url}`);
 		return data.data[0];
 	} catch (error) {
-		return {
-			title: '',
-			url: '',
-			description: '',
-			favicon_url: '',
-		};
+		if (error instanceof AxiosError) {
+			if (error.response?.status && error.response.status >= 400) {
+				states.error = error.response?.data.error;
+			}
+		}
+
+	} finally {
+		states.loading = false;
+	}
+}
+
+async function syncUrlInfo(url: string): Promise<void> {
+	try {
+		const urlInfo = await getUrlInfo(url);
+		states.url = urlInfo.url ?? '';
+		states.title = urlInfo.title ?? '';
+		states.favicon_url = urlInfo.favicon_url ?? '';
+		states.description = urlInfo.description ?? '';
+	} catch (error) {
+		throw error;
 	}
 }
 
 onMounted(() => {
 	nextTick(async () => {
 		if (props.url) {
-			const urlInfo = await getUrlInfo(props.url);
-
-			states.url = props.url ?? '';
-			states.title = urlInfo.title ?? '';
-			states.favicon_url = urlInfo.favicon_url ?? '';
-			states.description = urlInfo.description ?? '';
-
+			await syncUrlInfo(props.url);
+			console.log('here');
+			states.expanded = true;
 			toggleModal();
 		}
 	});
 });
+
+function clearStates(): void {
+	states.title = '';
+	states.url = '';
+	states.favicon_url = '';
+	states.description = '';
+}
 
 function computedError(type: keyof States): string | undefined {
 	return computed(() => {
@@ -77,7 +98,7 @@ function computedError(type: keyof States): string | undefined {
 	}).value;
 }
 
-function clearError(type: keyof States) {
+function clearError(type: keyof States): void {
 	states.error.forEach((e) => {
 		if (e.path.length === 0 && e.code === 'custom') {
 			states.error.splice(states.error.indexOf(e), 1);
@@ -89,9 +110,22 @@ function clearError(type: keyof States) {
 	});
 }
 
-async function add() {
+async function add(): Promise<void> {
+	states.loading = true;
+
+	if (!states.expanded && states.url) {
+		try {
+			await syncUrlInfo(states.url);
+		} catch (error) {
+			states.loading = false;
+			return;
+		}
+		states.expanded = true;
+		states.loading = false;
+		return;
+	}
+
 	try {
-		states.loading = true;
 
 		const post = {
 			title: states.title,
@@ -111,12 +145,12 @@ async function add() {
 
 		const { data } = await axios.post('/api/v1/bookmarks', post);
 
-		states.title = '';
-		states.url = '';
-		states.favicon_url = '';
-		states.description = '';
+		clearStates();
+
+		router.replace(`/dashboard/bookmarks`); // clear the ?url query param
 
 		emits('add', data.data[0]);
+
 		toggleModal();
 	} catch (error) {
 		if (error instanceof AxiosError) {
@@ -131,9 +165,22 @@ async function add() {
 	}
 }
 
-function toggleModal() {
+function toggleModal(): void {
 	states.showModal = !states.showModal;
+	if (!states.showModal) {
+		setTimeout(() => {
+			states.expanded = false;
+		}, 300);
+	}
 }
+
+const computedAddButtonLang = computed(() => {
+	if (states.expanded) {
+		return 'Add';
+	}
+
+	return 'Next';
+});
 </script>
 
 <template>
@@ -147,57 +194,30 @@ function toggleModal() {
 			<!-- form -->
 			<div class="py-4 form-control w-full gap-2">
 				<!-- title -->
-				<FormInput
-					v-model="states.title"
-					type="text"
-					label="Title"
-					placeholder="title"
-					:required="true"
-					:disabled="states.loading"
-					:error="computedError('title')"
-					@update:model-value="clearError('title')"
-				/>
+				<FormInput v-if="states.expanded" v-model="states.title" type="text" label="Title" placeholder="title"
+					:required="true" :disabled="states.loading" :error="computedError('title')"
+					@update:model-value="clearError('title')" />
 
 				<!-- url -->
-				<FormInput
-					v-model="states.url"
-					type="url"
-					label="URL"
-					:required="true"
-					placeholder="example.com"
-					:disabled="states.loading"
-					:error="computedError('url')"
-					@update:model-value="clearError('url')"
-				/>
+				<FormInput v-model="states.url" type="url" label="URL" :required="true" placeholder="example.com"
+					:disabled="states.loading" :error="computedError('url')" @update:model-value="clearError('url')" />
 
 				<!-- favicon_url -->
-				<FormInput
-					v-model="states.favicon_url"
-					type="url"
-					label="Favicon URL"
-					:url-icon="true"
-					placeholder="example.com/favicon.ico"
-					:disabled="states.loading"
-					:error="computedError('favicon_url')"
-					@update:model-value="clearError('favicon_url')"
-				/>
+				<FormInput v-model="states.favicon_url" v-if="states.expanded" type="url" label="Favicon URL"
+					:url-icon="true" placeholder="example.com/favicon.ico" :disabled="states.loading"
+					:error="computedError('favicon_url')" @update:model-value="clearError('favicon_url')" />
 
 				<!-- description -->
-				<FormInput
-					v-model="states.description"
-					type="textarea"
-					label="Description"
-					placeholder="description"
-					:disabled="states.loading"
-					:error="computedError('description')"
-					@update:model-value="clearError('description')"
-				/>
+				<FormInput v-if="states.expanded" v-model="states.description" type="textarea" label="Description"
+					placeholder="description" :disabled="states.loading" :error="computedError('description')"
+					@update:model-value="clearError('description')" />
 			</div>
 
 			<!-- button actions -->
 			<div class="modal-action">
 				<Button label="Cancel" @click="toggleModal" :disabled="states.loading" />
-				<Button label="Add" @click="add" :disabled="states.loading" :loading="states.loading" loading-label="Loading..." class="btn-neutral" />
+				<Button :label="computedAddButtonLang" @click="add" :disabled="states.loading" :loading="states.loading"
+					loading-label="Loading..." class="btn-neutral" />
 			</div>
 		</div>
 	</div>

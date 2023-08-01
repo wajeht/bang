@@ -1,13 +1,18 @@
 import express from 'express';
 import catchAsyncHandler from 'express-async-handler';
 
-// import { validate } from '../../api.middlewares';
+import { validate } from '../../api.middlewares';
 
 import * as bangController from './bang.controllers';
+import * as bangValidations from './bang.validations';
 
 const bang = express.Router();
 
 bang.get('/search', catchAsyncHandler(bangController.getSearch));
-bang.get('/url', catchAsyncHandler(bangController.getUrlInfo));
+bang.get(
+	'/url',
+	validate({ query: bangValidations.getUrlInfoSchema }),
+	catchAsyncHandler(bangController.getUrlInfo),
+);
 
 export default bang;
