@@ -196,10 +196,8 @@ function toggleModal() {
 
 			<!-- button actions -->
 			<div class="modal-action">
-				<button :disabled="states.loading" class="btn btn-ghost" @click="toggleModal">
-					Cancel
-				</button>
-				<button :disabled="states.loading" class="btn btn-neutral" @click="add">Add</button>
+				<Button label="Cancel" @click="toggleModal" :disabled="states.loading" />
+				<Button label="Add" @click="add" :disabled="states.loading" :loading="states.loading" loading-label="Loading..." class="btn-neutral" />
 			</div>
 		</div>
 	</div>
