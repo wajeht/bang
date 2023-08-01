@@ -53,10 +53,10 @@ onMounted(() => {
 		if (props.url) {
 			const urlInfo = await getUrlInfo(props.url);
 
-			states.url = props.url;
-			states.title = urlInfo.title;
-			states.favicon_url = urlInfo.favicon_url;
-			states.description = urlInfo.description;
+			states.url = props.url ?? '';
+			states.title = urlInfo.title ?? '';
+			states.favicon_url = urlInfo.favicon_url ?? '';
+			states.description = urlInfo.description ?? '';
 
 			toggleModal();
 		}
