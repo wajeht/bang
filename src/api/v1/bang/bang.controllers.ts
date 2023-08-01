@@ -1,13 +1,14 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Request, Response } from 'express';
 import { DOMAIN } from '../../../utils';
-import axios from 'axios';
 import { URL } from 'url';
+import axios from 'axios';
 
-import type { getUrlInfoSchemaType } from './bang.validations';
+import type { getUrlInfoSchemaType, getSearchSchemaType } from './bang.validations';
 
-export async function getSearch(req: Request, res: Response): Promise<void> {
-	// @ts-ignore
+export async function getSearch(
+	req: Request<unknown, unknown, unknown, getSearchSchemaType>,
+	res: Response,
+): Promise<void> {
 	const [command, ...url] = req.query.q.split(' ');
 
 	if (command === '!add') {
@@ -62,7 +63,6 @@ export async function getUrlInfo(
 		extractValue(text, /<link[^>]*rel="fluid-icon"[^>]*href="([^"]*)"[^>]*>/) ||
 		extractValue(text, /<link[^>]*rel="icon"[^>]*href="([^"]*)"[^>]*>/);
 
-	// Convert relative favicon URL to absolute if necessary
 	if (favicon_url && !favicon_url.startsWith('http')) {
 		const base = new URL(url);
 		favicon_url = new URL(favicon_url, base).toString();
