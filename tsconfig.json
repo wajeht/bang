@@ -17,7 +17,6 @@
 		],
 		"baseUrl": ".",
 		"paths": {
-			"@/views*": ["src/views/*"],
 			"@/*": ["src/*"]
 		},
 		// "declaration": true,
