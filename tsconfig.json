@@ -15,6 +15,11 @@
 			"vitest/globals",
 			"node"
 		],
+		"baseUrl": ".",
+		"paths": {
+			"@/views*": ["src/views/*"],
+			"@/*": ["src/*"]
+		},
 		// "declaration": true,
 		// "declarationMap": true,
 		// "composite": true,

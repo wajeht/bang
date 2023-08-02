@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
-import axios, { AxiosError } from 'axios';
-import { useUserStore } from '../../../../store/user.store';
+import { axios, AxiosError } from '@/views/utils';
+import { useUserStore } from '@/views/store/user.store';
 import { computed, reactive, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 
