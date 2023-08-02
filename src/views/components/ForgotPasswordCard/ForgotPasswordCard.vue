@@ -156,7 +156,12 @@ function clearError(type: keyof States) {
 				</form>
 
 				<!-- button -->
-				<Button :label="'Submit'" class="btn-neutral" :loading="states.loading" @click="forgotPassword" />
+				<Button
+					:label="'Submit'"
+					class="btn-neutral"
+					:loading="states.loading"
+					@click="forgotPassword"
+				/>
 			</div>
 		</div>
 	</div>
