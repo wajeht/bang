@@ -208,7 +208,7 @@ async function resetPassword(): Promise<void> {
 
 				<!-- button -->
 				<div class="flex flex-col gap-2">
-					<Button :label="'Submit'" :loading="states.loading" @click="resetPassword" />
+					<Button :label="'Submit'" class="btn-neutral" :loading="states.loading" @click="resetPassword" />
 				</div>
 			</div>
 		</div>

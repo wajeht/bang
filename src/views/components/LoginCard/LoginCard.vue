@@ -217,7 +217,7 @@ function clearError(type: keyof States) {
 
 				<!-- button -->
 				<div class="flex flex-col gap-2">
-					<Button :label="'Login'" :loading="states.loading" @click="login" />
+					<Button :label="'Login'" class="btn-neutral" :loading="states.loading" @click="login" />
 				</div>
 
 				<!-- dont have an account yet -->

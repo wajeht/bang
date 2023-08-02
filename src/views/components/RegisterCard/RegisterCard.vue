@@ -213,7 +213,7 @@ async function register(): Promise<void> {
 
 				<!-- button -->
 				<div class="flex flex-col gap-2">
-					<Button :label="'Register'" :loading="states.loading" @click="register" />
+					<Button :label="'Register'" class="btn-neutral" :loading="states.loading" @click="register" />
 				</div>
 
 				<!-- already have an account -->
