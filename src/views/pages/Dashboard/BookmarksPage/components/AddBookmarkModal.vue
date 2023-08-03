@@ -185,7 +185,7 @@ const computedAddButtonLang = computed(() => {
 </script>
 
 <template>
-	<button class="btn-xs btn-neutral rounded-md" @click="toggleModal">Add Bookmark</button>
+	<Button @click="toggleModal" class="btn-neutral btn-xs" label="Add" />
 
 	<div class="modal" :class="{ 'modal-open': states.showModal }">
 		<div class="modal-box">

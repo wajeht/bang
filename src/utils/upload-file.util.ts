@@ -19,7 +19,7 @@ export default async function uploadFile(filePath: string, fileName: string): Pr
 					url = url.replace(`minio`, 'localhost');
 				}
 
-				resolve(url);
+				resolve(url.split('?')[0]);
 			}
 		});
 	});
