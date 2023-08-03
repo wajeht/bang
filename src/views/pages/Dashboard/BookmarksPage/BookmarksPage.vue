@@ -22,20 +22,20 @@ onMounted(() => {
 	}
 });
 
-async function refetchBookmarks() {
+async function refetchBookmarks(): Promise<void> {
 	await getBookmarks();
 }
 
-function addBookmark(bookmark: any) {
+function addBookmark(bookmark: any): void {
 	states.bookmarks.unshift(bookmark as never);
 }
 
-async function getBookmarks() {
+async function getBookmarks(): Promise<void> {
 	try {
 		states.loading = true;
 		const response = await axios.get('/api/v1/bookmarks');
 		states.bookmarks = response.data.data;
-	} catch (error) {
+	} catch (error: unknown | AxiosError) {
 		if (error instanceof Error) {
 			states.error = error.message;
 			return;

@@ -38,11 +38,11 @@ type Emits = { (e: 'add', bookmark: any): void };
 
 const emits = defineEmits<Emits>();
 
-async function getUrlInfo(url: string) {
+async function getUrlInfo(url: string): Promise<any> {
 	try {
 		const { data } = await axios.get(`/api/v1/bangs//url?url=${url}`);
 		return data.data[0];
-	} catch (error) {
+	} catch (error: unknown | AxiosError) {
 		if (error instanceof AxiosError) {
 			if (error.response?.status && error.response.status >= 400) {
 				states.error = error.response?.data.error;
@@ -130,14 +130,17 @@ async function add(): Promise<void> {
 			url: states.url,
 			favicon_url: states.favicon_url,
 			description: states.description,
+			// @ts-ignore
 			user_id: userStore.user?.id,
 		};
 
 		if (post.description === '' || post.description === null) {
+			// @ts-ignore
 			delete post.description;
 		}
 
 		if (post.favicon_url === '' || post.favicon_url === null) {
+			// @ts-ignore
 			delete post.favicon_url;
 		}
 

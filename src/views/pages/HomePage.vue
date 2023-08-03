@@ -14,7 +14,7 @@ const options = ref<FireworksOptions>({
 	},
 });
 
-async function startFireworks() {
+async function startFireworks(): Promise<void> {
 	if (!fw.value) return;
 	fw.value.start();
 	await new Promise((resolve) => setTimeout(resolve, 1000));

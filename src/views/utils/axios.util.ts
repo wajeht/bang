@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { StatusCodes } from 'http-status-codes';
-import { useUserStore } from '../store/user.store';
+import { useUserStore } from '@/views/store/user.store';
 
 const axiosInstance = axios.create({
 	baseURL: '/',
