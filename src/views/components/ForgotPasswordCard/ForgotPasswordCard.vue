@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
-import axios, { AxiosError } from 'axios';
-import type { Props as AlertType } from '../Alert/Alert.vue';
+import { axios, AxiosError } from '@/views/utils';
+import type { Props as AlertType } from '@/views/components/Alert/Alert.vue';
 import { computed, reactive } from 'vue';
 
 export type States = {
@@ -62,7 +62,7 @@ async function forgotPassword(): Promise<void> {
 		};
 
 		clearInputs();
-	} catch (error) {
+	} catch (error: unknown | AxiosError) {
 		if (error instanceof AxiosError) {
 			if (error.response?.status && error.response.status >= 500) {
 				states.alert = {

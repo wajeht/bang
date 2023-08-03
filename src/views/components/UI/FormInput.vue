@@ -39,16 +39,16 @@ const computedPasswordType = computed(() => {
 	return props.type === 'password' && props.modelValue.length;
 });
 
-function onInput(event: Event) {
+function onInput(event: Event): void {
 	const target = event.target as HTMLInputElement;
 	emits('update:modelValue', target.value);
 }
 
-function togglePassword() {
+function togglePassword(): void {
 	states.password = !states.password;
 }
 
-async function validateFaviconUrl() {
+async function validateFaviconUrl(): Promise<void> {
 	const urlSchema = z.string().url();
 	try {
 		urlSchema.parse(props.modelValue);

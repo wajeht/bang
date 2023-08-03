@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
-import axios, { AxiosError } from 'axios';
-import type { Props as AlertType } from '../Alert/Alert.vue';
+import { axios, AxiosError } from '@/views/utils';
+import type { Props as AlertType } from '@/views/components/Alert/Alert.vue';
 import { computed, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useUserStore } from '../../store/user.store';
+import { useUserStore } from '@/views/store/user.store';
 import { useUrlSearchParams } from '@vueuse/core';
 
 const router = useRouter();
@@ -83,7 +83,9 @@ async function login(): Promise<void> {
 
 		clearInputs();
 
+		// @ts-ignore
 		userStore.loggedIn = true;
+		// @ts-ignore
 		userStore.user = data.user;
 
 		const param = useUrlSearchParams();
@@ -94,7 +96,7 @@ async function login(): Promise<void> {
 		}
 
 		router.push('/dashboard');
-	} catch (error) {
+	} catch (error: unknown | AxiosError) {
 		if (error instanceof AxiosError) {
 			if (error.response?.status && error.response.status >= 500) {
 				states.alert = {
