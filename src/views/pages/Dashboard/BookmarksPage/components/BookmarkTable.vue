@@ -139,7 +139,7 @@ const computedDate = (date: Date): string => {
 					<!-- row -->
 					<tr v-for="bookmark in computedSearch" :key="bookmark.id">
 						<!-- checkbox -->
-						<th class="align-top">
+						<th class="align-middle">
 							<input type="checkbox" class="checkbox checkbox-xs" />
 						</th>
 
