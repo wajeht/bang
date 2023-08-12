@@ -127,7 +127,7 @@ const computedDate = (date: Date): string => {
 						</th>
 
 						<!-- title -->
-						<td class="align-top">
+						<td class="align-middle">
 							<div class="flex items-center space-x-3">
 								<ImagePreview :bookmark="bookmark" />
 								<div>
@@ -140,7 +140,7 @@ const computedDate = (date: Date): string => {
 						</td>
 
 						<!-- url -->
-						<td class="align-top">
+						<td class="align-middle">
 							<a
 								:href="bookmark.url"
 								target="_blank"
@@ -157,12 +157,12 @@ const computedDate = (date: Date): string => {
 						</td>
 
 						<!-- date -->
-						<td class="align-top">
+						<td class="align-middle">
 							{{ computedDate(bookmark.created_at) }}
 						</td>
 
 						<!-- actions -->
-						<td class="align-top">
+						<td class="align-middle">
 							<div class="flex gap-2">
 								<Button class="btn-neutral btn-xs" label="Edit" />
 								<Button
