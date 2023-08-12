@@ -149,7 +149,7 @@ const computedDate = (date: Date): string => {
 								:href="bookmark.url"
 								target="_blank"
 								rel="noopener noreferrer"
-								class="flex gap-2 items-center"
+								class="flex gap-2 items-center hover:underline"
 							>
 								<i-material-symbols:warning-outline
 									v-if="!bookmark.favicon_url"
