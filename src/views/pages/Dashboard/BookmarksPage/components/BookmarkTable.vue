@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import axios, { AxiosError } from 'axios';
-import { reactive, onMounted } from 'vue';
+import { reactive, onMounted, computed } from 'vue';
 import { useUrlSearchParams } from '@vueuse/core';
 import type { Bookmark } from '@/types';
 import { formatDate } from '@/views/utils';
@@ -8,6 +8,7 @@ import { formatDate } from '@/views/utils';
 const states = reactive({
 	loading: false,
 	error: '',
+	search: '',
 	bookmarks: [] as Bookmark[],
 	url: '',
 });
@@ -73,6 +74,18 @@ async function getBookmarks(): Promise<void> {
 	}
 }
 
+const computedSearch = computed(() => {
+    return states.bookmarks.filter((bookmark) => {
+        const searchContent =
+            bookmark.title + ' ' +
+            bookmark.url + ' ' +
+            bookmark.description + ' ' +
+            formatDate(bookmark.created_at);
+
+        return searchContent.toLowerCase().includes(states.search.toLowerCase());
+    });
+});
+
 const computedDate = (date: Date): string => {
 	return formatDate(date);
 };
@@ -88,6 +101,7 @@ const computedDate = (date: Date): string => {
 				<!-- search -->
 				<div class="form-control">
 					<input
+						v-model="states.search"
 						type="text"
 						placeholder="Search"
 						class="input input-sm input-bordered w-24 md:w-auto"
@@ -120,7 +134,7 @@ const computedDate = (date: Date): string => {
 				</thead>
 				<tbody>
 					<!-- row -->
-					<tr v-for="bookmark in states.bookmarks" :key="bookmark.id">
+					<tr v-for="bookmark in computedSearch" :key="bookmark.id">
 						<!-- checkbox -->
 						<th class="align-top">
 							<input type="checkbox" class="checkbox checkbox-xs" />
