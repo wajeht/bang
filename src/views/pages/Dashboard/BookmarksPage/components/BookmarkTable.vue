@@ -75,15 +75,18 @@ async function getBookmarks(): Promise<void> {
 }
 
 const computedSearch = computed(() => {
-    return states.bookmarks.filter((bookmark) => {
-        const searchContent =
-            bookmark.title + ' ' +
-            bookmark.url + ' ' +
-            bookmark.description + ' ' +
-            formatDate(bookmark.created_at);
+	return states.bookmarks.filter((bookmark) => {
+		const searchContent =
+			bookmark.title +
+			' ' +
+			bookmark.url +
+			' ' +
+			bookmark.description +
+			' ' +
+			formatDate(bookmark.created_at);
 
-        return searchContent.toLowerCase().includes(states.search.toLowerCase());
-    });
+		return searchContent.toLowerCase().includes(states.search.toLowerCase());
+	});
 });
 
 const computedDate = (date: Date): string => {
