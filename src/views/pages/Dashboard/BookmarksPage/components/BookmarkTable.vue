@@ -28,8 +28,29 @@ async function refetchBookmarks(): Promise<void> {
 	await getBookmarks();
 }
 
-function addBookmark(bookmark: any): void {
-	states.bookmarks.unshift(bookmark as never);
+function addBookmark(bookmark: Bookmark): void {
+	states.bookmarks.unshift(bookmark);
+}
+
+async function deleteBookmark(bookmark: Bookmark): Promise<void> {
+	try {
+		await axios.delete(`/api/v1/bookmarks/${bookmark.id}`, {
+			data: {
+				user_id: bookmark.user_id,
+			},
+		});
+		states.bookmarks = states.bookmarks.filter((bm) => bm.id !== bookmark.id);
+	} catch (error: unknown | AxiosError) {
+		if (error instanceof Error) {
+			states.error = error.message;
+			return;
+		}
+
+		if (error instanceof AxiosError) {
+			states.error = error.response?.data.message;
+			return;
+		}
+	}
 }
 
 async function getBookmarks(): Promise<void> {
@@ -148,7 +169,11 @@ const computedDate = (date: Date): string => {
 						<td class="align-top">
 							<div class="flex gap-2">
 								<Button class="btn-neutral btn-xs" label="Edit" />
-								<Button class="btn-neutral btn-xs" label="Delete" />
+								<Button
+									class="btn-neutral btn-xs"
+									label="Delete"
+									@click="deleteBookmark(bookmark)"
+								/>
 							</div>
 						</td>
 					</tr>
