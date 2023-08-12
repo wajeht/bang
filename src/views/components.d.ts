@@ -29,6 +29,7 @@ declare module 'vue' {
     'IIc:outlineHistory': typeof import('~icons/ic/outline-history')['default']
     'IIc:outlineLogout': typeof import('~icons/ic/outline-logout')['default']
     'IIc:outlinePerson': typeof import('~icons/ic/outline-person')['default']
+    ImagePreview: typeof import('./pages/Dashboard/BookmarksPage/components/ImagePreview.vue')['default']
     'IMaterialSymbols:checkCircleOutlineRounded': typeof import('~icons/material-symbols/check-circle-outline-rounded')['default']
     'IMaterialSymbols:dangerousOutline': typeof import('~icons/material-symbols/dangerous-outline')['default']
     'IMaterialSymbols:infoOutline': typeof import('~icons/material-symbols/info-outline')['default']

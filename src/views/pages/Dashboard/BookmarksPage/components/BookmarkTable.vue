@@ -129,11 +129,7 @@ const computedDate = (date: Date): string => {
 						<!-- title -->
 						<td class="align-top">
 							<div class="flex items-center space-x-3">
-								<div v-if="bookmark.image_url" class="avatar">
-									<div class="mask mask-squircle w-12 h-12">
-										<img :src="bookmark.image_url" :alt="bookmark.title" />
-									</div>
-								</div>
+								<ImagePreview :bookmark="bookmark" />
 								<div>
 									<div class="font-semibold">{{ bookmark.title }}</div>
 									<div v-if="bookmark.description" class="text-sm opacity-60">
