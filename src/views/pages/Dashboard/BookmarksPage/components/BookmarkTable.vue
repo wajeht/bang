@@ -90,7 +90,7 @@ const computedSearch = computed(() => {
 });
 
 const computedDate = (date: Date): string => {
-	return formatDate(date);
+	return computed(()=> formatDate(date)).value;
 };
 </script>
 
