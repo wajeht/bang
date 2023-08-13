@@ -26,14 +26,14 @@ function toggleHover(): void {
 		</div>
 
 		<!-- mask -->
-		<div
-			@mouseenter="toggleHover"
-			@mouseleave="toggleHover"
-			v-if="props.bookmark.image_url"
-			class="avatar"
-		>
-			<div class="mask mask-squircle w-12 h-12">
-				<img :src="props.bookmark.image_url" :alt="props.bookmark.title" />
+		<div v-if="props.bookmark.image_url" class="avatar">
+			<div class="mask mask-square w-12 h-12 border-[1px] border-gray-200">
+				<img
+					@mouseover="toggleHover"
+					@mouseleave="toggleHover"
+					:src="props.bookmark.image_url"
+					:alt="props.bookmark.title"
+				/>
 			</div>
 		</div>
 	</div>

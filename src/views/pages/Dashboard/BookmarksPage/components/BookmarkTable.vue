@@ -11,6 +11,10 @@ const states = reactive({
 	search: '',
 	bookmarks: [] as Bookmark[],
 	url: '',
+	check: {
+		bookmarks: [] as Bookmark[],
+		loading: false,
+	},
 });
 
 onMounted(async () => {
@@ -90,8 +94,12 @@ const computedSearch = computed(() => {
 });
 
 const computedDate = (date: Date): string => {
-	return computed(()=> formatDate(date)).value;
+	return computed(() => formatDate(date)).value;
 };
+
+function deleteAllBookmarks() {
+	console.log(states.check.bookmarks.map((bookmark) => bookmark.id));
+}
 </script>
 
 <template>
@@ -115,7 +123,12 @@ const computedDate = (date: Date): string => {
 				<div class="flex gap-2">
 					<AddBookmarkModal :url="states.url" @add="addBookmark" />
 					<Button class="btn-neutral btn-xs" label="Filter" />
-					<Button class="btn-neutral btn-xs" label="Delete" />
+					<Button
+						class="btn-neutral btn-xs"
+						@click="deleteAllBookmarks"
+						:disabled="states.check.bookmarks.length === 0"
+						label="Delete"
+					/>
 				</div>
 			</div>
 		</div>
@@ -140,7 +153,12 @@ const computedDate = (date: Date): string => {
 					<tr v-for="bookmark in computedSearch" :key="bookmark.id">
 						<!-- checkbox -->
 						<th class="align-middle">
-							<input type="checkbox" class="checkbox checkbox-xs" />
+							<input
+								type="checkbox"
+								class="checkbox checkbox-xs"
+								v-model="states.check.bookmarks"
+								:value="bookmark"
+							/>
 						</th>
 
 						<!-- title -->
