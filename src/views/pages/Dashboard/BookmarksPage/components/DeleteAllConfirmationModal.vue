@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
 import { useUserStore } from '@/views/store/user.store';
-import {  reactive } from 'vue';
+import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
-
 
 type States = {
 	showModal: boolean;
@@ -35,12 +34,11 @@ function toggleModal(): void {
 		}, 300);
 	}
 }
-
 </script>
 
 <template>
 	<Button @click="toggleModal" class="btn-neutral btn-xs">
-        <i-iconamoon:trash />
+		<i-iconamoon:trash />
 	</Button>
 
 	<div class="modal" :class="{ 'modal-open': states.showModal }">
@@ -50,7 +48,7 @@ function toggleModal(): void {
 
 			<!-- form -->
 			<div class="py-4 form-control w-full gap-2">
-                <!-- // modal content -->
+				<!-- // modal content -->
 			</div>
 
 			<!-- button actions -->
@@ -58,7 +56,7 @@ function toggleModal(): void {
 				<Button label="Cancel" @click="toggleModal" :disabled="states.loading" />
 				<Button
 					label="Delete"
-					@click="()=> {}"
+					@click="() => {}"
 					:disabled="states.loading"
 					:loading="states.loading"
 					loading-label="Loading..."
