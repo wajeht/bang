@@ -185,7 +185,9 @@ const computedAddButtonLang = computed(() => {
 </script>
 
 <template>
-	<Button @click="toggleModal" class="btn-neutral btn-xs" label="Add" />
+	<Button @click="toggleModal" class="btn-neutral btn-xs">
+		<i-gridicons:add-outline />
+	</Button>
 
 	<div class="modal" :class="{ 'modal-open': states.showModal }">
 		<div class="modal-box">

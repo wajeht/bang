@@ -135,8 +135,9 @@ function selectAllBookmarks() {
 						class="btn-neutral btn-xs"
 						@click="deleteAllBookmarks"
 						:disabled="states.check.bookmarks.length === 0"
-						label="Delete"
-					/>
+					>
+						<i-iconamoon:trash />
+					</Button>
 				</div>
 			</div>
 		</div>
@@ -207,12 +208,12 @@ function selectAllBookmarks() {
 						<!-- actions -->
 						<td class="align-middle">
 							<div class="flex gap-2">
-								<Button class="btn-neutral btn-xs" label="Edit" />
-								<Button
-									class="btn-neutral btn-xs"
-									label="Delete"
-									@click="deleteBookmark(bookmark)"
-								/>
+								<Button class="btn-neutral btn-xs">
+									<i-iconamoon:edit-duotone />
+								</Button>
+								<Button class="btn-neutral btn-xs" @click="deleteBookmark(bookmark)">
+									<i-iconamoon:trash />
+								</Button>
 							</div>
 						</td>
 					</tr>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 export type Props = {
-	label: string;
+	label?: string;
 	loading?: boolean;
 	loadingLabel?: string;
 	disabled?: boolean;
@@ -14,6 +14,7 @@ const props = withDefaults(defineProps<Props>(), {});
 	<button :class="[props.class, 'btn']" :disabled="props.disabled">
 		<span v-if="props.loading" class="loading loading-spinner"></span>
 		<span v-if="props.loading && props.loadingLabel">{{ props.loadingLabel }}</span>
-		<span v-if="!props.loading"> {{ props.label }} </span>
+		<span v-if="!props.loading && props.label"> {{ props.label }} </span>
+		<slot />
 	</button>
 </template>
