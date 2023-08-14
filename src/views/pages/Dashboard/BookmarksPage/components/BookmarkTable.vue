@@ -97,8 +97,40 @@ const computedDate = (date: Date): string => {
 	return computed(() => formatDate(date)).value;
 };
 
-function deleteAllBookmarks() {
-	console.log(states.check.bookmarks.map((bookmark) => bookmark.id));
+async function deleteAllBookmarks() {
+	states.check.loading = true;
+
+	const results = await Promise.allSettled(
+		states.check.bookmarks.map((bookmark) =>
+			axios.delete(`/api/v1/bookmarks/${bookmark.id}`, {
+				data: {
+					user_id: bookmark.user_id,
+				},
+			}),
+		),
+	);
+
+	const failedDeletions = results.filter((result) => result.status === 'rejected');
+
+	if (failedDeletions.length) {
+		// Assuming you want to show the first error message (you can change this logic as needed)
+		// @ts-ignore
+		const firstError = failedDeletions[0].reason;
+		if (firstError instanceof Error) {
+			states.error = firstError.message;
+		} else if (firstError.response && firstError.response.data) {
+			states.error = firstError.response.data.message;
+		} else {
+			states.error = 'An unknown error occurred.';
+		}
+	} else {
+		// Only update the bookmarks state if all deletions were successful
+		states.bookmarks = states.bookmarks.filter(
+			(bookmark) => !states.check.bookmarks.some((bm) => bm.id === bookmark.id),
+		);
+	}
+
+	states.check.loading = false;
 }
 
 function selectAllBookmarks() {
