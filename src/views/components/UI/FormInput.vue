@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue';
+import { computed, reactive, watch } from 'vue';
+import axios from 'axios';
+import z from 'zod';
 
-export type InputTypes = 'text' | 'email' | 'password' | 'checkbox' | 'number';
+export type InputTypes = 'text' | 'email' | 'password' | 'checkbox' | 'number' | 'textarea' | 'url';
 
 export type Props = {
 	modelValue: string;
@@ -9,6 +11,8 @@ export type Props = {
 	label?: string;
 	type: InputTypes;
 	placeholder?: string;
+	required?: boolean;
+	urlIcon?: boolean;
 	disabled?: boolean;
 	autocomplete?: string;
 };
@@ -16,11 +20,15 @@ export type Props = {
 export type Emits = { (e: 'update:modelValue', value: string): void };
 
 const emits = defineEmits<Emits>();
-const states = reactive({ password: false });
 const props = defineProps<Props>();
+const states = reactive({
+	password: false,
+	validFaviconUrl: false,
+	validatingFaviconUrl: false,
+});
 
 const computedValidationInputErrorClass = computed(() => {
-	return props.error ? 'input-error' : '';
+	return props.error ? `${props.type !== 'textarea' ? 'input-error' : 'textarea-error'}` : '';
 });
 
 const computedValidationLabelErrorClass = computed(() => {
@@ -31,25 +39,94 @@ const computedPasswordType = computed(() => {
 	return props.type === 'password' && props.modelValue.length;
 });
 
-function onInput(event: Event) {
+function onInput(event: Event): void {
 	const target = event.target as HTMLInputElement;
 	emits('update:modelValue', target.value);
 }
 
-function togglePassword() {
+function togglePassword(): void {
 	states.password = !states.password;
 }
+
+async function validateFaviconUrl(): Promise<void> {
+	const urlSchema = z.string().url();
+	try {
+		urlSchema.parse(props.modelValue);
+	} catch (error) {
+		return;
+	}
+
+	await new Promise((resolve) => setTimeout(resolve, 1000));
+
+	states.validatingFaviconUrl = true;
+	try {
+		await axios.get(props.modelValue);
+		states.validFaviconUrl = true;
+		states.validatingFaviconUrl = false;
+	} catch (error) {
+		states.validFaviconUrl = false;
+		states.validatingFaviconUrl = false;
+	}
+}
+
+watch(
+	() => props.modelValue,
+	async () => {
+		if (props.urlIcon) {
+			await validateFaviconUrl();
+		}
+	},
+);
 </script>
 
 <template>
 	<div class="form-control w-full">
 		<!-- label -->
-		<label v-if="props.label" class="label">
-			<span class="label-text">{{ props.label }}</span>
+		<label v-if="props.label" :class="['label']">
+			<span class="label-text"
+				>{{ props.label }} <span class="text-error" v-if="props.required">*</span></span
+			>
+		</label>
+
+		<!-- textarea -->
+		<textarea
+			v-if="props.type === 'textarea'"
+			:class="[computedValidationInputErrorClass, 'textarea textarea-bordered w-full text-[1rem]']"
+			:value="props.modelValue"
+			@input="onInput"
+			:placeholder="props.placeholder"
+			:disabled="props.disabled"
+			:autocomplete="props.autocomplete"
+		/>
+
+		<!-- url -->
+		<label v-if="props.type === 'url'" class="input-group">
+			<input
+				type="url"
+				:value="props.modelValue"
+				@input="onInput"
+				:placeholder="props.placeholder"
+				:autocomplete="props.autocomplete"
+				:disabled="props.disabled"
+				:class="[computedValidationInputErrorClass, 'input input-bordered w-full rounded-l-md']"
+			/>
+			<span v-if="props.urlIcon">
+				<div v-if="states.validatingFaviconUrl" class="loading loading-spinner w-[14.5px]" />
+				<img
+					v-if="states.validFaviconUrl && !states.validatingFaviconUrl"
+					class="w-[16px]"
+					:src="props.modelValue"
+					alt="favicon"
+				/>
+				<i-material-symbols:warning-outline
+					v-if="!states.validatingFaviconUrl && !states.validFaviconUrl"
+					class="w-[14.5px]"
+				/>
+			</span>
 		</label>
 
 		<!-- input -->
-		<div class="relative">
+		<div v-if="props.type !== 'textarea' && props.type !== 'url'" class="relative">
 			<input
 				:type="props.type === 'password' && states.password ? 'text' : props.type"
 				:value="props.modelValue"
@@ -57,7 +134,11 @@ function togglePassword() {
 				:placeholder="props.placeholder"
 				:autocomplete="props.autocomplete"
 				:disabled="props.disabled"
-				:class="[computedValidationInputErrorClass, 'input input-bordered w-full pr-10']"
+				:class="[
+					computedValidationInputErrorClass,
+					props.type === 'password' ? 'pr-10' : '',
+					'input input-bordered w-full',
+				]"
 			/>
 
 			<!-- password -->

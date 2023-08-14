@@ -1,8 +1,8 @@
-import { User } from '../../../types/user';
+import { User } from '@/types/user';
 import { hashPassword, generateRandomToken } from './auth.utils';
 import { VERIFICATION_TOKEN_EXPIRES_AT, RESET_PASSWORD_TOKEN_EXPIRES_AT } from './auth.enums';
 
-import db from '../../../database/db';
+import db from '@/database/db';
 
 export async function createUser(user: Pick<User, 'email' | 'password' | 'username'>) {
 	const hashedPassword = await hashPassword(user.password);

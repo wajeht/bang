@@ -16,6 +16,43 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - ${MINIO_PORT}:${MINIO_PORT}
+      - '9001:9001'
+    networks:
+      - bang-network
+    volumes:
+      - minio-data:/data
+    command: server --console-address ":9001" /data
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio-setup:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_PUBLIC_BUCKET: ${MINIO_PUBLIC_BUCKET}
+    entrypoint: /bin/sh -c "
+      /usr/bin/mc alias set minio http://minio:${MINIO_PORT} ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY};
+      /usr/bin/mc mb minio/${MINIO_PUBLIC_BUCKET};
+      /usr/bin/mc policy set public minio/${MINIO_PUBLIC_BUCKET};
+      exit 0;
+      "
+    networks:
+      - bang-network
+
   mailhog:
     container_name: mailhot
     restart: unless-stopped
@@ -46,6 +83,8 @@ services:
 
 volumes:
   postgres-data:
+    driver: local
+  minio-data:
     driver: local
 
 networks:

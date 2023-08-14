@@ -1,5 +1,5 @@
-import { sendMail } from './mail';
-import env from '../../configs/env';
+import { sendMail } from '../mailer';
+import env from '../../../configs/env';
 
 type Props = {
 	token: string;

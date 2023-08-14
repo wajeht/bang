@@ -16,9 +16,11 @@ import VerifyEmailPage from './pages/VerifyEmailPage.vue';
 // dashboard pages
 import DashboardPage from './pages/Dashboard/DashboardPage.vue';
 import CommandsPage from './pages/Dashboard/CommandsPage.vue';
-import BookmarksPage from './pages/Dashboard/BookmarksPage.vue';
+import BookmarksPage from './pages/Dashboard/BookmarksPage/BookmarksPage.vue';
 import ProfilePage from './pages/Dashboard/ProfilePage.vue';
 import SettingsPage from './pages/Dashboard/SettingsPage.vue';
+import HistoryPage from './pages/Dashboard/HistoryPage.vue';
+import SearchPage from './pages/Dashboard/SearchPage.vue';
 
 const router = createRouter({
 	history: createWebHistory(),
@@ -36,9 +38,21 @@ const router = createRouter({
 		{ path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFoundPage },
 		// dashboard pages
 		{
+			path: '/search',
+			name: 'Search',
+			component: SearchPage,
+			meta: { requiredAuth: true },
+		},
+		{
 			path: '/dashboard',
 			name: 'Dashboard',
 			component: DashboardPage,
+			meta: { requiredAuth: true },
+		},
+		{
+			path: '/dashboard/history',
+			name: 'History',
+			component: HistoryPage,
 			meta: { requiredAuth: true },
 		},
 		{
@@ -81,13 +95,19 @@ router.isReady().then(async () => {
 
 router.beforeEach(async (to, from, next) => {
 	const userStore = useUserStore();
+
 	document.title = to.name as string;
 
 	const isPathRestricted = to.matched.some((record) => record.meta.requiredAuth);
 
 	if (isPathRestricted) {
 		if (!userStore.loggedIn) {
-			next({ name: 'Login' });
+			next({
+				name: 'Login',
+				query: {
+					redirectUrl: window.location.href,
+				},
+			});
 		} else {
 			next();
 		}

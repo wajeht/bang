@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
-import axios, { AxiosError } from 'axios';
-import type { Props as AlertType } from '../Alert/Alert.vue';
+import { axios, AxiosError } from '@/views/utils';
+import type { Props as AlertType } from '@/views/components/Alert/Alert.vue';
 import { useRouteQuery } from '@vueuse/router';
 import { useRouter } from 'vue-router';
 import { computed, onMounted, reactive } from 'vue';
-import { createGlobalState } from '@vueuse/core';
 
 const router = useRouter();
 
@@ -48,7 +47,7 @@ onMounted(async () => {
 	}
 });
 
-function clearInputs() {
+function clearInputs(): void {
 	states.email = '';
 	states.password = '';
 	states.confirmPassword = '';
@@ -73,7 +72,7 @@ function computedError(type: keyof States): string | undefined {
 	}).value;
 }
 
-function clearError(type: keyof States) {
+function clearError(type: keyof States): void {
 	states.error.forEach((e) => {
 		if (e.path.length === 0 && e.code === 'custom') {
 			states.error.splice(states.error.indexOf(e), 1);
@@ -129,7 +128,7 @@ async function resetPassword(): Promise<void> {
 		clearInputs();
 
 		reidreToLoginPageIn(5); // 5 seconds because clear alert is 5 seconds
-	} catch (error) {
+	} catch (error: unknown | AxiosError) {
 		if (error instanceof AxiosError) {
 			if (error.response?.status && error.response.status >= 500) {
 				states.alert = {
@@ -208,7 +207,12 @@ async function resetPassword(): Promise<void> {
 
 				<!-- button -->
 				<div class="flex flex-col gap-2">
-					<Button :label="'Submit'" :loading="states.loading" @click="resetPassword" />
+					<Button
+						:label="'Submit'"
+						class="btn-neutral"
+						:loading="states.loading"
+						@click="resetPassword"
+					/>
 				</div>
 			</div>
 		</div>

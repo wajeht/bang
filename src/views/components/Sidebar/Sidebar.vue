@@ -11,6 +11,15 @@
 		<ul class="menu">
 			<li>
 				<router-link
+					to="/dashboard/history"
+					:class="[$route.path.startsWith('/dashboard/history') ? 'active' : '']"
+				>
+					<i-ic:outline-history />
+					History
+				</router-link>
+			</li>
+			<li>
+				<router-link
 					to="/dashboard/commands"
 					:class="[$route.path.startsWith('/dashboard/commands') ? 'active' : '']"
 				>

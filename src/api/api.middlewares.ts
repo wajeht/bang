@@ -2,7 +2,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { ZodError, z } from 'zod';
 import { UnauthorizedError } from './api.errors';
-import * as AuthUtils from '../api/v1/auth/auth.utils';
+import * as AuthUtils from '@/api/v1/auth/auth.utils';
+import { DOMAIN } from '@/utils';
 
 declare global {
 	// eslint-disable-next-line no-var
@@ -53,7 +54,7 @@ export function validate(validators: RequestValidators & ExtraValidators) {
 	};
 }
 
-export async function checkAuth(req: Request, res: Response, next: NextFunction) {
+export async function checkAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
 	try {
 		const token = req.signedCookies['token'];
 
@@ -79,13 +80,10 @@ export async function checkAuth(req: Request, res: Response, next: NextFunction)
 
 		next();
 	} catch (error) {
-		const url = req.originalUrl;
-
-		if (!url.includes('/api')) {
-			res.redirect('/login');
-			return;
+		if (req.get('Content-Type') === 'application/json') {
+			next(error);
 		}
 
-		next(error);
+		res.redirect(`/login?redirectUrl=${DOMAIN}/api/v1/bangs/search?q=${req.query.q}`);
 	}
 }

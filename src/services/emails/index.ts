@@ -1,3 +1,3 @@
-export { sendMail } from './mail';
-export { sendVerifyEmail } from './verify-email';
-export { sendResetPassword } from './reset-password';
+export { sendMail } from './mailer';
+export { sendVerifyEmail } from './templates/verify-email';
+export { sendResetPassword } from './templates/reset-password';

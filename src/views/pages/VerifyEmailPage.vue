@@ -72,7 +72,7 @@ const computedTitleLang = computed(() => {
 	}
 });
 
-async function verifyEmail() {
+async function verifyEmail(): Promise<void> {
 	try {
 		states.status = 'loading';
 
@@ -93,7 +93,7 @@ async function verifyEmail() {
 		};
 
 		setTimeout(() => router.push('/login'), 5000);
-	} catch (error) {
+	} catch (error: unknown | AxiosError) {
 		if (error instanceof AxiosError) {
 			states.status = 'error';
 

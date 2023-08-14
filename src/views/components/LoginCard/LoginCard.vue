@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ZodIssue } from 'zod';
-import axios, { AxiosError } from 'axios';
-import type { Props as AlertType } from '../Alert/Alert.vue';
-import { computed, reactive } from 'vue';
+import { axios, AxiosError } from '@/views/utils';
+import type { Props as AlertType } from '@/views/components/Alert/Alert.vue';
+import { computed, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useUserStore } from '../../store/user.store';
+import { useUserStore } from '@/views/store/user.store';
+import { useUrlSearchParams } from '@vueuse/core';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -13,6 +14,7 @@ export type States = {
 	email: string;
 	password: string;
 	remember: boolean;
+	redirectUrl: string;
 	loading: boolean;
 	alert: AlertType;
 	error: ZodIssue[];
@@ -22,6 +24,7 @@ const states = reactive<States>({
 	email: '',
 	password: '',
 	remember: false,
+	redirectUrl: '',
 	alert: {} as AlertType,
 	loading: false,
 	error: [],
@@ -57,6 +60,19 @@ const computedAlertExists = computed(() => {
 	});
 });
 
+onMounted(() => {
+	const param = useUrlSearchParams();
+
+	if (param.redirectUrl) {
+		states.redirectUrl = param.redirectUrl as string;
+		states.alert = {
+			type: 'info',
+			message: 'You need to login first!',
+			icon: true,
+		};
+	}
+});
+
 async function login(): Promise<void> {
 	try {
 		states.loading = true;
@@ -67,11 +83,20 @@ async function login(): Promise<void> {
 
 		clearInputs();
 
+		// @ts-ignore
 		userStore.loggedIn = true;
+		// @ts-ignore
 		userStore.user = data.user;
 
+		const param = useUrlSearchParams();
+
+		if (states.redirectUrl) {
+			window.location.href = param.redirectUrl as string;
+			return;
+		}
+
 		router.push('/dashboard');
-	} catch (error) {
+	} catch (error: unknown | AxiosError) {
 		if (error instanceof AxiosError) {
 			if (error.response?.status && error.response.status >= 500) {
 				states.alert = {
@@ -194,7 +219,7 @@ function clearError(type: keyof States) {
 
 				<!-- button -->
 				<div class="flex flex-col gap-2">
-					<Button :label="'Login'" :loading="states.loading" @click="login" />
+					<Button :label="'Login'" class="btn-neutral" :loading="states.loading" @click="login" />
 				</div>
 
 				<!-- dont have an account yet -->

@@ -1,10 +1,10 @@
 import app from './app';
-
 import ENV from './configs/env';
+import db from './database/db';
 
 const server = app.listen(ENV.SERVER_PORT, async () => {
 	try {
-		// await db.init();
+		await db.$connect();
 		// await crons.init();
 		// await admin.init();
 
@@ -15,12 +15,12 @@ const server = app.listen(ENV.SERVER_PORT, async () => {
 	}
 });
 
-export async function gracefulShutdown() {
+export async function gracefulShutdown(): Promise<void> {
 	console.log('**** Received kill signal, shutting down gracefully. ****');
 	server.close(async () => {
 		try {
 			// redis.disconnect();
-			// await db.stop();
+			await db.$disconnect();
 			console.log('**** Closed out remaining connections. ****');
 			process.exit();
 		} catch (err) {

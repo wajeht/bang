@@ -28,7 +28,7 @@ export default defineConfig({
 			dts: './components.d.ts',
 			globalNamespaces: ['global'],
 			exclude: [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/, /[\\/]\.nuxt[\\/]/],
-			dirs: ['./components', './layouts'],
+			dirs: ['./components', './layouts', './pages'],
 			resolvers: [
 				IconsResolver({
 					componentPrefix: 'i',
@@ -42,6 +42,11 @@ export default defineConfig({
 	root: './src/views/',
 	define: {
 		'process.env': process.env,
+	},
+	resolve: {
+		alias: {
+			'@/views': path.resolve(__dirname, './src/views'),
+		},
 	},
 	server: {
 		hmr: true,

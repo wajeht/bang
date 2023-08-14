@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import * as AuthServices from './auth.services';
 import * as AuthUtils from './auth.utils';
 
-import * as mail from '../../../services/emails';
-import db from '../../../database/db';
-import env from '../../../configs/env';
+import * as mail from '@/services/emails';
+import db from '@/database/db';
+import env from '@/configs/env';
 
 import type { PostRegisterSchema, PostVerifyEmailSchema } from './auth.validations';
 
@@ -16,7 +15,7 @@ export async function check(req: Request, res: Response): Promise<void> {
 }
 
 export async function postRegister(
-	req: Request<{}, {}, PostRegisterSchema>,
+	req: Request<unknown, unknown, PostRegisterSchema>,
 	res: Response,
 ): Promise<void> {
 	const user = await AuthServices.createUser(req.body);
@@ -79,7 +78,7 @@ export async function postResetPassword(req: Request, res: Response): Promise<vo
 }
 
 export async function postVerifyEmail(
-	req: Request<{}, {}, PostVerifyEmailSchema>,
+	req: Request<unknown, unknown, PostVerifyEmailSchema>,
 	res: Response,
 ): Promise<void> {
 	await db.user.update({

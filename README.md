@@ -16,6 +16,15 @@ centralized searching & synchronized cross-platform bookmarking system
 - **Vue** because this is a dashboard app
 - and of course **Typescript** for everything ❤️
 
+# 💻 Booklet
+
+```javascript
+javascript: (function () {
+	const link = encodeURIComponent(window.location.href);
+	window.location.href = 'http://localhost:3000/api/v1/bangs/search?q=!add ' + link;
+})();
+```
+
 # © License
 
 Distributed under the MIT license © wajeht. See LICENSE for more information.

@@ -14,12 +14,12 @@ const states = reactive<StatesWithLoading>({
 
 const router = useRouter();
 
-async function forgotPassword(inputs: Omit<States, 'error'>) {
+async function forgotPassword(inputs: Omit<States, 'error'>): Promise<void> {
 	try {
 		states.loading = true;
 		await axios.post('/api/v1/auth/forgot-password', inputs);
 		router.push('/reset-password');
-	} catch (error) {
+	} catch (error: unknown | AxiosError) {
 		if (error instanceof AxiosError) {
 			states.error = error.response?.data.error;
 		}
