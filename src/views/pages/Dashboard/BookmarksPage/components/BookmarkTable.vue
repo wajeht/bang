@@ -102,10 +102,11 @@ function deleteAllBookmarks() {
 }
 
 function selectAllBookmarks() {
-	if (states.check.bookmarks.length === states.bookmarks.length) {
+	if (states.check.bookmarks.length) {
 		states.check.bookmarks = [];
 		return;
 	}
+
 	states.check.bookmarks = states.bookmarks;
 }
 </script>
