@@ -100,6 +100,14 @@ const computedDate = (date: Date): string => {
 function deleteAllBookmarks() {
 	console.log(states.check.bookmarks.map((bookmark) => bookmark.id));
 }
+
+function selectAllBookmarks() {
+	if (states.check.bookmarks.length === states.bookmarks.length) {
+		states.check.bookmarks = [];
+		return;
+	}
+	states.check.bookmarks = states.bookmarks;
+}
 </script>
 
 <template>
@@ -140,7 +148,7 @@ function deleteAllBookmarks() {
 				<thead>
 					<tr>
 						<th>
-							<input type="checkbox" class="checkbox checkbox-xs" />
+							<input type="checkbox" class="checkbox checkbox-xs" @click="selectAllBookmarks" />
 						</th>
 						<th>Title</th>
 						<th>Url</th>
