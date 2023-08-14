@@ -110,4 +110,4 @@ mongo-data
 
 mongo-data
 mongo-data/*
-public/assets*
+public/assets/*
