@@ -164,11 +164,15 @@ function selectAllBookmarks() {
 				<div class="flex gap-2">
 					<AddBookmarkModal :url="states.url" @add="addBookmark" />
 					<Button
+						v-if="states.check.bookmarks.length > 0"
 						class="btn-neutral btn-xs"
 						@click="deleteAllBookmarks"
 						:disabled="states.check.bookmarks.length === 0"
 					>
 						<i-iconamoon:trash />
+					</Button>
+					<Button class="btn-neutral btn-xs">
+						<i-mdi:filter-multiple-outline />
 					</Button>
 				</div>
 			</div>
