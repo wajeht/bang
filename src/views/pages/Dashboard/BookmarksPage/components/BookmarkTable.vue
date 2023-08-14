@@ -131,7 +131,6 @@ function selectAllBookmarks() {
 				<!-- header actions -->
 				<div class="flex gap-2">
 					<AddBookmarkModal :url="states.url" @add="addBookmark" />
-					<Button class="btn-neutral btn-xs" label="Filter" />
 					<Button
 						class="btn-neutral btn-xs"
 						@click="deleteAllBookmarks"
