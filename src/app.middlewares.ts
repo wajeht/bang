@@ -115,5 +115,8 @@ export function errorHandler(
 	}
 
 	const { statusCode, ...rest } = response;
+
+	console.log('*****', rest, '*****');
+
 	return res.status(statusCode).send(rest);
 }
