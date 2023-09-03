@@ -72,6 +72,8 @@ export function errorHandler(
 	res: Response,
 	next: NextFunction,
 ): Response {
+	console.log('*****', err, '*****');
+
 	const response: CustomResponse = {
 		status: false,
 		statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
@@ -115,8 +117,5 @@ export function errorHandler(
 	}
 
 	const { statusCode, ...rest } = response;
-
-	console.log('*****', rest, '*****');
-
 	return res.status(statusCode).send(rest);
 }
