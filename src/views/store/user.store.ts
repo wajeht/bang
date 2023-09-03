@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { User as IUser } from '@/types';
+import { User as IUser } from '../../types';
 import axios from 'axios';
 
 type User = Pick<IUser, 'id' | 'username' | 'email' | 'profile_picture_url'> & {
