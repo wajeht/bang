@@ -55,6 +55,11 @@ export default defineConfig({
 			},
 		},
 	},
+	resolve: {
+		alias: {
+			'@/views': path.resolve(__dirname, './src/views'),
+		},
+	},
 	build: {
 		outDir: '../../public',
 		reportCompressedSize: true,
