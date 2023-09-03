@@ -1,46 +1,40 @@
 import { StatusCodes } from 'http-status-codes';
 
-export class ForbiddenError extends Error {
-	public statusCode: StatusCodes;
-	constructor(message: string) {
-		super();
-		this.message = message;
-		this.statusCode = StatusCodes.FORBIDDEN;
-	}
+class HttpError {
+  public statusCode: StatusCodes;
+	public message: string;
+  constructor(statusCode: StatusCodes, message: string) {
+    this.statusCode = statusCode;
+    this.message = message;
+  }
 }
 
-export class UnauthorizedError extends Error {
-	public statusCode: StatusCodes;
-	constructor(message: string) {
-		super();
-		this.message = message;
-		this.statusCode = StatusCodes.UNAUTHORIZED;
-	}
+export class ForbiddenError extends HttpError {
+  constructor(message: string) {
+    super(StatusCodes.FORBIDDEN, message);
+  }
 }
 
-export class NotFoundError extends Error {
-	public statusCode: StatusCodes;
-	constructor(message: string) {
-		super();
-		this.message = message;
-		this.statusCode = StatusCodes.NOT_FOUND;
-	}
+export class UnauthorizedError extends HttpError {
+  constructor(message: string) {
+    super(StatusCodes.UNAUTHORIZED, message);
+  }
 }
 
-export class APICallsExceededError extends Error {
-	public statusCode: StatusCodes;
-	constructor(message: string) {
-		super();
-		this.message = message;
-		this.statusCode = StatusCodes.TOO_MANY_REQUESTS;
-	}
+export class NotFoundError extends HttpError {
+  constructor(message: string) {
+    super(StatusCodes.NOT_FOUND, message);
+  }
 }
 
-export class ValidationError extends Error {
-	public statusCode: StatusCodes;
-	constructor(message: string) {
-		super();
-		this.message = message;
-		this.statusCode = StatusCodes.UNPROCESSABLE_ENTITY;
-	}
+export class APICallsExceededError extends HttpError {
+  constructor(message: string) {
+    super(StatusCodes.TOO_MANY_REQUESTS, message);
+  }
+}
+
+export class ValidationError extends HttpError {
+  constructor(message: string) {
+    super(StatusCodes.UNPROCESSABLE_ENTITY, message);
+  }
 }
