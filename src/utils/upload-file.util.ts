@@ -1,5 +1,5 @@
-import minio from '@/configs/minio.config';
-import env from '@/configs/env';
+import minio from '../configs/minio.config';
+import env from '../configs/env';
 
 const DEFAULT_BUCKET_NAME = env.MINIO_PUBLIC_BUCKET;
 

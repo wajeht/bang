@@ -16,9 +16,6 @@
 			"node"
 		],
 		"baseUrl": ".",
-		"paths": {
-			"@/*": ["./src/*"]
-		},
 		// "declaration": true,
 		// "declarationMap": true,
 		// "composite": true,

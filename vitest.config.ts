@@ -9,9 +9,6 @@ export default defineConfig({
 		setupFiles: ['./src/tests/vue-test-setup.ts'],
 		exclude: ['node_modules'],
 		environment: 'jsdom',
-		alias: {
-			'@': path.resolve(__dirname, './src'),
-		},
 	},
 	plugins: [vue()],
 });
