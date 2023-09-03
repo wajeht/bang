@@ -4,9 +4,9 @@ import { StatusCodes } from 'http-status-codes';
 import * as AuthServices from './auth.services';
 import * as AuthUtils from './auth.utils';
 
-import * as mail from '@/services/emails';
-import db from '@/database/db';
-import env from '@/configs/env';
+import * as mail from '../../../services/emails/index';
+import db from '../../../database/db';
+import env from '../../../configs/env';
 
 import type { PostRegisterSchema, PostVerifyEmailSchema } from './auth.validations';
 

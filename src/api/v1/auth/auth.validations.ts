@@ -1,6 +1,6 @@
 import { z, ZodError } from 'zod';
 import bcrypt from 'bcryptjs';
-import db from '@/database/db';
+import db from '../../../database/db';
 
 export const postRegisterSchema = z.object({
 	username: z

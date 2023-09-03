@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
-import env from '@/configs/env';
+import env from '../../../configs/env';
 
 export async function verifyJwtToken(token: string): Promise<any> {
 	return jwt.verify(token, env.JWT_SECRET);

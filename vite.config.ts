@@ -43,11 +43,6 @@ export default defineConfig({
 	define: {
 		'process.env': process.env,
 	},
-	resolve: {
-		alias: {
-			'@/views': path.resolve(__dirname, './src/views'),
-		},
-	},
 	server: {
 		hmr: true,
 		host: '0.0.0.0',

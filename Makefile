@@ -11,7 +11,7 @@ down:
 	docker compose down
 
 build-ui:
-	docker compose exec app npm run build:ui
+	docker compose exec bang npm run build:ui
 
 clean:
 	docker compose down --rmi all
@@ -20,10 +20,10 @@ wipe:
 	docker system prune -a --volumes
 
 test:
-	docker compose exec app npm run test
+	docker compose exec bang npm run test
 
 lint:
-	docker compose exec app npm run lint
+	docker compose exec bang npm run lint
 
 format:
-	docker compose exec app npm run format
+	docker compose exec bang npm run format
