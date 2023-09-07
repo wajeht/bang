@@ -6,8 +6,7 @@
       "matchUpdateTypes": ["minor", "patch"],
       "matchCurrentVersion": "!/^0/",
       "minimumReleaseAge": "3 days",
-      "automerge": true,
-      "autorebase": true
+      "automerge": true
     }
   ]
 }
