@@ -1,4 +1,12 @@
 {
-	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
-	"extends": ["config:base"]
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "minimumReleaseAge": "3 days",
+      "automerge": true
+    }
+  ]
 }
