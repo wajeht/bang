@@ -70,7 +70,7 @@
 		"@fireworks-js/vue": "^2.10.7",
 		"@iconify/json": "^2.2.95",
 		"@tailwindcss/typography": "^0.5.9",
-		"@testing-library/jest-dom": "^5.17.0",
+		"@testing-library/jest-dom": "^6.0.0",
 		"@testing-library/vue": "^7.0.0",
 		"@types/bcryptjs": "^2.4.2",
 		"@types/compression": "^1.7.2",
