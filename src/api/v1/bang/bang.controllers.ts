@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import { DOMAIN } from '../../../utils';
 import { URL } from 'url';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 import type { getUrlInfoSchemaType, getSearchSchemaType } from './bang.validations';
+import { ZodError } from 'zod';
 
 export async function getSearch(
 	req: Request<unknown, unknown, unknown, getSearchSchemaType>,
@@ -42,8 +43,22 @@ export async function getUrlInfo(
 	res: Response,
 ): Promise<void> {
 	const { url } = req.query;
-	const response = await axios.get(url);
-	const text = await response.data;
+	let text: string = '';
+
+	try {
+		const response = await axios.get(url);
+		text = await response.data;
+	} catch (error : unknown | AxiosError) {
+		if (error instanceof AxiosError) {
+			throw new ZodError([
+				{
+					path: ['url'],
+					message: 'Something went wrong while fetching url info. please try again!',
+					code: 'custom',
+				},
+			]);
+		}
+	}
 
 	const title = extractValue(text, /<title[^>]*>([^<]+)<\/title>/);
 	const description = extractValue(
