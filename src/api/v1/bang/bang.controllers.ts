@@ -48,7 +48,7 @@ export async function getUrlInfo(
 	try {
 		const response = await axios.get(url);
 		text = await response.data;
-	} catch (error : unknown | AxiosError) {
+	} catch (error: unknown | AxiosError) {
 		if (error instanceof AxiosError) {
 			throw new ZodError([
 				{
