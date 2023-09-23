@@ -7,6 +7,7 @@ RUN apk update && apk add --no-cache nmap && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
     apk update && \
     apk add --no-cache \
+      curl \
       chromium \
       harfbuzz \
       "freetype>2.8" \
@@ -39,6 +40,8 @@ COPY ./ .
 
 RUN npm run build
 
-EXPOSE 8080
+EXPOSE 8086
+
+HEALTHCHECK CMD curl -f http://localhost:8086/health-check || exit 1
 
 CMD ["npm", "run", "start"]

@@ -2,4 +2,4 @@
 
 source .env
 
-caprover deploy -h $CAPROVER_DOMAIN -p $CAPROVER_PASSWORD -b $CAPROVER_GIT_BRANCH_NAME -a $CAPROVER_APP_NAME
+caprover deploy --caproverUrl $CAPROVER_DOMAIN --appToken $CAPROVER_APP_TOKEN --appName $CAPROVER_APP_NAME -b $CAPROVER_GIT_BRANCH_NAME
