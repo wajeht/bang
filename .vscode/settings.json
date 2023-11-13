@@ -1,16 +1,16 @@
 {
-  "cSpell.words": [
-    "Axios",
-    "daisyui",
-    "gridicons",
-    "iconamoon",
-    "iconify",
-    "minio",
-    "persistedstate",
-    "pinia",
-    "tailwindcss",
-    "unplugin",
-    "vueuse",
-    "wajeht"
-  ]
+	"cSpell.words": [
+		"Axios",
+		"daisyui",
+		"gridicons",
+		"iconamoon",
+		"iconify",
+		"minio",
+		"persistedstate",
+		"pinia",
+		"tailwindcss",
+		"unplugin",
+		"vueuse",
+		"wajeht"
+	]
 }
