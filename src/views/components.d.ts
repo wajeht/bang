@@ -62,6 +62,7 @@ declare module 'vue' {
     Sidebar: typeof import('./components/Sidebar/Sidebar.vue')['default']
     SocialLoginCard: typeof import('./components/SocialLoginCard/SocialLoginCard.vue')['default']
     TermsOfServicePage: typeof import('./pages/TermsOfServicePage.vue')['default']
+    Toast: typeof import('./components/Toast/Toast.vue')['default']
     VerifyEmailPage: typeof import('./pages/VerifyEmailPage.vue')['default']
   }
 }
