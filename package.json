@@ -1,7 +1,7 @@
 {
 	"name": "bang",
 	"version": "0.0.1",
-	"description": "centralized searching & synchronized cross-platform bookmarking system",
+	"description": "DuckDuckGo's !Bangs, but on steroids.",
 	"main": "./src/server.ts",
 	"scripts": {
 		"start": "npx prisma generate && npx prisma migrate deploy && node ./dist/src/server.js",
