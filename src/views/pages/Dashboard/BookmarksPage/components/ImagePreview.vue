@@ -16,18 +16,9 @@ function toggleHover(): void {
 
 <template>
 	<div>
-		<!-- preview -->
-		<div class="relative" v-if="props.bookmark.image_url && states.hovered">
-			<img
-				class="fixed h-56 z-10 p-2 bg-white rounded-lg shadow-lg"
-				:src="props.bookmark.image_url"
-				:alt="props.bookmark.title"
-			/>
-		</div>
-
 		<!-- mask -->
 		<div
-			@mouseover="toggleHover"
+			@mouseenter="toggleHover"
 			@mouseleave="toggleHover"
 			v-if="props.bookmark.image_url"
 			class="avatar"
@@ -35,6 +26,15 @@ function toggleHover(): void {
 			<div class="mask mask-square w-12 h-12 border-[1px] border-gray-200">
 				<img :src="props.bookmark.image_url" :alt="props.bookmark.title" />
 			</div>
+		</div>
+
+		<!-- preview -->
+		<div class="relative" v-if="props.bookmark.image_url && states.hovered">
+			<img
+				class="fixed h-56 z-10 p-2 bg-white rounded-lg shadow-lg"
+				:src="props.bookmark.image_url"
+				:alt="props.bookmark.title"
+			/>
 		</div>
 	</div>
 </template>
