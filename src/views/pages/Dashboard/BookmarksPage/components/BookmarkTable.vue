@@ -232,7 +232,7 @@ function selectAllBookmarks() {
 									class="w-[14.5px]"
 								/>
 								<img v-else :src="bookmark.favicon_url!" :alt="bookmark.title" class="h-4 w-4" />
-								<p class="italic truncate max-w-xs">{{ bookmark.url }}</p>
+								<p class="truncate max-w-xs" :title="bookmark.url">{{ bookmark.url }} ↗</p>
 							</a>
 						</td>
 
