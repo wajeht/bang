@@ -12,6 +12,9 @@ export const postRegisterSchema = z.object({
 		.string()
 		.min(3, 'Password must be at least 3 characters')
 		.max(255, 'Password must not exceed 255 characters'),
+	agree: z.boolean().refine((val) => val === true, {
+		message: 'You must agree to the terms and conditions',
+	}),
 });
 
 export const postRegisterSchemaExtra = postRegisterSchema

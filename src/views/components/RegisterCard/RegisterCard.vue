@@ -123,6 +123,22 @@ async function register(): Promise<void> {
 					};
 					return;
 				}
+
+				// validation for `i agree`
+				if (
+					error.response.data?.error &&
+					error.response.data?.error.length === 1 &&
+					error.response.data?.error[0]?.code === 'invalid_lateral' &&
+					error.response.data?.error[0].path.length === 1 &&
+					error.response.data?.error[0]?.path[0] === 'agree'
+				) {
+					states.alert = {
+						type: 'error',
+						message: error?.response?.data?.error[0]?.message ?? error.response.data?.message,
+						icon: true,
+					};
+					return;
+				}
 			}
 		}
 	} finally {
@@ -198,6 +214,13 @@ async function register(): Promise<void> {
 									class="checkbox"
 								/>
 								<span class="label-text text-base">I agree</span>
+							</label>
+
+							<!-- refactor this code below -->
+							<label v-if="!states.agree && computedError('agree')" class="label">
+								<span class="label-text-alt text-error">
+									{{ computedError('agree') }}
+								</span>
 							</label>
 						</div>
 
