@@ -60,7 +60,7 @@
 		"pinia": "^2.1.6",
 		"pinia-plugin-persistedstate": "^3.2.0",
 		"puppeteer": "^20.9.0",
-		"sharp": "^0.32.4",
+		"sharp": "^0.32.6",
 		"vue": "^3.3.4",
 		"vue-router": "^4.2.4",
 		"zod": "^3.21.4"
