@@ -43,7 +43,7 @@
 		"@prisma/client": "^5.0.0",
 		"@vueuse/core": "^10.2.1",
 		"@vueuse/router": "^10.2.1",
-		"axios": "^1.4.0",
+		"axios": "^1.6.0",
 		"bcryptjs": "^2.4.3",
 		"compression": "^1.7.4",
 		"concurrently": "^8.2.0",
