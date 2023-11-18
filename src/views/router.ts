@@ -11,6 +11,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage.vue';
 import HomePage from './pages/HomePage.vue';
 import LearnMorePage from './pages/LearnMorePage.vue';
 import ResetPasswordPage from './pages/ResetPasswordPage.vue';
+import RequestReverificationEmailPage from './pages/RequestReverificationEmailPage.vue';
 import VerifyEmailPage from './pages/VerifyEmailPage.vue';
 
 // dashboard pages
@@ -33,6 +34,11 @@ const router = createRouter({
 		{ path: '/privacy-policy', name: 'Privacy Policy', component: PrivacyPolicyPage },
 		{ path: '/register', name: 'Register', component: RegisterPage },
 		{ path: '/verify-email', name: 'Verify Email', component: VerifyEmailPage },
+		{
+			path: '/request-reverification-email',
+			name: 'Request Reverification Email',
+			component: RequestReverificationEmailPage,
+		},
 		{ path: '/forgot-password', name: 'Forgot Password', component: ForgotPasswordPage },
 		{ path: '/reset-password', name: 'Reset Password', component: ResetPasswordPage },
 		{ path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFoundPage },

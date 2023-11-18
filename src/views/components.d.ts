@@ -53,6 +53,8 @@ declare module 'vue' {
     RegisterCard: typeof import('./components/RegisterCard/RegisterCard.vue')['default']
     RegisterPage: typeof import('./pages/RegisterPage.vue')['default']
     RegularLayout: typeof import('./layouts/RegularLayout.vue')['default']
+    RequestReverificationEmailCard: typeof import('./components/RequestReverificationEmailCard/RequestReverificationEmailCard.vue')['default']
+    RequestReverificationEmailPage: typeof import('./pages/RequestReverificationEmailPage.vue')['default']
     ResetPasswordCard: typeof import('./components/ResetPasswordCard/ResetPasswordCard.vue')['default']
     ResetPasswordPage: typeof import('./pages/ResetPasswordPage.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

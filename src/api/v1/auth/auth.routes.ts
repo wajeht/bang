@@ -47,7 +47,7 @@ auth.post(
 );
 
 auth.post(
-	'/reverify-email',
+	'/request-reverification-email',
 	validate({
 		body: authValidations.postReverifyEmailSchema,
 		db: authValidations.postReverifyEmailSchemaExtra,

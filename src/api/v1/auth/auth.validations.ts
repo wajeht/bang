@@ -302,7 +302,7 @@ export const postReverifyEmailSchema = z.object({
 	email: z.string().email('Invalid email format'),
 });
 
-export const postReverifyEmailSchemaExtra = postVerifyEmailSchema.refine(async ({ email }) => {
+export const postReverifyEmailSchemaExtra = postReverifyEmailSchema.refine(async ({ email }) => {
 	const foundUser = await db.user.findFirst({
 		where: {
 			email,
@@ -320,16 +320,6 @@ export const postReverifyEmailSchemaExtra = postVerifyEmailSchema.refine(async (
 			{
 				path: ['alert'],
 				message: 'You have already verified your email!',
-				code: 'custom',
-			},
-		]);
-	}
-
-	if (!foundUser) {
-		throw new ZodError([
-			{
-				path: ['alert'],
-				message: 'Invalid email!',
 				code: 'custom',
 			},
 		]);
