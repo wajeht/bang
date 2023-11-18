@@ -47,6 +47,15 @@ auth.post(
 );
 
 auth.post(
+	'/reverify-email',
+	validate({
+		body: authValidations.postReverifyEmailSchema,
+		db: authValidations.postReverifyEmailSchemaExtra,
+	}),
+	catchAsyncHandler(authControllers.postReverifyEmail),
+);
+
+auth.post(
 	'/verify-email',
 	validate({
 		body: authValidations.postVerifyEmailSchema,

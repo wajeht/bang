@@ -8,7 +8,11 @@ import * as mail from '../../../services/emails/index';
 import db from '../../../database/db';
 import env from '../../../configs/env';
 
-import type { PostRegisterSchema, PostVerifyEmailSchema } from './auth.validations';
+import type {
+	PostRegisterSchema,
+	PostVerifyEmailSchema,
+	PostReverifyEmailSchema,
+} from './auth.validations';
 
 export async function check(req: Request, res: Response): Promise<void> {
 	res.status(StatusCodes.OK).json({ message: 'ok' });
@@ -91,6 +95,21 @@ export async function postVerifyEmail(
 			verification_token: null,
 			verification_token_expires_at: null,
 		},
+	});
+
+	res.status(StatusCodes.OK).json({ message: 'ok' });
+}
+
+export async function postReverifyEmail(
+	req: Request<unknown, unknown, PostReverifyEmailSchema>,
+	res: Response,
+): Promise<void> {
+	const user = await AuthServices.regenerateVerificationToken(req.body.email);
+
+	mail.sendVerifyEmail({
+		email: user.email,
+		token: user.verification_token!,
+		name: user.username,
 	});
 
 	res.status(StatusCodes.OK).json({ message: 'ok' });
