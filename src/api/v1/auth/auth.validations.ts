@@ -165,8 +165,7 @@ export const postLoginSchemaExtra = postLoginSchema.refine(async ({ email, passw
 			throw new ZodError([
 				{
 					path: ['alert'],
-					message:
-						'You have not verified your email. Please request for new verification email!',
+					message: 'You have not verified your email. Please request for new verification email!',
 					code: 'custom',
 				},
 			]);
@@ -270,7 +269,13 @@ export const postVerifyEmailSchemaExtra = postVerifyEmailSchema
 				new Date().getTime() - foundUser.verification_token_expires_at.getTime() > 10 * 60 * 1000;
 
 			if (tokenExpired) {
-				throw new ZodError([{ path: ['alert'], message: 'Token has expired! Please request for new verification email!', code: 'custom' }]);
+				throw new ZodError([
+					{
+						path: ['alert'],
+						message: 'Token has expired! Please request for new verification email!',
+						code: 'custom',
+					},
+				]);
 			}
 
 			return true;
