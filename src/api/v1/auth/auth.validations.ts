@@ -156,6 +156,22 @@ export const postLoginSchemaExtra = postLoginSchema.refine(async ({ email, passw
 		},
 	});
 
+	if (unverifiedUser && unverifiedUser.verification_token_expires_at) {
+		const tokenExpired =
+			new Date().getTime() - unverifiedUser.verification_token_expires_at.getTime() >
+			10 * 60 * 1000;
+
+		if (tokenExpired) {
+			throw new ZodError([
+				{
+					path: ['alert'],
+					message: 'You have not verified your email. Please request for new verification email!',
+					code: 'custom',
+				},
+			]);
+		}
+	}
+
 	if (unverifiedUser) {
 		throw new ZodError([
 			{
@@ -253,7 +269,13 @@ export const postVerifyEmailSchemaExtra = postVerifyEmailSchema
 				new Date().getTime() - foundUser.verification_token_expires_at.getTime() > 10 * 60 * 1000;
 
 			if (tokenExpired) {
-				throw new ZodError([{ path: ['alert'], message: 'Token has expired!', code: 'custom' }]);
+				throw new ZodError([
+					{
+						path: ['alert'],
+						message: 'Token has expired! Please request for new verification email!',
+						code: 'custom',
+					},
+				]);
 			}
 
 			return true;
@@ -276,8 +298,39 @@ export const postVerifyEmailSchemaExtra = postVerifyEmailSchema
 		return true;
 	});
 
+export const postReverifyEmailSchema = z.object({
+	email: z.string().email('Invalid email format'),
+});
+
+export const postReverifyEmailSchemaExtra = postReverifyEmailSchema.refine(async ({ email }) => {
+	const foundUser = await db.user.findFirst({
+		where: {
+			email,
+			verified: true,
+			verification_token: null,
+			verification_token_expires_at: null,
+			verified_at: {
+				not: null,
+			},
+		},
+	});
+
+	if (foundUser) {
+		throw new ZodError([
+			{
+				path: ['alert'],
+				message: 'You have already verified your email!',
+				code: 'custom',
+			},
+		]);
+	}
+
+	return true;
+});
+
 export type PostForgotPasswordSchema = z.infer<typeof postForgotPasswordSchema>;
 export type PostResetPasswordSchema = z.infer<typeof postResetPasswordSchema>;
 export type PostRegisterSchema = z.infer<typeof postRegisterSchema>;
 export type PostLoginSchema = z.infer<typeof postLoginSchema>;
 export type PostVerifyEmailSchema = z.infer<typeof postVerifyEmailSchema>;
+export type PostReverifyEmailSchema = z.infer<typeof postReverifyEmailSchema>;
