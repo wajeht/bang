@@ -48,7 +48,7 @@ async function logout() {
 							to="/dashboard/settings"
 							:class="[$route.path.startsWith('/dashboard/settings') ? 'active' : '']"
 						>
-            <i-bi:gear />
+							<i-bi:gear />
 							Settings
 						</router-link>
 					</li>

@@ -193,16 +193,16 @@ function selectAllBookmarks() {
 						<th>Actions</th>
 					</tr>
 				</thead>
-        <tbody v-if="computedSearch.length == 0 && states.search.length > 0" class="w-full">
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td class="text-sm opacity-60">Not found</td>
-            <td></td>
-            <td></td>
-          </tr>
-        </tbody>
+				<tbody v-if="computedSearch.length == 0 && states.search.length > 0" class="w-full">
+					<tr>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td class="text-sm opacity-60">Not found</td>
+						<td></td>
+						<td></td>
+					</tr>
+				</tbody>
 				<tbody v-else>
 					<!-- row -->
 					<tr v-for="bookmark in computedSearch" :key="bookmark.id">
