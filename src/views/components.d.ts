@@ -28,6 +28,7 @@ declare module 'vue' {
     'ICi:command': typeof import('~icons/ci/command')['default']
     'IGridicons:addOutline': typeof import('~icons/gridicons/add-outline')['default']
     'IIc:outlineBookmarks': typeof import('~icons/ic/outline-bookmarks')['default']
+    'IIc:outlineGear': typeof import('~icons/ic/outline-gear')['default']
     'IIc:outlineHistory': typeof import('~icons/ic/outline-history')['default']
     'IIc:outlineLogout': typeof import('~icons/ic/outline-logout')['default']
     'IIc:outlinePerson': typeof import('~icons/ic/outline-person')['default']
