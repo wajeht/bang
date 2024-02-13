@@ -256,7 +256,7 @@ function selectAllBookmarks() {
 						</td>
 
 						<!-- actions -->
-              <td class="align-middle h-fit w-fit">
+						<td class="align-middle h-fit w-fit">
 							<div class="flex gap-2">
 								<Button class="btn-neutral btn-xs">
 									<i-iconamoon:edit-duotone />
