@@ -179,7 +179,7 @@ function selectAllBookmarks() {
 		</div>
 
 		<!-- table -->
-		<div class="overflow-x-auto">
+		<div class="overflow-hidden">
 			<table class="table bg-white rounded-md">
 				<!-- head -->
 				<thead>
@@ -203,11 +203,15 @@ function selectAllBookmarks() {
 						<td></td>
 					</tr>
 				</tbody>
-				<tbody v-else>
+				<tbody v-else v-auto-animate>
 					<!-- row -->
-					<tr v-for="bookmark in computedSearch" :key="bookmark.id">
+					<tr
+						v-for="bookmark in computedSearch"
+						:key="`bookmark-id-${bookmark.id}`"
+						class="w-fit h-fit"
+					>
 						<!-- checkbox -->
-						<th class="align-middle">
+						<th class="align-middle w-fit h-fit">
 							<input
 								type="checkbox"
 								class="checkbox checkbox-xs"
@@ -217,7 +221,7 @@ function selectAllBookmarks() {
 						</th>
 
 						<!-- title -->
-						<td class="align-middle">
+						<td class="align-middle h-fit w-fit">
 							<div class="flex items-center space-x-3">
 								<ImagePreview :bookmark="bookmark" />
 								<div>
@@ -230,7 +234,7 @@ function selectAllBookmarks() {
 						</td>
 
 						<!-- url -->
-						<td class="align-middle">
+						<td class="align-middle h-fit w-fit">
 							<a
 								:href="bookmark.url"
 								target="_blank"
@@ -247,12 +251,12 @@ function selectAllBookmarks() {
 						</td>
 
 						<!-- date -->
-						<td class="align-middle">
+						<td class="align-middle h-fit w-fit">
 							{{ computedDate(bookmark.created_at) }}
 						</td>
 
 						<!-- actions -->
-						<td class="align-middle">
+              <td class="align-middle h-fit w-fit">
 							<div class="flex gap-2">
 								<Button class="btn-neutral btn-xs">
 									<i-iconamoon:edit-duotone />

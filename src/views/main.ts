@@ -1,4 +1,4 @@
-import { autoAnimatePlugin } from '@formkit/auto-animate/vue'
+import { autoAnimatePlugin } from '@formkit/auto-animate/vue';
 
 import { createApp, markRaw } from 'vue';
 import { createPinia } from 'pinia';
