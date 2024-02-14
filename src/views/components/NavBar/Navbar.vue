@@ -13,7 +13,7 @@ async function logout() {
 </script>
 
 <template>
-	<div class="navbar bg-base-100">
+	<div class="navbar bg-base-100 border-gray-200 border-b-[1px]">
 		<div class="flex-1">
 			<!-- <router-link class="btn btn-ghost normal-case text-xl" to="/dashboard"> Bang </router-link> -->
 		</div>
