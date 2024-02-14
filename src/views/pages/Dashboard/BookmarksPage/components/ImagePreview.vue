@@ -16,7 +16,12 @@ function toggleHover(): void {
 
 <template>
 	<div>
-		<!-- mask -->
+		<!-- if no image -->
+		<div v-if="!props.bookmark.image_url" class="avatar">
+			<div class="mask mask-square w-12 h-12 border-[1px] border-gray-200 bg-neutral-100"></div>
+		</div>
+
+		<!-- if image -->
 		<div
 			@mouseenter="toggleHover"
 			@mouseleave="toggleHover"
