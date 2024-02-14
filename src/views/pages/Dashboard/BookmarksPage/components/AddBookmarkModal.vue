@@ -223,6 +223,7 @@ const computedAddButtonLang = computed(() => {
 					placeholder="example.com"
 					:disabled="states.loading"
 					:error="computedError('url')"
+					@keydown.enter="add"
 					@update:model-value="clearError('url')"
 				/>
 
