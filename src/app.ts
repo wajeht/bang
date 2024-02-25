@@ -12,12 +12,11 @@ import * as appMiddlewares from './app.middlewares';
 import * as apiMiddlewares from './api/api.middlewares';
 
 app.use(
-	helmet({
-		contentSecurityPolicy: {
-			directives: {
-				...helmet.contentSecurityPolicy.getDefaultDirectives(),
-				'default-src': ["'self'", 'plausible.jaw.dev'],
-			},
+	helmet.contentSecurityPolicy({
+		directives: {
+			...helmet.contentSecurityPolicy.getDefaultDirectives(),
+			'default-src': ["'self'", 'plausible.jaw.dev'],
+			'script-src': ["'self'", "'unsafe-inline'", 'plausible.jaw.dev'],
 		},
 	}),
 );

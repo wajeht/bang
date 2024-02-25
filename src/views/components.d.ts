@@ -28,6 +28,7 @@ declare module 'vue' {
     'ICi:command': typeof import('~icons/ci/command')['default']
     'IGridicons:addOutline': typeof import('~icons/gridicons/add-outline')['default']
     'IIc:outlineBookmarks': typeof import('~icons/ic/outline-bookmarks')['default']
+    'IIc:outlineGear': typeof import('~icons/ic/outline-gear')['default']
     'IIc:outlineHistory': typeof import('~icons/ic/outline-history')['default']
     'IIc:outlineLogout': typeof import('~icons/ic/outline-logout')['default']
     'IIc:outlinePerson': typeof import('~icons/ic/outline-person')['default']
@@ -53,6 +54,8 @@ declare module 'vue' {
     RegisterCard: typeof import('./components/RegisterCard/RegisterCard.vue')['default']
     RegisterPage: typeof import('./pages/RegisterPage.vue')['default']
     RegularLayout: typeof import('./layouts/RegularLayout.vue')['default']
+    RequestReverificationEmailCard: typeof import('./components/RequestReverificationEmailCard/RequestReverificationEmailCard.vue')['default']
+    RequestReverificationEmailPage: typeof import('./pages/RequestReverificationEmailPage.vue')['default']
     ResetPasswordCard: typeof import('./components/ResetPasswordCard/ResetPasswordCard.vue')['default']
     ResetPasswordPage: typeof import('./pages/ResetPasswordPage.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
@@ -62,6 +65,7 @@ declare module 'vue' {
     Sidebar: typeof import('./components/Sidebar/Sidebar.vue')['default']
     SocialLoginCard: typeof import('./components/SocialLoginCard/SocialLoginCard.vue')['default']
     TermsOfServicePage: typeof import('./pages/TermsOfServicePage.vue')['default']
+    Toast: typeof import('./components/Toast/Toast.vue')['default']
     VerifyEmailPage: typeof import('./pages/VerifyEmailPage.vue')['default']
   }
 }

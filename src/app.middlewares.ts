@@ -33,7 +33,7 @@ export function vueHandler(req: Request, res: Response, next: NextFunction) {
 }
 
 export function apiNotFoundHandle(req: Request, res: Response, next: NextFunction) {
-	const resonse: CustomResponse = {
+	const response: CustomResponse = {
 		status: false,
 		statusCode: StatusCodes.NOT_FOUND,
 		requestUrl: req.originalUrl,
@@ -41,7 +41,7 @@ export function apiNotFoundHandle(req: Request, res: Response, next: NextFunctio
 		data: [],
 	};
 
-	const { statusCode, ...rest } = resonse;
+	const { statusCode, ...rest } = response;
 
 	const isApiPrefix = req.url.match(/^\/api\/v\d\//) || req.url.match(/^\/api\//);
 
@@ -53,7 +53,7 @@ export function apiNotFoundHandle(req: Request, res: Response, next: NextFunctio
 }
 
 export function notFoundHandler(req: Request, res: Response, next: NextFunction) {
-	const resonse: CustomResponse = {
+	const response: CustomResponse = {
 		status: false,
 		statusCode: StatusCodes.NOT_FOUND,
 		requestUrl: req.originalUrl,
@@ -61,7 +61,7 @@ export function notFoundHandler(req: Request, res: Response, next: NextFunction)
 		data: [],
 	};
 
-	const { statusCode, ...rest } = resonse;
+	const { statusCode, ...rest } = response;
 
 	return res.status(statusCode).send(rest);
 }

@@ -66,8 +66,8 @@ export async function getUrlInfo(
 		/<meta[^>]*name="description"[^>]*content="([^"]*)"[^>]*>/,
 	);
 
-	console.log('title', title);
-	console.log('description', description);
+	// console.log('title', title);
+	// console.log('description', description);
 
 	let favicon_url =
 		extractValue(text, /<link[^>]*rel="shortcut icon"[^>]*href="([^"]*)"[^>]*>/) ||

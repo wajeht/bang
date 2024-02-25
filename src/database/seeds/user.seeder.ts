@@ -25,6 +25,18 @@ export async function userSeeder() {
 			data: usersData,
 		});
 
+		await db.user.create({
+			data: {
+				username: 'bang',
+				email: 'admin@bang.jaw.dev',
+				password,
+				verified: true,
+				verified_at: new Date(),
+				created_at: new Date(),
+				updated_at: new Date(),
+			},
+		});
+
 		console.log('User seeders created successfully.');
 	} catch (error) {
 		console.log(error);
