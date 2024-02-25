@@ -208,6 +208,7 @@ function selectAllBookmarks() {
 					<tr
 						v-for="bookmark in computedSearch"
 						:key="`bookmark-id-${bookmark.id}`"
+            :class="{'bg-neutral-200': states.check.bookmarks.includes(bookmark)}"
 						class="w-fit h-fit"
 					>
 						<!-- checkbox -->
