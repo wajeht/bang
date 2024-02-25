@@ -13,7 +13,7 @@ async function logout() {
 </script>
 
 <template>
-	<div class="navbar bg-base-100">
+	<div class="navbar bg-base-100 border-gray-200 border-b-[1px]">
 		<div class="flex-1">
 			<!-- <router-link class="btn btn-ghost normal-case text-xl" to="/dashboard"> Bang </router-link> -->
 		</div>
@@ -40,6 +40,16 @@ async function logout() {
 						>
 							<i-ic:outline-person />
 							Profile
+						</router-link>
+					</li>
+
+					<li>
+						<router-link
+							to="/dashboard/settings"
+							:class="[$route.path.startsWith('/dashboard/settings') ? 'active' : '']"
+						>
+							<i-bi:gear />
+							Settings
 						</router-link>
 					</li>
 

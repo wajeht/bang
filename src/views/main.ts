@@ -1,3 +1,5 @@
+import { autoAnimatePlugin } from '@formkit/auto-animate/vue';
+
 import { createApp, markRaw } from 'vue';
 import { createPinia } from 'pinia';
 
@@ -17,6 +19,7 @@ pinia.use(({ store }) => {
 
 app.use(pinia);
 app.use(router);
+app.use(autoAnimatePlugin);
 pinia.use(piniaPluginPersistedstate);
 
 app.mount('#app');

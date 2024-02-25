@@ -21,6 +21,20 @@ export async function createUser(user: Pick<User, 'email' | 'password' | 'userna
 	return createdUser;
 }
 
+export async function regenerateVerificationToken(email: string) {
+	const verificationToken = await generateRandomToken();
+	const updatedUser = await db.user.update({
+		where: {
+			email,
+		},
+		data: {
+			verification_token: verificationToken,
+			verification_token_expires_at: VERIFICATION_TOKEN_EXPIRES_AT,
+		},
+	});
+	return updatedUser;
+}
+
 export async function setUserResetPasswordToken(email: string) {
 	const resetPasswordToken = await generateRandomToken();
 

@@ -55,7 +55,13 @@ async function getUrlInfo(url: string): Promise<any> {
 
 async function syncUrlInfo(url: string): Promise<void> {
 	try {
-		const urlInfo = await getUrlInfo(url);
+		let modifiedUrl = url;
+
+		if (!modifiedUrl.includes('http')) {
+			modifiedUrl = `https://${url}`;
+		}
+
+		const urlInfo = await getUrlInfo(modifiedUrl);
 		states.url = urlInfo.url ?? '';
 		states.title = urlInfo.title ?? '';
 		states.favicon_url = urlInfo.favicon_url ?? '';
@@ -69,7 +75,6 @@ onMounted(() => {
 	nextTick(async () => {
 		if (props.url) {
 			await syncUrlInfo(props.url);
-			console.log('here');
 			states.expanded = true;
 			toggleModal();
 		}
@@ -218,6 +223,7 @@ const computedAddButtonLang = computed(() => {
 					placeholder="example.com"
 					:disabled="states.loading"
 					:error="computedError('url')"
+					@keydown.enter="add"
 					@update:model-value="clearError('url')"
 				/>
 
