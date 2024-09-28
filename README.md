@@ -4,17 +4,8 @@
 
 DuckDuckGo's !Bangs, but on steroids.
 
-# 📚 Technologies
-
-- **Node** with **Express** for API
-- **Vitest** for both API and UI testing
-- **Postgres** because relational all the way
-- **Zod** for types/validation
-- **Prisma** for db cliinet
-- **Tailwind** for rapid styling
-- **DaisyUI** for some components
-- **Vue** because this is a dashboard app
-- and of course **Typescript** for everything ❤️
+> [!WARNING]
+> This project is unfinished and heavily work in progress.
 
 # 💻 Booklet
 
