@@ -13,6 +13,9 @@ down:
 build-ui:
 	docker compose exec bang npm run build:ui
 
+shell:
+	docker exec -it bang sh
+
 clean:
 	docker compose down --rmi all
 
