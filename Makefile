@@ -27,3 +27,6 @@ lint:
 
 format:
 	docker compose exec bang npm run format
+
+push:
+	git auto
