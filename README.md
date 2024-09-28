@@ -9,7 +9,7 @@ DuckDuckGo's !Bangs, but on steroids.
 > [!WARNING]
 > This project is unfinished and heavily work in progress.
 
-# 🔖 Booklet
+## 🔖 Booklet
 
 ```javascript
 javascript: (function () {
@@ -18,6 +18,6 @@ javascript: (function () {
 })();
 ```
 
-# 📜 License
+## 📜 License
 
 Distributed under the MIT License © [wajeht](https://github.com/wajeht). See [LICENSE](./LICENSE) for more information.
