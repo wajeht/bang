@@ -47,7 +47,7 @@ func getHomePageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func notFoundPageHandler(w http.ResponseWriter, r *http.Request) {
+func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 
 	if r.Header.Get("Content-Type") == "application/json" {
@@ -77,7 +77,7 @@ func main() {
 
 	mux.HandleFunc("GET /{$}", getHomePageHandler)
 
-	mux.HandleFunc("GET /", notFoundPageHandler)
+	mux.HandleFunc("GET /", notFoundHandler)
 
 	port := "80"
 
