@@ -2,4 +2,4 @@ push:
 	@git auto
 
 dev:
-	@go run main.go
+	$(shell go env GOPATH)/bin/air -c ./.air.toml
