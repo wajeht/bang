@@ -28,10 +28,16 @@ func getHomePageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func notFoundPageHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
+	w.Write([]byte("404 - Page Not Found 🤷"))
+}
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", getHealthzHandler)
-	mux.HandleFunc("GET /", getHomePageHandler)
+	mux.HandleFunc("GET /{$}", getHomePageHandler)
+	mux.HandleFunc("GET /", notFoundPageHandler)
 
 	port := "80"
 	log.Printf("Server starting on http://localhost:%s", port)
