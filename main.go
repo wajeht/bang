@@ -8,21 +8,40 @@ import (
 )
 
 func getHealthzHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+
 	if r.Header.Get("Content-Type") == "application/json" {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"message":"ok"}`))
+		return
 	}
-}
 
-func getHomePageHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(filepath.Join("web", "pages", "home.html"))
+	tmpl, err := template.ParseFiles(filepath.Join("web", "pages", "healthz.html"))
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	err = tmpl.Execute(w, nil)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func getHomePageHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles(filepath.Join("web", "pages", "home.html"))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	err = tmpl.Execute(w, nil)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -30,18 +49,42 @@ func getHomePageHandler(w http.ResponseWriter, r *http.Request) {
 
 func notFoundPageHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("404 - Page Not Found 🤷"))
+
+	if r.Header.Get("Content-Type") == "application/json" {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"message":"not found"}`))
+		return
+	}
+
+	tmpl, err := template.ParseFiles(filepath.Join("web", "pages", "not-found.html"))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = tmpl.Execute(w, nil)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func main() {
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("GET /healthz", getHealthzHandler)
+
 	mux.HandleFunc("GET /{$}", getHomePageHandler)
+
 	mux.HandleFunc("GET /", notFoundPageHandler)
 
 	port := "80"
+
 	log.Printf("Server starting on http://localhost:%s", port)
+
 	err := http.ListenAndServe(":"+port, mux)
+
 	if err != nil {
 		log.Fatal(err)
 	}
