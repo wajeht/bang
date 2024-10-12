@@ -16,7 +16,7 @@ func getHealthzHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getHomePageHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(filepath.Join("web", "views", "pages", "home.html"))
+	tmpl, err := template.ParseFiles(filepath.Join("web", "pages", "home.html"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
