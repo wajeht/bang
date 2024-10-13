@@ -553,3 +553,8 @@ video {
 [hidden] {
   display: none;
 }
+
+.text-red-500 {
+  --tw-text-opacity: 1 !important;
+  color: rgb(239 68 68 / var(--tw-text-opacity)) !important;
+}
