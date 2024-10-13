@@ -31,6 +31,13 @@ COPY --from=builder /app/bin/bang ./bin/bang
 # Copy public files
 COPY --from=builder /app/public ./public
 
+# Copy only the necessary HTML templates
+COPY --from=builder /app/src/components ./src/components
+
+COPY --from=builder /app/src/layouts ./src/layouts
+
+COPY --from=builder /app/src/pages ./src/pages
+
 EXPOSE 80
 
 HEALTHCHECK CMD curl -f http://localhost:80/healthz || exit 1
