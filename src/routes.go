@@ -11,9 +11,9 @@ func routes() *http.ServeMux {
 
 	mux.Handle("/", neuter(fileServer))
 
-	mux.HandleFunc("GET /healthz", getHealthzHandler)
-
 	mux.HandleFunc("GET /{$}", getHomePageHandler)
+
+	mux.HandleFunc("GET /healthz", getHealthzHandler)
 
 	mux.HandleFunc("GET /terms-of-service", getTermsOfServicePageHandler)
 
