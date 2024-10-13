@@ -9,6 +9,7 @@ WORKDIR /app
 
 # Copy go.mod and download dependencies
 COPY go.mod ./
+
 RUN go mod download
 
 # Copy the rest of the source code
@@ -29,9 +30,6 @@ COPY --from=builder /app/bin/bang ./bin/bang
 
 # Copy public files
 COPY --from=builder /app/public ./public
-
-# Copy src directory (for HTML templates)
-COPY --from=builder /app/src ./src
 
 EXPOSE 80
 
