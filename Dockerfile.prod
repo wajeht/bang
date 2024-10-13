@@ -1,4 +1,5 @@
-FROM golang:1.23-alpine
+# Build stage
+FROM golang:1.23-alpine AS builder
 
 RUN apk --no-cache add curl
 
@@ -6,13 +7,31 @@ ENV ENV=production
 
 WORKDIR /app
 
+# Copy go.mod and download dependencies
 COPY go.mod ./
-
 RUN go mod download
 
+# Copy the rest of the source code
 COPY . .
 
+# Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -o bin/bang ./src
+
+# Final stage
+FROM alpine:latest
+
+RUN apk --no-cache add curl
+
+WORKDIR /app
+
+# Copy the binary from the build stage
+COPY --from=builder /app/bin/bang ./bin/bang
+
+# Copy public files
+COPY --from=builder /app/public ./public
+
+# Copy src directory (for HTML templates)
+COPY --from=builder /app/src ./src
 
 EXPOSE 80
 
