@@ -554,7 +554,6 @@ video {
   display: none;
 }
 
-.text-red-500 {
-  --tw-text-opacity: 1 !important;
-  color: rgb(239 68 68 / var(--tw-text-opacity)) !important;
+.flex {
+  display: flex !important;
 }
