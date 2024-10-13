@@ -13,7 +13,7 @@ func getHealthzHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderTemplate(w, "main.html", "healthz.html", nil)
+	renderTemplate(w, "public.html", "healthz.html", nil)
 }
 
 func notFoundHandler(w http.ResponseWriter, r *http.Request) {
@@ -25,17 +25,17 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderTemplate(w, "main.html", "not-found.html", nil)
+	renderTemplate(w, "public.html", "not-found.html", nil)
 }
 
 func getPrivacyPolicyPageHandler(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, "main.html", "privacy-policy", nil)
+	renderTemplate(w, "public.html", "privacy-policy", nil)
 }
 
 func getTermsOfServicePageHandler(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, "main.html", "terms-of-service.html", nil)
+	renderTemplate(w, "public.html", "terms-of-service.html", nil)
 }
 
 func getHomePageHandler(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, "main.html", "home.html", nil)
+	renderTemplate(w, "public.html", "home.html", nil)
 }
