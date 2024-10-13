@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "private": "true",
   "description": "DuckDuckGo's !Bangs, but on steroids",
-  "main": "index.js",
   "scripts": {
     "dev": "concurrently --kill-others --names \"GO,TAILWIND,BROWSER-SYNC\" -c \"bgGreen.black,bgCyan.black,bgMagenta.black\" \"npm run dev:go\" \"npm run dev:tailwind\" \"npm run dev:browser-sync\"",
     "dev:go": "$(go env GOPATH)/bin/air -c ./.air.toml",
@@ -18,6 +17,7 @@
   "devDependencies": {
     "browser-sync": "^3.0.3",
     "concurrently": "^9.0.1",
+    "daisyui": "^4.12.13",
     "tailwindcss": "^3.4.13"
   }
 }
