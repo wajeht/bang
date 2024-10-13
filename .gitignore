@@ -181,4 +181,6 @@ web/public/assets/index.js
 tmp/*
 ./tmp/*
 tmp
+./bin/*
 bin/*
+bin
