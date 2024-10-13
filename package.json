@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "concurrently --kill-others --names \"GO,TAILWIND\" -c \"bgGreen.black,bgCyan.black\" \"npm run dev:go\" \"npm run dev:tailwind\"",
     "dev:go": "$(go env GOPATH)/bin/air -c ./.air.toml",
-    "dev:tailwind": "tailwindcss build -o public/css/styles.css --watch"
+    "dev:tailwind": "tailwindcss -i ./public/css/tailwind.css -o ./public/css/style.css --watch"
   },
   "keywords": [
     "bang"
