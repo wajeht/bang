@@ -15,5 +15,9 @@ func routes() *http.ServeMux {
 
 	mux.HandleFunc("GET /{$}", getHomePageHandler)
 
+	mux.HandleFunc("GET /terms-of-service", getTermsOfServicePageHandler)
+
+	mux.HandleFunc("GET /privacy-policy", getPrivacyPolicyPageHandler)
+
 	return mux
 }

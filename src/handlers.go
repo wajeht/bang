@@ -1,9 +1,7 @@
 package main
 
 import (
-	"html/template"
 	"net/http"
-	"path/filepath"
 )
 
 func getHealthzHandler(w http.ResponseWriter, r *http.Request) {
@@ -15,35 +13,7 @@ func getHealthzHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles(filepath.Join("src", "pages", "healthz.html"))
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	err = tmpl.Execute(w, nil)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func getHomePageHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(filepath.Join("src", "pages", "home.html"))
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-
-	err = tmpl.Execute(w, nil)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	renderTemplate(w, "main.html", "healthz.html", nil)
 }
 
 func notFoundHandler(w http.ResponseWriter, r *http.Request) {
@@ -55,16 +25,17 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles(filepath.Join("src", "pages", "not-found.html"))
+	renderTemplate(w, "main.html", "not-found.html", nil)
+}
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+func getPrivacyPolicyPageHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "main.html", "privacy-policy", nil)
+}
 
-	err = tmpl.Execute(w, nil)
+func getTermsOfServicePageHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "main.html", "terms-of-service.html", nil)
+}
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+func getHomePageHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "main.html", "home.html", nil)
 }
