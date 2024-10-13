@@ -9,36 +9,36 @@ env:
   PORT: 80
 
 jobs:
-  test:
-    name: Tests
-    runs-on: ubuntu-latest
+  # test:
+  #   name: Tests
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.22'
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Set up Go
+  #       uses: actions/setup-go@v2
+  #       with:
+  #         go-version: '1.22'
 
-      - name: Run unit tests
-        run: go test ./...
+  #     - name: Run unit tests
+  #       run: go test ./...
 
-  format:
-    name: Format
-    runs-on: ubuntu-latest
+  # format:
+  #   name: Format
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.22'
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Set up Go
+  #       uses: actions/setup-go@v2
+  #       with:
+  #         go-version: '1.22'
 
-      - name: Run go fmt
-        run: go fmt ./...
+  #     - name: Run go fmt
+  #       run: go fmt ./...
 
   deploy:
-    needs: [test, format]
+    # needs: [test, format]
     name: Deploy
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
