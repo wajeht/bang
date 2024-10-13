@@ -15,7 +15,7 @@ func getHealthzHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles(filepath.Join("pages", "healthz.html"))
+	tmpl, err := template.ParseFiles(filepath.Join("src", "pages", "healthz.html"))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -30,7 +30,7 @@ func getHealthzHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getHomePageHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles(filepath.Join("pages", "home.html"))
+	tmpl, err := template.ParseFiles(filepath.Join("src", "pages", "home.html"))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -55,7 +55,7 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles(filepath.Join("pages", "not-found.html"))
+	tmpl, err := template.ParseFiles(filepath.Join("src", "pages", "not-found.html"))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
