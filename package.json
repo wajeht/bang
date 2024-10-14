@@ -4,9 +4,8 @@
   "private": "true",
   "description": "DuckDuckGo's !Bangs, but on steroids",
   "scripts": {
-    "dev": "concurrently --kill-others --names \"GO,TAILWIND,BROWSER-SYNC\" -c \"bgGreen.black,bgCyan.black,bgMagenta.black\" \"npm run dev:go\" \"npm run dev:tailwind\" \"npm run dev:browser-sync\"",
+    "dev": "concurrently --kill-others --names \"GO,BROWSER-SYNC\" -c \"bgGreen.black,bgMagenta.black\" \"npm run dev:go\" \"npm run dev:browser-sync\"",
     "dev:go": "$(go env GOPATH)/bin/air -c ./.air.toml",
-    "dev:tailwind": "tailwindcss -i ./public/css/tailwind.css -o ./public/css/style.css --watch",
     "dev:browser-sync": "browser-sync start --proxy 'localhost:80' --files 'public/**/*.css, **/*.html, **/*.go' --no-notify --ignore 'node_modules'"
   },
   "keywords": [
@@ -15,9 +14,7 @@
   "author": "wajeht",
   "license": "MIT",
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.15",
     "browser-sync": "^3.0.3",
-    "concurrently": "^9.0.1",
-    "tailwindcss": "^3.4.13"
+    "concurrently": "^9.0.1"
   }
 }
