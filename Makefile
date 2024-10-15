@@ -8,8 +8,7 @@ start:
 	@./bin/bang
 
 dev:
-	@npm run dev
+	$(shell go env GOPATH)/bin/air -c ./.air.toml
 
 install:
-	@npm install
 	@go mod download
