@@ -19,5 +19,11 @@ func routes() *http.ServeMux {
 
 	mux.HandleFunc("GET /privacy-policy", getPrivacyPolicyPageHandler)
 
+	mux.HandleFunc("GET /login", getLoginHandler)
+
+	mux.HandleFunc("GET /oauth/github", getGithubHandler)
+
+	mux.HandleFunc("GET /oauth/github/callback", getGithubCallbackHandler)
+
 	return mux
 }

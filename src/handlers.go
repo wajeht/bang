@@ -28,6 +28,18 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "public.html", "not-found.html", nil)
 }
 
+func getLoginHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/oauth/github", http.StatusSeeOther)
+}
+
+func getGithubHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "public.html", "not-found.html", nil)
+}
+
+func getGithubCallbackHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "public.html", "not-found.html", nil)
+}
+
 func getPrivacyPolicyPageHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "public.html", "privacy-policy", nil)
 }
