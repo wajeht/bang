@@ -8,10 +8,8 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 
-<body>
-  {{template "header" .}}
-
-  <main class="prose">
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+  <main style="flex: 1; margin-top: 20vh;">
     {{template "body" .}}
   </main>
 
