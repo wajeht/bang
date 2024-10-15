@@ -1,11 +1,87 @@
-{{define "title"}}Home{{end}}
+{{define "title"}}Bang - Your Search Shortcut Superhero! 🦸‍♂️{{end}}
 
 {{define "body"}}
+<div style="display: flex; flex-direction: column; align-items: center; gap: 100px;">
+    <header
+        style="display: flex; flex-direction: column; align-items: center; text-align: center; border-bottom: dashed; padding-bottom: 60px; padding-top: 60px; width: 100%;">
+        <h1><span style="color: red; margin-right: 5px;">!!</span>Bang</h1>
+        <p>Because life's too short for long URLs! 🚀</p>
+    </header>
 
-<div
-  style="display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 10px; text-align: center;">
-  <h2><span style="color: red; margin-right: 5px;">!!</span>Bang</h2>
-  <p>DuckDuckGo's !Bangs, but on steroids!</p>
-  <button>🎯 Get Started</button>
+    <section style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 50px;">
+        <div
+            style="display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 10px; text-align: center;">
+            <h2>⚡️ Bang Your Way to Search Nirvana!</h2>
+            <p>Type '!!', add some magic words, and BOOM! 💥 You're searching faster than you can say "How did I live
+                without this?" 🤯</p>
+        </div>
+        <div style="border: dashed; border-radius: 5px; padding: 20px; width: fit-content;">
+            <h3>🚀 How to Bang (No, not like that! 😉)</h3>
+            <ol style="text-align: left; padding-left: 20px;">
+                <li>Type '!!' in your search bar (It's like a secret handshake!)</li>
+                <li>Add your favorite Bang (e.g., 'yt' for YouTube)</li>
+                <li>Throw in your search query</li>
+                <li>Hit enter and watch the internet bend to your will! 🧙‍♂️</li>
+            </ol>
+            <p style="font-style: italic;">Example: !!yt cute cats - Instantly searches YouTube for adorable felines! 🐱
+            </p>
+        </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 50px;">
+        <h2>🌟 Why Choose Bang? (Besides our punny name, of course)</h2>
+        <div style="display: flex; justify-content: space-around; width: 100%; flex-wrap: wrap; gap: 20px;">
+            <div
+                style="flex: 1 1 200px; padding: 10px; text-align: center; border: dashed; border-radius: 5px; display: flex; flex-direction: column; gap: 10px;">
+                <h4>🚀 Ludicrous Speed</h4>
+                <p>Search at warp speed! ⚡ Blink and you might miss it!</p>
+            </div>
+            <div
+                style="flex: 1 1 200px; padding: 10px; text-align: center; border: dashed; border-radius: 5px; display: flex; flex-direction: column; gap: 10px;">
+                <h4>🧠 Search Smarter, Not Harder</h4>
+                <p>Why navigate when you can teleport? 🖖</p>
+            </div>
+            <div
+                style="flex: 1 1 200px; padding: 10px; text-align: center; border: dashed; border-radius: 5px; display: flex; flex-direction: column; gap: 10px;">
+                <h4>🌈 Endless Possibilities</h4>
+                <p>More Bangs than a fireworks show! 🎆</p>
+            </div>
+        </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 50px;">
+        <h2>🎭 Bang in Action</h2>
+        <div style="width: 100%; padding: 20px; border: dashed; border-radius: 5px;">
+            <p style="font-style: italic; margin-bottom: 10px;">
+                "I used to spend hours searching the web. Now, with Bang, I find what I need faster than my cat finds an
+                open tuna can! It's not just a tool, it's a way of life!" 😻
+            </p>
+            <p style="text-align: right;">
+                - A very real and not at all made-up user 😉
+            </p>
+        </div>
+    </section>
+
+    <section
+        style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 50px; padding-bottom: 60px;">
+        <h2>🚀 Ready to Bang Your Way to Search Enlightenment?</h2>
+        <button onclick="document.getElementById('sign-up-modal').showModal()">🎯 Let's Bang! (The search bar, that
+            is)</button>
+    </section>
 </div>
+
+<dialog id="sign-up-modal" style="max-width: 400px;">
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+        <h2>🔐 Join the Bang Gang!</h2>
+        <p>Sign up and start Banging... responsibly! 😉</p>
+        <a href="/login" style="text-decoration: none;">
+            <button style="width: 100%;">🐙 Bang with GitHub</button>
+        </a>
+        <p>By signing up, you agree to our <a href="/terms-of-service">📜 Terms of Service</a> (No, we won't steal your
+            cat videos)</p>
+        <div style="display: flex; justify-content: flex-end;">
+            <button onclick="document.getElementById('sign-up-modal').close()">❌ No Bangs for me, thanks!</button>
+        </div>
+    </div>
+</dialog>
 {{end}}
