@@ -1,0 +1,23 @@
+src/database/db.sqlite
+node_modules
+coverage
+logs
+mongo-data
+coverage*/
+lib/
+pnpm-lock.yaml
+# See https://github.com/all-contributors/cli/issues/347
+.all-contributorsrc
+package-lock.json
+src/views/components.d.ts
+src/views/auto-imports.d.ts
+backup/*
+backup*
+./src/index.js
+/dist
+./src/database/db.sqlite
+./public/js/*
+/public/js/*
+src/views/components/*
+src/views/layouts/*
+src/views/pages/*

@@ -1,0 +1,30 @@
+{
+	"name": "bang",
+	"version": "0.0.1",
+	"description": "DuckDuckGo's !Bangs, but on steroids.",
+	"main": "dist/src/server.js",
+	"scripts": {
+		"dev": "export APP_ENV=development && npm run db:prepare:dev && tsx watch --no-warnings --clear-screen=false ./src/server.ts",
+		"db:prepare:dev": "echo 'not yet'",
+		"format:check": "prettier --check .",
+		"format:verbose": "prettier --write --cache .",
+		"format": "prettier --write --cache . > /dev/null"
+	},
+	"keywords": [
+		"wajeht",
+		"DuckDuckGo",
+		"band"
+	],
+	"author": "wajeht",
+	"license": "MIT",
+	"devDependencies": {
+		"@types/express": "^5.0.0",
+		"prettier": "^3.3.3",
+		"tsx": "^4.19.2",
+		"typescript": "^5.6.3"
+	},
+	"dependencies": {
+		"dotenv": "^16.4.5",
+		"express": "^4.21.1"
+	}
+}
