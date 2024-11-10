@@ -4,8 +4,12 @@
 	"description": "DuckDuckGo's !Bangs, but on steroids.",
 	"main": "dist/src/server.js",
 	"scripts": {
+		"start": "export APP_ENV=production && node --no-warnings ./dist/src/server.js",
 		"dev": "export APP_ENV=development && npm run db:prepare:dev && tsx watch --no-warnings --clear-screen=false ./src/server.ts",
-		"db:prepare:dev": "echo 'not yet'",
+		"build:server": "tsc",
+		"build": "npm run build:server",
+		"update:deps": "npx npm-check -u",
+		"check:deps": "npx depcheck",
 		"test:unit": "echo 'not yet'",
 		"test:browser:headless": "npx playwright test",
 		"test:browser": "npx playwright test --ui",
@@ -16,7 +20,17 @@
 		"format:verbose": "prettier --write --cache .",
 		"format": "prettier --write --cache . > /dev/null",
 		"lint:check": "eslint .",
-		"lint": "eslint --fix --cache ."
+		"lint": "eslint --fix --cache .",
+		"db:prepare:dev": "npm run db:migrate:latest && npm run db:seed:run",
+		"db:prepare:prod": "npm run db:migrate:latest:prod",
+		"db:migrate:make": "tsx ./node_modules/knex/bin/cli.js migrate:make --knexfile=./src/db/knexfile.ts",
+		"db:migrate:latest:prod": "knex migrate:latest --knexfile=./dist/src/db/knexfile.js",
+		"db:migrate:latest": "tsx ./node_modules/knex/bin/cli.js migrate:latest --knexfile=./src/db/knexfile.ts",
+		"db:migrate:rollback": "tsx ./node_modules/knex/bin/cli.js migrate:rollback --knexfile=./src/db/knexfile.ts",
+		"db:migrate:rollback:prod": "knex migrate:rollback --knexfile=./dist/src/db/knexfile.js",
+		"db:seed:make": "tsx ./node_modules/knex/bin/cli.js seed:make --knexfile=./src/db/knexfile.ts",
+		"db:seed:run": "tsx ./node_modules/knex/bin/cli.js seed:run --knexfile=./src/db/knexfile.ts",
+		"db:seed:run:prod": "knex seed:run --knexfile=./dist/src/db/knexfile.js"
 	},
 	"keywords": [
 		"wajeht",
@@ -37,6 +51,7 @@
 		"@vitest/coverage-v8": "^2.1.4",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-prettier": "^5.2.1",
+		"ioredis-mock": "^8.9.0",
 		"prettier": "^3.3.3",
 		"tsx": "^4.19.2",
 		"typescript": "^5.6.3",
@@ -50,7 +65,10 @@
 		"ejs": "^3.1.10",
 		"express": "^4.21.1",
 		"express-ejs-layouts": "^2.5.1",
+		"ioredis": "^5.4.1",
 		"knex": "^3.1.0",
+		"knex-paginate": "^3.1.4",
+		"pg": "^8.13.1",
 		"pino": "^9.5.0",
 		"pino-pretty": "^12.1.0"
 	}
