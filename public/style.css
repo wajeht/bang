@@ -1,0 +1,242 @@
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+* {
+	margin: 0;
+}
+
+:root {
+	--text-color: #333333;
+	--background-color: #ffffff;
+	--pre-background: #f8f9fa;
+	--pre-border: #edeff0;
+	--link-color: #0000ee;
+	--visited-link-color: #6f3788;
+	--border-color: #1a1a1a;
+	--sub-table-background: #f8f9fa;
+}
+
+[data-theme='dark'] {
+	--text-color: #e0e0e0;
+	--background-color: #1a1a1a;
+	--pre-background: #2a2a2a;
+	--pre-border: #3a3a3a;
+	--link-color: #6495ed;
+	--visited-link-color: #9370db;
+	--border-color: #ffffff;
+	--input-background: #333333;
+	--input-text: #ffffff;
+	--input-border: #4a4a4a;
+	--button-background: #4a4a4a;
+	--button-text: #ffffff;
+	--checkbox-background: #333333;
+	--checkbox-border: #4a4a4a;
+	--checkbox-check: #ffffff;
+	--button-hover-background: #5a5a5a;
+	--sub-table-background: #2a2a2a;
+}
+
+body {
+	padding: 1em 2rem;
+	color: var(--text-color);
+	background-color: var(--background-color);
+	font-family:
+		Segoe UI,
+		system-ui,
+		-apple-system,
+		sans-serif;
+	font-size: clamp(1rem, 0.95rem + 0.25vw, 1.25rem);
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+	display: block;
+	max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+	font: inherit;
+	padding: 5px 10px;
+}
+
+[data-theme='dark'] input,
+[data-theme='dark'] textarea,
+[data-theme='dark'] select {
+	background-color: var(--input-background);
+	color: var(--input-text);
+	border: 1px solid var(--input-border);
+	border-radius: 2px;
+}
+
+[data-theme='dark'] button {
+	background-color: var(--button-background);
+	color: var(--button-text);
+	border: 1px solid var(--input-border);
+	border-radius: 2px;
+}
+
+[data-theme='dark'] button:hover {
+	background-color: var(--button-hover-background);
+	transition: background-color 0.3s ease;
+}
+
+[data-theme='dark'] input[type='checkbox'],
+[data-theme='dark'] input[type='radio'] {
+	background-color: var(--checkbox-background);
+	border: 1px solid var(--checkbox-border);
+	border-radius: 2px;
+}
+
+[data-theme='dark'] input[type='checkbox']:checked,
+[data-theme='dark'] input[type='radio']:checked {
+	background-color: var(--checkbox-check);
+	border-radius: 2px;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+pre {
+	overflow-wrap: break-word;
+}
+
+details {
+	cursor: pointer;
+}
+
+pre {
+	word-break: break-all;
+	overflow-wrap: break-word;
+	white-space: pre-wrap;
+	background-color: var(--pre-background);
+	border: 1px solid var(--pre-border);
+	padding: 10px;
+	border-radius: 5px;
+	font-size: 0.9em;
+}
+
+a {
+	text-decoration: none;
+	color: var(--link-color);
+}
+
+a:visited {
+	color: var(--visited-link-color);
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+dialog {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	border-radius: 5px;
+	margin: 0;
+	background-color: var(--background-color);
+	color: var(--text-color);
+}
+
+summary {
+	color: var(--link-color);
+}
+
+summary:hover {
+	text-decoration: underline;
+}
+
+.no-style-btn {
+	background: none;
+	border: none;
+	color: var(--link-color);
+	text-decoration: none;
+	cursor: pointer;
+	padding: 0;
+	font: inherit;
+}
+
+[data-theme='dark'] .no-style-btn {
+	background: none;
+	border: none;
+	color: var(--link-color);
+}
+
+[data-theme='dark'] .no-style-btn:hover {
+	background: none;
+}
+
+.no-style-btn:hover {
+	text-decoration: underline;
+}
+
+@keyframes dialogFadeIn {
+	from {
+		opacity: 0;
+		transform: translate(-50%, -60%);
+	}
+	to {
+		opacity: 1;
+		transform: translate(-50%, -50%);
+	}
+}
+
+@keyframes dialogFadeOut {
+	from {
+		opacity: 1;
+		transform: translate(-50%, -50%);
+	}
+	to {
+		opacity: 0;
+		transform: translate(-50%, -60%);
+	}
+}
+
+dialog {
+	opacity: 0;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -60%);
+	transition:
+		opacity 0.3s,
+		transform 0.3s;
+	margin: 0;
+	padding: 20px;
+	max-height: 80vh;
+	max-width: 90vw;
+	overflow: auto;
+	border-radius: 8px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+dialog[open] {
+	animation: dialogFadeIn 0.3s ease-out forwards;
+}
+
+dialog::backdrop {
+	background: rgba(0, 0, 0, 0.15);
+	backdrop-filter: blur(2px);
+	opacity: 0;
+	transition: opacity 0.3s;
+}
+
+dialog[open]::backdrop {
+	opacity: 1;
+}
