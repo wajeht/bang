@@ -36,14 +36,14 @@ export function helmetMiddleware() {
 			useDefaults: true,
 			directives: {
 				...helmet.contentSecurityPolicy.getDefaultDirectives(),
-				'default-src': ["'self'", 'plausible.jaw.dev', 'notify.jaw.dev', 'jaw.lol'],
+				'default-src': ["'self'", 'plausible.jaw.dev', 'bang.jaw.dev', 'jaw.lol'],
 				'script-src': [
 					"'self'",
 					"'unsafe-inline'",
 					"'unsafe-eval'",
 					'plausible.jaw.dev',
 					'jaw.lol',
-					'notify.jaw.dev',
+					'bang.jaw.dev',
 				],
 				'script-src-attr': ["'unsafe-inline'"],
 			},
