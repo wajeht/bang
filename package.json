@@ -41,6 +41,8 @@
 		"dotenv": "^16.4.5",
 		"ejs": "^3.1.10",
 		"express": "^4.21.1",
-		"express-ejs-layouts": "^2.5.1"
+		"express-ejs-layouts": "^2.5.1",
+		"pino": "^9.5.0",
+		"pino-pretty": "^12.1.0"
 	}
 }
