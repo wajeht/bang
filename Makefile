@@ -1,5 +1,5 @@
 push:
-	# @make test
+	@make test
 	@make lint
 	@make format
 	@git add -A
@@ -11,3 +11,6 @@ format:
 
 lint:
 	@npm run lint
+
+test:
+	@npm run test
