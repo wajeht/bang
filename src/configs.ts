@@ -11,3 +11,11 @@ export const appConfig = {
 	apiKeySecret: process.env.APP_API_KEY_SECRET || 'bang',
 	secretSalt: process.env.APP_SECRET_SALT || 'bang',
 } as const;
+
+export const databaseConfig = {
+	port: parseInt(process.env.DB_PORT || '5432'),
+	host: process.env.DB_HOST || 'postgres',
+	username: process.env.DB_USERNAME || 'username',
+	password: process.env.DB_PASSWORD || 'password',
+	database: process.env.DB_DATABASE || 'database',
+} as const;
