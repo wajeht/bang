@@ -25,9 +25,11 @@ server.on('error', (error: NodeJS.ErrnoException) => {
 		case 'EACCES':
 			console.log(`${bind} requires elevated privileges`);
 			process.exit(1);
+		// eslint-disable-next-line no-fallthrough
 		case 'EADDRINUSE':
 			console.log(`${bind} is already in use`);
 			process.exit(1);
+		// eslint-disable-next-line no-fallthrough
 		default:
 			throw error;
 	}

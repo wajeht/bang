@@ -8,7 +8,9 @@
 		"db:prepare:dev": "echo 'not yet'",
 		"format:check": "prettier --check .",
 		"format:verbose": "prettier --write --cache .",
-		"format": "prettier --write --cache . > /dev/null"
+		"format": "prettier --write --cache . > /dev/null",
+		"lint:check": "eslint .",
+		"lint": "eslint --fix --cache ."
 	},
 	"keywords": [
 		"wajeht",
@@ -18,13 +20,27 @@
 	"author": "wajeht",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/compression": "^1.7.5",
+		"@types/connect-flash": "^0.0.40",
+		"@types/cors": "^2.8.17",
+		"@types/ejs": "^3.1.5",
 		"@types/express": "^5.0.0",
+		"@types/express-ejs-layouts": "^2.5.4",
+		"@typescript-eslint/eslint-plugin": "^7.16.1",
+		"@typescript-eslint/parser": "^7.18.0",
+		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-prettier": "^5.2.1",
 		"prettier": "^3.3.3",
 		"tsx": "^4.19.2",
 		"typescript": "^5.6.3"
 	},
 	"dependencies": {
+		"compression": "^1.7.5",
+		"connect-flash": "^0.1.1",
+		"cors": "^2.8.5",
 		"dotenv": "^16.4.5",
-		"express": "^4.21.1"
+		"ejs": "^3.1.10",
+		"express": "^4.21.1",
+		"express-ejs-layouts": "^2.5.1"
 	}
 }
