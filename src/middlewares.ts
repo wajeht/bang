@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
-import { appConfig } from './configs';
+import { appConfig, sessionConfig } from './configs';
+import session from 'express-session';
 import { logger } from './logger';
+import { redis } from './db/db';
+import connectRedisStore from 'connect-redis';
 
 export function notFoundMiddleware() {
 	return (req: Request, res: Response, next: NextFunction) => {
@@ -50,6 +53,28 @@ export function helmetMiddleware() {
 		},
 		referrerPolicy: {
 			policy: 'strict-origin-when-cross-origin',
+		},
+	});
+}
+
+export function sessionMiddleware() {
+	return session({
+		secret: sessionConfig.secret,
+		resave: false,
+		saveUninitialized: false,
+		store: new connectRedisStore({
+			client: redis,
+			prefix: sessionConfig.store_prefix,
+			disableTouch: true,
+		}),
+		proxy: appConfig.env === 'production',
+		cookie: {
+			path: '/',
+			domain: `.${sessionConfig.domain}`,
+			maxAge: 1000 * 60 * 60 * 24, // 24 hours
+			httpOnly: appConfig.env === 'production',
+			sameSite: 'lax',
+			secure: appConfig.env === 'production',
 		},
 	});
 }

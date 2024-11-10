@@ -64,7 +64,7 @@ export function getLoginHandler(req: Request, res: Response) {
 }
 
 // GET /oauth/github
-export async function getGithub(req: Request, res: Response) {
+export async function getGithubHandler(req: Request, res: Response) {
 	if (req.session?.user) {
 		return res.redirect('/dashboard');
 	}

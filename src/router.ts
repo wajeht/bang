@@ -1,7 +1,7 @@
 import express from 'express';
 
 import {
-	getGithub,
+	getGithubHandler,
 	getGithubRedirect,
 	getHealthzHandler,
 	getHomePageHandler,
@@ -25,7 +25,7 @@ router.get('/logout', getLogoutHandler);
 
 router.get('/login', getLoginHandler);
 
-router.get('/oauth/github', getGithub);
+router.get('/oauth/github', getGithubHandler);
 
 router.get('/oauth/github/redirect', getGithubRedirect);
 
