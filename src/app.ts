@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'node:path';
 import express from 'express';
 import flash from 'connect-flash';
-import { appConfig } from './config';
+import { appConfig } from './configs';
 import compression from 'compression';
 import expressLayouts from 'express-ejs-layouts';
 
