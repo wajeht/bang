@@ -8,6 +8,7 @@ import {
 	getHomePageHandler,
 	getLoginHandler,
 	getLogoutHandler,
+	getSearchHandler,
 	getPrivacyPolicyPageHandler,
 	getTermsOfServicePageHandler,
 } from './handlers';
@@ -18,8 +19,6 @@ const router = express.Router();
 router.get('/', getHomePageHandler);
 
 router.get('/healthz', getHealthzHandler);
-
-router.get('/dashboard', authenticationMiddleware, getDashboardPageHandler);
 
 router.get('/terms-of-service', getTermsOfServicePageHandler);
 
@@ -32,5 +31,9 @@ router.get('/login', getLoginHandler);
 router.get('/oauth/github', getGithubHandler);
 
 router.get('/oauth/github/redirect', getGithubRedirect);
+
+router.get('/dashboard', authenticationMiddleware, getDashboardPageHandler);
+
+router.get('/search', authenticationMiddleware, getSearchHandler);
 
 export { router };

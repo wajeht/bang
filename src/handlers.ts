@@ -115,13 +115,6 @@ export async function getGithubRedirect(req: Request, res: Response) {
 		req.session.user = foundUser;
 		req.session.save();
 
-		// await sendGeneralEmailJob({
-		// 	email: foundUser.email,
-		// 	subject: 'Welcome to 🔔 bang!',
-		// 	username: foundUser.username,
-		// 	message: 'Thanks for using bang. Let us know if we can help you with anything!',
-		// });
-
 		return res.redirect(`/dashboard?toast=${encodeURIComponent('🎉 enjoy bang!')}`);
 	}
 
@@ -131,4 +124,11 @@ export async function getGithubRedirect(req: Request, res: Response) {
 	return res.redirect(
 		`/dashboard?toast=${encodeURIComponent(`🙏 welcome back, ${foundUser.username}!`)}`,
 	);
+}
+
+// GET /search
+export function getSearchHandler(req: Request, res: Response) {
+	const query = req.query.q!.toString().trim();
+	const userId = req.session.user?.id;
+	return res.redirect(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`);
 }
