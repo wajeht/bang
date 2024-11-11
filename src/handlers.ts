@@ -1,4 +1,4 @@
-import { getGithubOauthToken, getGithubUserEmails } from './utils';
+import { fetchPageTitle, getGithubOauthToken, getGithubUserEmails } from './utils';
 import { appConfig, oauthConfig } from './configs';
 import { HttpError, UnauthorizedError } from './errors';
 import { Request, Response } from 'express';
@@ -159,7 +159,7 @@ export async function getSearchHandler(req: Request, res: Response) {
 			await db('bookmarks').insert({
 				user_id: userId,
 				url: urlToBookmark,
-				title: req.query.title?.toString() || 'Untitled',
+				title: await fetchPageTitle(urlToBookmark),
 				created_at: new Date(),
 			});
 
