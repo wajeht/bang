@@ -15,7 +15,7 @@ DuckDuckGo's !Bangs, but on steroids.
 ```javascript
 javascript: (function () {
 	const link = encodeURIComponent(window.location.href);
-	window.location.href = 'http://localhost:3000/api/v1/bangs/search?q=!add ' + link;
+	window.location.href = 'http://localhost/search?q=!add ' + link;
 })();
 ```
 
