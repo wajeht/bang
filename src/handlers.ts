@@ -84,6 +84,7 @@ export async function getGithubHandler(req: Request, res: Response) {
 export function getDashboardPageHandler(req: Request, res: Response) {
 	return res.render('dashboard.html', {
 		path: '/dashboard',
+		layout: '../layouts/dashboard.html',
 	});
 }
 
@@ -185,13 +186,11 @@ export async function getSearchHandler(req: Request, res: Response) {
 		if (customBang) {
 			// Handle redirect type
 			if (customBang.action_type_id === 2) {
-				// redirect
 				return res.redirect(customBang.url);
 			}
 
 			// Handle search type
 			if (customBang.action_type_id === 1) {
-				// search
 				const searchUrl = customBang.url.replace('{query}', encodeURIComponent(searchQuery));
 				return res.redirect(searchUrl);
 			}
