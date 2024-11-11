@@ -169,6 +169,7 @@ export async function getSearchHandler(req: Request, res: Response) {
 
 	// Extract bang and search query
 	const bangMatch = query.match(/^!(\w+)(?:\s+(.*))?$/);
+
 	if (bangMatch) {
 		const [, bangTrigger, searchQuery = ''] = bangMatch;
 
@@ -197,9 +198,7 @@ export async function getSearchHandler(req: Request, res: Response) {
 		}
 
 		// If bang exists but wasn't handled, fall through to DDG
-		return res.redirect(
-			`https://duckduckgo.com/${encodeURIComponent('!' + bangTrigger)} ${encodeURIComponent(searchQuery)}`,
-		);
+		return res.redirect(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`);
 	}
 
 	// No bang found, do a regular DDG search
