@@ -127,8 +127,81 @@ export async function getGithubRedirect(req: Request, res: Response) {
 }
 
 // GET /search
-export function getSearchHandler(req: Request, res: Response) {
-	const query = req.query.q!.toString().trim();
+export async function getSearchHandler(req: Request, res: Response) {
+	const query = req.query.q?.toString().trim() || '';
 	const userId = req.session.user?.id;
+
+	// Check for !add anywhere in the query
+	const addMatch = query.match(/!add(?:\s+(.*))?/);
+
+	if (addMatch) {
+		let urlToBookmark = addMatch[1]?.trim() || '';
+
+		// If no URL provided in command, use referer
+		if (!urlToBookmark && req.headers.referer) {
+			urlToBookmark = req.headers.referer;
+		}
+
+		if (urlToBookmark) {
+			try {
+				urlToBookmark = decodeURIComponent(urlToBookmark!);
+				// Remove any extra content after URL
+				urlToBookmark = urlToBookmark.split(/\s+/)[0]!;
+				// Add https:// if no protocol specified
+				if (!urlToBookmark.startsWith('http')) {
+					urlToBookmark = 'https://' + urlToBookmark;
+				}
+			} catch {
+				// If decoding fails, use as-is
+			}
+
+			await db('bookmarks').insert({
+				user_id: userId,
+				url: urlToBookmark,
+				title: req.query.title?.toString() || 'Untitled',
+				created_at: new Date(),
+			});
+
+			return res.redirect(urlToBookmark);
+		}
+		return res.redirect('/');
+	}
+
+	// Extract bang and search query
+	const bangMatch = query.match(/^!(\w+)(?:\s+(.*))?$/);
+	if (bangMatch) {
+		const [, bangTrigger, searchQuery = ''] = bangMatch;
+
+		const customBang = await db('bangs')
+			.join('action_types', 'bangs.action_type_id', 'action_types.id')
+			.where({
+				'bangs.trigger': `!${bangTrigger}`,
+				'bangs.user_id': userId,
+			})
+			.select('bangs.*', 'action_types.name as action_type')
+			.first();
+
+		if (customBang) {
+			// Handle redirect type
+			if (customBang.action_type_id === 2) {
+				// redirect
+				return res.redirect(customBang.url);
+			}
+
+			// Handle search type
+			if (customBang.action_type_id === 1) {
+				// search
+				const searchUrl = customBang.url.replace('{query}', encodeURIComponent(searchQuery));
+				return res.redirect(searchUrl);
+			}
+		}
+
+		// If bang exists but wasn't handled, fall through to DDG
+		return res.redirect(
+			`https://duckduckgo.com/${encodeURIComponent('!' + bangTrigger)} ${encodeURIComponent(searchQuery)}`,
+		);
+	}
+
+	// No bang found, do a regular DDG search
 	return res.redirect(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`);
 }

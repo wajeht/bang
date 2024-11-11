@@ -14,6 +14,7 @@ export async function up(knex: Knex): Promise<void> {
 	await knex.schema.createTable('action_types', (table) => {
 		table.increments('id').primary();
 		table.string('name').unique().notNullable();
+		table.string('description');
 		table.timestamps(true, true);
 	});
 
