@@ -80,6 +80,13 @@ export async function getGithubHandler(req: Request, res: Response) {
 	return res.redirect(`${rootUrl}?${qs.toString()}`);
 }
 
+// GET /dashboard
+export function getDashboardPageHandler(req: Request, res: Response) {
+	return res.render('dashboard.html', {
+		path: '/dashboard',
+	});
+}
+
 // GET /oauth/github/redirect
 export async function getGithubRedirect(req: Request, res: Response) {
 	const code = req.query.code as string;
@@ -115,13 +122,13 @@ export async function getGithubRedirect(req: Request, res: Response) {
 		// 	message: 'Thanks for using bang. Let us know if we can help you with anything!',
 		// });
 
-		return res.redirect(`/apps?toast=${encodeURIComponent('🎉 enjoy bang!')}`);
+		return res.redirect(`/dashboard?toast=${encodeURIComponent('🎉 enjoy bang!')}`);
 	}
 
 	req.session.user = foundUser;
 	req.session.save();
 
 	return res.redirect(
-		`/apps?toast=${encodeURIComponent(`🙏 welcome back, ${foundUser.username}!`)}`,
+		`/dashboard?toast=${encodeURIComponent(`🙏 welcome back, ${foundUser.username}!`)}`,
 	);
 }

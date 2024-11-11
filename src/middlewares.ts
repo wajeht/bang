@@ -3,8 +3,9 @@ import helmet from 'helmet';
 import { appConfig, sessionConfig } from './configs';
 import session from 'express-session';
 import { logger } from './logger';
-import { redis } from './db/db';
+import { db, redis } from './db/db';
 import connectRedisStore from 'connect-redis';
+import { UnauthorizedError } from './errors';
 
 export function notFoundMiddleware() {
 	return (req: Request, res: Response, next: NextFunction) => {
@@ -31,6 +32,22 @@ export function errorMiddleware() {
 			message: appConfig.env !== 'production' ? error.stack : 'internal server error',
 		});
 	};
+}
+
+export async function adminOnlyMiddleware(req: Request, res: Response, next: NextFunction) {
+	try {
+		if (!req.session?.user) {
+			return res.redirect('/login');
+		}
+
+		if (!req.session.user.is_admin) {
+			throw UnauthorizedError();
+		}
+
+		next();
+	} catch (error) {
+		next(error);
+	}
 }
 
 export function helmetMiddleware() {
@@ -77,4 +94,32 @@ export function sessionMiddleware() {
 			secure: appConfig.env === 'production',
 		},
 	});
+}
+
+export async function authenticationMiddleware(req: Request, res: Response, next: NextFunction) {
+	try {
+		if (!req.session?.user) {
+			return res.redirect('/login');
+		}
+
+		const user = await db.select('*').from('users').where('id', req.session.user.id).first();
+
+		if (!user) {
+			req.session.destroy((err) => {
+				if (err) {
+					logger.error('Error destroying session:', err);
+				}
+				return res.redirect('/login');
+			});
+
+			return;
+		}
+
+		req.session.user = user;
+		req.session.save();
+
+		next();
+	} catch (error) {
+		next(error);
+	}
 }

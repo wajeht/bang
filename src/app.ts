@@ -7,11 +7,18 @@ import { appConfig } from './configs';
 import compression from 'compression';
 import expressLayouts from 'express-ejs-layouts';
 import { router } from './router';
-import { errorMiddleware, notFoundMiddleware, helmetMiddleware } from './middlewares';
+import {
+	errorMiddleware,
+	notFoundMiddleware,
+	helmetMiddleware,
+	sessionMiddleware,
+} from './middlewares';
 
 const app = express();
 
 app.set('trust proxy', 1);
+
+app.use(sessionMiddleware());
 
 app.use(flash());
 

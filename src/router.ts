@@ -1,6 +1,7 @@
 import express from 'express';
 
 import {
+	getDashboardPageHandler,
 	getGithubHandler,
 	getGithubRedirect,
 	getHealthzHandler,
@@ -10,12 +11,15 @@ import {
 	getPrivacyPolicyPageHandler,
 	getTermsOfServicePageHandler,
 } from './handlers';
+import { authenticationMiddleware } from 'middlewares';
 
 const router = express.Router();
 
 router.get('/', getHomePageHandler);
 
 router.get('/healthz', getHealthzHandler);
+
+router.get('/dashboard', authenticationMiddleware, getDashboardPageHandler);
 
 router.get('/terms-of-service', getTermsOfServicePageHandler);
 
