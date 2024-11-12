@@ -4,6 +4,8 @@ declare module 'express-session' {
 	}
 }
 
+export type ActionTypes = 'bookmark' | 'redirect' | 'search';
+
 export type User = {
 	id: number;
 	username: string;

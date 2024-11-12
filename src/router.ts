@@ -8,6 +8,7 @@ import {
 	getHomePageAndSearchHandler,
 	getLoginHandler,
 	getLogoutHandler,
+	postActionHandler,
 	getPrivacyPolicyPageHandler,
 	getTermsOfServicePageHandler,
 } from './handlers';
@@ -32,5 +33,7 @@ router.get('/oauth/github', getGithubHandler);
 router.get('/oauth/github/redirect', getGithubRedirect);
 
 router.get('/dashboard', authenticationMiddleware, getDashboardPageHandler);
+
+router.post('/actions', authenticationMiddleware, postActionHandler);
 
 export { router };

@@ -142,7 +142,6 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 
 	// Handle !add command with URL
 	if (query.startsWith('!add')) {
-		console.log({ headers: req.headers });
 		const urlToBookmark = query.slice(5).trim();
 
 		if (urlToBookmark) {
@@ -207,4 +206,72 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	// If no bang command matches or user not authenticated for bangs,
 	// do a regular DDG search
 	return res.redirect(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`);
+}
+
+// POST /actions
+export async function postActionHandler(req: Request, res: Response) {
+	const { trigger, url, actionType } = req.body;
+
+	// Validation
+	if (!trigger || !url || !actionType) {
+		return res.status(400).json({
+			error: 'Missing required fields: trigger, url, and actionType are required',
+		});
+	}
+
+	// Ensure trigger starts with !
+	const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+
+	// Validate action type
+	if (!['search', 'redirect'].includes(actionType)) {
+		return res.status(400).json({
+			error: 'actionType must be either "search" or "redirect"',
+		});
+	}
+
+	// Check if trigger already exists for this user
+	const existingBang = await db('bangs')
+		.where({
+			trigger: formattedTrigger,
+			user_id: req.session.user!.id,
+		})
+		.first();
+
+	if (existingBang) {
+		return res.status(409).json({
+			error: 'This trigger already exists for your account',
+		});
+	}
+
+	// Get action type ID
+	const actionTypeRecord = await db('action_types')
+		.where({
+			name: actionType === 'search' ? 'search' : 'redirect',
+		})
+		.first();
+
+	if (!actionTypeRecord) {
+		return res.status(400).json({
+			error: 'Action type not found in database',
+		});
+	}
+
+	// Insert new bang
+	const [newBang] = await db('bangs')
+		.insert({
+			trigger: formattedTrigger,
+			url: url,
+			user_id: req.session.user!.id,
+			action_type_id: actionTypeRecord.id,
+			created_at: new Date(),
+		})
+		.returning('*');
+
+	return res.status(201).json({
+		message: 'Action created successfully',
+		action: {
+			...newBang,
+			action_type: actionType,
+		},
+	});
 }
