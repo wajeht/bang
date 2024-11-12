@@ -31,12 +31,6 @@ app.use(helmetMiddleware());
 
 app.use(express.json({ limit: '100kb' }));
 
-app.use((req, res, next) => {
-	res.locals.session = req.session;
-	res.locals.path = req.path;
-	next();
-});
-
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
 app.use(
