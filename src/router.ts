@@ -1,7 +1,7 @@
 import express from 'express';
 
 import {
-	getDashboardPageHandler,
+	getActionsPageHandler,
 	getGithubHandler,
 	getGithubRedirect,
 	getHealthzHandler,
@@ -36,7 +36,7 @@ router.get('/oauth/github', getGithubHandler);
 
 router.get('/oauth/github/redirect', getGithubRedirect);
 
-router.get('/dashboard', authenticationMiddleware, getDashboardPageHandler);
+router.get('/actions', authenticationMiddleware, getActionsPageHandler);
 
 router.post('/actions', authenticationMiddleware, postActionHandler);
 

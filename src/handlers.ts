@@ -46,7 +46,7 @@ export function getLogoutHandler(req: Request, res: Response) {
 // GET /login
 export function getLoginHandler(req: Request, res: Response) {
 	if (req.session?.user) {
-		return res.redirect('/dashboard');
+		return res.redirect('/actions');
 	}
 
 	return res.redirect('/oauth/github');
@@ -55,7 +55,7 @@ export function getLoginHandler(req: Request, res: Response) {
 // GET /oauth/github
 export async function getGithubHandler(req: Request, res: Response) {
 	if (req.session?.user) {
-		return res.redirect('/dashboard');
+		return res.redirect('/actions');
 	}
 
 	const rootUrl = 'https://github.com/login/oauth/authorize';
@@ -69,8 +69,8 @@ export async function getGithubHandler(req: Request, res: Response) {
 	return res.redirect(`${rootUrl}?${qs.toString()}`);
 }
 
-// GET /dashboard
-export async function getDashboardPageHandler(req: Request, res: Response) {
+// GET /actions
+export async function getActionsPageHandler(req: Request, res: Response) {
 	const actions = await db('bangs')
 		.join('action_types', 'bangs.action_type_id', 'action_types.id')
 		.where('bangs.user_id', req.session.user!.id)
@@ -84,8 +84,8 @@ export async function getDashboardPageHandler(req: Request, res: Response) {
 		)
 		.orderBy('bangs.created_at', 'desc');
 
-	return res.render('dashboard.html', {
-		path: '/dashboard',
+	return res.render('actions.html', {
+		path: '/actions',
 		layout: '../layouts/dashboard.html',
 		actions,
 	});
@@ -119,14 +119,14 @@ export async function getGithubRedirect(req: Request, res: Response) {
 		req.session.user = foundUser;
 		req.session.save();
 
-		return res.redirect(`/dashboard?toast=${encodeURIComponent('🎉 enjoy bang!')}`);
+		return res.redirect(`/actions?toast=${encodeURIComponent('🎉 enjoy bang!')}`);
 	}
 
 	req.session.user = foundUser;
 	req.session.save();
 
 	return res.redirect(
-		`/dashboard?toast=${encodeURIComponent(`🙏 welcome back, ${foundUser.username}!`)}`,
+		`/actions?toast=${encodeURIComponent(`🙏 welcome back, ${foundUser.username}!`)}`,
 	);
 }
 
@@ -143,7 +143,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 			});
 		}
 
-		return res.redirect('/dashboard');
+		return res.redirect('/actions');
 	}
 
 	// Check if it's any bang command (including !add)
@@ -280,7 +280,7 @@ export async function postActionHandler(req: Request, res: Response) {
 		});
 
 		return res.redirect(
-			'/dashboard?toast=' + encodeURIComponent(`Action ${formattedTrigger} created successfully!`),
+			'/actions?toast=' + encodeURIComponent(`Action ${formattedTrigger} created successfully!`),
 		);
 	} catch (error) {
 		return res.redirect(
@@ -345,7 +345,7 @@ export async function deleteActionHandler(req: Request, res: Response) {
 		.first();
 
 	if (!action) {
-		return res.redirect('/dashboard?toast=' + encodeURIComponent('Action not found'));
+		return res.redirect('/actions?toast=' + encodeURIComponent('Action not found'));
 	}
 
 	// Delete the action
@@ -357,6 +357,6 @@ export async function deleteActionHandler(req: Request, res: Response) {
 		.delete();
 
 	return res.redirect(
-		'/dashboard?toast=' + encodeURIComponent(`Action ${action.trigger} deleted successfully`),
+		'/actions?toast=' + encodeURIComponent(`Action ${action.trigger} deleted successfully`),
 	);
 }

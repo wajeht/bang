@@ -1,10 +1,10 @@
 <div style="display: flex; flex-direction: column; gap: 20px;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h2>🎯 Dashboard</h2>
+            <h2>🎯 Actions</h2>
             <p>Manage your actions and shortcuts</p>
         </div>
-        <a href="/actions/create" style="text-decoration: none; padding: 8px 16px; border-radius: 4px; border: 1px dashed;">➕ Create New Action</a>
+        <a href="/actions/create">➕ Create New Action</a>
     </div>
 
     <div style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
@@ -25,7 +25,9 @@
                         <tr style="border-bottom: 1px solid #ddd;">
                             <td style="padding: 10px;"><%= action.name %></td>
                             <td style="padding: 10px;">
-                                <code style="font-family: monospace;"><%= action.trigger %></code>
+                                <code style="font-family: monospace; padding: 2px 6px; border-radius: 3px; border: 1px dashed;">
+                                    <%= action.trigger %>
+                                </code>
                             </td>
                             <td style="padding: 10px;">
                                 <a href="<%= action.url %>" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: #0066cc;">
@@ -34,7 +36,7 @@
                             </td>
                             <td style="padding: 10px;">
                                 <span style="padding: 2px 6px; border-radius: 3px; border: 1px dashed;">
-                                    <%= action.action_type === 'search' ? '🔍' : '↪️' %> <%= action.action_type %>
+                                    <%= action.action_type %>
                                 </span>
                             </td>
                             <td style="padding: 10px;"><%= new Date(action.created_at).toLocaleDateString() %></td>
