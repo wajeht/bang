@@ -115,7 +115,7 @@ export async function getGithubRedirect(req: Request, res: Response) {
 	);
 }
 
-// GET /search
+// GET /
 export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	const query = req.query.q?.toString().trim() || '';
 	const userId = req.session.user?.id;
