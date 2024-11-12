@@ -315,8 +315,8 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 	});
 }
 
-// DELETE /bookmarks/:id
-export async function deleteBookmarkHandler(req: Request, res: Response) {
+// POST /bookmarks/:id/delete
+export async function postDeleteBookmarkHandler(req: Request, res: Response) {
 	await db('bookmarks')
 		.where({
 			id: req.params.id,
@@ -327,8 +327,8 @@ export async function deleteBookmarkHandler(req: Request, res: Response) {
 	return res.redirect('/bookmarks?toast=' + encodeURIComponent('Bookmark deleted successfully'));
 }
 
-// DELETE /actions/:id
-export async function deleteActionHandler(req: Request, res: Response) {
+// POST /actions/:id/delete
+export async function postDeleteActionHandler(req: Request, res: Response) {
 	const actionId = req.params.id;
 
 	// Check if action exists and belongs to user
@@ -357,7 +357,7 @@ export async function deleteActionHandler(req: Request, res: Response) {
 }
 
 // GET /actions/:id/edit
-export async function getActionEditPageHandler(req: Request, res: Response) {
+export async function getEditActionPageHandler(req: Request, res: Response) {
 	const action = await db('bangs')
 		.join('action_types', 'bangs.action_type_id', 'action_types.id')
 		.where({
@@ -379,8 +379,8 @@ export async function getActionEditPageHandler(req: Request, res: Response) {
 	});
 }
 
-// POST /actions/:id/edit
-export async function postActionEditHandler(req: Request, res: Response) {
+// POST /actions/:id/update
+export async function postUpdateActionHandler(req: Request, res: Response) {
 	const { trigger, url, actionType, name } = req.body;
 	const actionId = req.params.id;
 

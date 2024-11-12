@@ -13,10 +13,10 @@ import {
 	getActionCreatePageHandler,
 	getTermsOfServicePageHandler,
 	getBookmarksPageHandler,
-	deleteBookmarkHandler,
-	deleteActionHandler,
-	getActionEditPageHandler,
-	postActionEditHandler,
+	postDeleteBookmarkHandler,
+	postDeleteActionHandler,
+	getEditActionPageHandler,
+	postUpdateActionHandler,
 } from './handlers';
 import { authenticationMiddleware } from './middlewares';
 
@@ -37,11 +37,11 @@ router.get('/actions', authenticationMiddleware, getActionsPageHandler);
 router.post('/actions', authenticationMiddleware, postActionHandler);
 router.get('/actions/create', authenticationMiddleware, getActionCreatePageHandler);
 
-router.post('/actions/:id', authenticationMiddleware, deleteActionHandler);
-router.get('/actions/:id/edit', authenticationMiddleware, getActionEditPageHandler);
-router.post('/actions/:id', authenticationMiddleware, postActionEditHandler);
+router.get('/actions/:id/edit', authenticationMiddleware, getEditActionPageHandler);
+router.post('/actions/:id/update', authenticationMiddleware, postUpdateActionHandler);
+router.post('/actions/:id/delete', authenticationMiddleware, postDeleteActionHandler);
 
 router.get('/bookmarks', authenticationMiddleware, getBookmarksPageHandler);
-router.post('/bookmarks/:id', authenticationMiddleware, deleteBookmarkHandler);
+router.post('/bookmarks/:id/delete', authenticationMiddleware, postDeleteBookmarkHandler);
 
 export { router };
