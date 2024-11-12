@@ -12,7 +12,7 @@ import {
 	getPrivacyPolicyPageHandler,
 	getTermsOfServicePageHandler,
 } from './handlers';
-import { authenticationMiddleware } from 'middlewares';
+import { authenticationMiddleware } from './middlewares';
 
 const router = express.Router();
 
