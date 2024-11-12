@@ -5,10 +5,9 @@ import {
 	getGithubHandler,
 	getGithubRedirect,
 	getHealthzHandler,
-	getHomePageHandler,
+	getHomePageAndSearchHandler,
 	getLoginHandler,
 	getLogoutHandler,
-	getSearchHandler,
 	getPrivacyPolicyPageHandler,
 	getTermsOfServicePageHandler,
 } from './handlers';
@@ -16,7 +15,7 @@ import { authenticationMiddleware } from './middlewares';
 
 const router = express.Router();
 
-router.get('/', getHomePageHandler);
+router.get('/', getHomePageAndSearchHandler);
 
 router.get('/healthz', getHealthzHandler);
 
@@ -33,7 +32,5 @@ router.get('/oauth/github', getGithubHandler);
 router.get('/oauth/github/redirect', getGithubRedirect);
 
 router.get('/dashboard', authenticationMiddleware, getDashboardPageHandler);
-
-router.get('/search', authenticationMiddleware, getSearchHandler);
 
 export { router };

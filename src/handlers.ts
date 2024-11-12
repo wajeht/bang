@@ -4,18 +4,6 @@ import { HttpError, UnauthorizedError } from './errors';
 import { Request, Response } from 'express';
 import { db } from './db/db';
 
-// GET /
-export function getHomePageHandler(req: Request, res: Response) {
-	if (req.session?.user) {
-		res.redirect('/dashboard');
-		return;
-	}
-
-	res.render('home.html', {
-		path: '/',
-	});
-}
-
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {
 	if (req.get('Content-Type') === 'application/json') {
@@ -128,9 +116,24 @@ export async function getGithubRedirect(req: Request, res: Response) {
 }
 
 // GET /search
-export async function getSearchHandler(req: Request, res: Response) {
+export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	const query = req.query.q?.toString().trim() || '';
 	const userId = req.session.user?.id;
+
+	// Handle home page logic first
+	if (!query) {
+		if (!req.session?.user) {
+			return res.render('home.html', {
+				path: '/',
+			});
+		}
+		return res.redirect('/dashboard');
+	}
+
+	// Search functionality requires login
+	if (!req.session?.user) {
+		return res.redirect('/login');
+	}
 
 	// Check for !add anywhere in the query
 	const addMatch = query.match(/!add(?:\s+(.*))?/);
