@@ -35,7 +35,7 @@ export const oauthConfig = {
 } as const;
 
 export const sessionConfig = {
-	store_prefix: process.env.SESSION_STORE_PREFIX || 'notify',
-	secret: process.env.SESSION_SECRET || 'notify',
+	store_prefix: process.env.SESSION_STORE_PREFIX || 'bang',
+	secret: process.env.SESSION_SECRET || 'bang',
 	domain: process.env.SESSION_DOMAIN || 'localhost',
 } as const;
