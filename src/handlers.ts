@@ -327,6 +327,7 @@ export async function deleteBookmarkHandler(req: Request, res: Response) {
 	return res.redirect('/bookmarks?toast=' + encodeURIComponent('Bookmark deleted successfully'));
 }
 
+// DELETE /actions/:id
 export async function deleteActionHandler(req: Request, res: Response) {
 	const actionId = req.params.id;
 
@@ -352,5 +353,95 @@ export async function deleteActionHandler(req: Request, res: Response) {
 
 	return res.redirect(
 		'/actions?toast=' + encodeURIComponent(`Action ${action.trigger} deleted successfully`),
+	);
+}
+
+// GET /actions/:id/edit
+export async function getActionEditPageHandler(req: Request, res: Response) {
+	const action = await db('bangs')
+		.join('action_types', 'bangs.action_type_id', 'action_types.id')
+		.where({
+			'bangs.id': req.params.id,
+			'bangs.user_id': req.session.user!.id,
+		})
+		.select('bangs.*', 'action_types.name as action_type')
+		.first();
+
+	if (!action) {
+		return res.redirect('/actions?toast=' + encodeURIComponent('Action not found'));
+	}
+
+	return res.render('actions-edit.html', {
+		path: '/actions/edit',
+		layout: '../layouts/dashboard.html',
+		action,
+		error: req.query.error,
+	});
+}
+
+// POST /actions/:id/edit
+export async function postActionEditHandler(req: Request, res: Response) {
+	const { trigger, url, actionType, name } = req.body;
+	const actionId = req.params.id;
+
+	// Validation
+	if (!trigger || !url || !actionType || !name) {
+		return res.redirect(
+			`/actions/${actionId}/edit?error=${encodeURIComponent('All fields are required')}`,
+		);
+	}
+
+	// Ensure trigger starts with !
+	const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+
+	// Validate action type
+	if (!['search', 'redirect'].includes(actionType)) {
+		return res.redirect(
+			`/actions/${actionId}/edit?error=${encodeURIComponent('Invalid action type')}`,
+		);
+	}
+
+	// Check if trigger already exists for this user (excluding current action)
+	const existingBang = await db('bangs')
+		.where({
+			trigger: formattedTrigger,
+			user_id: req.session.user!.id,
+		})
+		.whereNot('id', actionId)
+		.first();
+
+	if (existingBang) {
+		return res.redirect(
+			`/actions/${actionId}/edit?error=${encodeURIComponent('This trigger already exists')}`,
+		);
+	}
+
+	// Get action type ID
+	const actionTypeRecord = await db('action_types')
+		.where({
+			name: actionType,
+		})
+		.first();
+
+	if (!actionTypeRecord) {
+		throw HttpError(404, 'Action type not found in database');
+	}
+
+	// Update the bang
+	await db('bangs')
+		.where({
+			id: actionId,
+			user_id: req.session.user!.id,
+		})
+		.update({
+			trigger: formattedTrigger,
+			name: name.trim(),
+			url: url,
+			action_type_id: actionTypeRecord.id,
+			updated_at: new Date(),
+		});
+
+	return res.redirect(
+		'/actions?toast=' + encodeURIComponent(`Action ${formattedTrigger} updated successfully!`),
 	);
 }

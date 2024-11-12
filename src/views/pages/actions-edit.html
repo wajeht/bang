@@ -1,0 +1,78 @@
+<div style="display: flex; flex-direction: column; gap: 20px;">
+  <div>
+      <h2>⚡ Actions / Edit</h2>
+      <p>Edit your action</p>
+  </div>
+  <form
+      method="POST"
+      action="/actions/<%= action.id %>"
+      style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+  >
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="name">🔤 Name<span style="color: red;">*</span></label>
+          <input
+              type="text"
+              id="name"
+              name="name"
+              placeholder="Google Search"
+              value="<%= action.name %>"
+              style="width: 100%;"
+              required
+          >
+          <small>A descriptive name for your action</small>
+          <% if (error && error.includes('name')) { %>
+              <small style="color: red;"><%= error %></small>
+          <% } %>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="trigger">⚡ Trigger<span style="color: red;">*</span></label>
+          <div style="display: flex; align-items: center; gap: 5px;">
+              <span style="font-size: 1.2em;">!</span>
+              <input
+                  type="text"
+                  name="trigger"
+                  id="trigger"
+                  placeholder="g"
+                  value="<%= action.trigger.slice(1) %>"
+                  style="width: 100%;"
+                  required
+              >
+          </div>
+          <small>The command to trigger this action (e.g., 'g' for Google)</small>
+          <% if (error && error.includes('trigger')) { %>
+              <small style="color: red;"><%= error %></small>
+          <% } %>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="url">🌐 URL<span style="color: red;">*</span></label>
+          <input
+              type="url"
+              name="url"
+              id="url"
+              placeholder="https://google.com/search?q={query}"
+              value="<%= action.url %>"
+              style="width: 100%;"
+              required
+          >
+          <small>For search actions, use {query} where the search term should go</small>
+          <% if (error && error.includes('url')) { %>
+              <small style="color: red;"><%= error %></small>
+          <% } %>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="actionType">🔄 Action Type<span style="color: red;">*</span></label>
+          <select
+              id="actionType"
+              name="actionType"
+              style="width: 100%;"
+              required
+          >
+              <option value="search" <%= action.action_type === 'search' ? 'selected' : '' %>>Search</option>
+              <option value="redirect" <%= action.action_type === 'redirect' ? 'selected' : '' %>>Redirect</option>
+          </select>
+      </div>
+      <div style="display: flex; gap: 10px;">
+          <button type="submit" style="flex: 1;">Update 🚀</button>
+      </div>
+  </form>
+</div>
