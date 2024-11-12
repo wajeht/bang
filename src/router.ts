@@ -14,6 +14,7 @@ import {
 	getTermsOfServicePageHandler,
 	getBookmarksPageHandler,
 	deleteBookmarkHandler,
+	deleteActionHandler,
 } from './handlers';
 import { authenticationMiddleware } from './middlewares';
 
@@ -38,6 +39,8 @@ router.get('/oauth/github/redirect', getGithubRedirect);
 router.get('/dashboard', authenticationMiddleware, getDashboardPageHandler);
 
 router.post('/actions', authenticationMiddleware, postActionHandler);
+
+router.post('/actions/:id', authenticationMiddleware, deleteActionHandler);
 
 router.get('/actions/create', authenticationMiddleware, getActionCreatePageHandler);
 

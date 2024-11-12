@@ -332,3 +332,31 @@ export async function deleteBookmarkHandler(req: Request, res: Response) {
 
 	return res.redirect('/bookmarks?toast=' + encodeURIComponent('Bookmark deleted successfully'));
 }
+
+export async function deleteActionHandler(req: Request, res: Response) {
+	const actionId = req.params.id;
+
+	// Check if action exists and belongs to user
+	const action = await db('bangs')
+		.where({
+			id: actionId,
+			user_id: req.session.user!.id,
+		})
+		.first();
+
+	if (!action) {
+		return res.redirect('/dashboard?toast=' + encodeURIComponent('Action not found'));
+	}
+
+	// Delete the action
+	await db('bangs')
+		.where({
+			id: actionId,
+			user_id: req.session.user!.id,
+		})
+		.delete();
+
+	return res.redirect(
+		'/dashboard?toast=' + encodeURIComponent(`Action ${action.trigger} deleted successfully`),
+	);
+}
