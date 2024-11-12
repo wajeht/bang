@@ -96,6 +96,34 @@ export function sessionMiddleware() {
 	});
 }
 
+export async function appLocalStateMiddleware(req: Request, res: Response, next: NextFunction) {
+	try {
+		res.locals.state = {
+			user: req.session?.user
+				? await db.select('*').from('users').where('id', req.session.user.id).first()
+				: null,
+			copyRightYear: new Date().getFullYear(),
+			input: req.session?.input || {},
+			errors: req.session?.errors || {},
+			flash: {
+				success: req.flash('success'),
+				error: req.flash('error'),
+				info: req.flash('info'),
+				warning: req.flash('warning'),
+			},
+		};
+
+		// Clear session input and errors after setting locals
+		// This ensures they're available for the current request only
+		delete req.session.input;
+		delete req.session.errors;
+
+		next();
+	} catch (error) {
+		next(error);
+	}
+}
+
 export async function authenticationMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
 		if (!req.session?.user) {

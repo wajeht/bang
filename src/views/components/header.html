@@ -13,9 +13,9 @@
       </div>
 
       <details style="position: relative;">
-          <summary><%= session.user.username %> 👤</summary>
+          <summary><%= state.user.username %> 👤</summary>
           <div style="position: absolute; top: 100%; right: 0; z-index: 1; border: dashed; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;">
-              <% if (session.user.is_admin) { %>
+              <% if (state.user.is_admin) { %>
                   <a style="text-decoration: none;" href="/admin">🛡️ Admin</a>
               <% } %>
 

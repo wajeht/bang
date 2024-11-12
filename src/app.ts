@@ -12,6 +12,7 @@ import {
 	notFoundMiddleware,
 	helmetMiddleware,
 	sessionMiddleware,
+	appLocalStateMiddleware,
 } from './middlewares';
 
 const app = express();
@@ -57,6 +58,8 @@ app.set('views', path.join(process.cwd(), 'src', 'views', 'pages'));
 app.set('layout', path.join(process.cwd(), 'src', 'views', 'layouts', 'public.html'));
 
 app.use(expressLayouts);
+
+app.use(appLocalStateMiddleware);
 
 app.use(router);
 
