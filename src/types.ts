@@ -1,5 +1,6 @@
 declare module 'express-session' {
 	interface SessionData {
+		redirectTo?: string;
 		user?: User;
 		input?: Record<string, unknown>;
 		errors?: Record<string, unknown>;

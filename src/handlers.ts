@@ -115,15 +115,21 @@ export async function getGithubRedirect(req: Request, res: Response) {
 				is_admin: appConfig.adminEmail === email,
 			})
 			.returning('*');
-
-		req.session.user = foundUser;
-		req.session.save();
-
-		return res.redirect(`/actions?toast=${encodeURIComponent('🎉 enjoy bang!')}`);
 	}
 
 	req.session.user = foundUser;
+
+	const redirectTo = req.session.redirectTo;
+	delete req.session.redirectTo;
 	req.session.save();
+
+	if (redirectTo) {
+		return res.redirect(redirectTo);
+	}
+
+	if (!foundUser) {
+		return res.redirect(`/actions?toast=${encodeURIComponent('🎉 enjoy bang!')}`);
+	}
 
 	return res.redirect(
 		`/actions?toast=${encodeURIComponent(`🙏 welcome back, ${foundUser.username}!`)}`,
@@ -151,6 +157,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 
 	// Require auth for all bang commands
 	if (isBangCommand && !req.session?.user) {
+		req.session.redirectTo = req.originalUrl;
 		return res.redirect('/login');
 	}
 
