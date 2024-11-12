@@ -157,22 +157,24 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 				return res.redirect(urlToBookmark);
 			} catch (error) {
 				logger.error('Error adding bookmark:', error);
-				return res.setHeader('Content-Type', 'text/html').send(`
+				res.setHeader('Content-Type', 'text/html').send(`
 									<script>
 											alert("Error adding bookmark");
 											window.location.href = "${urlToBookmark}";
 									</script>
 							`);
+				return;
 			}
 		}
 
 		// If no URL provided in !add command, go back
-		return res.setHeader('Content-Type', 'text/html').send(`
+		res.setHeader('Content-Type', 'text/html').send(`
 					<script>
 							alert("No URL provided for bookmark");
 							window.history.back();
 					</script>
 			`);
+		return;
 	}
 
 	// Handle other bang commands
