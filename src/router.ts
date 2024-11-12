@@ -10,7 +10,10 @@ import {
 	getLogoutHandler,
 	postActionHandler,
 	getPrivacyPolicyPageHandler,
+	getActionCreatePageHandler,
 	getTermsOfServicePageHandler,
+	getBookmarksPageHandler,
+	deleteBookmarkHandler,
 } from './handlers';
 import { authenticationMiddleware } from './middlewares';
 
@@ -35,5 +38,11 @@ router.get('/oauth/github/redirect', getGithubRedirect);
 router.get('/dashboard', authenticationMiddleware, getDashboardPageHandler);
 
 router.post('/actions', authenticationMiddleware, postActionHandler);
+
+router.get('/actions/create', authenticationMiddleware, getActionCreatePageHandler);
+
+router.get('/bookmarks', authenticationMiddleware, getBookmarksPageHandler);
+
+router.post('/bookmarks/:id', authenticationMiddleware, deleteBookmarkHandler);
 
 export { router };

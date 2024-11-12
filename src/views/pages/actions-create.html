@@ -1,0 +1,64 @@
+<div>
+    <h1>Create New Action</h1>
+    <% if (error) { %>
+    <div role="alert">
+        <span><%= error %></span>
+    </div>
+    <% } %>
+    <form method="POST" action="/actions">
+        <div>
+            <label for="name">Name</label>
+            <input
+                type="text"
+                name="name"
+                id="name"
+                placeholder="Google Search"
+                value="<%= formData.name %>"
+                required
+            >
+            <p>A descriptive name for your action</p>
+        </div>
+        <div>
+            <label for="trigger">Trigger</label>
+            <div>
+                <span>!</span>
+                <input
+                    type="text"
+                    name="trigger"
+                    id="trigger"
+                    placeholder="g"
+                    value="<%= formData.trigger %>"
+                    required
+                >
+            </div>
+            <p>The command to trigger this action (e.g., 'g' for Google)</p>
+        </div>
+        <div>
+            <label for="url">URL</label>
+            <input
+                type="url"
+                name="url"
+                id="url"
+                placeholder="https://google.com/search?q={query}"
+                value="<%= formData.url %>"
+                required
+            >
+            <p>For search actions, use {query} where the search term should go</p>
+        </div>
+        <div>
+            <label for="actionType">Action Type</label>
+            <select
+                id="actionType"
+                name="actionType"
+                required
+            >
+                <option value="search" <%= formData.actionType === 'search' ? 'selected' : '' %>>Search</option>
+                <option value="redirect" <%= formData.actionType === 'redirect' ? 'selected' : '' %>>Redirect</option>
+            </select>
+        </div>
+        <div>
+            <a href="/dashboard">Cancel</a>
+            <button type="submit">Create Action</button>
+        </div>
+    </form>
+</div>

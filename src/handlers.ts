@@ -70,10 +70,24 @@ export async function getGithubHandler(req: Request, res: Response) {
 }
 
 // GET /dashboard
-export function getDashboardPageHandler(req: Request, res: Response) {
+export async function getDashboardPageHandler(req: Request, res: Response) {
+	const actions = await db('bangs')
+		.join('action_types', 'bangs.action_type_id', 'action_types.id')
+		.where('bangs.user_id', req.session.user!.id)
+		.select(
+			'bangs.id',
+			'bangs.name',
+			'bangs.trigger',
+			'bangs.url',
+			'action_types.name as action_type',
+			'bangs.created_at',
+		)
+		.orderBy('bangs.created_at', 'desc');
+
 	return res.render('dashboard.html', {
 		path: '/dashboard',
 		layout: '../layouts/dashboard.html',
+		actions,
 	});
 }
 
@@ -210,13 +224,13 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 
 // POST /actions
 export async function postActionHandler(req: Request, res: Response) {
-	const { trigger, url, actionType } = req.body;
+	const { trigger, url, actionType, name } = req.body;
 
 	// Validation
 	if (!trigger || !url || !actionType) {
-		return res.status(400).json({
-			error: 'Missing required fields: trigger, url, and actionType are required',
-		});
+		return res.redirect(
+			`/actions/create?error=${encodeURIComponent('All fields are required')}&trigger=${encodeURIComponent(trigger || '')}&url=${encodeURIComponent(url || '')}&actionType=${encodeURIComponent(actionType || '')}`,
+		);
 	}
 
 	// Ensure trigger starts with !
@@ -224,54 +238,97 @@ export async function postActionHandler(req: Request, res: Response) {
 
 	// Validate action type
 	if (!['search', 'redirect'].includes(actionType)) {
-		return res.status(400).json({
-			error: 'actionType must be either "search" or "redirect"',
-		});
+		return res.redirect(
+			`/actions/create?error=${encodeURIComponent('Invalid action type')}&trigger=${encodeURIComponent(trigger)}&url=${encodeURIComponent(url)}`,
+		);
 	}
 
-	// Check if trigger already exists for this user
-	const existingBang = await db('bangs')
-		.where({
+	try {
+		// Check if trigger already exists for this user
+		const existingBang = await db('bangs')
+			.where({
+				trigger: formattedTrigger,
+				user_id: req.session.user!.id,
+			})
+			.first();
+
+		if (existingBang) {
+			return res.redirect(
+				`/actions/create?error=${encodeURIComponent('This trigger already exists')}&trigger=${encodeURIComponent(trigger)}&url=${encodeURIComponent(url)}&actionType=${encodeURIComponent(actionType)}`,
+			);
+		}
+
+		// Get action type ID
+		const actionTypeRecord = await db('action_types')
+			.where({
+				name: actionType === 'search' ? 'search' : 'redirect',
+			})
+			.first();
+
+		if (!actionTypeRecord) {
+			throw HttpError(404, 'Action type not found in database');
+		}
+
+		// Insert new bang
+		await db('bangs').insert({
 			trigger: formattedTrigger,
-			user_id: req.session.user!.id,
-		})
-		.first();
-
-	if (existingBang) {
-		return res.status(409).json({
-			error: 'This trigger already exists for your account',
-		});
-	}
-
-	// Get action type ID
-	const actionTypeRecord = await db('action_types')
-		.where({
-			name: actionType === 'search' ? 'search' : 'redirect',
-		})
-		.first();
-
-	if (!actionTypeRecord) {
-		return res.status(400).json({
-			error: 'Action type not found in database',
-		});
-	}
-
-	// Insert new bang
-	const [newBang] = await db('bangs')
-		.insert({
-			trigger: formattedTrigger,
+			name: name.trim(),
 			url: url,
 			user_id: req.session.user!.id,
 			action_type_id: actionTypeRecord.id,
 			created_at: new Date(),
-		})
-		.returning('*');
+		});
 
-	return res.status(201).json({
-		message: 'Action created successfully',
-		action: {
-			...newBang,
-			action_type: actionType,
+		return res.redirect(
+			'/dashboard?toast=' + encodeURIComponent(`Action ${formattedTrigger} created successfully!`),
+		);
+	} catch (error) {
+		return res.redirect(
+			`/actions/create?error=${encodeURIComponent('An error occurred while creating the action')}&trigger=${encodeURIComponent(trigger)}&url=${encodeURIComponent(url)}&actionType=${encodeURIComponent(actionType)}`,
+		);
+	}
+}
+
+// GET /actions/create
+export function getActionCreatePageHandler(req: Request, res: Response) {
+	return res.render('actions-create.html', {
+		path: '/actions/create',
+		layout: '../layouts/dashboard.html',
+		error: req.query.error,
+		success: req.query.success,
+		formData: {
+			name: req.query.name || '',
+			trigger: req.query.trigger || '',
+			url: req.query.url || '',
+			actionType: req.query.actionType || 'search',
 		},
 	});
+}
+
+// GET /bookmarks
+export async function getBookmarksPageHandler(req: Request, res: Response) {
+	// Get all bookmarks for the current user
+	const bookmarks = await db('bookmarks')
+		.where('user_id', req.session.user!.id)
+		.select('id', 'title', 'url', 'created_at')
+		.orderBy('created_at', 'desc');
+
+	return res.render('bookmarks', {
+		path: '/bookmarks',
+		layout: '../layouts/dashboard',
+		bookmarks,
+		toast: req.query.toast,
+	});
+}
+
+// DELETE /bookmarks/:id
+export async function deleteBookmarkHandler(req: Request, res: Response) {
+	await db('bookmarks')
+		.where({
+			id: req.params.id,
+			user_id: req.session.user!.id,
+		})
+		.delete();
+
+	return res.redirect('/bookmarks?toast=' + encodeURIComponent('Bookmark deleted successfully'));
 }
