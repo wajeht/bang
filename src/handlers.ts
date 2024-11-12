@@ -142,6 +142,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 
 	// Handle !add command with URL
 	if (query.startsWith('!add')) {
+		console.log({ headers: req.headers });
 		const urlToBookmark = query.slice(5).trim();
 
 		if (urlToBookmark) {
