@@ -3,6 +3,7 @@ import { appConfig, oauthConfig } from './configs';
 import { HttpError, UnauthorizedError } from './errors';
 import { Request, Response } from 'express';
 import { db } from './db/db';
+import { logger } from './logger';
 
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {
@@ -120,58 +121,60 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	const query = req.query.q?.toString().trim() || '';
 	const userId = req.session.user?.id;
 
-	// Handle home page logic first
+	// Handle empty query first
 	if (!query) {
 		if (!req.session?.user) {
 			return res.render('home.html', {
 				path: '/',
 			});
 		}
+
 		return res.redirect('/dashboard');
 	}
 
-	// Search functionality requires login
-	if (!req.session?.user) {
+	// Check if it's any bang command (including !add)
+	const isBangCommand = query.startsWith('!');
+
+	// Require auth for all bang commands
+	if (isBangCommand && !req.session?.user) {
 		return res.redirect('/login');
 	}
 
-	// Check for !add anywhere in the query
-	const addMatch = query.match(/!add(?:\s+(.*))?/);
-
-	if (addMatch) {
-		let urlToBookmark = addMatch[1]?.trim() || '';
-
-		// If no URL provided in command, use referer
-		if (!urlToBookmark && req.headers.referer) {
-			urlToBookmark = req.headers.referer;
-		}
+	// Handle !add command with URL
+	if (query.startsWith('!add')) {
+		const urlToBookmark = query.slice(5).trim();
 
 		if (urlToBookmark) {
 			try {
-				urlToBookmark = decodeURIComponent(urlToBookmark!);
-				// Remove any extra content after URL
-				urlToBookmark = urlToBookmark.split(/\s+/)[0]!;
-				// Add https:// if no protocol specified
-				if (!urlToBookmark.startsWith('http')) {
-					urlToBookmark = 'https://' + urlToBookmark;
-				}
-			} catch {
-				// If decoding fails, use as-is
+				await db('bookmarks').insert({
+					user_id: userId,
+					url: urlToBookmark,
+					title: await fetchPageTitle(urlToBookmark),
+					created_at: new Date(),
+				});
+
+				return res.redirect(urlToBookmark);
+			} catch (error) {
+				logger.error('Error adding bookmark:', error);
+				return res.setHeader('Content-Type', 'text/html').send(`
+									<script>
+											alert("Error adding bookmark");
+											window.location.href = "${urlToBookmark}";
+									</script>
+							`);
 			}
-
-			await db('bookmarks').insert({
-				user_id: userId,
-				url: urlToBookmark,
-				title: await fetchPageTitle(urlToBookmark),
-				created_at: new Date(),
-			});
-
-			return res.redirect(urlToBookmark);
 		}
-		return res.redirect('/');
+
+		// If no URL provided in !add command, go back
+		return res.setHeader('Content-Type', 'text/html').send(`
+					<script>
+							alert("No URL provided for bookmark");
+							window.history.back();
+					</script>
+			`);
 	}
 
-	// Extract bang and search query
+	// Handle other bang commands
 	const bangMatch = query.match(/^!(\w+)(?:\s+(.*))?$/);
 
 	if (bangMatch) {
@@ -187,22 +190,18 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 			.first();
 
 		if (customBang) {
-			// Handle redirect type
 			if (customBang.action_type_id === 2) {
 				return res.redirect(customBang.url);
 			}
 
-			// Handle search type
 			if (customBang.action_type_id === 1) {
 				const searchUrl = customBang.url.replace('{query}', encodeURIComponent(searchQuery));
 				return res.redirect(searchUrl);
 			}
 		}
-
-		// If bang exists but wasn't handled, fall through to DDG
-		return res.redirect(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`);
 	}
 
-	// No bang found, do a regular DDG search
+	// If no bang command matches or user not authenticated for bangs,
+	// do a regular DDG search
 	return res.redirect(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`);
 }
