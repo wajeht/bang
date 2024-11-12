@@ -134,3 +134,4 @@ src/scratch.js
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+deploy.sh
