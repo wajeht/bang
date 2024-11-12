@@ -243,50 +243,44 @@ export async function postActionHandler(req: Request, res: Response) {
 		);
 	}
 
-	try {
-		// Check if trigger already exists for this user
-		const existingBang = await db('bangs')
-			.where({
-				trigger: formattedTrigger,
-				user_id: req.session.user!.id,
-			})
-			.first();
-
-		if (existingBang) {
-			return res.redirect(
-				`/actions/create?error=${encodeURIComponent('This trigger already exists')}&trigger=${encodeURIComponent(trigger)}&url=${encodeURIComponent(url)}&actionType=${encodeURIComponent(actionType)}`,
-			);
-		}
-
-		// Get action type ID
-		const actionTypeRecord = await db('action_types')
-			.where({
-				name: actionType === 'search' ? 'search' : 'redirect',
-			})
-			.first();
-
-		if (!actionTypeRecord) {
-			throw HttpError(404, 'Action type not found in database');
-		}
-
-		// Insert new bang
-		await db('bangs').insert({
+	// Check if trigger already exists for this user
+	const existingBang = await db('bangs')
+		.where({
 			trigger: formattedTrigger,
-			name: name.trim(),
-			url: url,
 			user_id: req.session.user!.id,
-			action_type_id: actionTypeRecord.id,
-			created_at: new Date(),
-		});
+		})
+		.first();
 
+	if (existingBang) {
 		return res.redirect(
-			'/actions?toast=' + encodeURIComponent(`Action ${formattedTrigger} created successfully!`),
-		);
-	} catch (error) {
-		return res.redirect(
-			`/actions/create?error=${encodeURIComponent('An error occurred while creating the action')}&trigger=${encodeURIComponent(trigger)}&url=${encodeURIComponent(url)}&actionType=${encodeURIComponent(actionType)}`,
+			`/actions/create?error=${encodeURIComponent('This trigger already exists')}&trigger=${encodeURIComponent(trigger)}&url=${encodeURIComponent(url)}&actionType=${encodeURIComponent(actionType)}`,
 		);
 	}
+
+	// Get action type ID
+	const actionTypeRecord = await db('action_types')
+		.where({
+			name: actionType === 'search' ? 'search' : 'redirect',
+		})
+		.first();
+
+	if (!actionTypeRecord) {
+		throw HttpError(404, 'Action type not found in database');
+	}
+
+	// Insert new bang
+	await db('bangs').insert({
+		trigger: formattedTrigger,
+		name: name.trim(),
+		url: url,
+		user_id: req.session.user!.id,
+		action_type_id: actionTypeRecord.id,
+		created_at: new Date(),
+	});
+
+	return res.redirect(
+		'/actions?toast=' + encodeURIComponent(`Action ${formattedTrigger} created successfully!`),
+	);
 }
 
 // GET /actions/create
