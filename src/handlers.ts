@@ -86,7 +86,7 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 
 	return res.render('actions.html', {
 		path: '/actions',
-		layout: '../layouts/dashboard.html',
+		layout: '../layouts/auth.html',
 		actions,
 	});
 }
@@ -287,7 +287,7 @@ export async function postActionHandler(req: Request, res: Response) {
 export function getActionCreatePageHandler(req: Request, res: Response) {
 	return res.render('actions-create.html', {
 		path: '/actions/create',
-		layout: '../layouts/dashboard.html',
+		layout: '../layouts/auth.html',
 		error: req.query.error,
 		success: req.query.success,
 		formData: {
@@ -309,7 +309,7 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 
 	return res.render('bookmarks', {
 		path: '/bookmarks',
-		layout: '../layouts/dashboard',
+		layout: '../layouts/auth',
 		bookmarks,
 		toast: req.query.toast,
 	});
@@ -373,7 +373,7 @@ export async function getEditActionPageHandler(req: Request, res: Response) {
 
 	return res.render('actions-edit.html', {
 		path: '/actions/edit',
-		layout: '../layouts/dashboard.html',
+		layout: '../layouts/auth.html',
 		action,
 		error: req.query.error,
 	});
