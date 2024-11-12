@@ -1,37 +1,52 @@
-<div>
-  <h1>Dashboard</h1>
+<div style="display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h2>🎯 Dashboard</h2>
+            <p>Manage your actions and shortcuts</p>
+        </div>
 
-  <div>
-      <a href="/actions/create">Create New Action</a>
-  </div>
-
-  <% if (actions && actions.length > 0) { %>
-      <table>
-          <thead>
-              <tr>
-                  <th>Name</th>
-                  <th>Trigger</th>
-                  <th>URL</th>
-                  <th>Type</th>
-                  <th>Created</th>
-              </tr>
-          </thead>
-          <tbody>
-              <% actions.forEach(action => { %>
-                  <tr>
-                      <td><%= action.name %></td>
-                      <td><%= action.trigger %></td>
-                      <td><%= action.url %></td>
-                      <td><%= action.action_type %></td>
-                      <td><%= new Date(action.created_at).toLocaleDateString() %></td>
-                  </tr>
-              <% }); %>
-          </tbody>
-      </table>
-  <% } else { %>
-      <div>
-          <p>You haven't created any actions yet.</p>
-          <p>Get started by clicking "Create New Action" above!</p>
+        <a href="/actions/create">➕ Create New Action</a>
       </div>
-  <% } %>
+
+    <div style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+        <% if (actions && actions.length > 0) { %>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <th style="text-align: left; padding: 10px;">📝 Name</th>
+                        <th style="text-align: left; padding: 10px;">🔥 Trigger</th>
+                        <th style="text-align: left; padding: 10px;">🌐 URL</th>
+                        <th style="text-align: left; padding: 10px;">🔄 Type</th>
+                        <th style="text-align: left; padding: 10px;">📅 Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% actions.forEach(action => { %>
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 10px;"><%= action.name %></td>
+                            <td style="padding: 10px;">
+                                <code style="font-family: monospace;"><%= action.trigger %></code>
+                            </td>
+                            <td style="padding: 10px;">
+                                <a href="<%= action.url %>" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: #0066cc;">
+                                    <%= action.url %>
+                                </a>
+                            </td>
+                            <td style="padding: 10px;">
+                                <span style="padding: 2px 6px; border-radius: 3px; border: 1px dashed;">
+                                    <%= action.action_type === 'search' ? '🔍' : '↪️' %> <%= action.action_type %>
+                                </span>
+                            </td>
+                            <td style="padding: 10px;"><%= new Date(action.created_at).toLocaleDateString() %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <div style="text-align: center; padding: 20px;">
+                <p>📭 You haven't created any actions yet.</p>
+                <p>Get started by clicking "Create New Action" above!</p>
+            </div>
+        <% } %>
+    </div>
 </div>

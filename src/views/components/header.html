@@ -1,6 +1,28 @@
-<header>
-  <h1><a href="/">!Bang</a></h1>
-  <a href="/bookmarks">Bookmarks</a>
-  <br>
-  <a href="/logout">Logout</a>
+<header style="flex: 0; display: flex; flex-direction: column; gap: 20px; border-bottom: dashed; padding-bottom: 30px;">
+  <div>
+      <h1><a href="/" style="text-decoration: none;">!Bang</a></h1>
+      <p>Your personal collection of custom search shortcuts and bookmarks</p>
+  </div>
+
+  <nav style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 20px;">
+          <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/dashboard' ? 'bold' : 'normal' %>; <%= path === '/dashboard' ? 'text-decoration: underline;' : null %>"
+             href="/dashboard">⚡ Actions</a>
+          <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/bookmarks' ? 'bold' : 'normal' %>; <%= path === '/bookmarks' ? 'text-decoration: underline;' : null %>"
+             href="/bookmarks">🔖 Bookmarks</a>
+      </div>
+
+      <details style="position: relative;">
+          <summary><%= session.user.username %> 👤</summary>
+          <div style="position: absolute; top: 100%; right: 0; z-index: 1; border: dashed; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;">
+              <% if (session.user.is_admin) { %>
+                  <a style="text-decoration: none;" href="/admin">🛡️ Admin</a>
+              <% } %>
+
+              <a style="text-decoration: none;" href="/settings">⚙️ Settings</a>
+              <hr style="border: none; border-top: dashed 1px; margin: 5px 0;">
+              <a style="text-decoration: none;" href="/logout">🚪 Logout</a>
+          </div>
+      </details>
+  </nav>
 </header>
