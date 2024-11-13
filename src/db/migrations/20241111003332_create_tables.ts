@@ -6,6 +6,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.string('username').unique().notNullable();
 		table.string('email').unique().notNullable();
 		table.boolean('is_admin').defaultTo(false);
+		table.string('default_search_provider').defaultTo('google');
 		table.timestamps(true, true);
 
 		table.index(['email', 'is_admin', 'username']);
