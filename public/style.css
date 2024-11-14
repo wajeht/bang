@@ -154,6 +154,10 @@ dialog {
 	color: var(--text-color);
 }
 
+.home-summary-title {
+	color: var(--text-color);
+}
+
 summary {
 	color: var(--link-color);
 }
