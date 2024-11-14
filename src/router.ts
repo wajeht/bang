@@ -40,25 +40,10 @@ router.get('/oauth/github', getGithubHandler);
 router.get('/oauth/github/redirect', getGithubRedirect);
 
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler);
-router.get(
-	'/settings/account',
-	authenticationMiddleware,
-	csrfMiddleware,
-	getSettingsAccountPageHandler,
-);
-router.post(
-	'/settings/account',
-	authenticationMiddleware,
-	csrfMiddleware,
-	postSettingsAccountHandler,
-);
+router.get('/settings/account', authenticationMiddleware, csrfMiddleware, getSettingsAccountPageHandler); // prettier-ignore
+router.post('/settings/account', authenticationMiddleware, csrfMiddleware, postSettingsAccountHandler); // prettier-ignore
 router.get('/settings/data', authenticationMiddleware, getSettingsDataPageHandler);
-router.get(
-	'/settings/danger-zone',
-	authenticationMiddleware,
-	csrfMiddleware,
-	getSettingsDangerZonePageHandler,
-);
+router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler); // prettier-ignore
 router.post('/settings/danger-zone/delete', authenticationMiddleware, csrfMiddleware, postDeleteSettingsDangerZoneHandler); // prettier-ignore
 
 router.get('/actions', authenticationMiddleware, csrfMiddleware, getActionsPageHandler);
@@ -66,25 +51,10 @@ router.post('/actions', authenticationMiddleware, csrfMiddleware, postActionHand
 router.get('/actions/create', authenticationMiddleware, csrfMiddleware, getActionCreatePageHandler);
 
 router.get('/actions/:id/edit', authenticationMiddleware, csrfMiddleware, getEditActionPageHandler);
-router.post(
-	'/actions/:id/update',
-	authenticationMiddleware,
-	csrfMiddleware,
-	postUpdateActionHandler,
-);
-router.post(
-	'/actions/:id/delete',
-	authenticationMiddleware,
-	csrfMiddleware,
-	postDeleteActionHandler,
-);
+router.post('/actions/:id/update', authenticationMiddleware, csrfMiddleware, postUpdateActionHandler); // prettier-ignore
+router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, postDeleteActionHandler); // prettier-ignore
 
 router.get('/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksPageHandler);
-router.post(
-	'/bookmarks/:id/delete',
-	authenticationMiddleware,
-	csrfMiddleware,
-	postDeleteBookmarkHandler,
-);
+router.post('/bookmarks/:id/delete', authenticationMiddleware, csrfMiddleware, postDeleteBookmarkHandler); // prettier-ignore
 
 export { router };
