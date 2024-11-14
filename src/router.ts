@@ -23,6 +23,7 @@ import {
 	getSettingsAccountPageHandler,
 	postDeleteSettingsDangerZoneHandler,
 	postSettingsAccountHandler,
+	getExportBookmarksHandler,
 } from './handlers';
 import { authenticationMiddleware, csrfMiddleware } from './middlewares';
 
@@ -56,5 +57,6 @@ router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, pos
 
 router.get('/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksPageHandler);
 router.post('/bookmarks/:id/delete', authenticationMiddleware, csrfMiddleware, postDeleteBookmarkHandler); // prettier-ignore
+router.get('/bookmarks/export', authenticationMiddleware, getExportBookmarksHandler);
 
 export { router };

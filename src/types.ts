@@ -37,3 +37,9 @@ export type GithubUserEmail = {
 export type GitHubOauthToken = {
 	access_token: string;
 };
+
+export type BookmarkToExport = {
+	url: string;
+	title: string;
+	add_date: string;
+};

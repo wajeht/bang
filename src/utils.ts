@@ -3,7 +3,7 @@ import axios from 'axios';
 import { logger } from './logger';
 import { db } from './db/db';
 import { appConfig, oauthConfig } from './configs';
-import { GitHubOauthToken, GithubUserEmail } from './types';
+import { BookmarkToExport, GitHubOauthToken, GithubUserEmail } from './types';
 import qs from 'qs';
 
 export async function runMigrations(force: boolean = false) {
@@ -102,4 +102,25 @@ export async function fetchPageTitle(url: string): Promise<string> {
 	} catch (error) {
 		return 'Untitled';
 	}
+}
+
+export function createBookmarkHTML(bookmark: BookmarkToExport): string {
+	return `<DT><A HREF="${bookmark.url}" ADD_DATE="${bookmark.add_date}">${bookmark.title}</A>`;
+}
+
+export function createBookmarksDocument(bookmarks: BookmarkToExport[]) {
+	const header = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<!-- This is an automatically generated file.
+     It will be read and overwritten.
+     DO NOT EDIT! -->
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DL><p>`;
+
+	const footer = '</DL><p>';
+
+	const bookmarksHTML = bookmarks.map((bookmark) => createBookmarkHTML(bookmark)).join('\n');
+
+	return `${header}\n${bookmarksHTML}\n${footer}`;
 }

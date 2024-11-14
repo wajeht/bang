@@ -1,10 +1,15 @@
-import { fetchPageTitle, getGithubOauthToken, getGithubUserEmails } from './utils';
+import {
+	createBookmarksDocument,
+	fetchPageTitle,
+	getGithubOauthToken,
+	getGithubUserEmails,
+} from './utils';
 import { appConfig, oauthConfig } from './configs';
 import { HttpError, UnauthorizedError, ValidationError } from './errors';
 import { Request, Response } from 'express';
 import { db } from './db/db';
 import { logger } from './logger';
-import { User } from './types';
+import { BookmarkToExport, User } from './types';
 import { validateRequestMiddleware } from './middlewares';
 import { body } from 'express-validator';
 
@@ -570,4 +575,18 @@ export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Res
 	}
 
 	return res.redirect('/?toast=🗑️ deleted');
+}
+
+// GET /bookmarks/export
+export async function getExportBookmarksHandler(req: Request, res: Response) {
+	const bookmarks = (await db
+		.select('url', 'title', db.raw('EXTRACT(EPOCH FROM created_at)::integer as add_date'))
+		.from('bookmarks')
+		.where({
+			user_id: req.session.user!.id,
+		})) as BookmarkToExport[];
+
+	res.setHeader('Content-Disposition', 'attachment; filename=bookmarks.html');
+	res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+	res.send(createBookmarksDocument(bookmarks));
 }
