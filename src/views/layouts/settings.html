@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+	<%- include('../components/head.html') %>
+
+	<body style="display: flex; flex-direction: column; gap: 20px; min-height: 100vh;">
+		<%- include('../components/header.html') %>
+
+		<%- include('../components/toast.html') %>
+
+    <main style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+
+      <div>
+        <h2>⚙️ Settings</h2>
+        <p>Manage your settings</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 15% 85%; flex: 1;">
+        <aside style="display: inline-block; border-right: dashed; height: 100%; padding-right: 40px;">
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= (path === '/settings' || path === '/settings/account') ? 'bold' : 'normal' %>; <%= (path === '/settings' || path === '/settings/account') ? 'text-decoration: underline' : null %>" href="/settings/account">👤 Account</a>
+            <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/settings/data' ? 'bold' : 'normal' %>; <%= path === '/settings/data' ? 'text-decoration: underline' : null %>" href="/settings/data">📦 Data</a>
+            <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/settings/danger-zone' ? 'bold' : 'normal' %>; <%= path === '/settings/danger-zone' ? 'text-decoration: underline' : null %>" href="/settings/danger-zone">️⚠ ️Danger Zone</a>
+          </div>
+        </aside>
+
+        <div style="display: inline-block; padding-left: 40px;">
+          <%- body %>
+        </div>
+
+      </div>
+
+    </main>
+
+		<%- include('../components/footer.html') %>
+	</body>
+</html>

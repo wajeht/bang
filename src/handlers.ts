@@ -4,6 +4,7 @@ import { HttpError, UnauthorizedError } from './errors';
 import { Request, Response } from 'express';
 import { db } from './db/db';
 import { logger } from './logger';
+import { User } from './types';
 
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {
@@ -451,4 +452,79 @@ export async function postUpdateActionHandler(req: Request, res: Response) {
 	return res.redirect(
 		'/actions?toast=' + encodeURIComponent(`Action ${formattedTrigger} updated successfully!`),
 	);
+}
+
+// GET /settings/account
+export async function getSettingsPageHandler(req: Request, res: Response) {
+	return res.render('settings.html', {
+		path: '/settings',
+		layout: '../layouts/settings.html',
+	});
+}
+
+// GET /settings/account
+export async function getSettingsAccountPageHandler(req: Request, res: Response) {
+	return res.render('settings-account.html', {
+		user: req.session?.user,
+		path: '/settings/account',
+		layout: '../layouts/settings.html',
+	});
+}
+
+// GET /settings/data
+export async function getSettingsDataPageHandler(req: Request, res: Response) {
+	return res.render('settings-data.html', {
+		user: req.session?.user,
+		path: '/settings/data',
+		layout: '../layouts/settings.html',
+	});
+}
+
+// POST /settings/data
+export async function postSettingsDataPageHandler(req: Request, res: Response) {
+	const user = req.session?.user as User;
+
+	const apps = await db.select('*').from('apps').where('user_id', user.id);
+
+	if (!apps.length) {
+		return res.redirect('/settings/data?toast=🤷 nothing to export!');
+	}
+
+	// await exportUserDataJob({ userId: user.id as unknown as string });
+
+	return res.redirect('/settings/data?toast=🎉 we will send you an email very shortly');
+}
+
+// GET /settings/danger-zone
+export async function getSettingsDangerZonePageHandler(req: Request, res: Response) {
+	return res.render('settings-danger-zone.html', {
+		user: req.session?.user,
+		path: '/settings/danger-zone',
+		layout: '../layouts/settings.html',
+	});
+}
+
+// POST /settings/danger-zone/delete
+export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Response) {
+	const user = req.session?.user;
+
+	await db('users').where({ id: user?.id }).delete();
+
+	// await sendGeneralEmailJob({
+	// 	email: user?.email as string,
+	// 	subject: '🔔 Notify!',
+	// 	username: user?.username as string,
+	// 	message: 'Sorry to see you go. Let us know if we can help you with anything!',
+	// });
+
+	// if (req.session && req.session?.user) {
+	// 	req.session.user = undefined;
+	// 	req.session.destroy((error) => {
+	// 		if (error) {
+	// 			throw HttpError(error);
+	// 		}
+	// 	});
+	// }
+
+	return res.redirect('/?toast=🗑️ deleted');
 }
