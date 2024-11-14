@@ -182,22 +182,20 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 			} catch (error) {
 				logger.error('Error adding bookmark:', error);
 				res.setHeader('Content-Type', 'text/html').send(`
-									<script>
-											alert("Error adding bookmark");
-											window.location.href = "${urlToBookmark}";
-									</script>
-							`);
+					<script>
+							alert("Error adding bookmark");
+							window.location.href = "${urlToBookmark}";
+					</script>`);
 				return;
 			}
 		}
 
 		// If no URL provided in !add command, go back
 		res.setHeader('Content-Type', 'text/html').send(`
-					<script>
-							alert("No URL provided for bookmark");
-							window.history.back();
-					</script>
-			`);
+			<script>
+					alert("No URL provided for bookmark");
+					window.history.back();
+			</script>`);
 		return;
 	}
 
@@ -268,7 +266,6 @@ export async function postActionHandler(req: Request, res: Response) {
 		);
 	}
 
-	// Get action type ID
 	const actionTypeRecord = await db('action_types')
 		.where({
 			name: actionType === 'search' ? 'search' : 'redirect',
@@ -279,7 +276,6 @@ export async function postActionHandler(req: Request, res: Response) {
 		throw HttpError(404, 'Action type not found in database');
 	}
 
-	// Insert new bang
 	await db('bangs').insert({
 		trigger: formattedTrigger,
 		name: name.trim(),
