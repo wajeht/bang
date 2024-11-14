@@ -20,6 +20,7 @@ export function getHealthzHandler(req: Request, res: Response) {
 export function getTermsOfServicePageHandler(req: Request, res: Response) {
 	return res.render('terms-of-service.html', {
 		path: '/terms-of-service',
+		title: 'Terms of Service',
 	});
 }
 
@@ -27,6 +28,7 @@ export function getTermsOfServicePageHandler(req: Request, res: Response) {
 export function getPrivacyPolicyPageHandler(req: Request, res: Response) {
 	return res.render('privacy-policy', {
 		path: '/privacy-policy',
+		title: 'Privacy Policy',
 	});
 }
 
@@ -87,6 +89,7 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 
 	return res.render('actions.html', {
 		path: '/actions',
+		title: 'Actions',
 		layout: '../layouts/auth.html',
 		actions,
 	});
@@ -294,6 +297,7 @@ export async function postActionHandler(req: Request, res: Response) {
 // GET /actions/create
 export function getActionCreatePageHandler(req: Request, res: Response) {
 	return res.render('actions-create.html', {
+		title: 'Actions / New',
 		path: '/actions/create',
 		layout: '../layouts/auth.html',
 		error: req.query.error,
@@ -316,6 +320,7 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 		.orderBy('created_at', 'desc');
 
 	return res.render('bookmarks', {
+		title: 'Bookmarks',
 		path: '/bookmarks',
 		layout: '../layouts/auth',
 		bookmarks,
@@ -380,6 +385,7 @@ export async function getEditActionPageHandler(req: Request, res: Response) {
 	}
 
 	return res.render('actions-edit.html', {
+		title: 'Actions / Edit',
 		path: '/actions/edit',
 		layout: '../layouts/auth.html',
 		action,
@@ -458,6 +464,7 @@ export async function postUpdateActionHandler(req: Request, res: Response) {
 export async function getSettingsPageHandler(req: Request, res: Response) {
 	return res.render('settings.html', {
 		user: req.session?.user,
+		title: 'Settings',
 		path: '/settings',
 		layout: '../layouts/settings.html',
 	});
@@ -467,6 +474,7 @@ export async function getSettingsPageHandler(req: Request, res: Response) {
 export async function getSettingsAccountPageHandler(req: Request, res: Response) {
 	return res.render('settings-account.html', {
 		user: req.session?.user,
+		title: 'Settings Account',
 		path: '/settings/account',
 		layout: '../layouts/settings.html',
 	});
@@ -476,6 +484,7 @@ export async function getSettingsAccountPageHandler(req: Request, res: Response)
 export async function getSettingsDataPageHandler(req: Request, res: Response) {
 	return res.render('settings-data.html', {
 		user: req.session?.user,
+		title: 'Settings Data',
 		path: '/settings/data',
 		layout: '../layouts/settings.html',
 	});
@@ -497,6 +506,7 @@ export async function postSettingsDataPageHandler(req: Request, res: Response) {
 // GET /settings/danger-zone
 export async function getSettingsDangerZonePageHandler(req: Request, res: Response) {
 	return res.render('settings-danger-zone.html', {
+		title: 'Settings Danger Zone',
 		user: req.session?.user,
 		path: '/settings/danger-zone',
 		layout: '../layouts/settings.html',

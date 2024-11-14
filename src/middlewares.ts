@@ -10,6 +10,7 @@ import { UnauthorizedError } from './errors';
 export function notFoundMiddleware() {
 	return (req: Request, res: Response, next: NextFunction) => {
 		return res.status(404).render('error.html', {
+			title: 'Not Found',
 			statusCode: 404,
 			message: 'not found',
 		});
@@ -28,6 +29,7 @@ export function errorMiddleware() {
 		}
 
 		return res.status(500).render('error.html', {
+			title: 'Error',
 			statusCode: 500,
 			message: appConfig.env !== 'production' ? error.stack : 'internal server error',
 		});
