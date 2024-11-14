@@ -1,10 +1,12 @@
 import { fetchPageTitle, getGithubOauthToken, getGithubUserEmails } from './utils';
 import { appConfig, oauthConfig } from './configs';
-import { HttpError, UnauthorizedError } from './errors';
+import { HttpError, UnauthorizedError, ValidationError } from './errors';
 import { Request, Response } from 'express';
 import { db } from './db/db';
 import { logger } from './logger';
 import { User } from './types';
+import { validateRequestMiddleware } from './middlewares';
+import { body } from 'express-validator';
 
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {
@@ -471,6 +473,56 @@ export async function getSettingsAccountPageHandler(req: Request, res: Response)
 		layout: '../layouts/settings.html',
 	});
 }
+
+// POST /settings/account
+export const postSettingsAccountHandler = [
+	validateRequestMiddleware([
+		body('username')
+			.notEmpty()
+			.custom(async (username, { req }) => {
+				const userId = req.session?.user?.id;
+
+				const existingUser = await db
+					.select('*')
+					.from('users')
+					.where('username', username)
+					.whereNot('id', userId)
+					.first();
+
+				if (existingUser) {
+					throw ValidationError('Username is already taken');
+				}
+
+				return true;
+			}),
+		body('email')
+			.notEmpty()
+			.isEmail()
+			.custom(async (email, { req }) => {
+				const userId = req.session?.user?.id;
+
+				const existingUser = await db
+					.select('*')
+					.from('users')
+					.where('email', email)
+					.whereNot('id', userId)
+					.first();
+
+				if (existingUser) {
+					throw ValidationError('Email is already in use');
+				}
+
+				return true;
+			}),
+	]),
+	async (req: Request, res: Response) => {
+		const { email, username } = req.body;
+
+		await db('users').update({ email, username }).where({ id: req.session?.user?.id });
+
+		return res.redirect('/settings/account?toast=🔄 updated!');
+	},
+];
 
 // GET /settings/data
 export async function getSettingsDataPageHandler(req: Request, res: Response) {

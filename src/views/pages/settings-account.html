@@ -1,2 +1,39 @@
+<div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
 
-<h1>Settings Account</h1>
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <h2 style="margin: 0;">👤 Account</h2>
+        <p>Manage your account details.</p>
+      </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
+    <form
+      style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+      action="/settings/account" method="POST">
+
+      <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <label for="username">👤 Username<span style="color: red;">*</span></label>
+        <input type="text" id="username" name="username" value="<%= state.input.username ?? user.username %>" required>
+
+        <% if (state.errors.username) { %>
+          <small style="color: red;"><%= state.errors.username %></small>
+        <% } %>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <label for="email">📧 Email<span style="color: red;">*</span></label>
+        <input type="email" id="email" name="email" value="<%= state.input.email ?? user.email %>" required>
+
+        <% if (state.errors.email) { %>
+          <small style="color: red;"><%= state.errors.email %></small>
+        <% } %>
+      </div>
+
+      <button type="submit" style="width: 100%;">🔄 Update</button>
+    </form>
+  </div>
+
+</div>

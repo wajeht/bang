@@ -9,6 +9,9 @@
         action="/actions"
         style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
     >
+
+        <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+
         <div style="display: flex; flex-direction: column; gap: 5px;">
             <label for="name">🔤 Name<span style="color: red;">*</span></label>
             <input
