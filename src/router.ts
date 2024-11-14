@@ -21,6 +21,7 @@ import {
 	getSettingsDangerZonePageHandler,
 	getSettingsDataPageHandler,
 	getSettingsAccountPageHandler,
+	postDeleteSettingsDangerZoneHandler,
 } from './handlers';
 import { authenticationMiddleware } from './middlewares';
 
@@ -41,6 +42,11 @@ router.get('/settings', authenticationMiddleware, getSettingsPageHandler);
 router.get('/settings/account', authenticationMiddleware, getSettingsAccountPageHandler);
 router.get('/settings/data', authenticationMiddleware, getSettingsDataPageHandler);
 router.get('/settings/danger-zone', authenticationMiddleware, getSettingsDangerZonePageHandler);
+router.post(
+	'/settings/danger-zone/delete',
+	authenticationMiddleware,
+	postDeleteSettingsDangerZoneHandler,
+);
 
 router.get('/actions', authenticationMiddleware, getActionsPageHandler);
 router.post('/actions', authenticationMiddleware, postActionHandler);

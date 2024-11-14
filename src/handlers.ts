@@ -150,6 +150,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 		if (!req.session?.user) {
 			return res.render('home.html', {
 				path: '/',
+				title: '',
 			});
 		}
 
@@ -458,12 +459,7 @@ export async function postUpdateActionHandler(req: Request, res: Response) {
 
 // GET /settings
 export async function getSettingsPageHandler(req: Request, res: Response) {
-	return res.render('settings.html', {
-		user: req.session?.user,
-		title: 'Settings',
-		path: '/settings',
-		layout: '../layouts/settings.html',
-	});
+	res.redirect('/settings/account');
 }
 
 // GET /settings/account
@@ -514,6 +510,15 @@ export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Res
 	const user = req.session?.user;
 
 	await db('users').where({ id: user?.id }).delete();
+
+	if (req.session && req.session?.user) {
+		req.session.user = undefined;
+		req.session.destroy((error) => {
+			if (error) {
+				throw HttpError(error);
+			}
+		});
+	}
 
 	return res.redirect('/?toast=🗑️ deleted');
 }
