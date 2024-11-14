@@ -152,7 +152,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 		if (!req.session?.user) {
 			return res.render('home.html', {
 				path: '/',
-				title: '',
+				title: "DuckDuckGo's !Bangs, but on steroids.",
 			});
 		}
 
