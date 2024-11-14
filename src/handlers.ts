@@ -456,9 +456,8 @@ export async function postUpdateActionHandler(req: Request, res: Response) {
 			updated_at: new Date(),
 		});
 
-	return res.redirect(
-		'/actions?toast=' + encodeURIComponent(`Action ${formattedTrigger} updated successfully!`),
-	);
+	req.flash('success', 'Action updated successfully!');
+	return res.redirect('/actions');
 }
 
 // GET /settings
@@ -522,7 +521,8 @@ export const postSettingsAccountHandler = [
 
 		await db('users').update({ email, username }).where({ id: req.session?.user?.id });
 
-		return res.redirect('/settings/account?toast=🔄 updated!');
+		req.flash('success', '🔄 updated!');
+		return res.redirect('/settings/account');
 	},
 ];
 
@@ -543,10 +543,12 @@ export async function postSettingsDataPageHandler(req: Request, res: Response) {
 	const apps = await db.select('*').from('apps').where('user_id', user.id);
 
 	if (!apps.length) {
-		return res.redirect('/settings/data?toast=🤷 nothing to export!');
+		req.flash('info', '🤷 nothing to export!');
+		return res.redirect('/settings/data');
 	}
 
-	return res.redirect('/settings/data?toast=🎉 we will send you an email very shortly');
+	req.flash('info', '🎉 we will send you an email very shortly');
+	return res.redirect('/settings/data');
 }
 
 // GET /settings/danger-zone
@@ -585,6 +587,11 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 		.where({
 			user_id: req.session.user!.id,
 		})) as BookmarkToExport[];
+
+	if (!bookmarks.length) {
+		req.flash('info', 'no bookmarks to export yet.');
+		return res.redirect('/bookmarks');
+	}
 
 	res.setHeader('Content-Disposition', 'attachment; filename=bookmarks.html');
 	res.setHeader('Content-Type', 'text/html; charset=UTF-8');
