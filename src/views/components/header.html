@@ -16,10 +16,10 @@
           <summary><%= state.user.username %> 👤</summary>
           <div style="position: absolute; top: 100%; right: 0; z-index: 1; border: dashed; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;">
               <% if (state.user.is_admin) { %>
-                  <a href="/admin">🛡️ Admin</a>
+                <a href="/admin" style="font-weight: <%= path === '/admin' ? 'bold' : 'normal' %>; <%= path === '/admin' ? 'text-decoration: underline;' : null %>">🛡️ Admin</a>
               <% } %>
 
-              <a href="/settings">⚙️ Settings</a>
+              <a href="/settings" style="font-weight: <%= path === '/settings' ? 'bold' : 'normal' %>; <%= path === '/settings' ? 'text-decoration: underline;' : null %>">⚙️ Settings</a>
               <hr style="border: none; border-top: dashed 1px; margin: 5px 0;">
               <a href="/logout">🚪 Logout</a>
           </div>

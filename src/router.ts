@@ -17,6 +17,7 @@ import {
 	postDeleteActionHandler,
 	getEditActionPageHandler,
 	postUpdateActionHandler,
+	getSettingsPageHandler,
 } from './handlers';
 import { authenticationMiddleware } from './middlewares';
 
@@ -32,6 +33,8 @@ router.get('/login', getLoginHandler);
 
 router.get('/oauth/github', getGithubHandler);
 router.get('/oauth/github/redirect', getGithubRedirect);
+
+router.get('/settings', authenticationMiddleware, getSettingsPageHandler);
 
 router.get('/actions', authenticationMiddleware, getActionsPageHandler);
 router.post('/actions', authenticationMiddleware, postActionHandler);
