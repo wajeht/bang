@@ -312,7 +312,6 @@ export function getActionCreatePageHandler(req: Request, res: Response) {
 
 // GET /bookmarks
 export async function getBookmarksPageHandler(req: Request, res: Response) {
-	// Get all bookmarks for the current user
 	const bookmarks = await db('bookmarks')
 		.where('user_id', req.session.user!.id)
 		.select('id', 'title', 'url', 'created_at')
@@ -343,7 +342,6 @@ export async function postDeleteBookmarkHandler(req: Request, res: Response) {
 export async function postDeleteActionHandler(req: Request, res: Response) {
 	const actionId = req.params.id;
 
-	// Check if action exists and belongs to user
 	const action = await db('bangs')
 		.where({
 			id: actionId,
@@ -355,7 +353,6 @@ export async function postDeleteActionHandler(req: Request, res: Response) {
 		return res.redirect('/actions?toast=' + encodeURIComponent('Action not found'));
 	}
 
-	// Delete the action
 	await db('bangs')
 		.where({
 			id: actionId,
