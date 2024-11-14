@@ -454,9 +454,10 @@ export async function postUpdateActionHandler(req: Request, res: Response) {
 	);
 }
 
-// GET /settings/account
+// GET /settings
 export async function getSettingsPageHandler(req: Request, res: Response) {
 	return res.render('settings.html', {
+		user: req.session?.user,
 		path: '/settings',
 		layout: '../layouts/settings.html',
 	});
@@ -490,8 +491,6 @@ export async function postSettingsDataPageHandler(req: Request, res: Response) {
 		return res.redirect('/settings/data?toast=🤷 nothing to export!');
 	}
 
-	// await exportUserDataJob({ userId: user.id as unknown as string });
-
 	return res.redirect('/settings/data?toast=🎉 we will send you an email very shortly');
 }
 
@@ -509,22 +508,6 @@ export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Res
 	const user = req.session?.user;
 
 	await db('users').where({ id: user?.id }).delete();
-
-	// await sendGeneralEmailJob({
-	// 	email: user?.email as string,
-	// 	subject: '🔔 Notify!',
-	// 	username: user?.username as string,
-	// 	message: 'Sorry to see you go. Let us know if we can help you with anything!',
-	// });
-
-	// if (req.session && req.session?.user) {
-	// 	req.session.user = undefined;
-	// 	req.session.destroy((error) => {
-	// 		if (error) {
-	// 			throw HttpError(error);
-	// 		}
-	// 	});
-	// }
 
 	return res.redirect('/?toast=🗑️ deleted');
 }

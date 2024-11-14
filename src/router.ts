@@ -18,6 +18,9 @@ import {
 	getEditActionPageHandler,
 	postUpdateActionHandler,
 	getSettingsPageHandler,
+	getSettingsDangerZonePageHandler,
+	getSettingsDataPageHandler,
+	getSettingsAccountPageHandler,
 } from './handlers';
 import { authenticationMiddleware } from './middlewares';
 
@@ -35,6 +38,9 @@ router.get('/oauth/github', getGithubHandler);
 router.get('/oauth/github/redirect', getGithubRedirect);
 
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler);
+router.get('/settings/account', authenticationMiddleware, getSettingsAccountPageHandler);
+router.get('/settings/data', authenticationMiddleware, getSettingsDataPageHandler);
+router.get('/settings/danger-zone', authenticationMiddleware, getSettingsDangerZonePageHandler);
 
 router.get('/actions', authenticationMiddleware, getActionsPageHandler);
 router.post('/actions', authenticationMiddleware, postActionHandler);
