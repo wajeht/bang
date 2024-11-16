@@ -11,7 +11,7 @@
         <% if (actions && actions.length > 0) { %>
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr style="border-bottom: 1px solid #ddd;">
+                    <tr style="border-bottom: 1px dashed #ddd;">
                         <th style="text-align: left; padding: 10px;">📝 Name</th>
                         <th style="text-align: left; padding: 10px;">🔥 Trigger</th>
                         <th style="text-align: left; padding: 10px;">🌐 URL</th>
@@ -22,10 +22,10 @@
                 </thead>
                 <tbody>
                     <% actions.forEach(action => { %>
-                        <tr style="border-bottom: 1px solid #ddd;">
+                        <tr style="border-bottom: 1px dashed #ddd;">
                             <td style="padding: 10px;"><%= action.name %></td>
                             <td style="padding: 10px;">
-                                <code style="font-family: monospace; padding: 2px 6px; border-radius: 3px; border: 1px dashed;">
+                                <code style="font-family: monospace; padding: 2px 6px; border-radius: 3px; border: 1px dashed #ddd;">
                                     <%= action.trigger %>
                                 </code>
                             </td>
@@ -35,9 +35,9 @@
                                 </a>
                             </td>
                             <td style="padding: 10px;">
-                                <span style="padding: 2px 6px; border-radius: 3px; border: 1px dashed;">
+                                <code style="font-family: monospace; padding: 2px 6px; border-radius: 3px; border: 1px dashed #ddd;">
                                     <%= action.action_type %>
-                                </span>
+                                </code>
                             </td>
                             <td style="padding: 10px;"><%= new Date(action.created_at).toLocaleDateString() %></td>
                             <td style="padding: 10px;">

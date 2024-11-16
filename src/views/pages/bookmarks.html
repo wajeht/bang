@@ -11,7 +11,7 @@
         <% if (bookmarks && bookmarks.length > 0) { %>
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr style="border-bottom: 1px solid #ddd;">
+                    <tr style="border-bottom: 1px dashed #ddd;">
                         <th style="text-align: left; padding: 10px;">📌 Title</th>
                         <th style="text-align: left; padding: 10px;">🌐 URL</th>
                         <th style="text-align: left; padding: 10px;">📅 Added</th>
@@ -20,7 +20,7 @@
                 </thead>
                 <tbody>
                     <% bookmarks.forEach(bookmark => { %>
-                        <tr style="border-bottom: 1px solid #ddd;">
+                        <tr style="border-bottom: 1px dashed #ddd;">
                             <td style="padding: 10px;"><%= bookmark.title || 'Untitled' %></td>
                             <td style="padding: 10px;">
                                 <a href="<%= bookmark.url %>" target="_blank" rel="noopener noreferrer">
