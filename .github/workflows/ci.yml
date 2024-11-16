@@ -87,7 +87,7 @@ jobs:
         run: npm run db:prepare:dev
 
       - name: Test codes
-        run: npm run test
+        run: npm run test:coverage
 
   # browser-test:
   #   timeout-minutes: 60
