@@ -191,8 +191,8 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 				logger.error('Error adding bookmark:', error);
 				res.setHeader('Content-Type', 'text/html').send(`
 					<script>
-							alert("Error adding bookmark");
-							window.location.href = "${urlToBookmark}";
+						alert("Error adding bookmark");
+						window.location.href = "${urlToBookmark}";
 					</script>`);
 				return;
 			}
@@ -201,8 +201,8 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 		// If no URL provided in !add command, go back
 		res.setHeader('Content-Type', 'text/html').send(`
 			<script>
-					alert("No URL provided for bookmark");
-					window.history.back();
+				alert("No URL provided for bookmark");
+				window.history.back();
 			</script>`);
 		return;
 	}

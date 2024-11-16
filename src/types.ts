@@ -41,5 +41,6 @@ export type GitHubOauthToken = {
 export type BookmarkToExport = {
 	url: string;
 	title: string;
-	add_date: string;
+	/** Unix timestamp in seconds representing when the bookmark was added */
+	add_date: number;
 };
