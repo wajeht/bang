@@ -43,6 +43,7 @@
 		"node": ">=22.3.0"
 	},
 	"devDependencies": {
+		"@rollup/rollup-linux-arm64-musl": "^4.27.2",
 		"@types/compression": "^1.7.5",
 		"@types/connect-flash": "^0.0.40",
 		"@types/cors": "^2.8.17",
