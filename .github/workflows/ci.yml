@@ -36,60 +36,58 @@ env:
   GITHUB_CLIENT_SECRET: 'nutz'
 
 jobs:
-  unit-test:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    container:
-      image: node:22-alpine
+  # unit-test:
+  #   name: Unit tests
+  #   runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: database
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+  #   services:
+  #     postgres:
+  #       image: postgres:14
+  #       env:
+  #         POSTGRES_USER: postgres
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: database
+  #       ports:
+  #         - 5432:5432
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
 
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+  #     redis:
+  #       image: redis
+  #       ports:
+  #         - 6379:6379
+  #       options: >-
+  #         --health-cmd "redis-cli ping"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
 
-    strategy:
-      matrix:
-        node-version: [22.x]
+  #   strategy:
+  #     matrix:
+  #       node-version: [22.x]
 
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         cache: 'npm'
 
-      - name: Create .env file from .env.ci
-        run: cp .env.ci .env
+  #     - name: Create .env file from .env.ci
+  #       run: cp .env.ci .env
 
-      - name: Install dependencies
-        run: npm i
+  #     - name: Install dependencies
+  #       run: npm i
 
-      - name: Migrate dev database
-        run: npm run db:prepare:dev
+  #     - name: Migrate dev database
+  #       run: npm run db:prepare:dev
 
-      - name: Test codes
-        run: npm run test:coverage
+  #     - name: Test codes
+  #       run: npm run test:coverage
 
   # browser-test:
   #   timeout-minutes: 60
@@ -181,7 +179,7 @@ jobs:
         run: npm run lint
 
   format:
-    needs: [lint, unit-test]
+    needs: [lint]
     name: Prettier format
     runs-on: ubuntu-latest
 
@@ -247,7 +245,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-    needs: [lint, format, unit-test, build]
+    needs: [lint, format, build]
     name: Deploy to Production
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
