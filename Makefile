@@ -14,6 +14,9 @@ fix-git:
 test-unit:
 	@docker compose -f docker-compose.dev.yml exec bang npm run test
 
+test-coverage:
+	@docker compose -f docker-compose.dev.yml exec bang npm run test:coverage
+
 test-browser:
 	@docker compose -f docker-compose.dev.yml exec bang npm run test:browser:headless
 
