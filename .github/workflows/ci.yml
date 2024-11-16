@@ -77,8 +77,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - name: Create .env file from .env.example
-        run: cp .env.example .env
+      - name: Create .env file from .env.ci
+        run: cp .env.ci .env
 
       - name: Install dependencies
         run: npm i
