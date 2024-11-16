@@ -39,6 +39,8 @@ jobs:
   unit-test:
     name: Unit tests
     runs-on: ubuntu-latest
+    container:
+      image: node:22-alpine
 
     services:
       postgres:
