@@ -5,7 +5,7 @@ import {
 	getGithubUserEmails,
 } from './utils';
 import { appConfig, oauthConfig } from './configs';
-import { HttpError, UnauthorizedError, ValidationError } from './errors';
+import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
 import { Request, Response } from 'express';
 import { db } from './db/db';
 import { logger } from './logger';
@@ -83,7 +83,7 @@ export async function getGithubHandler(req: Request, res: Response) {
 export async function getActionsPageHandler(req: Request, res: Response) {
 	const actions = await db('bangs')
 		.join('action_types', 'bangs.action_type_id', 'action_types.id')
-		.where('bangs.user_id', req.session.user!.id)
+		.where('bangs.user_id', req.session.user?.id)
 		.select(
 			'bangs.id',
 			'bangs.name',
@@ -318,7 +318,7 @@ export function getActionCreatePageHandler(req: Request, res: Response) {
 // GET /bookmarks
 export async function getBookmarksPageHandler(req: Request, res: Response) {
 	const bookmarks = await db('bookmarks')
-		.where('user_id', req.session.user!.id)
+		.where('user_id', req.session.user?.id)
 		.select('id', 'title', 'url', 'created_at')
 		.orderBy('created_at', 'desc');
 
@@ -327,7 +327,6 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 		path: '/bookmarks',
 		layout: '../layouts/auth',
 		bookmarks,
-		toast: req.query.toast,
 	});
 }
 
@@ -336,38 +335,36 @@ export async function postDeleteBookmarkHandler(req: Request, res: Response) {
 	await db('bookmarks')
 		.where({
 			id: req.params.id,
-			user_id: req.session.user!.id,
+			user_id: req.session.user?.id,
 		})
 		.delete();
 
-	return res.redirect('/bookmarks?toast=' + encodeURIComponent('Bookmark deleted successfully'));
+	req.flash('success', 'Bookmark deleted successfully');
+	return res.redirect('/bookmarks');
 }
 
 // POST /actions/:id/delete
 export async function postDeleteActionHandler(req: Request, res: Response) {
-	const actionId = req.params.id;
-
 	const action = await db('bangs')
 		.where({
-			id: actionId,
+			id: req.params.id,
 			user_id: req.session.user!.id,
 		})
 		.first();
 
 	if (!action) {
-		return res.redirect('/actions?toast=' + encodeURIComponent('Action not found'));
+		throw NotFoundError();
 	}
 
 	await db('bangs')
 		.where({
-			id: actionId,
-			user_id: req.session.user!.id,
+			id: req.params.id,
+			user_id: req.session.user?.id,
 		})
 		.delete();
 
-	return res.redirect(
-		'/actions?toast=' + encodeURIComponent(`Action ${action.trigger} deleted successfully`),
-	);
+	req.flash('success', `Action ${action.trigger} deleted successfully`);
+	return res.redirect('/actions');
 }
 
 // GET /actions/:id/edit
@@ -376,13 +373,13 @@ export async function getEditActionPageHandler(req: Request, res: Response) {
 		.join('action_types', 'bangs.action_type_id', 'action_types.id')
 		.where({
 			'bangs.id': req.params.id,
-			'bangs.user_id': req.session.user!.id,
+			'bangs.user_id': req.session.user?.id,
 		})
 		.select('bangs.*', 'action_types.name as action_type')
 		.first();
 
 	if (!action) {
-		return res.redirect('/actions?toast=' + encodeURIComponent('Action not found'));
+		throw NotFoundError();
 	}
 
 	return res.render('actions-edit.html', {
@@ -390,7 +387,6 @@ export async function getEditActionPageHandler(req: Request, res: Response) {
 		path: '/actions/edit',
 		layout: '../layouts/auth.html',
 		action,
-		error: req.query.error,
 	});
 }
 
@@ -420,7 +416,7 @@ export async function postUpdateActionHandler(req: Request, res: Response) {
 	const existingBang = await db('bangs')
 		.where({
 			trigger: formattedTrigger,
-			user_id: req.session.user!.id,
+			user_id: req.session.user?.id,
 		})
 		.whereNot('id', actionId)
 		.first();
@@ -446,7 +442,7 @@ export async function postUpdateActionHandler(req: Request, res: Response) {
 	await db('bangs')
 		.where({
 			id: actionId,
-			user_id: req.session.user!.id,
+			user_id: req.session.user?.id,
 		})
 		.update({
 			trigger: formattedTrigger,
@@ -519,7 +515,7 @@ export const postSettingsAccountHandler = [
 	async (req: Request, res: Response) => {
 		const { email, username } = req.body;
 
-		await db('users').update({ email, username }).where({ id: req.session?.user?.id });
+		await db('users').update({ email, username }).where({ id: req.session.user?.id });
 
 		req.flash('success', '🔄 updated!');
 		return res.redirect('/settings/account');
@@ -538,9 +534,7 @@ export async function getSettingsDataPageHandler(req: Request, res: Response) {
 
 // POST /settings/data
 export async function postSettingsDataPageHandler(req: Request, res: Response) {
-	const user = req.session?.user as User;
-
-	const apps = await db.select('*').from('apps').where('user_id', user.id);
+	const apps = await db.select('*').from('apps').where('user_id', req.session.user?.id);
 
 	if (!apps.length) {
 		req.flash('info', '🤷 nothing to export!');
@@ -563,9 +557,7 @@ export async function getSettingsDangerZonePageHandler(req: Request, res: Respon
 
 // POST /settings/danger-zone/delete
 export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Response) {
-	const user = req.session?.user;
-
-	await db('users').where({ id: user?.id }).delete();
+	await db('users').where({ id: req.session.user?.id }).delete();
 
 	if (req.session && req.session?.user) {
 		req.session.user = undefined;
@@ -585,7 +577,7 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 		.select('url', 'title', db.raw('EXTRACT(EPOCH FROM created_at)::integer as add_date'))
 		.from('bookmarks')
 		.where({
-			user_id: req.session.user!.id,
+			user_id: req.session.user?.id,
 		})) as BookmarkToExport[];
 
 	if (!bookmarks.length) {

@@ -23,8 +23,8 @@
               required
           >
           <small>A descriptive name for your action</small>
-          <% if (error && error.includes('name')) { %>
-              <small style="color: red;"><%= error %></small>
+          <% if (states.error.name) { %>
+              <small style="color: red;"><%= states.error.name %></small>
           <% } %>
       </div>
 
@@ -43,8 +43,8 @@
               >
           </div>
           <small>The command to trigger this action (e.g., 'g' for Google)</small>
-          <% if (error && error.includes('trigger')) { %>
-              <small style="color: red;"><%= error %></small>
+          <% if (states.error.trigger) { %>
+              <small style="color: red;"><%= states.error.trigger %></small>
           <% } %>
       </div>
 
@@ -60,8 +60,8 @@
               required
           >
           <small>For search actions, use {query} where the search term should go</small>
-          <% if (error && error.includes('url')) { %>
-              <small style="color: red;"><%= error %></small>
+          <% if (states.error.url) { %>
+              <small style="color: red;"><%= states.error.url %></small>
           <% } %>
       </div>
 
