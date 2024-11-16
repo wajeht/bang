@@ -8,7 +8,6 @@
       action="/actions/<%= action.id %>/update"
       style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
   >
-
       <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
       <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -23,8 +22,8 @@
               required
           >
           <small>A descriptive name for your action</small>
-          <% if (states.error.name) { %>
-              <small style="color: red;"><%= states.error.name %></small>
+          <% if (state.errors.name) { %>
+              <small style="color: red;"><%= state.errors.name %></small>
           <% } %>
       </div>
 
@@ -43,8 +42,8 @@
               >
           </div>
           <small>The command to trigger this action (e.g., 'g' for Google)</small>
-          <% if (states.error.trigger) { %>
-              <small style="color: red;"><%= states.error.trigger %></small>
+          <% if (state.errors.trigger) { %>
+              <small style="color: red;"><%= state.errors.trigger %></small>
           <% } %>
       </div>
 
@@ -60,8 +59,8 @@
               required
           >
           <small>For search actions, use {query} where the search term should go</small>
-          <% if (states.error.url) { %>
-              <small style="color: red;"><%= states.error.url %></small>
+          <% if (state.errors.url) { %>
+              <small style="color: red;"><%= state.errors.url %></small>
           <% } %>
       </div>
 

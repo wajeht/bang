@@ -240,63 +240,52 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 }
 
 // POST /actions
-export async function postActionHandler(req: Request, res: Response) {
-	const { trigger, url, actionType, name } = req.body;
+export const postActionHandler = [
+	validateRequestMiddleware([
+		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
+		body('name').notEmpty().withMessage('Name is required').trim(),
+		body('actionType')
+			.notEmpty()
+			.withMessage('Action type is required')
+			.isIn(['search', 'redirect'])
+			.withMessage('Invalid action type'),
+		body('trigger')
+			.notEmpty()
+			.withMessage('Trigger is required')
+			.custom(async (trigger, { req }) => {
+				const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-	// Validation
-	if (!trigger || !url || !actionType) {
-		return res.redirect(
-			`/actions/create?error=${encodeURIComponent('All fields are required')}&trigger=${encodeURIComponent(trigger || '')}&url=${encodeURIComponent(url || '')}&actionType=${encodeURIComponent(actionType || '')}`,
-		);
-	}
+				const existingBang = await db('bangs')
+					.where({
+						trigger: formattedTrigger,
+						user_id: req.session.user?.id,
+					})
+					.first();
 
-	// Ensure trigger starts with !
-	const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+				if (existingBang) {
+					throw ValidationError('This trigger already exists');
+				}
 
-	// Validate action type
-	if (!['search', 'redirect'].includes(actionType)) {
-		return res.redirect(
-			`/actions/create?error=${encodeURIComponent('Invalid action type')}&trigger=${encodeURIComponent(trigger)}&url=${encodeURIComponent(url)}`,
-		);
-	}
+				return true;
+			}),
+	]),
+	async (req: Request, res: Response) => {
+		const { trigger, url, actionType, name } = req.body;
+		const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-	// Check if trigger already exists for this user
-	const existingBang = await db('bangs')
-		.where({
+		await db('bangs').insert({
 			trigger: formattedTrigger,
+			name: name.trim(),
+			url: url,
 			user_id: req.session.user!.id,
-		})
-		.first();
+			action_type_id: (await db('action_types').where({ name: actionType }).first()).id,
+			created_at: new Date(),
+		});
 
-	if (existingBang) {
-		return res.redirect(
-			`/actions/create?error=${encodeURIComponent('This trigger already exists')}&trigger=${encodeURIComponent(trigger)}&url=${encodeURIComponent(url)}&actionType=${encodeURIComponent(actionType)}`,
-		);
-	}
-
-	const actionTypeRecord = await db('action_types')
-		.where({
-			name: actionType === 'search' ? 'search' : 'redirect',
-		})
-		.first();
-
-	if (!actionTypeRecord) {
-		throw HttpError(404, 'Action type not found in database');
-	}
-
-	await db('bangs').insert({
-		trigger: formattedTrigger,
-		name: name.trim(),
-		url: url,
-		user_id: req.session.user!.id,
-		action_type_id: actionTypeRecord.id,
-		created_at: new Date(),
-	});
-
-	return res.redirect(
-		'/actions?toast=' + encodeURIComponent(`Action ${formattedTrigger} created successfully!`),
-	);
-}
+		req.flash('success', `Action ${formattedTrigger} created successfully!`);
+		return res.redirect('/actions');
+	},
+];
 
 // GET /actions/create
 export function getActionCreatePageHandler(req: Request, res: Response) {
@@ -304,14 +293,6 @@ export function getActionCreatePageHandler(req: Request, res: Response) {
 		title: 'Actions / New',
 		path: '/actions/create',
 		layout: '../layouts/auth.html',
-		error: req.query.error,
-		success: req.query.success,
-		formData: {
-			name: req.query.name || '',
-			trigger: req.query.trigger || '',
-			url: req.query.url || '',
-			actionType: req.query.actionType || 'search',
-		},
 	});
 }
 

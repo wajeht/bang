@@ -127,7 +127,7 @@ export const validateRequestMiddleware = (schemas: any) => {
 			// req.flash('error', Object.values(reshapedErrors));
 			req.session.errors = reshapedErrors;
 
-			return res.redirect('back');
+			return res.redirect(req.headers?.referer ?? 'back');
 		} catch (error) {
 			next(error);
 		}

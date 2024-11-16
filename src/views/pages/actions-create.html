@@ -9,7 +9,6 @@
         action="/actions"
         style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
     >
-
         <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
         <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -19,13 +18,13 @@
                 id="name"
                 name="name"
                 placeholder="Google Search"
-                value="<%= formData.name %>"
+                value="<%= state.input.name ?? state.input.name %>"
                 style="width: 100%;"
                 required
             >
             <small>A descriptive name for your action</small>
-            <% if (error && error.includes('name')) { %>
-                <small style="color: red;"><%= error %></small>
+            <% if (state.errors.name) { %>
+                <small style="color: red;"><%= state.errors.name %></small>
             <% } %>
         </div>
 
@@ -38,14 +37,14 @@
                     name="trigger"
                     id="trigger"
                     placeholder="g"
-                    value="<%= formData.trigger %>"
+                    value="<%= state.input.trigger ?? state.input.trigger %>"
                     style="width: 100%;"
                     required
                 >
             </div>
             <small>The command to trigger this action (e.g., 'g' for Google)</small>
-            <% if (error && error.includes('trigger')) { %>
-                <small style="color: red;"><%= error %></small>
+            <% if (state.errors.trigger) { %>
+                <small style="color: red;"><%= state.errors.trigger %></small>
             <% } %>
         </div>
 
@@ -56,13 +55,13 @@
                 name="url"
                 id="url"
                 placeholder="https://google.com/search?q={query}"
-                value="<%= formData.url %>"
+                value="<%= state.input.url ?? state.input.url %>"
                 style="width: 100%;"
                 required
             >
             <small>For search actions, use {query} where the search term should go</small>
-            <% if (error && error.includes('url')) { %>
-                <small style="color: red;"><%= error %></small>
+            <% if (state.errors.url) { %>
+                <small style="color: red;"><%= state.errors.trigger %></small>
             <% } %>
         </div>
 
@@ -74,8 +73,8 @@
                 style="width: 100%;"
                 required
             >
-                <option value="search" <%= formData.actionType === 'search' ? 'selected' : '' %>>Search</option>
-                <option value="redirect" <%= formData.actionType === 'redirect' ? 'selected' : '' %>>Redirect</option>
+                <option value="search" <%= state.input.actionType === 'search' ? 'selected' : '' %>>Search</option>
+                <option value="redirect" <%= state.input.actionType === 'redirect' ? 'selected' : '' %>>Redirect</option>
             </select>
         </div>
 
