@@ -3,3 +3,10 @@ node_modules
 .gitignore
 *.md
 dist
+.git
+node_modules
+docs
+.vscode
+LICENSE
+README.md
+Makefile
