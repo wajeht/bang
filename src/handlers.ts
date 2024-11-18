@@ -50,7 +50,7 @@ export function getLogoutHandler(req: Request, res: Response) {
 		});
 	}
 
-	return res.redirect('/');
+	return res.redirect(`/?toast=${encodeURIComponent('✌️ see ya!')}`);
 }
 
 // GET /login
@@ -103,7 +103,7 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 }
 
 // GET /oauth/github/redirect
-export async function getGithubRedirect(req: Request, res: Response) {
+export async function getGithubRedirectHandler(req: Request, res: Response) {
 	const code = req.query.code as string;
 
 	if (!code) {
