@@ -10,6 +10,7 @@ DuckDuckGo's !Bangs, but on steroids.
 > This project is unfinished and heavily work in progress.
 
 ## 📖 Usage
+
 - [ ] TODO
 
 ### 🔖 Booklet
@@ -22,6 +23,7 @@ javascript: (function () {
 ```
 
 ## 📑 Docs
+
 - See [ROADMAP](./docs/roadmap.md) for `roadmap` guide.
 - See [DEVELOPMENT](./docs/development.md) for `development` guide.
 - See [CONTRIBUTION](./docs/contribution.md) for `contribution` guide.
