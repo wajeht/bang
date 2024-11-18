@@ -3,7 +3,7 @@ import express from 'express';
 import {
 	getActionsPageHandler,
 	getGithubHandler,
-	getGithubRedirect,
+	getGithubRedirectHandler,
 	getHealthzHandler,
 	getHomePageAndSearchHandler,
 	getLoginHandler,
@@ -38,7 +38,7 @@ router.get('/logout', getLogoutHandler);
 router.get('/login', getLoginHandler);
 
 router.get('/oauth/github', getGithubHandler);
-router.get('/oauth/github/redirect', getGithubRedirect);
+router.get('/oauth/github/redirect', getGithubRedirectHandler);
 
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler);
 router.get('/settings/account', authenticationMiddleware, csrfMiddleware, getSettingsAccountPageHandler); // prettier-ignore
