@@ -372,70 +372,54 @@ export async function getEditActionPageHandler(req: Request, res: Response) {
 }
 
 // POST /actions/:id/update
-export async function postUpdateActionHandler(req: Request, res: Response) {
-	const { trigger, url, actionType, name } = req.body;
-	const actionId = req.params.id;
+export const postUpdateActionHandler = [
+	validateRequestMiddleware([
+		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
+		body('name').notEmpty().withMessage('Name is required').trim(),
+		body('actionType')
+			.notEmpty()
+			.withMessage('Action type is required')
+			.isIn(['search', 'redirect'])
+			.withMessage('Invalid action type'),
+		body('trigger')
+			.notEmpty()
+			.withMessage('Trigger is required')
+			.custom(async (trigger, { req }) => {
+				const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+				const existingBang = await db('bangs')
+					.where({
+						trigger: formattedTrigger,
+						user_id: req.session.user?.id,
+					})
+					.whereNot('id', req.params?.id)
+					.first();
 
-	// Validation
-	if (!trigger || !url || !actionType || !name) {
-		return res.redirect(
-			`/actions/${actionId}/edit?error=${encodeURIComponent('All fields are required')}`,
-		);
-	}
+				if (existingBang) {
+					throw ValidationError('This trigger already exists');
+				}
 
-	// Ensure trigger starts with !
-	const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+				return true;
+			}),
+	]),
+	async (req: Request, res: Response) => {
+		const { trigger, url, actionType, name } = req.body;
 
-	// Validate action type
-	if (!['search', 'redirect'].includes(actionType)) {
-		return res.redirect(
-			`/actions/${actionId}/edit?error=${encodeURIComponent('Invalid action type')}`,
-		);
-	}
+		const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-	// Check if trigger already exists for this user (excluding current action)
-	const existingBang = await db('bangs')
-		.where({
-			trigger: formattedTrigger,
-			user_id: req.session.user?.id,
-		})
-		.whereNot('id', actionId)
-		.first();
+		await db('bangs')
+			.where({ id: req.params?.id, user_id: req.session.user?.id })
+			.update({
+				trigger: formattedTrigger,
+				name: name.trim(),
+				url: url,
+				action_type_id: (await db('action_types').where({ name: actionType }).first()).id,
+				updated_at: new Date(),
+			});
 
-	if (existingBang) {
-		return res.redirect(
-			`/actions/${actionId}/edit?error=${encodeURIComponent('This trigger already exists')}`,
-		);
-	}
-
-	// Get action type ID
-	const actionTypeRecord = await db('action_types')
-		.where({
-			name: actionType,
-		})
-		.first();
-
-	if (!actionTypeRecord) {
-		throw HttpError(404, 'Action type not found in database');
-	}
-
-	// Update the bang
-	await db('bangs')
-		.where({
-			id: actionId,
-			user_id: req.session.user?.id,
-		})
-		.update({
-			trigger: formattedTrigger,
-			name: name.trim(),
-			url: url,
-			action_type_id: actionTypeRecord.id,
-			updated_at: new Date(),
-		});
-
-	req.flash('success', 'Action updated successfully!');
-	return res.redirect('/actions');
-}
+		req.flash('success', `Action ${formattedTrigger} updated successfully!`);
+		return res.redirect('/actions');
+	},
+];
 
 // GET /settings
 export async function getSettingsPageHandler(req: Request, res: Response) {
