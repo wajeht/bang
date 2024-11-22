@@ -65,6 +65,7 @@ export function getLoginHandler(req: Request, res: Response) {
 // GET /oauth/github
 export async function getGithubHandler(req: Request, res: Response) {
 	if (req.session?.user) {
+		req.flash('info', "you've already been logged in!");
 		return res.redirect('/actions');
 	}
 
@@ -442,13 +443,11 @@ export const postSettingsAccountHandler = [
 		body('username')
 			.notEmpty()
 			.custom(async (username, { req }) => {
-				const userId = req.session?.user?.id;
-
 				const existingUser = await db
 					.select('*')
 					.from('users')
 					.where('username', username)
-					.whereNot('id', userId)
+					.whereNot('id', req.session?.user?.id)
 					.first();
 
 				if (existingUser) {
@@ -461,13 +460,11 @@ export const postSettingsAccountHandler = [
 			.notEmpty()
 			.isEmail()
 			.custom(async (email, { req }) => {
-				const userId = req.session?.user?.id;
-
 				const existingUser = await db
 					.select('*')
 					.from('users')
 					.where('email', email)
-					.whereNot('id', userId)
+					.whereNot('id', req.session?.user?.id)
 					.first();
 
 				if (existingUser) {
