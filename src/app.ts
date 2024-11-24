@@ -14,6 +14,7 @@ import {
 	sessionMiddleware,
 	appLocalStateMiddleware,
 } from './middlewares';
+import { reload } from './utils';
 
 const app = express();
 
@@ -54,6 +55,8 @@ app.set('layout', path.join(process.cwd(), 'src', 'views', 'layouts', 'public.ht
 app.use(expressLayouts);
 
 app.use(appLocalStateMiddleware);
+
+reload({ app, watch: [{ path: './src/views/pages', extensions: ['.html'] }] });
 
 app.use(router);
 
