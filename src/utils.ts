@@ -141,13 +141,26 @@ export function reload({
 	const pollInterval = options.pollInterval || 50;
 	const quiet = options.quiet || false;
 	let changeDetected = false;
+	const lastContents = new Map<string, string>();
 
 	watch.forEach(({ path: dir, extensions }) => {
 		const extensionsSet = new Set(extensions);
 		fs.watch(dir, { recursive: true }, (_: fs.WatchEventType, filename: string | null) => {
 			if (filename && extensionsSet.has(filename.slice(filename.lastIndexOf('.')))) {
-				if (!quiet) logger.info('[reload] File changed: %s', filename);
-				changeDetected = true;
+				try {
+					const fullPath = path.join(dir, filename);
+					const content = fs.readFileSync(fullPath, 'utf8');
+
+					if (content !== lastContents.get(fullPath)) {
+						lastContents.set(fullPath, content);
+
+						if (!quiet) logger.info('[reload] File changed: %s', filename);
+
+						changeDetected = true;
+					}
+				} catch {
+					if (!quiet) logger.debug('[reload] Error reading file: %s', filename);
+				}
 			}
 		});
 	});
@@ -165,16 +178,16 @@ export function reload({
 	});
 
 	const clientScript = `
-    <script>
-    	(async function poll() {
-        	try {
-            	await fetch('/wait-for-reload');
-            	location.reload();
-        	} catch {
-            	location.reload();
-        	}
-    	})();
-    </script>\n\t`;
+	<script>
+			(async function poll() {
+					try {
+							await fetch('/wait-for-reload');
+							location.reload();
+					} catch {
+							location.reload();
+					}
+			})();
+	</script>\n\t`;
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
 		const originalSend = res.send.bind(res);
