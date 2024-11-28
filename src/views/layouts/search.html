@@ -3,30 +3,6 @@
 
   <%- include('../components/head.html') %>
 
-  <script>
-    function updateButtonText(theme) {
-      const button = document.getElementById('theme-toggle');
-      button.textContent = theme === 'dark' ? '💡 light' : '💡 dark';
-    }
-
-    function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-      updateButtonText(newTheme);
-    }
-
-    function initializeTheme() {
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-      updateButtonText(savedTheme);
-    }
-
-    document.addEventListener('DOMContentLoaded', initializeTheme);
-  </script>
-
-
   <body style="display: flex; flex-direction: column; min-height: 100vh; gap: 40px; position: relative;">
 
 		<%- include('../components/toast.html') %>
