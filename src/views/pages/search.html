@@ -1,0 +1,9 @@
+<div style="margin-top: 30%; display: flex; justify-content: center; align-items: center; width: 100%;">
+
+  <form method="POST" action="/search" style="display: flex; gap: 5px; width: 32.5%;">
+    <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+    <input type="text" name="q" id="q" placeholder="Search..." style="width: 100%;">
+    <button type="submit">Search</button>
+  </form>
+
+</div>

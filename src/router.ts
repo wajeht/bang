@@ -24,12 +24,14 @@ import {
 	postDeleteSettingsDangerZoneHandler,
 	postSettingsAccountHandler,
 	getExportBookmarksHandler,
+	postSearchHandler,
 } from './handlers';
 import { authenticationMiddleware, csrfMiddleware } from './middlewares';
 
 const router = express.Router();
 
-router.get('/', getHomePageAndSearchHandler);
+router.get('/', csrfMiddleware, getHomePageAndSearchHandler);
+router.post('/search', authenticationMiddleware, csrfMiddleware, postSearchHandler);
 router.get('/healthz', getHealthzHandler);
 router.get('/terms-of-service', getTermsOfServicePageHandler);
 router.get('/privacy-policy', getPrivacyPolicyPageHandler);

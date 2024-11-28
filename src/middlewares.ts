@@ -70,6 +70,7 @@ export function helmetMiddleware() {
 					'bang.jaw.dev',
 				],
 				'script-src-attr': ["'unsafe-inline'"],
+				'form-action': ["'self'", '*'],
 			},
 		},
 		referrerPolicy: {

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+  <%- include('../components/head.html') %>
+
+  <body style="display: flex; flex-direction: column; min-height: 100vh; gap: 40px; position: relative;">
+
+		<%- include('../components/toast.html') %>
+
+    <details style="position: absolute; right: 0; margin-right: 20px;">
+      <summary><%= state.user.username %> 👤</summary>
+      <div style="position: absolute; top: 100%; right: 0; z-index: 1; border: dashed; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;">
+          <% if (state.user.is_admin) { %>
+            <a href="/admin" style="font-weight: <%= path === '/admin' ? 'bold' : 'normal' %>; <%= path === '/admin' ? 'text-decoration: underline;' : null %>">🛡️ Admin</a>
+          <% } %>
+
+          <a href="/settings" style="font-weight: <%= path.match(/^\/settings/) ? 'bold' : 'normal' %>; <%= path.match(/^\/settings/) ? 'text-decoration: underline;' : null %>">⚙️ Settings</a>
+          <hr style="border: none; border-top: dashed 1px; margin: 5px 0;">
+          <a href="/logout">🚪 Logout</a>
+      </div>
+    </details>
+
+    <main style="display: flex; justify-content: center;">
+      <div style="max-width: 1280px; width: 100%; padding: 20px;">
+        <%- body %>
+      </div>
+    </main>
+
+  </body>
+
+</html>
