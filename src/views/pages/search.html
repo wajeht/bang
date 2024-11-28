@@ -73,7 +73,7 @@
         return;
       }
       dropdown.innerHTML = matches
-        .map(bang => `<li style="padding: 5px 10px; cursor: pointer;"><span style="font-weight: bold;">${bang.trigger}</span> - <span style="font-style: italic;">${bang.name}</span></li>`)
+        .map(bang => `<li style="padding: 5px 10px; cursor: pointer;"><span style="font-weight: bold;">${bang.trigger}</span> - ${bang.name}</li>`)
         .join('');
 
       dropdown.style.display = 'block';
