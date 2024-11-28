@@ -211,7 +211,20 @@ export function reload({
 	});
 }
 
-export async function search({ res, user, query }: { res: Response; user: User; query: string }) {
+export async function search({
+	res,
+	user,
+	query,
+}: {
+	res: Response;
+	user: User | undefined;
+	query: string;
+}) {
+	if (!user) {
+		const searchUrl = defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query)); // prettier-ignore
+		return res.redirect(searchUrl);
+	}
+
 	// Handle !add command with URL
 	if (query.startsWith('!add')) {
 		const urlToBookmark = query.slice(5).trim();

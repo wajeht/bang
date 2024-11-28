@@ -157,14 +157,14 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 // POST /search
 export async function postSearchHandler(req: Request, res: Response) {
 	const query = req.body.q?.toString().trim() || '';
-	const user = req.session.user!;
+	const user = req.session.user;
 	return await search({ res, user, query });
 }
 
 // GET /
 export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	const query = req.query.q?.toString().trim() || '';
-	const user = req.session.user!;
+	const user = req.session.user;
 
 	if (!query) {
 		if (!user) {
