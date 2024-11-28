@@ -2,7 +2,7 @@
 
   <form method="POST" action="/search" style="display: flex; gap: 5px; width: 45%;">
     <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
-    <input type="text" name="q" id="q" placeholder="Search..." required style="width: 100%;">
+    <input type="text" name="q" id="q" placeholder="Search..." required autofocus style="width: 100%;">
     <button type="submit">Search</button>
   </form>
 
