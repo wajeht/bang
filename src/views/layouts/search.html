@@ -3,6 +3,30 @@
 
   <%- include('../components/head.html') %>
 
+  <script>
+    function updateButtonText(theme) {
+      const button = document.getElementById('theme-toggle');
+      button.textContent = theme === 'dark' ? '💡 light' : '💡 dark';
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateButtonText(newTheme);
+    }
+
+    function initializeTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateButtonText(savedTheme);
+    }
+
+    document.addEventListener('DOMContentLoaded', initializeTheme);
+  </script>
+
+
   <body style="display: flex; flex-direction: column; min-height: 100vh; gap: 40px; position: relative;">
 
 		<%- include('../components/toast.html') %>
@@ -18,6 +42,7 @@
           <a href="/bookmarks" style="font-weight: <%= path === '/bookmarks' ? 'bold' : 'normal' %>; <%= path === '/bookmarks' ? 'text-decoration: underline;' : null %>">🔖 Bookmarks</a>
           <a href="/settings" style="font-weight: <%= path.match(/^\/settings/) ? 'bold' : 'normal' %>; <%= path.match(/^\/settings/) ? 'text-decoration: underline;' : null %>">⚙️ Settings</a>
           <hr style="border: none; border-top: dashed 1px; margin: 5px 0;">
+          <button id="theme-toggle" class="no-style-btn" style="text-align: left;" onclick="toggleTheme()">💡 dark</button>
           <a href="/logout">🚪 Logout</a>
       </div>
     </details>
