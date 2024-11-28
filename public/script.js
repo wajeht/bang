@@ -17,8 +17,10 @@ function initializeTheme() {
 	updateButtonText(savedTheme);
 }
 
-function parseFlashMessage(message) {
-	return JSON.parse(message.replaceAll('&#34;', '"'));
+function getData() {
+	const scriptTag = document.querySelector('script[data-state]');
+	const stateData = JSON.parse(scriptTag.getAttribute('data-state'));
+	return stateData;
 }
 
 function createToast(message) {
@@ -78,7 +80,7 @@ function dismissToast(toast) {
 	}, 500);
 }
 
-function initializeToast() {
+function initializeToast(data) {
 	const urlParams = new URLSearchParams(window.location.search);
 	const toastMessage = urlParams.get('toast');
 	if (toastMessage) {
@@ -90,7 +92,7 @@ function initializeToast() {
 	}
 
 	// flash message from session
-	const messages = parseFlashMessage('<%= JSON.stringify(state.flash) %>');
+	const messages = getData();
 	for (const msg in messages) {
 		if (messages[msg].length) {
 			createToast(messages[msg]);
