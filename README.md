@@ -11,7 +11,24 @@ DuckDuckGo's !Bangs, but on steroids.
 
 ## 📖 Usage
 
-- [ ] TODO
+### Setup Custom Search Engine in Your Browser
+
+1. In your browser settings, add a new search engine:
+
+   - **Name**: Whatever you prefer (e.g., "Bang")
+   - **Shortcut**: `bd` (or any keyword you prefer)
+   - **URL**: `http://bang.jaw.dev/?q=%s`
+
+2. Now you can use Bang directly from your browser's address bar:
+   ```
+   !add https://bang.jaw.dev
+   ```
+
+### How to Add Custom Search Engine
+
+- **Chrome**: Settings → Search Engines → Manage Search Engines → Add
+- **Firefox**: Bookmarks → Manage Bookmarks → Right-click → New Bookmark → Add %s in URL
+- **Edge**: Settings → Privacy, search, and services → Address bar and search → Manage search engines → Add
 
 ### 🔖 Booklet
 
