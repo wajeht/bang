@@ -97,13 +97,17 @@
     <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
     <input type="text" name="q" id="q" placeholder="Search..." required autofocus style="width: 100%;">
     <ul id="bangsDropdown"
-      style="position: absolute; top: 50px; left: 0; width: 100%; background: white; border: 1px dashed #ccc; border-radius: 3px; list-style: none; padding: 0; margin: 0; display: none; z-index: 10;">
+      style="position: absolute; top: 50px; left: 0; width: 100%; background: var(--background-color); border: 1px dashed var(--border-color); border-radius: 3px; list-style: none; padding: 0; margin: 0; display: none; z-index: 10;">
     </ul>
     <button type="submit">Search</button>
   </form>
 </div>
 
 <style>
+  [data-theme='dark'] #bangsDropdown li.selected {
+    background-color: var(--button-background);
+  }
+
   #bangsDropdown li.selected {
     background-color: #f0f0f0;
   }
