@@ -80,7 +80,7 @@ function dismissToast(toast) {
 	}, 500);
 }
 
-function initializeToast(data) {
+function initializeToast() {
 	const urlParams = new URLSearchParams(window.location.search);
 	const toastMessage = urlParams.get('toast');
 	if (toastMessage) {
