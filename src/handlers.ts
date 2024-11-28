@@ -250,6 +250,11 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 		.select('id', 'title', 'url', 'created_at')
 		.orderBy('created_at', 'desc');
 
+	if (req.get('Content-Type') === 'application/json') {
+		res.json({ data: bookmarks });
+		return;
+	}
+
 	return res.render('bookmarks', {
 		title: 'Bookmarks',
 		path: '/bookmarks',
