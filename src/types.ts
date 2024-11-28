@@ -13,6 +13,7 @@ export type User = {
 	id: number;
 	username: string;
 	email: string;
+	default_search_provider: 'duckduckgo' | 'google' | 'yahoo' | 'bing';
 	is_admin: boolean;
 	created_at: string;
 	updated_at: string;

@@ -10,8 +10,7 @@ const server: Server = app.listen(appConfig.port);
 
 server.on('listening', async () => {
 	const addr: string | AddressInfo | null = server.address();
-	const bind: string =
-		typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port;
+	const bind: string = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port; // prettier-ignore
 
 	logger.info(`Server is listening on ${bind}`);
 
@@ -27,8 +26,7 @@ server.on('error', (error: NodeJS.ErrnoException) => {
 		throw error;
 	}
 
-	const bind: string =
-		typeof appConfig.port === 'string' ? 'Pipe ' + appConfig.port : 'Port ' + appConfig.port;
+	const bind: string = typeof appConfig.port === 'string' ? 'Pipe ' + appConfig.port : 'Port ' + appConfig.port; // prettier-ignore
 
 	switch (error.code) {
 		case 'EACCES':

@@ -1,4 +1,10 @@
-import { createBookmarksDocument, getGithubOauthToken, getGithubUserEmails, search } from './utils';
+import {
+	createBookmarksDocument,
+	defaultSearchProviders,
+	getGithubOauthToken,
+	getGithubUserEmails,
+	search,
+} from './utils';
 import { appConfig, oauthConfig } from './configs';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
 import { Request, Response } from 'express';
@@ -367,6 +373,7 @@ export async function getSettingsAccountPageHandler(req: Request, res: Response)
 		title: 'Settings Account',
 		path: '/settings/account',
 		layout: '../layouts/settings.html',
+		defaultSearchProviders: Object.keys(defaultSearchProviders),
 	});
 }
 
@@ -406,11 +413,21 @@ export const postSettingsAccountHandler = [
 
 				return true;
 			}),
+		body('default_search_provider')
+			.notEmpty()
+			.isIn(Object.keys(defaultSearchProviders))
+			.withMessage('Invalid search provider selected'),
 	]),
 	async (req: Request, res: Response) => {
-		const { email, username } = req.body;
+		const { email, username, default_search_provider } = req.body;
 
-		await db('users').update({ email, username }).where({ id: req.session.user?.id });
+		await db('users')
+			.update({
+				email,
+				username,
+				default_search_provider,
+			})
+			.where({ id: req.session.user?.id });
 
 		req.flash('success', '🔄 updated!');
 		return res.redirect('/settings/account');

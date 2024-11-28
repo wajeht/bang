@@ -8,6 +8,13 @@ import { appConfig, oauthConfig } from './configs';
 import { BookmarkToExport, GitHubOauthToken, GithubUserEmail, User } from './types';
 import { Application, Request, Response, NextFunction } from 'express';
 
+export const defaultSearchProviders = {
+	duckduckgo: `https://duckduckgo.com/?q={query}`,
+	google: `https://www.google.com/search?q={query}`,
+	yahoo: `https://search.yahoo.com/search?p={query}`,
+	bing: `https://www.bing.com/search?q={query}`,
+};
+
 export async function runMigrations(force: boolean = false) {
 	try {
 		if (appConfig.env !== 'production' && force !== true) {
@@ -264,7 +271,11 @@ export async function search({ res, user, query }: { res: Response; user: User; 
 		}
 	}
 
-	// If no bang command matches or user not authenticated for bangs,
-	// do a regular DDG search
-	return res.redirect(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`);
+	const defaultProvider = user.default_search_provider || 'duckduckgo';
+	const searchUrl = defaultSearchProviders[defaultProvider].replace(
+		'{query}',
+		encodeURIComponent(query),
+	);
+
+	return res.redirect(searchUrl);
 }

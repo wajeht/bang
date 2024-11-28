@@ -24,6 +24,21 @@
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 5px;">
+        <label for="default_search_provider">🔎 Default Search Provider<span style="color: red;">*</span></label>
+        <select id="default_search_provider" name="default_search_provider" required>
+            <% defaultSearchProviders.forEach(provider => { %>
+                <option value="<%= provider %>" <%= (state.input.default_search_provider ?? user.default_search_provider) === provider ? 'selected' : '' %> >
+                    <%= provider.charAt(0).toUpperCase() + provider.slice(1) %>
+                </option>
+            <% }); %>
+        </select>
+        <% if (state.errors.default_search_provider) { %>
+          <small style="color: red;"><%= state.errors.default_search_provider %></small>
+        <% } %>
+      </div>
+
+
+      <div style="display: flex; flex-direction: column; gap: 5px;">
         <label for="email">📧 Email<span style="color: red;">*</span></label>
         <input type="email" id="email" name="email" value="<%= state.input.email ?? user.email %>" required>
 
