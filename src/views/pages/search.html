@@ -77,8 +77,9 @@
         .join('');
 
       dropdown.style.display = 'block';
-      dropdown.querySelectorAll('li').forEach(item => {
+      dropdown.querySelectorAll('li').forEach((item, index) => {
         item.onclick = () => submitBang(item.textContent.split(' - ')[0].trim());
+        item.onmouseover = () => updateSelection(index);
       });
     });
 
@@ -108,7 +109,15 @@
     background-color: var(--button-background);
   }
 
+  [data-theme='dark'] #bangsDropdown li:hover {
+    background-color: var(--button-background);
+  }
+
   #bangsDropdown li.selected {
+    background-color: #f0f0f0;
+  }
+
+  #bangsDropdown li:hover {
     background-color: #f0f0f0;
   }
 </style>
