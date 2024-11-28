@@ -5,6 +5,14 @@
     let bangs = [];
     let selectedIndex = -1;
 
+    // Add global keyboard shortcut
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        input.focus();
+      }
+    });
+
     try {
       const response = await fetch('/actions', { headers: { 'Content-Type': 'application/json' } });
       bangs = (await response.json()).data;
