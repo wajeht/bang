@@ -171,7 +171,6 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 			return res.render('home.html', {
 				path: '/',
 				title: "DuckDuckGo's !Bangs, but on steroids.",
-				layout: null,
 			});
 		}
 
