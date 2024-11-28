@@ -11,7 +11,7 @@ DuckDuckGo's !Bangs, but on steroids.
 
 ## 📖 Usage
 
-### Setup Custom Search Engine in Your Browser
+### 🔍 Setup Custom Search Engine in Your Browser
 
 1. In your browser settings, add a new search engine:
 
@@ -24,13 +24,13 @@ DuckDuckGo's !Bangs, but on steroids.
    !add https://bang.jaw.dev
    ```
 
-### How to Add Custom Search Engine
+### ⚙️ How to Add Custom Search Engine
 
 - **Chrome**: Settings → Search Engines → Manage Search Engines → Add
 - **Firefox**: Bookmarks → Manage Bookmarks → Right-click → New Bookmark → Add %s in URL
 - **Edge**: Settings → Privacy, search, and services → Address bar and search → Manage search engines → Add
 
-### 🔖 Booklet
+### 🔖 Browser Bookmarklet
 
 ```javascript
 javascript: (function () {
