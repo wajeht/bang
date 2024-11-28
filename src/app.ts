@@ -56,7 +56,7 @@ app.use(expressLayouts);
 
 app.use(appLocalStateMiddleware);
 
-reload({ app, watch: [{ path: './src/views/pages', extensions: ['.html'] }] });
+reload({ app, watch: [{ path: './src/views', extensions: ['.html'] }] });
 
 app.use(router);
 
