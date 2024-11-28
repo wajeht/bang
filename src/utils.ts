@@ -262,11 +262,11 @@ export async function search({ res, user, query }: { res: Response; user: User; 
 			.first();
 
 		if (customBang) {
-			if (customBang.action_type_id === 2) {
+			if (customBang.action_type === 'redirect') {
 				return res.redirect(customBang.url);
 			}
 
-			if (customBang.action_type_id === 1) {
+			if (customBang.action_type === 'search') {
 				const searchUrl = customBang.url.replace('{query}', encodeURIComponent(searchQuery));
 				return res.redirect(searchUrl);
 			}
@@ -274,10 +274,7 @@ export async function search({ res, user, query }: { res: Response; user: User; 
 	}
 
 	const defaultProvider = user.default_search_provider || 'duckduckgo';
-	const searchUrl = defaultSearchProviders[defaultProvider].replace(
-		'{query}',
-		encodeURIComponent(query),
-	);
+	const searchUrl = defaultSearchProviders[defaultProvider].replace('{query}', encodeURIComponent(query)); // prettier-ignore
 
 	return res.redirect(searchUrl);
 }
