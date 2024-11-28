@@ -1,6 +1,9 @@
+/**
+ * @param {string} theme
+ */
 function updateButtonText(theme) {
 	const button = document.getElementById('theme-toggle');
-	button.textContent = theme === 'dark' ? '💡 light' : '💡 dark';
+	button.textContent = theme === 'dark' ? '💡 Light' : '💡 Dark';
 }
 
 function toggleTheme() {
@@ -18,12 +21,16 @@ function initializeTheme() {
 	updateButtonText(savedTheme);
 }
 
+/**
+ * @param {string} message
+ */
 function createToast(message) {
 	// Remove existing toast if present
 	const existingToast = document.getElementById('toast');
 	if (existingToast) existingToast.remove();
 
 	// Create new toast element
+	/** @type {HTMLDivElement} */
 	const toast = document.createElement('div');
 	toast.id = 'toast';
 	toast.style.cssText = `
@@ -58,6 +65,17 @@ function createToast(message) {
 	setTimeout(() => dismissToast(toast), 5000);
 }
 
+/**
+ * @param {HTMLDivElement} toast
+ */
+function dismissToast(toast) {
+	toast.style.right = '-420px';
+	setTimeout(() => toast.remove(), 500);
+}
+
+/**
+ * @param {HTMLDivElement} toast
+ */
 function dismissToast(toast) {
 	toast.style.right = '-420px';
 	setTimeout(() => toast.remove(), 500);
@@ -83,7 +101,20 @@ function initializeToast() {
 	}
 }
 
+/**
+ * @typedef {Object} SessionData
+ * @property {Array} success - Array of success messages.
+ * @property {Array} error - Array of error messages.
+ * @property {Array} info - Array of informational messages.
+ * @property {Array} warning - Array of warning messages.
+ */
+
+/**
+ * Retrieves session data from a script tag with a `data-state` attribute.
+ * @returns {SessionData} The parsed session data.
+ */
 function getSessionData() {
+	/** @type {HTMLScriptElement} */
 	const scriptTag = document.querySelector('script[data-state]');
 	return JSON.parse(scriptTag.getAttribute('data-state'));
 }
