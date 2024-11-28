@@ -92,28 +92,15 @@ function initializeToast() {
 		history.replaceState({}, document.title, newUrl);
 	}
 
-	// Display flash messages from session if exist
-	const messages = getSessionData();
-	if (messages && Object.values(messages).some((msg) => msg.length > 0)) {
-		Object.values(messages).forEach((msg) => {
+	const { flash } = getAppLocalState();
+	if (flash && Object.values(flash).some((msg) => msg.length > 0)) {
+		Object.values(flash).forEach((msg) => {
 			if (msg.length) createToast(msg);
 		});
 	}
 }
 
-/**
- * @typedef {Object} SessionData
- * @property {Array} success - Array of success messages.
- * @property {Array} error - Array of error messages.
- * @property {Array} info - Array of informational messages.
- * @property {Array} warning - Array of warning messages.
- */
-
-/**
- * Retrieves session data from a script tag with a `data-state` attribute.
- * @returns {SessionData} The parsed session data.
- */
-function getSessionData() {
+function getAppLocalState() {
 	/** @type {HTMLScriptElement} */
 	const scriptTag = document.querySelector('script[data-state]');
 	return JSON.parse(scriptTag.getAttribute('data-state'));
@@ -122,4 +109,14 @@ function getSessionData() {
 document.addEventListener('DOMContentLoaded', () => {
 	initializeTheme();
 	initializeToast();
+
+	const data = getAppLocalState();
+	if (data.user && window.location.pathname !== '/') {
+		document.addEventListener('keydown', (e) => {
+			if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+				e.preventDefault();
+				window.location.href = window.location.origin;
+			}
+		});
+	}
 });
