@@ -12,7 +12,6 @@
       console.error('Error fetching bangs:', error);
     }
 
-    // Handle dropdown selection and submission
     function submitBang(bangTrigger) {
       input.value = bangTrigger;
       dropdown.style.display = 'none';
@@ -30,63 +29,40 @@
       }
     }
 
-    // Handle keyboard navigation
     input.addEventListener('keydown', (e) => {
       const items = dropdown.querySelectorAll('li');
       if (!items.length || dropdown.style.display === 'none') return;
 
-      switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault();
-          updateSelection(selectedIndex < items.length - 1 ? selectedIndex + 1 : 0);
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          updateSelection(selectedIndex > 0 ? selectedIndex - 1 : items.length - 1);
-          break;
-        case 'Enter':
-          if (selectedIndex >= 0) {
-            e.preventDefault();
-            const bangTrigger = items[selectedIndex].textContent.split(' - ')[0].trim();
-            submitBang(bangTrigger);
-          }
-          break;
-        case 'Escape':
-          dropdown.style.display = 'none';
-          selectedIndex = -1;
-          break;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        updateSelection((selectedIndex + 1) % items.length);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        updateSelection((selectedIndex - 1 + items.length) % items.length);
+      } else if (e.key === 'Enter' && selectedIndex >= 0) {
+        e.preventDefault();
+        submitBang(items[selectedIndex].textContent.split(' - ')[0].trim());
+      } else if (e.key === 'Escape') {
+        dropdown.style.display = 'none';
+        selectedIndex = -1;
       }
     });
 
-    // Handle input changes
     input.addEventListener('input', (e) => {
       const value = e.target.value;
       selectedIndex = -1;
-
-      if (!value.startsWith('!')) {
-        dropdown.style.display = 'none';
-        return;
-      }
+      dropdown.style.display = value.startsWith('!') ? 'block' : 'none';
 
       const matches = bangs.filter(bang => bang.trigger.startsWith(value));
-
-      if (!matches.length) {
-        dropdown.style.display = 'none';
-        return;
-      }
-
       dropdown.innerHTML = matches
-        .map(bang => `<li style="padding: 10px; cursor: pointer;">${bang.trigger} - ${bang.name}</li>`)
+        .map(bang => `<li>${bang.trigger} - ${bang.name}</li>`)
         .join('');
-
-      dropdown.style.display = 'block';
 
       dropdown.querySelectorAll('li').forEach(item => {
         item.onclick = () => submitBang(item.textContent.split(' - ')[0].trim());
       });
     });
 
-    // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (!dropdown.contains(e.target) && e.target !== input) {
         dropdown.style.display = 'none';
@@ -97,16 +73,12 @@
 </script>
 
 <div style="margin-top: 30%; display: flex; justify-content: center; align-items: center; width: 100%;">
-
   <form method="POST" action="/search" style="display: flex; gap: 5px; width: 45%; position: relative;">
     <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
     <input type="text" name="q" id="q" placeholder="Search..." required autofocus style="width: 100%;">
-    <ul id="bangsDropdown"
-      style="position: absolute; top: 50px; left: 0; width: 100%; background: white; border: 1px dashed #ccc; border-radius: 5px; list-style: none; padding: 0; margin: 0; display: none; z-index: 10;">
-    </ul>
+    <ul id="bangsDropdown" style="position: absolute; top: 50px; left: 0; width: 100%; background: white; border: 1px dashed #ccc; border-radius: 5px; list-style: none; padding: 0; margin: 0; display: none; z-index: 10;"></ul>
     <button type="submit">Search</button>
   </form>
-
 </div>
 
 <style>
