@@ -1,4 +1,5 @@
 import {
+	actionTypes,
 	createBookmarksDocument,
 	defaultSearchProviders,
 	getGithubOauthToken,
@@ -187,7 +188,7 @@ export const postActionHandler = [
 		body('actionType')
 			.notEmpty()
 			.withMessage('Action type is required')
-			.isIn(['search', 'redirect'])
+			.isIn(actionTypes)
 			.withMessage('Invalid action type'),
 		body('trigger')
 			.notEmpty()
@@ -233,6 +234,7 @@ export function getActionCreatePageHandler(req: Request, res: Response) {
 		title: 'Actions / New',
 		path: '/actions/create',
 		layout: '../layouts/auth.html',
+		actionTypes,
 	});
 }
 
@@ -319,7 +321,7 @@ export const postUpdateActionHandler = [
 		body('actionType')
 			.notEmpty()
 			.withMessage('Action type is required')
-			.isIn(['search', 'redirect'])
+			.isIn(actionTypes)
 			.withMessage('Invalid action type'),
 		body('trigger')
 			.notEmpty()

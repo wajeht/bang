@@ -8,6 +8,8 @@ import { appConfig, oauthConfig } from './configs';
 import { BookmarkToExport, GitHubOauthToken, GithubUserEmail, User } from './types';
 import { Application, Request, Response, NextFunction } from 'express';
 
+export const actionTypes = ['search', 'redirect'];
+
 export const defaultSearchProviders = {
 	duckduckgo: `https://duckduckgo.com/?q={query}`,
 	google: `https://www.google.com/search?q={query}`,

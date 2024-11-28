@@ -73,10 +73,14 @@
                 style="width: 100%;"
                 required
             >
-                <option value="search" <%= state.input.actionType === 'search' ? 'selected' : '' %>>Search</option>
-                <option value="redirect" <%= state.input.actionType === 'redirect' ? 'selected' : '' %>>Redirect</option>
+                <% actionTypes.forEach(type => { %>
+                    <option value="<%= type %>" <%= state.input.actionType === type ? 'selected' : '' %>>
+                        <%= type.charAt(0).toUpperCase() + type.slice(1) %>
+                    </option>
+                <% }); %>
             </select>
         </div>
+
 
         <button type="submit" style="width: 100%;">Submit 🚀</button>
     </form>
