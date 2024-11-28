@@ -43,7 +43,7 @@ app.set('view cache', appConfig.env === 'production');
 
 app.set('views', './src/views/pages');
 
-app.set('layout', './src/views/layouts/public.html');
+app.set('layout', '../layouts/public.html');
 
 app.use(expressLayouts);
 
