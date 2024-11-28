@@ -1,15 +1,9 @@
-import {
-	createBookmarksDocument,
-	fetchPageTitle,
-	getGithubOauthToken,
-	getGithubUserEmails,
-} from './utils';
+import { createBookmarksDocument, getGithubOauthToken, getGithubUserEmails, search } from './utils';
 import { appConfig, oauthConfig } from './configs';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
 import { Request, Response } from 'express';
 import { db } from './db/db';
-import { logger } from './logger';
-import { BookmarkToExport, User } from './types';
+import { BookmarkToExport } from './types';
 import { validateRequestMiddleware } from './middlewares';
 import { body } from 'express-validator';
 
@@ -148,96 +142,35 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 	);
 }
 
+// POST /search
+export async function postSearchHandler(req: Request, res: Response) {
+	const query = req.body.q?.toString().trim() || '';
+	const user = req.session.user!;
+	return await search({ res, user, query });
+}
+
 // GET /
 export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	const query = req.query.q?.toString().trim() || '';
-	const userId = req.session.user?.id;
+	const user = req.session.user!;
 
-	// Handle empty query first
 	if (!query) {
-		if (!req.session?.user) {
+		if (!user) {
 			return res.render('home.html', {
 				path: '/',
 				title: "DuckDuckGo's !Bangs, but on steroids.",
+				layout: null,
 			});
 		}
 
-		return res.redirect('/actions');
+		return res.render('search.html', {
+			path: '/',
+			title: "DuckDuckGo's !Bangs, but on steroids.",
+			layout: '../layouts/search.html',
+		});
 	}
 
-	// Check if it's any bang command (including !add)
-	const isBangCommand = query.startsWith('!');
-
-	// Require auth for all bang commands
-	if (isBangCommand && !req.session?.user) {
-		req.session.redirectTo = req.originalUrl;
-		return res.redirect('/login');
-	}
-
-	// Handle !add command with URL
-	if (query.startsWith('!add')) {
-		const urlToBookmark = query.slice(5).trim();
-
-		if (urlToBookmark) {
-			try {
-				await db('bookmarks').insert({
-					user_id: userId,
-					url: urlToBookmark,
-					title: await fetchPageTitle(urlToBookmark),
-					created_at: new Date(),
-				});
-
-				return res.redirect(urlToBookmark);
-			} catch (error) {
-				logger.error('Error adding bookmark:', error);
-				res.setHeader('Content-Type', 'text/html').send(`
-					<script>
-						alert("Error adding bookmark");
-						window.location.href = "${urlToBookmark}";
-					</script>`);
-				return;
-			}
-		}
-
-		// If no URL provided in !add command, go back
-		res.setHeader('Content-Type', 'text/html').send(`
-			<script>
-				alert("No URL provided for bookmark");
-				window.history.back();
-			</script>`);
-		return;
-	}
-
-	// Handle other bang commands
-	const bangMatch = query.match(/^!(\w+)(?:\s+(.*))?$/);
-
-	if (bangMatch) {
-		const [, bangTrigger, searchQuery = ''] = bangMatch;
-
-		const customBang = await db('bangs')
-			.join('action_types', 'bangs.action_type_id', 'action_types.id')
-			.where({
-				'bangs.trigger': `!${bangTrigger}`,
-				'bangs.user_id': userId,
-			})
-			.select('bangs.*', 'action_types.name as action_type')
-			.first();
-
-		if (customBang) {
-			if (customBang.action_type_id === 2) {
-				return res.redirect(customBang.url);
-			}
-
-			if (customBang.action_type_id === 1) {
-				const searchUrl = customBang.url.replace('{query}', encodeURIComponent(searchQuery));
-				return res.redirect(searchUrl);
-			}
-		}
-	}
-
-	// If no bang command matches or user not authenticated for bangs,
-	// do a regular DDG search
-	return res.redirect(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`);
+	return await search({ res, user, query });
 }
 
 // POST /actions

@@ -5,7 +5,7 @@ import path from 'node:path';
 import { db } from './db/db';
 import { logger } from './logger';
 import { appConfig, oauthConfig } from './configs';
-import { BookmarkToExport, GitHubOauthToken, GithubUserEmail } from './types';
+import { BookmarkToExport, GitHubOauthToken, GithubUserEmail, User } from './types';
 import { Application, Request, Response, NextFunction } from 'express';
 
 export async function runMigrations(force: boolean = false) {
@@ -155,7 +155,6 @@ export function reload({
 						lastContents.set(fullPath, content);
 
 						if (!quiet) logger.info('[reload] File changed: %s', filename);
-
 						changeDetected = true;
 					}
 				} catch {
@@ -201,4 +200,71 @@ export function reload({
 
 		next();
 	});
+}
+
+export async function search({ res, user, query }: { res: Response; user: User; query: string }) {
+	// Handle !add command with URL
+	if (query.startsWith('!add')) {
+		const urlToBookmark = query.slice(5).trim();
+
+		if (urlToBookmark) {
+			try {
+				await db('bookmarks').insert({
+					user_id: user.id,
+					url: urlToBookmark,
+					title: await fetchPageTitle(urlToBookmark),
+					created_at: new Date(),
+				});
+
+				return res.redirect(urlToBookmark);
+			} catch (error) {
+				logger.error('Error adding bookmark:', error);
+				res.setHeader('Content-Type', 'text/html').send(`
+						<script>
+							alert("Error adding bookmark");
+							window.location.href = "${urlToBookmark}";
+						</script>`);
+				return;
+			}
+		}
+
+		// If no URL provided in !add command, go back
+		res.setHeader('Content-Type', 'text/html').send(`
+				<script>
+					alert("No URL provided for bookmark");
+					window.history.back();
+				</script>`);
+		return;
+	}
+
+	// Handle other bang commands
+	const bangMatch = query.match(/^!(\w+)(?:\s+(.*))?$/);
+
+	if (bangMatch) {
+		const [, bangTrigger, searchQuery = ''] = bangMatch;
+
+		const customBang = await db('bangs')
+			.join('action_types', 'bangs.action_type_id', 'action_types.id')
+			.where({
+				'bangs.trigger': `!${bangTrigger}`,
+				'bangs.user_id': user.id,
+			})
+			.select('bangs.*', 'action_types.name as action_type')
+			.first();
+
+		if (customBang) {
+			if (customBang.action_type_id === 2) {
+				return res.redirect(customBang.url);
+			}
+
+			if (customBang.action_type_id === 1) {
+				const searchUrl = customBang.url.replace('{query}', encodeURIComponent(searchQuery));
+				return res.redirect(searchUrl);
+			}
+		}
+	}
+
+	// If no bang command matches or user not authenticated for bangs,
+	// do a regular DDG search
+	return res.redirect(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`);
 }
