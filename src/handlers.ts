@@ -96,6 +96,11 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 		)
 		.orderBy('bangs.created_at', 'desc');
 
+	if (req.get('Content-Type') === 'application/json') {
+		res.json({ data: actions });
+		return;
+	}
+
 	return res.render('actions.html', {
 		path: '/actions',
 		title: 'Actions',
