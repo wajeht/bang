@@ -1,12 +1,5 @@
-import {
-	actionTypes,
-	createBookmarksDocument,
-	defaultSearchProviders,
-	getGithubOauthToken,
-	getGithubUserEmails,
-	search,
-} from './utils';
-import { appConfig, oauthConfig } from './configs';
+import { createBookmarksDocument, getGithubOauthToken, getGithubUserEmails, search } from './utils';
+import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './configs';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
 import { Request, Response } from 'express';
 import { db } from './db/db';

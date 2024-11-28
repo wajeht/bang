@@ -4,18 +4,9 @@ import axios from 'axios';
 import path from 'node:path';
 import { db } from './db/db';
 import { logger } from './logger';
-import { appConfig, oauthConfig } from './configs';
+import { appConfig, defaultSearchProviders, oauthConfig } from './configs';
 import { BookmarkToExport, GitHubOauthToken, GithubUserEmail, User } from './types';
 import { Application, Request, Response, NextFunction } from 'express';
-
-export const actionTypes = ['search', 'redirect'];
-
-export const defaultSearchProviders = {
-	duckduckgo: `https://duckduckgo.com/?q={query}`,
-	google: `https://www.google.com/search?q={query}`,
-	yahoo: `https://search.yahoo.com/search?p={query}`,
-	bing: `https://www.bing.com/search?q={query}`,
-};
 
 export async function runMigrations(force: boolean = false) {
 	try {
@@ -57,6 +48,7 @@ export async function runMigrations(force: boolean = false) {
 		throw error;
 	}
 }
+
 export async function getGithubOauthToken(code: string): Promise<GitHubOauthToken> {
 	const rootUrl = 'https://github.com/login/oauth/access_token';
 

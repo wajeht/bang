@@ -4,6 +4,15 @@ import { Env } from './types';
 
 dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')) });
 
+export const actionTypes = ['search', 'redirect'];
+
+export const defaultSearchProviders = {
+	duckduckgo: `https://duckduckgo.com/?q={query}`,
+	google: `https://www.google.com/search?q={query}`,
+	yahoo: `https://search.yahoo.com/search?p={query}`,
+	bing: `https://www.bing.com/search?q={query}`,
+};
+
 export const appConfig = {
 	port: parseInt(process.env.APP_PORT || '80', 10),
 	env: (process.env.APP_ENV as Env) || 'development',
