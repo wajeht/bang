@@ -14,6 +14,8 @@
             <a href="/admin" style="font-weight: <%= path === '/admin' ? 'bold' : 'normal' %>; <%= path === '/admin' ? 'text-decoration: underline;' : null %>">🛡️ Admin</a>
           <% } %>
 
+          <a href="/actions" style="font-weight: <%= path === '/actions' ? 'bold' : 'normal' %>; <%= path === '/actions' ? 'text-decoration: underline;' : null %>">⚡ Actions</a>
+          <a href="/bookmarks" style="font-weight: <%= path === '/bookmarks' ? 'bold' : 'normal' %>; <%= path === '/bookmarks' ? 'text-decoration: underline;' : null %>">🔖 Bookmarks</a>
           <a href="/settings" style="font-weight: <%= path.match(/^\/settings/) ? 'bold' : 'normal' %>; <%= path.match(/^\/settings/) ? 'text-decoration: underline;' : null %>">⚙️ Settings</a>
           <hr style="border: none; border-top: dashed 1px; margin: 5px 0;">
           <a href="/logout">🚪 Logout</a>
