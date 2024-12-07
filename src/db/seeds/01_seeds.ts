@@ -39,7 +39,7 @@ export async function seed(knex: Knex): Promise<void> {
 			trigger: '!gh',
 			name: 'GitHub',
 			action_type_id: redirectType.id,
-			url: 'https://github.com',
+			url: 'https://github.com/wajeht/bang',
 		},
 		{
 			user_id: user.id,
