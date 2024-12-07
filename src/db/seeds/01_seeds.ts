@@ -17,8 +17,6 @@ export async function seed(knex: Knex): Promise<void> {
 			email: env.parsed?.APP_ADMIN_EMAIL,
 			is_admin: true,
 			default_search_provider: 'duckduckgo',
-			created_at: new Date(),
-			updated_at: new Date(),
 		})
 		.returning('*');
 
@@ -31,30 +29,24 @@ export async function seed(knex: Knex): Promise<void> {
 	const bangs = [
 		{
 			user_id: user.id,
-			trigger: 'g',
+			trigger: '!g',
 			name: 'Google Search',
 			action_type_id: searchType.id,
 			url: 'https://www.google.com/search?q={query}',
-			created_at: new Date(),
-			updated_at: new Date(),
 		},
 		{
 			user_id: user.id,
-			trigger: 'gh',
+			trigger: '!gh',
 			name: 'GitHub',
 			action_type_id: redirectType.id,
 			url: 'https://github.com',
-			created_at: new Date(),
-			updated_at: new Date(),
 		},
 		{
 			user_id: user.id,
-			trigger: 'yt',
+			trigger: '!yt',
 			name: 'YouTube Search',
 			action_type_id: searchType.id,
 			url: 'https://www.youtube.com/results?search_query={query}',
-			created_at: new Date(),
-			updated_at: new Date(),
 		},
 	];
 
