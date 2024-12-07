@@ -251,6 +251,40 @@ export async function search({
 		return;
 	}
 
+	// Handle !add command with URL
+	if (query.startsWith('!add')) {
+		const [_, cmd, url] = query.split(' ');
+
+		if (!cmd?.startsWith('!')) {
+			res.setHeader('Content-Type', 'text/html').send(`
+				<script>
+					alert("must include !");
+					window.history.back();
+				</script>`);
+			return;
+		}
+
+		if (!url?.length) {
+			res.setHeader('Content-Type', 'text/html').send(`
+				<script>
+					alert("url must not be empty");
+					window.history.back();
+				</script>`);
+			return;
+		}
+
+		const userBangs = await db.select('trigger').from('bangs').where({ user_id: user.id });
+
+		if (['!add', '!bm'].concat(userBangs).includes(cmd!)) {
+			res.setHeader('Content-Type', 'text/html').send(`
+				<script>
+					alert("bang ${cmd} already exist");
+					window.history.back();
+				</script>`);
+			return;
+		}
+	}
+
 	// Handle other bang commands
 	const bangMatch = query.match(/^!(\w+)(?:\s+(.*))?$/);
 
