@@ -27,7 +27,7 @@
       input.form.submit();
     }
 
-    function updateSelection(index) {
+    function updateSelection(index, updateInputValue = false) {
       const items = dropdown.querySelectorAll('li');
       items.forEach(item => item.classList.remove('selected'));
 
@@ -37,9 +37,11 @@
         selectedItem.classList.add('selected');
         selectedItem.scrollIntoView({ block: 'nearest' });
 
-        // Update input value with the selected bang trigger
-        const bangTrigger = selectedItem.textContent.split(' - ')[0].trim();
-        input.value = bangTrigger;
+        // Only update input value if explicitly requested (keyboard navigation)
+        if (updateInputValue) {
+          const bangTrigger = selectedItem.textContent.split(' - ')[0].trim();
+          input.value = bangTrigger;
+        }
       }
     }
 
@@ -51,11 +53,11 @@
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          updateSelection(selectedIndex < items.length - 1 ? selectedIndex + 1 : 0);
+          updateSelection(selectedIndex < items.length - 1 ? selectedIndex + 1 : 0, true);
           break;
         case 'ArrowUp':
           e.preventDefault();
-          updateSelection(selectedIndex > 0 ? selectedIndex - 1 : items.length - 1);
+          updateSelection(selectedIndex > 0 ? selectedIndex - 1 : items.length - 1, true);
           break;
         case 'Enter':
           if (selectedIndex >= 0) {
@@ -92,7 +94,10 @@
       dropdown.style.display = 'block';
       dropdown.querySelectorAll('li').forEach((item, index) => {
         item.onclick = () => submitBang(item.textContent.split(' - ')[0].trim());
-        item.onmouseover = () => updateSelection(index);
+        item.onmouseover = () => {
+          updateSelection(index, false);  // Don't update input value on hover
+          input.focus();
+        };
       });
     });
 
