@@ -17,7 +17,7 @@ const knexConfig: Knex.Config = {
 		tableName: 'knex_migrations',
 		directory: path.resolve(__dirname, './migrations'),
 	},
-	// debug: developmentEnvironmentOnly,
+	debug: developmentEnvironmentOnly,
 	seeds: { directory: path.resolve(__dirname, './seeds') },
 	pool: {
 		min: 0,
