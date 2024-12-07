@@ -278,7 +278,7 @@ export async function search({
 		if (['!add', '!bm'].concat(userBangs).includes(trigger!)) {
 			res.setHeader('Content-Type', 'text/html').send(`
 				<script>
-					alert("bang ${trigger} already exist");
+					alert("trigger ${trigger} already exist");
 					window.history.back();
 				</script>`);
 			return;
