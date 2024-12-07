@@ -21,7 +21,7 @@ DuckDuckGo's !Bangs, but on steroids.
 
 2. Now you can use Bang directly from your browser's address bar:
    ```
-   !add https://bang.jaw.dev
+   !bm https://bang.jaw.dev
    ```
 
 ### ⚙️ How to Add Custom Search Engine
@@ -35,7 +35,7 @@ DuckDuckGo's !Bangs, but on steroids.
 ```javascript
 javascript: (function () {
 	const link = encodeURIComponent(window.location.href);
-	window.location.href = 'http://bang.jaw.dev/?q=!add ' + link;
+	window.location.href = 'http://bang.jaw.dev/?q=!bm ' + link;
 })();
 ```
 

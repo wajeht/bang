@@ -217,8 +217,8 @@ export async function search({
 		return res.redirect(searchUrl);
 	}
 
-	// Handle !add command with URL
-	if (query.startsWith('!add')) {
+	// Handle !bm command with URL
+	if (query.startsWith('!bm')) {
 		const urlToBookmark = query.slice(5).trim();
 
 		if (urlToBookmark) {
@@ -242,7 +242,7 @@ export async function search({
 			}
 		}
 
-		// If no URL provided in !add command, go back
+		// If no URL provided in !bm command, go back
 		res.setHeader('Content-Type', 'text/html').send(`
 				<script>
 					alert("No URL provided for bookmark");
