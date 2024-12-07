@@ -48,3 +48,8 @@ export const sessionConfig = {
 	secret: process.env.SESSION_SECRET || 'bang',
 	domain: process.env.SESSION_DOMAIN || 'localhost',
 } as const;
+
+export const notifyConfig = {
+	url: process.env.NOTIFY_URL || 'https://notify.jaw.dev/',
+	apiKey: process.env.NOTIFY_X_API_KEY || '',
+} as const;

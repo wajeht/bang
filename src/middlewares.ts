@@ -7,6 +7,7 @@ import { db, redis } from './db/db';
 import connectRedisStore from 'connect-redis';
 import { UnauthorizedError } from './errors';
 import { validationResult } from 'express-validator';
+import { sendNotificationQueue } from './utils';
 import { csrfSync } from 'csrf-sync';
 
 export function notFoundMiddleware() {
@@ -28,6 +29,14 @@ export function errorMiddleware() {
 	) => {
 		if (appConfig.env !== 'production') {
 			logger.error(error);
+		}
+
+		if (appConfig.env === 'production') {
+			try {
+				await sendNotificationQueue.push({ req, error });
+			} catch (error) {
+				logger.error(error);
+			}
 		}
 
 		return res.status(500).render('error.html', {

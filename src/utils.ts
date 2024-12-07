@@ -1,10 +1,11 @@
 import qs from 'qs';
 import fs from 'fs';
 import axios from 'axios';
+import fastq from 'fastq';
 import path from 'node:path';
 import { db } from './db/db';
 import { logger } from './logger';
-import { appConfig, defaultSearchProviders, oauthConfig } from './configs';
+import { appConfig, defaultSearchProviders, notifyConfig, oauthConfig } from './configs';
 import { BookmarkToExport, GitHubOauthToken, GithubUserEmail, User } from './types';
 import { Application, Request, Response, NextFunction } from 'express';
 
@@ -327,4 +328,53 @@ export async function search({
 	const searchUrl = defaultSearchProviders[defaultProvider].replace('{query}', encodeURIComponent(query)); // prettier-ignore
 
 	return res.redirect(searchUrl);
+}
+
+export const sendNotificationQueue = fastq.promise(sendNotification, 1);
+
+export async function sendNotification({
+	req,
+	error,
+}: {
+	req: Request;
+	error: Error;
+}): Promise<void> {
+	try {
+		const n = await fetch(notifyConfig.url, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-API-KEY': notifyConfig.apiKey,
+			},
+			body: JSON.stringify({
+				message: `Error: ${error?.message}`,
+				details: JSON.stringify(
+					{
+						request: {
+							method: req.method,
+							url: req.url,
+							headers: req.headers,
+							query: req.query,
+							body: req.body,
+						},
+						error: {
+							name: error?.name,
+							message: error?.message,
+							stack: error?.stack,
+							cause: error?.cause,
+						},
+					},
+					null,
+					2,
+				),
+			}),
+		});
+
+		if (!n.ok) {
+			const text = await n.text();
+			logger.error(`Notification service responded with status ${n.status}: ${text}`);
+		}
+	} catch (error) {
+		logger.error('Failed to send error notification', error);
+	}
 }
