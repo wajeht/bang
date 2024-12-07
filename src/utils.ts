@@ -253,12 +253,12 @@ export async function search({
 
 	// Handle !add command with URL
 	if (query.startsWith('!add')) {
-		const [_, cmd, url] = query.split(' ');
+		const [_, trigger, url] = query.split(' ');
 
-		if (!cmd?.startsWith('!')) {
+		if (!trigger?.startsWith('!')) {
 			res.setHeader('Content-Type', 'text/html').send(`
 				<script>
-					alert("must include !");
+					alert("must include ! at the front");
 					window.history.back();
 				</script>`);
 			return;
@@ -275,14 +275,25 @@ export async function search({
 
 		const userBangs = await db.select('trigger').from('bangs').where({ user_id: user.id });
 
-		if (['!add', '!bm'].concat(userBangs).includes(cmd!)) {
+		if (['!add', '!bm'].concat(userBangs).includes(trigger!)) {
 			res.setHeader('Content-Type', 'text/html').send(`
 				<script>
-					alert("bang ${cmd} already exist");
+					alert("bang ${trigger} already exist");
 					window.history.back();
 				</script>`);
 			return;
 		}
+
+		await db('bangs').insert({
+			user_id: user.id,
+			trigger,
+			name: await fetchPageTitle(url),
+			action_type_id: 2, // redirect
+			url,
+		});
+
+		res.setHeader('Content-Type', 'text/html').send(`<script> window.history.back(); </script>`);
+		return;
 	}
 
 	// Handle other bang commands
