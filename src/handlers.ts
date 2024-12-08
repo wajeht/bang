@@ -606,6 +606,7 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 	res.setHeader('Content-Type', 'text/html; charset=UTF-8');
 	res.send(createBookmarksDocument(bookmarks));
 }
+
 // GET /settings/data/export
 export async function getExportAllDataHandler(req: Request, res: Response) {
 	const userId = req.session.user?.id;
