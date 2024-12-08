@@ -610,13 +610,11 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 export async function getExportAllDataHandler(req: Request, res: Response) {
 	const userId = req.session.user?.id;
 
-	// Get user data (excluding sensitive fields)
 	const user = await db('users')
 		.where('id', userId)
 		.select('username', 'email', 'default_search_provider', 'created_at')
 		.first();
 
-	// Get all user's bangs
 	const bangs = await db('bangs')
 		.join('action_types', 'bangs.action_type_id', 'action_types.id')
 		.where('bangs.user_id', userId)
@@ -628,7 +626,6 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
 			'bangs.created_at',
 		);
 
-	// Get all user's bookmarks
 	const bookmarks = await db('bookmarks')
 		.where('user_id', userId)
 		.select('title', 'url', 'created_at');
@@ -640,7 +637,10 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
 		exported_at: new Date().toISOString(),
 	};
 
-	res.setHeader('Content-Disposition', 'attachment; filename=bang-data-export.json');
+	const currentDate = new Date().toISOString().split('T')[0];
+	const filename = `bang-data-export-${currentDate}.json`;
+
+	res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
 	res.setHeader('Content-Type', 'application/json');
 	res.send(JSON.stringify(exportData, null, 2));
 }
