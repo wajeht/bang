@@ -1,18 +1,53 @@
 <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
-
   <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-    <div style="display: flex; flex-direction: column; gap: 5px;">
-      <h2 style="margin: 0;">📦 Data</h2>
-      <p>Export your data</p>
-    </div>
+    <h2 style="margin: 0;">📦 Data</h2>
+    <span>Import and Export your data</span>
   </div>
 
   <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
-    <div
-      style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
-      >
-      coming soon!
+    <div style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <h3>⬇️ Export Data</h3>
+        <p>Export your bookmarks and custom actions</p>
+      </div>
+
+      <form method="POST" action="/settings/data/export">
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div>
+            <label>
+              <input type="checkbox" name="include_bookmarks" checked>
+              Include Bookmarks
+            </label>
+          </div>
+          <div>
+            <label>
+              <input type="checkbox" name="include_actions" checked>
+              Include Actions
+            </label>
+          </div>
+          <button type="submit" style="width: 100%;">⬇️ Export</button>
+        </div>
+      </form>
+    </div>
+
+    <div style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <h3>⬆️ Import Data</h3>
+        <p>Import your bookmarks and custom actions</p>
+      </div>
+
+      <form method="POST" action="/settings/data/import">
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <textarea
+            name="config"
+            rows="10"
+            style="width: 100%;"
+            placeholder="Paste your JSON configuration here"></textarea>
+          <button type="submit">⬆️ Import</button>
+        </div>
+      </form>
     </div>
   </div>
-
 </div>

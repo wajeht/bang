@@ -25,6 +25,8 @@ import {
 	postSettingsAccountHandler,
 	getExportBookmarksHandler,
 	postSearchHandler,
+	postExportDataHandler,
+	postImportDataHandler,
 } from './handlers';
 import { authenticationMiddleware, csrfMiddleware } from './middlewares';
 
@@ -45,7 +47,7 @@ router.get('/oauth/github/redirect', getGithubRedirectHandler);
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler);
 router.get('/settings/account', authenticationMiddleware, csrfMiddleware, getSettingsAccountPageHandler); // prettier-ignore
 router.post('/settings/account', authenticationMiddleware, csrfMiddleware, postSettingsAccountHandler); // prettier-ignore
-router.get('/settings/data', authenticationMiddleware, getSettingsDataPageHandler);
+router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler);
 router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler); // prettier-ignore
 router.post('/settings/danger-zone/delete', authenticationMiddleware, csrfMiddleware, postDeleteSettingsDangerZoneHandler); // prettier-ignore
 
@@ -60,5 +62,18 @@ router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, pos
 router.get('/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksPageHandler);
 router.post('/bookmarks/:id/delete', authenticationMiddleware, csrfMiddleware, postDeleteBookmarkHandler); // prettier-ignore
 router.get('/bookmarks/export', authenticationMiddleware, getExportBookmarksHandler);
+
+router.post(
+	'/settings/data/export',
+	authenticationMiddleware,
+	csrfMiddleware,
+	postExportDataHandler,
+);
+router.post(
+	'/settings/data/import',
+	authenticationMiddleware,
+	csrfMiddleware,
+	postImportDataHandler,
+);
 
 export { router };

@@ -448,18 +448,119 @@ export async function getSettingsDataPageHandler(req: Request, res: Response) {
 	});
 }
 
-// POST /settings/data
-export async function postSettingsDataPageHandler(req: Request, res: Response) {
-	const apps = await db.select('*').from('apps').where('user_id', req.session.user?.id);
+// POST /settings/data/export
+export const postExportDataHandler = [
+	validateRequestMiddleware([
+		body('include_bookmarks')
+			.optional()
+			.custom((value) => value === 'on')
+			.withMessage('Invalid value for include_bookmarks'),
+		body('include_actions')
+			.optional()
+			.custom((value) => value === 'on')
+			.withMessage('Invalid value for include_actions'),
+	]),
+	async (req: Request, res: Response) => {
+		const userId = req.session.user?.id;
+		const include_bookmarks = req.body.include_bookmarks === 'on';
+		const include_actions = req.body.include_actions === 'on';
 
-	if (!apps.length) {
-		req.flash('info', '🤷 nothing to export!');
+		const exportData: any = {
+			exported_at: new Date().toISOString(),
+			version: '1.0',
+		};
+
+		if (include_bookmarks) {
+			exportData.bookmarks = await db('bookmarks')
+				.where('user_id', userId)
+				.select('title', 'url', 'created_at');
+		}
+
+		if (include_actions) {
+			exportData.actions = await db('bangs')
+				.join('action_types', 'bangs.action_type_id', 'action_types.id')
+				.where('bangs.user_id', userId)
+				.select(
+					'bangs.trigger',
+					'bangs.name',
+					'bangs.url',
+					'action_types.name as action_type',
+					'bangs.created_at',
+				);
+		}
+
+		// If nothing was selected to export
+		if (!include_bookmarks && !include_actions) {
+			req.flash('error', 'Please select at least one data type to export');
+			return res.redirect('/settings/data');
+		}
+
+		res.setHeader('Content-Disposition', 'attachment; filename=bang-data-export.json');
+		res.setHeader('Content-Type', 'application/json');
+		res.send(JSON.stringify(exportData, null, 2));
+	},
+];
+
+// POST /settings/data/import
+export const postImportDataHandler = [
+	validateRequestMiddleware([
+		body('config')
+			.notEmpty()
+			.custom((value) => {
+				try {
+					const parsed = JSON.parse(value);
+					if (!parsed.version || parsed.version !== '1.0') {
+						throw new Error('Invalid export version');
+					}
+					return true;
+				} catch (error) {
+					throw new Error('Invalid JSON format');
+				}
+			}),
+	]),
+	async (req: Request, res: Response) => {
+		const userId = req.session.user?.id;
+		const importData = JSON.parse(req.body.config);
+
+		try {
+			await db.transaction(async (trx) => {
+				if (importData.bookmarks?.length > 0) {
+					const bookmarks = importData.bookmarks.map((bookmark: any) => ({
+						user_id: userId,
+						title: bookmark.title,
+						url: bookmark.url,
+						created_at: new Date(),
+					}));
+					await trx('bookmarks').insert(bookmarks);
+				}
+
+				if (importData.actions?.length > 0) {
+					for (const action of importData.actions) {
+						const actionType = await trx('action_types').where('name', action.action_type).first();
+
+						if (actionType) {
+							await trx('bangs').insert({
+								user_id: userId,
+								trigger: action.trigger,
+								name: action.name,
+								url: action.url,
+								action_type_id: actionType.id,
+								created_at: new Date(),
+							});
+						}
+					}
+				}
+			});
+
+			req.flash('success', 'Data imported successfully!');
+		} catch (error) {
+			console.log(error);
+			req.flash('error', 'Failed to import data. Please check the format and try again.');
+		}
+
 		return res.redirect('/settings/data');
-	}
-
-	req.flash('info', '🎉 we will send you an email very shortly');
-	return res.redirect('/settings/data');
-}
+	},
+];
 
 // GET /settings/danger-zone
 export async function getSettingsDangerZonePageHandler(req: Request, res: Response) {
@@ -504,4 +605,42 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 	res.setHeader('Content-Disposition', 'attachment; filename=bookmarks.html');
 	res.setHeader('Content-Type', 'text/html; charset=UTF-8');
 	res.send(createBookmarksDocument(bookmarks));
+}
+// GET /settings/data/export
+export async function getExportAllDataHandler(req: Request, res: Response) {
+	const userId = req.session.user?.id;
+
+	// Get user data (excluding sensitive fields)
+	const user = await db('users')
+		.where('id', userId)
+		.select('username', 'email', 'default_search_provider', 'created_at')
+		.first();
+
+	// Get all user's bangs
+	const bangs = await db('bangs')
+		.join('action_types', 'bangs.action_type_id', 'action_types.id')
+		.where('bangs.user_id', userId)
+		.select(
+			'bangs.trigger',
+			'bangs.name',
+			'bangs.url',
+			'action_types.name as action_type',
+			'bangs.created_at',
+		);
+
+	// Get all user's bookmarks
+	const bookmarks = await db('bookmarks')
+		.where('user_id', userId)
+		.select('title', 'url', 'created_at');
+
+	const exportData = {
+		user,
+		bangs,
+		bookmarks,
+		exported_at: new Date().toISOString(),
+	};
+
+	res.setHeader('Content-Disposition', 'attachment; filename=bang-data-export.json');
+	res.setHeader('Content-Type', 'application/json');
+	res.send(JSON.stringify(exportData, null, 2));
 }
