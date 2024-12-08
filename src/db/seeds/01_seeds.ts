@@ -5,7 +5,6 @@ import { Knex } from 'knex';
 const env = dotenv.config({ path: path.resolve(path.join(process.cwd(), '..', '..', '.env')) });
 
 export async function seed(knex: Knex): Promise<void> {
-	// Clear existing entries
 	await knex('bangs').del();
 	await knex('bookmarks').del();
 	await knex('users').del();
@@ -20,12 +19,10 @@ export async function seed(knex: Knex): Promise<void> {
 		})
 		.returning('*');
 
-	// Get action types
 	const actionTypes = await knex('action_types').select('*');
 	const searchType = actionTypes.find((type) => type.name === 'search');
 	const redirectType = actionTypes.find((type) => type.name === 'redirect');
 
-	// Create sample bangs
 	const bangs = [
 		{
 			user_id: user.id,
@@ -51,4 +48,24 @@ export async function seed(knex: Knex): Promise<void> {
 	];
 
 	await knex('bangs').insert(bangs);
+
+	const bookmarks = [
+		{
+			user_id: user.id,
+			url: 'https://github.com',
+			title: 'GitHub - Where the world builds software',
+		},
+		{
+			user_id: user.id,
+			url: 'https://developer.mozilla.org',
+			title: 'MDN Web Docs',
+		},
+		{
+			user_id: user.id,
+			url: 'https://typescript-eslint.io',
+			title: 'TypeScript ESLint Documentation',
+		},
+	];
+
+	await knex('bookmarks').insert(bookmarks);
 }
