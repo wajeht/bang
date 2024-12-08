@@ -554,7 +554,6 @@ export const postImportDataHandler = [
 
 			req.flash('success', 'Data imported successfully!');
 		} catch (error) {
-			console.log(error);
 			req.flash('error', 'Failed to import data. Please check the format and try again.');
 		}
 
