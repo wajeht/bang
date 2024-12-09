@@ -9,7 +9,7 @@ import { body } from 'express-validator';
 
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {
-	if (req.is('json')) {
+	if (req.is('application/json') || req.xhr) {
 		res.status(200).json({ message: 'ok' });
 		return;
 	}
@@ -89,7 +89,7 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 		)
 		.orderBy('bangs.created_at', 'desc');
 
-	if (req.is('json')) {
+	if (req.is('application/json') || req.xhr) {
 		res.json({ data: actions });
 		return;
 	}
@@ -242,7 +242,7 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 		.select('id', 'title', 'url', 'created_at')
 		.orderBy('created_at', 'desc');
 
-	if (req.is('json')) {
+	if (req.is('application/json') || req.xhr) {
 		res.json({ data: bookmarks });
 		return;
 	}
