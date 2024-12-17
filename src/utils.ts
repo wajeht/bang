@@ -235,20 +235,20 @@ export async function search({
 			} catch (error) {
 				logger.error('Error adding bookmark:', error);
 				res.setHeader('Content-Type', 'text/html').send(`
-						<script>
-							alert("Error adding bookmark");
-							window.location.href = "${urlToBookmark}";
-						</script>`);
+					<script>
+						alert("Error adding bookmark");
+						window.location.href = "${urlToBookmark}";
+					</script>`);
 				return;
 			}
 		}
 
 		// If no URL provided in !bm command, go back
 		res.setHeader('Content-Type', 'text/html').send(`
-				<script>
-					alert("No URL provided for bookmark");
-					window.history.back();
-				</script>`);
+			<script>
+				alert("No URL provided for bookmark");
+				window.history.back();
+			</script>`);
 		return;
 	}
 
@@ -258,33 +258,36 @@ export async function search({
 
 		if (!trigger?.startsWith('!')) {
 			res.setHeader('Content-Type', 'text/html').send(`
-				<script>
-					alert("must include ! at the front");
-					window.history.back();
-				</script>`);
+			<script>
+				alert("must include ! at the front");
+				window.history.back();
+			</script>`);
 			return;
 		}
 
 		if (!url?.length) {
 			res.setHeader('Content-Type', 'text/html').send(`
-				<script>
-					alert("url must not be empty");
-					window.history.back();
-				</script>`);
+			<script>
+				alert("url must not be empty");
+				window.history.back();
+			</script>`);
 			return;
 		}
 
+		// Fetch user bangs and check for duplicates
 		const userBangs = await db.select('trigger').from('bangs').where({ user_id: user.id });
+		const userBangTriggers = userBangs.map((bang) => bang.trigger); // Extract triggers
 
-		if (['!add', '!bm'].concat(userBangs).includes(trigger!)) {
+		if (['!add', '!bm', ...userBangTriggers].includes(trigger)) {
 			res.setHeader('Content-Type', 'text/html').send(`
-				<script>
-					alert("trigger ${trigger} already exist");
-					window.history.back();
-				</script>`);
+			<script>
+				alert("Trigger ${trigger} already exists");
+				window.history.back();
+			</script>`);
 			return;
 		}
 
+		// Insert the new custom bang
 		await db('bangs').insert({
 			user_id: user.id,
 			trigger,
