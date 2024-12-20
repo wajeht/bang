@@ -192,7 +192,7 @@ table {
 }
 
 table td {
-	overflow: hidden;
+	overflow: scroll;
 }
 
 .no-style-btn:hover {
