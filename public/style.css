@@ -191,8 +191,9 @@ table {
 	width: 100%;
 }
 
-table td {
+td {
 	overflow: scroll;
+	/* word-break: break-all; */
 }
 
 .no-style-btn:hover {
