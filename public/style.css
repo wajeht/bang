@@ -186,6 +186,15 @@ summary:hover {
 	background: none;
 }
 
+table {
+	table-layout: fixed;
+	width: 100%;
+}
+
+table td {
+	overflow: hidden;
+}
+
 .no-style-btn:hover {
 	text-decoration: underline;
 }
