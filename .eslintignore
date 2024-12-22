@@ -15,3 +15,5 @@ playwright-report/*
 node_modules
 ./src/db/db.sqlite
 db.sqlite
+db.sqlite-shm
+db.sqlite-wal
