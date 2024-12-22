@@ -276,7 +276,7 @@ export async function search({
 
 		// Fetch user bangs and check for duplicates
 		const userBangs = await db.select('trigger').from('bangs').where({ user_id: user.id });
-		const userBangTriggers = userBangs.map((bang) => bang.trigger); // Extract triggers
+		const userBangTriggers = userBangs.map((bang) => bang.trigger);
 
 		if (['!add', '!bm', ...userBangTriggers].includes(trigger)) {
 			res.setHeader('Content-Type', 'text/html').send(`
