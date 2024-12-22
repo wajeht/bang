@@ -95,7 +95,11 @@ export function sessionMiddleware() {
 		secret: sessionConfig.secret,
 		resave: false,
 		saveUninitialized: false,
-		store: new ConnectSessionKnexStore({ knex: db, tableName: 'sessions' }),
+		store: new ConnectSessionKnexStore({
+			knex: db,
+			tableName: 'sessions',
+			createTable: false,
+		}),
 		proxy: appConfig.env === 'production',
 		cookie: {
 			path: '/',
