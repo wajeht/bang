@@ -98,7 +98,7 @@ export function sessionMiddleware() {
 		store: new ConnectSessionKnexStore({
 			knex: db,
 			tableName: 'sessions',
-			createTable: false,
+			// createTable: false,
 		}),
 		proxy: appConfig.env === 'production',
 		cookie: {
