@@ -1,14 +1,6 @@
 import type { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
-	await knex.schema.createTable('sessions', (table) => {
-		table.string('sid', 255).primary().notNullable();
-		table.json('sess').notNullable();
-		table.timestamp('expired').notNullable();
-
-		table.index(['expired'], 'sessions_expired_index');
-	});
-
 	await knex.schema.createTable('users', (table) => {
 		table.increments('id').primary();
 		table.string('username').unique().notNullable();
@@ -62,5 +54,4 @@ export async function down(knex: Knex): Promise<void> {
 	await knex.schema.dropTableIfExists('bookmarks');
 	await knex.schema.dropTableIfExists('action_types');
 	await knex.schema.dropTableIfExists('users');
-	await knex.schema.dropTableIfExists('sessions');
 }
