@@ -8,7 +8,7 @@ const knexConfig: Knex.Config = {
 	client: 'better-sqlite3',
 	useNullAsDefault: true,
 	asyncStackTraces: false,
-	connection: path.resolve(__dirname, 'db.sqlite'),
+	connection: path.resolve(__dirname, 'sqlite', 'db.sqlite'),
 	migrations: {
 		extension: 'ts',
 		tableName: 'knex_migrations',
