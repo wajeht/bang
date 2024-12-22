@@ -3,8 +3,8 @@ import helmet from 'helmet';
 import { appConfig, sessionConfig } from './configs';
 import session from 'express-session';
 import { logger } from './logger';
-import { db, redis } from './db/db';
-import { RedisStore as connectRedisStore } from 'connect-redis';
+import { db } from './db/db';
+import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { UnauthorizedError } from './errors';
 import { validationResult } from 'express-validator';
 import { sendNotificationQueue } from './utils';
@@ -95,11 +95,7 @@ export function sessionMiddleware() {
 		secret: sessionConfig.secret,
 		resave: false,
 		saveUninitialized: false,
-		store: new connectRedisStore({
-			client: redis,
-			prefix: sessionConfig.store_prefix,
-			disableTouch: true,
-		}),
+		store: new ConnectSessionKnexStore({ knex: db, tableName: 'sessions' }),
 		proxy: appConfig.env === 'production',
 		cookie: {
 			path: '/',
