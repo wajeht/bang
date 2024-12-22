@@ -21,14 +21,6 @@ export const appConfig = {
 	secretSalt: process.env.APP_SECRET_SALT || 'bang',
 } as const;
 
-export const databaseConfig = {
-	port: parseInt(process.env.DB_PORT || '5432'),
-	host: process.env.DB_HOST || 'postgres',
-	username: process.env.DB_USERNAME || 'username',
-	password: process.env.DB_PASSWORD || 'password',
-	database: process.env.DB_DATABASE || 'database',
-} as const;
-
 export const oauthConfig = {
 	github: {
 		redirect_uri: process.env.GITHUB_REDIRECT_URI || 'http://localhost/oauth/github/redirect',

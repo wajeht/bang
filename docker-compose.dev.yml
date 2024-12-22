@@ -5,8 +5,6 @@ services:
     build:
       context: ./
       dockerfile: ./Dockerfile.dev
-    depends_on:
-      - postgres
     ports:
       - '${APP_PORT}:${APP_PORT}'
     volumes:
@@ -16,31 +14,6 @@ services:
       - bang-network
     environment:
       - CHOKIDAR_USEPOLLING=true
-
-  postgres:
-    image: 'postgres:16-alpine'
-    container_name: postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_HOST: ${DB_HOST}
-      POSTGRES_DB: ${DB_DATABASE}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - '${DB_PORT}:${DB_PORT}'
-    networks:
-      - bang-network
-    volumes:
-      - 'postgres-data:/var/lib/postgresql/data'
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}']
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-volumes:
-  postgres-data:
-    driver: local
 
 networks:
   bang-network:

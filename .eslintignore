@@ -13,3 +13,5 @@ dist
 node_modules/*
 playwright-report/*
 node_modules
+./src/db/db.sqlite
+db.sqlite
