@@ -70,7 +70,7 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGQUIT', () => gracefulShutdown('SIGQUIT'));
 
 process.on('uncaughtException', async (error: Error, origin: string) => {
-	logger.error('Uncaught Exception: %o\nOrigin: %s', error, origin);
+	logger.error('Uncaught Exception: %o, Origin: %s', error, origin);
 	process.exit(1);
 });
 
@@ -80,8 +80,8 @@ process.on('warning', (warning: Error) => {
 
 process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
 	if (reason instanceof Error) {
-		logger.error('Unhandled Rejection: %o\nPromise: %o', reason, promise);
+		logger.error('Unhandled Rejection: %o, Promise: %o', reason, promise);
 	} else {
-		logger.error('Unhandled Rejection: %o\nReason: %o', promise, reason);
+		logger.error('Unhandled Rejection: %o, Reason: %o', promise, reason);
 	}
 });
