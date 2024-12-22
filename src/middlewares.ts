@@ -4,7 +4,7 @@ import { appConfig, sessionConfig } from './configs';
 import session from 'express-session';
 import { logger } from './logger';
 import { db, redis } from './db/db';
-import connectRedisStore from 'connect-redis';
+import { RedisStore as connectRedisStore } from 'connect-redis';
 import { UnauthorizedError } from './errors';
 import { validationResult } from 'express-validator';
 import { sendNotificationQueue } from './utils';
