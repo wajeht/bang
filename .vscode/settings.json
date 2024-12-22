@@ -8,6 +8,7 @@
 		"multistream",
 		"pino",
 		"resave",
+		"sess",
 		"Synchronised",
 		"wajeht"
 	]

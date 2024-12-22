@@ -42,6 +42,14 @@ export async function up(knex: Knex): Promise<void> {
 		table.index(['user_id', 'trigger']);
 	});
 
+	await knex.schema.createTable('sessions', (table) => {
+		table.string('sid', 255).primary().notNullable();
+		table.json('sess').notNullable();
+		table.timestamp('expired').notNullable();
+
+		table.index(['expired'], 'sessions_expired_index');
+	});
+
 	await knex('action_types').insert([
 		{ name: 'search' },
 		{ name: 'redirect' },
@@ -50,6 +58,7 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
+	await knex.schema.dropTableIfExists('sessions');
 	await knex.schema.dropTableIfExists('bangs');
 	await knex.schema.dropTableIfExists('bookmarks');
 	await knex.schema.dropTableIfExists('action_types');
