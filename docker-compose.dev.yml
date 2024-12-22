@@ -38,21 +38,6 @@ services:
       timeout: 10s
       retries: 5
 
-  mailhog:
-    container_name: mailhot
-    restart: unless-stopped
-    image: mailhog/mailhog
-    ports:
-      - '1025:1025'
-      - '8025:8025'
-    networks:
-      - bang-network
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8025/']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
 volumes:
   postgres-data:
     driver: local
