@@ -11,10 +11,15 @@
       <li style="list-style-type: none;"><a href="/privacy-policy">Privacy</a></li>
       <span>|</span>
       <li style="list-style-type: none;"><a href="/terms-of-service">Terms</a></li>
-      <% if (path === '/privacy-policy' || path === '/terms-of-service') { %>
+      <% if (
+          path === '/privacy-policy' ||
+          path === '/terms-of-service' ||
+          (typeof statusCode !== 'undefined' && statusCode >= 400) ||
+          (typeof statusCode !== 'undefined' && statusCode >= 500)) {
+      %>
         <% if (state.user) { %>
-        <span>|</span>
-        <li style="list-style-type: none;"><a href="/actions">Dashboard</a></li>
+          <span>|</span>
+          <li style="list-style-type: none;"><a href="/actions">Dashboard</a></li>
         <% } else {  %>
           <span>|</span>
           <li style="list-style-type: none;"><a href="/login">Login</a></li>
