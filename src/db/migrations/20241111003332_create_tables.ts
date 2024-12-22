@@ -22,7 +22,7 @@ export async function up(knex: Knex): Promise<void> {
 	await knex.schema.createTable('bookmarks', (table) => {
 		table.increments('id').primary();
 		table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE');
-		table.string('url').notNullable();
+		table.text('url').notNullable();
 		table.string('title');
 		table.timestamps(true, true);
 
@@ -35,7 +35,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.string('trigger').notNullable();
 		table.string('name').notNullable();
 		table.integer('action_type_id').unsigned().references('id').inTable('action_types');
-		table.string('url').notNullable();
+		table.text('url').notNullable();
 		table.timestamps(true, true);
 
 		table.unique(['user_id', 'trigger']);
