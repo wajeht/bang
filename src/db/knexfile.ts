@@ -42,8 +42,9 @@ const knexConfig: Knex.Config = {
 				// Enable multi-threaded operations (2 threads for 2 CPU cores)
 				conn.pragma('threads = 2');
 
-				done(null, conn);
 				console.log('New database connection established');
+
+				done(null, conn);
 			} catch (err) {
 				done(err as Error, conn);
 			}
