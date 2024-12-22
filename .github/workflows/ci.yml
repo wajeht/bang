@@ -13,11 +13,6 @@ env:
   APP_ADMIN_EMAIL: 'deeznutz@gmail.com'
   APP_SECRET_SALT: 'bang'
 
-  # redis
-  REDIS_HOST: 'localhost'
-  REDIS_PORT: 6379
-  REDIS_PASSWORD: 'password'
-
   # session
   SESSION_STORE_PREFIX: 'deez'
   SESSION_SECRET: 'nutz'
@@ -55,16 +50,6 @@ jobs:
   #         - 5432:5432
   #       options: >-
   #         --health-cmd pg_isready
-  #         --health-interval 10s
-  #         --health-timeout 5s
-  #         --health-retries 5
-
-  #     redis:
-  #       image: redis
-  #       ports:
-  #         - 6379:6379
-  #       options: >-
-  #         --health-cmd "redis-cli ping"
   #         --health-interval 10s
   #         --health-timeout 5s
   #         --health-retries 5
@@ -109,16 +94,6 @@ jobs:
   #         - 5432:5432
   #       options: >-
   #         --health-cmd pg_isready
-  #         --health-interval 10s
-  #         --health-timeout 5s
-  #         --health-retries 5
-
-  #     redis:
-  #       image: redis
-  #       ports:
-  #         - 6379:6379
-  #       options: >-
-  #         --health-cmd "redis-cli ping"
   #         --health-interval 10s
   #         --health-timeout 5s
   #         --health-retries 5
