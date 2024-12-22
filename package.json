@@ -30,7 +30,8 @@
 		"db:migrate:rollback:prod": "knex migrate:rollback --knexfile=./dist/src/db/knexfile.js",
 		"db:seed:make": "tsx ./node_modules/knex/bin/cli.js seed:make --knexfile=./src/db/knexfile.ts",
 		"db:seed:run": "tsx ./node_modules/knex/bin/cli.js seed:run --knexfile=./src/db/knexfile.ts",
-		"db:seed:run:prod": "knex seed:run --knexfile=./dist/src/db/knexfile.js"
+		"db:seed:run:prod": "knex seed:run --knexfile=./dist/src/db/knexfile.js",
+		"rmds": "find . -name '.DS_Store' -delete"
 	},
 	"keywords": [
 		"wajeht",
