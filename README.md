@@ -6,9 +6,6 @@
 
 DuckDuckGo's !Bangs, but on steroids.
 
-> [!WARNING]
-> This project is unfinished and heavily work in progress.
-
 ## 📖 Usage
 
 ### 🔍 Setup Custom Search Engine in Your Browser
