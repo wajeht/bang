@@ -29,12 +29,6 @@ export const databaseConfig = {
 	database: process.env.DB_DATABASE || 'database',
 } as const;
 
-export const redisConfig = {
-	port: parseInt(process.env.REDIS_PORT || '6379'),
-	host: process.env.REDIS_HOST || 'redis',
-	password: process.env.REDIS_PASSWORD || '',
-} as const;
-
 export const oauthConfig = {
 	github: {
 		redirect_uri: process.env.GITHUB_REDIRECT_URI || 'http://localhost/oauth/github/redirect',

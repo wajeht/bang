@@ -2,7 +2,7 @@ import { app } from './app';
 import { Server } from 'http';
 import { AddressInfo } from 'net';
 import { appConfig } from './configs';
-import { db, redis } from './db/db';
+import { db } from './db/db';
 import { runMigrations } from './utils';
 import { logger } from './logger';
 
@@ -47,13 +47,6 @@ function gracefulShutdown(signal: string): void {
 
 	server.close(async () => {
 		logger.info('HTTP server closed.');
-
-		try {
-			redis.quit();
-			logger.info('Redis connection closed.');
-		} catch (error) {
-			logger.error('Error closing Redis connection:', error);
-		}
 
 		try {
 			await db.destroy();
