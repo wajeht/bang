@@ -495,7 +495,10 @@ export const postExportDataHandler = [
 			return res.redirect('/settings/data');
 		}
 
-		res.setHeader('Content-Disposition', 'attachment; filename=bang-data-export.json');
+		res.setHeader(
+			'Content-Disposition',
+			`attachment; filename=bang-data-export-${exportData.exported_at}.json`,
+		);
 		res.setHeader('Content-Type', 'application/json');
 		res.send(JSON.stringify(exportData, null, 2));
 	},

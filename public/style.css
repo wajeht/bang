@@ -192,7 +192,7 @@ table {
 }
 
 td {
-	overflow: scroll;
+	overflow: auto;
 	/* word-break: break-all; */
 }
 
