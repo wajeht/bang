@@ -10,11 +10,5 @@ services:
     volumes:
       - ./:/usr/src/app
       - /usr/src/app/node_modules
-    networks:
-      - bang-network
     environment:
-      - CHOKIDAR_USEPOLLING=true
-
-networks:
-  bang-network:
-    driver: bridge
+      CHOKIDAR_USEPOLLING: 'true'
