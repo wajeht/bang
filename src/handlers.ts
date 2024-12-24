@@ -76,7 +76,7 @@ export async function getGithubHandler(req: Request, res: Response) {
 
 // GET /actions
 export async function getActionsPageHandler(req: Request, res: Response) {
-	const perPage = parseInt(req.query.per_page as string) || 10;
+	const perPage = parseInt(req.query.per_page as string) || req.session.user!.default_per_page;
 	const page = parseInt(req.query.page as string) || 1;
 	const search = req.query.search as string;
 	const sortKey = req.query.sort_key as string;
@@ -463,15 +463,17 @@ export const postSettingsAccountHandler = [
 			.notEmpty()
 			.isIn(Object.keys(defaultSearchProviders))
 			.withMessage('Invalid search provider selected'),
+		body('default_per_page').notEmpty().isInt().withMessage('must be an integer'),
 	]),
 	async (req: Request, res: Response) => {
-		const { email, username, default_search_provider } = req.body;
+		const { email, username, default_search_provider, default_per_page } = req.body;
 
 		await db('users')
 			.update({
 				email,
 				username,
 				default_search_provider,
+				default_per_page,
 			})
 			.where({ id: req.session.user?.id });
 

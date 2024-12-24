@@ -15,6 +15,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.string('email').unique().notNullable();
 		table.boolean('is_admin').defaultTo(false);
 		table.string('default_search_provider').defaultTo('duckduckgo');
+		table.integer('default_per_page').defaultTo(10);
 		table.timestamps(true, true);
 
 		table.index(['email', 'is_admin', 'username']);
