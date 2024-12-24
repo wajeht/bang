@@ -14,7 +14,7 @@
     });
 
     try {
-      const response = await fetch('/actions', { headers: { 'Content-Type': 'application/json' } });
+      const response = await fetch('/actions?per_page=999999999999', { headers: { 'Content-Type': 'application/json' } });
       bangs = (await response.json()).actions.sort((a, b) => a.trigger.localeCompare(b.trigger));
     } catch (error) {
       console.error('Error fetching bangs:', error);
