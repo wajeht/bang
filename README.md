@@ -1,3 +1,10 @@
+
+
+
+https://github.com/user-attachments/assets/7c4104ad-5ad4-4aca-a3b8-d258f9ec300f
+
+
+
 # ‼️ Bang
 
 [![Node.js CI](https://github.com/wajeht/bang/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wajeht/bang/actions/workflows/ci.yml)
