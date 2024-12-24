@@ -31,7 +31,7 @@ DuckDuckGo's !Bangs, but on steroids.
 
 ### 🔖 Browser Bookmarklet
 
-## Bookmark
+#### 🔖 Bookmark
 
 ```javascript
 javascript: (function () {
@@ -40,7 +40,7 @@ javascript: (function () {
 })();
 ```
 
-## Bookmark
+#### ⚡️ Action
 
 ```javascript
 javascript: (function () {
