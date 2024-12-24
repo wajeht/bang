@@ -31,10 +31,22 @@ DuckDuckGo's !Bangs, but on steroids.
 
 ### 🔖 Browser Bookmarklet
 
+## Bookmark
+
 ```javascript
 javascript: (function () {
 	const link = encodeURIComponent(window.location.href);
 	window.location.href = 'http://bang.jaw.dev/?q=!bm ' + link;
+})();
+```
+
+## Bookmark
+
+```javascript
+javascript: (function () {
+	const trigger = prompt('please enter a trigger');
+	const link = encodeURIComponent(window.location.href);
+	window.location.href = 'http://bang.jaw.dev/?q=!add ' + `!${trigger} ` + link;
 })();
 ```
 
