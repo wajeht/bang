@@ -76,7 +76,13 @@ export async function getGithubHandler(req: Request, res: Response) {
 
 // GET /actions
 export async function getActionsPageHandler(req: Request, res: Response) {
-	const actions = await db('bangs')
+	const perPage = parseInt(req.query.per_page as string) || 10;
+	const currentPage = parseInt(req.query.current_page as string) || 1;
+	const search = req.query.search as string;
+	const sortKey = req.query.sort_key as string;
+	const direction = req.query.direction as string;
+
+	const query = db('bangs')
 		.join('action_types', 'bangs.action_type_id', 'action_types.id')
 		.where('bangs.user_id', req.session.user?.id)
 		.select(
@@ -86,11 +92,36 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 			'bangs.url',
 			'action_types.name as action_type',
 			'bangs.created_at',
-		)
-		.orderBy('bangs.created_at', 'desc');
+		);
+
+	if (search) {
+		query.where(function () {
+			this.where('bangs.name', 'ilike', `%${search}%`)
+				.orWhere('bangs.trigger', 'ilike', `%${search}%`)
+				.orWhere('bangs.url', 'ilike', `%${search}%`);
+		});
+	}
+
+	if (sortKey === 'name' || sortKey === 'trigger' || sortKey === 'url') {
+		query.orderBy(`bangs.${sortKey}`, direction === 'desc' ? 'desc' : 'asc');
+	} else {
+		query.orderBy('bangs.created_at', 'desc');
+	}
+
+	const { data: actions, pagination } = await query.paginate({
+		perPage,
+		currentPage: currentPage,
+		isLengthAware: true,
+	});
 
 	if (req.get('Content-Type') === 'application/json') {
-		res.json({ data: actions });
+		res.json({
+			actions,
+			pagination,
+			search,
+			sortKey,
+			direction,
+		});
 		return;
 	}
 
@@ -99,6 +130,10 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 		title: 'Actions',
 		layout: '../layouts/auth.html',
 		actions,
+		pagination,
+		search,
+		sortKey,
+		direction,
 	});
 }
 
