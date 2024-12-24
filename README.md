@@ -45,6 +45,7 @@ javascript: (function () {
 ```javascript
 javascript: (function () {
 	const trigger = prompt('please enter a trigger');
+	if (!trigger) window.history.back();
 	const link = encodeURIComponent(window.location.href);
 	window.location.href = `http://bang.jaw.dev/?q=!add !${trigger} ${link}`;
 })();
