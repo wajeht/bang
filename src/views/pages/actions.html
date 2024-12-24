@@ -135,11 +135,11 @@
     </div>
 
     <!-- Back to Paginated View -->
-    <div style="display: flex; justify-content: center; gap: 10px; align-items: center;">
-        <% if (pagination.perPage === pagination.total) { %>
+    <% if (pagination.perPage === pagination.total) { %>
+        <div style="display: flex; justify-content: center; gap: 10px; align-items: center;">
             <a href="<%= path %>?page=1&per_page=10&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Back to Paginated View">Back to Paginated View</a>
-        <% } %>
-    </div>
+        </div>
+    <% } %>
 
     <% if (pagination.total > pagination.perPage) { %>
         <div style="display: flex; justify-content: center; gap: 10px; align-items: center;">
