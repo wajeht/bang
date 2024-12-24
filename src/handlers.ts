@@ -76,8 +76,8 @@ export async function getGithubHandler(req: Request, res: Response) {
 
 // GET /actions
 export async function getActionsPageHandler(req: Request, res: Response) {
-	const perPage = parseInt(req.query.perPage as string) || 10;
-	const currentPage = parseInt(req.query.currentPage as string) || 1;
+	const perPage = parseInt(req.query.per_page as string) || 10;
+	const page = parseInt(req.query.page as string) || 1;
 	const search = req.query.search as string;
 	const sortKey = req.query.sort_key as string;
 	const direction = req.query.direction as string;
@@ -117,7 +117,7 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 
 	const { data: actions, pagination } = await query.paginate({
 		perPage,
-		currentPage: currentPage,
+		currentPage: page,
 		isLengthAware: true,
 	});
 
