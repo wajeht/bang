@@ -15,7 +15,7 @@
 
     try {
       const response = await fetch('/actions', { headers: { 'Content-Type': 'application/json' } });
-      bangs = (await response.json()).data.sort((a, b) => a.trigger.localeCompare(b.trigger));
+      bangs = (await response.json()).actions.sort((a, b) => a.trigger.localeCompare(b.trigger));
     } catch (error) {
       console.error('Error fetching bangs:', error);
     }
