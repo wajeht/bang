@@ -4,7 +4,21 @@
             <h2>⚡ Actions</h2>
             <p>Manage your actions and shortcuts</p>
         </div>
-        <a href="/actions/create">➕ Create New Action</a>
+
+        <div style="display: flex; gap: 10px;">
+            <form method="GET" action="/actions" style="display: flex; gap: 10px;">
+                <input
+                    type="search"
+                    name="search"
+                    placeholder="Search..."
+                    value="<%= search %>"
+                    style="padding: 8px; border-radius: 5px; border: 1px dashed; flex: 1;"
+                >
+                <button type="submit">🔍 Search</button>
+            </form>
+
+            <button type="button" onclick="location.href='/actions/create'">➕ Create New Action</button>
+        </div>
     </div>
 
     <div style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
@@ -12,11 +26,51 @@
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="border-bottom: 1px dashed #ddd;">
-                        <th style="text-align: left; padding: 10px;">📝 Name</th>
-                        <th style="text-align: left; padding: 10px;">🔥 Trigger</th>
-                        <th style="text-align: left; padding: 10px;">🌐 URL</th>
+                        <th style="text-align: left; padding: 10px;">
+                            <a href="/actions?sort_key=name&direction=<%= (sortKey === 'name' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                📝 Name
+                                <% if (sortKey === 'name') { %>
+                                    <%= direction === 'asc' ? '↑' : '↓' %>
+                                <% } else { %>
+                                    <span>↕️</span>
+                                <% } %>
+                            </a>
+                        </th>
+                        <th style="text-align: left; padding: 10px;">
+                            <a href="/actions?sort_key=trigger&direction=<%= (sortKey === 'trigger' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                🔥 Trigger
+                                <% if (sortKey === 'trigger') { %>
+                                    <%= direction === 'asc' ? '↑' : '↓' %>
+                                <% } else { %>
+                                    <span>↕️</span>
+                                <% } %>
+                            </a>
+                        </th>
+                        <th style="text-align: left; padding: 10px;">
+                            <a href="/actions?sort_key=url&direction=<%= (sortKey === 'url' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                🌐 URL
+                                <% if (sortKey === 'url') { %>
+                                    <%= direction === 'asc' ? '↑' : '↓' %>
+                                <% } else { %>
+                                    <span>↕️</span>
+                                <% } %>
+                            </a>
+                        </th>
                         <th style="text-align: left; padding: 10px;">🔄 Type</th>
-                        <th style="text-align: left; padding: 10px;">📅 Created</th>
+                        <th style="text-align: left; padding: 10px;">
+                            <a href="/actions?sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                📅 Created
+                                <% if (sortKey === 'created_at') { %>
+                                    <%= direction === 'asc' ? '↑' : '↓' %>
+                                <% } else { %>
+                                    <span>↕️</span>
+                                <% } %>
+                            </a>
+                        </th>
                         <th style="text-align: left; padding: 10px;">⚡ Actions</th>
                     </tr>
                 </thead>
@@ -70,6 +124,25 @@
                     <% }); %>
                 </tbody>
             </table>
+
+            <% if (pagination.lastPage > 1) { %>
+                <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+                    <% if (pagination.currentPage > 1) { %>
+                        <a href="/actions?page=<%= pagination.currentPage - 1 %>&search=<%= search %>&sort_key=<%= sortKey %>&direction=<%= direction %>">
+                            ⬅️ Previous
+                        </a>
+                    <% } %>
+
+                    <span>Page <%= pagination.currentPage %> of <%= pagination.lastPage %></span>
+
+                    <% if (pagination.currentPage < pagination.lastPage) { %>
+                        <a href="/actions?page=<%= pagination.currentPage + 1 %>&search=<%= search %>&sort_key=<%= sortKey %>&direction=<%= direction %>">
+                            Next ➡️
+                        </a>
+                    <% } %>
+                </div>
+            <% } %>
+
         <% } else { %>
             <div style="text-align: center; padding: 20px;">
                 <p>📭 You haven't created any actions yet.</p>

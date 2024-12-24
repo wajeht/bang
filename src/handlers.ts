@@ -76,8 +76,8 @@ export async function getGithubHandler(req: Request, res: Response) {
 
 // GET /actions
 export async function getActionsPageHandler(req: Request, res: Response) {
-	const perPage = parseInt(req.query.per_page as string) || 10;
-	const currentPage = parseInt(req.query.current_page as string) || 1;
+	const perPage = parseInt(req.query.perPage as string) || 10;
+	const currentPage = parseInt(req.query.currentPage as string) || 1;
 	const search = req.query.search as string;
 	const sortKey = req.query.sort_key as string;
 	const direction = req.query.direction as string;
@@ -94,15 +94,22 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 			'bangs.created_at',
 		);
 
+	// using LOWER() for SQLite case-insensitive search
 	if (search) {
+		const searchLower = search.toLowerCase();
 		query.where(function () {
-			this.where('bangs.name', 'ilike', `%${search}%`)
-				.orWhere('bangs.trigger', 'ilike', `%${search}%`)
-				.orWhere('bangs.url', 'ilike', `%${search}%`);
+			this.where(db.raw('LOWER(bangs.name) LIKE ?', [`%${searchLower}%`]))
+				.orWhere(db.raw('LOWER(bangs.trigger) LIKE ?', [`%${searchLower}%`]))
+				.orWhere(db.raw('LOWER(bangs.url) LIKE ?', [`%${searchLower}%`]));
 		});
 	}
 
-	if (sortKey === 'name' || sortKey === 'trigger' || sortKey === 'url') {
+	if (
+		sortKey === 'name' ||
+		sortKey === 'trigger' ||
+		sortKey === 'url' ||
+		sortKey === 'created_at'
+	) {
 		query.orderBy(`bangs.${sortKey}`, direction === 'desc' ? 'desc' : 'asc');
 	} else {
 		query.orderBy('bangs.created_at', 'desc');
