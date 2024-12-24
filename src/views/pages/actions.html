@@ -134,8 +134,18 @@
         <% } %>
     </div>
 
+    <!-- Back to Paginated View -->
+    <div style="display: flex; justify-content: center; gap: 10px; align-items: center;">
+        <% if (pagination.perPage === pagination.total) { %>
+            <a href="<%= path %>?page=1&per_page=10&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Back to Paginated View">Back to Paginated View</a>
+        <% } %>
+    </div>
+
     <% if (pagination.total > pagination.perPage) { %>
         <div style="display: flex; justify-content: center; gap: 10px; align-items: center;">
+            <!-- View All -->
+            <a href="<%= path %>?page=1&per_page=<%= pagination.total %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="View All">View All </a>
+
             <!-- Previous and First -->
             <% if (pagination.currentPage > 1) { %>
                 <a href="<%= path %>?page=1&per_page=<%= pagination.perPage %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="First Page">⏮️ First</a>
