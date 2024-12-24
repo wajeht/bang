@@ -1,8 +1,4 @@
-
-
-
 https://github.com/user-attachments/assets/5f033de3-afa1-44a7-b55b-dc45fc203d10
-
 
 # ‼️ Bang
 
