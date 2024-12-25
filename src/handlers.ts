@@ -199,9 +199,10 @@ export async function postSearchHandler(req: Request, res: Response) {
 // GET /
 export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	const query = req.query.q?.toString().trim() || '';
-	const user = req.session.user;
+	let user;
 
 	if (!query) {
+		user = await db.select('*').from('users').where('id', req.session.user!.id).first();
 		if (!user) {
 			return res.render('home.html', {
 				path: '/',
