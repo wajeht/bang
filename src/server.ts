@@ -3,8 +3,9 @@ import { Server } from 'http';
 import { AddressInfo } from 'net';
 import { appConfig } from './configs';
 import { db } from './db/db';
-import { runMigrations } from './utils';
+import { runMigrations, sendNotificationQueue } from './utils';
 import { logger } from './logger';
+import { Request } from 'express';
 
 const server: Server = app.listen(appConfig.port);
 
@@ -69,18 +70,41 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGQUIT', () => gracefulShutdown('SIGQUIT'));
 
-process.on('uncaughtException', async (error: Error, origin: string) => {
-	logger.error('Uncaught Exception: %o, Origin: %s', error, origin);
-	process.exit(1);
-});
-
 process.on('warning', (warning: Error) => {
 	logger.warn('Process warning: %s - %s', warning.name, warning.message);
 });
 
-process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
+process.on('uncaughtException', async (error: Error, origin: string) => {
+	logger.error('Uncaught Exception: %o, Origin: %s', error, origin);
+
+	if (appConfig.env === 'production') {
+		try {
+			await sendNotificationQueue.push({
+				req: {} as Request,
+				error,
+			});
+		} catch (error) {
+			logger.error('Failed to send uncaught exception notification', error);
+		}
+	}
+
+	process.exit(1);
+});
+
+process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknown>) => {
 	if (reason instanceof Error) {
 		logger.error('Unhandled Rejection: %o, Promise: %o', reason, promise);
+
+		if (appConfig.env === 'production') {
+			try {
+				await sendNotificationQueue.push({
+					req: {} as Request,
+					error: reason,
+				});
+			} catch (error) {
+				logger.error('Failed to send unhandled rejection notification', error);
+			}
+		}
 	} else {
 		logger.error('Unhandled Rejection: %o, Reason: %o', promise, reason);
 	}
