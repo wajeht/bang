@@ -1,3 +1,4 @@
 ## ✅ Roadmap
 
+- [ ] tests 🤣
 - [ ] selfhost doc
