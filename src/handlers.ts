@@ -548,6 +548,26 @@ export const postExportDataHandler = [
 	},
 ];
 
+// GET /bookmarks/{id}/edit
+export async function getEditBookmarkPageHandler(req: Request, res: Response) {
+	const bookmark = await db
+		.select('*')
+		.from('bookmarks')
+		.where({ id: req.params.id, user_id: req.session.user?.id })
+		.first();
+
+	if (!bookmark) {
+		throw NotFoundError();
+	}
+
+	return res.render('bookmarks-edit.html', {
+		title: 'Bookmark / Edit',
+		path: '/bookmark/edit',
+		layout: '../layouts/auth.html',
+		bookmark,
+	});
+}
+
 // POST /settings/data/import
 export const postImportDataHandler = [
 	validateRequestMiddleware([
