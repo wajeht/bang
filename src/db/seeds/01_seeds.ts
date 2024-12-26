@@ -8,6 +8,7 @@ export async function seed(knex: Knex): Promise<void> {
 	await knex('bangs').del();
 	await knex('bookmarks').del();
 	await knex('users').del();
+	await knex('sessions').del();
 
 	// Create admin user
 	const [user] = await knex('users')
