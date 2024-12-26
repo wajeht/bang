@@ -8,6 +8,8 @@
 		"knexfile",
 		"Millis",
 		"multistream",
+		"nodownload",
+		"nofullscreen",
 		"pino",
 		"resave",
 		"rmds",
