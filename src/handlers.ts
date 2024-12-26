@@ -637,7 +637,7 @@ export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Res
 // GET /bookmarks/export
 export async function getExportBookmarksHandler(req: Request, res: Response) {
 	const bookmarks = (await db
-		.select('url', 'title', db.raw('EXTRACT(EPOCH FROM created_at)::integer as add_date'))
+		.select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
 		.from('bookmarks')
 		.where({
 			user_id: req.session.user?.id,
