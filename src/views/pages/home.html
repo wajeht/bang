@@ -13,11 +13,17 @@
         without this?" 🤯</p>
     </div>
     <div style="border: dashed; border-radius: 5px; padding: 20px; max-width: 710px;">
-      <video controls preload="metadata" controlsList="nodownload nofullscreen noremoteplayback">
+      <video
+        controls
+        playsinline
+        muted
+        preload="none"
+        disablePictureInPicture
+        poster="/demo.png"
+        controlsList="nodownload nofullscreen noremoteplayback">
         <source src="/demo.mov" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
-
     </div>
   </section>
 
