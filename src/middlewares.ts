@@ -28,9 +28,7 @@ export function errorMiddleware() {
 		res: Response,
 		next: NextFunction,
 	) => {
-		if (appConfig.env !== 'production') {
-			logger.error(error);
-		}
+		logger.error(error);
 
 		if (appConfig.env === 'production') {
 			try {
