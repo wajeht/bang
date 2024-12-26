@@ -27,6 +27,7 @@ import {
 	postSearchHandler,
 	postExportDataHandler,
 	postImportDataHandler,
+	getEditBookmarkPageHandler,
 } from './handlers';
 import { authenticationMiddleware, csrfMiddleware } from './middlewares';
 
@@ -61,6 +62,7 @@ router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, pos
 
 router.get('/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksPageHandler);
 router.post('/bookmarks/:id/delete', authenticationMiddleware, csrfMiddleware, postDeleteBookmarkHandler); // prettier-ignore
+router.get('/bookmarks/:id/edit', authenticationMiddleware, csrfMiddleware,  getEditBookmarkPageHandler); // prettier-ignore
 router.get('/bookmarks/export', authenticationMiddleware, getExportBookmarksHandler);
 
 router.post('/settings/data/export', authenticationMiddleware, csrfMiddleware, postExportDataHandler); // prettier-ignore
