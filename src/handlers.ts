@@ -279,6 +279,8 @@ export function getActionCreatePageHandler(req: Request, res: Response) {
 
 // GET /bookmarks
 export async function getBookmarksPageHandler(req: Request, res: Response) {
+	const search = req.query.search as string;
+
 	const bookmarks = await db('bookmarks')
 		.where('user_id', req.session.user?.id)
 		.select('id', 'title', 'url', 'created_at')
@@ -294,6 +296,7 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 		path: '/bookmarks',
 		layout: '../layouts/auth',
 		bookmarks,
+		search,
 	});
 }
 
