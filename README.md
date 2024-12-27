@@ -35,9 +35,9 @@ DuckDuckGo's !Bangs, but on steroids.
 
 ```javascript
 javascript: (function () {
-	const link = encodeURIComponent(window.location.href);
+	const link = encodeURIComponent(window.location.href).trim();
 	if (!link) return;
-	window.location.href = `http://bang.jaw.dev/?q=!bm ${link.trim()}`;
+	window.location.href = `http://bang.jaw.dev/?q=!bm ${link}`;
 })();
 ```
 
@@ -45,11 +45,11 @@ javascript: (function () {
 
 ```javascript
 javascript: (function () {
-	const trigger = prompt('please enter a trigger');
+	const trigger = prompt('please enter a trigger').trim();
 	if (!trigger) return;
-	const link = encodeURIComponent(window.location.href);
+	const link = encodeURIComponent(window.location.href).trim();
 	if (!link) return;
-	window.location.href = `http://bang.jaw.dev/?q=!add !${trigger.trim()} ${link.trim()}`;
+	window.location.href = `http://bang.jaw.dev/?q=!add !${trigger} ${link}`;
 })();
 ```
 
