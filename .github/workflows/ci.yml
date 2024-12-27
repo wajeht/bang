@@ -28,6 +28,34 @@ env:
   NOTIFY_X_API_KEY: 'your mom'
 
 jobs:
+  unit-test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Create .env file from .env.ci
+        run: cp .env.ci .env
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Migrate dev database
+        run: npm run db:prepare:dev
+
+      - name: Test codes
+        run: npm run test:coverage
+
   lint:
     name: ESLint
     runs-on: ubuntu-latest
@@ -51,7 +79,7 @@ jobs:
         run: npm run lint
 
   format:
-    needs: [lint]
+    needs: [lint, unit-test]
     name: Prettier format
     runs-on: ubuntu-latest
 
