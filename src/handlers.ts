@@ -97,8 +97,8 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 	// using LOWER() for SQLite case-insensitive search
 	if (search) {
 		const searchLower = search.toLowerCase();
-		query.where(function () {
-			this.where(db.raw('LOWER(bangs.name) LIKE ?', [`%${searchLower}%`]))
+		query.where((q) => {
+			q.where(db.raw('LOWER(bangs.name) LIKE ?', [`%${searchLower}%`]))
 				.orWhere(db.raw('LOWER(bangs.trigger) LIKE ?', [`%${searchLower}%`]))
 				.orWhere(db.raw('LOWER(bangs.url) LIKE ?', [`%${searchLower}%`]));
 		});
@@ -298,8 +298,8 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 
 	if (search) {
 		const searchLower = search.toLowerCase();
-		query.where(function () {
-			this.where(db.raw('LOWER(title) LIKE ?', [`%${searchLower}%`])).orWhere(
+		query.where((q) => {
+			q.where(db.raw('LOWER(title) LIKE ?', [`%${searchLower}%`])).orWhere(
 				db.raw('LOWER(url) LIKE ?', [`%${searchLower}%`]),
 			);
 		});
