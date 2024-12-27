@@ -5,7 +5,7 @@
   </div>
   <form
       method="POST"
-      bookmark="/bookmarks/<%= bookmark.id %>/update"
+      action="/bookmarks/<%= bookmark.id %>/update"
       style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
   >
       <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
@@ -14,9 +14,9 @@
           <label for="title">🔤 Name<span style="color: red;">*</span></label>
           <input
               type="text"
-              id="text"
-              name="text"
-              placeholder="title"
+              id="title"
+              name="title"
+              placeholder="bang"
               value="<%= bookmark.title %>"
               style="width: 100%;"
               required
@@ -32,7 +32,7 @@
               type="url"
               name="url"
               id="url"
-              placeholder="https://google.com/search?q={query}"
+              placeholder="https://bang.jaw.dev/"
               value="<%= bookmark.url %>"
               style="width: 100%;"
               required
