@@ -176,8 +176,6 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
 			},
 		};
 
-		res.locals.print = (args: object) => JSON.stringify(args, null, 2);
-
 		// Clear session input and errors after setting locals
 		// This ensures they're available for the current request only
 		delete req.session.input;
