@@ -181,12 +181,12 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 	}
 
 	if (!foundUser) {
-		return res.redirect(`/actions?toast=${encodeURIComponent('✌️ enjoy bang!')}`);
+		req.flash('success', '✌️ enjoy bang!');
+		return res.redirect('/actions');
 	}
 
-	return res.redirect(
-		`/actions?toast=${encodeURIComponent(`🙏 welcome back, ${foundUser.username}!`)}`,
-	);
+	req.flash('success', `🙏 welcome back, ${foundUser.username}!`);
+	return res.redirect('/actions');
 }
 
 // POST /search
