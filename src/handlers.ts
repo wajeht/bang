@@ -181,7 +181,7 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 	}
 
 	if (!foundUser) {
-		return res.redirect(`/actions?toast=${encodeURIComponent('�� enjoy bang!')}`);
+		return res.redirect(`/actions?toast=${encodeURIComponent('✌️ enjoy bang!')}`);
 	}
 
 	return res.redirect(
