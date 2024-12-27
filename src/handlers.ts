@@ -111,6 +111,8 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 		sortKey === 'created_at'
 	) {
 		query.orderBy(`bangs.${sortKey}`, direction === 'desc' ? 'desc' : 'asc');
+	} else if (sortKey === 'action_type') {
+		query.orderBy(`action_types.name`, direction === 'desc' ? 'desc' : 'asc');
 	} else {
 		query.orderBy('bangs.created_at', 'desc');
 	}

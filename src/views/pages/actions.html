@@ -59,7 +59,17 @@
                                 <% } %>
                             </a>
                         </th>
-                        <th style="text-align: left; padding: 10px;">🔄 Type</th>
+                        <th style="text-align: left; padding: 10px;">
+                            <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=action_type&direction=<%= (sortKey === 'action_type' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                🔄 Type
+                                <% if (sortKey === 'action_type') { %>
+                                    <%= direction === 'asc' ? '↑' : '↓' %>
+                                <% } else { %>
+                                    <span>↕️</span>
+                                <% } %>
+                            </a>
+                        </th>
                         <th style="text-align: left; padding: 10px;">
                             <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
                                style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">

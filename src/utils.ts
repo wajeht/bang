@@ -204,11 +204,11 @@ export function reload({
 	});
 }
 
-export function isValidUrl(url: string) {
+export function isValidUrl(url: string): boolean {
 	try {
 		new URL(url);
 		return true;
-	} catch (err) {
+	} catch (_err) {
 		return false;
 	}
 }
