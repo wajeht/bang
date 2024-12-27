@@ -204,6 +204,15 @@ export function reload({
 	});
 }
 
+export function isValidUrl(url: string) {
+	try {
+		new URL(url);
+		return true;
+	} catch (err) {
+		return false;
+	}
+}
+
 export async function search({
 	res,
 	user,
@@ -223,6 +232,15 @@ export async function search({
 		const urlToBookmark = query.slice(5).trim();
 
 		if (urlToBookmark) {
+			if (isValidUrl(urlToBookmark) === false) {
+				res.setHeader('Content-Type', 'text/html').send(`
+					<script>
+						alert("Invalid URL");
+						window.history.back();
+					</script>`);
+				return;
+			}
+
 			try {
 				await db('bookmarks').insert({
 					user_id: user.id,
