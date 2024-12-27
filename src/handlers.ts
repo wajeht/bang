@@ -568,7 +568,7 @@ export const postExportDataHandler = [
 	},
 ];
 
-// GET /bookmarks/{id}/edit
+// GET /bookmarks/:id/edit
 export async function getEditBookmarkPageHandler(req: Request, res: Response) {
 	const bookmark = await db('bookmarks')
 		.where({
