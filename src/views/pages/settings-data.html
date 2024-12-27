@@ -1,3 +1,12 @@
+<script>
+  function showExportDataTab(language) {
+    document.querySelectorAll('#html, #json').forEach(tab => {
+      tab.style.display = 'none';
+    });
+
+    document.getElementById(language).style.display = 'flex';
+  }
+</script>
 <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
 
   <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -7,38 +16,39 @@
 
   <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
     <div style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
-      <div style="display: flex; flex-direction: column; gap: 5px;">
-        <h3>⬇️ Export Data as HTML</h3>
-        <p>Export your bookmarks to import to browsers</p>
+      <div style="display: flex; gap: 5px;">
+        <button style="width: 100%;" onclick="showExportDataTab('json')">JSON</button>
+        <button style="width: 100%;" onclick="showExportDataTab('html')">HTML</button>
       </div>
 
-      <button type="button" onclick="location.href='/bookmarks/export'">⬇️ Export</button>
-    </div>
-
-    <div style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
-      <div style="display: flex; flex-direction: column; gap: 5px;">
-        <h3>⬇️ Export Data as JSON</h3>
+      <div id="json" style="display: flex; flex-direction: column; gap: 10px;">
         <p>Export your bookmarks and custom actions</p>
+
+        <form method="POST" action="/settings/data/export">
+          <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div>
+              <label>
+                <input type="checkbox" name="include_bookmarks" checked>
+                Include Bookmarks
+              </label>
+            </div>
+            <div>
+              <label>
+                <input type="checkbox" name="include_actions" checked>
+                Include Actions
+              </label>
+            </div>
+            <button type="submit" style="width: 100%;">⬇️ Export</button>
+          </div>
+        </form>
       </div>
 
-      <form method="POST" action="/settings/data/export">
-        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div>
-            <label>
-              <input type="checkbox" name="include_bookmarks" checked>
-              Include Bookmarks
-            </label>
-          </div>
-          <div>
-            <label>
-              <input type="checkbox" name="include_actions" checked>
-              Include Actions
-            </label>
-          </div>
-          <button type="submit" style="width: 100%;">⬇️ Export</button>
-        </div>
-      </form>
+      <div id="html" style="display: none; flex-direction: column; gap: 10px;">
+        <p>Export your bookmarks to import to browsers</p>
+
+        <button type="button" onclick="location.href='/bookmarks/export'">⬇️ Export</button>
+      </div>
     </div>
 
     <div style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
