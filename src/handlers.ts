@@ -18,7 +18,7 @@ export function getHealthzHandler(req: Request, res: Response) {
 }
 
 // GET /terms-of-service
-export function getTermsOfServicePageHandler(req: Request, res: Response) {
+export function getTermsOfServicePageHandler(_req: Request, res: Response) {
 	return res.render('terms-of-service.html', {
 		path: '/terms-of-service',
 		title: 'Terms of Service',
@@ -26,7 +26,7 @@ export function getTermsOfServicePageHandler(req: Request, res: Response) {
 }
 
 // GET /privacy-policy
-export function getPrivacyPolicyPageHandler(req: Request, res: Response) {
+export function getPrivacyPolicyPageHandler(_req: Request, res: Response) {
 	return res.render('privacy-policy', {
 		path: '/privacy-policy',
 		title: 'Privacy Policy',
@@ -270,7 +270,7 @@ export const postActionHandler = [
 ];
 
 // GET /bookmarks/create
-export function getBookmarkCreatePageHandler(req: Request, res: Response) {
+export function getBookmarkCreatePageHandler(_req: Request, res: Response) {
 	return res.render('bookmarks-create.html', {
 		title: 'Bookmarks / New',
 		path: '/bookmarks/create',
@@ -279,7 +279,7 @@ export function getBookmarkCreatePageHandler(req: Request, res: Response) {
 }
 
 // GET /actions/create
-export function getActionCreatePageHandler(req: Request, res: Response) {
+export function getActionCreatePageHandler(_req: Request, res: Response) {
 	return res.render('actions-create.html', {
 		title: 'Actions / New',
 		path: '/actions/create',
@@ -491,7 +491,7 @@ export const postUpdateBookmarkHandler = [
 ];
 
 // GET /settings
-export async function getSettingsPageHandler(req: Request, res: Response) {
+export async function getSettingsPageHandler(_req: Request, res: Response) {
 	res.redirect('/settings/account');
 }
 

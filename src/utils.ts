@@ -190,7 +190,7 @@ export function reload({
 			})();
 	</script>\n\t`;
 
-	app.use((req: Request, res: Response, next: NextFunction) => {
+	app.use((_req: Request, res: Response, next: NextFunction) => {
 		const originalSend = res.send.bind(res);
 
 		res.send = function (body: any): Response {

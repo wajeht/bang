@@ -11,7 +11,7 @@ import { sendNotificationQueue } from './utils';
 import { csrfSync } from 'csrf-sync';
 
 export function notFoundMiddleware() {
-	return (req: Request, res: Response, next: NextFunction) => {
+	return (req: Request, res: Response, _next: NextFunction) => {
 		return res.status(404).render('error.html', {
 			path: req.path,
 			title: 'Not Found',
@@ -26,7 +26,7 @@ export function errorMiddleware() {
 		error: Error & { statusCode?: number },
 		req: Request,
 		res: Response,
-		next: NextFunction,
+		_next: NextFunction,
 	) => {
 		logger.error(error);
 
