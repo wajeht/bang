@@ -256,7 +256,7 @@ export const postActionHandler = [
 		await db('bangs').insert({
 			trigger: formattedTrigger,
 			name: name.trim(),
-			url: url,
+			url,
 			user_id: req.session.user!.id,
 			action_type_id: (await db('action_types').where({ name: actionType }).first()).id,
 			created_at: new Date(),
@@ -440,7 +440,7 @@ export const postUpdateActionHandler = [
 			.update({
 				trigger: formattedTrigger,
 				name: name.trim(),
-				url: url,
+				url,
 				action_type_id: (await db('action_types').where({ name: actionType }).first()).id,
 				updated_at: new Date(),
 			});
