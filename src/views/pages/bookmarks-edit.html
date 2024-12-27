@@ -1,2 +1,49 @@
+<div style="display: flex; flex-direction: column; gap: 20px;">
+  <div>
+      <h2>⚡ Bookmarks / Edit</h2>
+      <p>Edit your bookmark</p>
+  </div>
+  <form
+      method="POST"
+      bookmark="/bookmarks/<%= bookmark.id %>/update"
+      style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+  >
+      <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
-<pre><%- print(bookmark) %></pre>
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="title">🔤 Name<span style="color: red;">*</span></label>
+          <input
+              type="text"
+              id="text"
+              name="text"
+              placeholder="title"
+              value="<%= bookmark.title %>"
+              style="width: 100%;"
+              required
+          >
+          <% if (state.errors.title) { %>
+              <small style="color: red;"><%= state.errors.title %></small>
+          <% } %>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="url">🌐 URL<span style="color: red;">*</span></label>
+          <input
+              type="url"
+              name="url"
+              id="url"
+              placeholder="https://google.com/search?q={query}"
+              value="<%= bookmark.url %>"
+              style="width: 100%;"
+              required
+          >
+          <% if (state.errors.url) { %>
+              <small style="color: red;"><%= state.errors.url %></small>
+          <% } %>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+          <button type="submit" style="flex: 1;">Update 🚀</button>
+      </div>
+  </form>
+</div>
