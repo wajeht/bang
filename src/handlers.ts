@@ -181,7 +181,7 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 	}
 
 	if (!foundUser) {
-		return res.redirect(`/actions?toast=${encodeURIComponent('🎉 enjoy bang!')}`);
+		return res.redirect(`/actions?toast=${encodeURIComponent('�� enjoy bang!')}`);
 	}
 
 	return res.redirect(
@@ -761,3 +761,24 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
 	res.setHeader('Content-Type', 'application/json');
 	res.send(JSON.stringify(exportData, null, 2));
 }
+
+// POST /bookmarks
+export const postBookmarkHandler = [
+	validateRequestMiddleware([
+		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
+		body('title').notEmpty().withMessage('Title is required').trim(),
+	]),
+	async (req: Request, res: Response) => {
+		const { url, title } = req.body;
+
+		await db('bookmarks').insert({
+			user_id: req.session.user!.id,
+			title,
+			url,
+			created_at: new Date(),
+		});
+
+		req.flash('success', `Bookmark ${title} created successfully!`);
+		return res.redirect('/bookmarks');
+	},
+];

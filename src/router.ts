@@ -31,6 +31,7 @@ import {
 	postUpdateBookmarkHandler,
 	getBookmarkActionCreatePageHandler,
 	getBookmarkCreatePageHandler,
+	postBookmarkHandler,
 } from './handlers';
 import { authenticationMiddleware, csrfMiddleware } from './middlewares';
 
@@ -63,6 +64,7 @@ router.get('/actions/:id/edit', authenticationMiddleware, csrfMiddleware, getEdi
 router.post('/actions/:id/update', authenticationMiddleware, csrfMiddleware, postUpdateActionHandler); // prettier-ignore
 router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, postDeleteActionHandler); // prettier-ignore
 
+router.post('/bookmarks', authenticationMiddleware, csrfMiddleware, postBookmarkHandler);
 router.get('/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksPageHandler);
 router.post('/bookmarks/:id/delete', authenticationMiddleware, csrfMiddleware, postDeleteBookmarkHandler); // prettier-ignore
 router.post('/bookmarks/:id/update', authenticationMiddleware, csrfMiddleware, postUpdateBookmarkHandler); // prettier-ignore
