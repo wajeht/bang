@@ -268,6 +268,15 @@ export const postActionHandler = [
 ];
 
 // GET /actions/create
+export function getBookmarkCreatePageHandler(req: Request, res: Response) {
+	return res.render('bookmarks-create.html', {
+		title: 'Bookmarks / New',
+		path: '/bookmarks/create',
+		layout: '../layouts/auth.html',
+	});
+}
+
+// GET /actions/create
 export function getActionCreatePageHandler(req: Request, res: Response) {
 	return res.render('actions-create.html', {
 		title: 'Actions / New',
