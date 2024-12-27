@@ -550,10 +550,11 @@ export const postExportDataHandler = [
 
 // GET /bookmarks/{id}/edit
 export async function getEditBookmarkPageHandler(req: Request, res: Response) {
-	const bookmark = await db
-		.select('*')
-		.from('bookmarks')
-		.where({ id: req.params.id, user_id: req.session.user?.id })
+	const bookmark = await db('bookmarks')
+		.where({
+			id: req.params.id,
+			user_id: req.session.user?.id,
+		})
 		.first();
 
 	if (!bookmark) {
