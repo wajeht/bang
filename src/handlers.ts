@@ -407,6 +407,26 @@ export const postUpdateActionHandler = [
 	},
 ];
 
+// POST /bookmarks/:id/update
+export const postUpdateBookmarkHandler = [
+	validateRequestMiddleware([
+		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
+		body('title').notEmpty().withMessage('Title is required').trim(),
+	]),
+	async (req: Request, res: Response) => {
+		const { url, title } = req.body;
+
+		await db('bookmarks').where({ id: req.params?.id, user_id: req.session.user?.id }).update({
+			title,
+			url,
+			updated_at: new Date(),
+		});
+
+		req.flash('success', `Bookmark ${req.params?.id} updated successfully!`);
+		return res.redirect('/bookmarks');
+	},
+];
+
 // GET /settings
 export async function getSettingsPageHandler(req: Request, res: Response) {
 	res.redirect('/settings/account');
