@@ -82,9 +82,7 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 	const sortKey = req.query.sort_key as string;
 	const direction = req.query.direction as string;
 
-	const query = db('bangs')
-		.join('action_types', 'bangs.action_type_id', 'action_types.id')
-		.where('bangs.user_id', req.session.user?.id)
+	const query = db
 		.select(
 			'bangs.id',
 			'bangs.name',
@@ -92,7 +90,10 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 			'bangs.url',
 			'action_types.name as action_type',
 			'bangs.created_at',
-		);
+		)
+		.from('bangs')
+		.where('bangs.user_id', req.session.user?.id)
+		.join('action_types', 'bangs.action_type_id', 'action_types.id');
 
 	if (search) {
 		const searchLower = search.toLowerCase();
@@ -380,13 +381,14 @@ export async function postDeleteActionHandler(req: Request, res: Response) {
 
 // GET /actions/:id/edit
 export async function getEditActionPageHandler(req: Request, res: Response) {
-	const action = await db('bangs')
-		.join('action_types', 'bangs.action_type_id', 'action_types.id')
+	const action = await db
+		.select('bangs.*', 'action_types.name as action_type')
+		.from('bangs')
 		.where({
 			'bangs.id': req.params.id,
 			'bangs.user_id': req.session.user?.id,
 		})
-		.select('bangs.*', 'action_types.name as action_type')
+		.join('action_types', 'bangs.action_type_id', 'action_types.id')
 		.first();
 
 	if (!action) {
@@ -602,16 +604,17 @@ export const postExportDataHandler = [
 		}
 
 		if (include_actions) {
-			exportData.actions = await db('bangs')
-				.join('action_types', 'bangs.action_type_id', 'action_types.id')
-				.where('bangs.user_id', userId)
+			exportData.actions = await db
 				.select(
 					'bangs.trigger',
 					'bangs.name',
 					'bangs.url',
 					'action_types.name as action_type',
 					'bangs.created_at',
-				);
+				)
+				.from('bangs')
+				.join('action_types', 'bangs.action_type_id', 'action_types.id')
+				.where('bangs.user_id', userId);
 		}
 
 		if (!include_bookmarks && !include_actions) {
