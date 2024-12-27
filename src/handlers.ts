@@ -288,15 +288,43 @@ export function getActionCreatePageHandler(req: Request, res: Response) {
 
 // GET /bookmarks
 export async function getBookmarksPageHandler(req: Request, res: Response) {
+	const perPage = parseInt(req.query.per_page as string) || req.session.user!.default_per_page;
+	const page = parseInt(req.query.page as string) || 1;
 	const search = req.query.search as string;
+	const sortKey = req.query.sort_key as string;
+	const direction = req.query.direction as string;
 
-	const bookmarks = await db('bookmarks')
-		.where('user_id', req.session.user?.id)
-		.select('id', 'title', 'url', 'created_at')
-		.orderBy('created_at', 'desc');
+	const query = db.select('*').from('bookmarks').where('user_id', req.session.user?.id);
+
+	if (search) {
+		const searchLower = search.toLowerCase();
+		query.where(function () {
+			this.where(db.raw('LOWER(title) LIKE ?', [`%${searchLower}%`])).orWhere(
+				db.raw('LOWER(url) LIKE ?', [`%${searchLower}%`]),
+			);
+		});
+	}
+
+	if (sortKey === 'title' || sortKey === 'url' || sortKey === 'created_at') {
+		query.orderBy(`bookmarks.${sortKey}`, direction === 'desc' ? 'desc' : 'asc');
+	} else {
+		query.orderBy('bookmarks.created_at', 'desc');
+	}
+
+	const { data: bookmarks, pagination } = await query.paginate({
+		perPage,
+		currentPage: page,
+		isLengthAware: true,
+	});
 
 	if (req.get('Content-Type') === 'application/json') {
-		res.json({ data: bookmarks });
+		res.json({
+			bookmarks,
+			pagination,
+			search,
+			sortKey,
+			direction,
+		});
 		return;
 	}
 
@@ -306,6 +334,9 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 		layout: '../layouts/auth',
 		bookmarks,
 		search,
+		pagination,
+		sortKey,
+		direction,
 	});
 }
 
