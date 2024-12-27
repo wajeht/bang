@@ -75,7 +75,7 @@
 
     // Handle input changes
     input.addEventListener('input', (e) => {
-      const value = e.target.value;
+      const value = e.target.value.trim();
       selectedIndex = -1;
       if (!value.startsWith('!')) {
         dropdown.style.display = 'none';
