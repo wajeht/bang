@@ -94,7 +94,6 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 			'bangs.created_at',
 		);
 
-	// using LOWER() for SQLite case-insensitive search
 	if (search) {
 		const searchLower = search.toLowerCase();
 		query.where((q) => {
@@ -615,7 +614,6 @@ export const postExportDataHandler = [
 				);
 		}
 
-		// If nothing was selected to export
 		if (!include_bookmarks && !include_actions) {
 			req.flash('error', 'Please select at least one data type to export');
 			return res.redirect('/settings/data');
