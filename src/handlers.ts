@@ -267,7 +267,7 @@ export const postActionHandler = [
 	},
 ];
 
-// GET /actions/create
+// GET /bookmarks/create
 export function getBookmarkCreatePageHandler(req: Request, res: Response) {
 	return res.render('bookmarks-create.html', {
 		title: 'Bookmarks / New',
