@@ -749,7 +749,10 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 		return res.redirect('/bookmarks');
 	}
 
-	res.setHeader('Content-Disposition', 'attachment; filename=bookmarks.html');
+	res.setHeader(
+		'Content-Disposition',
+		`attachment; filename=bookmarks-${new Date().toISOString().split('T')[0]}.html`,
+	);
 	res.setHeader('Content-Type', 'text/html; charset=UTF-8');
 	res.send(createBookmarksDocument(bookmarks));
 }
