@@ -1,0 +1,51 @@
+<div style="display: flex; flex-direction: column; gap: 20px;">
+    <div>
+        <h2>⚡ Bookmarks / <%= bookmark.id %> / Actions / Create</h2>
+        <p>Create a new redirect action for bookmark <%= bookmark.id %></p>
+    </div>
+
+    <form
+        method="POST"
+        action="/actions"
+        style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+    >
+        <input type="text" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" hidden />
+        <input type="text" id="name" name="name" value="<%= bookmark.title %>" hidden />
+        <select id="actionType" name="actionType" hidden> <option value="redirect" selected /> </select>
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label for="trigger">⚡ Trigger<span style="color: red;">*</span></label>
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <span style="font-size: 1.2em;">!</span>
+                <input
+                    type="text"
+                    name="trigger"
+                    id="trigger"
+                    placeholder="g"
+                    value="<%= state.input.trigger ?? state.input.trigger %>"
+                    style="width: 100%;"
+                    required
+                >
+            </div>
+            <small>The command to trigger this action (e.g., 'g' for Google)</small>
+            <% if (state.errors.trigger) { %>
+                <small style="color: red;"><%= state.errors.trigger %></small>
+            <% } %>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label for="url">🌐 URL<span style="color: red;">*</span></label>
+            <input
+                type="url"
+                name="url"
+                id="url"
+                value="<%= bookmark.url %>"
+                style="width: 100%;"
+                required
+                readonly
+            >
+        </div>
+
+        <button type="submit" style="width: 100%;">Submit 🚀</button>
+    </form>
+</div>

@@ -410,6 +410,23 @@ export const postUpdateActionHandler = [
 	},
 ];
 
+// GET /bookmarks/:id/actions/create
+export async function getBookmarkActionCreatePageHandler(req: Request, res: Response) {
+	const bookmark = await db('bookmarks')
+		.where({
+			id: req.params.id,
+			user_id: req.session.user?.id,
+		})
+		.first();
+
+	return res.render('bookmarks-id-actions-create.html', {
+		title: `Bookmarks / ${req.params.id} / Actions / Create`,
+		path: `/bookmarks/${req.params.id}/actions/create`,
+		layout: '../layouts/auth.html',
+		bookmark,
+	});
+}
+
 // POST /bookmarks/:id/update
 export const postUpdateBookmarkHandler = [
 	validateRequestMiddleware([
