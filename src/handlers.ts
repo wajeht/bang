@@ -536,13 +536,13 @@ export async function postSettingsCreateApiKeyHandler(req: Request, res: Respons
 
 	const apiKey = jwt.sign(payload, appConfig.apiKeySecret, { expiresIn: '1y' });
 
-	await db('users').where({ id, user_id: req.session?.user?.id }).update({
+	await db('users').where({ id: req.session?.user?.id }).update({
 		api_key: apiKey,
 		api_key_version: newKeyVersion,
 		api_key_created_at: db.fn.now(),
 	});
 
-	req.flash('success', 'api key created');
+	req.flash('success', '📱 api key created');
 
 	return res.redirect(`/settings/account`);
 }
