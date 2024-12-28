@@ -1,4 +1,10 @@
-import { createBookmarksDocument, getGithubOauthToken, getGithubUserEmails, search } from './utils';
+import {
+	createBookmarksDocument,
+	expectJson,
+	getGithubOauthToken,
+	getGithubUserEmails,
+	search,
+} from './utils';
 import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './configs';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
 import { Request, Response } from 'express';
@@ -295,8 +301,13 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 	const search = req.query.search as string;
 	const sortKey = req.query.sort_key as string;
 	const direction = req.query.direction as string;
+	let userId = req.session.user?.id as number;
 
-	const query = db.select('*').from('bookmarks').where('user_id', req.session.user?.id);
+	if (expectJson(req) && req.apiKeyPayload) {
+		userId = req.apiKeyPayload?.userId;
+	}
+
+	const query = db.select('*').from('bookmarks').where('user_id', userId);
 
 	if (search) {
 		const searchLower = search.toLowerCase();
@@ -319,7 +330,7 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 		isLengthAware: true,
 	});
 
-	if (req.get('Content-Type') === 'application/json') {
+	if (expectJson(req)) {
 		res.json({
 			bookmarks,
 			pagination,

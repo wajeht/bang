@@ -421,3 +421,7 @@ export async function verifyApiKey(apiKey: string): Promise<ApiKeyPayload | null
 		return null;
 	}
 }
+
+export function expectJson(req: Request): boolean {
+	return req.get('Content-Type') === 'application/json';
+}
