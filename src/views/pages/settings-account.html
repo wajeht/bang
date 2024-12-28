@@ -8,15 +8,6 @@
     }
   }
 
-  function viewDemoCodeApiKey() {
-    const demoApiKeySpan = document.getElementById('demoApiKeySpan');
-    if (demoApiKeySpan.textContent === "'••••••••••••••••••••••••••••••••••••••••••••••••'") {
-      demoApiKeySpan.textContent = "'<%= user.api_key %>'";
-    } else {
-      demoApiKeySpan.textContent = "'••••••••••••••••••••••••••••••••••••••••••••••••'";
-    }
-  }
-
   function copyApiKey() {
     const apiKey = '<%= user.api_key %>';
     navigator.clipboard.writeText(apiKey).then(() => {
