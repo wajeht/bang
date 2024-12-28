@@ -10,7 +10,7 @@ import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './c
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
 import { Request, Response } from 'express';
 import { db } from './db/db';
-import { ApiKeyPayload, BookmarkToExport } from './types';
+import { ApiKeyPayload, BookmarkToExport, User } from './types';
 import { validateRequestMiddleware } from './middlewares';
 import { body } from 'express-validator';
 
@@ -297,18 +297,21 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 
 // GET /bookmarks
 export async function getBookmarksPageHandler(req: Request, res: Response) {
-	const perPage = parseInt(req.query.per_page as string) || req.session.user!.default_per_page;
+	let user: User;
+
+	if (expectJson(req) && req.apiKeyPayload) {
+		user = await db.select('*').from('users').where({ id: req.apiKeyPayload?.userId }).first();
+	} else {
+		user = req.session.user!;
+	}
+
+	const perPage = parseInt(req.query.per_page as string) || user.default_per_page;
 	const page = parseInt(req.query.page as string) || 1;
 	const search = req.query.search as string;
 	const sortKey = req.query.sort_key as string;
 	const direction = req.query.direction as string;
-	let userId = req.session.user?.id as number;
 
-	if (expectJson(req) && req.apiKeyPayload) {
-		userId = req.apiKeyPayload?.userId;
-	}
-
-	const query = db.select('*').from('bookmarks').where('user_id', userId);
+	const query = db.select('*').from('bookmarks').where('user_id', user.id);
 
 	if (search) {
 		const searchLower = search.toLowerCase();
@@ -519,9 +522,7 @@ export async function getSettingsAccountPageHandler(req: Request, res: Response)
 }
 
 export async function postSettingsCreateApiKeyHandler(req: Request, res: Response) {
-	const { id } = req.params;
-
-	const user = await db('users').where({ id: req.session?.user?.id }).first();
+	const user = await db('users').where({ id: req.session.user?.id }).first();
 
 	if (!user) {
 		throw NotFoundError();
@@ -530,7 +531,7 @@ export async function postSettingsCreateApiKeyHandler(req: Request, res: Respons
 	const newKeyVersion = (user.api_key_version || 0) + 1;
 
 	const payload: ApiKeyPayload = {
-		userId: user.user_id,
+		userId: user.id,
 		apiKeyVersion: newKeyVersion,
 	};
 
