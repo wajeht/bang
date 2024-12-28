@@ -19,7 +19,7 @@ declare global {
 export type ActionTypes = 'bookmark' | 'redirect' | 'search';
 
 export type ApiKeyPayload = {
-	userId: string;
+	userId: number;
 	apiKeyVersion: number;
 };
 
