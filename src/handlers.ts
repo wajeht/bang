@@ -1,6 +1,7 @@
 import {
 	createBookmarksDocument,
 	expectJson,
+	generateApiKey,
 	getGithubOauthToken,
 	getGithubUserEmails,
 	search,
@@ -543,13 +544,13 @@ export async function postSettingsCreateApiKeyHandler(req: Request, res: Respons
 		apiKeyVersion: newKeyVersion,
 	};
 
-	const apiKey = jwt.sign(payload, appConfig.apiKeySecret, { expiresIn: '1y' });
-
-	await db('users').where({ id: req.session?.user?.id }).update({
-		api_key: apiKey,
-		api_key_version: newKeyVersion,
-		api_key_created_at: db.fn.now(),
-	});
+	await db('users')
+		.where({ id: req.session?.user?.id })
+		.update({
+			api_key: await generateApiKey(payload),
+			api_key_version: newKeyVersion,
+			api_key_created_at: db.fn.now(),
+		});
 
 	req.flash('success', '📱 api key created');
 
