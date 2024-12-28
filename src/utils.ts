@@ -1,12 +1,13 @@
 import qs from 'qs';
 import fs from 'fs';
+import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import fastq from 'fastq';
 import path from 'node:path';
 import { db } from './db/db';
 import { logger } from './logger';
 import { appConfig, defaultSearchProviders, notifyConfig, oauthConfig } from './configs';
-import { BookmarkToExport, GitHubOauthToken, GithubUserEmail, User } from './types';
+import { ApiKeyPayload, BookmarkToExport, GitHubOauthToken, GithubUserEmail, User } from './types';
 import { Application, Request, Response, NextFunction } from 'express';
 
 export async function runMigrations(force: boolean = false) {
@@ -397,5 +398,26 @@ export async function sendNotification({
 		}
 	} catch (error) {
 		logger.error('Failed to send error notification', error);
+	}
+}
+
+export async function verifyApiKey(apiKey: string): Promise<ApiKeyPayload | null> {
+	try {
+		const decodedApiKeyPayload = jwt.verify(apiKey, appConfig.apiKeySecret) as ApiKeyPayload;
+
+		const app = await db('users')
+			.where({
+				id: decodedApiKeyPayload.userId,
+				api_key: apiKey,
+				api_key_version: decodedApiKeyPayload.apiKeyVersion,
+			})
+			.first();
+
+		if (!app) return null;
+
+		return decodedApiKeyPayload;
+	} catch (error) {
+		logger.error('failed to verify api key ', error);
+		return null;
 	}
 }

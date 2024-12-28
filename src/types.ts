@@ -7,7 +7,21 @@ declare module 'express-session' {
 	}
 }
 
+declare global {
+	// eslint-disable-next-line @typescript-eslint/no-namespace
+	namespace Express {
+		interface Request {
+			apiKeyPayload?: ApiKeyPayload;
+		}
+	}
+}
+
 export type ActionTypes = 'bookmark' | 'redirect' | 'search';
+
+export type ApiKeyPayload = {
+	userId: string;
+	apiKeyVersion: number;
+};
 
 export type User = {
 	id: number;
