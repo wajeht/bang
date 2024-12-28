@@ -7,7 +7,7 @@ import { db } from './db/db';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { UnauthorizedError } from './errors';
 import { validationResult } from 'express-validator';
-import { expectJson, sendNotificationQueue, verifyApiKey } from './utils';
+import { api, expectJson, sendNotificationQueue } from './utils';
 import { csrfSync } from 'csrf-sync';
 
 export function notFoundMiddleware() {
@@ -192,7 +192,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 		const apiKey = req.header('X-API-KEY');
 
 		if (apiKey && expectJson(req)) {
-			const apiKeyPayload = await verifyApiKey(apiKey);
+			const apiKeyPayload = await api.verify(apiKey);
 
 			if (!apiKeyPayload) {
 				res.status(401).json({ message: 'invalid api key' });

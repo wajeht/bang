@@ -401,30 +401,31 @@ export async function sendNotification({
 	}
 }
 
-export async function generateApiKey(payload: ApiKeyPayload) {
-	return jwt.sign(payload, appConfig.apiKeySecret);
-}
+export const api = {
+	generate: async (payload: ApiKeyPayload): Promise<string> => {
+		return jwt.sign(payload, appConfig.apiKeySecret);
+	},
+	verify: async (apiKey: string): Promise<ApiKeyPayload | null> => {
+		try {
+			const decodedApiKeyPayload = jwt.verify(apiKey, appConfig.apiKeySecret) as ApiKeyPayload;
 
-export async function verifyApiKey(apiKey: string): Promise<ApiKeyPayload | null> {
-	try {
-		const decodedApiKeyPayload = jwt.verify(apiKey, appConfig.apiKeySecret) as ApiKeyPayload;
+			const app = await db('users')
+				.where({
+					id: decodedApiKeyPayload.userId,
+					api_key: apiKey,
+					api_key_version: decodedApiKeyPayload.apiKeyVersion,
+				})
+				.first();
 
-		const app = await db('users')
-			.where({
-				id: decodedApiKeyPayload.userId,
-				api_key: apiKey,
-				api_key_version: decodedApiKeyPayload.apiKeyVersion,
-			})
-			.first();
+			if (!app) return null;
 
-		if (!app) return null;
-
-		return decodedApiKeyPayload;
-	} catch (error) {
-		logger.error('failed to verify api key ', error);
-		return null;
-	}
-}
+			return decodedApiKeyPayload;
+		} catch (error) {
+			logger.error('failed to verify api key ', error);
+			return null;
+		}
+	},
+};
 
 export function expectJson(req: Request): boolean {
 	return req.get('Content-Type') === 'application/json';

@@ -1,12 +1,11 @@
 import {
+	api,
 	createBookmarksDocument,
 	expectJson,
-	generateApiKey,
 	getGithubOauthToken,
 	getGithubUserEmails,
 	search,
 } from './utils';
-import jwt from 'jsonwebtoken';
 import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './configs';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
 import { Request, Response } from 'express';
@@ -548,7 +547,7 @@ export async function postSettingsCreateApiKeyHandler(req: Request, res: Respons
 	await db('users')
 		.where({ id: req.session?.user?.id })
 		.update({
-			api_key: await generateApiKey(payload),
+			api_key: await api.generate(payload),
 			api_key_version: newKeyVersion,
 			api_key_created_at: db.fn.now(),
 		});
