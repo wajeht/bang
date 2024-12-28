@@ -12,6 +12,7 @@ env:
   APP_URL: 'localhost'
   APP_ADMIN_EMAIL: 'deeznutz@gmail.com'
   APP_SECRET_SALT: 'bang'
+  APP_API_KEY_SECRET: 'bang'
 
   # session
   SESSION_STORE_PREFIX: 'deez'
