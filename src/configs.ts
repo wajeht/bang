@@ -11,7 +11,7 @@ export const defaultSearchProviders = {
 	google: `https://www.google.com/search?q={query}`,
 	yahoo: `https://search.yahoo.com/search?p={query}`,
 	bing: `https://www.bing.com/search?q={query}`,
-};
+} as const;
 
 export const appConfig = {
 	port: parseInt(process.env.APP_PORT || '80', 10),
