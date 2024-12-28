@@ -19,6 +19,7 @@ export const appConfig = {
 	appUrl: process.env.APP_URL || 'localhost',
 	adminEmail: process.env.APP_ADMIN_EMAIL || '',
 	secretSalt: process.env.APP_SECRET_SALT || 'bang',
+	apiKeySecret: process.env.APP_API_KEY_SECRET || 'bang',
 } as const;
 
 export const oauthConfig = {
