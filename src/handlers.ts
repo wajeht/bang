@@ -530,6 +530,7 @@ export async function getSettingsAccountPageHandler(req: Request, res: Response)
 	});
 }
 
+// POST /settings/create-api-key
 export async function postSettingsCreateApiKeyHandler(req: Request, res: Response) {
 	const user = await db('users').where({ id: req.session.user?.id }).first();
 
