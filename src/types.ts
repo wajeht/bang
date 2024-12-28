@@ -1,3 +1,5 @@
+import { defaultSearchProviders } from './configs';
+
 declare module 'express-session' {
 	interface SessionData {
 		redirectTo?: string;
@@ -16,6 +18,8 @@ declare global {
 	}
 }
 
+export type DefaultSearchProviders = keyof typeof defaultSearchProviders;
+
 export type ActionTypes = 'bookmark' | 'redirect' | 'search';
 
 export type ApiKeyPayload = {
@@ -27,7 +31,7 @@ export type User = {
 	id: number;
 	username: string;
 	email: string;
-	default_search_provider: 'duckduckgo' | 'google' | 'yahoo' | 'bing';
+	default_search_provider: DefaultSearchProviders;
 	default_per_page: number;
 	is_admin: boolean;
 	created_at: string;
