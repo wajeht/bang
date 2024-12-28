@@ -102,7 +102,7 @@
               <dialog id="regenerate-modal" style="width: 400px;">
                 <h2>🔄 Regenerate</h2>
                 <p>This action will invalidate the current key. Are you sure you want to generate a new API key?</p>
-                <form action="/apps/<%= user.id %>/create-api-key" method="post">
+                <form action="/users/create-api-key" method="post">
                   <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
                   <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
@@ -112,7 +112,7 @@
                 </form>
               </dialog>
             <% } else { %>
-              <form action="/apps/<%= user.id %>/create-api-key" method="post">
+              <form action="/users/create-api-key" method="post">
                 <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
                 <button class="no-style-btn" type="submit">➕ Generate</button>
               </form>
