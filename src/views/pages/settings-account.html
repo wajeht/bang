@@ -97,37 +97,36 @@
           </div>
 
           <div style="display: flex; align-items: center; gap: 10px;">
-            <% if (user.api_key_version > 0) {  %>
-              <button class="no-style-btn" onclick="document.getElementById('regenerate-modal').showModal()">🔄 Regenerate</button>
-              <dialog id="regenerate-modal" style="width: 400px;">
-                <h2>🔄 Regenerate</h2>
-                <p>This action will invalidate the current key. Are you sure you want to generate a new API key?</p>
-                <form action="/settings/create-api-key" method="post">
-                  <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
-                  <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                    <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-                    <button type="submit">🔄 Regenerate</button>
-                  </div>
-                </form>
-              </dialog>
-            <% } else { %>
-              <form action="/settings/create-api-key" method="post">
-                <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
-                <button class="no-style-btn" type="submit">➕ Generate</button>
-              </form>
-            <% } %>
 
             <% if (user.api_key) { %>
               <button onclick="viewApiKey()" class="no-style-btn">👁️ View</button>
+              <button onclick="copyApiKey()" class="no-style-btn">📋 Copy</button>
             <% } %>
           </div>
         </div>
 
         <pre id="apiKeyPre" style="white-space: nowrap; overflow-x: auto; padding-right: 150px;"><% if (!user.api_key) { %>click to generate api key<% } else { %>••••••••••••••••••••••••••••••••••••••••••••••••<% } %></pre>
 
-        <% if (user.api_key) { %>
-          <button onclick="copyApiKey()">📋 Copy</button>
+        <% if (user.api_key_version > 0) {  %>
+          <button onclick="document.getElementById('regenerate-modal').showModal()">🔄 Regenerate</button>
+          <dialog id="regenerate-modal" style="width: 400px;">
+            <h2>🔄 Regenerate</h2>
+            <p>This action will invalidate the current key. Are you sure you want to generate a new API key?</p>
+            <form action="/settings/create-api-key" method="post">
+              <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+
+              <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+                <button type="submit">🔄 Regenerate</button>
+              </div>
+            </form>
+          </dialog>
+        <% } else { %>
+          <form action="/settings/create-api-key" method="post">
+            <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+            <button type="submit" style="width: 100%;">➕ Generate</button>
+          </form>
         <% } %>
 
         <% if (user.api_key_created_at) { %>
