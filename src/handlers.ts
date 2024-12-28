@@ -83,7 +83,15 @@ export async function getGithubHandler(req: Request, res: Response) {
 
 // GET /actions
 export async function getActionsPageHandler(req: Request, res: Response) {
-	const perPage = parseInt(req.query.per_page as string) || req.session.user!.default_per_page;
+	let user: User;
+
+	if (expectJson(req) && req.apiKeyPayload) {
+		user = await db.select('*').from('users').where({ id: req.apiKeyPayload?.userId }).first();
+	} else {
+		user = req.session.user!;
+	}
+
+	const perPage = parseInt(req.query.per_page as string) || user.default_per_page;
 	const page = parseInt(req.query.page as string) || 1;
 	const search = req.query.search as string;
 	const sortKey = req.query.sort_key as string;
@@ -99,7 +107,7 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 			'bangs.created_at',
 		)
 		.from('bangs')
-		.where('bangs.user_id', req.session.user?.id)
+		.where('bangs.user_id', user.id)
 		.join('action_types', 'bangs.action_type_id', 'action_types.id');
 
 	if (search) {
