@@ -5,11 +5,12 @@ import {
 	getGithubUserEmails,
 	search,
 } from './utils';
+import jwt from 'jsonwebtoken';
 import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './configs';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
 import { Request, Response } from 'express';
 import { db } from './db/db';
-import { BookmarkToExport } from './types';
+import { ApiKeyPayload, BookmarkToExport } from './types';
 import { validateRequestMiddleware } from './middlewares';
 import { body } from 'express-validator';
 
@@ -515,6 +516,35 @@ export async function getSettingsAccountPageHandler(req: Request, res: Response)
 		layout: '../layouts/settings.html',
 		defaultSearchProviders: Object.keys(defaultSearchProviders),
 	});
+}
+
+export async function postSettingsCreateApiKeyHandler(req: Request, res: Response) {
+	const { id } = req.params;
+
+	const user = await db('users').where({ id: req.session?.user?.id }).first();
+
+	if (!user) {
+		throw NotFoundError();
+	}
+
+	const newKeyVersion = (user.api_key_version || 0) + 1;
+
+	const payload: ApiKeyPayload = {
+		userId: user.user_id,
+		apiKeyVersion: newKeyVersion,
+	};
+
+	const apiKey = jwt.sign(payload, appConfig.apiKeySecret, { expiresIn: '1y' });
+
+	await db('users').where({ id, user_id: req.session?.user?.id }).update({
+		api_key: apiKey,
+		api_key_version: newKeyVersion,
+		api_key_created_at: db.fn.now(),
+	});
+
+	req.flash('success', 'api key created');
+
+	return res.redirect(`/settings/account`);
 }
 
 // POST /settings/account

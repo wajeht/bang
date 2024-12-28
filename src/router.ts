@@ -32,6 +32,7 @@ import {
 	getBookmarkActionCreatePageHandler,
 	getBookmarkCreatePageHandler,
 	postBookmarkHandler,
+	postSettingsCreateApiKeyHandler,
 } from './handlers';
 import { authenticationMiddleware, csrfMiddleware } from './middlewares';
 
@@ -51,6 +52,7 @@ router.get('/oauth/github/redirect', getGithubRedirectHandler);
 
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler);
 router.get('/settings/account', authenticationMiddleware, csrfMiddleware, getSettingsAccountPageHandler); // prettier-ignore
+router.post('/settings/create-api-key', authenticationMiddleware, csrfMiddleware, postSettingsCreateApiKeyHandler); // prettier-ignore
 router.post('/settings/account', authenticationMiddleware, csrfMiddleware, postSettingsAccountHandler); // prettier-ignore
 router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler);
 router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler); // prettier-ignore
