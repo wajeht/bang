@@ -401,6 +401,10 @@ export async function sendNotification({
 	}
 }
 
+export async function generateApiKey(payload: ApiKeyPayload) {
+	return jwt.sign(payload, appConfig.apiKeySecret);
+}
+
 export async function verifyApiKey(apiKey: string): Promise<ApiKeyPayload | null> {
 	try {
 		const decodedApiKeyPayload = jwt.verify(apiKey, appConfig.apiKeySecret) as ApiKeyPayload;
