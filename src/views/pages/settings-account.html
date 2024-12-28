@@ -1,3 +1,43 @@
+<script>
+  function viewApiKey() {
+    const apiKeyPre = document.getElementById('apiKeyPre');
+    if (apiKeyPre.textContent === '••••••••••••••••••••••••••••••••••••••••••••••••') {
+      apiKeyPre.textContent = '<%= user.api_key %>';
+    } else {
+      apiKeyPre.textContent = '••••••••••••••••••••••••••••••••••••••••••••••••';
+    }
+  }
+
+  function viewDemoCodeApiKey() {
+    const demoApiKeySpan = document.getElementById('demoApiKeySpan');
+    if (demoApiKeySpan.textContent === "'••••••••••••••••••••••••••••••••••••••••••••••••'") {
+      demoApiKeySpan.textContent = "'<%= user.api_key %>'";
+    } else {
+      demoApiKeySpan.textContent = "'••••••••••••••••••••••••••••••••••••••••••••••••'";
+    }
+  }
+
+  function copyApiKey() {
+    const apiKey = '<%= user.api_key %>';
+    navigator.clipboard.writeText(apiKey).then(() => {
+      createToast('🔑 API key copied to clipboard!')
+    });
+  }
+
+  function copyDemoCode() {
+    const apiKey = "'<%= user.api_key %>'";
+    let demoCode = document.getElementById('demoCode').innerText;
+
+    if (apiKey.length)  {
+      demoCode = demoCode.replace("'••••••••••••••••••••••••••••••••••••••••••••••••'", apiKey)
+    }
+
+    navigator.clipboard.writeText(demoCode).then(() => {
+      createToast('👨‍💻 example code copied to clipboard!')
+    });
+  }
+</script>
+
 <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
 
   <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
@@ -57,5 +97,80 @@
       <button type="submit" style="width: 100%;">🔄 Update</button>
     </form>
   </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
+
+    <div style="flex: 1; border: dashed; padding: 20px; border-radius: 5px; display: flex; flex-direction: column; gap: 10px; width: 32%;">
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <strong>🔑 API Key</strong>
+            <% if (user.api_key_version > 0) { %>
+              <small style="color: #bbb;">(v<%= user.api_key_version %>)</small>
+            <% } %>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <% if (user.api_key_version > 0) {  %>
+              <button class="no-style-btn" onclick="document.getElementById('regenerate-modal').showModal()">🔄 Regenerate</button>
+              <dialog id="regenerate-modal" style="width: 400px;">
+                <h2>🔄 Regenerate</h2>
+                <p>This action will invalidate the current key. Are you sure you want to generate a new API key?</p>
+                <form action="/apps/<%= user.id %>/create-api-key" method="post">
+                  <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+
+                  <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+                    <button type="submit">🔄 Regenerate</button>
+                  </div>
+                </form>
+              </dialog>
+            <% } else { %>
+              <form action="/apps/<%= user.id %>/create-api-key" method="post">
+                <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+                <button class="no-style-btn" type="submit">➕ Generate</button>
+              </form>
+            <% } %>
+
+            <% if (user.api_key) { %>
+              <button onclick="viewApiKey()" class="no-style-btn">👁️ View</button>
+              <button onclick="copyApiKey()" class="no-style-btn">📋 Copy</button>
+            <% } %>
+          </div>
+        </div>
+
+        <pre id="apiKeyPre" style="white-space: nowrap; overflow-x: auto; padding-right: 150px;"><% if (!user.api_key) { %>click to generate api key<% } else { %>••••••••••••••••••••••••••••••••••••••••••••••••<% } %></pre>
+
+        <% if (user.api_key_created_at) { %>
+          <small style="color: #bbb;">Created: <%= new Date(user.api_key_created_at).toLocaleString() %></small>
+        <% } %>
+      </div>
+
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <strong>💻 Javascript example</strong>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <% if (user.api_key) { %>
+              <button onclick="viewDemoCodeApiKey()" class="no-style-btn">👁️ View</button>
+            <% } %>
+            <button onclick="copyDemoCode()" class="no-style-btn">📋 Copy</button>
+          </div>
+        </div>
+<pre id="demoCode"><span style="color: rgb(215, 58, 73); font-weight: 400;">await</span> <span style="color: rgb(111, 66, 193); font-weight: 400;">fetch</span>(<span style="color: rgb(3, 47, 98); font-weight: 400;">'https://bang.jaw.dev/bookmarks'</span>, {
+  <span style="color: rgb(0, 92, 197); font-weight: 400;">method</span>: <span style="color: rgb(3, 47, 98); font-weight: 400;">'POST'</span>,
+  <span style="color: rgb(0, 92, 197); font-weight: 400;">headers</span>: {
+    <span style="color: rgb(3, 47, 98); font-weight: 400;">'Content-Type'</span>: <span style="color: rgb(3, 47, 98); font-weight: 400;">'application/json'</span>,
+    <span style="color: rgb(3, 47, 98); font-weight: 400;">'X-API-KEY'</span>: <span style="color: rgb(3, 47, 98); font-weight: 400;"><% if (user.api_key) { %><span id="demoApiKeySpan">'••••••••••••••••••••••••••••••••••••••••••••••••'</span><% } else { %>'your_api_key'<% } %></span>
+  },
+  <span style="color: rgb(0, 92, 197); font-weight: 400;">body</span>: <span style="color: rgb(111, 66, 193); font-weight: 400;">JSON</span>.<span style="color: rgb(111, 66, 193); font-weight: 400;">stringify</span>({
+    <span style="color: rgb(0, 92, 197); font-weight: 400;">message</span>: <span style="color: rgb(3, 47, 98); font-weight: 400;">'Your message here'</span>,
+    <span style="color: rgb(0, 92, 197); font-weight: 400;">details</span>: <span style="color: rgb(3, 47, 98); font-weight: 400;">'info'</span>
+  })
+})</pre>
+      </div>
+    </div>
+  </div>
+</div>
 
 </div>
