@@ -1,14 +1,14 @@
-import { NextFunction, Request, Response } from 'express';
-import helmet from 'helmet';
-import { appConfig, sessionConfig } from './configs';
-import session from 'express-session';
-import { logger } from './logger';
 import { db } from './db/db';
-import { ConnectSessionKnexStore } from 'connect-session-knex';
-import { UnauthorizedError } from './errors';
-import { validationResult } from 'express-validator';
-import { api, expectJson, sendNotificationQueue } from './utils';
+import helmet from 'helmet';
+import { logger } from './logger';
+import session from 'express-session';
 import { csrfSync } from 'csrf-sync';
+import { UnauthorizedError } from './errors';
+import { appConfig, sessionConfig } from './configs';
+import { validationResult } from 'express-validator';
+import { NextFunction, Request, Response } from 'express';
+import { ConnectSessionKnexStore } from 'connect-session-knex';
+import { api, expectJson, sendNotificationQueue } from './utils';
 
 export function notFoundMiddleware() {
 	return (req: Request, res: Response, _next: NextFunction) => {

@@ -1,11 +1,11 @@
 import { app } from './app';
-import { Server } from 'http';
-import { AddressInfo } from 'net';
-import { appConfig } from './configs';
 import { db } from './db/db';
-import { runMigrations, sendNotificationQueue } from './utils';
 import { logger } from './logger';
 import { Request } from 'express';
+import { Server } from 'node:http';
+import { appConfig } from './configs';
+import { AddressInfo } from 'node:net';
+import { runMigrations, sendNotificationQueue } from './utils';
 
 const server: Server = app.listen(appConfig.port);
 
@@ -18,8 +18,6 @@ server.on('listening', async () => {
 	if (appConfig.env === 'production') {
 		await runMigrations();
 	}
-
-	// crons
 });
 
 server.on('error', (error: NodeJS.ErrnoException) => {

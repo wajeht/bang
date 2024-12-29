@@ -1,12 +1,3 @@
-import qs from 'qs';
-import fs from 'fs';
-import jwt from 'jsonwebtoken';
-import axios from 'axios';
-import fastq from 'fastq';
-import path from 'node:path';
-import { db } from './db/db';
-import { logger } from './logger';
-import { appConfig, defaultSearchProviders, notifyConfig, oauthConfig } from './configs';
 import {
 	Api,
 	ApiKeyPayload,
@@ -15,7 +6,16 @@ import {
 	GithubUserEmail,
 	User,
 } from './types';
+import qs from 'qs';
+import fs from 'node:fs';
+import axios from 'axios';
+import fastq from 'fastq';
+import path from 'node:path';
+import { db } from './db/db';
+import jwt from 'jsonwebtoken';
+import { logger } from './logger';
 import { Application, Request, Response, NextFunction } from 'express';
+import { appConfig, defaultSearchProviders, notifyConfig, oauthConfig } from './configs';
 
 export async function runMigrations(force: boolean = false) {
 	try {

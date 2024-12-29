@@ -8,13 +8,13 @@ import {
 	search,
 	extractPagination,
 } from './utils';
+import { db } from './db/db';
+import { body } from 'express-validator';
+import { Request, Response } from 'express';
+import { ApiKeyPayload, BookmarkToExport } from './types';
+import { validateRequestMiddleware } from './middlewares';
 import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './configs';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
-import { Request, Response } from 'express';
-import { db } from './db/db';
-import { ApiKeyPayload, BookmarkToExport, User } from './types';
-import { validateRequestMiddleware } from './middlewares';
-import { body } from 'express-validator';
 
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {
