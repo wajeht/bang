@@ -18,7 +18,7 @@ import { body } from 'express-validator';
 
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {
-	if (req.get('Content-Type') === 'application/json') {
+	if (expectJson(req)) {
 		res.status(200).json({ message: 'ok' });
 		return;
 	}
