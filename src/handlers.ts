@@ -6,6 +6,7 @@ import {
 	getGithubOauthToken,
 	getGithubUserEmails,
 	search,
+	extractPagination,
 } from './utils';
 import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './configs';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
@@ -85,11 +86,7 @@ export async function getGithubHandler(req: Request, res: Response) {
 // GET /actions
 export async function getActionsPageHandler(req: Request, res: Response) {
 	const user = await extractUser(req);
-	const perPage = parseInt(req.query.per_page as string) || user.default_per_page;
-	const page = parseInt(req.query.page as string) || 1;
-	const search = req.query.search as string;
-	const sortKey = req.query.sort_key as string;
-	const direction = req.query.direction as string;
+	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
 
 	const query = db
 		.select(
@@ -105,11 +102,10 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 		.join('action_types', 'bangs.action_type_id', 'action_types.id');
 
 	if (search) {
-		const searchLower = search.toLowerCase();
 		query.where((q) => {
-			q.where(db.raw('LOWER(bangs.name) LIKE ?', [`%${searchLower}%`]))
-				.orWhere(db.raw('LOWER(bangs.trigger) LIKE ?', [`%${searchLower}%`]))
-				.orWhere(db.raw('LOWER(bangs.url) LIKE ?', [`%${searchLower}%`]));
+			q.where(db.raw('LOWER(bangs.name) LIKE ?', [`%${search}%`]))
+				.orWhere(db.raw('LOWER(bangs.trigger) LIKE ?', [`%${search}%`]))
+				.orWhere(db.raw('LOWER(bangs.url) LIKE ?', [`%${search}%`]));
 		});
 	}
 
@@ -300,19 +296,14 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 // GET /bookmarks
 export async function getBookmarksPageHandler(req: Request, res: Response) {
 	const user = await extractUser(req);
-	const perPage = parseInt(req.query.per_page as string) || user.default_per_page;
-	const page = parseInt(req.query.page as string) || 1;
-	const search = req.query.search as string;
-	const sortKey = req.query.sort_key as string;
-	const direction = req.query.direction as string;
+	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
 
 	const query = db.select('*').from('bookmarks').where('user_id', user.id);
 
 	if (search) {
-		const searchLower = search.toLowerCase();
 		query.where((q) => {
-			q.where(db.raw('LOWER(title) LIKE ?', [`%${searchLower}%`])).orWhere(
-				db.raw('LOWER(url) LIKE ?', [`%${searchLower}%`]),
+			q.where(db.raw('LOWER(title) LIKE ?', [`%${search}%`])).orWhere(
+				db.raw('LOWER(url) LIKE ?', [`%${search}%`]),
 			);
 		});
 	}

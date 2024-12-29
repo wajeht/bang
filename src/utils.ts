@@ -445,3 +445,13 @@ export async function extractUser(req: Request): Promise<User> {
 
 	return req.session.user!;
 }
+
+export function extractPagination(req: Request, user: User) {
+	return {
+		perPage: parseInt(req.query.per_page as string) || user.default_per_page,
+		page: parseInt(req.query.page as string) || 1,
+		search: (req.query.search as string).toLowerCase(),
+		sortKey: req.query.sort_key as string,
+		direction: req.query.direction as string,
+	};
+}
