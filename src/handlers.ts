@@ -44,7 +44,7 @@ export function getPrivacyPolicyPageHandler(_req: Request, res: Response) {
 
 // GET /logout
 export function getLogoutHandler(req: Request, res: Response) {
-	if (req.session && req.session?.user) {
+	if (req.session && req.session.user) {
 		req.session.user = undefined;
 		req.session.destroy((error) => {
 			if (error) {
@@ -755,7 +755,7 @@ export async function getSettingsDangerZonePageHandler(req: Request, res: Respon
 export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Response) {
 	await db('users').where({ id: req.session.user?.id }).delete();
 
-	if (req.session && req.session?.user) {
+	if (req.session && req.session.user) {
 		req.session.user = undefined;
 		req.session.destroy((error) => {
 			if (error) {
@@ -772,9 +772,7 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 	const bookmarks = (await db
 		.select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
 		.from('bookmarks')
-		.where({
-			user_id: req.session.user?.id,
-		})) as BookmarkToExport[];
+		.where({ user_id: req.session.user?.id })) as BookmarkToExport[];
 
 	if (!bookmarks.length) {
 		req.flash('info', 'no bookmarks to export yet.');
