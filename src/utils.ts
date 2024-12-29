@@ -7,7 +7,14 @@ import path from 'node:path';
 import { db } from './db/db';
 import { logger } from './logger';
 import { appConfig, defaultSearchProviders, notifyConfig, oauthConfig } from './configs';
-import { ApiKeyPayload, BookmarkToExport, GitHubOauthToken, GithubUserEmail, User } from './types';
+import {
+	Api,
+	ApiKeyPayload,
+	BookmarkToExport,
+	GitHubOauthToken,
+	GithubUserEmail,
+	User,
+} from './types';
 import { Application, Request, Response, NextFunction } from 'express';
 
 export async function runMigrations(force: boolean = false) {
@@ -401,7 +408,7 @@ export async function sendNotification({
 	}
 }
 
-export const api = {
+export const api: Api = {
 	generate: async (payload: ApiKeyPayload): Promise<string> => {
 		return jwt.sign(payload, appConfig.apiKeySecret);
 	},

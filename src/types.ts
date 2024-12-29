@@ -18,6 +18,11 @@ declare global {
 	}
 }
 
+export interface Api {
+	generate: (payload: ApiKeyPayload) => Promise<string>;
+	verify: (apiKey: string) => Promise<ApiKeyPayload | null>;
+}
+
 export type DefaultSearchProviders = keyof typeof defaultSearchProviders;
 
 export type ActionTypes = 'bookmark' | 'redirect' | 'search';
