@@ -2,6 +2,7 @@ import {
 	api,
 	createBookmarksDocument,
 	expectJson,
+	extractUser,
 	getGithubOauthToken,
 	getGithubUserEmails,
 	search,
@@ -83,14 +84,7 @@ export async function getGithubHandler(req: Request, res: Response) {
 
 // GET /actions
 export async function getActionsPageHandler(req: Request, res: Response) {
-	let user: User;
-
-	if (expectJson(req) && req.apiKeyPayload) {
-		user = await db.select('*').from('users').where({ id: req.apiKeyPayload?.userId }).first();
-	} else {
-		user = req.session.user!;
-	}
-
+	const user = await extractUser(req);
 	const perPage = parseInt(req.query.per_page as string) || user.default_per_page;
 	const page = parseInt(req.query.page as string) || 1;
 	const search = req.query.search as string;
@@ -138,7 +132,7 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 		isLengthAware: true,
 	});
 
-	if (req.get('Content-Type') === 'application/json') {
+	if (expectJson(req)) {
 		res.json({
 			actions,
 			pagination,
@@ -305,14 +299,7 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 
 // GET /bookmarks
 export async function getBookmarksPageHandler(req: Request, res: Response) {
-	let user: User;
-
-	if (expectJson(req) && req.apiKeyPayload) {
-		user = await db.select('*').from('users').where({ id: req.apiKeyPayload?.userId }).first();
-	} else {
-		user = req.session.user!;
-	}
-
+	const user = await extractUser(req);
 	const perPage = parseInt(req.query.per_page as string) || user.default_per_page;
 	const page = parseInt(req.query.page as string) || 1;
 	const search = req.query.search as string;

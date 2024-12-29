@@ -430,3 +430,11 @@ export const api = {
 export function expectJson(req: Request): boolean {
 	return req.get('Content-Type') === 'application/json';
 }
+
+export async function extractUser(req: Request): Promise<User> {
+	if (expectJson(req) && req.apiKeyPayload) {
+		return await db.select('*').from('users').where({ id: req.apiKeyPayload?.userId }).first();
+	}
+
+	return req.session.user!;
+}
