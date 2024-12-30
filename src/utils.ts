@@ -256,7 +256,7 @@ export async function search({
 
 	// Handle !bm command with URL
 	if (query.startsWith('!bm')) {
-		const urlToBookmark = query.slice(5).trim();
+		const urlToBookmark = query.slice(4).trim();
 
 		if (urlToBookmark) {
 			if (isValidUrl(urlToBookmark) === false) {
