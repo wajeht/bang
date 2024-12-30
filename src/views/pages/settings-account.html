@@ -1,10 +1,13 @@
 <script>
   function viewApiKey() {
     const apiKeyPre = document.getElementById('apiKeyPre');
+    const viewOrHideButton = document.getElementById('view-or-hide-button');
     if (apiKeyPre.textContent === '••••••••••••••••••••••••••••••••••••••••••••••••') {
       apiKeyPre.textContent = '<%= user.api_key %>';
+      viewOrHideButton.textContent = '👁️ Hide';
     } else {
       apiKeyPre.textContent = '••••••••••••••••••••••••••••••••••••••••••••••••';
+      viewOrHideButton.textContent = '️👁️ View';
     }
   }
 
@@ -91,7 +94,7 @@
 
 
             <% if (user.api_key) { %>
-              <button onclick="viewApiKey()" class="no-style-btn">👁️ View</button>
+              <button onclick="viewApiKey()" class="no-style-btn" id="view-or-hide-button">👁️ View</button>
               <button onclick="copyApiKey()" class="no-style-btn">📋 Copy</button>
             <% } %>
           </div>
