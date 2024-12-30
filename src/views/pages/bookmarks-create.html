@@ -11,7 +11,7 @@
       <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
       <div style="display: flex; flex-direction: column; gap: 5px;">
-          <label for="title">🔤 Name<span style="color: red;">*</span></label>
+          <label for="title">🔤 Name</label>
           <input
               type="text"
               id="title"
@@ -19,7 +19,6 @@
               placeholder="bang"
               value="<%= state.input.title ?? state.input.title %>"
               style="width: 100%;"
-              required
           >
           <% if (state.errors.title) { %>
               <small style="color: red;"><%= state.errors.title %></small>

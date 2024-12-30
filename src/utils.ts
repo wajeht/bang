@@ -100,6 +100,25 @@ export async function getGithubUserEmails(access_token: string): Promise<GithubU
 	}
 }
 
+export const insertBookmarkQueue = fastq.promise(insertBookmark, 1);
+
+export async function insertBookmark({
+	url,
+	userId,
+	title,
+}: {
+	url: string;
+	userId: number;
+	title?: string;
+}) {
+	return await db('bookmarks').insert({
+		user_id: userId,
+		url: url,
+		title: title || (await fetchPageTitle(url)),
+		created_at: new Date(),
+	});
+}
+
 export async function fetchPageTitle(url: string): Promise<string> {
 	try {
 		const response = await axios.get(url, {
@@ -250,12 +269,7 @@ export async function search({
 			}
 
 			try {
-				await db('bookmarks').insert({
-					user_id: user.id,
-					url: urlToBookmark,
-					title: await fetchPageTitle(urlToBookmark),
-					created_at: new Date(),
-				});
+				await insertBookmarkQueue.push({ url: urlToBookmark, userId: user.id });
 
 				return res.redirect(urlToBookmark);
 			} catch (error) {

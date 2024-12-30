@@ -7,6 +7,7 @@ import {
 	getGithubUserEmails,
 	search,
 	extractPagination,
+	insertBookmarkQueue,
 } from './utils';
 import { db } from './db/db';
 import { body } from 'express-validator';
@@ -830,17 +831,12 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
 export const postBookmarkHandler = [
 	validateRequestMiddleware([
 		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
-		body('title').notEmpty().withMessage('Title is required').trim(),
+		body('title').optional().trim(),
 	]),
 	async (req: Request, res: Response) => {
 		const { url, title } = req.body;
 
-		await db('bookmarks').insert({
-			user_id: req.session.user!.id,
-			title,
-			url,
-			created_at: new Date(),
-		});
+		await insertBookmarkQueue.push({ url, userId: req.session.user!.id, title });
 
 		req.flash('success', `Bookmark ${title} created successfully!`);
 		return res.redirect('/bookmarks');
