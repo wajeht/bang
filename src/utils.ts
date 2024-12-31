@@ -354,9 +354,10 @@ export async function search({
 
 	// Handle !add command with URL
 	if (query.startsWith('!add')) {
-		const [_, trigger, url] = query.split(' ');
+		const [, rawTrigger, url] = query.split(' ');
+		const trigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
 
-		if (!trigger?.startsWith('!') || !url?.length) {
+		if (!trigger || !url?.length) {
 			return res.setHeader('Content-Type', 'text/html').send(`
         <script>
           alert("Invalid trigger or empty URL");
@@ -369,8 +370,13 @@ export async function search({
 		if (existingBang || ['!add', '!bm'].includes(trigger)) {
 			return res.setHeader('Content-Type', 'text/html').send(`
         <script>
-          alert("Trigger ${trigger} already exists");
-          window.history.back();
+          const newTrigger = prompt("Trigger ${trigger} already exists. Please enter a new trigger:");
+          if (newTrigger) {
+            const domain = window.location.origin;
+            window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
+          } else {
+            window.history.back();
+          }
         </script>`);
 		}
 
