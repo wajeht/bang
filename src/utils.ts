@@ -171,7 +171,7 @@ export async function fetchPageTitle(url: string): Promise<string> {
 		const req = client.get(
 			url,
 			{
-				timeout: 500,
+				timeout: 5000, // 5 sec
 				headers: { Accept: 'text/html' },
 			},
 			(res) => {
