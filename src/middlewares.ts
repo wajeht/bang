@@ -113,11 +113,14 @@ export function sessionMiddleware() {
 export const validateRequestMiddleware = (schemas: any) => {
 	return async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			await Promise.all(schemas.map((schema: any) => schema.run(req)));
+			for (const schema of schemas) {
+				await schema.run(req);
+			}
+
 			const result = validationResult(req) as any;
 
 			// Always set input for POST, PATCH, PUT requests
-			if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method)) {
+			if (/^(POST|PATCH|PUT|DELETE)$/.test(req.method)) {
 				req.session.input = req.body;
 			}
 
@@ -128,16 +131,14 @@ export const validateRequestMiddleware = (schemas: any) => {
 			}
 
 			const { errors } = result;
-			const reshapedErrors = errors.reduce((acc: { [key: string]: string }, error: any) => {
-				acc[error.path] = error.msg;
-				return acc;
-			}, {});
+			const reshapedErrors: { [key: string]: string } = {};
+			for (const error of errors) {
+				reshapedErrors[error.path] = error.msg;
+			}
 
-			// Note: is this a good idea? maybe we jus disable a toast since we already all errors state.input?
-			// req.flash('error', Object.values(reshapedErrors));
 			req.session.errors = reshapedErrors;
 
-			return res.redirect(req.headers?.referer ?? 'back');
+			return res.redirect(req.headers?.referer || 'back');
 		} catch (error) {
 			next(error);
 		}
