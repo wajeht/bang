@@ -266,7 +266,7 @@ export const postActionHandler = [
 			url,
 			user_id: req.session.user!.id,
 			action_type_id: (await db('action_types').where({ name: actionType }).first()).id,
-			created_at: new Date(),
+			created_at: db.fn.now(),
 		});
 
 		req.flash('success', `Action ${formattedTrigger} created successfully!`);
@@ -446,7 +446,7 @@ export const postUpdateActionHandler = [
 				name: name.trim(),
 				url,
 				action_type_id: (await db('action_types').where({ name: actionType }).first()).id,
-				updated_at: new Date(),
+				updated_at: db.fn.now(),
 			});
 
 		req.flash('success', `Action ${formattedTrigger} updated successfully!`);
@@ -485,7 +485,7 @@ export const postUpdateBookmarkHandler = [
 			.update({
 				title: title || 'Fetching...',
 				url,
-				updated_at: new Date(),
+				updated_at: db.fn.now(),
 			});
 
 		req.flash('success', `Bookmark ${req.params?.id} updated successfully!`);
@@ -714,7 +714,7 @@ export const postImportDataHandler = [
 						user_id: userId,
 						title: bookmark.title,
 						url: bookmark.url,
-						created_at: new Date(),
+						created_at: db.fn.now(),
 					}));
 					await trx('bookmarks').insert(bookmarks);
 				}
@@ -730,7 +730,7 @@ export const postImportDataHandler = [
 								name: action.name,
 								url: action.url,
 								action_type_id: actionType.id,
-								created_at: new Date(),
+								created_at: db.fn.now(),
 							});
 						}
 					}

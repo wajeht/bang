@@ -121,7 +121,7 @@ export async function insertBookmark({
 			user_id: userId,
 			url: url,
 			title: title || 'Fetching...',
-			created_at: new Date(),
+			created_at: db.fn.now(),
 		})
 		.returning('*');
 
