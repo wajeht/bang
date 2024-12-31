@@ -116,7 +116,7 @@ export async function insertBookmark({
 	return db('bookmarks').insert({
 		user_id: userId,
 		url: url,
-		title: title || (await fetchPageTitle(url).catch(() => 'Untitled')),
+		title: title || (await fetchPageTitle(url)),
 		created_at: new Date(),
 	});
 }
@@ -277,84 +277,58 @@ export async function search({
 	query: string;
 }) {
 	if (!user) {
-		const searchUrl = defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query)); // prettier-ignore
-		return res.redirect(searchUrl);
+		return res.redirect(
+			defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query)),
+		);
 	}
 
 	// Handle !bm command with URL
 	if (query.startsWith('!bm')) {
 		const urlToBookmark = query.slice(4).trim();
 
-		if (urlToBookmark) {
-			if (isValidUrl(urlToBookmark) === false) {
-				res.setHeader('Content-Type', 'text/html').send(`
-					<script>
-						alert("Invalid URL");
-						window.history.back();
-					</script>`);
-				return;
-			}
-
-			try {
-				await insertBookmarkQueue.push({ url: urlToBookmark, userId: user.id });
-
-				return res.redirect(urlToBookmark);
-			} catch (error) {
-				logger.error('Error adding bookmark:', error);
-				res.setHeader('Content-Type', 'text/html').send(`
-					<script>
-						alert("Error adding bookmark");
-						window.location.href = "${urlToBookmark}";
-					</script>`);
-				return;
-			}
+		if (!urlToBookmark || isValidUrl(urlToBookmark) === false) {
+			return res.setHeader('Content-Type', 'text/html').send(`
+        <script>
+          alert("Invalid or missing URL");
+          window.history.back();
+        </script>`);
 		}
 
-		// If no URL provided in !bm command, go back
-		res.setHeader('Content-Type', 'text/html').send(`
-			<script>
-				alert("No URL provided for bookmark");
-				window.history.back();
-			</script>`);
-		return;
+		try {
+			await insertBookmarkQueue.push({ url: urlToBookmark, userId: user.id });
+			return res.redirect(urlToBookmark);
+		} catch (error) {
+			logger.error('Error adding bookmark:', error);
+			return res.setHeader('Content-Type', 'text/html').send(`
+        <script>
+          alert("Error adding bookmark");
+          window.location.href = "${urlToBookmark}";
+        </script>`);
+		}
 	}
 
 	// Handle !add command with URL
 	if (query.startsWith('!add')) {
 		const [_, trigger, url] = query.split(' ');
 
-		if (!trigger?.startsWith('!')) {
-			res.setHeader('Content-Type', 'text/html').send(`
-			<script>
-				alert("must include ! at the front");
-				window.history.back();
-			</script>`);
-			return;
+		if (!trigger?.startsWith('!') || !url?.length) {
+			return res.setHeader('Content-Type', 'text/html').send(`
+        <script>
+          alert("Invalid trigger or empty URL");
+          window.history.back();
+        </script>`);
 		}
 
-		if (!url?.length) {
-			res.setHeader('Content-Type', 'text/html').send(`
-			<script>
-				alert("url must not be empty");
-				window.history.back();
-			</script>`);
-			return;
+		const existingBang = await db('bangs').where({ user_id: user.id, trigger }).first();
+
+		if (existingBang || ['!add', '!bm'].includes(trigger)) {
+			return res.setHeader('Content-Type', 'text/html').send(`
+        <script>
+          alert("Trigger ${trigger} already exists");
+          window.history.back();
+        </script>`);
 		}
 
-		// Fetch user bangs and check for duplicates
-		const userBangs = await db.select('trigger').from('bangs').where({ user_id: user.id });
-		const userBangTriggers = userBangs.map((bang) => bang.trigger);
-
-		if (['!add', '!bm', ...userBangTriggers].includes(trigger)) {
-			res.setHeader('Content-Type', 'text/html').send(`
-			<script>
-				alert("Trigger ${trigger} already exists");
-				window.history.back();
-			</script>`);
-			return;
-		}
-
-		// Insert the new custom bang
 		await db('bangs').insert({
 			user_id: user.id,
 			trigger,
@@ -363,13 +337,13 @@ export async function search({
 			url,
 		});
 
-		res.setHeader('Content-Type', 'text/html').send(`<script> window.history.back(); </script>`);
-		return;
+		return res
+			.setHeader('Content-Type', 'text/html')
+			.send(`<script> window.history.back(); </script>`);
 	}
 
 	// Handle other bang commands
 	const bangMatch = query.match(/^!(\w+)(?:\s+(.*))?$/);
-
 	if (bangMatch) {
 		const [, bangTrigger, searchQuery = ''] = bangMatch;
 
@@ -388,14 +362,16 @@ export async function search({
 			}
 
 			if (customBang.action_type === 'search') {
-				const searchUrl = customBang.url.replace('{query}', encodeURIComponent(searchQuery));
-				return res.redirect(searchUrl);
+				return res.redirect(customBang.url.replace('{query}', encodeURIComponent(searchQuery)));
 			}
 		}
 	}
 
 	const defaultProvider = user.default_search_provider || 'duckduckgo';
-	const searchUrl = defaultSearchProviders[defaultProvider].replace('{query}', encodeURIComponent(query)); // prettier-ignore
+	const searchUrl = defaultSearchProviders[defaultProvider].replace(
+		'{query}',
+		encodeURIComponent(query),
+	);
 
 	return res.redirect(searchUrl);
 }
