@@ -1,6 +1,7 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
 import { appConfig } from '../configs';
+import { getFormattedTimestamp } from '../utils';
 
 const developmentEnvironmentOnly = appConfig.env === 'development';
 
@@ -46,11 +47,15 @@ const knexConfig: Knex.Config = {
 				// Enable multi-threaded operations (2 threads for 2 CPU cores)
 				conn.pragma('threads = 2');
 
-				console.log('New database connection established');
+				console.log(`${getFormattedTimestamp()} INFO: New database connection established`);
 
 				done(null, conn);
 			} catch (err) {
-				console.error('Error establishing database connection:', err);
+				console.error(
+					`${getFormattedTimestamp()} ERROR: Error establishing database connection:`,
+					err,
+				);
+
 				done(err as Error, conn);
 			}
 		},

@@ -20,7 +20,7 @@ export const logger = pino(
 		},
 		{
 			stream: pretty({
-				translateTime: 'yyyy-mm-dd HH:MM:ss TT',
+				translateTime: 'yyyy-mm-dd hh:MM:ss TT',
 				colorize: true,
 				ignore: 'hostname,pid',
 			}),
