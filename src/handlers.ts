@@ -481,11 +481,13 @@ export const postUpdateBookmarkHandler = [
 	async (req: Request, res: Response) => {
 		const { url, title } = req.body;
 
-		await db('bookmarks').where({ id: req.params?.id, user_id: req.session.user?.id }).update({
-			title,
-			url,
-			updated_at: new Date(),
-		});
+		await db('bookmarks')
+			.where({ id: req.params?.id, user_id: req.session.user?.id })
+			.update({
+				title: title || 'Fetching...',
+				url,
+				updated_at: new Date(),
+			});
 
 		req.flash('success', `Bookmark ${req.params?.id} updated successfully!`);
 		return res.redirect('/bookmarks');
@@ -836,7 +838,7 @@ export const postBookmarkHandler = [
 	async (req: Request, res: Response) => {
 		const { url, title } = req.body;
 
-		await insertBookmarkQueue.push({ url, userId: req.session.user!.id, title });
+		insertBookmarkQueue.push({ url, userId: req.session.user!.id, title });
 
 		req.flash('success', `Bookmark ${title} created successfully!`);
 		return res.redirect('/bookmarks');

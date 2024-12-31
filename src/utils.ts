@@ -102,6 +102,7 @@ export async function getGithubUserEmails(access_token: string): Promise<GithubU
 	}
 }
 
+export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
 export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
 
 export async function insertBookmark({
@@ -113,12 +114,42 @@ export async function insertBookmark({
 	userId: number;
 	title?: string;
 }) {
-	return db('bookmarks').insert({
-		user_id: userId,
-		url: url,
-		title: title || (await fetchPageTitle(url)),
-		created_at: new Date(),
-	});
+	const [{ id: bookmarkId }] = await db('bookmarks')
+		.insert({
+			user_id: userId,
+			url: url,
+			title: title || 'Fetching...',
+			created_at: new Date(),
+		})
+		.returning('id');
+
+	if (!title) {
+		insertPageTitleQueue.push({ bookmarkId, url });
+	}
+}
+
+export async function insertPageTitle({
+	bookmarkId,
+	actionId,
+	url,
+}: {
+	bookmarkId?: number;
+	actionId?: number;
+	url: string;
+}) {
+	const title = await fetchPageTitle(url);
+
+	if (bookmarkId && actionId) {
+		throw new Error('you can only pass in one id at a time');
+	}
+
+	if (bookmarkId && !actionId) {
+		await db('bookmarks').where({ id: bookmarkId }).update({ title, updated_at: db.fn.now() });
+	}
+
+	if (actionId && !bookmarkId) {
+		await db('actions').where({ id: actionId }).update({ title, updated_at: db.fn.now() });
+	}
 }
 
 export async function fetchPageTitle(url: string): Promise<string> {
@@ -295,7 +326,7 @@ export async function search({
 		}
 
 		try {
-			await insertBookmarkQueue.push({ url: urlToBookmark, userId: user.id });
+			insertBookmarkQueue.push({ url: urlToBookmark, userId: user.id });
 			return res.redirect(urlToBookmark);
 		} catch (error) {
 			logger.error('Error adding bookmark:', error);
@@ -329,13 +360,17 @@ export async function search({
         </script>`);
 		}
 
-		await db('bangs').insert({
-			user_id: user.id,
-			trigger,
-			name: await fetchPageTitle(url),
-			action_type_id: 2, // redirect
-			url,
-		});
+		const [{ id: actionId }] = await db('bangs')
+			.insert({
+				user_id: user.id,
+				trigger,
+				name: 'Fetching...',
+				action_type_id: 2, // redirect
+				url,
+			})
+			.returning('id');
+
+		insertPageTitleQueue.push({ url, actionId });
 
 		return res
 			.setHeader('Content-Type', 'text/html')
