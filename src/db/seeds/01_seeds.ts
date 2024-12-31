@@ -27,6 +27,13 @@ export async function seed(knex: Knex): Promise<void> {
 	const bangs = [
 		{
 			user_id: user.id,
+			trigger: '!b',
+			name: 'Bang',
+			action_type_id: redirectType.id,
+			url: 'http://localhost',
+		},
+		{
+			user_id: user.id,
 			trigger: '!g',
 			name: 'Google Search',
 			action_type_id: searchType.id,

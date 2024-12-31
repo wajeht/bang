@@ -50,6 +50,7 @@ const knexConfig: Knex.Config = {
 
 				done(null, conn);
 			} catch (err) {
+				console.error('Error establishing database connection:', err);
 				done(err as Error, conn);
 			}
 		},

@@ -11,6 +11,8 @@ import fs from 'node:fs';
 import axios from 'axios';
 import fastq from 'fastq';
 import path from 'node:path';
+import http from 'node:http';
+import https from 'node:https';
 import { db } from './db/db';
 import jwt from 'jsonwebtoken';
 import { logger } from './logger';
@@ -100,7 +102,7 @@ export async function getGithubUserEmails(access_token: string): Promise<GithubU
 	}
 }
 
-export const insertBookmarkQueue = fastq.promise(insertBookmark, 1);
+export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
 
 export async function insertBookmark({
 	url,
@@ -111,28 +113,53 @@ export async function insertBookmark({
 	userId: number;
 	title?: string;
 }) {
-	return await db('bookmarks').insert({
+	return db('bookmarks').insert({
 		user_id: userId,
 		url: url,
-		title: title || (await fetchPageTitle(url)),
+		title: title || (await fetchPageTitle(url).catch(() => 'Untitled')),
 		created_at: new Date(),
 	});
 }
 
 export async function fetchPageTitle(url: string): Promise<string> {
-	try {
-		const response = await axios.get(url, {
-			timeout: 5000,
-			headers: {
-				'User-Agent':
-					'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+	const client = url.startsWith('https') ? https : http;
+
+	return new Promise<string>((resolve) => {
+		const req = client.get(
+			url,
+			{
+				timeout: 500,
+				headers: { Accept: 'text/html' },
 			},
-		});
-		const match = response.data.match(/<title[^>]*>([^<]+)<\/title>/);
-		return match ? match[1].replace(/\s+/g, ' ').trim().slice(0, 100) : 'Untitled';
-	} catch (error) {
-		return 'Untitled';
-	}
+			(res) => {
+				if (res.statusCode !== 200) {
+					req.destroy();
+					return resolve('Untitled');
+				}
+
+				let isTitleFound = false;
+
+				res.setEncoding('utf8');
+				res.on('data', (chunk) => {
+					if (!isTitleFound) {
+						const match = /<title[^>]*>([^<]+)/i.exec(chunk);
+						if (match && match[1]) {
+							isTitleFound = true;
+							resolve(match[1].slice(0, 100).trim());
+							req.destroy();
+						}
+					}
+				});
+
+				res.on('end', () => {
+					if (!isTitleFound) resolve('Untitled');
+				});
+			},
+		);
+
+		req.on('error', () => resolve('Untitled'));
+		req.end();
+	});
 }
 
 export function createBookmarkHTML(bookmark: BookmarkToExport): string {
@@ -373,7 +400,7 @@ export async function search({
 	return res.redirect(searchUrl);
 }
 
-export const sendNotificationQueue = fastq.promise(sendNotification, 1);
+export const sendNotificationQueue = fastq.promise(sendNotification, 10);
 
 export async function sendNotification({
 	req,
