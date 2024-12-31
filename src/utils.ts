@@ -8,7 +8,6 @@ import {
 } from './types';
 import qs from 'qs';
 import fs from 'node:fs';
-import axios from 'axios';
 import fastq from 'fastq';
 import path from 'node:path';
 import http from 'node:http';
@@ -76,34 +75,35 @@ export const github = {
 
 		const queryString = qs.stringify(options);
 
-		try {
-			const { data } = await axios.post(`${rootUrl}?${queryString}`, {
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-			});
+		const response = await fetch(`${rootUrl}?${queryString}`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+		});
 
-			const decoded = qs.parse(data) as GitHubOauthToken;
-
-			return decoded;
-		} catch (error: any) {
-			logger.error('failed to fetch github oauth tokens', error);
-			throw error;
+		if (!response.ok) {
+			logger.error('Failed to fetch GitHub OAuth tokens');
+			throw new Error('Failed to fetch GitHub OAuth tokens');
 		}
+
+		const data = await response.text();
+		return qs.parse(data) as GitHubOauthToken;
 	},
-	getUserEmails: async function (access_token: string): Promise<GithubUserEmail[]> {
-		try {
-			const { data } = await axios.get<GithubUserEmail[]>('https://api.github.com/user/emails', {
-				headers: {
-					Authorization: `Bearer ${access_token}`,
-				},
-			});
 
-			return data;
-		} catch (error: any) {
-			logger.error('failed to fetch github user emails', error);
-			throw error;
+	getUserEmails: async function (access_token: string): Promise<GithubUserEmail[]> {
+		const response = await fetch('https://api.github.com/user/emails', {
+			headers: {
+				Authorization: `Bearer ${access_token}`,
+			},
+		});
+
+		if (!response.ok) {
+			logger.error('Failed to fetch GitHub user emails');
+			throw new Error('Failed to fetch GitHub user emails');
 		}
+
+		return (await response.json()) as GithubUserEmail[];
 	},
 };
 
