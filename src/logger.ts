@@ -2,6 +2,9 @@ import pino from 'pino';
 import path from 'node:path';
 import pretty from 'pino-pretty';
 
+const logDate = new Date().toISOString().split('T')[0];
+const logFilePath = path.resolve(process.cwd(), 'logs', `${logDate}.log`);
+
 export const logger = pino(
 	{
 		level: process.env.PINO_LOG_LEVEL || 'info',
@@ -13,7 +16,7 @@ export const logger = pino(
 	pino.multistream([
 		{
 			stream: pino.destination({
-				dest: `${path.resolve(process.cwd())}/logs/${new Date().toISOString().split('T')[0]}.log`,
+				dest: logFilePath,
 				sync: false,
 				mkdir: true,
 			}),
@@ -22,6 +25,7 @@ export const logger = pino(
 			stream: pretty({
 				translateTime: 'yyyy-mm-dd hh:MM:ss TT',
 				colorize: true,
+				sync: false,
 				ignore: 'hostname,pid',
 			}),
 		},
