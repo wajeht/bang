@@ -1,5 +1,5 @@
 import { BookmarkToExport } from 'types';
-import { createBookmarkHTML, createBookmarksDocument, isValidUrl } from './utils';
+import { bookmark, isValidUrl } from './utils';
 import { describe, expect, it } from 'vitest';
 
 describe.concurrent('isValidUrl', () => {
@@ -26,22 +26,22 @@ describe.concurrent('isValidUrl', () => {
 	});
 });
 
-describe.concurrent('createBookmarkHTML', () => {
+describe.concurrent('bookmark.createBookmarkHTML', () => {
 	it('should create correct HTML for a single bookmark', () => {
-		const bookmark: BookmarkToExport = {
+		const bm: BookmarkToExport = {
 			url: 'https://example.com',
 			add_date: 1695748000,
 			title: 'Example',
 		};
 
 		const expectedHTML = `<DT><A HREF="https://example.com" ADD_DATE="1695748000">Example</A>`;
-		expect(createBookmarkHTML(bookmark)).toBe(expectedHTML);
+		expect(bookmark._createHTML(bm)).toBe(expectedHTML);
 	});
 });
 
-describe.concurrent('createBookmarksDocument', () => {
+describe.concurrent('bookmark.createBookmarksDocument', () => {
 	it('should create a complete bookmarks document', () => {
-		const bookmarks: BookmarkToExport[] = [
+		const bms: BookmarkToExport[] = [
 			{
 				url: 'https://example.com',
 				add_date: 1695748000,
@@ -65,11 +65,11 @@ describe.concurrent('createBookmarksDocument', () => {
 <DT><A HREF="https://example.com" ADD_DATE="1695748000">Example</A>
 <DT><A HREF="https://another.com" ADD_DATE="1695752000">Another Example</A>
 </DL><p>`;
-		expect(createBookmarksDocument(bookmarks)).toBe(expectedDocument);
+		expect(bookmark.createDocument(bms)).toBe(expectedDocument);
 	});
 
 	it('should create an empty document for no bookmarks', () => {
-		const bookmarks: BookmarkToExport[] = [];
+		const bm: BookmarkToExport[] = [];
 
 		const expectedDocument = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
 	<!-- This is an automatically generated file.
@@ -81,7 +81,7 @@ describe.concurrent('createBookmarksDocument', () => {
 	<DL><p>
 	</DL><p>`;
 
-		expect(createBookmarksDocument(bookmarks).replace(/\s+/g, ' ').trim()).toBe(
+		expect(bookmark.createDocument(bm).replace(/\s+/g, ' ').trim()).toBe(
 			expectedDocument.replace(/\s+/g, ' ').trim(),
 		);
 	});

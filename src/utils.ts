@@ -19,6 +19,10 @@ import { logger } from './logger';
 import { Application, Request, Response, NextFunction } from 'express';
 import { appConfig, defaultSearchProviders, notifyConfig, oauthConfig } from './configs';
 
+export const sendNotificationQueue = fastq.promise(sendNotification, 10);
+export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
+export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
+
 export async function runMigrations(force: boolean = false) {
 	try {
 		if (appConfig.env !== 'production' && force !== true) {
@@ -60,50 +64,48 @@ export async function runMigrations(force: boolean = false) {
 	}
 }
 
-export async function getGithubOauthToken(code: string): Promise<GitHubOauthToken> {
-	const rootUrl = 'https://github.com/login/oauth/access_token';
+export const github = {
+	getOauthToken: async function (code: string): Promise<GitHubOauthToken> {
+		const rootUrl = 'https://github.com/login/oauth/access_token';
 
-	const options = {
-		client_id: oauthConfig.github.client_id,
-		client_secret: oauthConfig.github.client_secret,
-		code,
-	};
+		const options = {
+			client_id: oauthConfig.github.client_id,
+			client_secret: oauthConfig.github.client_secret,
+			code,
+		};
 
-	const queryString = qs.stringify(options);
+		const queryString = qs.stringify(options);
 
-	try {
-		const { data } = await axios.post(`${rootUrl}?${queryString}`, {
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
-			},
-		});
+		try {
+			const { data } = await axios.post(`${rootUrl}?${queryString}`, {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+			});
 
-		const decoded = qs.parse(data) as GitHubOauthToken;
+			const decoded = qs.parse(data) as GitHubOauthToken;
 
-		return decoded;
-	} catch (error: any) {
-		logger.error('failed to fetch github oauth tokens', error);
-		throw error;
-	}
-}
+			return decoded;
+		} catch (error: any) {
+			logger.error('failed to fetch github oauth tokens', error);
+			throw error;
+		}
+	},
+	getUserEmails: async function (access_token: string): Promise<GithubUserEmail[]> {
+		try {
+			const { data } = await axios.get<GithubUserEmail[]>('https://api.github.com/user/emails', {
+				headers: {
+					Authorization: `Bearer ${access_token}`,
+				},
+			});
 
-export async function getGithubUserEmails(access_token: string): Promise<GithubUserEmail[]> {
-	try {
-		const { data } = await axios.get<GithubUserEmail[]>('https://api.github.com/user/emails', {
-			headers: {
-				Authorization: `Bearer ${access_token}`,
-			},
-		});
-
-		return data;
-	} catch (error: any) {
-		logger.error('failed to fetch github user emails', error);
-		throw error;
-	}
-}
-
-export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
-export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
+			return data;
+		} catch (error: any) {
+			logger.error('failed to fetch github user emails', error);
+			throw error;
+		}
+	},
+};
 
 export async function insertBookmark({
 	url,
@@ -114,17 +116,17 @@ export async function insertBookmark({
 	userId: number;
 	title?: string;
 }) {
-	const [{ id: bookmarkId }] = await db('bookmarks')
+	const bookmark = await db('bookmarks')
 		.insert({
 			user_id: userId,
 			url: url,
 			title: title || 'Fetching...',
 			created_at: new Date(),
 		})
-		.returning('id');
+		.returning('*');
 
 	if (!title) {
-		insertPageTitleQueue.push({ bookmarkId, url });
+		insertPageTitleQueue.push({ bookmarkId: bookmark[0].id, url });
 	}
 }
 
@@ -139,16 +141,26 @@ export async function insertPageTitle({
 }) {
 	const title = await fetchPageTitle(url);
 
-	if (bookmarkId && actionId) {
-		throw new Error('you can only pass in one id at a time');
+	if ((bookmarkId && actionId) || (!bookmarkId && !actionId)) {
+		throw new Error(
+			'[insertPageTitle] You must pass in exactly one id: either bookmarkId or actionId',
+		);
 	}
 
-	if (bookmarkId && !actionId) {
-		await db('bookmarks').where({ id: bookmarkId }).update({ title, updated_at: db.fn.now() });
+	if (bookmarkId) {
+		try {
+			await db('bookmarks').where({ id: bookmarkId }).update({ title, updated_at: db.fn.now() });
+		} catch (error) {
+			logger.error(`[insertPageTitle] error updating bookmark title, %o`, error);
+		}
 	}
 
-	if (actionId && !bookmarkId) {
-		await db('actions').where({ id: actionId }).update({ title, updated_at: db.fn.now() });
+	if (actionId) {
+		try {
+			await db('bangs').where({ id: actionId }).update({ name: title, updated_at: db.fn.now() });
+		} catch (error) {
+			logger.error(`[insertPageTitle] error updating bangs name, %o`, error);
+		}
 	}
 }
 
@@ -193,12 +205,12 @@ export async function fetchPageTitle(url: string): Promise<string> {
 	});
 }
 
-export function createBookmarkHTML(bookmark: BookmarkToExport): string {
-	return `<DT><A HREF="${bookmark.url}" ADD_DATE="${bookmark.add_date}">${bookmark.title}</A>`;
-}
-
-export function createBookmarksDocument(bookmarks: BookmarkToExport[]) {
-	const header = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
+export const bookmark = {
+	_createHTML: function (bookmark: BookmarkToExport): string {
+		return `<DT><A HREF="${bookmark.url}" ADD_DATE="${bookmark.add_date}">${bookmark.title}</A>`;
+	},
+	createDocument: function (bookmarks: BookmarkToExport[]): string {
+		const header = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
 <!-- This is an automatically generated file.
      It will be read and overwritten.
      DO NOT EDIT! -->
@@ -207,12 +219,13 @@ export function createBookmarksDocument(bookmarks: BookmarkToExport[]) {
 <H1>Bookmarks</H1>
 <DL><p>`;
 
-	const footer = '</DL><p>';
+		const footer = '</DL><p>';
 
-	const bookmarksHTML = bookmarks.map((bookmark) => createBookmarkHTML(bookmark)).join('\n');
+		const bookmarksHTML = bookmarks.map((bookmark) => this._createHTML(bookmark)).join('\n');
 
-	return `${header}\n${bookmarksHTML}\n${footer}`;
-}
+		return `${header}\n${bookmarksHTML}\n${footer}`;
+	},
+};
 
 export function reload({
 	app,
@@ -293,7 +306,8 @@ export function isValidUrl(url: string): boolean {
 	try {
 		new URL(url);
 		return true;
-	} catch (_err) {
+	} catch (error) {
+		logger.error(`[isValidUrl] not a valid url, %o`, error);
 		return false;
 	}
 }
@@ -329,7 +343,7 @@ export async function search({
 			insertBookmarkQueue.push({ url: urlToBookmark, userId: user.id });
 			return res.redirect(urlToBookmark);
 		} catch (error) {
-			logger.error('Error adding bookmark:', error);
+			logger.error(`[search] Error adding bookmark %o`, error);
 			return res.setHeader('Content-Type', 'text/html').send(`
         <script>
           alert("Error adding bookmark");
@@ -360,7 +374,7 @@ export async function search({
         </script>`);
 		}
 
-		const [{ id: actionId }] = await db('bangs')
+		const bangs = await db('bangs')
 			.insert({
 				user_id: user.id,
 				trigger,
@@ -368,9 +382,9 @@ export async function search({
 				action_type_id: 2, // redirect
 				url,
 			})
-			.returning('id');
+			.returning('*');
 
-		insertPageTitleQueue.push({ url, actionId });
+		insertPageTitleQueue.push({ actionId: bangs[0].id, url });
 
 		return res
 			.setHeader('Content-Type', 'text/html')
@@ -410,8 +424,6 @@ export async function search({
 
 	return res.redirect(searchUrl);
 }
-
-export const sendNotificationQueue = fastq.promise(sendNotification, 10);
 
 export async function sendNotification({
 	req,
@@ -461,10 +473,10 @@ export async function sendNotification({
 }
 
 export const api: Api = {
-	generate: async (payload: ApiKeyPayload): Promise<string> => {
+	generate: async function (payload: ApiKeyPayload): Promise<string> {
 		return jwt.sign(payload, appConfig.apiKeySecret);
 	},
-	verify: async (apiKey: string): Promise<ApiKeyPayload | null> => {
+	verify: async function (apiKey: string): Promise<ApiKeyPayload | null> {
 		try {
 			const decodedApiKeyPayload = jwt.verify(apiKey, appConfig.apiKeySecret) as ApiKeyPayload;
 

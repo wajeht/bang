@@ -1,10 +1,9 @@
 import {
 	api,
-	createBookmarksDocument,
+	bookmark,
 	expectJson,
 	extractUser,
-	getGithubOauthToken,
-	getGithubUserEmails,
+	github,
 	search,
 	extractPagination,
 	insertBookmarkQueue,
@@ -160,9 +159,9 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 		throw UnauthorizedError('Something went wrong while authenticating with github');
 	}
 
-	const { access_token } = await getGithubOauthToken(code);
+	const { access_token } = await github.getOauthToken(code);
 
-	const emails = await getGithubUserEmails(access_token);
+	const emails = await github.getUserEmails(access_token);
 
 	const email = emails.filter((email) => email.primary && email.verified)[0]?.email;
 
@@ -787,7 +786,7 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 		`attachment; filename=bookmarks-${new Date().toISOString().split('T')[0]}.html`,
 	);
 	res.setHeader('Content-Type', 'text/html; charset=UTF-8');
-	res.send(createBookmarksDocument(bookmarks));
+	res.send(bookmark.createDocument(bookmarks));
 }
 
 // GET /settings/data/export
