@@ -1,7 +1,18 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
 import { appConfig } from '../configs';
-import { getFormattedTimestamp } from '../utils';
+
+function _getFormattedTimestamp() {
+	const now = new Date();
+	const hours = now.getHours();
+	const minutes = now.getMinutes();
+	const seconds = now.getSeconds();
+	const ampm = hours >= 12 ? 'PM' : 'AM';
+	const formattedHours = hours % 12 || 12;
+	const formattedTime = `${formattedHours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${ampm}`;
+	const formattedDate = now.toISOString().split('T')[0];
+	return `[${formattedDate} ${formattedTime}]`;
+}
 
 const developmentEnvironmentOnly = appConfig.env === 'development';
 
@@ -47,12 +58,12 @@ const knexConfig: Knex.Config = {
 				// Enable multi-threaded operations (2 threads for 2 CPU cores)
 				conn.pragma('threads = 2');
 
-				console.log(`${getFormattedTimestamp()} INFO: New database connection established`);
+				console.log(`${_getFormattedTimestamp()} INFO: New database connection established`);
 
 				done(null, conn);
 			} catch (err) {
 				console.error(
-					`${getFormattedTimestamp()} ERROR: Error establishing database connection:`,
+					`${_getFormattedTimestamp()} ERROR: Error establishing database connection:`,
 					err,
 				);
 
