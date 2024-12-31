@@ -66,6 +66,9 @@
             rows="10"
             style="width: 100%;"
             placeholder="Paste your JSON configuration here"></textarea>
+            <% if (state.errors.config) { %>
+              <small style="color: red;"><%= state.errors.config %></small>
+          <% } %>
           <button type="submit">⬆️ Import</button>
         </div>
       </form>

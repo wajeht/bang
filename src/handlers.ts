@@ -688,16 +688,19 @@ export const postImportDataHandler = [
 	validateRequestMiddleware([
 		body('config')
 			.notEmpty()
+			.withMessage('config must not be empty')
 			.custom((value) => {
 				try {
 					const parsed = JSON.parse(value);
+
 					if (!parsed.version || parsed.version !== '1.0') {
-						throw new Error('Invalid export version');
+						throw ValidationError('Config version must be 1.0');
 					}
-					return true;
 				} catch (error) {
-					throw new Error('Invalid JSON format');
+					throw ValidationError('Invalid JSON format');
 				}
+
+				return true;
 			}),
 	]),
 	async (req: Request, res: Response) => {
