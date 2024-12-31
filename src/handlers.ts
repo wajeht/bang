@@ -201,7 +201,7 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 export async function postSearchHandler(req: Request, res: Response) {
 	const query = req.body.q?.toString().trim() || '';
 	const user = req.session.user;
-	return await search({ res, user, query });
+	await search({ res, user, query });
 }
 
 // GET /
@@ -224,7 +224,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 		});
 	}
 
-	return await search({ res, user, query });
+	await search({ res, user, query });
 }
 
 // POST /actions
