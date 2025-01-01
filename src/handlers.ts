@@ -796,25 +796,23 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 export async function getExportAllDataHandler(req: Request, res: Response) {
 	const userId = req.session.user?.id;
 
-	const user = await db('users')
-		.where('id', userId)
-		.select('username', 'email', 'default_search_provider', 'created_at')
-		.first();
-
-	const bangs = await db('bangs')
-		.join('action_types', 'bangs.action_type_id', 'action_types.id')
-		.where('bangs.user_id', userId)
-		.select(
-			'bangs.trigger',
-			'bangs.name',
-			'bangs.url',
-			'action_types.name as action_type',
-			'bangs.created_at',
-		);
-
-	const bookmarks = await db('bookmarks')
-		.where('user_id', userId)
-		.select('title', 'url', 'created_at');
+	const [user, bangs, bookmarks] = await Promise.all([
+		db('users')
+			.where('id', userId)
+			.select('username', 'email', 'default_search_provider', 'created_at')
+			.first(),
+		db('bangs')
+			.join('action_types', 'bangs.action_type_id', 'action_types.id')
+			.where('bangs.user_id', userId)
+			.select(
+				'bangs.trigger',
+				'bangs.name',
+				'bangs.url',
+				'action_types.name as action_type',
+				'bangs.created_at',
+			),
+		db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at'),
+	]);
 
 	const exportData = {
 		user,
@@ -826,9 +824,10 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
 	const currentDate = new Date().toISOString().split('T')[0];
 	const filename = `bang-data-export-${currentDate}.json`;
 
-	res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-	res.setHeader('Content-Type', 'application/json');
-	res.send(JSON.stringify(exportData, null, 2));
+	res
+		.setHeader('Content-Disposition', `attachment; filename=${filename}`)
+		.setHeader('Content-Type', 'application/json')
+		.send(JSON.stringify(exportData, null, 2));
 }
 
 // POST /bookmarks
