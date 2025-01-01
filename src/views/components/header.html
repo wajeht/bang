@@ -1,15 +1,19 @@
-<header style="flex: 0; display: flex; flex-direction: column; gap: 20px; border-bottom: dashed; padding-bottom: 40px;">
-  <div>
-      <h1><a href="/" style="text-decoration: none;"><span style="color: #ae2d36;">!</span>Bang</a></h1>
-      <p>DuckDuckGo's !Bangs, but on steroids</p>
-  </div>
-
+<header style="flex: 0; display: flex; flex-direction: column; gap: 20px; border: dashed; padding: 30px; border-radius: 10px">
   <nav style="display: flex; justify-content: space-between; align-items: center;">
-      <div style="display: flex; align-items: center; gap: 20px;">
-          <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/actions' ? 'bold' : 'normal' %>; <%= path === '/actions' ? 'text-decoration: underline;' : null %>"
-             href="/actions">⚡ Actions</a>
-          <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/bookmarks' ? 'bold' : 'normal' %>; <%= path === '/bookmarks' ? 'text-decoration: underline;' : null %>"
-             href="/bookmarks">🔖 Bookmarks</a>
+
+      <div style="display: flex; align-items: center; gap: 20px; justify-items: center;">
+          <h1 style="display: flex; justify-items: center; align-items: center;">
+              <a href="/" style="text-decoration: none;">
+                  <span style="color: #ae2d36;">!</span>Bang
+              </a>
+          </h1>
+
+          <div style="display: flex; align-items: center; position: relative; padding: 0px 50px 0px 0px; height: fit-content;">
+            <span style="font-size: 4rem; font-weight: 100; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -55%); height: fit-content;">/</span>
+          </div>
+
+          <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/actions' ? 'bold' : 'normal' %>; <%= path === '/actions' ? 'text-decoration: underline;' : null %>" href="/actions">⚡ Actions</a>
+          <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/bookmarks' ? 'bold' : 'normal' %>; <%= path === '/bookmarks' ? 'text-decoration: underline;' : null %>" href="/bookmarks">🔖 Bookmarks</a>
       </div>
 
       <details style="position: relative;">
