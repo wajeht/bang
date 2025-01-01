@@ -611,47 +611,56 @@ export const postExportDataHandler = [
 	validateRequestMiddleware([
 		body('include_bookmarks')
 			.optional()
-			.custom((value) => value === 'on')
+			.isIn(['on'])
 			.withMessage('Invalid value for include_bookmarks'),
 		body('include_actions')
 			.optional()
-			.custom((value) => value === 'on')
+			.isIn(['on'])
 			.withMessage('Invalid value for include_actions'),
 	]),
 	async (req: Request, res: Response) => {
 		const userId = req.session.user?.id;
-		const include_bookmarks = req.body.include_bookmarks === 'on';
-		const include_actions = req.body.include_actions === 'on';
+		const includeBookmarks = req.body.include_bookmarks === 'on';
+		const includeActions = req.body.include_actions === 'on';
+
+		if (!includeBookmarks && !includeActions) {
+			req.flash('error', 'Please select at least one data type to export');
+			return res.redirect('/settings/data');
+		}
 
 		const exportData: any = {
 			exported_at: new Date().toISOString(),
 			version: '1.0',
 		};
 
-		if (include_bookmarks) {
-			exportData.bookmarks = await db('bookmarks')
-				.where('user_id', userId)
-				.select('title', 'url', 'created_at');
-		}
+		const fetchBookmarks = async () => {
+			if (includeBookmarks) {
+				return db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at');
+			}
+			return [];
+		};
 
-		if (include_actions) {
-			exportData.actions = await db
-				.select(
-					'bangs.trigger',
-					'bangs.name',
-					'bangs.url',
-					'action_types.name as action_type',
-					'bangs.created_at',
-				)
-				.from('bangs')
-				.join('action_types', 'bangs.action_type_id', 'action_types.id')
-				.where('bangs.user_id', userId);
-		}
+		const fetchActions = async () => {
+			if (includeActions) {
+				return db
+					.select(
+						'bangs.trigger',
+						'bangs.name',
+						'bangs.url',
+						'action_types.name as action_type',
+						'bangs.created_at',
+					)
+					.from('bangs')
+					.join('action_types', 'bangs.action_type_id', 'action_types.id')
+					.where('bangs.user_id', userId);
+			}
+			return [];
+		};
 
-		if (!include_bookmarks && !include_actions) {
-			req.flash('error', 'Please select at least one data type to export');
-			return res.redirect('/settings/data');
-		}
+		const [bookmarks, actions] = await Promise.all([fetchBookmarks(), fetchActions()]);
+
+		if (includeBookmarks) exportData.bookmarks = bookmarks;
+		if (includeActions) exportData.actions = actions;
 
 		res.setHeader(
 			'Content-Disposition',
