@@ -218,7 +218,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 
 		return res.render('search.html', {
 			path: '/',
-			title: "Search",
+			title: 'Search',
 			layout: '../layouts/search.html',
 		});
 	}
