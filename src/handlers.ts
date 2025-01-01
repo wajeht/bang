@@ -609,53 +609,47 @@ export async function getSettingsDataPageHandler(req: Request, res: Response) {
 // POST /settings/data/export
 export const postExportDataHandler = [
 	validateRequestMiddleware([
-		body('include_bookmarks')
-			.optional()
-			.isIn(['on'])
-			.withMessage('Invalid value for include_bookmarks'),
-		body('include_actions')
-			.optional()
-			.isIn(['on'])
-			.withMessage('Invalid value for include_actions'),
+		body('options').custom((value) => {
+			if (value === undefined) {
+				throw ValidationError('Please select at least one data type to export');
+			}
+			return true;
+		}),
 	]),
 	async (req: Request, res: Response) => {
 		const userId = req.session.user?.id;
-		const includeBookmarks = req.body.include_bookmarks === 'on';
-		const includeActions = req.body.include_actions === 'on';
+		const includeBookmarks = req.body.options.includes('bookmarks');
+		const includeActions = req.body.options.includes('actions');
 
-		if (!includeBookmarks && !includeActions) {
-			req.flash('error', 'Please select at least one data type to export');
-			return res.redirect('/settings/data');
-		}
-
-		const exportData: any = {
+		const exportData: {
+			exported_at: string;
+			version: string;
+			bookmarks?: any[];
+			actions?: any[];
+		} = {
 			exported_at: new Date().toISOString(),
 			version: '1.0',
 		};
 
-		const fetchBookmarks = async () => {
-			if (includeBookmarks) {
-				return db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at');
-			}
-			return [];
-		};
+		const fetchBookmarks = () =>
+			includeBookmarks
+				? db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at')
+				: Promise.resolve([]);
 
-		const fetchActions = async () => {
-			if (includeActions) {
-				return db
-					.select(
-						'bangs.trigger',
-						'bangs.name',
-						'bangs.url',
-						'action_types.name as action_type',
-						'bangs.created_at',
-					)
-					.from('bangs')
-					.join('action_types', 'bangs.action_type_id', 'action_types.id')
-					.where('bangs.user_id', userId);
-			}
-			return [];
-		};
+		const fetchActions = () =>
+			includeActions
+				? db
+						.select(
+							'bangs.trigger',
+							'bangs.name',
+							'bangs.url',
+							'action_types.name as action_type',
+							'bangs.created_at',
+						)
+						.from('bangs')
+						.join('action_types', 'bangs.action_type_id', 'action_types.id')
+						.where('bangs.user_id', userId)
+				: Promise.resolve([]);
 
 		const [bookmarks, actions] = await Promise.all([fetchBookmarks(), fetchActions()]);
 

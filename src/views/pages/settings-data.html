@@ -29,25 +29,29 @@
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
           <div style="display: flex; flex-direction: column; gap: 10px;">
             <div>
-              <label>
-                <input type="checkbox" name="include_bookmarks" checked>
+              <label for="bookmarks-checkbox">
+                <input type="checkbox" id="bookmarks-checkbox" name="options[]" value="bookmarks">
                 Include Bookmarks
               </label>
             </div>
             <div>
-              <label>
-                <input type="checkbox" name="include_actions" checked>
+              <label for="actions-checkbox">
+                <input type="checkbox" id="actions-checkbox" name="options[]" value="actions">
                 Include Actions
               </label>
             </div>
+
+
             <button type="submit" style="width: 100%;">⬇️ Export</button>
           </div>
+          <% if (state.errors.options) { %>
+            <small style="color: red;"><%= state.errors.options %></small>
+          <% } %>
         </form>
       </div>
 
       <div id="html" style="display: none; flex-direction: column; gap: 10px;">
         <p>Export your bookmarks to import to browsers</p>
-
         <button type="button" onclick="location.href='/bookmarks/export'">⬇️ Export</button>
       </div>
     </div>
