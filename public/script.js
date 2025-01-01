@@ -92,19 +92,12 @@ function initializeToast() {
 		history.replaceState({}, document.title, newUrl);
 	}
 
-	let data = {};
-
 	try {
-		data = getAppLocalState();
-	} catch (_error) {
-		data = {};
-	}
-
-	if (data.falsh && Object.values(data.flash).some((msg) => msg.length > 0)) {
-		Object.values(data.flash).forEach((msg) => {
-			if (msg.length) createToast(msg);
-		});
-	}
+		const { flash = {} } = getAppLocalState();
+		for (const msg of Object.values(flash)) {
+			if (msg?.length) createToast(msg);
+		}
+	} catch {}
 }
 
 function getAppLocalState() {
@@ -117,16 +110,14 @@ document.addEventListener('DOMContentLoaded', () => {
 	initializeTheme();
 	initializeToast();
 
-	let data = {};
+	let user = null;
 
 	try {
-		data = getAppLocalState();
-	} catch (_error) {
-		data = {};
-	}
+		const { user: localUser } = getAppLocalState();
+		user = localUser;
+	} catch {}
 
-	// pressing ctrl/cmd + k to bring search page
-	if (data.user && window.location.pathname !== '/') {
+	if (user && window.location.pathname !== '/') {
 		document.addEventListener('keydown', (e) => {
 			if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
 				e.preventDefault();
