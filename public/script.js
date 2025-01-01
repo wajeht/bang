@@ -92,13 +92,13 @@ function initializeToast() {
 		history.replaceState({}, document.title, newUrl);
 	}
 
-    let data = {};
+	let data = {};
 
-    try {
-	    data = getAppLocalState();
-    } catch (_error){
-        data = {};
-    }
+	try {
+		data = getAppLocalState();
+	} catch (_error) {
+		data = {};
+	}
 
 	if (data.falsh && Object.values(data.flash).some((msg) => msg.length > 0)) {
 		Object.values(data.flash).forEach((msg) => {
@@ -117,15 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
 	initializeTheme();
 	initializeToast();
 
-    let data = {};
+	let data = {};
 
-    try {
-	   data = getAppLocalState();
-    } catch (_error){
-        data = {};
-    }
+	try {
+		data = getAppLocalState();
+	} catch (_error) {
+		data = {};
+	}
 
-    // pressing ctrl/cmd + k to bring search page
+	// pressing ctrl/cmd + k to bring search page
 	if (data.user && window.location.pathname !== '/') {
 		document.addEventListener('keydown', (e) => {
 			if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
