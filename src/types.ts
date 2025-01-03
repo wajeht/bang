@@ -6,6 +6,8 @@ declare module 'express-session' {
 		user?: User;
 		input?: Record<string, unknown>;
 		errors?: Record<string, unknown>;
+		searchCount?: number;
+		cumulativeDelay?: number;
 	}
 }
 

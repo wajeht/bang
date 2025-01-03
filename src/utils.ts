@@ -336,6 +336,9 @@ export function getIpAddress(req: Request): string {
 	return clientIp;
 }
 
+const SEARCH_LIMIT = 5;
+const DELAY_INCREMENT = 5000; // 5 seconds
+
 export async function trackUnauthenticatedUserSearchHistory({
 	req,
 	query,
@@ -343,8 +346,21 @@ export async function trackUnauthenticatedUserSearchHistory({
 	req: Request;
 	query: string;
 }) {
-	const ip = getIpAddress(req);
-	logger.info(`[trackUnauthenticatedUserSearchHistory]: %o`, { ip, query });
+	req.session.searchCount = req.session.searchCount || 0;
+	req.session.cumulativeDelay = req.session.cumulativeDelay || 0;
+
+	req.session.searchCount += 1;
+
+	if (req.session.searchCount > SEARCH_LIMIT) {
+		req.session.cumulativeDelay += DELAY_INCREMENT;
+	}
+
+	logger.info(`[trackUnauthenticatedUserSearchHistory]: %o`, {
+		sessionId: req.session.id,
+		query,
+		searchCount: req.session.searchCount,
+		cumulativeDelay: req.session.cumulativeDelay,
+	});
 }
 
 export async function search({
@@ -359,6 +375,13 @@ export async function search({
 	query: string;
 }) {
 	if (!user) {
+		if (req.session.cumulativeDelay) {
+			logger.warn(
+				`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay}ms due to exceeding search limit.`,
+			);
+			await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
+		}
+
 		trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
 		return res.redirect(
 			defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query)),
