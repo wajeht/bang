@@ -9,10 +9,10 @@ import {
 import qs from 'qs';
 import fs from 'node:fs';
 import fastq from 'fastq';
+import { db } from './db/db';
 import path from 'node:path';
 import http from 'node:http';
 import https from 'node:https';
-import { db } from './db/db';
 import jwt from 'jsonwebtoken';
 import { logger } from './logger';
 import { Application, Request, Response, NextFunction } from 'express';
@@ -21,6 +21,10 @@ import { appConfig, defaultSearchProviders, notifyConfig, oauthConfig } from './
 export const sendNotificationQueue = fastq.promise(sendNotification, 10);
 export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
 export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
+export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(
+	trackUnauthenticatedUserSearchHistory,
+	10,
+);
 
 export async function runMigrations(force: boolean = false) {
 	try {
@@ -312,16 +316,50 @@ export function isValidUrl(url: string): boolean {
 	}
 }
 
+export function getIpAddress(req: Request): string {
+	const xForwardedFor = req.headers['x-forwarded-for'];
+
+	let clientIp = '';
+
+	if (Array.isArray(xForwardedFor)) {
+		clientIp = xForwardedFor[0].split(',')[0].trim();
+	}
+
+	if (typeof xForwardedFor === 'string') {
+		clientIp = xForwardedFor.split(',')[0].trim();
+	}
+
+	if (!clientIp) {
+		clientIp = req.ip || req.socket?.remoteAddress || '';
+	}
+
+	return clientIp;
+}
+
+export async function trackUnauthenticatedUserSearchHistory({
+	req,
+	query,
+}: {
+	req: Request;
+	query: string;
+}) {
+	const ip = getIpAddress(req);
+	logger.info(`[trackUnauthenticatedUserSearchHistory]: %o`, { ip, query });
+}
+
 export async function search({
 	res,
+	req,
 	user,
 	query,
 }: {
 	res: Response;
-	user: User | undefined;
+	req: Request;
+	user?: User;
 	query: string;
 }) {
 	if (!user) {
+		trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
 		return res.redirect(
 			defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query)),
 		);
