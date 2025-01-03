@@ -322,14 +322,14 @@ export function getIpAddress(req: Request): string {
 	let clientIp = '';
 
 	if (Array.isArray(xForwardedFor)) {
-		clientIp = xForwardedFor[0].split(',')[0].trim();
+		clientIp = xForwardedFor[0]?.split(',')[0]?.trim() || '';
 	}
 
 	if (typeof xForwardedFor === 'string') {
-		clientIp = xForwardedFor.split(',')[0].trim();
+		clientIp = xForwardedFor.split(',')[0]?.trim() || '';
 	}
 
-	if (!clientIp) {
+	if (!clientIp.length) {
 		clientIp = req.ip || req.socket?.remoteAddress || '';
 	}
 
