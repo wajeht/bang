@@ -316,26 +316,6 @@ export function isValidUrl(url: string): boolean {
 	}
 }
 
-export function getIpAddress(req: Request): string {
-	const xForwardedFor = req.headers['x-forwarded-for'];
-
-	let clientIp = '';
-
-	if (Array.isArray(xForwardedFor)) {
-		clientIp = xForwardedFor[0]?.split(',')[0]?.trim() || '';
-	}
-
-	if (typeof xForwardedFor === 'string') {
-		clientIp = xForwardedFor.split(',')[0]?.trim() || '';
-	}
-
-	if (!clientIp.length) {
-		clientIp = req.ip || req.socket?.remoteAddress || '';
-	}
-
-	return clientIp;
-}
-
 const SEARCH_LIMIT = 5;
 const DELAY_INCREMENT = 5000; // 5 seconds
 
