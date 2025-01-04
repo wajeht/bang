@@ -545,24 +545,43 @@ export const api: Api = {
 	},
 };
 
+export function getApiKey(req: Request): string | undefined {
+	const apiKey = req.header('X-API-KEY');
+	const authHeader = req.header('Authorization');
+
+	if (authHeader?.startsWith('Bearer ')) {
+		return authHeader.substring(7);
+	}
+
+	return apiKey;
+}
+
+export function isApiRequest(req: Request): boolean {
+	return !!getApiKey(req) || req.path.startsWith('/api');
+}
+
 export function expectJson(req: Request): boolean {
-	return req.get('Content-Type') === 'application/json';
+	return req.header('Content-Type') === 'application/json';
 }
 
 export async function extractUser(req: Request): Promise<User> {
-	if (expectJson(req) && req.apiKeyPayload) {
-		return await db.select('*').from('users').where({ id: req.apiKeyPayload?.userId }).first();
+	if (isApiRequest(req) && req.apiKeyPayload) {
+		return db.select('*').from('users').where({ id: req.apiKeyPayload.userId }).first();
 	}
 
-	return req.session.user!;
+	if (req.session?.user) {
+		return req.session.user;
+	}
+
+	throw new Error('User not found');
 }
 
 export function extractPagination(req: Request, user: User) {
 	return {
-		perPage: parseInt(req.query.per_page as string) || user.default_per_page,
-		page: parseInt(req.query.page as string) || 1,
+		perPage: parseInt(req.query.per_page as string, 10) || user.default_per_page,
+		page: parseInt(req.query.page as string, 10) || 1,
 		search: ((req.query.search as string) || '').toLowerCase(),
 		sortKey: req.query.sort_key as string,
-		direction: req.query.direction as string,
+		direction: req.query.direction === 'desc' ? 'desc' : 'asc',
 	};
 }

@@ -8,7 +8,7 @@ import { appConfig, sessionConfig } from './configs';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
-import { api, expectJson, sendNotificationQueue } from './utils';
+import { api, expectJson, getApiKey, sendNotificationQueue } from './utils';
 
 export function notFoundMiddleware() {
 	return (req: Request, res: Response, _next: NextFunction) => {
@@ -194,27 +194,16 @@ export async function apiKeyOnlyAuthenticationMiddleware(
 	next: NextFunction,
 ) {
 	try {
-		let apiKey: string | undefined;
-
-		if (req.header('X-API-KEY')) {
-			apiKey = req.header('X-API-KEY');
-		} else if (req.header('Authorization')) {
-			const authHeader = req.header('Authorization');
-			if (authHeader?.startsWith('Bearer ')) {
-				apiKey = authHeader.substring(7);
-			}
-		}
+		const apiKey = getApiKey(req);
 
 		if (!apiKey) {
-			res.status(401).json({ message: 'API key or Bearer token is missing' });
-			return;
+			return res.status(401).json({ message: 'API key or Bearer token is missing' });
 		}
 
 		const apiKeyPayload = await api.verify(apiKey);
 
 		if (!apiKeyPayload) {
-			res.status(401).json({ message: 'Invalid API key or Bearer token' });
-			return;
+			return res.status(401).json({ message: 'Invalid API key or Bearer token' });
 		}
 
 		req.apiKeyPayload = apiKeyPayload;

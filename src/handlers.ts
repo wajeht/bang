@@ -15,6 +15,7 @@ import { ApiKeyPayload, BookmarkToExport } from './types';
 import { validateRequestMiddleware } from './middlewares';
 import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './configs';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
+import { actions } from './repositories';
 
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {
@@ -88,62 +89,24 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 	const user = await extractUser(req);
 	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
 
-	const query = db
-		.select(
-			'bangs.id',
-			'bangs.name',
-			'bangs.trigger',
-			'bangs.url',
-			'action_types.name as action_type',
-			'bangs.created_at',
-		)
-		.from('bangs')
-		.where('bangs.user_id', user.id)
-		.join('action_types', 'bangs.action_type_id', 'action_types.id');
-
-	if (search) {
-		query.where((q) => {
-			q.where(db.raw('LOWER(bangs.name) LIKE ?', [`%${search}%`]))
-				.orWhere(db.raw('LOWER(bangs.trigger) LIKE ?', [`%${search}%`]))
-				.orWhere(db.raw('LOWER(bangs.url) LIKE ?', [`%${search}%`]));
-		});
-	}
-
-	if (
-		sortKey === 'name' ||
-		sortKey === 'trigger' ||
-		sortKey === 'url' ||
-		sortKey === 'created_at'
-	) {
-		query.orderBy(`bangs.${sortKey}`, direction === 'desc' ? 'desc' : 'asc');
-	} else if (sortKey === 'action_type') {
-		query.orderBy(`action_types.name`, direction === 'desc' ? 'desc' : 'asc');
-	} else {
-		query.orderBy('bangs.created_at', 'desc');
-	}
-
-	const { data: actions, pagination } = await query.paginate({
+	const { data, pagination } = await actions.all({
+		user,
 		perPage,
-		currentPage: page,
-		isLengthAware: true,
+		page,
+		search,
+		sortKey,
+		direction,
 	});
 
 	if (expectJson(req)) {
-		res.json({
-			actions,
-			pagination,
-			search,
-			sortKey,
-			direction,
-		});
-		return;
+		return res.json({ data, pagination, search, sortKey, direction });
 	}
 
 	return res.render('actions.html', {
 		path: '/actions',
 		title: 'Actions',
 		layout: '../layouts/auth.html',
-		actions,
+		data,
 		pagination,
 		search,
 		sortKey,
