@@ -20,9 +20,9 @@ import {
 	getTermsOfServicePageHandler,
 	getBookmarksPageHandler,
 	postDeleteBookmarkHandler,
-	postDeleteActionHandler,
+	deleteActionHandler,
 	getEditActionPageHandler,
-	postUpdateActionHandler,
+	updateActionHandler,
 	getSettingsPageHandler,
 	getSettingsDangerZonePageHandler,
 	getSettingsDataPageHandler,
@@ -68,8 +68,8 @@ router.post('/actions', authenticationMiddleware, csrfMiddleware, postActionHand
 router.get('/actions/create', authenticationMiddleware, csrfMiddleware, getActionCreatePageHandler);
 
 router.get('/actions/:id/edit', authenticationMiddleware, csrfMiddleware, getEditActionPageHandler);
-router.post('/actions/:id/update', authenticationMiddleware, csrfMiddleware, postUpdateActionHandler); // prettier-ignore
-router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, postDeleteActionHandler); // prettier-ignore
+router.post('/actions/:id/update', authenticationMiddleware, csrfMiddleware, updateActionHandler);
+router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, deleteActionHandler);
 
 router.post('/bookmarks', authenticationMiddleware, csrfMiddleware, postBookmarkHandler);
 router.get('/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksPageHandler);
@@ -85,8 +85,8 @@ router.post('/settings/data/import', authenticationMiddleware, csrfMiddleware, p
 
 router.get('/api/actions', apiKeyOnlyAuthenticationMiddleware, getActionsHandler);
 router.post('/api/actions', apiKeyOnlyAuthenticationMiddleware, postActionHandler);
-router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, postUpdateActionHandler);
-router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, postDeleteActionHandler);
+router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, updateActionHandler);
+router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, deleteActionHandler);
 
 // router.post('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, postBookmarkHandler);
 // router.get('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, getBookmarksPageHandler);

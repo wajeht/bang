@@ -327,7 +327,7 @@ export async function postDeleteBookmarkHandler(req: Request, res: Response) {
 }
 
 // POST /actions/:id/delete
-export async function postDeleteActionHandler(req: Request, res: Response) {
+export async function deleteActionHandler(req: Request, res: Response) {
 	const deleted = await actions.delete(req.params.id as unknown as number, req.session.user!.id);
 
 	if (deleted) {
@@ -368,7 +368,7 @@ export async function getEditActionPageHandler(req: Request, res: Response) {
 }
 
 // POST /actions/:id/update
-export const postUpdateActionHandler = [
+export const updateActionHandler = [
 	validateRequestMiddleware([
 		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
 		body('name').notEmpty().withMessage('Name is required').trim(),
