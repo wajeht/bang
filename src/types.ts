@@ -66,3 +66,39 @@ export type BookmarkToExport = {
 	/** Unix timestamp in seconds representing when the bookmark was added */
 	add_date: number;
 };
+
+export type Action = {
+	id?: number;
+	name: string;
+	trigger: string;
+	url: string;
+	action_type_id?: number;
+	user_id: number;
+	created_at?: string;
+};
+
+export type ActionsQueryParams = {
+	user: { id: number };
+	perPage: number;
+	page: number;
+	search: string;
+	sortKey: string | 'created_at';
+	direction: string | 'asc' | 'desc';
+};
+
+export type Bookmark = {
+	id?: number;
+	title: string;
+	url: string;
+	user_id: number;
+	created_at?: string;
+};
+
+export type BookmarksQueryParams = {
+	user: { id: number };
+	perPage: number;
+	page: number;
+	search: string;
+	sortKey: string | 'created_at';
+	direction: string | 'asc' | 'desc';
+};
