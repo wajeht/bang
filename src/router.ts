@@ -7,7 +7,7 @@ import {
 } from './middlewares';
 
 import {
-	getActionsPageHandler,
+	getActionsHandler,
 	getGithubHandler,
 	getGithubRedirectHandler,
 	getHealthzHandler,
@@ -63,7 +63,7 @@ router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettin
 router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler); // prettier-ignore
 router.post('/settings/danger-zone/delete', authenticationMiddleware, csrfMiddleware, postDeleteSettingsDangerZoneHandler); // prettier-ignore
 
-router.get('/actions', authenticationMiddleware, csrfMiddleware, getActionsPageHandler);
+router.get('/actions', authenticationMiddleware, csrfMiddleware, getActionsHandler);
 router.post('/actions', authenticationMiddleware, csrfMiddleware, postActionHandler);
 router.get('/actions/create', authenticationMiddleware, csrfMiddleware, getActionCreatePageHandler);
 
@@ -83,7 +83,7 @@ router.get('/bookmarks/export', authenticationMiddleware, getExportBookmarksHand
 router.post('/settings/data/export', authenticationMiddleware, csrfMiddleware, postExportDataHandler); // prettier-ignore
 router.post('/settings/data/import', authenticationMiddleware, csrfMiddleware, postImportDataHandler); // prettier-ignore
 
-router.get('/api/actions', apiKeyOnlyAuthenticationMiddleware, getActionsPageHandler);
+router.get('/api/actions', apiKeyOnlyAuthenticationMiddleware, getActionsHandler);
 router.post('/api/actions', apiKeyOnlyAuthenticationMiddleware, postActionHandler);
 router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, postUpdateActionHandler);
 router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, postDeleteActionHandler);

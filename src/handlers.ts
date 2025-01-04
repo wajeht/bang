@@ -85,7 +85,7 @@ export async function getGithubHandler(req: Request, res: Response) {
 }
 
 // GET /actions
-export async function getActionsPageHandler(req: Request, res: Response) {
+export async function getActionsHandler(req: Request, res: Response) {
 	const user = await extractUser(req);
 	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
 
