@@ -1,4 +1,4 @@
-import { Action, ActionsQueryParams } from './types';
+import { Action, ActionsQueryParams, Bookmark, BookmarksQueryParams } from './types';
 import { db } from './db/db';
 
 export const actions = {
