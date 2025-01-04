@@ -124,11 +124,6 @@ export const actions = {
 
 	delete: async (id: number, userId: number) => {
 		const rowsAffected = await db('bangs').where({ id, user_id: userId }).delete();
-
-		if (rowsAffected === 0) {
-			throw new Error('Action not found or access denied');
-		}
-
-		return { success: true };
+		return rowsAffected === 0;
 	},
 };

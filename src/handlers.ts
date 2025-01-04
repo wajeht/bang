@@ -328,25 +328,17 @@ export async function postDeleteBookmarkHandler(req: Request, res: Response) {
 
 // POST /actions/:id/delete
 export async function postDeleteActionHandler(req: Request, res: Response) {
-	const action = await db('bangs')
-		.where({
-			id: req.params.id,
-			user_id: req.session.user!.id,
-		})
-		.first();
+	const deleted = await actions.delete(req.params.id as unknown as number, req.session.user!.id);
 
-	if (!action) {
+	if (deleted) {
+		if (expectJson(req)) {
+			return res.status(200).json({ message: `Action deleted successfully` });
+		}
+
 		throw NotFoundError();
 	}
 
-	await db('bangs')
-		.where({
-			id: req.params.id,
-			user_id: req.session.user?.id,
-		})
-		.delete();
-
-	req.flash('success', `Action ${action.trigger} deleted successfully`);
+	req.flash('success', `Action  deleted successfully`);
 	return res.redirect('/actions');
 }
 
