@@ -15,7 +15,7 @@ import { ApiKeyPayload, BookmarkToExport } from './types';
 import { validateRequestMiddleware } from './middlewares';
 import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './configs';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
-import { actions } from './repositories';
+import { actions, bookmarks } from './repositories';
 
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {
@@ -264,40 +264,21 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 }
 
 // GET /bookmarks
-export async function getBookmarksPageHandler(req: Request, res: Response) {
+export async function getBookmarksHandler(req: Request, res: Response) {
 	const user = await extractUser(req);
 	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
 
-	const query = db.select('*').from('bookmarks').where('user_id', user.id);
-
-	if (search) {
-		query.where((q) => {
-			q.where(db.raw('LOWER(title) LIKE ?', [`%${search}%`])).orWhere(
-				db.raw('LOWER(url) LIKE ?', [`%${search}%`]),
-			);
-		});
-	}
-
-	if (sortKey === 'title' || sortKey === 'url' || sortKey === 'created_at') {
-		query.orderBy(`bookmarks.${sortKey}`, direction === 'desc' ? 'desc' : 'asc');
-	} else {
-		query.orderBy('bookmarks.created_at', 'desc');
-	}
-
-	const { data: bookmarks, pagination } = await query.paginate({
+	const { data, pagination } = await bookmarks.all({
+		user,
 		perPage,
-		currentPage: page,
-		isLengthAware: true,
+		page,
+		search,
+		sortKey,
+		direction,
 	});
 
 	if (expectJson(req)) {
-		res.json({
-			bookmarks,
-			pagination,
-			search,
-			sortKey,
-			direction,
-		});
+		res.json({ data, pagination, search, sortKey, direction });
 		return;
 	}
 
@@ -305,7 +286,7 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 		title: 'Bookmarks',
 		path: '/bookmarks',
 		layout: '../layouts/auth',
-		bookmarks,
+		data,
 		search,
 		pagination,
 		sortKey,
@@ -314,13 +295,8 @@ export async function getBookmarksPageHandler(req: Request, res: Response) {
 }
 
 // POST /bookmarks/:id/delete
-export async function postDeleteBookmarkHandler(req: Request, res: Response) {
-	await db('bookmarks')
-		.where({
-			id: req.params.id,
-			user_id: req.session.user?.id,
-		})
-		.delete();
+export async function deleteBookmarkHandler(req: Request, res: Response) {
+	await bookmarks.delete(req.params.id as unknown as number, req.session.user!.id);
 
 	req.flash('success', 'Bookmark deleted successfully');
 	return res.redirect('/bookmarks');
@@ -441,7 +417,7 @@ export async function getBookmarkActionCreatePageHandler(req: Request, res: Resp
 }
 
 // POST /bookmarks/:id/update
-export const postUpdateBookmarkHandler = [
+export const updateBookmarkHandler = [
 	validateRequestMiddleware([
 		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
 		body('title').notEmpty().withMessage('Title is required').trim(),
@@ -449,15 +425,16 @@ export const postUpdateBookmarkHandler = [
 	async (req: Request, res: Response) => {
 		const { url, title } = req.body;
 
-		await db('bookmarks')
-			.where({ id: req.params?.id, user_id: req.session.user?.id })
-			.update({
-				title: title || 'Fetching...',
+		const updatedBookmark = await bookmarks.update(
+			req.params.id as unknown as number,
+			req.session.user!.id,
+			{
 				url,
-				updated_at: db.fn.now(),
-			});
+				title,
+			},
+		);
 
-		req.flash('success', `Bookmark ${req.params?.id} updated successfully!`);
+		req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
 		return res.redirect('/bookmarks');
 	},
 ];
@@ -632,16 +609,7 @@ export const postExportDataHandler = [
 
 // GET /bookmarks/:id/edit
 export async function getEditBookmarkPageHandler(req: Request, res: Response) {
-	const bookmark = await db('bookmarks')
-		.where({
-			id: req.params.id,
-			user_id: req.session.user?.id,
-		})
-		.first();
-
-	if (!bookmark) {
-		throw NotFoundError();
-	}
+	const bookmark = await bookmarks.read(req.params.id as unknown as number, req.session.user!.id);
 
 	return res.render('bookmarks-edit.html', {
 		title: 'Bookmark / Edit',
@@ -807,9 +775,13 @@ export const postBookmarkHandler = [
 	async (req: Request, res: Response) => {
 		const { url, title } = req.body;
 
-		insertBookmarkQueue.push({ url, userId: req.session.user!.id, title });
+		const newBookmark = await bookmarks.create({
+			url,
+			title: title || '',
+			user_id: req.session.user!.id,
+		});
 
-		req.flash('success', `Bookmark ${title} created successfully!`);
+		req.flash('success', `Bookmark ${newBookmark.title} created successfully!`);
 		return res.redirect('/bookmarks');
 	},
 ];
