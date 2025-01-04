@@ -19,6 +19,23 @@ type ActionsQueryParams = {
 	direction: string | 'asc' | 'desc';
 };
 
+type Bookmark = {
+	id?: number;
+	title: string;
+	url: string;
+	user_id: number;
+	created_at?: string;
+};
+
+type BookmarksQueryParams = {
+	user: { id: number };
+	perPage: number;
+	page: number;
+	search: string;
+	sortKey: string | 'created_at';
+	direction: string | 'asc' | 'desc';
+};
+
 export const actions = {
 	all: async ({
 		user,
@@ -132,6 +149,82 @@ export const actions = {
 
 	delete: async (id: number, userId: number) => {
 		const rowsAffected = await db('bangs').where({ id, user_id: userId }).delete();
+		return rowsAffected === 0;
+	},
+};
+
+export const bookmarks = {
+	all: async ({
+		user,
+		perPage = 10,
+		page = 1,
+		search = '',
+		sortKey = 'created_at',
+		direction = 'desc',
+	}: BookmarksQueryParams) => {
+		const query = db.select('*').from('bookmarks').where('user_id', user.id);
+
+		if (search) {
+			query.where((q) =>
+				q
+					.whereRaw('LOWER(title) LIKE ?', [`%${search}%`])
+					.orWhereRaw('LOWER(url) LIKE ?', [`%${search}%`]),
+			);
+		}
+
+		if (['title', 'url', 'created_at'].includes(sortKey)) {
+			query.orderBy(sortKey, direction);
+		} else {
+			query.orderBy('created_at', 'desc');
+		}
+
+		return query.paginate({ perPage, currentPage: page, isLengthAware: true });
+	},
+
+	create: async (bookmark: Bookmark) => {
+		if (!bookmark.title || !bookmark.url || !bookmark.user_id) {
+			throw new Error('Missing required fields to create a bookmark');
+		}
+
+		const [createdBookmark] = await db('bookmarks').insert(bookmark).returning('*');
+		return createdBookmark;
+	},
+
+	read: async (id: number, userId: number) => {
+		const bookmark = await db.select('*').from('bookmarks').where({ id, user_id: userId }).first();
+
+		if (!bookmark) {
+			throw new Error('Bookmark not found or access denied');
+		}
+
+		return bookmark;
+	},
+
+	update: async (id: number, userId: number, updates: Partial<Bookmark>) => {
+		const allowedFields = ['title', 'url'];
+
+		const updateData = Object.fromEntries(
+			Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
+		);
+
+		if (Object.keys(updateData).length === 0) {
+			throw new Error('No valid fields provided for update');
+		}
+
+		const [updatedBookmark] = await db('bookmarks')
+			.where({ id, user_id: userId })
+			.update(updateData)
+			.returning('*');
+
+		if (!updatedBookmark) {
+			throw new Error('Bookmark not found or access denied');
+		}
+
+		return updatedBookmark;
+	},
+
+	delete: async (id: number, userId: number) => {
+		const rowsAffected = await db('bookmarks').where({ id, user_id: userId }).delete();
 		return rowsAffected === 0;
 	},
 };

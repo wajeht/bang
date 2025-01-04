@@ -18,8 +18,8 @@ import {
 	getPrivacyPolicyPageHandler,
 	getActionCreatePageHandler,
 	getTermsOfServicePageHandler,
-	getBookmarksPageHandler,
-	postDeleteBookmarkHandler,
+	getBookmarksHandler,
+	deleteBookmarkHandler,
 	deleteActionHandler,
 	getEditActionPageHandler,
 	updateActionHandler,
@@ -34,7 +34,7 @@ import {
 	postExportDataHandler,
 	postImportDataHandler,
 	getEditBookmarkPageHandler,
-	postUpdateBookmarkHandler,
+	updateBookmarkHandler,
 	getBookmarkActionCreatePageHandler,
 	getBookmarkCreatePageHandler,
 	postBookmarkHandler,
@@ -79,9 +79,9 @@ router.post('/actions/:id/update', authenticationMiddleware, csrfMiddleware, upd
 router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, deleteActionHandler);
 
 router.post('/bookmarks', authenticationMiddleware, csrfMiddleware, postBookmarkHandler);
-router.get('/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksPageHandler);
-router.post('/bookmarks/:id/delete', authenticationMiddleware, csrfMiddleware, postDeleteBookmarkHandler); // prettier-ignore
-router.post('/bookmarks/:id/update', authenticationMiddleware, csrfMiddleware, postUpdateBookmarkHandler); // prettier-ignore
+router.get('/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksHandler);
+router.post('/bookmarks/:id/delete', authenticationMiddleware, csrfMiddleware, deleteBookmarkHandler); // prettier-ignore
+router.post('/bookmarks/:id/update', authenticationMiddleware, csrfMiddleware, updateBookmarkHandler); // prettier-ignore
 router.get('/bookmarks/:id/edit', authenticationMiddleware, csrfMiddleware,  getEditBookmarkPageHandler); // prettier-ignore
 router.get('/bookmarks/:id/actions/create', authenticationMiddleware, csrfMiddleware, getBookmarkActionCreatePageHandler); // prettier-ignore
 router.get('/bookmarks/create', authenticationMiddleware, csrfMiddleware, getBookmarkCreatePageHandler); // prettier-ignore
@@ -98,9 +98,9 @@ router.post('/api/actions', apiKeyOnlyAuthenticationMiddleware, postActionHandle
 router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, updateActionHandler);
 router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, deleteActionHandler);
 
-// router.post('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, postBookmarkHandler);
-// router.get('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, getBookmarksPageHandler);
-// router.patch('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, postUpdateBookmarkHandler);
-// router.delete('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, postDeleteBookmarkHandler);
+router.post('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, postBookmarkHandler);
+router.get('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, getBookmarksHandler);
+router.patch('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, updateBookmarkHandler);
+router.delete('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, deleteBookmarkHandler);
 
 export { router };
