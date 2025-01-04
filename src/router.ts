@@ -43,6 +43,13 @@ import {
 
 const router = express.Router();
 
+/**
+ *
+ * Web Routes
+ * These routes are typically for rendering pages and handling non-API actions
+ *
+ */
+
 router.get('/', csrfMiddleware, getHomePageAndSearchHandler);
 router.post('/search', authenticationMiddleware, csrfMiddleware, postSearchHandler);
 router.get('/healthz', getHealthzHandler);
@@ -51,7 +58,6 @@ router.get('/privacy-policy', getPrivacyPolicyPageHandler);
 
 router.get('/logout', getLogoutHandler);
 router.get('/login', getLoginHandler);
-
 router.get('/oauth/github', getGithubHandler);
 router.get('/oauth/github/redirect', getGithubRedirectHandler);
 
@@ -62,11 +68,12 @@ router.post('/settings/account', authenticationMiddleware, csrfMiddleware, postS
 router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler);
 router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler); // prettier-ignore
 router.post('/settings/danger-zone/delete', authenticationMiddleware, csrfMiddleware, postDeleteSettingsDangerZoneHandler); // prettier-ignore
+router.post('/settings/data/export', authenticationMiddleware, csrfMiddleware, postExportDataHandler); // prettier-ignore
+router.post('/settings/data/import', authenticationMiddleware, csrfMiddleware, postImportDataHandler); // prettier-ignore
 
 router.get('/actions', authenticationMiddleware, csrfMiddleware, getActionsHandler);
 router.post('/actions', authenticationMiddleware, csrfMiddleware, postActionHandler);
 router.get('/actions/create', authenticationMiddleware, csrfMiddleware, getActionCreatePageHandler);
-
 router.get('/actions/:id/edit', authenticationMiddleware, csrfMiddleware, getEditActionPageHandler);
 router.post('/actions/:id/update', authenticationMiddleware, csrfMiddleware, updateActionHandler);
 router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, deleteActionHandler);
@@ -80,9 +87,12 @@ router.get('/bookmarks/:id/actions/create', authenticationMiddleware, csrfMiddle
 router.get('/bookmarks/create', authenticationMiddleware, csrfMiddleware, getBookmarkCreatePageHandler); // prettier-ignore
 router.get('/bookmarks/export', authenticationMiddleware, getExportBookmarksHandler);
 
-router.post('/settings/data/export', authenticationMiddleware, csrfMiddleware, postExportDataHandler); // prettier-ignore
-router.post('/settings/data/import', authenticationMiddleware, csrfMiddleware, postImportDataHandler); // prettier-ignore
-
+/**
+ *
+ * API Routes
+ * These routes are specifically for API requests and require API key authentication
+ *
+ */
 router.get('/api/actions', apiKeyOnlyAuthenticationMiddleware, getActionsHandler);
 router.post('/api/actions', apiKeyOnlyAuthenticationMiddleware, postActionHandler);
 router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, updateActionHandler);
