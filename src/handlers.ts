@@ -296,7 +296,16 @@ export async function getBookmarksHandler(req: Request, res: Response) {
 
 // POST /bookmarks/:id/delete
 export async function deleteBookmarkHandler(req: Request, res: Response) {
-	await bookmarks.delete(req.params.id as unknown as number, req.session.user!.id);
+	const deleted = await bookmarks.delete(req.params.id as unknown as number, req.session.user!.id);
+
+	if (deleted) {
+		if (expectJson(req)) {
+			res.status(200).json({ message: `Bookmark deleted successfully` });
+			return;
+		}
+
+		throw NotFoundError();
+	}
 
 	req.flash('success', 'Bookmark deleted successfully');
 	return res.redirect('/bookmarks');
