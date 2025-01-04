@@ -58,6 +58,11 @@ router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettin
 router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler); // prettier-ignore
 router.post('/settings/danger-zone/delete', authenticationMiddleware, csrfMiddleware, postDeleteSettingsDangerZoneHandler); // prettier-ignore
 
+router.get('/api/actions', authenticationMiddleware, csrfMiddleware, getActionsPageHandler);
+router.post('/api/actions', authenticationMiddleware, csrfMiddleware, postActionHandler);
+router.patch('/api/actions/:id', authenticationMiddleware, csrfMiddleware, postUpdateActionHandler); // prettier-ignore
+router.delete('/api/actions/:id', authenticationMiddleware, csrfMiddleware, postDeleteActionHandler); // prettier-ignore
+
 router.get('/actions', authenticationMiddleware, csrfMiddleware, getActionsPageHandler);
 router.post('/actions', authenticationMiddleware, csrfMiddleware, postActionHandler);
 router.get('/actions/create', authenticationMiddleware, csrfMiddleware, getActionCreatePageHandler);
@@ -65,6 +70,11 @@ router.get('/actions/create', authenticationMiddleware, csrfMiddleware, getActio
 router.get('/actions/:id/edit', authenticationMiddleware, csrfMiddleware, getEditActionPageHandler);
 router.post('/actions/:id/update', authenticationMiddleware, csrfMiddleware, postUpdateActionHandler); // prettier-ignore
 router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, postDeleteActionHandler); // prettier-ignore
+
+router.post('/api/bookmarks', authenticationMiddleware, postBookmarkHandler);
+router.get('/api/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksPageHandler);
+router.patch('/api/bookmarks/:id', authenticationMiddleware, csrfMiddleware, postUpdateBookmarkHandler); // prettier-ignore
+router.delete('/api/bookmarks/', authenticationMiddleware, csrfMiddleware, postDeleteBookmarkHandler); // prettier-ignore
 
 router.post('/bookmarks', authenticationMiddleware, csrfMiddleware, postBookmarkHandler);
 router.get('/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksPageHandler);
