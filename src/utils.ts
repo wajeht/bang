@@ -582,6 +582,6 @@ export function extractPagination(req: Request, user: User) {
 		page: parseInt(req.query.page as string, 1) || 1,
 		search: ((req.query.search as string) || '').toLowerCase(),
 		sortKey: req.query.sort_key as string,
-		direction: req.query.direction === 'desc' ? 'desc' : 'asc',
+		direction: (req.query.direction as string) === 'desc' ? 'desc' : 'asc',
 	};
 }

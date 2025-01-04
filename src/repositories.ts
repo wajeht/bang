@@ -12,11 +12,11 @@ type Action = {
 
 type ActionsQueryParams = {
 	user: { id: number };
-	perPage?: number;
-	page?: number;
-	search?: string;
-	sortKey?: string;
-	direction?: 'asc' | 'desc';
+	perPage: number;
+	page: number;
+	search: string;
+	sortKey: string | 'created_at';
+	direction: string | 'asc' | 'desc';
 };
 
 export const actions = {
@@ -99,9 +99,9 @@ export const actions = {
 
 		return action;
 	},
+	update: async (id: number, userId: number, updates: Partial<Action> & { actionType: string }) => {
+		const allowedFields = ['name', 'trigger', 'url', 'actionType'];
 
-	update: async (id: number, userId: number, updates: Partial<Action>) => {
-		const allowedFields = ['name', 'trigger', 'url', 'action_type_id'];
 		const updateData = Object.fromEntries(
 			Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
 		);
@@ -109,6 +109,14 @@ export const actions = {
 		if (Object.keys(updateData).length === 0) {
 			throw new Error('No valid fields provided for update');
 		}
+
+		const actionTypeRecord = await db('action_types').where({ name: updates.actionType }).first();
+
+		if (!actionTypeRecord) {
+			throw new Error('Invalid action type');
+		}
+
+		updateData.action_type_id = actionTypeRecord.id;
 
 		const [updatedAction] = await db('bangs')
 			.where({ id, user_id: userId })

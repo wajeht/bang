@@ -88,9 +88,9 @@ router.post('/api/actions', apiKeyOnlyAuthenticationMiddleware, postActionHandle
 router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, postUpdateActionHandler);
 router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, postDeleteActionHandler);
 
-router.post('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, postBookmarkHandler);
-router.get('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, getBookmarksPageHandler);
-router.patch('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, postUpdateBookmarkHandler);
-router.delete('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, postDeleteBookmarkHandler);
+// router.post('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, postBookmarkHandler);
+// router.get('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, getBookmarksPageHandler);
+// router.patch('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, postUpdateBookmarkHandler);
+// router.delete('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, postDeleteBookmarkHandler);
 
 export { router };

@@ -332,7 +332,8 @@ export async function postDeleteActionHandler(req: Request, res: Response) {
 
 	if (deleted) {
 		if (expectJson(req)) {
-			return res.status(200).json({ message: `Action deleted successfully` });
+			res.status(200).json({ message: `Action deleted successfully` });
+			return;
 		}
 
 		throw NotFoundError();
@@ -401,17 +402,23 @@ export const postUpdateActionHandler = [
 
 		const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-		await db('bangs')
-			.where({ id: req.params?.id, user_id: req.session.user?.id })
-			.update({
+		const updatedAction = await actions.update(
+			req.params.id as unknown as number,
+			req.session.user!.id,
+			{
 				trigger: formattedTrigger,
 				name: name.trim(),
 				url,
-				action_type_id: (await db('action_types').where({ name: actionType }).first()).id,
-				updated_at: db.fn.now(),
-			});
+				actionType,
+			},
+		);
 
-		req.flash('success', `Action ${formattedTrigger} updated successfully!`);
+		if (expectJson(req)) {
+			res.status(200).json({ message: `Action ${updatedAction.trigger} updated successfully!` });
+			return;
+		}
+
+		req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
 		return res.redirect('/actions');
 	},
 ];
