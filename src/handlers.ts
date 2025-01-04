@@ -59,7 +59,7 @@ export function getLogoutHandler(req: Request, res: Response) {
 // GET /login
 export function getLoginHandler(req: Request, res: Response) {
 	if (req.session?.user) {
-		return res.redirect('/actions');
+		return res.redirect('/search');
 	}
 
 	return res.redirect('/oauth/github');
@@ -69,7 +69,7 @@ export function getLoginHandler(req: Request, res: Response) {
 export async function getGithubHandler(req: Request, res: Response) {
 	if (req.session?.user) {
 		req.flash('info', "you've already been logged in!");
-		return res.redirect('/actions');
+		return res.redirect('/search');
 	}
 
 	const rootUrl = 'https://github.com/login/oauth/authorize';
@@ -519,10 +519,7 @@ export async function postSettingsCreateApiKeyHandler(req: Request, res: Respons
 
 	const newKeyVersion = (user.api_key_version || 0) + 1;
 
-	const payload: ApiKeyPayload = {
-		userId: user.id,
-		apiKeyVersion: newKeyVersion,
-	};
+	const payload: ApiKeyPayload = { userId: user.id, apiKeyVersion: newKeyVersion };
 
 	await db('users')
 		.where({ id: req.session?.user?.id })
@@ -533,7 +530,6 @@ export async function postSettingsCreateApiKeyHandler(req: Request, res: Respons
 		});
 
 	req.flash('success', '📱 api key created');
-
 	return res.redirect(`/settings/account`);
 }
 

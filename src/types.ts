@@ -1,5 +1,3 @@
-import { defaultSearchProviders } from './configs';
-
 declare module 'express-session' {
 	interface SessionData {
 		redirectTo?: string;
@@ -20,19 +18,22 @@ declare global {
 	}
 }
 
-export interface Api {
-	generate: (payload: ApiKeyPayload) => Promise<string>;
-	verify: (apiKey: string) => Promise<ApiKeyPayload | null>;
-}
+import { defaultSearchProviders } from './configs';
 
 export type DefaultSearchProviders = keyof typeof defaultSearchProviders;
 
 export type ActionTypes = 'bookmark' | 'redirect' | 'search';
 
-export type ApiKeyPayload = {
-	userId: number;
-	apiKeyVersion: number;
-};
+export type ApiKeyPayload = { userId: number; apiKeyVersion: number };
+
+export type Env = 'production' | 'development' | 'testing';
+
+export type GitHubOauthToken = { access_token: string };
+
+export interface Api {
+	generate: (payload: ApiKeyPayload) => Promise<string>;
+	verify: (apiKey: string) => Promise<ApiKeyPayload | null>;
+}
 
 export type User = {
 	id: number;
@@ -44,8 +45,6 @@ export type User = {
 	created_at: string;
 	updated_at: string;
 };
-
-export type Env = 'production' | 'development' | 'testing';
 
 export interface GitHubUser {
 	login: string;
@@ -59,10 +58,6 @@ export type GithubUserEmail = {
 	primary: boolean;
 	verified: boolean;
 	visibility: string | null;
-};
-
-export type GitHubOauthToken = {
-	access_token: string;
 };
 
 export type BookmarkToExport = {
