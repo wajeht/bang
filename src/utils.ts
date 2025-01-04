@@ -579,7 +579,7 @@ export async function extractUser(req: Request): Promise<User> {
 export function extractPagination(req: Request, user: User) {
 	return {
 		perPage: parseInt(req.query.per_page as string, 10) || user.default_per_page,
-		page: parseInt(req.query.page as string, 10) || 1,
+		page: parseInt(req.query.page as string, 1) || 1,
 		search: ((req.query.search as string) || '').toLowerCase(),
 		sortKey: req.query.sort_key as string,
 		direction: req.query.direction === 'desc' ? 'desc' : 'asc',
