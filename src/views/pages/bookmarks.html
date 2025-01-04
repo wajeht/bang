@@ -36,7 +36,7 @@ function viewUrl(id, url) {
     </div>
 
     <div style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
-        <% if (bookmarks && bookmarks.length > 0) { %>
+        <% if (data && data.length > 0) { %>
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="border-bottom: 1px dashed #ddd;">
@@ -77,40 +77,40 @@ function viewUrl(id, url) {
                     </tr>
                 </thead>
                 <tbody>
-                    <% for (let i = 0; i < bookmarks.length; i++) { %>
+                    <% for (let i = 0; i < data.length; i++) { %>
                         <tr style="border-bottom: 1px dashed #ddd;">
-                            <td style="padding: 10px;"><%= bookmarks[i].title || 'Untitled' %></td>
+                            <td style="padding: 10px;"><%= data[i].title || 'Untitled' %></td>
                             <td style="padding: 10px; display: flex; justify-items: center; gap: 10px;">
-                                <button id="url-button-<%- i + 1 %>" class="no-style-btn" type="button" onclick="viewUrl(`<%- i + 1 %>`, `<%- bookmarks[i].url %>`)">👁️</button>
-                               <a id="url-<%- i + 1 %>" href="<%= bookmarks[i].url %>" target="_blank" rel="noopener noreferrer">
+                                <button id="url-button-<%- i + 1 %>" class="no-style-btn" type="button" onclick="viewUrl(`<%- i + 1 %>`, `<%- data[i].url %>`)">👁️</button>
+                               <a id="url-<%- i + 1 %>" href="<%= data[i].url %>" target="_blank" rel="noopener noreferrer">
                                     ••••••••••••••••••••••
                                 </a>
                             </td>
-                            <td style="padding: 10px;"><%= new Date(bookmarks[i].created_at).toLocaleDateString() %></td>
+                            <td style="padding: 10px;"><%= new Date(data[i].created_at).toLocaleDateString() %></td>
                             <td style="padding: 10px;">
                                 <div style="display: flex; gap: 10px;">
                                     <a
-                                        href="/bookmarks/<%= bookmarks[i].id %>/actions/create"
+                                        href="/bookmarks/<%= data[i].id %>/actions/create"
                                         style="display: inline-flex; align-items: center;"
                                     >
                                         ❗️Bang
                                     </a>
 
                                     <a
-                                        href="/bookmarks/<%= bookmarks[i].id %>/edit"
+                                        href="/bookmarks/<%= data[i].id %>/edit"
                                         style="display: inline-flex; align-items: center;"
                                     >
                                         ✏️ Edit
                                     </a>
 
-                                    <button type="button" class="no-style-btn" onclick="document.getElementById('delete-bookmark-<%= bookmarks[i].id %>-modal').showModal()">
+                                    <button type="button" class="no-style-btn" onclick="document.getElementById('delete-bookmark-<%= data[i].id %>-modal').showModal()">
                                         🗑️ Delete
                                     </button>
 
-                                    <dialog id="delete-bookmark-<%= bookmarks[i].id %>-modal">
+                                    <dialog id="delete-bookmark-<%= data[i].id %>-modal">
                                         <h2>Confirm</h2>
                                         <p>Are you sure you want to delete this bookmark?</p>
-                                        <form action="/bookmarks/<%= bookmarks[i].id %>/delete" method="POST">
+                                        <form action="/bookmarks/<%= data[i].id %>/delete" method="POST">
                                             <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
                                             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                                                 <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
