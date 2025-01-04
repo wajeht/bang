@@ -1,21 +1,12 @@
-import {
-	api,
-	bookmark,
-	expectJson,
-	extractUser,
-	github,
-	search,
-	extractPagination,
-	insertBookmarkQueue,
-} from './utils';
 import { db } from './db/db';
 import { body } from 'express-validator';
 import { Request, Response } from 'express';
+import { actions, bookmarks } from './repositories';
 import { ApiKeyPayload, BookmarkToExport } from './types';
 import { validateRequestMiddleware } from './middlewares';
 import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './configs';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
-import { actions, bookmarks } from './repositories';
+import { api, bookmark, expectJson, extractUser, github, search, extractPagination } from './utils';
 
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {
@@ -190,7 +181,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	await search({ res, user, query, req });
 }
 
-// POST /actions
+// POST /actions or /api/actions
 export const postActionHandler = [
 	validateRequestMiddleware([
 		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
@@ -263,7 +254,7 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 	});
 }
 
-// GET /bookmarks
+// GET /bookmarks or /api/bookmarks
 export async function getBookmarksHandler(req: Request, res: Response) {
 	const user = await extractUser(req);
 	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
@@ -294,7 +285,7 @@ export async function getBookmarksHandler(req: Request, res: Response) {
 	});
 }
 
-// POST /bookmarks/:id/delete
+// POST /bookmarks/:id/delete or /api/bookmarks/:id
 export async function deleteBookmarkHandler(req: Request, res: Response) {
 	const deleted = await bookmarks.delete(req.params.id as unknown as number, req.session.user!.id);
 
@@ -311,7 +302,7 @@ export async function deleteBookmarkHandler(req: Request, res: Response) {
 	return res.redirect('/bookmarks');
 }
 
-// POST /actions/:id/delete
+// POST /actions/:id/delete or /api/actions
 export async function deleteActionHandler(req: Request, res: Response) {
 	const deleted = await actions.delete(req.params.id as unknown as number, req.session.user!.id);
 
@@ -352,7 +343,7 @@ export async function getEditActionPageHandler(req: Request, res: Response) {
 	});
 }
 
-// POST /actions/:id/update
+// POST /actions/:id/update or /api/actions/:id
 export const updateActionHandler = [
 	validateRequestMiddleware([
 		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
@@ -425,7 +416,7 @@ export async function getBookmarkActionCreatePageHandler(req: Request, res: Resp
 	});
 }
 
-// POST /bookmarks/:id/update
+// POST /bookmarks/:id/update or /api/bookmarks/:id
 export const updateBookmarkHandler = [
 	validateRequestMiddleware([
 		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
@@ -444,6 +435,26 @@ export const updateBookmarkHandler = [
 		);
 
 		req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
+		return res.redirect('/bookmarks');
+	},
+];
+
+// POST /bookmarks or /api/bookmarks
+export const postBookmarkHandler = [
+	validateRequestMiddleware([
+		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
+		body('title').optional().trim(),
+	]),
+	async (req: Request, res: Response) => {
+		const { url, title } = req.body;
+
+		const newBookmark = await bookmarks.create({
+			url,
+			title: title || '',
+			user_id: req.session.user!.id,
+		});
+
+		req.flash('success', `Bookmark ${newBookmark.title} created successfully!`);
 		return res.redirect('/bookmarks');
 	},
 ];
@@ -774,23 +785,3 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
 		.setHeader('Content-Type', 'application/json')
 		.send(JSON.stringify(exportData, null, 2));
 }
-
-// POST /bookmarks
-export const postBookmarkHandler = [
-	validateRequestMiddleware([
-		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
-		body('title').optional().trim(),
-	]),
-	async (req: Request, res: Response) => {
-		const { url, title } = req.body;
-
-		const newBookmark = await bookmarks.create({
-			url,
-			title: title || '',
-			user_id: req.session.user!.id,
-		});
-
-		req.flash('success', `Bookmark ${newBookmark.title} created successfully!`);
-		return res.redirect('/bookmarks');
-	},
-];
