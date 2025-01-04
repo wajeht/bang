@@ -573,7 +573,7 @@ export async function extractUser(req: Request): Promise<User> {
 		return req.session.user;
 	}
 
-	throw new Error('User not found');
+	throw new Error('User not found from request!');
 }
 
 export function extractPagination(req: Request, user: User) {
