@@ -1,6 +1,12 @@
 import express from 'express';
 
 import {
+	apiKeyOnlyAuthenticationMiddleware,
+	authenticationMiddleware,
+	csrfMiddleware,
+} from './middlewares';
+
+import {
 	getActionsPageHandler,
 	getGithubHandler,
 	getGithubRedirectHandler,
@@ -34,7 +40,6 @@ import {
 	postBookmarkHandler,
 	postSettingsCreateApiKeyHandler,
 } from './handlers';
-import { authenticationMiddleware, csrfMiddleware } from './middlewares';
 
 const router = express.Router();
 
@@ -78,14 +83,14 @@ router.get('/bookmarks/export', authenticationMiddleware, getExportBookmarksHand
 router.post('/settings/data/export', authenticationMiddleware, csrfMiddleware, postExportDataHandler); // prettier-ignore
 router.post('/settings/data/import', authenticationMiddleware, csrfMiddleware, postImportDataHandler); // prettier-ignore
 
-router.get('/api/actions', authenticationMiddleware, getActionsPageHandler);
-router.post('/api/actions', authenticationMiddleware, postActionHandler);
-router.patch('/api/actions/:id', authenticationMiddleware, postUpdateActionHandler);
-router.delete('/api/actions/:id', authenticationMiddleware, postDeleteActionHandler);
+router.get('/api/actions', apiKeyOnlyAuthenticationMiddleware, getActionsPageHandler);
+router.post('/api/actions', apiKeyOnlyAuthenticationMiddleware, postActionHandler);
+router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, postUpdateActionHandler);
+router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, postDeleteActionHandler);
 
-router.post('/api/bookmarks', authenticationMiddleware, postBookmarkHandler);
-router.get('/api/bookmarks', authenticationMiddleware, getBookmarksPageHandler);
-router.patch('/api/bookmarks/:id', authenticationMiddleware, postUpdateBookmarkHandler);
-router.delete('/api/bookmarks/:id', authenticationMiddleware, postDeleteBookmarkHandler);
+router.post('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, postBookmarkHandler);
+router.get('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, getBookmarksPageHandler);
+router.patch('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, postUpdateBookmarkHandler);
+router.delete('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, postDeleteBookmarkHandler);
 
 export { router };
