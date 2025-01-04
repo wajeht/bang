@@ -188,6 +188,45 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
 	}
 }
 
+export async function apiKeyOnlyAuthenticationMiddleware(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) {
+	try {
+		let apiKey: string | undefined;
+
+		if (req.header('X-API-KEY')) {
+			apiKey = req.header('X-API-KEY');
+		} else if (req.header('Authorization')) {
+			const authHeader = req.header('Authorization');
+			if (authHeader?.startsWith('Bearer ')) {
+				apiKey = authHeader.substring(7);
+			}
+		}
+
+		if (!apiKey) {
+			res.status(401).json({ message: 'API key or Bearer token is missing' });
+			return;
+		}
+
+		const apiKeyPayload = await api.verify(apiKey);
+
+		if (!apiKeyPayload) {
+			res.status(401).json({ message: 'Invalid API key or Bearer token' });
+			return;
+		}
+
+		req.apiKeyPayload = apiKeyPayload;
+
+		next();
+	} catch (error) {
+		logger.error('Failed to authenticate API key or Bearer token', error);
+		res.status(500).json({ message: 'Internal server error' });
+		return;
+	}
+}
+
 export async function authenticationMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
 		const apiKey = req.header('X-API-KEY');

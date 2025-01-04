@@ -1,9 +1,11 @@
+import { db } from './db/db';
+
 export const bookmarks = {
-	all: () => {},
+	getUserBookmarks: (userId: number) => {},
 	create: () => {},
 	read: () => {},
 	update: () => {},
-	delet: () => {},
+	delete: () => {},
 };
 
 export const actions = {
@@ -11,5 +13,5 @@ export const actions = {
 	create: () => {},
 	read: () => {},
 	update: () => {},
-	delet: () => {},
+	delete: () => {},
 };
