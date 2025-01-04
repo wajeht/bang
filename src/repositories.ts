@@ -91,7 +91,9 @@ export const actions = {
 
 		action.action_type_id = actionTypeRecord.id;
 
-		const [createdAction] = await db('bangs').insert(action).returning('*');
+		const { actionType, ...rest } = action;
+
+		const [createdAction] = await db('bangs').insert(rest).returning('*');
 		return createdAction;
 	},
 
@@ -135,9 +137,11 @@ export const actions = {
 
 		updateData.action_type_id = actionTypeRecord.id;
 
+		const { actionType, ...rest } = updateData;
+
 		const [updatedAction] = await db('bangs')
 			.where({ id, user_id: userId })
-			.update(updateData)
+			.update(rest)
 			.returning('*');
 
 		if (!updatedAction) {
