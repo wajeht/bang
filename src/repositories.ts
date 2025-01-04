@@ -5,7 +5,7 @@ type Action = {
 	name: string;
 	trigger: string;
 	url: string;
-	action_type_id: number;
+	action_type_id?: number;
 	user_id: number;
 	created_at?: string;
 };
@@ -61,16 +61,18 @@ export const actions = {
 		return query.paginate({ perPage, currentPage: page, isLengthAware: true });
 	},
 
-	create: async (action: Action) => {
-		if (
-			!action.name ||
-			!action.trigger ||
-			!action.url ||
-			!action.action_type_id ||
-			!action.user_id
-		) {
+	create: async (action: Action & { actionType: string }) => {
+		if (!action.name || !action.trigger || !action.url || !action.actionType || !action.user_id) {
 			throw new Error('Missing required fields to create an action');
 		}
+
+		const actionTypeRecord = await db('action_types').where({ name: action.actionType }).first();
+
+		if (!actionTypeRecord) {
+			throw new Error('Invalid action type');
+		}
+
+		action.action_type_id = actionTypeRecord.id;
 
 		const [createdAction] = await db('bangs').insert(action).returning('*');
 		return createdAction;
