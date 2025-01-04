@@ -197,13 +197,15 @@ export async function apiKeyOnlyAuthenticationMiddleware(
 		const apiKey = getApiKey(req);
 
 		if (!apiKey) {
-			return res.status(401).json({ message: 'API key or Bearer token is missing' });
+			res.status(401).json({ message: 'API key or Bearer token is missing' });
+			return;
 		}
 
 		const apiKeyPayload = await api.verify(apiKey);
 
 		if (!apiKeyPayload) {
-			return res.status(401).json({ message: 'Invalid API key or Bearer token' });
+			res.status(401).json({ message: 'Invalid API key or Bearer token' });
+			return;
 		}
 
 		req.apiKeyPayload = apiKeyPayload;
@@ -218,13 +220,13 @@ export async function apiKeyOnlyAuthenticationMiddleware(
 
 export async function authenticationMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
-		const apiKey = req.header('X-API-KEY');
+		const apiKey = getApiKey(req);
 
 		if (apiKey && expectJson(req)) {
 			const apiKeyPayload = await api.verify(apiKey);
 
 			if (!apiKeyPayload) {
-				res.status(401).json({ message: 'invalid api key' });
+				res.status(401).json({ message: 'Invalid API key' });
 				return;
 			}
 
@@ -237,7 +239,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 			return res.redirect('/login');
 		}
 
-		const user = await db.select('*').from('users').where('id', req.session.user.id).first();
+		const user = await db.select('*').from('users').where({ id: req.session.user.id }).first();
 
 		if (!user) {
 			req.session.destroy((err) => {
@@ -255,6 +257,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 
 		next();
 	} catch (error) {
+		logger.error('Authentication error: %o', error);
 		next(error);
 	}
 }

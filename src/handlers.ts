@@ -99,7 +99,8 @@ export async function getActionsPageHandler(req: Request, res: Response) {
 	});
 
 	if (expectJson(req)) {
-		return res.json({ data, pagination, search, sortKey, direction });
+		res.json({ data, pagination, search, sortKey, direction });
+		return;
 	}
 
 	return res.render('actions.html', {
