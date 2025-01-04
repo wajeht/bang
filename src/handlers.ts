@@ -222,16 +222,22 @@ export const postActionHandler = [
 	]),
 	async (req: Request, res: Response) => {
 		const { trigger, url, actionType, name } = req.body;
+		const userId = req.session.user!.id;
+
 		const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-		await db('bangs').insert({
-			trigger: formattedTrigger,
+		await actions.create({
 			name: name.trim(),
+			trigger: formattedTrigger,
 			url,
-			user_id: req.session.user!.id,
-			action_type_id: (await db('action_types').where({ name: actionType }).first()).id,
-			created_at: db.fn.now(),
+			actionType,
+			user_id: userId,
 		});
+
+		if (expectJson(req)) {
+			res.status(201).json({ message: `Action ${formattedTrigger} created successfully!` });
+			return;
+		}
 
 		req.flash('success', `Action ${formattedTrigger} created successfully!`);
 		return res.redirect('/actions');
