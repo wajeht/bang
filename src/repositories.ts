@@ -1,40 +1,5 @@
+import { Action, ActionsQueryParams, Bookmark, BookmarksQueryParams } from './types';
 import { db } from './db/db';
-
-type Action = {
-	id?: number;
-	name: string;
-	trigger: string;
-	url: string;
-	action_type_id?: number;
-	user_id: number;
-	created_at?: string;
-};
-
-type ActionsQueryParams = {
-	user: { id: number };
-	perPage: number;
-	page: number;
-	search: string;
-	sortKey: string | 'created_at';
-	direction: string | 'asc' | 'desc';
-};
-
-type Bookmark = {
-	id?: number;
-	title: string;
-	url: string;
-	user_id: number;
-	created_at?: string;
-};
-
-type BookmarksQueryParams = {
-	user: { id: number };
-	perPage: number;
-	page: number;
-	search: string;
-	sortKey: string | 'created_at';
-	direction: string | 'asc' | 'desc';
-};
 
 export const actions = {
 	all: async ({
