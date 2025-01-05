@@ -54,6 +54,7 @@
 		"ejs": "^3.1.10",
 		"express": "^5.0.1",
 		"express-ejs-layouts": "^2.5.1",
+		"express-jsdoc-swagger": "^1.8.0",
 		"express-session": "^1.18.1",
 		"express-validator": "^7.2.1",
 		"fastq": "^1.18.0",

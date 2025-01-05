@@ -1,10 +1,11 @@
 import {
 	api,
+	github,
+	search,
 	bookmark,
 	expectJson,
 	extractUser,
-	github,
-	search,
+	isApiRequest,
 	extractPagination,
 	insertBookmarkQueue,
 } from './utils';
@@ -177,7 +178,7 @@ export async function getActionsHandler(req: Request, res: Response) {
 		direction,
 	});
 
-	if (expectJson(req)) {
+	if (isApiRequest(req)) {
 		res.json({ data, pagination, search, sortKey, direction });
 		return;
 	}
