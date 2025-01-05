@@ -134,12 +134,7 @@ router.post('/api/actions', apiKeyOnlyAuthenticationMiddleware, postActionHandle
  * @security BearerAuth
  *
  * @return {object} 200 - success response - application/json
- * @return {object} 404 - Bad request response - application/json
- *
- * @example response - 404 - example error response
- * {
- *   "message": "not found",
- * }
+ * @return {object} 400 - Bad request response - application/json
  *
  */
 router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, updateActionHandler);
@@ -156,12 +151,7 @@ router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, updateActio
  * @security BearerAuth
  *
  * @return {object} 200 - success response - application/json
- * @return {object} 404 - Bad request response - application/json
- *
- * @example response - 404 - example error response
- * {
- *   "message": "not found",
- * }
+ * @return {object} 400 - Bad request response - application/json
  *
  */
 router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, deleteActionHandler);
@@ -218,12 +208,7 @@ router.post('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, postBookmarkHa
  * @security BearerAuth
  *
  * @return {object} 200 - success response - application/json
- * @return {object} 404 - Bad request response - application/json
- *
- * @example response - 404 - example error response
- * {
- *   "message": "not found",
- * }
+ * @return {object} 400 - Bad request response - application/json
  *
  */
 router.patch('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, updateBookmarkHandler);
@@ -240,12 +225,7 @@ router.patch('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, updateBoo
  * @security BearerAuth
  *
  * @return {object} 200 - success response - application/json
- * @return {object} 404 - Bad request response - application/json
- *
- * @example response - 404 - example error response
- * {
- *   "message": "not found",
- * }
+ * @return {object} 400 - Bad request response - application/json
  *
  */
 router.delete('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, deleteBookmarkHandler);
