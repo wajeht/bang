@@ -266,16 +266,20 @@ export async function deleteActionHandler(req: Request, res: Response) {
 		(await extractUser(req)).id,
 	);
 
-	if (deleted) {
+	if (!deleted) {
 		if (expectJson(req)) {
-			res.status(200).json({ message: `Action deleted successfully` });
+			res.status(404).json({ message: `Action not found` });
 			return;
 		}
-
 		throw NotFoundError();
 	}
 
-	req.flash('success', `Action  deleted successfully`);
+	if (expectJson(req)) {
+		res.json({ message: `Action deleted successfully` });
+		return;
+	}
+
+	req.flash('success', `Action deleted successfully`);
 	return res.redirect('/actions');
 }
 
@@ -483,7 +487,7 @@ export const postBookmarkHandler = [
 
 		insertBookmarkQueue.push({ url, userId: user.id, title });
 
-		if (expectJson(req)) {
+		if (isApiRequest(req)) {
 			res.status(201).json({ message: `Bookmark ${title} created successfully!` });
 			return;
 		}

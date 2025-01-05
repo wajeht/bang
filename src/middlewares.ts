@@ -8,7 +8,7 @@ import { appConfig, sessionConfig } from './configs';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
-import { api, expectJson, getApiKey, sendNotificationQueue } from './utils';
+import { api, extractUser, getApiKey, isApiRequest, sendNotificationQueue } from './utils';
 
 export function notFoundMiddleware() {
 	return (req: Request, res: Response, _next: NextFunction) => {
@@ -138,6 +138,16 @@ export const validateRequestMiddleware = (schemas: any) => {
 
 			req.session.errors = reshapedErrors;
 
+			if (isApiRequest(req)) {
+				res.status(422).json({
+					message: 'validation errors',
+					errors: {
+						...reshapedErrors,
+					},
+				});
+				return;
+			}
+
 			return res.redirect(req.headers?.referer || 'back');
 		} catch (error) {
 			next(error);
@@ -220,21 +230,6 @@ export async function apiKeyOnlyAuthenticationMiddleware(
 
 export async function authenticationMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
-		const apiKey = getApiKey(req);
-
-		if (apiKey && expectJson(req)) {
-			const apiKeyPayload = await api.verify(apiKey);
-
-			if (!apiKeyPayload) {
-				res.status(401).json({ message: 'Invalid API key' });
-				return;
-			}
-
-			req.apiKeyPayload = apiKeyPayload;
-
-			return next();
-		}
-
 		if (!req.session?.user) {
 			return res.redirect('/login');
 		}
