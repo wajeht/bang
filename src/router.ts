@@ -102,6 +102,11 @@ router.get('/api/actions', apiKeyOnlyAuthenticationMiddleware, getActionsHandler
  * @tags actions
  * @summary create a action
  *
+ * @param {string} url.form.required - url - application/json
+ * @param {string} name.form.required - name - application/json
+ * @param {string} actionType.form.required - actionType - application/json
+ * @param {string} trigger.form.required - trigger - application/json
+ *
  * @security BearerAuth
  *
  * @return {object} 200 - success response - application/json
@@ -116,7 +121,13 @@ router.post('/api/actions', apiKeyOnlyAuthenticationMiddleware, postActionHandle
  *
  * @tags actions
  * @summary update a action
- * @param {string} id.path.required - the action id
+ *
+ * @param {string} id.path.required - action id
+ *
+ * @param {string} url.form.required - url - application/json
+ * @param {string} name.form.required - name - application/json
+ * @param {string} actionType.form.required - actionType - application/json
+ * @param {string} trigger.form.required - trigger - application/json
  *
  * @security BearerAuth
  *
@@ -132,7 +143,8 @@ router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, updateActio
  *
  * @tags actions
  * @summary delete a action
- * @param {string} id.path.required - the action id
+ *
+ * @param {string} id.path.required - action id
  *
  * @security BearerAuth
  *
@@ -151,7 +163,7 @@ router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, deleteActi
  *
  * @security BearerAuth
  *
- * @return {object} 200 - success response - application/json
+ * @return {array<object>} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  *
  */
@@ -163,6 +175,11 @@ router.get('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, getBookmarksHan
  *
  * @tags bookmarks
  * @summary create a bookmarks
+ *
+ * @param {number} id.path.required - bookmark id
+ *
+ * @param {string} url.form.required - url - application/json
+ * @param {string} title.form.required - title - application/json
  *
  * @security BearerAuth
  *
@@ -178,7 +195,11 @@ router.post('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, postBookmarkHa
  *
  * @tags bookmarks
  * @summary update a bookmarks
- * @param {string} id.path.required - the bookmark id
+ *
+ * @param {number} id.path.required - bookmark id
+ *
+ * @param {string} url.form.required - url - application/json
+ * @param {string} title.form.required - title - application/json
  *
  * @security BearerAuth
  *
@@ -194,7 +215,7 @@ router.patch('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, updateBoo
  *
  * @tags bookmarks
  * @summary delete a bookmark
- * @param {string} id.path.required - the bookmark id
+ * @param {string} id.path.required - bookmark id
  *
  * @security BearerAuth
  *
