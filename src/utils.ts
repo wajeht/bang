@@ -124,11 +124,11 @@ export async function insertBookmark({
 	const bookmark = await bookmarks.create({
 		user_id: userId,
 		url: url,
-		title: title || 'Fetching...',
+		title: title || 'Fetching title...',
 	});
 
 	if (!title) {
-		insertPageTitleQueue.push({ bookmarkId: bookmark[0].id, url });
+		insertPageTitleQueue.push({ bookmarkId: bookmark.id, url });
 	}
 }
 
@@ -152,6 +152,7 @@ export async function insertPageTitle({
 	if (bookmarkId) {
 		try {
 			await db('bookmarks').where({ id: bookmarkId }).update({ title, updated_at: db.fn.now() });
+			console.log('insertPageTitleQueue', { bookmarkId, url, title });
 		} catch (error) {
 			logger.error(`[insertPageTitle] error updating bookmark title, %o`, error);
 		}
@@ -380,6 +381,7 @@ export async function search({
 
 		try {
 			insertBookmarkQueue.push({ url: urlToBookmark, userId: user.id });
+			console.log('insertBookmarkQueue(), search()', { url: urlToBookmark, userId: user.id });
 			return res.redirect(urlToBookmark);
 		} catch (error) {
 			logger.error(`[search] Error adding bookmark %o`, error);
@@ -423,7 +425,7 @@ export async function search({
 			.insert({
 				user_id: user.id,
 				trigger,
-				name: 'Fetching...',
+				name: 'Fetching title...',
 				action_type_id: 2, // redirect
 				url,
 			})
