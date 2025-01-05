@@ -63,9 +63,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 		});
 	}
 
-	console.time('search()');
 	await search({ res, user, query, req });
-	console.timeEnd('search()');
 }
 
 // GET /logout

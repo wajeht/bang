@@ -367,7 +367,6 @@ export async function search({
 	}
 
 	// Handle !bm command with URL
-	console.time('!bm');
 	if (query.startsWith('!bm')) {
 		const urlToBookmark = query.slice(4).trim();
 
@@ -391,7 +390,6 @@ export async function search({
         </script>`);
 		}
 	}
-	console.timeEnd('!bm');
 
 	// Handle !add command with URL
 	if (query.startsWith('!add')) {
