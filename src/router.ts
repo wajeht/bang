@@ -46,10 +46,8 @@ const router = express.Router();
 /**
  *
  * Web Routes
- * These routes are typically for rendering pages and handling non-API actions
  *
  */
-
 router.get('/', csrfMiddleware, getHomePageAndSearchHandler);
 router.get('/healthz', getHealthzHandler);
 router.get('/terms-of-service', getTermsOfServicePageHandler);
@@ -90,7 +88,6 @@ router.get('/bookmarks/export', authenticationMiddleware, getExportBookmarksHand
 /**
  *
  * API Routes
- * These routes are specifically for API requests and require API key authentication
  *
  */
 router.get('/api/actions', apiKeyOnlyAuthenticationMiddleware, getActionsHandler);
