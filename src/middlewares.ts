@@ -3,15 +3,23 @@ import helmet from 'helmet';
 import { logger } from './logger';
 import session from 'express-session';
 import { csrfSync } from 'csrf-sync';
-import { UnauthorizedError } from './errors';
 import { appConfig, sessionConfig } from './configs';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
+import { UnauthorizedError, ValidationError } from './errors';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
-import { api, extractUser, getApiKey, isApiRequest, sendNotificationQueue } from './utils';
+import { api, getApiKey, isApiRequest, sendNotificationQueue } from './utils';
 
 export function notFoundMiddleware() {
 	return (req: Request, res: Response, _next: NextFunction) => {
+		if (isApiRequest(req)) {
+			return res.status(404).json({
+				title: 'Not Found',
+				statusCode: 404,
+				message: 'not found',
+			});
+		}
+
 		return res.status(404).render('error.html', {
 			path: req.path,
 			title: 'Not Found',
@@ -28,7 +36,7 @@ export function errorMiddleware() {
 		res: Response,
 		_next: NextFunction,
 	) => {
-		logger.error(error);
+		logger.error('%o', error);
 
 		if (appConfig.env === 'production') {
 			try {
@@ -38,10 +46,31 @@ export function errorMiddleware() {
 			}
 		}
 
-		return res.status(500).render('error.html', {
+		const statusCode = error.statusCode || 500;
+
+		if (isApiRequest(req)) {
+			if (statusCode === 422) {
+				return res.status(422).json({
+					message: 'validation errors',
+					...JSON.parse(error.message),
+				});
+			}
+
+			if (statusCode === 404) {
+				return res.status(404).json({ message: 'not found' });
+			}
+
+			return res.status(statusCode).json({
+				message: appConfig.env !== 'production' ? error.message : 'An error occurred',
+				statusCode,
+				...(appConfig.env !== 'production' && { stack: error.stack }),
+			});
+		}
+
+		return res.status(statusCode).render('error.html', {
 			path: req.path,
 			title: 'Error',
-			statusCode: 500,
+			statusCode,
 			message: appConfig.env !== 'production' ? error.stack : 'internal server error',
 		});
 	};
@@ -139,16 +168,18 @@ export const validateRequestMiddleware = (schemas: any) => {
 			req.session.errors = reshapedErrors;
 
 			if (isApiRequest(req)) {
-				res.status(422).json({
-					message: 'validation errors',
-					errors: {
-						...reshapedErrors,
-					},
-				});
-				return;
+				throw ValidationError(
+					JSON.stringify({
+						fields: reshapedErrors,
+					}),
+				);
 			}
 
-			return res.redirect(req.headers?.referer || 'back');
+			return res.redirect(
+				req.headers?.referer && new URL(req.headers?.referer).pathname === req.path
+					? req.headers?.referer
+					: '/',
+			);
 		} catch (error) {
 			next(error);
 		}

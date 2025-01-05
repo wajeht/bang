@@ -267,13 +267,8 @@ export async function deleteActionHandler(req: Request, res: Response) {
 	);
 
 	if (!deleted) {
-		if (expectJson(req)) {
-			res.status(404).json({ message: `Action not found` });
-			return;
-		}
 		throw NotFoundError();
 	}
-
 	if (expectJson(req)) {
 		res.json({ message: `Action deleted successfully` });
 		return;
