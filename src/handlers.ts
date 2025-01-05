@@ -254,7 +254,7 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 	});
 }
 
-// GET /bookmarks or GET GET /api/bookmarks
+// GET /bookmarks or GET /api/bookmarks
 export async function getBookmarksHandler(req: Request, res: Response) {
 	const user = await extractUser(req);
 	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
