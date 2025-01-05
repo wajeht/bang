@@ -34,6 +34,29 @@ export function getPrivacyPolicyPageHandler(_req: Request, res: Response) {
 	});
 }
 
+// GET /
+export async function getHomePageAndSearchHandler(req: Request, res: Response) {
+	const query = req.query.q?.toString().trim() || '';
+	const user = req.session.user;
+
+	if (!query) {
+		if (!user) {
+			return res.render('home.html', {
+				path: '/',
+				title: "DuckDuckGo's !Bangs, but on steroids.",
+			});
+		}
+
+		return res.render('search.html', {
+			path: '/',
+			title: 'Search',
+			layout: '../layouts/search.html',
+		});
+	}
+
+	await search({ res, user, query, req });
+}
+
 // GET /logout
 export function getLogoutHandler(req: Request, res: Response) {
 	if (req.session && req.session.user) {
@@ -158,28 +181,11 @@ export async function postSearchHandler(req: Request, res: Response) {
 	await search({ res, user, query, req });
 }
 
-// GET /
-export async function getHomePageAndSearchHandler(req: Request, res: Response) {
-	const query = req.query.q?.toString().trim() || '';
-	const user = req.session.user;
-
-	if (!query) {
-		if (!user) {
-			return res.render('home.html', {
-				path: '/',
-				title: "DuckDuckGo's !Bangs, but on steroids.",
-			});
-		}
-
-		return res.render('search.html', {
-			path: '/',
-			title: 'Search',
-			layout: '../layouts/search.html',
-		});
-	}
-
-	await search({ res, user, query, req });
-}
+/**
+ *
+ * Actions
+ *
+ */
 
 // POST /actions or POST /api/actions
 export const postActionHandler = [
@@ -235,15 +241,6 @@ export const postActionHandler = [
 	},
 ];
 
-// GET /bookmarks/create
-export function getBookmarkCreatePageHandler(_req: Request, res: Response) {
-	return res.render('bookmarks-create.html', {
-		title: 'Bookmarks / New',
-		path: '/bookmarks/create',
-		layout: '../layouts/auth.html',
-	});
-}
-
 // GET /actions/create
 export function getActionCreatePageHandler(_req: Request, res: Response) {
 	return res.render('actions-create.html', {
@@ -252,54 +249,6 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 		layout: '../layouts/auth.html',
 		actionTypes,
 	});
-}
-
-// GET /bookmarks or GET /api/bookmarks
-export async function getBookmarksHandler(req: Request, res: Response) {
-	const user = await extractUser(req);
-	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
-
-	const { data, pagination } = await bookmarks.all({
-		user,
-		perPage,
-		page,
-		search,
-		sortKey,
-		direction,
-	});
-
-	if (expectJson(req)) {
-		res.json({ data, pagination, search, sortKey, direction });
-		return;
-	}
-
-	return res.render('bookmarks', {
-		title: 'Bookmarks',
-		path: '/bookmarks',
-		layout: '../layouts/auth',
-		data,
-		search,
-		pagination,
-		sortKey,
-		direction,
-	});
-}
-
-// POST /bookmarks/:id/delete or DELETE /api/bookmarks/:id
-export async function deleteBookmarkHandler(req: Request, res: Response) {
-	const deleted = await bookmarks.delete(req.params.id as unknown as number, req.session.user!.id);
-
-	if (deleted) {
-		if (expectJson(req)) {
-			res.status(200).json({ message: `Bookmark deleted successfully` });
-			return;
-		}
-
-		throw NotFoundError();
-	}
-
-	req.flash('success', 'Bookmark deleted successfully');
-	return res.redirect('/bookmarks');
 }
 
 // POST /actions/:id/delete or DELETE /api/actions
@@ -399,6 +348,81 @@ export const updateActionHandler = [
 	},
 ];
 
+/**
+ *
+ * bookmarks
+ *
+ */
+
+// GET /bookmarks/create
+export function getBookmarkCreatePageHandler(_req: Request, res: Response) {
+	return res.render('bookmarks-create.html', {
+		title: 'Bookmarks / New',
+		path: '/bookmarks/create',
+		layout: '../layouts/auth.html',
+	});
+}
+
+// GET /bookmarks or GET /api/bookmarks
+export async function getBookmarksHandler(req: Request, res: Response) {
+	const user = await extractUser(req);
+	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
+
+	const { data, pagination } = await bookmarks.all({
+		user,
+		perPage,
+		page,
+		search,
+		sortKey,
+		direction,
+	});
+
+	if (expectJson(req)) {
+		res.json({ data, pagination, search, sortKey, direction });
+		return;
+	}
+
+	return res.render('bookmarks', {
+		title: 'Bookmarks',
+		path: '/bookmarks',
+		layout: '../layouts/auth',
+		data,
+		search,
+		pagination,
+		sortKey,
+		direction,
+	});
+}
+
+// POST /bookmarks/:id/delete or DELETE /api/bookmarks/:id
+export async function deleteBookmarkHandler(req: Request, res: Response) {
+	const deleted = await bookmarks.delete(req.params.id as unknown as number, req.session.user!.id);
+
+	if (deleted) {
+		if (expectJson(req)) {
+			res.status(200).json({ message: `Bookmark deleted successfully` });
+			return;
+		}
+
+		throw NotFoundError();
+	}
+
+	req.flash('success', 'Bookmark deleted successfully');
+	return res.redirect('/bookmarks');
+}
+
+// GET /bookmarks/:id/edit
+export async function getEditBookmarkPageHandler(req: Request, res: Response) {
+	const bookmark = await bookmarks.read(req.params.id as unknown as number, req.session.user!.id);
+
+	return res.render('bookmarks-edit.html', {
+		title: 'Bookmark / Edit',
+		path: '/bookmark/edit',
+		layout: '../layouts/auth.html',
+		bookmark,
+	});
+}
+
 // GET /bookmarks/:id/actions/create
 export async function getBookmarkActionCreatePageHandler(req: Request, res: Response) {
 	const bookmark = await db('bookmarks')
@@ -458,6 +482,32 @@ export const postBookmarkHandler = [
 		return res.redirect('/bookmarks');
 	},
 ];
+
+// GET /bookmarks/export
+export async function getExportBookmarksHandler(req: Request, res: Response) {
+	const bookmarks = (await db
+		.select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
+		.from('bookmarks')
+		.where({ user_id: req.session.user?.id })) as BookmarkToExport[];
+
+	if (!bookmarks.length) {
+		req.flash('info', 'no bookmarks to export yet.');
+		return res.redirect('/bookmarks');
+	}
+
+	res.setHeader(
+		'Content-Disposition',
+		`attachment; filename=bookmarks-${new Date().toISOString().split('T')[0]}.html`,
+	);
+	res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+	res.send(bookmark.createDocument(bookmarks));
+}
+
+/**
+ *
+ * settings
+ *
+ */
 
 // GET /settings
 export async function getSettingsPageHandler(_req: Request, res: Response) {
@@ -627,18 +677,6 @@ export const postExportDataHandler = [
 	},
 ];
 
-// GET /bookmarks/:id/edit
-export async function getEditBookmarkPageHandler(req: Request, res: Response) {
-	const bookmark = await bookmarks.read(req.params.id as unknown as number, req.session.user!.id);
-
-	return res.render('bookmarks-edit.html', {
-		title: 'Bookmark / Edit',
-		path: '/bookmark/edit',
-		layout: '../layouts/auth.html',
-		bookmark,
-	});
-}
-
 // POST /settings/data/import
 export const postImportDataHandler = [
 	validateRequestMiddleware([
@@ -726,26 +764,6 @@ export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Res
 	}
 
 	return res.redirect('/?toast=🗑️ deleted');
-}
-
-// GET /bookmarks/export
-export async function getExportBookmarksHandler(req: Request, res: Response) {
-	const bookmarks = (await db
-		.select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
-		.from('bookmarks')
-		.where({ user_id: req.session.user?.id })) as BookmarkToExport[];
-
-	if (!bookmarks.length) {
-		req.flash('info', 'no bookmarks to export yet.');
-		return res.redirect('/bookmarks');
-	}
-
-	res.setHeader(
-		'Content-Disposition',
-		`attachment; filename=bookmarks-${new Date().toISOString().split('T')[0]}.html`,
-	);
-	res.setHeader('Content-Type', 'text/html; charset=UTF-8');
-	res.send(bookmark.createDocument(bookmarks));
 }
 
 // GET /settings/data/export
