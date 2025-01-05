@@ -13,11 +13,12 @@ import { api, getApiKey, isApiRequest, sendNotificationQueue } from './utils';
 export function notFoundMiddleware() {
 	return (req: Request, res: Response, _next: NextFunction) => {
 		if (isApiRequest(req)) {
-			return res.status(404).json({
+			res.status(404).json({
 				title: 'Not Found',
 				statusCode: 404,
 				message: 'not found',
 			});
+			return;
 		}
 
 		return res.status(404).render('error.html', {
@@ -50,21 +51,24 @@ export function errorMiddleware() {
 
 		if (isApiRequest(req)) {
 			if (statusCode === 422) {
-				return res.status(422).json({
+				res.status(422).json({
 					message: 'validation errors',
 					...JSON.parse(error.message),
 				});
+				return;
 			}
 
 			if (statusCode === 404) {
-				return res.status(404).json({ message: 'not found' });
+				res.status(404).json({ message: 'not found' });
+				return;
 			}
 
-			return res.status(statusCode).json({
+			res.status(statusCode).json({
 				message: appConfig.env !== 'production' ? error.message : 'An error occurred',
 				statusCode,
 				...(appConfig.env !== 'production' && { stack: error.stack }),
 			});
+			return;
 		}
 
 		return res.status(statusCode).render('error.html', {
