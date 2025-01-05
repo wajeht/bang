@@ -96,15 +96,13 @@ export async function getGithubHandler(req: Request, res: Response) {
 		return res.redirect('/search');
 	}
 
-	const rootUrl = 'https://github.com/login/oauth/authorize';
-
 	const qs = new URLSearchParams({
 		redirect_uri: oauthConfig.github.redirect_uri,
 		client_id: oauthConfig.github.client_id,
 		scope: 'user:email',
 	});
 
-	return res.redirect(`${rootUrl}?${qs.toString()}`);
+	return res.redirect(`${oauthConfig.github.root_url}?${qs.toString()}`);
 }
 
 // GET /oauth/github/redirect
