@@ -15,6 +15,7 @@ import http from 'node:http';
 import https from 'node:https';
 import jwt from 'jsonwebtoken';
 import { logger } from './logger';
+import { bookmarks } from './repositories';
 import { Application, Request, Response, NextFunction } from 'express';
 import { appConfig, defaultSearchProviders, notifyConfig, oauthConfig } from './configs';
 
@@ -120,14 +121,11 @@ export async function insertBookmark({
 	userId: number;
 	title?: string;
 }) {
-	const bookmark = await db('bookmarks')
-		.insert({
-			user_id: userId,
-			url: url,
-			title: title || 'Fetching...',
-			created_at: db.fn.now(),
-		})
-		.returning('*');
+	const bookmark = await bookmarks.create({
+		url,
+		title: title || 'Fetching...',
+		user_id: userId,
+	});
 
 	if (!title) {
 		insertPageTitleQueue.push({ bookmarkId: bookmark[0].id, url });
