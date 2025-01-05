@@ -152,7 +152,6 @@ export async function insertPageTitle({
 	if (bookmarkId) {
 		try {
 			await db('bookmarks').where({ id: bookmarkId }).update({ title, updated_at: db.fn.now() });
-			console.log('insertPageTitleQueue', { bookmarkId, url, title });
 		} catch (error) {
 			logger.error(`[insertPageTitle] error updating bookmark title, %o`, error);
 		}
@@ -381,7 +380,6 @@ export async function search({
 
 		try {
 			insertBookmarkQueue.push({ url: urlToBookmark, userId: user.id });
-			console.log('insertBookmarkQueue(), search()', { url: urlToBookmark, userId: user.id });
 			return res.redirect(urlToBookmark);
 		} catch (error) {
 			logger.error(`[search] Error adding bookmark %o`, error);
