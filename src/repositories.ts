@@ -1,5 +1,5 @@
-import { Action, ActionsQueryParams, Bookmark, BookmarksQueryParams } from './types';
 import { db } from './db/db';
+import { Action, ActionsQueryParams, Bookmark, BookmarksQueryParams } from './types';
 
 export const actions = {
 	all: async ({
@@ -78,7 +78,7 @@ export const actions = {
 			.first();
 
 		if (!action) {
-			throw new Error('Action not found or access denied');
+			throw new Error('Action not found');
 		}
 
 		return action;
@@ -110,7 +110,7 @@ export const actions = {
 			.returning('*');
 
 		if (!updatedAction) {
-			throw new Error('Action not found or access denied');
+			throw new Error('Action not found');
 		}
 
 		return updatedAction;
@@ -163,7 +163,7 @@ export const bookmarks = {
 		const bookmark = await db.select('*').from('bookmarks').where({ id, user_id: userId }).first();
 
 		if (!bookmark) {
-			throw new Error('Bookmark not found or access denied');
+			throw new Error('Bookmark not found');
 		}
 
 		return bookmark;
@@ -186,7 +186,7 @@ export const bookmarks = {
 			.returning('*');
 
 		if (!updatedBookmark) {
-			throw new Error('Bookmark not found or access denied');
+			throw new Error('Bookmark not found');
 		}
 
 		return updatedBookmark;
