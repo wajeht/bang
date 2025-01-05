@@ -239,7 +239,7 @@ export const postActionHandler = [
 			user_id: user.id,
 		});
 
-		if (expectJson(req)) {
+		if (isApiRequest(req)) {
 			res.status(201).json({ message: `Action ${formattedTrigger} created successfully!` });
 			return;
 		}
@@ -269,7 +269,7 @@ export async function deleteActionHandler(req: Request, res: Response) {
 	if (!deleted) {
 		throw NotFoundError();
 	}
-	if (expectJson(req)) {
+	if (isApiRequest(req)) {
 		res.json({ message: `Action deleted successfully` });
 		return;
 	}
@@ -345,7 +345,7 @@ export const updateActionHandler = [
 			actionType,
 		});
 
-		if (expectJson(req)) {
+		if (isApiRequest(req)) {
 			res.status(200).json({ message: `Action ${updatedAction.trigger} updated successfully!` });
 			return;
 		}
@@ -384,7 +384,7 @@ export async function getBookmarksHandler(req: Request, res: Response) {
 		direction,
 	});
 
-	if (expectJson(req)) {
+	if (isApiRequest(req)) {
 		res.json({ data, pagination, search, sortKey, direction });
 		return;
 	}
@@ -409,7 +409,7 @@ export async function deleteBookmarkHandler(req: Request, res: Response) {
 	);
 
 	if (deleted) {
-		if (expectJson(req)) {
+		if (isApiRequest(req)) {
 			res.status(200).json({ message: `Bookmark deleted successfully` });
 			return;
 		}
