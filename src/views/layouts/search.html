@@ -13,8 +13,9 @@
           <% } %>
 
           <a href="/actions" style="font-weight: <%= path === '/actions' ? 'bold' : 'normal' %>; <%= path === '/actions' ? 'text-decoration: underline;' : null %>">⚡ Actions</a>
-          <a href="/bookmarks" style="font-weight: <%= path === '/bookmarks' ? 'bold' : 'normal' %>; <%= path === '/bookmarks' ? 'text-decoration: underline;' : null %>">🔖 Bookmarks</a>
           <a href="/settings" style="font-weight: <%= path.match(/^\/settings/) ? 'bold' : 'normal' %>; <%= path.match(/^\/settings/) ? 'text-decoration: underline;' : null %>">⚙️ Settings</a>
+          <a href="/api-docs" style="font-weight: <%= path === '/api-docs' ? 'bold' : 'normal' %>; <%= path === '/api-docs' ? 'text-decoration: underline;' : null %>">📄 API Docs</a>
+          <a href="/bookmarks" style="font-weight: <%= path === '/bookmarks' ? 'bold' : 'normal' %>; <%= path === '/bookmarks' ? 'text-decoration: underline;' : null %>">🔖 Bookmarks</a>
           <hr style="border: none; border-top: dashed 1px; margin: 5px 0;">
           <button id="theme-toggle" class="no-style-btn" style="text-align: left;" onclick="toggleTheme()">💡 dark</button>
           <a href="/logout">🚪 Logout</a>
