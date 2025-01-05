@@ -513,7 +513,7 @@ export async function sendNotification({
 			logger.error(`Notification service responded with status ${n.status}: ${text}`);
 		}
 	} catch (error) {
-		logger.error('Failed to send error notification', error);
+		logger.error(`failed to send error notification: %o`, error);
 	}
 }
 
@@ -537,7 +537,7 @@ export const api: Api = {
 
 			return decodedApiKeyPayload;
 		} catch (error) {
-			logger.error('failed to verify api key ', error);
+			logger.error(`failed to verify api key: %o`, error);
 			return null;
 		}
 	},

@@ -51,7 +51,7 @@ function gracefulShutdown(signal: string): void {
 			await db.destroy();
 			logger.info('Database connection closed.');
 		} catch (error) {
-			logger.error('Error closing database connection:', error);
+			logger.error(`Error closing database connection: %o`, error);
 		}
 
 		logger.info('All connections closed successfully.');
@@ -69,11 +69,11 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGQUIT', () => gracefulShutdown('SIGQUIT'));
 
 process.on('warning', (warning: Error) => {
-	logger.warn('Process warning: %s - %s', warning.name, warning.message);
+	logger.warn(`Process warning: %s - %s`, warning.name, warning.message);
 });
 
 process.on('uncaughtException', async (error: Error, origin: string) => {
-	logger.error('Uncaught Exception: %o, Origin: %s', error, origin);
+	logger.error(`Uncaught Exception: %o, Origin: %s`, error, origin);
 
 	if (appConfig.env === 'production') {
 		try {
@@ -82,7 +82,7 @@ process.on('uncaughtException', async (error: Error, origin: string) => {
 				error,
 			});
 		} catch (error) {
-			logger.error('Failed to send uncaught exception notification', error);
+			logger.error(`Failed to send uncaught exception notification: %o`, error);
 		}
 	}
 
@@ -100,10 +100,10 @@ process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknow
 					error: reason,
 				});
 			} catch (error) {
-				logger.error('Failed to send unhandled rejection notification', error);
+				logger.error(`Failed to send unhandled rejection notification: %o`, error);
 			}
 		}
 	} else {
-		logger.error('Unhandled Rejection: %o, Reason: %o', promise, reason);
+		logger.error(`Unhandled Rejection: %o, Reason: %o`, promise, reason);
 	}
 });
