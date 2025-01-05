@@ -1,6 +1,6 @@
 import { BookmarkToExport } from 'types';
-import { bookmark, isValidUrl } from './utils';
 import { describe, expect, it } from 'vitest';
+import { bookmark, isValidUrl } from './utils';
 
 describe.concurrent('isValidUrl', () => {
 	it('should return true for valid URLs', () => {
