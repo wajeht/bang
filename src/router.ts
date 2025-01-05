@@ -51,7 +51,6 @@ const router = express.Router();
  */
 
 router.get('/', csrfMiddleware, getHomePageAndSearchHandler);
-router.post('/search', authenticationMiddleware, csrfMiddleware, postSearchHandler);
 router.get('/healthz', getHealthzHandler);
 router.get('/terms-of-service', getTermsOfServicePageHandler);
 router.get('/privacy-policy', getPrivacyPolicyPageHandler);
@@ -60,6 +59,7 @@ router.get('/logout', getLogoutHandler);
 router.get('/login', getLoginHandler);
 router.get('/oauth/github', getGithubHandler);
 router.get('/oauth/github/redirect', getGithubRedirectHandler);
+router.post('/search', authenticationMiddleware, csrfMiddleware, postSearchHandler);
 
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler);
 router.get('/settings/account', authenticationMiddleware, csrfMiddleware, getSettingsAccountPageHandler); // prettier-ignore
