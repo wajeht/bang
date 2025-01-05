@@ -1,5 +1,4 @@
 import { app } from './app';
-import path from 'node:path';
 import { Application } from 'express';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
 import { authenticationMiddleware } from './middlewares';
@@ -19,7 +18,7 @@ export const swagger = {
 		},
 		version: '0.0.1',
 	},
-	baseDir: path.resolve(path.join(process.cwd(), 'src')),
+	baseDir: './src',
 	filesPattern: ['./**/router.ts'],
 	swaggerUIPath: '/api-docs',
 	exposeSwaggerUI: true,
