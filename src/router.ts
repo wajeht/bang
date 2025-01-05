@@ -89,7 +89,7 @@ router.get('/bookmarks/:id/actions/create', authenticationMiddleware, csrfMiddle
  *
  * @security BearerAuth
  *
- * @return {array<object>} 200 - success response - application/json
+ * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  *
  */
@@ -163,7 +163,7 @@ router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, deleteActi
  *
  * @security BearerAuth
  *
- * @return {array<object>} 200 - success response - application/json
+ * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  *
  */
