@@ -181,7 +181,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	await search({ res, user, query, req });
 }
 
-// POST /actions or /api/actions
+// POST /actions or POST /api/actions
 export const postActionHandler = [
 	validateRequestMiddleware([
 		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
@@ -254,7 +254,7 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 	});
 }
 
-// GET /bookmarks or /api/bookmarks
+// GET /bookmarks or GET GET /api/bookmarks
 export async function getBookmarksHandler(req: Request, res: Response) {
 	const user = await extractUser(req);
 	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
@@ -285,7 +285,7 @@ export async function getBookmarksHandler(req: Request, res: Response) {
 	});
 }
 
-// POST /bookmarks/:id/delete or /api/bookmarks/:id
+// POST /bookmarks/:id/delete or DELETE /api/bookmarks/:id
 export async function deleteBookmarkHandler(req: Request, res: Response) {
 	const deleted = await bookmarks.delete(req.params.id as unknown as number, req.session.user!.id);
 
@@ -302,7 +302,7 @@ export async function deleteBookmarkHandler(req: Request, res: Response) {
 	return res.redirect('/bookmarks');
 }
 
-// POST /actions/:id/delete or /api/actions
+// POST /actions/:id/delete or DELETE /api/actions
 export async function deleteActionHandler(req: Request, res: Response) {
 	const deleted = await actions.delete(req.params.id as unknown as number, req.session.user!.id);
 
@@ -343,7 +343,7 @@ export async function getEditActionPageHandler(req: Request, res: Response) {
 	});
 }
 
-// POST /actions/:id/update or /api/actions/:id
+// POST /actions/:id/update or PATCH /api/actions/:id
 export const updateActionHandler = [
 	validateRequestMiddleware([
 		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
@@ -416,7 +416,7 @@ export async function getBookmarkActionCreatePageHandler(req: Request, res: Resp
 	});
 }
 
-// POST /bookmarks/:id/update or /api/bookmarks/:id
+// POST /bookmarks/:id/update or PATCH /api/bookmarks/:id
 export const updateBookmarkHandler = [
 	validateRequestMiddleware([
 		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
@@ -439,7 +439,7 @@ export const updateBookmarkHandler = [
 	},
 ];
 
-// POST /bookmarks or /api/bookmarks
+// POST /bookmarks or POST /api/bookmarks
 export const postBookmarkHandler = [
 	validateRequestMiddleware([
 		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
