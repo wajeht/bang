@@ -75,7 +75,7 @@ export async function getGithubHandler(req: Request, res: Response) {
 	return res.redirect(`${rootUrl}?${qs.toString()}`);
 }
 
-// GET /actions
+// GET /actions or /api/actions
 export async function getActionsHandler(req: Request, res: Response) {
 	const user = await extractUser(req);
 	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
