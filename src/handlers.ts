@@ -214,7 +214,7 @@ export const postActionHandler = [
 				const existingBang = await db('bangs')
 					.where({
 						trigger: formattedTrigger,
-						user_id: req.session.user?.id,
+						user_id: (await extractUser(req as Request)).id,
 					})
 					.first();
 
@@ -227,7 +227,7 @@ export const postActionHandler = [
 	]),
 	async (req: Request, res: Response) => {
 		const { trigger, url, actionType, name } = req.body;
-		const userId = req.session.user!.id;
+		const user = await extractUser(req);
 
 		const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
@@ -236,7 +236,7 @@ export const postActionHandler = [
 			trigger: formattedTrigger,
 			url,
 			actionType,
-			user_id: userId,
+			user_id: user.id,
 		});
 
 		if (expectJson(req)) {
@@ -261,7 +261,10 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 
 // POST /actions/:id/delete or DELETE /api/actions
 export async function deleteActionHandler(req: Request, res: Response) {
-	const deleted = await actions.delete(req.params.id as unknown as number, req.session.user!.id);
+	const deleted = await actions.delete(
+		req.params.id as unknown as number,
+		(await extractUser(req)).id,
+	);
 
 	if (deleted) {
 		if (expectJson(req)) {
@@ -318,7 +321,7 @@ export const updateActionHandler = [
 				const existingBang = await db('bangs')
 					.where({
 						trigger: formattedTrigger,
-						user_id: req.session.user?.id,
+						user_id: (await extractUser(req as Request)).id,
 					})
 					.whereNot('id', req.params?.id)
 					.first();
@@ -332,19 +335,16 @@ export const updateActionHandler = [
 	]),
 	async (req: Request, res: Response) => {
 		const { trigger, url, actionType, name } = req.body;
+		const user = await extractUser(req);
 
 		const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-		const updatedAction = await actions.update(
-			req.params.id as unknown as number,
-			req.session.user!.id,
-			{
-				trigger: formattedTrigger,
-				name: name.trim(),
-				url,
-				actionType,
-			},
-		);
+		const updatedAction = await actions.update(req.params.id as unknown as number, user.id, {
+			trigger: formattedTrigger,
+			name: name.trim(),
+			url,
+			actionType,
+		});
 
 		if (expectJson(req)) {
 			res.status(200).json({ message: `Action ${updatedAction.trigger} updated successfully!` });
@@ -404,7 +404,10 @@ export async function getBookmarksHandler(req: Request, res: Response) {
 
 // POST /bookmarks/:id/delete or DELETE /api/bookmarks/:id
 export async function deleteBookmarkHandler(req: Request, res: Response) {
-	const deleted = await bookmarks.delete(req.params.id as unknown as number, req.session.user!.id);
+	const deleted = await bookmarks.delete(
+		req.params.id as unknown as number,
+		(await extractUser(req)).id,
+	);
 
 	if (deleted) {
 		if (expectJson(req)) {
