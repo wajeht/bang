@@ -456,15 +456,12 @@ export const updateBookmarkHandler = [
 	]),
 	async (req: Request, res: Response) => {
 		const { url, title } = req.body;
+		const user = await extractUser(req);
 
-		const updatedBookmark = await bookmarks.update(
-			req.params.id as unknown as number,
-			req.session.user!.id,
-			{
-				url,
-				title,
-			},
-		);
+		const updatedBookmark = await bookmarks.update(req.params.id as unknown as number, user.id, {
+			url,
+			title,
+		});
 
 		req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
 		return res.redirect('/bookmarks');
@@ -479,8 +476,9 @@ export const postBookmarkHandler = [
 	]),
 	async (req: Request, res: Response) => {
 		const { url, title } = req.body;
+		const user = await extractUser(req);
 
-		insertBookmarkQueue.push({ url, userId: req.session.user!.id, title });
+		insertBookmarkQueue.push({ url, userId: user.id, title });
 
 		if (expectJson(req)) {
 			res.status(201).json({ message: `Bookmark ${title} created successfully!` });
