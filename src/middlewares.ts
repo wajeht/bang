@@ -258,7 +258,7 @@ export async function apiKeyOnlyAuthenticationMiddleware(
 		next();
 	} catch (error) {
 		logger.error('Failed to authenticate API key or Bearer token', error);
-		res.status(500).json({ message: 'Internal server error' });
+		next(error);
 		return;
 	}
 }
