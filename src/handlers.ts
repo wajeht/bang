@@ -98,37 +98,6 @@ export async function getGithubHandler(req: Request, res: Response) {
 	return res.redirect(`${rootUrl}?${qs.toString()}`);
 }
 
-// GET /actions or /api/actions
-export async function getActionsHandler(req: Request, res: Response) {
-	const user = await extractUser(req);
-	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
-
-	const { data, pagination } = await actions.all({
-		user,
-		perPage,
-		page,
-		search,
-		sortKey,
-		direction,
-	});
-
-	if (expectJson(req)) {
-		res.json({ data, pagination, search, sortKey, direction });
-		return;
-	}
-
-	return res.render('actions.html', {
-		path: '/actions',
-		title: 'Actions',
-		layout: '../layouts/auth.html',
-		data,
-		pagination,
-		search,
-		sortKey,
-		direction,
-	});
-}
-
 // GET /oauth/github/redirect
 export async function getGithubRedirectHandler(req: Request, res: Response) {
 	const code = req.query.code as string;
@@ -183,9 +152,40 @@ export async function postSearchHandler(req: Request, res: Response) {
 
 /**
  *
- * Actions
+ * action handlers
  *
  */
+
+// GET /actions or /api/actions
+export async function getActionsHandler(req: Request, res: Response) {
+	const user = await extractUser(req);
+	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
+
+	const { data, pagination } = await actions.all({
+		user,
+		perPage,
+		page,
+		search,
+		sortKey,
+		direction,
+	});
+
+	if (expectJson(req)) {
+		res.json({ data, pagination, search, sortKey, direction });
+		return;
+	}
+
+	return res.render('actions.html', {
+		path: '/actions',
+		title: 'Actions',
+		layout: '../layouts/auth.html',
+		data,
+		pagination,
+		search,
+		sortKey,
+		direction,
+	});
+}
 
 // POST /actions or POST /api/actions
 export const postActionHandler = [
@@ -350,7 +350,7 @@ export const updateActionHandler = [
 
 /**
  *
- * bookmarks
+ * bookmark handlers
  *
  */
 
@@ -505,7 +505,7 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 
 /**
  *
- * settings
+ * setting handlers
  *
  */
 
