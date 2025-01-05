@@ -81,6 +81,15 @@ router.get('/bookmarks/create', authenticationMiddleware, csrfMiddleware, getBoo
 router.get('/bookmarks/:id/actions/create', authenticationMiddleware, csrfMiddleware, getBookmarkActionCreatePageHandler); // prettier-ignore
 
 /**
+ * A action
+ * @typedef {object} Action
+ * @property {string} url.required - url
+ * @property {string} name.required - name
+ * @property {string} actionType.required - actionType
+ * @property {string} trigger.required - trigger
+ */
+
+/**
  *
  * GET /api/actions
  *
@@ -102,10 +111,7 @@ router.get('/api/actions', apiKeyOnlyAuthenticationMiddleware, getActionsHandler
  * @tags actions
  * @summary create a action
  *
- * @param {string} url.form.required - url - application/json
- * @param {string} name.form.required - name - application/json
- * @param {string} actionType.form.required - actionType - application/json
- * @param {string} trigger.form.required - trigger - application/json
+ * @param {Action} request.body.required - action info
  *
  * @security BearerAuth
  *
@@ -123,11 +129,7 @@ router.post('/api/actions', apiKeyOnlyAuthenticationMiddleware, postActionHandle
  * @summary update a action
  *
  * @param {string} id.path.required - action id
- *
- * @param {string} url.form.required - url - application/json
- * @param {string} name.form.required - name - application/json
- * @param {string} actionType.form.required - actionType - application/json
- * @param {string} trigger.form.required - trigger - application/json
+ * @param {Action} request.body.required - action info
  *
  * @security BearerAuth
  *
@@ -170,16 +172,20 @@ router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, deleteActi
 router.get('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, getBookmarksHandler);
 
 /**
+ * A bookmark
+ * @typedef {object} Bookmark
+ * @property {string} url.required - url
+ * @property {string} title.required - title
+ */
+
+/**
  *
  * POST /api/bookmarks
  *
  * @tags bookmarks
  * @summary create a bookmarks
  *
- * @param {number} id.path.required - bookmark id
- *
- * @param {string} url.form.required - url - application/json
- * @param {string} title.form.required - title - application/json
+ * @param {Bookmark} request.body.required - action info
  *
  * @security BearerAuth
  *
@@ -197,9 +203,7 @@ router.post('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, postBookmarkHa
  * @summary update a bookmarks
  *
  * @param {number} id.path.required - bookmark id
- *
- * @param {string} url.form.required - url - application/json
- * @param {string} title.form.required - title - application/json
+ * @param {Bookmark} request.body.required - action info
  *
  * @security BearerAuth
  *
@@ -215,6 +219,7 @@ router.patch('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, updateBoo
  *
  * @tags bookmarks
  * @summary delete a bookmark
+ *
  * @param {string} id.path.required - bookmark id
  *
  * @security BearerAuth
