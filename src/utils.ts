@@ -122,9 +122,9 @@ export async function insertBookmark({
 	title?: string;
 }) {
 	const bookmark = await bookmarks.create({
-		url,
-		title: title || 'Fetching...',
 		user_id: userId,
+		url: url,
+		title: title || 'Fetching...',
 	});
 
 	if (!title) {
