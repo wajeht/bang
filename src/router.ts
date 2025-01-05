@@ -43,11 +43,6 @@ import {
 
 const router = express.Router();
 
-/**
- *
- * Web Routes
- *
- */
 router.get('/healthz', getHealthzHandler);
 router.get('/privacy-policy', getPrivacyPolicyPageHandler);
 router.get('/', csrfMiddleware, getHomePageAndSearchHandler);
@@ -87,17 +82,126 @@ router.get('/bookmarks/:id/actions/create', authenticationMiddleware, csrfMiddle
 
 /**
  *
- * API Routes
+ * GET /api/actions
+ *
+ * @tags actions
+ * @summary get actions
+ *
+ * @security BearerAuth
+ *
+ * @return {array<object>} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
  *
  */
 router.get('/api/actions', apiKeyOnlyAuthenticationMiddleware, getActionsHandler);
+
+/**
+ *
+ * POST /api/actions
+ *
+ * @tags actions
+ * @summary create a action
+ *
+ * @security BearerAuth
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ *
+ */
 router.post('/api/actions', apiKeyOnlyAuthenticationMiddleware, postActionHandler);
+
+/**
+ *
+ * PATCH /api/actions/{id}
+ *
+ * @tags actions
+ * @summary update a action
+ * @param {string} id.path.required - the action id
+ *
+ * @security BearerAuth
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ *
+ */
 router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, updateActionHandler);
+
+/**
+ *
+ * DELETE /api/actions/{id}
+ *
+ * @tags actions
+ * @summary delete a action
+ * @param {string} id.path.required - the action id
+ *
+ * @security BearerAuth
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ *
+ */
 router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, deleteActionHandler);
 
+/**
+ *
+ * GET /api/bookmarks
+ *
+ * @tags bookmarks
+ * @summary get bookmarks
+ *
+ * @security BearerAuth
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ *
+ */
 router.get('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, getBookmarksHandler);
+
+/**
+ *
+ * POST /api/bookmarks
+ *
+ * @tags bookmarks
+ * @summary create a bookmarks
+ *
+ * @security BearerAuth
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ *
+ */
 router.post('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, postBookmarkHandler);
+
+/**
+ *
+ * PATCH /api/bookmarks/{id}
+ *
+ * @tags bookmarks
+ * @summary update a bookmarks
+ * @param {string} id.path.required - the bookmark id
+ *
+ * @security BearerAuth
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ *
+ */
 router.patch('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, updateBookmarkHandler);
+
+/**
+ *
+ * DELETE /api/bookmarks/{id}
+ *
+ * @tags bookmarks
+ * @summary delete a bookmark
+ * @param {string} id.path.required - the bookmark id
+ *
+ * @security BearerAuth
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ *
+ */
 router.delete('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, deleteBookmarkHandler);
 
 export { router };

@@ -14,6 +14,7 @@ import flash from 'connect-flash';
 import { appConfig } from './configs';
 import compression from 'compression';
 import expressLayouts from 'express-ejs-layouts';
+import { expressJSDocSwaggerHandler, swagger } from './swagger';
 
 const app = express();
 
@@ -52,6 +53,8 @@ app.use(appLocalStateMiddleware);
 reload({ app, watch: [{ path: './src/views', extensions: ['.html'] }] });
 
 app.use(router);
+
+expressJSDocSwaggerHandler(app, swagger);
 
 app.use(notFoundMiddleware());
 
