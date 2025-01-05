@@ -35,16 +35,6 @@ export const swagger = {
 		},
 	},
 	multiple: {},
-	servers: [
-		{
-			url: 'http://localhost',
-			description: 'The local server',
-		},
-		{
-			url: 'https://bang.jaw.dev',
-			description: 'The production server',
-		},
-	],
 };
 
 export function expressJSDocSwaggerHandler(express: Application, swaggerConfig: typeof swagger) {
