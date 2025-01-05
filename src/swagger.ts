@@ -1,8 +1,8 @@
 import { app } from './app';
 import path from 'node:path';
+import { Application } from 'express';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
 import { authenticationMiddleware } from './middlewares';
-import { Application } from 'express';
 
 export const swagger = {
 	info: {
