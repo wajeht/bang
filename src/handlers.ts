@@ -68,7 +68,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 
 // GET /logout
 export function getLogoutHandler(req: Request, res: Response) {
-	if (req.session && req.user) {
+	if ((req.session && req.session.user) || req.user) {
 		req.session.user = null;
 		req.user = null;
 		req.session.destroy((error) => {
