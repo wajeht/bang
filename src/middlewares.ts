@@ -243,9 +243,9 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 			return res.redirect('/login');
 		}
 
+		req.user = user;
 		req.session.user = user;
 		req.session.save();
-		req.user = user;
 
 		next();
 	} catch (error) {
