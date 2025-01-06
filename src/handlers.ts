@@ -83,7 +83,7 @@ export function getLogoutHandler(req: Request, res: Response) {
 
 // GET /login
 export function getLoginHandler(req: Request, res: Response) {
-	if (req.user) {
+	if (req.session.user) {
 		return res.redirect('/search');
 	}
 
@@ -155,7 +155,7 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 // POST /search
 export async function postSearchHandler(req: Request, res: Response) {
 	const query = req.body.q?.toString().trim() || '';
-	await search({ res, user: req.user!, query, req });
+	await search({ res, user: req.session.user!, query, req });
 }
 
 /**
@@ -414,7 +414,7 @@ export async function deleteBookmarkHandler(req: Request, res: Response) {
 
 // GET /bookmarks/:id/edit
 export async function getEditBookmarkPageHandler(req: Request, res: Response) {
-	const bookmark = await bookmarks.read(req.params.id as unknown as number, req.user!.id);
+	const bookmark = await bookmarks.read(req.params.id as unknown as number, req.session.user!.id);
 
 	return res.render('bookmarks-edit.html', {
 		title: 'Bookmark / Edit',
@@ -429,7 +429,7 @@ export async function getBookmarkActionCreatePageHandler(req: Request, res: Resp
 	const bookmark = await db('bookmarks')
 		.where({
 			id: req.params.id,
-			user_id: req.user?.id,
+			user_id: req.session.user?.id,
 		})
 		.first();
 
@@ -490,7 +490,7 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 	const bookmarks = (await db
 		.select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
 		.from('bookmarks')
-		.where({ user_id: req.user?.id })) as BookmarkToExport[];
+		.where({ user_id: req.session.user?.id })) as BookmarkToExport[];
 
 	if (!bookmarks.length) {
 		req.flash('info', 'no bookmarks to export yet.');
@@ -529,7 +529,7 @@ export async function getSettingsAccountPageHandler(req: Request, res: Response)
 
 // POST /settings/create-api-key
 export async function postSettingsCreateApiKeyHandler(req: Request, res: Response) {
-	const user = await db('users').where({ id: req.user?.id }).first();
+	const user = await db('users').where({ id: req.session.user?.id }).first();
 
 	if (!user) {
 		throw NotFoundError();
@@ -700,7 +700,7 @@ export const postImportDataHandler = [
 			}),
 	]),
 	async (req: Request, res: Response) => {
-		const userId = req.user?.id;
+		const userId = req.session.user?.id;
 		const importData = JSON.parse(req.body.config);
 
 		try {
@@ -754,7 +754,7 @@ export async function getSettingsDangerZonePageHandler(req: Request, res: Respon
 
 // POST /settings/danger-zone/delete
 export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Response) {
-	await db('users').where({ id: req.user?.id }).delete();
+	await db('users').where({ id: req.session.user?.id }).delete();
 
 	if ((req.session && req.session.user) || req.user) {
 		req.session.user = null;
