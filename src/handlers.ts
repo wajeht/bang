@@ -262,13 +262,13 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 export async function deleteActionHandler(req: Request, res: Response) {
 	const deleted = await actions.delete(req.params.id as unknown as number, req.user!.id);
 
-	if (!deleted) {
-		throw NotFoundError();
-	}
+	if (deleted) {
+		if (isApiRequest(req)) {
+			res.status(200).json({ message: `Action deleted successfully` });
+			return;
+		}
 
-	if (isApiRequest(req)) {
-		res.json({ message: `Action deleted successfully` });
-		return;
+		throw NotFoundError();
 	}
 
 	req.flash('success', `Action deleted successfully`);
