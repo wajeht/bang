@@ -316,7 +316,7 @@ export async function search({
 			logger.warn(
 				`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay}ms due to exceeding search limit.`,
 			);
-			await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay!));
+			await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
 		}
 
 		trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
