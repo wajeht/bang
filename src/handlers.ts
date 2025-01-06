@@ -267,7 +267,8 @@ export async function deleteActionHandler(req: Request, res: Response) {
 	}
 
 	if (isApiRequest(req)) {
-		return res.status(200).json({ message: 'Action deleted successfully' });
+		res.status(200).json({ message: 'Action deleted successfully' });
+		return;
 	}
 
 	req.flash('success', 'Action deleted successfully');
