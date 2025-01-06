@@ -514,7 +514,7 @@ export function getApiKey(req: Request): string | undefined {
 }
 
 export function isApiRequest(req: Request): boolean {
-	return !!getApiKey(req) && req.path.startsWith('/api');
+	return !!getApiKey(req) || req.path.startsWith('/api') || expectJson(req);
 }
 
 export function expectJson(req: Request): boolean {
