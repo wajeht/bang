@@ -181,7 +181,7 @@ router.get('/api/bookmarks', authenticationMiddleware, getBookmarksHandler);
  * @tags bookmarks
  * @summary create a bookmarks
  *
- * @param {Bookmark} request.body.required - action info
+ * @param {Bookmark} request.body.required - bookmark info
  *
  * @security BearerAuth
  *
@@ -199,7 +199,7 @@ router.post('/api/bookmarks', authenticationMiddleware, postBookmarkHandler);
  * @summary update a bookmarks
  *
  * @param {number} id.path.required - bookmark id
- * @param {Bookmark} request.body.required - action info
+ * @param {Bookmark} request.body.required - bookmark info
  *
  * @security BearerAuth
  *
