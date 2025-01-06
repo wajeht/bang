@@ -118,7 +118,7 @@ export const actions = {
 
 	delete: async (id: number, userId: number) => {
 		const rowsAffected = await db('bangs').where({ id, user_id: userId }).delete();
-		return rowsAffected === 0;
+		return rowsAffected > 0;
 	},
 };
 
@@ -194,6 +194,6 @@ export const bookmarks = {
 
 	delete: async (id: number, userId: number) => {
 		const rowsAffected = await db('bookmarks').where({ id, user_id: userId }).delete();
-		return rowsAffected === 0;
+		return rowsAffected > 0;
 	},
 };
