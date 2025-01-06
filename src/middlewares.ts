@@ -50,23 +50,9 @@ export function errorMiddleware() {
 		const statusCode = error.statusCode || 500;
 
 		if (isApiRequest(req)) {
-			if (statusCode === 422) {
-				res.status(422).json({
-					message: 'validation errors',
-					...JSON.parse(error.message),
-				});
-				return;
-			}
-
-			if (statusCode === 404) {
-				res.status(404).json({ message: 'not found' });
-				return;
-			}
-
 			res.status(statusCode).json({
-				message: appConfig.env !== 'production' ? error.message : 'An error occurred',
-				statusCode,
-				...(appConfig.env !== 'production' && { stack: error.stack }),
+				message: statusCode === 422 ? 'Validation errors' : error.message,
+				...(statusCode === 422 && { details: JSON.parse(error.message) }),
 			});
 			return;
 		}
@@ -75,19 +61,19 @@ export function errorMiddleware() {
 			path: req.path,
 			title: 'Error',
 			statusCode,
-			message: appConfig.env !== 'production' ? error.stack : 'internal server error',
+			message: appConfig.env !== 'production' ? error.stack : 'An error occurred',
 		});
 	};
 }
 
 export async function adminOnlyMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
-		if (!req.session?.user) {
-			return res.redirect('/login');
+		if (!req.user) {
+			throw UnauthorizedError('Unauthorized');
 		}
 
-		if (!req.session.user.is_admin) {
-			throw UnauthorizedError();
+		if (!req.user.is_admin) {
+			throw UnauthorizedError('User is not an admin');
 		}
 
 		next();
@@ -208,9 +194,7 @@ export const csrfMiddleware = (() => {
 export async function appLocalStateMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
 		res.locals.state = {
-			user: req.session?.user
-				? await db.select('*').from('users').where('id', req.session.user.id).first()
-				: null,
+			user: req.user || null,
 			copyRightYear: new Date().getFullYear(),
 			input: req.session?.input || {},
 			errors: req.session?.errors || {},
@@ -233,58 +217,33 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
 	}
 }
 
-export async function apiKeyOnlyAuthenticationMiddleware(
+export async function unifiedAuthenticationMiddleware(
 	req: Request,
 	res: Response,
 	next: NextFunction,
 ) {
 	try {
 		const apiKey = getApiKey(req);
+		let user;
 
-		if (!apiKey) {
-			res.status(401).json({ message: 'API key or Bearer token is missing' });
-			return;
+		if (apiKey) {
+			const apiKeyPayload = await api.verify(apiKey);
+			if (!apiKeyPayload) {
+				throw UnauthorizedError('Invalid API key or Bearer token');
+			}
+			user = await db.select('*').from('users').where({ id: apiKeyPayload.userId }).first();
+		} else if (req.session?.user) {
+			user = await db.select('*').from('users').where({ id: req.session.user.id }).first();
 		}
 
-		const apiKeyPayload = await api.verify(apiKey);
-
-		if (!apiKeyPayload) {
-			res.status(401).json({ message: 'Invalid API key or Bearer token' });
-			return;
-		}
-
-		req.apiKeyPayload = apiKeyPayload;
-
-		next();
-	} catch (error) {
-		logger.error('Failed to authenticate API key or Bearer token', error);
-		next(error);
-		return;
-	}
-}
-
-export async function authenticationMiddleware(req: Request, res: Response, next: NextFunction) {
-	try {
-		if (!req.session?.user) {
+		if (!user) {
+			if (isApiRequest(req)) {
+				throw UnauthorizedError('Unauthorized');
+			}
 			return res.redirect('/login');
 		}
 
-		const user = await db.select('*').from('users').where({ id: req.session.user.id }).first();
-
-		if (!user) {
-			req.session.destroy((err) => {
-				if (err) {
-					logger.error('Error destroying session:', err);
-				}
-				return res.redirect('/login');
-			});
-
-			return;
-		}
-
-		req.session.user = user;
-		req.session.save();
-
+		req.user = user;
 		next();
 	} catch (error) {
 		logger.error('Authentication error: %o', error);
