@@ -1,12 +1,6 @@
 import express from 'express';
 
 import {
-	csrfMiddleware,
-	authenticationMiddleware,
-	apiKeyOnlyAuthenticationMiddleware,
-} from './middlewares';
-
-import {
 	getLoginHandler,
 	getGithubHandler,
 	getLogoutHandler,
@@ -40,6 +34,8 @@ import {
 	getBookmarkActionCreatePageHandler,
 	postDeleteSettingsDangerZoneHandler,
 } from './handlers';
+
+import { csrfMiddleware, authenticationMiddleware } from './middlewares';
 
 const router = express.Router();
 
@@ -102,7 +98,7 @@ router.get('/bookmarks/:id/actions/create', authenticationMiddleware, csrfMiddle
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.get('/api/actions', apiKeyOnlyAuthenticationMiddleware, getActionsHandler);
+router.get('/api/actions', authenticationMiddleware, getActionsHandler);
 
 /**
  *
@@ -119,7 +115,7 @@ router.get('/api/actions', apiKeyOnlyAuthenticationMiddleware, getActionsHandler
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.post('/api/actions', apiKeyOnlyAuthenticationMiddleware, postActionHandler);
+router.post('/api/actions', authenticationMiddleware, postActionHandler);
 
 /**
  *
@@ -137,7 +133,7 @@ router.post('/api/actions', apiKeyOnlyAuthenticationMiddleware, postActionHandle
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, updateActionHandler);
+router.patch('/api/actions/:id', authenticationMiddleware, updateActionHandler);
 
 /**
  *
@@ -154,7 +150,7 @@ router.patch('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, updateActio
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, deleteActionHandler);
+router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler);
 
 /**
  *
@@ -169,7 +165,7 @@ router.delete('/api/actions/:id', apiKeyOnlyAuthenticationMiddleware, deleteActi
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.get('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, getBookmarksHandler);
+router.get('/api/bookmarks', authenticationMiddleware, getBookmarksHandler);
 
 /**
  * A bookmark
@@ -193,7 +189,7 @@ router.get('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, getBookmarksHan
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.post('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, postBookmarkHandler);
+router.post('/api/bookmarks', authenticationMiddleware, postBookmarkHandler);
 
 /**
  *
@@ -211,7 +207,7 @@ router.post('/api/bookmarks', apiKeyOnlyAuthenticationMiddleware, postBookmarkHa
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.patch('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, updateBookmarkHandler);
+router.patch('/api/bookmarks/:id', authenticationMiddleware, updateBookmarkHandler);
 
 /**
  *
@@ -228,6 +224,6 @@ router.patch('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, updateBoo
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.delete('/api/bookmarks/:id', apiKeyOnlyAuthenticationMiddleware, deleteBookmarkHandler);
+router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHandler);
 
 export { router };
