@@ -4,8 +4,8 @@ declare module 'express-session' {
 		user: User | null;
 		input: Record<string, unknown> | null;
 		errors: Record<string, unknown> | null;
-		searchCount: number | null;
-		cumulativeDelay: number | null;
+		searchCount: number;
+		cumulativeDelay: number;
 	}
 }
 
