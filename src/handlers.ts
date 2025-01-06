@@ -262,16 +262,15 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 export async function deleteActionHandler(req: Request, res: Response) {
 	const deleted = await actions.delete(req.params.id as unknown as number, req.user!.id);
 
-	if (deleted) {
-		if (isApiRequest(req)) {
-			res.status(200).json({ message: `Action deleted successfully` });
-			return;
-		}
-
+	if (!deleted) {
 		throw NotFoundError();
 	}
 
-	req.flash('success', `Action deleted successfully`);
+	if (isApiRequest(req)) {
+		return res.status(200).json({ message: 'Action deleted successfully' });
+	}
+
+	req.flash('success', 'Action deleted successfully');
 	return res.redirect('/actions');
 }
 
@@ -399,13 +398,13 @@ export async function getBookmarksHandler(req: Request, res: Response) {
 export async function deleteBookmarkHandler(req: Request, res: Response) {
 	const deleted = await bookmarks.delete(req.params.id as unknown as number, req.user!.id);
 
-	if (deleted) {
-		if (isApiRequest(req)) {
-			res.status(200).json({ message: `Bookmark deleted successfully` });
-			return;
-		}
-
+	if (!deleted) {
 		throw NotFoundError();
+	}
+
+	if (isApiRequest(req)) {
+		res.status(200).json({ message: 'Bookmark deleted successfully' });
+		return;
 	}
 
 	req.flash('success', 'Bookmark deleted successfully');
