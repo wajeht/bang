@@ -46,7 +46,7 @@ export function getPrivacyPolicyPageHandler(_req: Request, res: Response) {
 // GET /
 export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	const query = req.query.q?.toString().trim() || '';
-	const user = req.session.user;
+	const user = req.user!;
 
 	if (!query) {
 		if (!user) {
@@ -68,8 +68,9 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 
 // GET /logout
 export function getLogoutHandler(req: Request, res: Response) {
-	if (req.session && req.session.user) {
-		req.session.user = undefined;
+	if (req.session && req.user) {
+		req.session.user = null;
+		req.user = null;
 		req.session.destroy((error) => {
 			if (error) {
 				throw HttpError(error);
@@ -82,7 +83,7 @@ export function getLogoutHandler(req: Request, res: Response) {
 
 // GET /login
 export function getLoginHandler(req: Request, res: Response) {
-	if (req.session?.user) {
+	if (req.user) {
 		return res.redirect('/search');
 	}
 
@@ -91,7 +92,7 @@ export function getLoginHandler(req: Request, res: Response) {
 
 // GET /oauth/github
 export async function getGithubHandler(req: Request, res: Response) {
-	if (req.session?.user) {
+	if (req.user) {
 		req.flash('info', "you've already been logged in!");
 		return res.redirect('/search');
 	}
@@ -132,6 +133,7 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 	}
 
 	req.session.user = foundUser;
+	req.user = foundUser;
 
 	const redirectTo = req.session.redirectTo;
 	delete req.session.redirectTo;
@@ -153,8 +155,7 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 // POST /search
 export async function postSearchHandler(req: Request, res: Response) {
 	const query = req.body.q?.toString().trim() || '';
-	const user = req.session.user;
-	await search({ res, user, query, req });
+	await search({ res, user: req.user!, query, req });
 }
 
 /**
@@ -264,6 +265,7 @@ export async function deleteActionHandler(req: Request, res: Response) {
 	if (!deleted) {
 		throw NotFoundError();
 	}
+
 	if (isApiRequest(req)) {
 		res.json({ message: `Action deleted successfully` });
 		return;
@@ -280,7 +282,7 @@ export async function getEditActionPageHandler(req: Request, res: Response) {
 		.from('bangs')
 		.where({
 			'bangs.id': req.params.id,
-			'bangs.user_id': req.session.user?.id,
+			'bangs.user_id': req.user!.id,
 		})
 		.join('action_types', 'bangs.action_type_id', 'action_types.id')
 		.first();
@@ -412,7 +414,7 @@ export async function deleteBookmarkHandler(req: Request, res: Response) {
 
 // GET /bookmarks/:id/edit
 export async function getEditBookmarkPageHandler(req: Request, res: Response) {
-	const bookmark = await bookmarks.read(req.params.id as unknown as number, req.session.user!.id);
+	const bookmark = await bookmarks.read(req.params.id as unknown as number, req.user!.id);
 
 	return res.render('bookmarks-edit.html', {
 		title: 'Bookmark / Edit',
@@ -427,7 +429,7 @@ export async function getBookmarkActionCreatePageHandler(req: Request, res: Resp
 	const bookmark = await db('bookmarks')
 		.where({
 			id: req.params.id,
-			user_id: req.session.user?.id,
+			user_id: req.user?.id,
 		})
 		.first();
 
@@ -488,7 +490,7 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 	const bookmarks = (await db
 		.select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
 		.from('bookmarks')
-		.where({ user_id: req.session.user?.id })) as BookmarkToExport[];
+		.where({ user_id: req.user?.id })) as BookmarkToExport[];
 
 	if (!bookmarks.length) {
 		req.flash('info', 'no bookmarks to export yet.');
@@ -527,7 +529,7 @@ export async function getSettingsAccountPageHandler(req: Request, res: Response)
 
 // POST /settings/create-api-key
 export async function postSettingsCreateApiKeyHandler(req: Request, res: Response) {
-	const user = await db('users').where({ id: req.session.user?.id }).first();
+	const user = await db('users').where({ id: req.user?.id }).first();
 
 	if (!user) {
 		throw NotFoundError();
@@ -601,7 +603,7 @@ export const postSettingsAccountHandler = [
 				default_search_provider,
 				default_per_page,
 			})
-			.where({ id: req.session.user?.id });
+			.where({ id: req.user?.id });
 
 		req.flash('success', '🔄 updated!');
 		return res.redirect('/settings/account');
@@ -629,7 +631,7 @@ export const postExportDataHandler = [
 		}),
 	]),
 	async (req: Request, res: Response) => {
-		const userId = req.session.user?.id;
+		const userId = req.user?.id;
 		const includeBookmarks = req.body.options.includes('bookmarks');
 		const includeActions = req.body.options.includes('actions');
 
@@ -698,7 +700,7 @@ export const postImportDataHandler = [
 			}),
 	]),
 	async (req: Request, res: Response) => {
-		const userId = req.session.user?.id;
+		const userId = req.user?.id;
 		const importData = JSON.parse(req.body.config);
 
 		try {
@@ -752,10 +754,11 @@ export async function getSettingsDangerZonePageHandler(req: Request, res: Respon
 
 // POST /settings/danger-zone/delete
 export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Response) {
-	await db('users').where({ id: req.session.user?.id }).delete();
+	await db('users').where({ id: req.user?.id }).delete();
 
-	if (req.session && req.session.user) {
-		req.session.user = undefined;
+	if ((req.session && req.session.user) || req.user) {
+		req.session.user = null;
+		req.user = null;
 		req.session.destroy((error) => {
 			if (error) {
 				throw HttpError(error);
@@ -768,7 +771,7 @@ export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Res
 
 // GET /settings/data/export
 export async function getExportAllDataHandler(req: Request, res: Response) {
-	const userId = req.session.user?.id;
+	const userId = req.user?.id;
 
 	const [user, bangs, bookmarks] = await Promise.all([
 		db('users')
