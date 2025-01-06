@@ -46,7 +46,7 @@ export function getPrivacyPolicyPageHandler(_req: Request, res: Response) {
 // GET /
 export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	const query = req.query.q?.toString().trim() || '';
-	const user = req.user!;
+	const user = req.session.user!;
 
 	if (!query) {
 		if (!user) {
@@ -132,8 +132,8 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 			.returning('*');
 	}
 
-	req.session.user = foundUser;
 	req.user = foundUser;
+	req.session.user = foundUser;
 
 	const redirectTo = req.session.redirectTo;
 	delete req.session.redirectTo;
