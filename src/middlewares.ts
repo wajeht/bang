@@ -217,20 +217,19 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
 	}
 }
 
-export async function unifiedAuthenticationMiddleware(
-	req: Request,
-	res: Response,
-	next: NextFunction,
-) {
+export async function authenticationMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
 		const apiKey = getApiKey(req);
+
 		let user;
 
 		if (apiKey) {
 			const apiKeyPayload = await api.verify(apiKey);
+
 			if (!apiKeyPayload) {
 				throw UnauthorizedError('Invalid API key or Bearer token');
 			}
+
 			user = await db.select('*').from('users').where({ id: apiKeyPayload.userId }).first();
 		} else if (req.session?.user) {
 			user = await db.select('*').from('users').where({ id: req.session.user.id }).first();
