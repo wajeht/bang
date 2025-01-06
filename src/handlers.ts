@@ -4,7 +4,6 @@ import {
 	search,
 	bookmark,
 	expectJson,
-	extractUser,
 	isApiRequest,
 	extractPagination,
 	insertBookmarkQueue,
@@ -166,7 +165,7 @@ export async function postSearchHandler(req: Request, res: Response) {
 
 // GET /actions or /api/actions
 export async function getActionsHandler(req: Request, res: Response) {
-	const user = await extractUser(req);
+	const user = req.user!;
 	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
 
 	const { data, pagination } = await actions.all({
@@ -214,7 +213,7 @@ export const postActionHandler = [
 				const existingBang = await db('bangs')
 					.where({
 						trigger: formattedTrigger,
-						user_id: (await extractUser(req as Request)).id,
+						user_id: req.user.id,
 					})
 					.first();
 
@@ -227,7 +226,6 @@ export const postActionHandler = [
 	]),
 	async (req: Request, res: Response) => {
 		const { trigger, url, actionType, name } = req.body;
-		const user = await extractUser(req);
 
 		const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
@@ -236,7 +234,7 @@ export const postActionHandler = [
 			trigger: formattedTrigger,
 			url,
 			actionType,
-			user_id: user.id,
+			user_id: req.user!.id,
 		});
 
 		if (isApiRequest(req)) {
@@ -261,10 +259,7 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 
 // POST /actions/:id/delete or DELETE /api/actions
 export async function deleteActionHandler(req: Request, res: Response) {
-	const deleted = await actions.delete(
-		req.params.id as unknown as number,
-		(await extractUser(req)).id,
-	);
+	const deleted = await actions.delete(req.params.id as unknown as number, req.user!.id);
 
 	if (!deleted) {
 		throw NotFoundError();
@@ -320,7 +315,7 @@ export const updateActionHandler = [
 				const existingBang = await db('bangs')
 					.where({
 						trigger: formattedTrigger,
-						user_id: (await extractUser(req as Request)).id,
+						user_id: req.user!.id,
 					})
 					.whereNot('id', req.params?.id)
 					.first();
@@ -334,11 +329,9 @@ export const updateActionHandler = [
 	]),
 	async (req: Request, res: Response) => {
 		const { trigger, url, actionType, name } = req.body;
-		const user = await extractUser(req);
-
 		const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-		const updatedAction = await actions.update(req.params.id as unknown as number, user.id, {
+		const updatedAction = await actions.update(req.params.id as unknown as number, req.user!.id, {
 			trigger: formattedTrigger,
 			name: name.trim(),
 			url,
@@ -372,11 +365,10 @@ export function getBookmarkCreatePageHandler(_req: Request, res: Response) {
 
 // GET /bookmarks or GET /api/bookmarks
 export async function getBookmarksHandler(req: Request, res: Response) {
-	const user = await extractUser(req);
-	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
+	const { perPage, page, search, sortKey, direction } = extractPagination(req, req.user!);
 
 	const { data, pagination } = await bookmarks.all({
-		user,
+		user: req.user!,
 		perPage,
 		page,
 		search,
@@ -403,10 +395,7 @@ export async function getBookmarksHandler(req: Request, res: Response) {
 
 // POST /bookmarks/:id/delete or DELETE /api/bookmarks/:id
 export async function deleteBookmarkHandler(req: Request, res: Response) {
-	const deleted = await bookmarks.delete(
-		req.params.id as unknown as number,
-		(await extractUser(req)).id,
-	);
+	const deleted = await bookmarks.delete(req.params.id as unknown as number, req.user!.id);
 
 	if (deleted) {
 		if (isApiRequest(req)) {
@@ -458,12 +447,15 @@ export const updateBookmarkHandler = [
 	]),
 	async (req: Request, res: Response) => {
 		const { url, title } = req.body;
-		const user = await extractUser(req);
 
-		const updatedBookmark = await bookmarks.update(req.params.id as unknown as number, user.id, {
-			url,
-			title,
-		});
+		const updatedBookmark = await bookmarks.update(
+			req.params.id as unknown as number,
+			req.user!.id,
+			{
+				url,
+				title,
+			},
+		);
 
 		req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
 		return res.redirect('/bookmarks');
@@ -478,9 +470,8 @@ export const postBookmarkHandler = [
 	]),
 	async (req: Request, res: Response) => {
 		const { url, title } = req.body;
-		const user = await extractUser(req);
 
-		insertBookmarkQueue.push({ url, userId: user.id, title });
+		insertBookmarkQueue.push({ url, userId: req.user!.id, title });
 
 		if (isApiRequest(req)) {
 			res.status(201).json({ message: `Bookmark ${title} created successfully!` });
