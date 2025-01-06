@@ -1,11 +1,11 @@
 declare module 'express-session' {
 	interface SessionData {
-		redirectTo?: string;
-		user?: User;
-		input?: Record<string, unknown>;
-		errors?: Record<string, unknown>;
-		searchCount?: number;
-		cumulativeDelay?: number;
+		redirectTo: string | null;
+		user: User | null;
+		input: Record<string, unknown> | null;
+		errors: Record<string, unknown> | null;
+		searchCount: number | null;
+		cumulativeDelay: number | null;
 	}
 }
 
@@ -13,8 +13,8 @@ declare global {
 	// eslint-disable-next-line @typescript-eslint/no-namespace
 	namespace Express {
 		interface Request {
-			user?: User;
-			apiKeyPayload?: ApiKeyPayload;
+			user: User | null;
+			apiKeyPayload: ApiKeyPayload | null;
 		}
 	}
 }

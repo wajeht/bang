@@ -194,7 +194,7 @@ export const csrfMiddleware = (() => {
 export async function appLocalStateMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
 		res.locals.state = {
-			user: req.user || null,
+			user: req.user ?? req.session.user,
 			copyRightYear: new Date().getFullYear(),
 			input: req.session?.input || {},
 			errors: req.session?.errors || {},
@@ -239,10 +239,14 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 			if (isApiRequest(req)) {
 				throw UnauthorizedError('Unauthorized');
 			}
+
 			return res.redirect('/login');
 		}
 
+		req.session.user = user;
+		req.session.save();
 		req.user = user;
+
 		next();
 	} catch (error) {
 		logger.error('Authentication error: %o', error);
