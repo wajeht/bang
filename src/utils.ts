@@ -100,12 +100,16 @@ export async function insertPageTitle({
 	actionId?: number;
 	url: string;
 }) {
-	const title = await fetchPageTitle(url);
-
 	if ((bookmarkId && actionId) || (!bookmarkId && !actionId)) {
-		throw new Error(
-			'[insertPageTitle] You must pass in exactly one id: either bookmarkId or actionId',
-		);
+		throw new Error('You must pass in exactly one id: either bookmarkId or actionId');
+	}
+
+	let title = 'Untitled';
+
+	try {
+		title = await fetchPageTitle(url);
+	} catch (error) {
+		logger.error(`[insertPageTitle] error fetch page title,  %o`, error);
 	}
 
 	if (bookmarkId) {
@@ -325,6 +329,7 @@ export async function search({
 		);
 	}
 
+	// Handle default commands
 	const directCommands: Record<string, string> = {
 		'@actions': '/actions',
 		'@bookmarks': '/bookmarks',
