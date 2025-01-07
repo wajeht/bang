@@ -325,16 +325,14 @@ export async function search({
 		);
 	}
 
-	if (query.startsWith('@actions')) {
-		return res.redirect('/actions');
-	}
+	const directCommands: Record<string, string> = {
+		'@actions': '/actions',
+		'@bookmarks': '/bookmarks',
+		'@settings': '/settings',
+	};
 
-	if (query.startsWith('@bookmarks')) {
-		return res.redirect('/bookmarks');
-	}
-
-	if (query.startsWith('@settings')) {
-		return res.redirect('/settings');
+	if (directCommands[query]) {
+		return res.redirect(directCommands[query]);
 	}
 
 	// Handle !bm command with URL
