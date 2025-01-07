@@ -1,11 +1,17 @@
 /**
- * @param {string} theme
+ * Updates the text content of the theme toggle button.
+ * @param {string} theme - The current theme, either 'light' or 'dark'.
  */
 function updateButtonText(theme) {
-	const button = document.getElementById('theme-toggle');
-	button.textContent = theme === 'dark' ? '💡 Light' : '💡 Dark';
+	const button = /** @type {HTMLButtonElement} */ (document.getElementById('theme-toggle'));
+	if (button) {
+		button.textContent = theme === 'dark' ? '💡 Light' : '💡 Dark';
+	}
 }
 
+/**
+ * Toggles the theme between light and dark modes.
+ */
 function toggleTheme() {
 	const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
 	const newTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -15,6 +21,9 @@ function toggleTheme() {
 	updateButtonText(newTheme);
 }
 
+/**
+ * Initializes the theme based on the saved preference.
+ */
 function initializeTheme() {
 	const savedTheme = localStorage.getItem('theme') || 'light';
 	document.documentElement.setAttribute('data-theme', savedTheme);
@@ -22,7 +31,8 @@ function initializeTheme() {
 }
 
 /**
- * @param {string} message
+ * Creates a toast notification with the given message.
+ * @param {string} message - The message to display in the toast.
  */
 function createToast(message) {
 	// Remove existing toast if present
@@ -30,8 +40,7 @@ function createToast(message) {
 	if (existingToast) existingToast.remove();
 
 	// Create new toast element
-	/** @type {HTMLDivElement} */
-	const toast = document.createElement('div');
+	const toast = /** @type {HTMLDivElement} */ (document.createElement('div'));
 	toast.id = 'toast';
 	toast.style.cssText = `
 		position: fixed;
@@ -66,7 +75,8 @@ function createToast(message) {
 }
 
 /**
- * @param {HTMLDivElement} toast
+ * Dismisses a given toast element.
+ * @param {HTMLDivElement} toast - The toast element to dismiss.
  */
 function dismissToast(toast) {
 	toast.style.right = '-420px';
@@ -74,15 +84,9 @@ function dismissToast(toast) {
 }
 
 /**
- * @param {HTMLDivElement} toast
+ * Initializes the toast notifications based on URL parameters or app state.
  */
-function dismissToast(toast) {
-	toast.style.right = '-420px';
-	setTimeout(() => toast.remove(), 500);
-}
-
 function initializeToast() {
-	// Display toast from URL parameters if exist
 	const urlParams = new URLSearchParams(window.location.search);
 	const toastMessage = urlParams.get('toast');
 	if (toastMessage) {
@@ -100,10 +104,35 @@ function initializeToast() {
 	} catch {}
 }
 
+/**
+ * @typedef {Object} AppLocalState
+ * @property {Object|null} user - The user object or null if not available.
+ * @property {number} copyRightYear - The current year.
+ * @property {Record<string, any>} input - The input data stored in the session.
+ * @property {Record<string, any>} errors - The error messages stored in the session.
+ * @property {Object} flash - Flash messages categorized by type.
+ * @property {string[]} flash.success - Success messages.
+ * @property {string[]} flash.error - Error messages.
+ * @property {string[]} flash.info - Informational messages.
+ * @property {string[]} flash.warning - Warning messages.
+ */
+
+/**
+ * Retrieves the local state from a script tag.
+ * @returns {AppLocalState} The parsed local state object.
+ */
 function getAppLocalState() {
-	/** @type {HTMLScriptElement} */
-	const scriptTag = document.querySelector('script[data-state]');
-	return JSON.parse(scriptTag.getAttribute('data-state'));
+	const scriptTag = /** @type {HTMLScriptElement} */ (document.querySelector('script[data-state]'));
+	if (!scriptTag) {
+		throw new Error('State script tag not found');
+	}
+
+	const state = scriptTag.getAttribute('data-state');
+	if (!state) {
+		throw new Error('State attribute is missing or empty');
+	}
+
+	return JSON.parse(state);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
