@@ -325,6 +325,18 @@ export async function search({
 		);
 	}
 
+	if (query.startsWith('@actions')) {
+		return res.redirect('/actions');
+	}
+
+	if (query.startsWith('@bookmarks')) {
+		return res.redirect('/bookmarks');
+	}
+
+	if (query.startsWith('@settings')) {
+		return res.redirect('/settings');
+	}
+
 	// Handle !bm command with URL
 	if (query.startsWith('!bm')) {
 		const urlToBookmark = query.slice(4).trim();
