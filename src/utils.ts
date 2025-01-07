@@ -104,13 +104,7 @@ export async function insertPageTitle({
 		throw new Error('You must pass in exactly one id: either bookmarkId or actionId');
 	}
 
-	let title = 'Untitled';
-
-	try {
-		title = await fetchPageTitle(url);
-	} catch (error) {
-		logger.error(`[insertPageTitle] error fetch page title,  %o`, error);
-	}
+	const title = await fetchPageTitle(url);
 
 	if (bookmarkId) {
 		try {
