@@ -10,6 +10,18 @@ DuckDuckGo's !Bangs, but on steroids.
 
 ## 📖 Usage
 
+### 🎯 Default Commands
+
+- `@actions` - Quick access to your actions
+- `@bookmarks` - View your bookmarks
+- `@settings` - Access settings
+
+### 🎨 Special Commands
+
+- `!bm [url]` - Add a bookmark
+- `!add [trigger] [url]` - Create a custom bang
+- Custom bangs you create with `!add`
+
 ### 🔍 Setup Custom Search Engine in Your Browser
 
 1. In your browser settings, add a new search engine:
