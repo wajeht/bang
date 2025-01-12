@@ -325,8 +325,13 @@ export async function search({
 
 	// Handle default commands
 	const directCommands: Record<string, string> = {
+		'@b': '/',
+		'@bang': '/',
+		'@a': '/actions',
 		'@actions': '/actions',
+		'@bm': '/bookmarks',
 		'@bookmarks': '/bookmarks',
+		'@s': '/settings',
 		'@settings': '/settings',
 	};
 
