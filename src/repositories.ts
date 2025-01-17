@@ -32,10 +32,12 @@ export const actions = {
 			);
 		}
 
-		if (['name', 'trigger', 'url', 'created_at'].includes(sortKey)) {
-			query.orderBy(`bangs.${sortKey}`, direction);
-		} else if (sortKey === 'action_type') {
-			query.orderBy('action_types.name', direction);
+		if (['name', 'trigger', 'url', 'created_at', 'action_type'].includes(sortKey)) {
+			if (sortKey === 'action_type') {
+				query.orderBy('action_types.name', direction);
+			} else {
+				query.orderBy(`bangs.${sortKey}`, direction);
+			}
 		} else {
 			query.orderBy('bangs.created_at', 'desc');
 		}
