@@ -6,7 +6,7 @@ import { csrfSync } from 'csrf-sync';
 import { appConfig, sessionConfig } from './configs';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
-import { UnauthorizedError, ValidationError } from './errors';
+import { HttpError, UnauthorizedError, ValidationError } from './errors';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { api, getApiKey, isApiRequest, sendNotificationQueue } from './utils';
 
@@ -31,12 +31,7 @@ export function notFoundMiddleware() {
 }
 
 export function errorMiddleware() {
-	return async (
-		error: Error & { statusCode?: number },
-		req: Request,
-		res: Response,
-		_next: NextFunction,
-	) => {
+	return async (error: HttpError, req: Request, res: Response, _next: NextFunction) => {
 		logger.error('%o', error);
 
 		if (appConfig.env === 'production') {
@@ -69,11 +64,11 @@ export function errorMiddleware() {
 export async function adminOnlyMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
 		if (!req.user) {
-			throw UnauthorizedError('Unauthorized');
+			throw new UnauthorizedError('Unauthorized');
 		}
 
 		if (!req.user.is_admin) {
-			throw UnauthorizedError('User is not an admin');
+			throw new UnauthorizedError('User is not an admin');
 		}
 
 		next();
@@ -158,7 +153,7 @@ export const validateRequestMiddleware = (schemas: any) => {
 			req.session.errors = reshapedErrors;
 
 			if (isApiRequest(req)) {
-				throw ValidationError(
+				throw new ValidationError(
 					JSON.stringify({
 						fields: reshapedErrors,
 					}),
@@ -227,7 +222,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 			const apiKeyPayload = await api.verify(apiKey);
 
 			if (!apiKeyPayload) {
-				throw UnauthorizedError('Invalid API key or Bearer token');
+				throw new UnauthorizedError('Invalid API key or Bearer token');
 			}
 
 			user = await db.select('*').from('users').where({ id: apiKeyPayload.userId }).first();
@@ -237,7 +232,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 
 		if (!user) {
 			if (isApiRequest(req)) {
-				throw UnauthorizedError('Unauthorized');
+				throw new UnauthorizedError('Unauthorized');
 			}
 
 			return res.redirect('/login');

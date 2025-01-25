@@ -73,7 +73,7 @@ export function getLogoutHandler(req: Request, res: Response) {
 		req.user = null;
 		req.session.destroy((error) => {
 			if (error) {
-				throw HttpError(error);
+				throw new HttpError(error);
 			}
 		});
 	}
@@ -111,7 +111,7 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 	const code = req.query.code as string;
 
 	if (!code) {
-		throw UnauthorizedError('Something went wrong while authenticating with github');
+		throw new UnauthorizedError('Something went wrong while authenticating with github');
 	}
 
 	const { access_token } = await github.getOauthToken(code);
@@ -219,7 +219,7 @@ export const postActionHandler = [
 					.first();
 
 				if (existingBang) {
-					throw ValidationError('This trigger already exists');
+					throw new ValidationError('This trigger already exists');
 				}
 
 				return true;
@@ -263,7 +263,7 @@ export async function deleteActionHandler(req: Request, res: Response) {
 	const deleted = await actions.delete(req.params.id as unknown as number, req.user!.id);
 
 	if (!deleted) {
-		throw NotFoundError();
+		throw new NotFoundError();
 	}
 
 	if (isApiRequest(req)) {
@@ -288,7 +288,7 @@ export async function getEditActionPageHandler(req: Request, res: Response) {
 		.first();
 
 	if (!action) {
-		throw NotFoundError();
+		throw new NotFoundError();
 	}
 
 	return res.render('actions-edit.html', {
@@ -323,7 +323,7 @@ export const updateActionHandler = [
 					.first();
 
 				if (existingBang) {
-					throw ValidationError('This trigger already exists');
+					throw new ValidationError('This trigger already exists');
 				}
 
 				return true;
@@ -400,7 +400,7 @@ export async function deleteBookmarkHandler(req: Request, res: Response) {
 	const deleted = await bookmarks.delete(req.params.id as unknown as number, req.user!.id);
 
 	if (!deleted) {
-		throw NotFoundError();
+		throw new NotFoundError();
 	}
 
 	if (isApiRequest(req)) {
@@ -532,7 +532,7 @@ export async function postSettingsCreateApiKeyHandler(req: Request, res: Respons
 	const user = await db('users').where({ id: req.session.user?.id }).first();
 
 	if (!user) {
-		throw NotFoundError();
+		throw new NotFoundError();
 	}
 
 	const newKeyVersion = (user.api_key_version || 0) + 1;
@@ -565,7 +565,7 @@ export const postSettingsAccountHandler = [
 					.first();
 
 				if (existingUser) {
-					throw ValidationError('Username is already taken');
+					throw new ValidationError('Username is already taken');
 				}
 
 				return true;
@@ -582,7 +582,7 @@ export const postSettingsAccountHandler = [
 					.first();
 
 				if (existingUser) {
-					throw ValidationError('Email is already in use');
+					throw new ValidationError('Email is already in use');
 				}
 
 				return true;
@@ -625,7 +625,7 @@ export const postExportDataHandler = [
 	validateRequestMiddleware([
 		body('options').custom((value) => {
 			if (value === undefined) {
-				throw ValidationError('Please select at least one data type to export');
+				throw new ValidationError('Please select at least one data type to export');
 			}
 			return true;
 		}),
@@ -690,10 +690,10 @@ export const postImportDataHandler = [
 					const parsed = JSON.parse(value);
 
 					if (!parsed.version || parsed.version !== '1.0') {
-						throw ValidationError('Config version must be 1.0');
+						throw new ValidationError('Config version must be 1.0');
 					}
 				} catch (error) {
-					throw ValidationError('Invalid JSON format');
+					throw new ValidationError('Invalid JSON format');
 				}
 
 				return true;
@@ -761,7 +761,7 @@ export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Res
 		req.user = null;
 		req.session.destroy((error) => {
 			if (error) {
-				throw HttpError(error);
+				throw new HttpError(error);
 			}
 		});
 	}
