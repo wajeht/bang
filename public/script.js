@@ -136,8 +136,8 @@ function getAppLocalState() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-	initializeTheme();
 	initializeToast();
+	updateButtonText(localStorage.getItem('theme') || 'light');
 
 	let user = null;
 
