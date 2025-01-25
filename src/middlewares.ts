@@ -16,7 +16,7 @@ export function notFoundMiddleware() {
 			res.status(404).json({
 				title: 'Not Found',
 				statusCode: 404,
-				message: 'not found',
+				message: 'Sorry, the resource you are looking for could not be found.',
 			});
 			return;
 		}
@@ -25,7 +25,7 @@ export function notFoundMiddleware() {
 			path: req.path,
 			title: 'Not Found',
 			statusCode: 404,
-			message: 'not found',
+			message: 'Sorry, the resource you are looking for could not be found.',
 		});
 	};
 }
@@ -56,7 +56,10 @@ export function errorMiddleware() {
 			path: req.path,
 			title: 'Error',
 			statusCode,
-			message: appConfig.env !== 'production' ? error.stack : 'An error occurred',
+			message:
+				appConfig.env !== 'production'
+					? error.stack
+					: 'The server encountered an internal error or misconfiguration and was unable to complete your request',
 		});
 	};
 }
