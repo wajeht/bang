@@ -167,7 +167,7 @@ export async function postSearchHandler(req: Request, res: Response) {
 // GET /actions or /api/actions
 export async function getActionsHandler(req: Request, res: Response) {
 	const user = req.user!;
-	const { perPage, page, search, sortKey, direction } = extractPagination(req, user);
+	const { perPage, page, search, sortKey, direction } = extractPagination(req);
 
 	const { data, pagination } = await actions.all({
 		user,
@@ -367,7 +367,7 @@ export function getBookmarkCreatePageHandler(_req: Request, res: Response) {
 
 // GET /bookmarks or GET /api/bookmarks
 export async function getBookmarksHandler(req: Request, res: Response) {
-	const { perPage, page, search, sortKey, direction } = extractPagination(req, req.user!);
+	const { perPage, page, search, sortKey, direction } = extractPagination(req);
 
 	const { data, pagination } = await bookmarks.all({
 		user: req.user!,

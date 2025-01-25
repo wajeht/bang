@@ -566,12 +566,12 @@ export async function extractUser(req: Request): Promise<User> {
 	throw new HttpError(500, 'User not found from request!');
 }
 
-export function extractPagination(req: Request, user: User) {
+export function extractPagination(req: Request) {
 	return {
-		perPage: parseInt(req.query.per_page as string, 10) || user.default_per_page,
+		perPage: parseInt(req.query.per_page as string, 10) || req.user!.default_per_page,
 		page: parseInt(req.query.page as string, 10) || 1,
 		search: ((req.query.search as string) || '').toLowerCase(),
-		sortKey: req.query.sort_key as string,
+		sortKey: (req.query.sort_key as string) || 'created_at',
 		direction: (req.query.direction as string) || 'desc',
 	};
 }
