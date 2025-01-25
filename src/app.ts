@@ -1,12 +1,13 @@
-import ejs from 'ejs';
-import cors from 'cors';
 import {
 	errorMiddleware,
 	notFoundMiddleware,
 	helmetMiddleware,
 	sessionMiddleware,
 	appLocalStateMiddleware,
+	rateLimitMiddleware,
 } from './middlewares';
+import ejs from 'ejs';
+import cors from 'cors';
 import express from 'express';
 import { reload } from './utils';
 import { router } from './router';
@@ -29,6 +30,8 @@ app.use(compression());
 app.use(cors());
 
 app.use(helmetMiddleware());
+
+app.use(rateLimitMiddleware());
 
 app.use(express.json({ limit: '100kb' }));
 

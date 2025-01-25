@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import { logger } from './logger';
 import session from 'express-session';
 import { csrfSync } from 'csrf-sync';
+import rateLimit from 'express-rate-limit';
 import { appConfig, sessionConfig } from './configs';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
@@ -260,4 +261,23 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 		logger.error('Authentication error: %o', error);
 		next(error);
 	}
+}
+
+export function rateLimitMiddleware() {
+	return rateLimit({
+		windowMs: 15 * 60 * 1000, // 15 minutes
+		max: 100, // Limit each IP to 100 requests per windowMs
+		standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+		legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+		handler: (req, res) => {
+			if (req.path.startsWith('/api')) {
+				return res.status(429).json({
+					message: 'Too many requests from this IP, please try again later.',
+				});
+			}
+
+			return res.status(429).send('Too many requests from this IP, please try again later.');
+		},
+		skip: (req: any, res: any) => appConfig.env !== 'production',
+	});
 }
