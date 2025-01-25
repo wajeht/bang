@@ -12,6 +12,14 @@ export const logger = pino(
 			level: (label) => ({ level: label }),
 		},
 		timestamp: pino.stdTimeFunctions.isoTime,
+		serializers: {
+			error: (error: Error) => ({ name: error.name, message: error.message, stack: error.stack }),
+		},
+		base: {
+			pid: process.pid,
+			hostname: process.env.HOSTNAME,
+			env: process.env.NODE_ENV || 'development',
+		},
 	},
 	pino.multistream([
 		{
@@ -26,7 +34,7 @@ export const logger = pino(
 				translateTime: 'yyyy-mm-dd hh:MM:ss TT',
 				colorize: true,
 				sync: false,
-				ignore: 'hostname,pid',
+				ignore: 'hostname,pid,env',
 			}),
 		},
 	]),
