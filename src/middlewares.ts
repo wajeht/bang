@@ -188,6 +188,9 @@ export const csrfMiddleware = (() => {
 
 export async function appLocalStateMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
+		const isProd = appConfig.env === 'production';
+		const randomNumber = Math.random();
+
 		res.locals.state = {
 			user: req.user ?? req.session.user,
 			copyRightYear: new Date().getFullYear(),
@@ -199,12 +202,19 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
 				info: req.flash('info'),
 				warning: req.flash('warning'),
 			},
+			version: {
+				style: isProd ? '0.5' : randomNumber,
+				script: isProd ? '0.7' : randomNumber,
+				plausible: isProd ? '0.0' : randomNumber,
+			},
 		};
 
 		// Clear session input and errors after setting locals
 		// This ensures they're available for the current request only
-		delete req.session.input;
-		delete req.session.errors;
+		if (req.session) {
+			delete req.session.input;
+			delete req.session.errors;
+		}
 
 		next();
 	} catch (error) {

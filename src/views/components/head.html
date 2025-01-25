@@ -1,14 +1,20 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Bang - <%- title %></title>
+
+	<% if (typeof title !== 'undefined') { %>
+		<title>Bang - <%- title %></title>
+	<% } else { %>
+		<title>Bang</title>
+	<% } %>
+
 	<meta name="description" content="DuckDuckGo's !Bangs, but on steroids">
 	<meta name="keywords" content="bang, action, duck duck go, search">
 	<meta name="author" content="wajeht">
 
 	<!-- Preload and Preconnect -->
-	<link rel="preload" href="/style.css?v=0.4" as="style">
-	<link rel="preconnect" href="https://plausible.jaw.dev">
+	<link rel="preload" href="/style.css?v=<%- state.version.style %>" as="style">
+	<link rel="preconnect" href="https://plausible.jaw.dev?v=<%- state.version.plausible %>">
 
 	<!-- Open Graph -->
 	<meta property="og:type" content="website">
@@ -34,7 +40,7 @@
 	<link rel="canonical" href="https://bang.jaw.dev/">
 
 	<!-- Styles and Scripts -->
-	<link rel="stylesheet" href="/style.css?v=0.4">
-	<script defer data-domain="bang.jaw.dev" src="https://plausible.jaw.dev/js/script.js?v=0.1"></script>
-	<script defer data-state='<%- JSON.stringify(state) %>' src="/script.js?v=0.6"></script>
+  <link rel="stylesheet" href="/style.css?v=<%- state.version.style %>">
+	<script defer data-domain="bang.jaw.dev" src="https://plausible.jaw.dev/js/script.js?v=<%- state.version.plausible %>"></script>
+	<script defer data-state='<%- JSON.stringify(state) %>' src="/script.js?v=<%- state.version.script %>"></script>
 </head>
