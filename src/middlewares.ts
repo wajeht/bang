@@ -25,7 +25,7 @@ export function notFoundMiddleware() {
 			path: req.path,
 			title: 'Not Found',
 			statusCode: 404,
-			message: 'Sorry, the resource you are looking for could not be found.',
+			message: 'Sorry, the page you are looking for could not be found.',
 		});
 	};
 }
