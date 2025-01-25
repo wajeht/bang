@@ -49,17 +49,19 @@ function gracefulShutdown(signal: string): void {
 
 		try {
 			await db.destroy();
-			logger.info('Database connection closed.');
+			logger.info('[gracefulShutdown]: Database connection closed.');
 		} catch (error) {
-			logger.error(`Error closing database connection: %o`, error);
+			logger.error(`[gracefulShutdown]: Error closing database connection: %o`, error);
 		}
 
-		logger.info('All connections closed successfully.');
+		logger.info('[gracefulShutdown]: All connections closed successfully.');
 		process.exit(0);
 	});
 
 	setTimeout(() => {
-		logger.error('Could not close connections in time, forcefully shutting down');
+		logger.error(
+			'[gracefulShutdown]: Could not close connections in time, forcefully shutting down',
+		);
 		process.exit(1);
 	}, 10000);
 }

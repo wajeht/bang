@@ -15,6 +15,7 @@ import http from 'node:http';
 import https from 'node:https';
 import jwt from 'jsonwebtoken';
 import { logger } from './logger';
+import { HttpError } from './errors';
 import { bookmarks } from './repositories';
 import { Application, Request, Response, NextFunction } from 'express';
 import { appConfig, defaultSearchProviders, notifyConfig, oauthConfig } from './configs';
@@ -47,8 +48,8 @@ export const github = {
 		});
 
 		if (!response.ok) {
-			logger.error('Failed to fetch GitHub OAuth tokens');
-			throw new Error('Failed to fetch GitHub OAuth tokens');
+			logger.error('[getUserEmails]: Failed to fetch GitHub OAuth tokens');
+			throw new HttpError(500, 'Failed to fetch GitHub OAuth tokens');
 		}
 
 		const data = await response.text();
@@ -63,8 +64,8 @@ export const github = {
 		});
 
 		if (!response.ok) {
-			logger.error('Failed to fetch GitHub user emails');
-			throw new Error('Failed to fetch GitHub user emails');
+			logger.error('[getUserEmails]: Failed to fetch GitHub user emails');
+			throw new HttpError(500, 'Failed to fetch GitHub user emails');
 		}
 
 		return (await response.json()) as GithubUserEmail[];
@@ -101,7 +102,7 @@ export async function insertPageTitle({
 	url: string;
 }) {
 	if ((bookmarkId && actionId) || (!bookmarkId && !actionId)) {
-		throw new Error('You must pass in exactly one id: either bookmarkId or actionId');
+		throw new HttpError(500, 'You must pass in exactly one id: either bookmarkId or actionId');
 	}
 
 	const title = await fetchPageTitle(url);
@@ -110,7 +111,7 @@ export async function insertPageTitle({
 		try {
 			await db('bookmarks').where({ id: bookmarkId }).update({ title, updated_at: db.fn.now() });
 		} catch (error) {
-			logger.error(`[insertPageTitle] error updating bookmark title, %o`, error);
+			logger.error(`[insertPageTitle]: error updating bookmark title, %o`, error);
 		}
 	}
 
@@ -118,7 +119,7 @@ export async function insertPageTitle({
 		try {
 			await db('bangs').where({ id: actionId }).update({ name: title, updated_at: db.fn.now() });
 		} catch (error) {
-			logger.error(`[insertPageTitle] error updating bangs name, %o`, error);
+			logger.error(`[insertPageTitle]: error updating bangs name, %o`, error);
 		}
 	}
 }
@@ -213,11 +214,11 @@ export function reload({
 					if (content !== lastContents.get(fullPath)) {
 						lastContents.set(fullPath, content);
 
-						if (!quiet) logger.info('[reload] File changed: %s', filename);
+						if (!quiet) logger.info('[reload]: File changed: %s', filename);
 						changeDetected = true;
 					}
 				} catch {
-					if (!quiet) logger.debug('[reload] Error reading file: %s', filename);
+					if (!quiet) logger.debug('[reload]: Error reading file: %s', filename);
 				}
 			}
 		});
@@ -237,14 +238,14 @@ export function reload({
 
 	const clientScript = `
 	<script>
-			(async function poll() {
-					try {
-							await fetch('/wait-for-reload');
-							location.reload();
-					} catch {
-							location.reload();
-					}
-			})();
+		(async function poll() {
+			try {
+				await fetch('/wait-for-reload');
+				location.reload();
+			} catch {
+				location.reload();
+			}
+		})();
 	</script>\n\t`;
 
 	app.use((_req: Request, res: Response, next: NextFunction) => {
@@ -266,7 +267,7 @@ export function isValidUrl(url: string): boolean {
 		new URL(url);
 		return true;
 	} catch (error) {
-		logger.error(`[isValidUrl] not a valid url, %o`, error);
+		logger.error(`[isValidUrl]: Not a valid url, %o`, error);
 		return false;
 	}
 }
@@ -355,7 +356,7 @@ export async function search({
 			insertBookmarkQueue.push({ url: urlToBookmark, userId: user.id });
 			return res.redirect(urlToBookmark);
 		} catch (error) {
-			logger.error(`[search] Error adding bookmark %o`, error);
+			logger.error(`[search]: Error adding bookmark %o`, error);
 			return res.setHeader('Content-Type', 'text/html').send(`
         <script>
           alert("Error adding bookmark");
@@ -483,10 +484,12 @@ export async function sendNotification({
 
 		if (!n.ok) {
 			const text = await n.text();
-			logger.error(`Notification service responded with status ${n.status}: ${text}`);
+			logger.error(
+				`[sendNotification]: Notification service responded with status ${n.status}: ${text}`,
+			);
 		}
 	} catch (error) {
-		logger.error(`failed to send error notification: %o`, error);
+		logger.error(`[sendNotification]: failed to send error notification: %o`, error);
 	}
 }
 
@@ -510,7 +513,7 @@ export const api: Api = {
 
 			return decodedApiKeyPayload;
 		} catch (error) {
-			logger.error(`failed to verify api key: %o`, error);
+			logger.error(`[Api#verify]: failed to verify api key: %o`, error);
 			return null;
 		}
 	},
@@ -544,13 +547,13 @@ export async function extractUser(req: Request): Promise<User> {
 		return req.session.user;
 	}
 
-	throw new Error('User not found from request!');
+	throw new HttpError(500, 'User not found from request!');
 }
 
 export function extractPagination(req: Request, user: User) {
 	return {
 		perPage: parseInt(req.query.per_page as string, 10) || user.default_per_page,
-		page: parseInt(req.query.page as string, 1) || 1,
+		page: parseInt(req.query.page as string, 10) || 1,
 		search: ((req.query.search as string) || '').toLowerCase(),
 		sortKey: req.query.sort_key as string,
 		direction: (req.query.direction as string) || 'desc',
