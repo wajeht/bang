@@ -45,7 +45,7 @@
 		"node": ">=22.3.0"
 	},
 	"dependencies": {
-		"better-sqlite3": "^11.7.0",
+		"better-sqlite3": "^11.8.1",
 		"compression": "^1.7.5",
 		"connect-flash": "^0.1.1",
 		"connect-session-knex": "^5.0.0",
@@ -67,7 +67,7 @@
 		"pino-pretty": "^13.0.0"
 	},
 	"devDependencies": {
-		"@faker-js/faker": "^9.3.0",
+		"@faker-js/faker": "^9.4.0",
 		"@playwright/test": "^1.50.0",
 		"@types/compression": "^1.7.5",
 		"@types/connect-flash": "^0.0.40",
@@ -82,10 +82,10 @@
 		"@typescript-eslint/parser": "^7.18.0",
 		"@vitest/coverage-v8": "^2.1.8",
 		"eslint-config-prettier": "^9.1.0",
-		"eslint-plugin-prettier": "^5.2.1",
+		"eslint-plugin-prettier": "^5.2.3",
 		"prettier": "^3.4.2",
 		"tsx": "^4.19.2",
-		"typescript": "^5.7.2",
+		"typescript": "^5.7.3",
 		"vitest": "^2.1.8"
 	}
 }
