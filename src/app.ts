@@ -52,7 +52,11 @@ app.use(appLocalStateMiddleware);
 
 reload({
 	app,
-	watch: [{ path: './public/script.js' }, { path: './src/views', extensions: ['.html'] }],
+	watch: [
+		{ path: './public/style.css' },
+		{ path: './public/script.js' },
+		{ path: './src/views', extensions: ['.html'] },
+	],
 });
 
 app.use(router);
