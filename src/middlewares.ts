@@ -78,7 +78,7 @@ export function errorMiddleware() {
 	};
 }
 
-export async function adminOnlyMiddleware(req: Request, res: Response, next: NextFunction) {
+export async function adminOnlyMiddleware(req: Request, _res: Response, next: NextFunction) {
 	try {
 		if (!req.user) {
 			throw new UnauthorizedError('Unauthorized');
@@ -291,6 +291,6 @@ export function rateLimitMiddleware() {
 
 			return res.status(429).send('Too many requests from this IP, please try again later.');
 		},
-		skip: (req: any, res: any) => appConfig.env !== 'production',
+		skip: (_req: any, _res: any) => appConfig.env !== 'production',
 	});
 }
