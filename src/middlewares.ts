@@ -66,7 +66,8 @@ export function errorMiddleware() {
 				}
 			}
 
-			return res.status(statusCode).json(responsePayload);
+			res.status(statusCode).json(responsePayload);
+			return;
 		}
 
 		return res.status(statusCode).render('error.html', {
