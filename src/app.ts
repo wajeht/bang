@@ -9,12 +9,12 @@ import {
 import ejs from 'ejs';
 import cors from 'cors';
 import express from 'express';
-import { reload } from './utils';
 import { router } from './router';
 import flash from 'connect-flash';
 import { appConfig } from './configs';
 import compression from 'compression';
 import expressLayouts from 'express-ejs-layouts';
+import { expressTemplatesReload as reload } from '@wajeht/express-templates-reload';
 import { expressJSDocSwaggerHandler, swagger } from './swagger';
 
 const app = express();
@@ -53,14 +53,16 @@ app.use(expressLayouts);
 
 app.use(appLocalStateMiddleware);
 
-reload({
-	app,
-	watch: [
-		{ path: './public/style.css' },
-		{ path: './public/script.js' },
-		{ path: './src/views', extensions: ['.html'] },
-	],
-});
+if (appConfig.env === 'development') {
+	reload({
+		app,
+		watch: [
+			{ path: './public/style.css' },
+			{ path: './public/script.js' },
+			{ path: './src/views', extensions: ['.html'] },
+		],
+	});
+}
 
 app.use(router);
 
