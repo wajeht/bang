@@ -32,35 +32,48 @@ export function notFoundMiddleware() {
 }
 
 export function errorMiddleware() {
-	return async (error: HttpError, req: Request, res: Response, _next: NextFunction) => {
+	return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
 		logger.error('%o', error);
 
 		if (appConfig.env === 'production') {
 			try {
 				await sendNotificationQueue.push({ req, error });
-			} catch (error) {
-				logger.error(error);
+			} catch (queueError) {
+				logger.error('Failed to push error to notification queue: %o', queueError);
 			}
 		}
 
-		const statusCode = error.statusCode || 500;
+		let statusCode = 500;
+		let message =
+			'The server encountered an internal error or misconfiguration and was unable to complete your request';
+
+		if (error instanceof HttpError) {
+			statusCode = error.statusCode;
+			message = error.message;
+		}
 
 		if (isApiRequest(req)) {
-			res.status(statusCode).json({
-				message: statusCode === 422 ? 'Validation errors' : error.message,
-				...(statusCode === 422 && { details: JSON.parse(error.message) }),
-			});
-			return;
+			const responsePayload: any = {
+				message: statusCode === 422 ? 'Validation errors' : message,
+			};
+
+			if (statusCode === 422) {
+				try {
+					responsePayload.details = JSON.parse(message);
+				} catch (parseError) {
+					logger.error('Failed to parse error message as JSON: %o', parseError);
+					responsePayload.details = message;
+				}
+			}
+
+			return res.status(statusCode).json(responsePayload);
 		}
 
 		return res.status(statusCode).render('error.html', {
 			path: req.path,
 			title: 'Error',
 			statusCode,
-			message:
-				appConfig.env !== 'production'
-					? error.stack
-					: 'The server encountered an internal error or misconfiguration and was unable to complete your request',
+			message: appConfig.env !== 'production' ? error.stack : message,
 		});
 	};
 }
