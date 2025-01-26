@@ -82,7 +82,7 @@
 		"@typescript-eslint/eslint-plugin": "^7.16.1",
 		"@typescript-eslint/parser": "^7.18.0",
 		"@vitest/coverage-v8": "^2.1.8",
-		"@wajeht/express-templates-reload": "^1.0.1",
+		"@wajeht/express-templates-reload": "^1.0.2",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-prettier": "^5.2.3",
 		"prettier": "^3.4.2",
