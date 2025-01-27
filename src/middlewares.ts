@@ -7,8 +7,8 @@ import rateLimit from 'express-rate-limit';
 import { appConfig, sessionConfig } from './configs';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
-import { HttpError, UnauthorizedError, ValidationError } from './errors';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
+import { HttpError, UnauthorizedError, ValidationError } from './errors';
 import { api, getApiKey, isApiRequest, sendNotificationQueue } from './utils';
 
 export function notFoundMiddleware() {
@@ -178,11 +178,7 @@ export const validateRequestMiddleware = (schemas: any) => {
 				);
 			}
 
-			return res.redirect(
-				req.headers?.referer && new URL(req.headers?.referer).pathname === req.path
-					? req.headers?.referer
-					: '/',
-			);
+			return res.redirect(req.headers?.referer ?? '/');
 		} catch (error) {
 			next(error);
 		}
