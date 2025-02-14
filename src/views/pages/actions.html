@@ -1,15 +1,15 @@
 <script>
-function viewUrl(id, url) {
-    const link = document.getElementById(`url-${id}`);
-    const urlButton = document.getElementById(`url-button-${id}`);
-    if (link && link.textContent === url) {
-        link.textContent = '••••••••••••••••••••••';
-        urlButton.textContent = '👁️';
-    } else {
-        link.textContent = url;
-        urlButton.textContent = '❌';
+    function viewUrl(id, url) {
+        const link = document.getElementById(`url-${id}`);
+        const urlButton = document.getElementById(`url-button-${id}`);
+        if (link && link.textContent === url) {
+            link.textContent = '••••••••••••••••••••••';
+            urlButton.textContent = '👁️';
+        } else {
+            link.textContent = url;
+            urlButton.textContent = '❌';
+        }
     }
-}
 </script>
 
 <div style="display: flex; flex-direction: column; gap: 30px;">
