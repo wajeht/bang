@@ -23,7 +23,10 @@ import { appConfig, defaultSearchProviders, notifyConfig, oauthConfig } from './
 export const sendNotificationQueue = fastq.promise(sendNotification, 10);
 export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
 export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
-export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(trackUnauthenticatedUserSearchHistory, 10); // prettier-ignore
+export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(
+	trackUnauthenticatedUserSearchHistory,
+	10,
+);
 
 export const github = {
 	getOauthToken: async function (code: string): Promise<GitHubOauthToken> {
@@ -239,31 +242,25 @@ export async function search({
 		return;
 	}
 
-	if (handleDirectCommands(res, query)) {
-		return;
-	}
+	handleDirectCommands(res, query);
 
 	if (trigger === '!bm') {
-		await handleBookmarkCommand(res, user, url);
-		return;
+		return await handleBookmarkCommand(res, user, url);
 	}
 
 	if (trigger === '!add') {
-		await handleAddCommand(res, user, trigger, url);
-		return;
+		return await handleAddCommand(res, user, trigger, url);
 	}
 
 	if (trigger) {
-		await handleCustomBangCommand(res, user, trigger, query);
-		return;
+		return await handleCustomBangCommand(res, user, trigger, query);
 	}
 
 	if (triggerWithoutBang) {
-		await handleDefaultBangCommand(res, triggerWithoutBang, query);
-		return;
+		return await handleDefaultBangCommand(res, triggerWithoutBang, query);
 	}
 
-	await handleDefaultSearch(res, user, query);
+	return await handleDefaultSearch(res, triggerWithoutBang, user, query);
 }
 
 function extractTriggerAndUrl(query: string) {
@@ -293,8 +290,7 @@ async function handleUnauthenticatedUser(
 	if (triggerWithoutBang) {
 		const bang = bangs[triggerWithoutBang] as Bang;
 		if (bang) {
-			res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(query)));
-			return;
+			return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(query)));
 		}
 	}
 
@@ -421,7 +417,13 @@ async function handleDefaultBangCommand(
 	}
 }
 
-async function handleDefaultSearch(res: Response, user: User, query: string) {
+async function handleDefaultSearch(
+	res: Response,
+	triggerWithoutBang: string | null,
+	user: User,
+	query: string,
+) {
+	handleDefaultBangCommand(res, triggerWithoutBang, query);
 	const defaultProvider = user.default_search_provider || 'duckduckgo';
 	const searchUrl = defaultSearchProviders[defaultProvider].replace(
 		'{query}',
