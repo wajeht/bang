@@ -41,9 +41,9 @@ export function writeHashMapToFile(hashMap: Map<string, Bang>, outputFile: strin
 	console.log(`Hash map written to ${outputFile}`);
 }
 
-export async function generateBangsHashMap(): Promise<void> {
+export async function generateBangsHashMap(source?: string): Promise<void> {
 	try {
-		const source = process.argv[2];
+		source = source || process.argv[2];
 
 		if (!source) {
 			console.error('Please provide a URL or local file path as an argument.');
