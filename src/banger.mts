@@ -1,16 +1,5 @@
 import fs from 'node:fs';
-
-type Bang = {
-	c: string;
-	d: string;
-	r: number;
-	s: string;
-	sc: string;
-	t: string;
-	u: string;
-};
-
-type BangsArray = Bang[];
+import { Bang, BangsArray } from './types.js';
 
 export async function fetchBangs(source: string): Promise<BangsArray> {
 	if (source.startsWith('http')) {

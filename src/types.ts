@@ -38,6 +38,18 @@ export interface Api {
 	verify: (apiKey: string) => Promise<ApiKeyPayload | null>;
 }
 
+export type BangsArray = Bang[];
+
+export type Bang = {
+	c: string;
+	d: string;
+	r: number;
+	s: string;
+	sc: string;
+	t: string;
+	u: string;
+};
+
 export type User = {
 	id: number;
 	username: string;
