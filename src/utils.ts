@@ -195,8 +195,8 @@ export function isValidUrl(url: string): boolean {
 	}
 }
 
-const SEARCH_LIMIT = 5;
-const DELAY_INCREMENT = 5000; // 5 seconds
+const SEARCH_LIMIT = 5 as const;
+const DELAY_INCREMENT = 5000 as const; // 5 seconds
 
 export async function trackUnauthenticatedUserSearchHistory({
 	req,
@@ -235,16 +235,12 @@ export async function search({
 }) {
 	if (!user) {
 		if (req.session.cumulativeDelay) {
-			logger.warn(
-				`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay}ms due to exceeding search limit.`,
-			);
+			logger.warn(`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay}ms due to exceeding search limit.`); // prettier-ignore
 			await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
 		}
 
 		trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
-		return res.redirect(
-			defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query)),
-		);
+		return res.redirect(defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query))); // prettier-ignore
 	}
 
 	// Handle default commands
