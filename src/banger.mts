@@ -61,6 +61,7 @@ export async function generateBangsHashMap(source?: string, outputFile?: string)
 	}
 }
 
+// tsx ./src/banger.mts https://duckduckgo.com/bang.js ./src/db/bangs.ts
 if (import.meta.url === `file://${process.argv[1]}`) {
 	generateBangsHashMap().catch(console.error);
 }
