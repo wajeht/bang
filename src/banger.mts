@@ -41,18 +41,21 @@ export function writeHashMapToFile(hashMap: Map<string, Bang>, outputFile: strin
 	console.log(`Hash map written to ${outputFile}`);
 }
 
-export async function generateBangsHashMap(source?: string): Promise<void> {
+export async function generateBangsHashMap(source?: string, outputFile?: string): Promise<void> {
 	try {
 		source = source || process.argv[2];
+		outputFile = outputFile || process.argv[3];
 
-		if (!source) {
-			console.error('Please provide a URL or local file path as an argument.');
+		if (!source || !outputFile) {
+			console.error(
+				'Please provide a URL or local file path as the first argument and the output file path as the second argument.',
+			);
 			process.exit(1);
 		}
 
 		const bangs = await fetchBangs(source);
 		const hashMap = createHashMap(bangs);
-		writeHashMapToFile(hashMap, 'bangsHashMap.js');
+		writeHashMapToFile(hashMap, outputFile);
 	} catch (error) {
 		console.error('Error:', error instanceof Error ? error.message : 'Unknown error');
 	}
