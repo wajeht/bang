@@ -13,6 +13,7 @@ import http from 'node:http';
 import https from 'node:https';
 import jwt from 'jsonwebtoken';
 import { logger } from './logger';
+// import { bangs } from './db/bangs';
 import { HttpError } from './errors';
 import { bookmarks } from './repositories';
 import { Request, Response } from 'express';
@@ -233,6 +234,11 @@ export async function search({
 	user?: User;
 	query: string;
 }) {
+	const triggerMatch = query.match(/^(!\w+)/); // Match the trigger (e.g., !bm, !add)
+	const urlMatch = query.match(/\s+(https?:\/\/\S+)/); // Match the URL (if present)
+	const trigger = triggerMatch ? triggerMatch[1] : null;
+	const url = urlMatch ? urlMatch[1] : null;
+
 	if (!user) {
 		if (req.session.cumulativeDelay) {
 			logger.warn(`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay}ms due to exceeding search limit.`); // prettier-ignore
@@ -260,10 +266,8 @@ export async function search({
 	}
 
 	// Handle !bm command with URL
-	if (query.startsWith('!bm')) {
-		const urlToBookmark = query.slice(4).trim();
-
-		if (!urlToBookmark || isValidUrl(urlToBookmark) === false) {
+	if (trigger === '!bm') {
+		if (!url || isValidUrl(url) === false) {
 			return res.setHeader('Content-Type', 'text/html').send(`
         <script>
           alert("Invalid or missing URL");
@@ -272,23 +276,20 @@ export async function search({
 		}
 
 		try {
-			insertBookmarkQueue.push({ url: urlToBookmark, userId: user.id });
-			return res.redirect(urlToBookmark);
+			insertBookmarkQueue.push({ url: url, userId: user.id });
+			return res.redirect(url);
 		} catch (error) {
 			logger.error(`[search]: Error adding bookmark %o`, error);
 			return res.setHeader('Content-Type', 'text/html').send(`
         <script>
           alert("Error adding bookmark");
-          window.location.href = "${urlToBookmark}";
+          window.location.href = "${url}";
         </script>`);
 		}
 	}
 
 	// Handle !add command with URL
-	if (query.startsWith('!add')) {
-		const [, rawTrigger, url] = query.split(' ');
-		const trigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
-
+	if (trigger === '!add') {
 		if (!trigger || !url?.length) {
 			return res.setHeader('Content-Type', 'text/html').send(`
         <script>
@@ -330,14 +331,11 @@ export async function search({
 	}
 
 	// Handle other bang commands
-	const bangMatch = query.match(/^!(\w+)(?:\s+(.*))?$/);
-	if (bangMatch) {
-		const [, bangTrigger, searchQuery = ''] = bangMatch;
-
+	if (trigger) {
 		const customBang = await db('bangs')
 			.join('action_types', 'bangs.action_type_id', 'action_types.id')
 			.where({
-				'bangs.trigger': `!${bangTrigger}`,
+				'bangs.trigger': trigger,
 				'bangs.user_id': user.id,
 			})
 			.select('bangs.*', 'action_types.name as action_type')
@@ -349,16 +347,14 @@ export async function search({
 			}
 
 			if (customBang.action_type === 'search') {
+				const searchQuery = query.slice(trigger.length).trim(); // Extract the search query after the trigger
 				return res.redirect(customBang.url.replace('{query}', encodeURIComponent(searchQuery)));
 			}
 		}
 	}
 
 	const defaultProvider = user.default_search_provider || 'duckduckgo';
-	const searchUrl = defaultSearchProviders[defaultProvider].replace(
-		'{query}',
-		encodeURIComponent(query),
-	);
+	const searchUrl = defaultSearchProviders[defaultProvider].replace('{query}', encodeURIComponent(query)); // prettier-ignore
 
 	return res.redirect(searchUrl);
 }
