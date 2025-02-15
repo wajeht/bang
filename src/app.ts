@@ -17,41 +17,24 @@ import expressLayouts from 'express-ejs-layouts';
 import { expressJSDocSwaggerHandler, swagger } from './swagger';
 import { expressTemplatesReload as reload } from '@wajeht/express-templates-reload';
 
-const app = express();
-
-app.set('trust proxy', 1);
-
-app.use(sessionMiddleware());
-
-app.use(flash());
-
-app.use(compression());
-
-app.use(cors());
-
-app.use(helmetMiddleware());
-
-app.use(rateLimitMiddleware());
-
-app.use(express.json({ limit: '100kb' }));
-
-app.use(express.urlencoded({ extended: true, limit: '100kb' }));
-
-app.use(express.static('./public', { maxAge: '30d', etag: true, lastModified: true }));
-
-app.engine('html', ejs.renderFile);
-
-app.set('view engine', 'html');
-
-app.set('view cache', appConfig.env === 'production');
-
-app.set('views', './src/views/pages');
-
-app.set('layout', '../layouts/public.html');
-
-app.use(expressLayouts);
-
-app.use(appLocalStateMiddleware);
+const app = express()
+	.set('trust proxy', 1)
+	.use(sessionMiddleware())
+	.use(flash())
+	.use(compression())
+	.use(cors())
+	.use(helmetMiddleware())
+	.use(rateLimitMiddleware())
+	.use(express.json({ limit: '100kb' }))
+	.use(express.urlencoded({ extended: true, limit: '100kb' }))
+	.use(express.static('./public', { maxAge: '30d', etag: true, lastModified: true }))
+	.engine('html', ejs.renderFile)
+	.set('view engine', 'html')
+	.set('view cache', appConfig.env === 'production')
+	.set('views', './src/views/pages')
+	.set('layout', '../layouts/public.html')
+	.use(expressLayouts)
+	.use(appLocalStateMiddleware);
 
 if (appConfig.env === 'development') {
 	reload({
@@ -69,7 +52,6 @@ app.use(router);
 expressJSDocSwaggerHandler(app, swagger);
 
 app.use(notFoundMiddleware());
-
 app.use(errorMiddleware());
 
 export { app };
