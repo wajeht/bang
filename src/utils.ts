@@ -242,7 +242,9 @@ export async function search({
 		return;
 	}
 
-	handleDirectCommands(res, query);
+	if (handleDirectCommands(res, query)) {
+		return;
+	}
 
 	if (trigger === '!bm') {
 		return await handleBookmarkCommand(res, user, url);
@@ -266,7 +268,7 @@ export async function search({
 function extractTriggerAndUrl(query: string) {
 	const triggerMatch = query.match(/^(!\w+)/);
 	const urlMatch = query.match(/\s+(https?:\/\/\S+)/);
-	const trigger = triggerMatch ? triggerMatch[1] : null;
+	const trigger = triggerMatch ? triggerMatch[1]! : null;
 	const triggerWithoutBang = trigger ? trigger.split('!')[1]! : null;
 	const url = urlMatch ? urlMatch[1]! : null;
 	return { trigger, triggerWithoutBang, url };
@@ -299,7 +301,7 @@ async function handleUnauthenticatedUser(
 	);
 }
 
-function handleDirectCommands(res: Response, query: string): void {
+function handleDirectCommands(res: Response, query: string): boolean {
 	const directCommands: Record<string, string> = {
 		'@b': '/',
 		'@bang': '/',
@@ -312,8 +314,11 @@ function handleDirectCommands(res: Response, query: string): void {
 	};
 
 	if (directCommands[query]) {
-		return res.redirect(directCommands[query]);
+		res.redirect(directCommands[query]);
+		return true;
 	}
+
+	return false;
 }
 
 async function handleBookmarkCommand(res: Response, user: User, url: string | null) {
