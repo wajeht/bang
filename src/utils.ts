@@ -1,10 +1,11 @@
 import {
 	Api,
+	User,
 	ApiKeyPayload,
+	GithubUserEmail,
 	BookmarkToExport,
 	GitHubOauthToken,
-	GithubUserEmail,
-	User,
+	Bang,
 } from './types';
 import qs from 'qs';
 import fastq from 'fastq';
@@ -13,7 +14,7 @@ import http from 'node:http';
 import https from 'node:https';
 import jwt from 'jsonwebtoken';
 import { logger } from './logger';
-// import { bangs } from './db/bangs';
+import { bangs } from './db/bangs';
 import { HttpError } from './errors';
 import { bookmarks } from './repositories';
 import { Request, Response } from 'express';
@@ -22,10 +23,7 @@ import { appConfig, defaultSearchProviders, notifyConfig, oauthConfig } from './
 export const sendNotificationQueue = fastq.promise(sendNotification, 10);
 export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
 export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
-export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(
-	trackUnauthenticatedUserSearchHistory,
-	10,
-);
+export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(trackUnauthenticatedUserSearchHistory, 10); // prettier-ignore
 
 export const github = {
 	getOauthToken: async function (code: string): Promise<GitHubOauthToken> {
@@ -234,22 +232,78 @@ export async function search({
 	user?: User;
 	query: string;
 }) {
-	const triggerMatch = query.match(/^(!\w+)/); // Match the trigger (e.g., !bm, !add)
-	const urlMatch = query.match(/\s+(https?:\/\/\S+)/); // Match the URL (if present)
-	const trigger = triggerMatch ? triggerMatch[1] : null;
-	const url = urlMatch ? urlMatch[1] : null;
+	const { trigger, triggerWithoutBang, url } = extractTriggerAndUrl(query);
 
 	if (!user) {
-		if (req.session.cumulativeDelay) {
-			logger.warn(`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay}ms due to exceeding search limit.`); // prettier-ignore
-			await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
-		}
-
-		trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
-		return res.redirect(defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query))); // prettier-ignore
+		await handleUnauthenticatedUser(req, res, query, triggerWithoutBang);
+		return;
 	}
 
-	// Handle default commands
+	if (handleDirectCommands(res, query)) {
+		return;
+	}
+
+	if (trigger === '!bm') {
+		await handleBookmarkCommand(res, user, url);
+		return;
+	}
+
+	if (trigger === '!add') {
+		await handleAddCommand(res, user, trigger, url);
+		return;
+	}
+
+	if (trigger) {
+		await handleCustomBangCommand(res, user, trigger, query);
+		return;
+	}
+
+	if (triggerWithoutBang) {
+		await handleDefaultBangCommand(res, triggerWithoutBang, query);
+		return;
+	}
+
+	await handleDefaultSearch(res, user, query);
+}
+
+function extractTriggerAndUrl(query: string) {
+	const triggerMatch = query.match(/^(!\w+)/);
+	const urlMatch = query.match(/\s+(https?:\/\/\S+)/);
+	const trigger = triggerMatch ? triggerMatch[1] : null;
+	const triggerWithoutBang = trigger ? trigger.split('!')[1]! : null;
+	const url = urlMatch ? urlMatch[1]! : null;
+	return { trigger, triggerWithoutBang, url };
+}
+
+async function handleUnauthenticatedUser(
+	req: Request,
+	res: Response,
+	query: string,
+	triggerWithoutBang: string | null,
+) {
+	if (req.session.cumulativeDelay) {
+		logger.warn(
+			`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay / 60}s due to exceeding search limit.`,
+		);
+		await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
+	}
+
+	trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
+
+	if (triggerWithoutBang) {
+		const bang = bangs[triggerWithoutBang] as Bang;
+		if (bang) {
+			res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(query)));
+			return;
+		}
+	}
+
+	return res.redirect(
+		defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query)),
+	);
+}
+
+function handleDirectCommands(res: Response, query: string): void {
 	const directCommands: Record<string, string> = {
 		'@b': '/',
 		'@bang': '/',
@@ -264,98 +318,115 @@ export async function search({
 	if (directCommands[query]) {
 		return res.redirect(directCommands[query]);
 	}
+}
 
-	// Handle !bm command with URL
-	if (trigger === '!bm') {
-		if (!url || isValidUrl(url) === false) {
-			return res.setHeader('Content-Type', 'text/html').send(`
-        <script>
-          alert("Invalid or missing URL");
-          window.history.back();
-        </script>`);
-		}
-
-		try {
-			insertBookmarkQueue.push({ url: url, userId: user.id });
-			return res.redirect(url);
-		} catch (error) {
-			logger.error(`[search]: Error adding bookmark %o`, error);
-			return res.setHeader('Content-Type', 'text/html').send(`
-        <script>
-          alert("Error adding bookmark");
-          window.location.href = "${url}";
-        </script>`);
-		}
+async function handleBookmarkCommand(res: Response, user: User, url: string | null) {
+	if (!url || !isValidUrl(url)) {
+		return res.setHeader('Content-Type', 'text/html').send(`
+					<script>
+							alert("Invalid or missing URL");
+							window.history.back();
+					</script>`);
 	}
 
-	// Handle !add command with URL
-	if (trigger === '!add') {
-		if (!trigger || !url?.length) {
-			return res.setHeader('Content-Type', 'text/html').send(`
-        <script>
-          alert("Invalid trigger or empty URL");
-          window.history.back();
-        </script>`);
-		}
+	try {
+		insertBookmarkQueue.push({ url, userId: user.id });
+		return res.redirect(url);
+	} catch (error) {
+		logger.error(`[search]: Error adding bookmark %o`, error);
+		return res.setHeader('Content-Type', 'text/html').send(`
+					<script>
+							alert("Error adding bookmark");
+							window.location.href = "${url}";
+					</script>`);
+	}
+}
 
-		const existingBang = await db('bangs').where({ user_id: user.id, trigger }).first();
-
-		if (existingBang || ['!add', '!bm'].includes(trigger)) {
-			return res.setHeader('Content-Type', 'text/html').send(`
-        <script>
-          const newTrigger = prompt("Trigger ${trigger} already exists. Please enter a new trigger:");
-          if (newTrigger) {
-            const domain = window.location.origin;
-            window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
-          } else {
-            window.history.back();
-          }
-        </script>`);
-		}
-
-		const bangs = await db('bangs')
-			.insert({
-				user_id: user.id,
-				trigger,
-				name: 'Fetching title...',
-				action_type_id: 2, // redirect
-				url,
-			})
-			.returning('*');
-
-		insertPageTitleQueue.push({ actionId: bangs[0].id, url });
-
-		return res
-			.setHeader('Content-Type', 'text/html')
-			.send(`<script> window.history.back(); </script>`);
+async function handleAddCommand(
+	res: Response,
+	user: User,
+	trigger: string | null,
+	url: string | null,
+) {
+	if (!trigger || !url?.length) {
+		return res.setHeader('Content-Type', 'text/html').send(`
+					<script>
+							alert("Invalid trigger or empty URL");
+							window.history.back();
+					</script>`);
 	}
 
-	// Handle other bang commands
-	if (trigger) {
-		const customBang = await db('bangs')
-			.join('action_types', 'bangs.action_type_id', 'action_types.id')
-			.where({
-				'bangs.trigger': trigger,
-				'bangs.user_id': user.id,
-			})
-			.select('bangs.*', 'action_types.name as action_type')
-			.first();
+	const existingBang = await db('bangs').where({ user_id: user.id, trigger }).first();
 
-		if (customBang) {
-			if (customBang.action_type === 'redirect') {
-				return res.redirect(customBang.url);
-			}
-
-			if (customBang.action_type === 'search') {
-				const searchQuery = query.slice(trigger.length).trim(); // Extract the search query after the trigger
-				return res.redirect(customBang.url.replace('{query}', encodeURIComponent(searchQuery)));
-			}
-		}
+	if (existingBang || ['!add', '!bm'].includes(trigger)) {
+		return res.setHeader('Content-Type', 'text/html').send(`
+					<script>
+							const newTrigger = prompt("Trigger ${trigger} already exists. Please enter a new trigger:");
+							if (newTrigger) {
+									const domain = window.location.origin;
+									window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
+							} else {
+									window.history.back();
+							}
+					</script>`);
 	}
 
+	const bangs = await db('bangs')
+		.insert({
+			user_id: user.id,
+			trigger,
+			name: 'Fetching title...',
+			action_type_id: 2, // redirect
+			url,
+		})
+		.returning('*');
+
+	insertPageTitleQueue.push({ actionId: bangs[0].id, url });
+
+	return res
+		.setHeader('Content-Type', 'text/html')
+		.send(`<script> window.history.back(); </script>`);
+}
+
+async function handleCustomBangCommand(res: Response, user: User, trigger: string, query: string) {
+	const customBang = await db('bangs')
+		.join('action_types', 'bangs.action_type_id', 'action_types.id')
+		.where({
+			'bangs.trigger': trigger,
+			'bangs.user_id': user.id,
+		})
+		.select('bangs.*', 'action_types.name as action_type')
+		.first();
+
+	if (customBang) {
+		if (customBang.action_type === 'redirect') {
+			res.redirect(customBang.url);
+		} else if (customBang.action_type === 'search') {
+			const searchQuery = query.slice(trigger.length).trim();
+			res.redirect(customBang.url.replace('{query}', encodeURIComponent(searchQuery)));
+		}
+	}
+}
+
+async function handleDefaultBangCommand(
+	res: Response,
+	triggerWithoutBang: string | null,
+	query: string,
+) {
+	if (triggerWithoutBang) {
+		const bang = bangs[triggerWithoutBang] as Bang;
+		if (bang) {
+			return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(query)));
+		}
+	}
+}
+
+async function handleDefaultSearch(res: Response, user: User, query: string) {
 	const defaultProvider = user.default_search_provider || 'duckduckgo';
-	const searchUrl = defaultSearchProviders[defaultProvider].replace('{query}', encodeURIComponent(query)); // prettier-ignore
-
+	const searchUrl = defaultSearchProviders[defaultProvider].replace(
+		'{query}',
+		encodeURIComponent(query),
+	);
 	return res.redirect(searchUrl);
 }
 

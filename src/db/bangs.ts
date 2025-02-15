@@ -1,4 +1,4 @@
-export const bangs = {
+export const bangs: Record<string, Record<string, string | number>> = {
 	'4': {
 		c: 'Multimedia',
 		d: 'www.4fitnessrules.com',

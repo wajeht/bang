@@ -38,15 +38,20 @@ export interface Api {
 	verify: (apiKey: string) => Promise<ApiKeyPayload | null>;
 }
 
-export type BangsArray = Bang[];
-
 export type Bang = {
+	/** Category of the bang (e.g., "Multimedia", "Online Services"). */
 	c: string;
+	/** Domain or website associated with the bang (e.g., "www.4fitnessrules.com", "fiverr.com"). */
 	d: string;
+	/** Rank or priority of the bang (e.g., 70, 54). */
 	r: number;
+	/** Name or title of the bang (e.g., "4 Fitness Rules", "Fiverr"). */
 	s: string;
+	/** Subcategory of the bang (e.g., "Video", "Jobs"). */
 	sc: string;
+	/** Trigger or shortcut keyword for the bang (e.g., "4", "5"). */
 	t: string;
+	/** URL template for the search query. The `{{{s}}}` placeholder is replaced with the user's search term. */
 	u: string;
 };
 
