@@ -1,11 +1,11 @@
 import fs from 'node:fs';
-import { Bang, BangsArray } from './types.js';
+import type { Bang } from './types.js';
 
-export async function fetchBangs(source: string): Promise<BangsArray> {
+export async function fetchBangs(source: string): Promise<Bang[]> {
 	if (source.startsWith('http')) {
 		const response = await fetch(source);
 		const data = await response.json();
-		return data as BangsArray;
+		return data as Bang[];
 	} else {
 		const fileContent = await fs.promises.readFile(source, 'utf8');
 		const module = JSON.parse(fileContent);
@@ -13,7 +13,7 @@ export async function fetchBangs(source: string): Promise<BangsArray> {
 	}
 }
 
-export function createHashMap(bangs: BangsArray): Map<string, Bang> {
+export function createHashMap(bangs: Bang[]): Map<string, Bang> {
 	const hashMap = new Map<string, Bang>();
 	for (const bang of bangs) {
 		if (bang.t) {
@@ -25,7 +25,7 @@ export function createHashMap(bangs: BangsArray): Map<string, Bang> {
 
 export function writeHashMapToFile(hashMap: Map<string, Bang>, outputFile: string): void {
 	const plainObject = Object.fromEntries(hashMap);
-	const jsContent = `export const bangs = ${JSON.stringify(plainObject, null, 2)};`;
+	const jsContent = `export const bangs: Record<string, Record<string, string|number>> = ${JSON.stringify(plainObject, null, 2)};`;
 	fs.writeFileSync(outputFile, jsContent);
 	console.log(`Hash map written to ${outputFile}`);
 }
