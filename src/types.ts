@@ -4,7 +4,9 @@ declare module 'express-session' {
 		user: User | null;
 		input: Record<string, unknown> | null;
 		errors: Record<string, unknown> | null;
+		/** The number of searches performed during the session. */
 		searchCount: number;
+		/** The total cumulative delay time (in milliseconds) encountered during the session. */
 		cumulativeDelay: number;
 	}
 }
