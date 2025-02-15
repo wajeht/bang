@@ -258,11 +258,13 @@ export async function search({
 		return await handleCustomBangCommand(res, user, trigger, query);
 	}
 
+	// use the data inside bangs.ts before we use the handleDefaultSearch
+	// which it redirects to users default search provider or duck duck go
 	if (triggerWithoutBang) {
-		return await handleDefaultBangCommand(res, triggerWithoutBang, query);
+		return await handleDefaultBangCommand(res, query, triggerWithoutBang);
 	}
 
-	return await handleDefaultSearch(res, triggerWithoutBang, user, query);
+	return await handleDefaultSearch(res, user, query);
 }
 
 function extractTriggerAndUrl(query: string) {
@@ -411,8 +413,8 @@ async function handleCustomBangCommand(res: Response, user: User, trigger: strin
 
 async function handleDefaultBangCommand(
 	res: Response,
-	triggerWithoutBang: string | null,
 	query: string,
+	triggerWithoutBang: string | null,
 ) {
 	if (triggerWithoutBang) {
 		const bang = bangs[triggerWithoutBang] as Bang;
@@ -422,13 +424,7 @@ async function handleDefaultBangCommand(
 	}
 }
 
-async function handleDefaultSearch(
-	res: Response,
-	triggerWithoutBang: string | null,
-	user: User,
-	query: string,
-) {
-	handleDefaultBangCommand(res, triggerWithoutBang, query);
+async function handleDefaultSearch(res: Response, user: User, query: string) {
 	const defaultProvider = user.default_search_provider || 'duckduckgo';
 	const searchUrl = defaultSearchProviders[defaultProvider].replace(
 		'{query}',
