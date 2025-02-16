@@ -244,8 +244,6 @@ export async function search({
 
 	// Handle unauthenticated users
 	if (!user) {
-		console.log('!user');
-
 		if (req.session.cumulativeDelay) {
 			logger.warn(
 				`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay / 60}s due to exceeding search limit.`,
@@ -257,7 +255,7 @@ export async function search({
 
 		if (triggerWithoutBang) {
 			const bang = bangs[triggerWithoutBang] as Bang;
-			// if we found !bang in bang.js
+			// if we found `!bang` in bang.js
 			if (bang) {
 				// if we search like `!bang something`
 				if (searchTerm) {
@@ -292,7 +290,7 @@ export async function search({
 	// Handle !bm command
 	if (trigger === '!bm') {
 		if (!url || !isValidUrl(url)) {
-			return res.setHeader('Content-Type', 'text/html').send(`
+			return res.setHeader('Content-Type', 'text/html').status(422).send(`
 							<script>
 									alert("Invalid or missing URL");
 									window.history.back();
@@ -304,18 +302,17 @@ export async function search({
 			return res.redirect(url);
 		} catch (error) {
 			logger.error(`[search]: Error adding bookmark %o`, error);
-			return res.setHeader('Content-Type', 'text/html').send(`
-							<script>
-									alert("Error adding bookmark");
-									window.location.href = "${url}";
-							</script>`);
+			return res.setHeader('Content-Type', 'text/html').status(422).send(`<script>
+														alert("Error adding bookmark");
+														window.location.href = "${url}";
+												</script>`);
 		}
 	}
 
 	// Handle !add command
 	if (trigger === '!add') {
 		if (!trigger || !url?.length) {
-			return res.setHeader('Content-Type', 'text/html').send(`
+			return res.setHeader('Content-Type', 'text/html').status(422).send(`
 							<script>
 									alert("Invalid trigger or empty URL");
 									window.history.back();
@@ -325,7 +322,7 @@ export async function search({
 		const existingBang = await db('bangs').where({ user_id: user.id, trigger }).first();
 
 		if (existingBang || ['!add', '!bm'].includes(trigger)) {
-			return res.setHeader('Content-Type', 'text/html').send(`
+			return res.setHeader('Content-Type', 'text/html').status(422).send(`
 							<script>
 									const newTrigger = prompt("Trigger ${trigger} already exists. Please enter a new trigger:");
 									if (newTrigger) {
@@ -351,6 +348,7 @@ export async function search({
 
 		return res
 			.setHeader('Content-Type', 'text/html')
+			.status(200)
 			.send(`<script> window.history.back(); </script>`);
 	}
 
