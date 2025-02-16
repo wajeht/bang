@@ -289,7 +289,7 @@ export async function search({
 							.status(200)
 							.send(`
 								<script>
-									alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
+									alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
 									window.location.href = "${bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm))}";
 								</script>
 							`); // prettier-ignore
@@ -306,7 +306,7 @@ export async function search({
 						.status(200)
 						.send(`
 							<script>
-								alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
+								alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
 								window.location.href = "${addHttps(bang.d)}";
 							</script>
 						`); // prettier-ignore
@@ -323,7 +323,7 @@ export async function search({
 				.status(200)
 				.send(`
 					<script>
-						alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
+						alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
 						window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))}";
 					</script>
 				`); // prettier-ignore
@@ -334,12 +334,14 @@ export async function search({
 
 	// Handle direct commands
 	const directCommands: Record<string, string> = {
-		'@b': '/',
-		'@bang': '/',
 		'@a': '/actions',
 		'@actions': '/actions',
+		'@api': '/api-docs',
+		'@b': '/',
+		'@bang': '/',
 		'@bm': '/bookmarks',
 		'@bookmarks': '/bookmarks',
+		'@data': '/settings/data',
 		'@s': '/settings',
 		'@settings': '/settings',
 	};
@@ -470,13 +472,7 @@ export async function search({
 }
 
 function addHttps(url: string): string {
-	if (!url || typeof url !== 'string') {
-		throw new Error('Invalid input: URL must be a non-empty string');
-	}
-
-	url = url.trim();
-
-	if (url.length === 0) {
+	if (url.trim().length === 0) {
 		throw new Error('Invalid input: URL cannot be empty');
 	}
 
