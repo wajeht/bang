@@ -241,7 +241,7 @@ export async function search({
 	const trigger = triggerMatch ? triggerMatch[1]! : null;
 	const triggerWithoutBang = trigger ? trigger.slice(1) : null;
 	const url = urlMatch ? urlMatch[1]! : null;
-	const searchTerm = query.split(' ')[1] || '';
+	const searchTerm = trigger ? query.slice(trigger.length).trim() : query.trim();
 
 	// Handle unauthenticated users
 	if (!user) {
@@ -261,7 +261,7 @@ export async function search({
 			return res.setHeader('Content-Type', 'text/html').send(`
 				<script>
 					alert("${message}");
-					window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query))}";
+					window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm))}";
 				</script>
 			`);
 		}
@@ -287,12 +287,12 @@ export async function search({
 						return res.setHeader('Content-Type', 'text/html').send(`
 								<script>
 										alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
-										window.location.href = "${bang.u.replace('{{{s}}}', encodeURIComponent(query))}";
+										window.location.href = "${bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm))}";
 								</script>
 						`);
 					}
 
-					return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(query)));
+					return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm)));
 				}
 
 				// `!bang`
@@ -315,13 +315,13 @@ export async function search({
 			return res.setHeader('Content-Type', 'text/html').send(`
 							<script>
 									alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
-									window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query))}";
+									window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))}";
 							</script>
 					`);
 		}
 
 		return res.redirect(
-			defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query)),
+			defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
 		);
 	}
 
@@ -421,8 +421,7 @@ export async function search({
 			if (customBang.action_type === 'redirect') {
 				return res.redirect(customBang.url);
 			} else if (customBang.action_type === 'search') {
-				const searchQuery = query.slice(trigger.length).trim();
-				return res.redirect(customBang.url.replace('{query}', encodeURIComponent(searchQuery)));
+				return res.redirect(customBang.url.replace('{{{s}}}', encodeURIComponent(searchTerm)));
 			}
 		}
 	}
@@ -434,8 +433,9 @@ export async function search({
 		if (bang) {
 			// if we search like `!bang something`
 			if (searchTerm) {
-				return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(query)));
+				return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm)));
 			}
+
 			// `!bang`
 			return res.redirect(addHttps(bang.d));
 		}
@@ -444,8 +444,8 @@ export async function search({
 	// Handle default search (user's default provider or DuckDuckGo)
 	const defaultProvider = user.default_search_provider || 'duckduckgo';
 	const searchUrl = defaultSearchProviders[defaultProvider].replace(
-		'{query}',
-		encodeURIComponent(query),
+		'{{{s}}}',
+		encodeURIComponent(searchTerm),
 	);
 
 	return res.redirect(searchUrl);

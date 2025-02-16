@@ -7,10 +7,10 @@ dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')) });
 export const actionTypes = ['search', 'redirect'];
 
 export const defaultSearchProviders = {
-	duckduckgo: `https://duckduckgo.com/?q={query}`,
-	google: `https://www.google.com/search?q={query}`,
-	yahoo: `https://search.yahoo.com/search?p={query}`,
-	bing: `https://www.bing.com/search?q={query}`,
+	duckduckgo: `https://duckduckgo.com/?q={{{s}}}`,
+	google: `https://www.google.com/search?q={{{s}}}`,
+	yahoo: `https://search.yahoo.com/search?p={{{s}}}`,
+	bing: `https://www.bing.com/search?q={{{s}}}`,
 } as const;
 
 export const appConfig = {
