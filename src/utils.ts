@@ -197,7 +197,7 @@ export function isValidUrl(url: string): boolean {
 	}
 }
 
-const SEARCH_LIMIT = 60 as const;
+const SEARCH_LIMIT = 10 as const;
 const DELAY_INCREMENT = 5000 as const; // 5 seconds
 
 export async function trackUnauthenticatedUserSearchHistory({
@@ -268,7 +268,7 @@ export async function search({
 
 		if (req.session.cumulativeDelay) {
 			logger.warn(
-				`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay / 60}s due to exceeding search limit.`,
+				`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay / 1000}s due to exceeding search limit.`,
 			);
 
 			await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
@@ -282,11 +282,42 @@ export async function search({
 			if (bang) {
 				// if we search like `!bang something`
 				if (searchTerm) {
+					// delay if exceeded
+					if (req.session.cumulativeDelay) {
+						return res.setHeader('Content-Type', 'text/html').send(`
+								<script>
+										alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
+										window.location.href = "${bang.u.replace('{{{s}}}', encodeURIComponent(query))}";
+								</script>
+						`);
+					}
+
 					return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(query)));
 				}
+
+				// `!bang`
+				// delay if exceeded
+				if (req.session.cumulativeDelay) {
+					return res.setHeader('Content-Type', 'text/html').send(`
+									<script>
+											alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
+											window.location.href = "${addHttps(bang.d)}";
+									</script>
+							`);
+				}
+
 				// `!bang`
 				return res.redirect(addHttps(bang.d));
 			}
+		}
+
+		if (req.session.cumulativeDelay) {
+			return res.setHeader('Content-Type', 'text/html').send(`
+							<script>
+									alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
+									window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query))}";
+							</script>
+					`);
 		}
 
 		return res.redirect(
