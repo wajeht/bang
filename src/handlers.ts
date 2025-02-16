@@ -20,7 +20,8 @@ import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {
 	if (expectJson(req)) {
-		return res.status(200).json({ message: 'ok' });
+		res.status(200).json({ message: 'ok' });
+		return;
 	}
 
 	res.setHeader('Content-Type', 'text/html').status(200).send('<p>ok</p>');
@@ -62,7 +63,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 		});
 	}
 
-	return await search({ res, user, query, req });
+	await search({ res, user, query, req });
 }
 
 // GET /logout
@@ -154,7 +155,7 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 // POST /search
 export async function postSearchHandler(req: Request, res: Response) {
 	const query = req.body.q?.toString().trim() || '';
-	return await search({ res, user: req.session.user!, query, req });
+	await search({ res, user: req.session.user!, query, req });
 }
 
 /**
@@ -178,7 +179,8 @@ export async function getActionsHandler(req: Request, res: Response) {
 	});
 
 	if (isApiRequest(req)) {
-		return res.json({ data, pagination, search, sortKey, direction });
+		res.json({ data, pagination, search, sortKey, direction });
+		return;
 	}
 
 	return res.render('actions.html', {
@@ -237,7 +239,8 @@ export const postActionHandler = [
 		});
 
 		if (isApiRequest(req)) {
-			return res.status(201).json({ message: `Action ${formattedTrigger} created successfully!` });
+			res.status(201).json({ message: `Action ${formattedTrigger} created successfully!` });
+			return;
 		}
 
 		req.flash('success', `Action ${formattedTrigger} created successfully!`);
@@ -264,7 +267,8 @@ export async function deleteActionHandler(req: Request, res: Response) {
 	}
 
 	if (isApiRequest(req)) {
-		return res.status(200).json({ message: 'Action deleted successfully' });
+		res.status(200).json({ message: 'Action deleted successfully' });
+		return;
 	}
 
 	req.flash('success', 'Action deleted successfully');
@@ -337,9 +341,8 @@ export const updateActionHandler = [
 		});
 
 		if (isApiRequest(req)) {
-			return res
-				.status(200)
-				.json({ message: `Action ${updatedAction.trigger} updated successfully!` });
+			res.status(200).json({ message: `Action ${updatedAction.trigger} updated successfully!` });
+			return;
 		}
 
 		req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
@@ -376,7 +379,8 @@ export async function getBookmarksHandler(req: Request, res: Response) {
 	});
 
 	if (isApiRequest(req)) {
-		return res.json({ data, pagination, search, sortKey, direction });
+		res.json({ data, pagination, search, sortKey, direction });
+		return;
 	}
 
 	return res.render('bookmarks', {
@@ -400,7 +404,8 @@ export async function deleteBookmarkHandler(req: Request, res: Response) {
 	}
 
 	if (isApiRequest(req)) {
-		return res.status(200).json({ message: 'Bookmark deleted successfully' });
+		res.status(200).json({ message: 'Bookmark deleted successfully' });
+		return;
 	}
 
 	req.flash('success', 'Bookmark deleted successfully');
@@ -471,7 +476,8 @@ export const postBookmarkHandler = [
 		insertBookmarkQueue.push({ url, userId: req.user!.id, title });
 
 		if (isApiRequest(req)) {
-			return res.status(201).json({ message: `Bookmark ${title} created successfully!` });
+			res.status(201).json({ message: `Bookmark ${title} created successfully!` });
+			return;
 		}
 
 		req.flash('success', `Bookmark ${title} created successfully!`);
@@ -491,13 +497,14 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 		return res.redirect('/bookmarks');
 	}
 
-	return res
+	res
 		.setHeader(
 			'Content-Disposition',
 			`attachment; filename=bookmarks-${new Date().toISOString().split('T')[0]}.html`,
 		)
 		.setHeader('Content-Type', 'text/html; charset=UTF-8')
 		.send(bookmark.createDocument(bookmarks));
+	return;
 }
 
 /**
@@ -665,7 +672,7 @@ export const postExportDataHandler = [
 		if (includeBookmarks) exportData.bookmarks = bookmarks;
 		if (includeActions) exportData.actions = actions;
 
-		return res
+		res
 			.setHeader(
 				'Content-Disposition',
 				`attachment; filename=bang-data-export-${exportData.exported_at}.json`,
