@@ -1,29 +1,31 @@
-<footer style="display: flex; gap: 10px; justify-content: center; align-items: center; flex: 0;">
+<footer style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; flex: 0;">
   <span>Copyright © <%= state.copyRightYear %>. Made with ❤️ by <a href="https://github.com/wajeht" target="_blank">@wajeht ↗️</a></span>
-  <span>|</span>
-  <nav>
-    <ul style="display: flex; gap: 10px; padding: 0;">
-      <li style="list-style-type: none;"><a href="https://github.com/wajeht/bang" target="_blank">Github ↗️</a></li></li>
-      <span>|</span>
-      <li style="list-style-type: none;"><a href="/privacy-policy">Privacy</a></li>
-      <span>|</span>
-      <li style="list-style-type: none;"><a href="/terms-of-service">Terms</a></li>
-      <% if (
-          path === '/privacy-policy' ||
-          path === '/terms-of-service' ||
-          (typeof statusCode !== 'undefined' && statusCode >= 400) ||
-          (typeof statusCode !== 'undefined' && statusCode >= 500)) {
-      %>
-        <% if (state.user) { %>
-          <span>|</span>
-          <li style="list-style-type: none;"><a href="/actions">Dashboard</a></li>
-        <% } else {  %>
-          <span>|</span>
-          <li style="list-style-type: none;"><a href="/login">Login</a></li>
+  <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+    <span>|</span>
+    <nav>
+      <ul style="display: flex; gap: 10px; padding: 0;">
+        <li style="list-style-type: none;"><a href="https://github.com/wajeht/bang" target="_blank">Github ↗️</a></li></li>
+        <span>|</span>
+        <li style="list-style-type: none;"><a href="/privacy-policy">Privacy</a></li>
+        <span>|</span>
+        <li style="list-style-type: none;"><a href="/terms-of-service">Terms</a></li>
+        <% if (
+            path === '/privacy-policy' ||
+            path === '/terms-of-service' ||
+            (typeof statusCode !== 'undefined' && statusCode >= 400) ||
+            (typeof statusCode !== 'undefined' && statusCode >= 500)) {
+        %>
+          <% if (state.user) { %>
+            <span>|</span>
+            <li style="list-style-type: none;"><a href="/actions">Dashboard</a></li>
+          <% } else {  %>
+            <span>|</span>
+            <li style="list-style-type: none;"><a href="/login">Login</a></li>
+          <% } %>
         <% } %>
-      <% } %>
-      <span>|</span>
-      <button id="theme-toggle" class="no-style-btn" onclick="toggleTheme()">💡 Dark</button>
-    </ul>
-  </nav>
+        <span>|</span>
+        <button id="theme-toggle" class="no-style-btn" onclick="toggleTheme()">💡 Dark</button>
+      </ul>
+    </nav>
+  </div>
 </footer>
