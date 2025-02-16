@@ -238,32 +238,41 @@ export async function search({
 	const { trigger, triggerWithoutBang, url } = extractTriggerAndUrl(query);
 
 	if (!user) {
+		logger.info('!user');
 		await handleUnauthenticatedUser(req, res, query, triggerWithoutBang);
 		return;
 	}
 
 	if (handleDirectCommands(res, query)) {
+		logger.info('handleDirectCommands');
 		return;
 	}
 
 	if (trigger === '!bm') {
+		logger.info('!bm');
 		return await handleBookmarkCommand(res, user, url);
 	}
 
 	if (trigger === '!add') {
+		logger.info('!add');
 		return await handleAddCommand(res, user, trigger, url);
 	}
 
 	if (trigger) {
-		return await handleCustomBangCommand(res, user, trigger, query);
+		logger.info('trigger');
+		// please don't do return await handleCustomBangCommand()
+		// we will need to forward to second logic if this fail
+		await handleCustomBangCommand(res, user, trigger, query);
 	}
 
 	// use the data inside bangs.ts before we use the handleDefaultSearch
 	// which it redirects to users default search provider or duck duck go
 	if (triggerWithoutBang) {
+		logger.info('triggerWithoutBang');
 		return await handleDefaultBangCommand(res, query, triggerWithoutBang);
 	}
 
+	logger.info('handleDefaultSearch');
 	return await handleDefaultSearch(res, user, query);
 }
 
@@ -403,10 +412,10 @@ async function handleCustomBangCommand(res: Response, user: User, trigger: strin
 
 	if (customBang) {
 		if (customBang.action_type === 'redirect') {
-			res.redirect(customBang.url);
+			return res.redirect(customBang.url);
 		} else if (customBang.action_type === 'search') {
 			const searchQuery = query.slice(trigger.length).trim();
-			res.redirect(customBang.url.replace('{query}', encodeURIComponent(searchQuery)));
+			return res.redirect(customBang.url.replace('{query}', encodeURIComponent(searchQuery)));
 		}
 	}
 }
