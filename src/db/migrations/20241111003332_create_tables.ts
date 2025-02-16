@@ -1,7 +1,7 @@
 import type { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
-	await knex.schema.createTable('sessions', (table) => {
+	await knex.schema.createTableIfNotExists('sessions', (table) => {
 		table.string('sid', 255).primary().notNullable();
 		table.json('sess').notNullable();
 		table.timestamp('expired').notNullable();
@@ -9,7 +9,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.index(['expired'], 'sessions_expired_index');
 	});
 
-	await knex.schema.createTable('users', (table) => {
+	await knex.schema.createTableIfNotExists('users', (table) => {
 		table.increments('id').primary();
 		table.string('username').unique().notNullable();
 		table.string('email').unique().notNullable();
@@ -25,14 +25,14 @@ export async function up(knex: Knex): Promise<void> {
 		table.index(['email', 'is_admin', 'username']);
 	});
 
-	await knex.schema.createTable('action_types', (table) => {
+	await knex.schema.createTableIfNotExists('action_types', (table) => {
 		table.increments('id').primary();
 		table.string('name').unique().notNullable();
 		table.string('description');
 		table.timestamps(true, true);
 	});
 
-	await knex.schema.createTable('bookmarks', (table) => {
+	await knex.schema.createTableIfNotExists('bookmarks', (table) => {
 		table.increments('id').primary();
 		table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE');
 		table.text('url').notNullable();
@@ -42,7 +42,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.index(['user_id', 'created_at']);
 	});
 
-	await knex.schema.createTable('bangs', (table) => {
+	await knex.schema.createTableIfNotExists('bangs', (table) => {
 		table.increments('id').primary();
 		table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE');
 		table.string('trigger').notNullable();
