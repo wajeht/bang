@@ -1,5 +1,5 @@
 push:
-	# @make test
+	@make test
 	@make lint
 	@make format
 	@git add -A
@@ -10,6 +10,9 @@ fix-git:
 	@git rm -r --cached . -f
 	@git add .
 	@git commit -m "Untrack files in .gitignore"
+
+test:
+	@make test-unit
 
 test-unit:
 	@docker compose -f docker-compose.dev.yml exec bang npm run test
