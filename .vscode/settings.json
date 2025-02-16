@@ -12,6 +12,7 @@
 		"multistream",
 		"nodownload",
 		"nofullscreen",
+		"noremoteplayback",
 		"pino",
 		"resave",
 		"rmds",
