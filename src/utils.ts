@@ -224,6 +224,7 @@ export async function trackUnauthenticatedUserSearchHistory({
 	});
 }
 
+// NOTE: don't abstract this but please write tests
 export async function search({
 	res,
 	req,
