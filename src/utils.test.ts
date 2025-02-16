@@ -234,6 +234,7 @@ describe.concurrent('expectJson', () => {
 
 describe('extractUser', () => {
 	beforeAll(async () => {
+		await db('users').del();
 		await db('users').insert({
 			id: 1,
 			username: 'Test User',
