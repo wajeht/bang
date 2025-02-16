@@ -14,12 +14,11 @@ import { api, getApiKey, isApiRequest, sendNotificationQueue } from './utils';
 export function notFoundMiddleware() {
 	return (req: Request, res: Response, _next: NextFunction) => {
 		if (isApiRequest(req)) {
-			res.status(404).json({
+			return res.status(404).json({
 				title: 'Not Found',
 				statusCode: 404,
 				message: 'Sorry, the resource you are looking for could not be found.',
 			});
-			return;
 		}
 
 		return res.status(404).render('error.html', {
@@ -66,8 +65,7 @@ export function errorMiddleware() {
 				}
 			}
 
-			res.status(statusCode).json(responsePayload);
-			return;
+			return res.status(statusCode).json(responsePayload);
 		}
 
 		return res.status(statusCode).render('error.html', {
