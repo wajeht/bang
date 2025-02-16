@@ -128,7 +128,7 @@ export function sessionMiddleware() {
 		store: new ConnectSessionKnexStore({
 			knex: db,
 			tableName: 'sessions',
-			createTable: true,
+			createTable: true, // create sessions table if does not exist already
 			cleanupInterval: 1000 * 60 * 60 * 24, // Clean up expired sessions every day
 		}),
 		proxy: appConfig.env === 'production',
