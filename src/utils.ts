@@ -125,6 +125,12 @@ export async function insertPageTitle({
 }
 
 export async function fetchPageTitle(url: string): Promise<string> {
+	try {
+		new URL(url);
+	} catch {
+		return 'Untitled';
+	}
+
 	const client = url.startsWith('https') ? https : http;
 
 	return new Promise<string>((resolve) => {

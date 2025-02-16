@@ -1,6 +1,6 @@
 import { BookmarkToExport } from 'types';
 import { describe, expect, it } from 'vitest';
-import { bookmark, isValidUrl, addHttps } from './utils';
+import { bookmark, isValidUrl, addHttps, fetchPageTitle } from './utils';
 
 describe.concurrent('isValidUrl', () => {
 	it('should return true for valid URLs', () => {
@@ -110,5 +110,25 @@ describe.concurrent('addHttps', () => {
 	it('should handle URLs with leading whitespace', () => {
 		const url = '   http://example.com';
 		expect(addHttps(url)).toBe('https://example.com');
+	});
+});
+
+describe.concurrent('fetchPageTitle', () => {
+	it('should return the title of a valid page', async () => {
+		const url = 'https://example.com'; // Replace with a valid URL for testing
+		const title = await fetchPageTitle(url);
+		expect(title).toBeDefined(); // Check that a title is returned
+	});
+
+	it('should return "Untitled" for a non-200 response', async () => {
+		const url = 'https://httpstat.us/404'; // A URL that returns a 404
+		const title = await fetchPageTitle(url);
+		expect(title).toBe('Untitled');
+	});
+
+	it('should return "Untitled" for an invalid URL', async () => {
+		const url = 'invalid-url';
+		const title = await fetchPageTitle(url);
+		expect(title).toBe('Untitled');
 	});
 });
