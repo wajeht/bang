@@ -493,8 +493,10 @@ export async function search({
 	return res.redirect(searchUrl);
 }
 
-function addHttps(url: string): string {
-	if (url.trim().length === 0) {
+export function addHttps(url: string): string {
+	url = url.trim();
+
+	if (url.length === 0) {
 		throw new Error('Invalid input: URL cannot be empty');
 	}
 

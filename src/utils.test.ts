@@ -1,6 +1,6 @@
 import { BookmarkToExport } from 'types';
 import { describe, expect, it } from 'vitest';
-import { bookmark, isValidUrl } from './utils';
+import { bookmark, isValidUrl, addHttps } from './utils';
 
 describe.concurrent('isValidUrl', () => {
 	it('should return true for valid URLs', () => {
@@ -84,5 +84,31 @@ describe.concurrent('bookmark.createBookmarksDocument', () => {
 		expect(bookmark.createDocument(bm).replace(/\s+/g, ' ').trim()).toBe(
 			expectedDocument.replace(/\s+/g, ' ').trim(),
 		);
+	});
+});
+
+describe.concurrent('addHttps', () => {
+	it('should throw an error for empty URL', () => {
+		expect(() => addHttps('')).toThrow('Invalid input: URL cannot be empty');
+	});
+
+	it('should return the same URL if it starts with https://', () => {
+		const url = 'https://example.com';
+		expect(addHttps(url)).toBe(url);
+	});
+
+	it('should convert http:// to https://', () => {
+		const url = 'http://example.com';
+		expect(addHttps(url)).toBe('https://example.com');
+	});
+
+	it('should remove leading slashes and add https://', () => {
+		const url = '///example.com';
+		expect(addHttps(url)).toBe('https://example.com');
+	});
+
+	it('should handle URLs with leading whitespace', () => {
+		const url = '   http://example.com';
+		expect(addHttps(url)).toBe('https://example.com');
 	});
 });
