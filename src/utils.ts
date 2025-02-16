@@ -238,8 +238,9 @@ export async function search({
 	const triggerMatch = query.match(/^(!\w+)/);
 	const urlMatch = query.match(/\s+(https?:\/\/\S+)/);
 	const trigger = triggerMatch ? triggerMatch[1]! : null;
-	const triggerWithoutBang = trigger ? trigger.split('!')[1]! : null;
+	const triggerWithoutBang = trigger ? trigger.slice(1) : null;
 	const url = urlMatch ? urlMatch[1]! : null;
+	const searchTerm = query.split(' ')[1] || '';
 
 	// Handle unauthenticated users
 	if (!user) {
@@ -256,8 +257,14 @@ export async function search({
 
 		if (triggerWithoutBang) {
 			const bang = bangs[triggerWithoutBang] as Bang;
+			// if we found !bang in bang.js
 			if (bang) {
-				return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(query)));
+				// if we search like `!bang something`
+				if (searchTerm) {
+					return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(query)));
+				}
+				// `!bang`
+				return res.redirect(addHttps(bang.d));
 			}
 		}
 
@@ -371,8 +378,14 @@ export async function search({
 	// Handle default bang commands (from bangs.ts)
 	if (triggerWithoutBang) {
 		const bang = bangs[triggerWithoutBang] as Bang;
+		// if we found !bang in bang.js
 		if (bang) {
-			return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(query)));
+			// if we search like `!bang something`
+			if (searchTerm) {
+				return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(query)));
+			}
+			// `!bang`
+			return res.redirect(addHttps(bang.d));
 		}
 	}
 
@@ -384,6 +397,30 @@ export async function search({
 	);
 
 	return res.redirect(searchUrl);
+}
+
+function addHttps(url: string): string {
+	if (!url || typeof url !== 'string') {
+		throw new Error('Invalid input: URL must be a non-empty string');
+	}
+
+	url = url.trim();
+
+	if (url.length === 0) {
+		throw new Error('Invalid input: URL cannot be empty');
+	}
+
+	if (url.toLowerCase().startsWith('https://')) {
+		return url;
+	}
+
+	if (url.toLowerCase().startsWith('http://')) {
+		url = url.substring(7);
+	}
+
+	url = url.replace(/^\/+/, '');
+
+	return `https://${url}`;
 }
 
 export async function sendNotification({
