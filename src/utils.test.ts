@@ -339,7 +339,6 @@ describe.concurrent('extractPagination', () => {
 describe.concurrent('api', () => {
 	beforeAll(async () => {
 		await db('users').del();
-
 		await db('users').insert({
 			id: 1,
 			username: 'Test User',
