@@ -258,19 +258,19 @@ export async function search({
 			trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
 
 			// For every 10th search, show warning and then continue with the search
-			return res.setHeader('Content-Type', 'text/html').send(`
-				<script>
-					alert("${message}");
-					window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm))}";
-				</script>
-			`);
+			return res
+				.setHeader('Content-Type', 'text/html')
+				.status(200)
+				.send(`
+					<script>
+						alert("${message}");
+						window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm))}";
+					</script>
+				`); // prettier-ignore
 		}
 
 		if (req.session.cumulativeDelay) {
-			logger.warn(
-				`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay / 1000}s due to exceeding search limit.`,
-			);
-
+			logger.warn(`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay / 1000}s due to exceeding search limit.`); // prettier-ignore
 			await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
 		}
 
@@ -284,12 +284,15 @@ export async function search({
 				if (searchTerm) {
 					// delay if exceeded
 					if (req.session.cumulativeDelay) {
-						return res.setHeader('Content-Type', 'text/html').send(`
+						return res
+							.setHeader('Content-Type', 'text/html')
+							.status(200)
+							.send(`
 								<script>
-										alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
-										window.location.href = "${bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm))}";
+									alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
+									window.location.href = "${bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm))}";
 								</script>
-						`);
+							`); // prettier-ignore
 					}
 
 					return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm)));
@@ -298,12 +301,15 @@ export async function search({
 				// `!bang`
 				// delay if exceeded
 				if (req.session.cumulativeDelay) {
-					return res.setHeader('Content-Type', 'text/html').send(`
-									<script>
-											alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
-											window.location.href = "${addHttps(bang.d)}";
-									</script>
-							`);
+					return res
+						.setHeader('Content-Type', 'text/html')
+						.status(200)
+						.send(`
+							<script>
+								alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
+								window.location.href = "${addHttps(bang.d)}";
+							</script>
+						`); // prettier-ignore
 				}
 
 				// `!bang`
@@ -312,17 +318,18 @@ export async function search({
 		}
 
 		if (req.session.cumulativeDelay) {
-			return res.setHeader('Content-Type', 'text/html').send(`
-							<script>
-									alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
-									window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))}";
-							</script>
-					`);
+			return res
+				.setHeader('Content-Type', 'text/html')
+				.status(200)
+				.send(`
+					<script>
+						alert("You will be slowed down for the next ${req.session.cumulativeDelay / 1000} seconds.");
+						window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))}";
+					</script>
+				`); // prettier-ignore
 		}
 
-		return res.redirect(
-			defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
-		);
+		return res.redirect(defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))); // prettier-ignore
 	}
 
 	// Handle direct commands
@@ -344,11 +351,15 @@ export async function search({
 	// Handle !bm command
 	if (trigger === '!bm') {
 		if (!url || !isValidUrl(url)) {
-			return res.setHeader('Content-Type', 'text/html').status(422).send(`
-							<script>
-									alert("Invalid or missing URL");
-									window.history.back();
-							</script>`);
+			return res
+				.setHeader('Content-Type', 'text/html')
+				.status(422)
+				.send(`
+					<script>
+						alert("Invalid or missing URL");
+						window.history.back();
+					</script>
+				`); // prettier-ignore
 		}
 
 		try {
@@ -356,36 +367,49 @@ export async function search({
 			return res.redirect(url);
 		} catch (error) {
 			logger.error(`[search]: Error adding bookmark %o`, error);
-			return res.setHeader('Content-Type', 'text/html').status(422).send(`<script>
-														alert("Error adding bookmark");
-														window.location.href = "${url}";
-												</script>`);
+			return res
+				.setHeader('Content-Type', 'text/html')
+				.status(422)
+				.send(`
+					<script>
+						alert("Error adding bookmark");
+						window.location.href = "${url}";
+					</script>
+				`); // prettier-ignore
 		}
 	}
 
 	// Handle !add command
 	if (trigger === '!add') {
 		if (!trigger || !url?.length) {
-			return res.setHeader('Content-Type', 'text/html').status(422).send(`
-							<script>
-									alert("Invalid trigger or empty URL");
-									window.history.back();
-							</script>`);
+			return res
+				.setHeader('Content-Type', 'text/html')
+				.status(422)
+				.send(`
+					<script>
+						alert("Invalid trigger or empty URL");
+						window.history.back();
+					</script>
+				`); // prettier-ignore
 		}
 
 		const existingBang = await db('bangs').where({ user_id: user.id, trigger }).first();
 
 		if (existingBang || ['!add', '!bm'].includes(trigger)) {
-			return res.setHeader('Content-Type', 'text/html').status(422).send(`
-							<script>
-									const newTrigger = prompt("Trigger ${trigger} already exists. Please enter a new trigger:");
-									if (newTrigger) {
-											const domain = window.location.origin;
-											window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
-									} else {
-											window.history.back();
-									}
-							</script>`);
+			return res
+				.setHeader('Content-Type', 'text/html')
+				.status(422)
+				.send(`
+					<script>
+						const newTrigger = prompt("Trigger ${trigger} already exists. Please enter a new trigger:");
+						if (newTrigger) {
+							const domain = window.location.origin;
+							window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
+						} else {
+							window.history.back();
+						}
+					</script>
+				`); // prettier-ignore
 		}
 
 		const bangs = await db('bangs')
@@ -410,10 +434,7 @@ export async function search({
 	if (trigger) {
 		const customBang = await db('bangs')
 			.join('action_types', 'bangs.action_type_id', 'action_types.id')
-			.where({
-				'bangs.trigger': trigger,
-				'bangs.user_id': user.id,
-			})
+			.where({ 'bangs.trigger': trigger, 'bangs.user_id': user.id })
 			.select('bangs.*', 'action_types.name as action_type')
 			.first();
 
@@ -443,10 +464,7 @@ export async function search({
 
 	// Handle default search (user's default provider or DuckDuckGo)
 	const defaultProvider = user.default_search_provider || 'duckduckgo';
-	const searchUrl = defaultSearchProviders[defaultProvider].replace(
-		'{{{s}}}',
-		encodeURIComponent(searchTerm),
-	);
+	const searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(searchTerm)); // prettier-ignore
 
 	return res.redirect(searchUrl);
 }
