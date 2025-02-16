@@ -14,7 +14,7 @@ function _getFormattedTimestamp() {
 	return `[${formattedDate} ${formattedTime}]`;
 }
 
-const developmentEnvironmentOnly = appConfig.env === 'development';
+const _developmentEnvironmentOnly = appConfig.env === 'development';
 
 const knexConfig: Knex.Config = {
 	client: 'better-sqlite3',
@@ -26,7 +26,7 @@ const knexConfig: Knex.Config = {
 		tableName: 'knex_migrations',
 		directory: path.resolve(__dirname, './migrations'),
 	},
-	// debug: developmentEnvironmentOnly,
+	// debug: _developmentEnvironmentOnly,
 	seeds: { directory: path.resolve(__dirname, './seeds') },
 	pool: {
 		min: 2,
