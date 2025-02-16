@@ -191,9 +191,9 @@ describe.concurrent('isApiRequest', () => {
 		expect(isApiRequest(req)).toBe(true);
 	});
 
-	it.skip('should return true if expectJson returns true', () => {
+	it('should return true if expectJson returns true', () => {
 		const req = {
-			header: vi.fn().mockReturnValue(undefined),
+			header: vi.fn().mockReturnValue('application/json'),
 			path: '/some/path',
 		} as unknown as Request;
 
