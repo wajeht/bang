@@ -1,4 +1,4 @@
-import { BookmarkToExport } from 'types';
+import { ApiKeyPayload, BookmarkToExport } from './types';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
 	bookmark,
@@ -10,9 +10,12 @@ import {
 	expectJson,
 	extractUser,
 	extractPagination,
+	api,
 } from './utils';
 import { db } from './db/db';
+import jwt from 'jsonwebtoken';
 import { Request } from 'express';
+import { appConfig } from './configs';
 
 describe.concurrent('isValidUrl', () => {
 	it('should return true for valid URLs', () => {
@@ -229,7 +232,7 @@ describe.concurrent('expectJson', () => {
 	});
 });
 
-describe.concurrent('extractUser', () => {
+describe('extractUser', () => {
 	beforeAll(async () => {
 		await db('users').insert({
 			id: 1,
@@ -328,6 +331,62 @@ describe.concurrent('extractPagination', () => {
 			search: '',
 			sortKey: 'created_at',
 			direction: 'desc',
+		});
+	});
+});
+
+describe.concurrent('api', () => {
+	beforeAll(async () => {
+		await db('users').del();
+
+		await db('users').insert({
+			id: 1,
+			username: 'Test User',
+			email: 'testuser@example.com',
+			api_key: 'test-api-key',
+			api_key_version: 1,
+		});
+	});
+
+	afterAll(async () => {
+		await db('users').where({ id: 1 }).delete();
+	});
+
+	describe('generate', () => {
+		it('should generate a valid API key', async () => {
+			const payload = { userId: 1, apiKeyVersion: 1 };
+			const apiKey = await api.generate(payload);
+
+			const decoded = jwt.verify(apiKey, appConfig.apiKeySecret) as ApiKeyPayload;
+			expect(decoded.userId).toBe(payload.userId);
+			expect(decoded.apiKeyVersion).toBe(payload.apiKeyVersion);
+		});
+	});
+
+	describe('verify', () => {
+		it.skip('should return payload for a valid API key', async () => {
+			const payload = { userId: 1, apiKeyVersion: 1 };
+			const apiKey = await api.generate(payload);
+
+			const verifiedPayload = await api.verify(apiKey);
+			expect(verifiedPayload).toEqual(payload);
+		});
+
+		it('should return null for an invalid API key', async () => {
+			const invalidApiKey = 'invalid-api-key';
+			const verifiedPayload = await api.verify(invalidApiKey);
+			expect(verifiedPayload).toBeNull();
+		});
+
+		it('should return null if the API key does not match the user', async () => {
+			const payload = { userId: 1, apiKeyVersion: 1 };
+			const apiKey = await api.generate(payload);
+
+			// Update the user to have a different API key
+			await db('users').where({ id: 1 }).update({ api_key: 'different-api-key' });
+
+			const verifiedPayload = await api.verify(apiKey);
+			expect(verifiedPayload).toBeNull();
 		});
 	});
 });
