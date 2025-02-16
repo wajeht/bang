@@ -62,10 +62,7 @@ down:
 	@docker compose -f docker-compose.dev.yml down
 
 clean:
-	@rm -rf ./dist
 	@docker compose -f docker-compose.dev.yml down --rmi all --volumes --remove-orphans
-	@docker volume rm $$(docker volume ls -q -f name=bang_) 2>/dev/null || true
-	@docker volume prune -f
-	@docker image prune -a -f
-	@docker network prune -f
 	@docker system prune -a -f
+	@docker volume prune -f
+	@docker network prune -f

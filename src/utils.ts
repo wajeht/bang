@@ -197,7 +197,7 @@ export function isValidUrl(url: string): boolean {
 	}
 }
 
-const SEARCH_LIMIT = 10 as const;
+const SEARCH_LIMIT = 60 as const;
 const DELAY_INCREMENT = 5000 as const; // 5 seconds
 
 export async function trackUnauthenticatedUserSearchHistory({
