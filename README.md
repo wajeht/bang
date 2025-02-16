@@ -10,19 +10,9 @@ DuckDuckGo's !Bangs, but on steroids.
 
 ## 📖 Usage
 
-### 🎯 Default Commands
-
-- `@actions` - Quick access to your actions
-- `@bookmarks` - View your bookmarks
-- `@settings` - Access settings
-
-### 🎨 Special Commands
-
-- `!bm [url]` - Add a bookmark
-- `!add [trigger] [url]` - Create a custom bang
-- Custom bangs you create with `!add`
-
 ### 🔍 Setup Custom Search Engine in Your Browser
+
+Before you can use the Bang command from your browser's search bar, you need to add the Bang URL as a custom search engine. Follow these steps:
 
 1. In your browser settings, add a new search engine:
 
@@ -40,6 +30,36 @@ DuckDuckGo's !Bangs, but on steroids.
 - **Chrome**: Settings → Search Engines → Manage Search Engines → Add
 - **Firefox**: Bookmarks → Manage Bookmarks → Right-click → New Bookmark → Add %s in URL
 - **Edge**: Settings → Privacy, search, and services → Address bar and search → Manage search engines → Add
+
+### 🎯 Default Commands
+
+- `@actions` - Quick access to your actions
+- `@bookmarks` - View your bookmarks
+- `@settings` - Access settings
+
+### 🎨 Special Commands
+
+- `!bm [url]` - Add a bookmark
+- `!add [trigger] [url]` - Create a custom bang
+- Custom bangs you create with `!add`
+
+### 🔖 How to Add Bookmarklet
+
+To add the Bang bookmarklet to your browser, follow these steps:
+
+1. Create a new bookmark in your browser.
+2. For the bookmark's name, you can use something like "Bang Bookmarklet".
+3. In the URL field, copy and paste the following code:
+   ```javascript
+   javascript: (function () {
+   	const link = encodeURIComponent(window.location.href).trim();
+   	if (!link) return;
+   	window.location.href = `http://bang.jaw.dev/?q=!bm ${link}`;
+   })();
+   ```
+4. Save the bookmark.
+
+Now, whenever you want to add a bookmark using Bang, simply click on this bookmarklet.
 
 ### 🔖 Browser Bookmarklet
 
