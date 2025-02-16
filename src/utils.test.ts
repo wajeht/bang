@@ -1,5 +1,5 @@
 import { BookmarkToExport } from 'types';
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
 	bookmark,
 	isValidUrl,
@@ -11,6 +11,7 @@ import {
 	extractUser,
 	extractPagination,
 } from './utils';
+import { db } from './db/db';
 import { Request } from 'express';
 
 describe.concurrent('isValidUrl', () => {
@@ -228,20 +229,50 @@ describe.concurrent('expectJson', () => {
 	});
 });
 
-describe.skip.concurrent('extractUser', () => {
+describe.concurrent('extractUser', () => {
+	beforeAll(async () => {
+		await db('users').insert({
+			id: 1,
+			username: 'Test User',
+			email: 'testuser@example.com',
+			is_admin: false,
+			default_search_provider: 'duckduckgo',
+			default_per_page: 10,
+		});
+	});
+
+	afterAll(async () => {
+		await db('users').where({ id: 1 }).delete();
+	});
+
 	it('should return user from apiKeyPayload if isApiRequest is true', async () => {
 		const req = {
+			path: '/api',
 			apiKeyPayload: { userId: 1 },
 			session: {},
 			header: vi.fn().mockReturnValue(undefined),
 		} as unknown as Request;
 
 		const user = await extractUser(req);
-		expect(user).toEqual({ id: 1, name: 'Test User' });
+
+		expect(user).toEqual({
+			id: 1,
+			username: 'Test User',
+			email: 'testuser@example.com',
+			is_admin: 0,
+			default_search_provider: 'duckduckgo',
+			default_per_page: 10,
+			api_key: null,
+			api_key_created_at: null,
+			api_key_version: 0,
+			created_at: expect.any(String),
+			updated_at: expect.any(String),
+		});
 	});
 
 	it('should return user from session if apiKeyPayload is not present', async () => {
 		const req = {
+			path: '/api',
 			session: { user: { id: 2, name: 'Session User' } },
 			header: vi.fn().mockReturnValue(undefined),
 		} as unknown as Request;
@@ -252,6 +283,7 @@ describe.skip.concurrent('extractUser', () => {
 
 	it('should throw an error if user is not found', async () => {
 		const req = {
+			path: '/api',
 			session: {},
 			header: vi.fn().mockReturnValue(undefined),
 		} as unknown as Request;
