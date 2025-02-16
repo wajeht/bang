@@ -19,6 +19,11 @@
 	--sub-table-background: #f8f9fa;
 }
 
+html {
+	scroll-behavior: smooth;
+	-webkit-tap-highlight-color: transparent;
+}
+
 [data-theme='dark'] {
 	--text-color: #e0e0e0;
 	--background-color: #1a1a1a;
