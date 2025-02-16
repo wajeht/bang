@@ -41,6 +41,9 @@ db-rollback:
 db-seed:
 	@docker compose -f docker-compose.dev.yml exec bang npm run db:seed:run
 
+pull-prod-db:
+	@./scripts/pull-db.sh
+
 db-reset:
 	make db-rollback
 	make db-migrate
