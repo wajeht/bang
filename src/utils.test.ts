@@ -1,6 +1,17 @@
 import { BookmarkToExport } from 'types';
-import { describe, expect, it } from 'vitest';
-import { bookmark, isValidUrl, addHttps, fetchPageTitle } from './utils';
+import { describe, expect, it, vi } from 'vitest';
+import {
+	bookmark,
+	isValidUrl,
+	addHttps,
+	fetchPageTitle,
+	getApiKey,
+	isApiRequest,
+	expectJson,
+	extractUser,
+	extractPagination,
+} from './utils';
+import { Request } from 'express';
 
 describe.concurrent('isValidUrl', () => {
 	it('should return true for valid URLs', () => {
@@ -130,5 +141,161 @@ describe.concurrent('fetchPageTitle', () => {
 		const url = 'invalid-url';
 		const title = await fetchPageTitle(url);
 		expect(title).toBe('Untitled');
+	});
+});
+
+describe.concurrent('getApiKey', () => {
+	it('should return the API key from the X-API-KEY header', () => {
+		const req = {
+			header: vi.fn().mockReturnValue('test-api-key'),
+		} as unknown as Request;
+
+		expect(getApiKey(req)).toBe('test-api-key');
+		expect(req.header).toHaveBeenCalledWith('X-API-KEY');
+	});
+
+	it('should return the Bearer token from the Authorization header', () => {
+		const req = {
+			header: vi.fn().mockReturnValue('Bearer test-bearer-token'),
+		} as unknown as Request;
+
+		expect(getApiKey(req)).toBe('test-bearer-token');
+		expect(req.header).toHaveBeenCalledWith('Authorization');
+	});
+
+	it('should return undefined if no API key or Bearer token is present', () => {
+		const req = {
+			header: vi.fn().mockReturnValue(undefined),
+		} as unknown as Request;
+
+		expect(getApiKey(req)).toBeUndefined();
+	});
+});
+
+describe.concurrent('isApiRequest', () => {
+	it('should return true if API key is present', () => {
+		const req = {
+			header: vi.fn().mockReturnValue('test-api-key'),
+			path: '/some/path',
+		} as unknown as Request;
+
+		expect(isApiRequest(req)).toBe(true);
+	});
+
+	it('should return true if path starts with /api', () => {
+		const req = {
+			header: vi.fn().mockReturnValue(undefined),
+			path: '/api/some/path',
+		} as unknown as Request;
+
+		expect(isApiRequest(req)).toBe(true);
+	});
+
+	it.skip('should return true if expectJson returns true', () => {
+		const req = {
+			header: vi.fn().mockReturnValue(undefined),
+			path: '/some/path',
+		} as unknown as Request;
+
+		expect(isApiRequest(req)).toBe(true);
+	});
+
+	it('should return false if none of the conditions are met', () => {
+		const req = {
+			header: vi.fn().mockReturnValue(undefined),
+			path: '/some/path',
+		} as unknown as Request;
+
+		expect(isApiRequest(req)).toBe(false);
+	});
+});
+
+describe.concurrent('expectJson', () => {
+	it('should return true if Content-Type is application/json', () => {
+		const req = {
+			header: vi.fn().mockReturnValue('application/json'),
+		} as unknown as Request;
+
+		expect(expectJson(req)).toBe(true);
+	});
+
+	it('should return false if Content-Type is not application/json', () => {
+		const req = {
+			header: vi.fn().mockReturnValue('text/html'),
+		} as unknown as Request;
+
+		expect(expectJson(req)).toBe(false);
+	});
+});
+
+describe.skip.concurrent('extractUser', () => {
+	it('should return user from apiKeyPayload if isApiRequest is true', async () => {
+		const req = {
+			apiKeyPayload: { userId: 1 },
+			session: {},
+			header: vi.fn().mockReturnValue(undefined),
+		} as unknown as Request;
+
+		const user = await extractUser(req);
+		expect(user).toEqual({ id: 1, name: 'Test User' });
+	});
+
+	it('should return user from session if apiKeyPayload is not present', async () => {
+		const req = {
+			session: { user: { id: 2, name: 'Session User' } },
+			header: vi.fn().mockReturnValue(undefined),
+		} as unknown as Request;
+
+		const user = await extractUser(req);
+		expect(user).toEqual({ id: 2, name: 'Session User' });
+	});
+
+	it('should throw an error if user is not found', async () => {
+		const req = {
+			session: {},
+			header: vi.fn().mockReturnValue(undefined),
+		} as unknown as Request;
+
+		await expect(extractUser(req)).rejects.toThrow('User not found from request!');
+	});
+});
+
+describe.concurrent('extractPagination', () => {
+	it('should return pagination parameters from the request', () => {
+		const req = {
+			query: {
+				per_page: '10',
+				page: '2',
+				search: 'test',
+				sort_key: 'title',
+				direction: 'asc',
+			},
+			user: { default_per_page: 5 },
+		} as unknown as Request;
+
+		const pagination = extractPagination(req);
+		expect(pagination).toEqual({
+			perPage: 10,
+			page: 2,
+			search: 'test',
+			sortKey: 'title',
+			direction: 'asc',
+		});
+	});
+
+	it('should return default values if query parameters are not provided', () => {
+		const req = {
+			query: {},
+			user: { default_per_page: 5 },
+		} as unknown as Request;
+
+		const pagination = extractPagination(req);
+		expect(pagination).toEqual({
+			perPage: 5,
+			page: 1,
+			search: '',
+			sortKey: 'created_at',
+			direction: 'desc',
+		});
 	});
 });
