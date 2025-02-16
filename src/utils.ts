@@ -1,11 +1,11 @@
 import {
 	Api,
 	User,
+	Bang,
 	ApiKeyPayload,
 	GithubUserEmail,
 	BookmarkToExport,
 	GitHubOauthToken,
-	Bang,
 } from './types';
 import qs from 'qs';
 import fastq from 'fastq';
@@ -197,7 +197,7 @@ export function isValidUrl(url: string): boolean {
 	}
 }
 
-const SEARCH_LIMIT = 5 as const;
+const SEARCH_LIMIT = 60 as const;
 const DELAY_INCREMENT = 5000 as const; // 5 seconds
 
 export async function trackUnauthenticatedUserSearchHistory({
@@ -245,10 +245,32 @@ export async function search({
 
 	// Handle unauthenticated users
 	if (!user) {
+		req.session.searchCount = req.session.searchCount || 0;
+		const searchesLeft = SEARCH_LIMIT - req.session.searchCount;
+
+		// Show warning at every 10th search, but not at 0
+		if (req.session.searchCount % 10 === 0 && req.session.searchCount !== 0) {
+			const message =
+				searchesLeft <= 0
+					? "You've exceeded the search limit for unauthenticated users. Please log in for unlimited searches without delays."
+					: `You have used ${req.session.searchCount} out of ${SEARCH_LIMIT} searches. Log in for unlimited searches!`;
+
+			trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
+
+			// For every 10th search, show warning and then continue with the search
+			return res.setHeader('Content-Type', 'text/html').send(`
+				<script>
+					alert("${message}");
+					window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{query}', encodeURIComponent(query))}";
+				</script>
+			`);
+		}
+
 		if (req.session.cumulativeDelay) {
 			logger.warn(
 				`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay / 60}s due to exceeding search limit.`,
 			);
+
 			await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
 		}
 
