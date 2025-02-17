@@ -433,15 +433,18 @@ export async function search({
 		}
 
 		// Check for existing bang with same trigger
-		const existingBang = await db('bangs').where({ user_id: user.id, trigger }).first();
+		const hasExistingCustomBangCommand = await db('bangs')
+			.where({ user_id: user.id, trigger })
+			.first();
+		const hasSystemBangCommands = ['!add', '!bm'].includes(trigger);
 
-		const bangCommands = ['!add', '!bm'].includes(trigger);
-		if (existingBang || bangCommands) {
+		if (hasExistingCustomBangCommand || hasSystemBangCommands) {
 			let message = 'Trigger ${trigger} already exists. Please enter a new trigger:';
 
-			if (bangCommands) {
+			if (hasSystemBangCommands) {
 				message = `${trigger} is a bang's systems command. Please enter a new trigger:`;
 			}
+
 			return res
 				.setHeader('Content-Type', 'text/html')
 				.status(422)
@@ -486,11 +489,13 @@ export async function search({
 			.select('bangs.*', 'action_types.name as action_type')
 			.first();
 
+		// Handle different types of custom bangs
 		if (customBang) {
-			// Handle different types of custom bangs
 			if (customBang.action_type === 'redirect') {
 				return res.redirect(customBang.url);
-			} else if (customBang.action_type === 'search') {
+			}
+
+			if (customBang.action_type === 'search') {
 				return res.redirect(customBang.url.replace('{{{s}}}', encodeURIComponent(searchTerm)));
 			}
 		}
