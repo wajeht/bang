@@ -433,10 +433,10 @@ export async function search({
 		}
 
 		// Check for existing bang with same trigger
+		const hasSystemBangCommands = ['!add', '!bm'].includes(trigger);
 		const hasExistingCustomBangCommand = await db('bangs')
 			.where({ user_id: user.id, trigger })
 			.first();
-		const hasSystemBangCommands = ['!add', '!bm'].includes(trigger);
 
 		if (hasExistingCustomBangCommand || hasSystemBangCommands) {
 			let message = 'Trigger ${trigger} already exists. Please enter a new trigger:';
