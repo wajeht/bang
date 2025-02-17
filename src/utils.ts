@@ -88,7 +88,7 @@ export async function insertBookmark({
 	});
 
 	if (!title) {
-		insertPageTitleQueue.push({ bookmarkId: bookmark.id, url });
+		void insertPageTitleQueue.push({ bookmarkId: bookmark.id, url });
 	}
 }
 
@@ -269,7 +269,7 @@ export async function search({
 					? "You've exceeded the search limit for unauthenticated users. Please log in for unlimited searches without delays."
 					: `You have used ${req.session.searchCount} out of ${SEARCH_LIMIT} searches. Log in for unlimited searches!`;
 
-			trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
+			void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
 
 			// Show warning and redirect to search results
 			return res
@@ -396,7 +396,7 @@ export async function search({
 				bookmarkTitle = bang[1]!;
 			}
 
-			insertBookmarkQueue.push({ url, title: bookmarkTitle, userId: user.id });
+			void insertBookmarkQueue.push({ url, title: bookmarkTitle, userId: user.id });
 			return res.redirect(url);
 		} catch (error) {
 			logger.error(`[search]: Error adding bookmark %o`, error);
@@ -473,7 +473,7 @@ export async function search({
 			.returning('*');
 
 		// Queue async task to fetch page title
-		insertPageTitleQueue.push({ actionId: bangs[0].id, url });
+		void insertPageTitleQueue.push({ actionId: bangs[0].id, url });
 
 		return res
 			.setHeader('Content-Type', 'text/html')
