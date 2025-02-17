@@ -389,11 +389,14 @@ export async function search({
 
 		try {
 			// eg `!bm bang https://bang.jaw.dev` where `bang` is the title
-			let title = '';
+			let bookmarkTitle = '';
 			const bang = query.split(' ');
-			if (bang.length === 3) title = bang[1] ?? '';
 
-			insertBookmarkQueue.push({ url, title, userId: user.id });
+			if (bang.length === 3) {
+				bookmarkTitle = bang[1]!;
+			}
+
+			insertBookmarkQueue.push({ url, title: bookmarkTitle, userId: user.id });
 			return res.redirect(url);
 		} catch (error) {
 			logger.error(`[search]: Error adding bookmark %o`, error);
@@ -432,13 +435,19 @@ export async function search({
 		// Check for existing bang with same trigger
 		const existingBang = await db('bangs').where({ user_id: user.id, trigger }).first();
 
-		if (existingBang || ['!add', '!bm'].includes(trigger)) {
+		const bangCommands = ['!add', '!bm'].includes(trigger);
+		if (existingBang || bangCommands) {
+			let message = 'Trigger ${trigger} already exists. Please enter a new trigger:';
+
+			if (bangCommands) {
+				message = `${trigger} is a bang's systems command. Please enter a new trigger:`;
+			}
 			return res
 				.setHeader('Content-Type', 'text/html')
 				.status(422)
 				.send(`
 					<script>
-						const newTrigger = prompt("Trigger ${trigger} already exists. Please enter a new trigger:");
+						const newTrigger = prompt("${message}");
 						if (newTrigger) {
 							const domain = window.location.origin;
 							window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
