@@ -158,12 +158,6 @@ export async function postSearchHandler(req: Request, res: Response) {
 	await search({ res, user: req.session.user!, query, req });
 }
 
-/**
- *
- * action handlers
- *
- */
-
 // GET /actions or /api/actions
 export async function getActionsHandler(req: Request, res: Response) {
 	const user = req.user!;
@@ -350,12 +344,6 @@ export const updateActionHandler = [
 	},
 ];
 
-/**
- *
- * bookmark handlers
- *
- */
-
 // GET /bookmarks/create
 export function getBookmarkCreatePageHandler(_req: Request, res: Response) {
 	return res.render('bookmarks-create.html', {
@@ -506,12 +494,6 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 		.send(bookmark.createDocument(bookmarks));
 	return;
 }
-
-/**
- *
- * setting handlers
- *
- */
 
 // GET /settings
 export async function getSettingsPageHandler(_req: Request, res: Response) {
