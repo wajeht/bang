@@ -492,14 +492,47 @@ export async function search({
 				return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm)));
 			}
 
+			// `!trigger` without search term
+			// `!timer` which ddg has it
+			//  bang: {
+			//    c: 'Online Services',
+			//    d: 'duckduckgo.com',
+			//    r: 33,
+			//    s: 'DuckDuckGo Timer',
+			//    sc: 'Tools',
+			//    t: 'timer',
+			//    u: 'http://duckduckgo.com/?q=timer+{{{s}}}&ia=answer'
+			// }
+			if (bang.u.includes('{{{s}}}')) {
+				return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm)));
+			}
+
 			// Handle bang without search term (redirects to service homepage)
+			// in this case we will redirect `bang.d`
+			//  bang: {
+			//    c: 'Online Services',
+			//    d: 'duckduckgo.com',
+			//    r: 33,
+			//    s: 'DuckDuckGo Timer',
+			//    sc: 'Tools',
+			//    t: 'timer',
+			//    u: 'http://duckduckgo.com/?q=timer+{{{s}}}&ia=answer'
+			// }
 			return res.redirect(addHttps(bang.d));
 		}
 	}
 
 	// Default search using user's preferred search engine
 	const defaultProvider = user.default_search_provider || 'duckduckgo';
-	const searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(searchTerm)); // prettier-ignore
+	// eg `!g cat videos`
+	let searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(searchTerm)); // prettier-ignore
+
+	// eg `!somethingthatdoesnotexist`
+	// we will redirect to default search provider and it's keywords without `!`
+	// eg `https://duckduckgo.com/?q=somethingthatdoesnotexist`
+	if (!searchTerm) {
+		searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(triggerWithoutBang ?? '')); // prettier-ignore
+	}
 
 	return res.redirect(searchUrl);
 }
