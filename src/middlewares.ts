@@ -1,5 +1,5 @@
-import { db } from './db/db';
 import helmet from 'helmet';
+import { db } from './db/db';
 import { logger } from './logger';
 import session from 'express-session';
 import { csrfSync } from 'csrf-sync';
