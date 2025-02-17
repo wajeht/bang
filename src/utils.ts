@@ -407,6 +407,11 @@ export async function search({
 	// Handle custom bang creation command (!add)
 	// Allows users to create their own bang shortcuts
 	if (trigger === '!add') {
+		const [, rawTrigger, url] = query.split(' ');
+		// the second one
+		// !add !yt https://youtube.com
+		// !add yt https://youtube.com
+		const trigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
 		if (!trigger || !url?.length) {
 			return res
 				.setHeader('Content-Type', 'text/html')
