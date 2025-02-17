@@ -388,7 +388,12 @@ export async function search({
 		}
 
 		try {
-			insertBookmarkQueue.push({ url, userId: user.id });
+			// eg `!bm bang https://bang.jaw.dev` where `bang` is the title
+			let title = '';
+			const bang = query.split(' ');
+			if (bang.length === 3) title = bang[1] ?? '';
+
+			insertBookmarkQueue.push({ url, title, userId: user.id });
 			return res.redirect(url);
 		} catch (error) {
 			logger.error(`[search]: Error adding bookmark %o`, error);
