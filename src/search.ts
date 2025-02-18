@@ -7,11 +7,22 @@ import { Request, Response } from 'express';
 import { defaultSearchProviders } from './configs';
 import { addHttps, insertBookmarkQueue, insertPageTitleQueue, isValidUrl } from './utils';
 
+// Maximum number of searches allowed for unauthenticated users
 const SEARCH_LIMIT = 60 as const;
-const DELAY_INCREMENT = 5000 as const; // 5 seconds
 
-export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(trackUnauthenticatedUserSearchHistory, 10); // prettier-ignore
+// Time penalty increment for exceeding search limit (in milliseconds)
+const DELAY_INCREMENT = 5000 as const;
 
+// Queue for tracking search history of unauthenticated users asynchronously
+export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(
+	trackUnauthenticatedUserSearchHistory,
+	10,
+);
+
+/**
+ * Tracks search history for unauthenticated users and manages rate limiting
+ * Increments search count and applies cumulative delay if limit is exceeded
+ */
 export async function trackUnauthenticatedUserSearchHistory({
 	req,
 	query,
@@ -19,15 +30,18 @@ export async function trackUnauthenticatedUserSearchHistory({
 	req: Request;
 	query: string;
 }) {
+	// Initialize or get existing session counters
 	req.session.searchCount = req.session.searchCount || 0;
 	req.session.cumulativeDelay = req.session.cumulativeDelay || 0;
 
 	req.session.searchCount += 1;
 
+	// Apply delay penalty if search limit is exceeded
 	if (req.session.searchCount > SEARCH_LIMIT) {
 		req.session.cumulativeDelay += DELAY_INCREMENT;
 	}
 
+	// Log search activity for monitoring
 	logger.info(`[trackUnauthenticatedUserSearchHistory]: %o`, {
 		sessionId: req.session.id,
 		query,
@@ -36,7 +50,76 @@ export async function trackUnauthenticatedUserSearchHistory({
 	});
 }
 
-// TODO: don't abstract this but please write tests
+/**
+ * Sends an HTML response that redirects the user with an optional alert message
+ */
+export function sendHtmlRedirect(res: Response, url: string, message?: string) {
+	return res.setHeader('Content-Type', 'text/html').status(200).send(`
+			<script>
+				${message ? `alert("${message}");` : ''}
+				window.location.href = "${url}";
+			</script>
+		`);
+}
+
+/**
+ * Sends an HTML error response with an alert message and browser history navigation
+ */
+export function sendErrorResponse(res: Response, message: string) {
+	return res.setHeader('Content-Type', 'text/html').status(422).send(`
+			<script>
+				alert("${message}");
+				window.history.back();
+			</script>
+		`);
+}
+
+/**
+ * Parses a search query to extract bang trigger, URL, and search terms
+ * Example inputs:
+ * - "!g python" -> { trigger: "!g", triggerWithoutBang: "g", searchTerm: "python" }
+ * - "!bm title https://example.com" -> { trigger: "!bm", url: "https://example.com", searchTerm: "title" }
+ */
+export function parseSearchQuery(query: string) {
+	const triggerMatch = query.match(/^(!\w+)/);
+	const urlMatch = query.match(/\s+(https?:\/\/\S+)/);
+	const trigger = triggerMatch ? triggerMatch[1]! : null;
+	const triggerWithoutBang = trigger ? trigger.slice(1) : null;
+	const url = urlMatch ? urlMatch[1]! : null;
+	const searchTerm = trigger ? query.slice(trigger.length).trim() : query.trim();
+
+	return { trigger, triggerWithoutBang, url, searchTerm };
+}
+
+/**
+ * Handles rate limiting for unauthenticated users
+ * Returns warning message when search count reaches multiples of 10
+ */
+export function handleRateLimiting(req: Request, searchCount: number) {
+	const searchesLeft = SEARCH_LIMIT - searchCount;
+	const showWarning = searchCount % 10 === 0 && searchCount !== 0;
+
+	if (showWarning) {
+		const message =
+			searchesLeft <= 0
+				? "You've exceeded the search limit for unauthenticated users. Please log in for unlimited searches without delays."
+				: `You have used ${searchCount} out of ${SEARCH_LIMIT} searches. Log in for unlimited searches!`;
+		return message;
+	}
+	return null;
+}
+
+/**
+ * Processes bang redirect URLs
+ * Handles both search queries and direct domain redirects
+ */
+export function handleBangRedirect(bang: Bang, searchTerm: string) {
+	if (searchTerm) {
+		return bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm));
+	}
+	return addHttps(bang.d);
+}
+
 export async function search({
 	res,
 	req,
@@ -48,45 +131,22 @@ export async function search({
 	user?: User;
 	query: string;
 }) {
-	// Parse search query into components:
-	// - trigger: matches bang command at start (e.g., "!g" from "!g search term")
-	// - url: matches URL in query (e.g., "https://example.com" from "!bm https://example.com")
-	// - searchTerm: remaining query after removing trigger
-	const triggerMatch = query.match(/^(!\w+)/);
-	const urlMatch = query.match(/\s+(https?:\/\/\S+)/);
-	const trigger = triggerMatch ? triggerMatch[1]! : null;
-	const triggerWithoutBang = trigger ? trigger.slice(1) : null;
-	const url = urlMatch ? urlMatch[1]! : null;
-	const searchTerm = trigger ? query.slice(trigger.length).trim() : query.trim();
+	const { trigger, triggerWithoutBang, url, searchTerm } = parseSearchQuery(query);
 
 	// ==========================================
 	// Unauthenticated User Flow
 	// ==========================================
 	if (!user) {
-		// Initialize search count for rate limiting
 		req.session.searchCount = req.session.searchCount || 0;
-		const searchesLeft = SEARCH_LIMIT - req.session.searchCount;
+		const warningMessage = handleRateLimiting(req, req.session.searchCount);
 
-		// Display warning message every 10 searches (except at 0)
-		// Informs users about search limits and encourages login
-		if (req.session.searchCount % 10 === 0 && req.session.searchCount !== 0) {
-			const message =
-				searchesLeft <= 0
-					? "You've exceeded the search limit for unauthenticated users. Please log in for unlimited searches without delays."
-					: `You have used ${req.session.searchCount} out of ${SEARCH_LIMIT} searches. Log in for unlimited searches!`;
-
+		if (warningMessage) {
 			void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
-
-			// Show warning and redirect to search results
-			return res
-        .setHeader('Content-Type', 'text/html')
-        .status(200)
-        .send(`
-          <script>
-            alert("${message}");
-            window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm))}";
-          </script>
-        `); // prettier-ignore
+			return sendHtmlRedirect(
+				res,
+				defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)),
+				warningMessage,
+			);
 		}
 
 		// Apply rate limiting delay if user has exceeded limits
@@ -108,48 +168,48 @@ export async function search({
 					// Apply rate limiting warning if needed
 					if (req.session.cumulativeDelay) {
 						return res
-              .setHeader('Content-Type', 'text/html')
-              .status(200)
-              .send(`
-                <script>
-                  alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
-                  window.location.href = "${bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm))}";
-                </script>
-              `); // prettier-ignore
+							.setHeader('Content-Type', 'text/html')
+							.status(200)
+							.send(`
+								<script>
+									alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
+									window.location.href = "${handleBangRedirect(bang, searchTerm)}";
+								</script>
+							`); // prettier-ignore
 					}
 
-					return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm)));
+					return res.redirect(handleBangRedirect(bang, searchTerm));
 				}
 
 				// Handle bang without search term (e.g., "!g")
 				// This typically redirects to the service's homepage
 				if (req.session.cumulativeDelay) {
 					return res
-            .setHeader('Content-Type', 'text/html')
-            .status(200)
-            .send(`
-              <script>
-                alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
-                window.location.href = "${addHttps(bang.d)}";
-              </script>
-            `); // prettier-ignore
+						.setHeader('Content-Type', 'text/html')
+						.status(200)
+						.send(`
+							<script>
+								alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
+								window.location.href = "${handleBangRedirect(bang, '')}";
+							</script>
+						`); // prettier-ignore
 				}
 
-				return res.redirect(addHttps(bang.d));
+				return res.redirect(handleBangRedirect(bang, ''));
 			}
 		}
 
 		// Handle default search for unauthenticated users (always uses DuckDuckGo)
 		if (req.session.cumulativeDelay) {
 			return res
-        .setHeader('Content-Type', 'text/html')
-        .status(200)
-        .send(`
-          <script>
-            alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
-            window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))}";
-          </script>
-        `); // prettier-ignore
+				.setHeader('Content-Type', 'text/html')
+				.status(200)
+				.send(`
+					<script>
+						alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
+						window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))}";
+					</script>
+				`); // prettier-ignore
 		}
 
 		return res.redirect(defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))); // prettier-ignore
@@ -183,14 +243,14 @@ export async function search({
 	if (trigger === '!bm') {
 		if (!url || !isValidUrl(url)) {
 			return res
-        .setHeader('Content-Type', 'text/html')
-        .status(422)
-        .send(`
-          <script>
-            alert("Invalid or missing URL");
-            window.history.back();
-          </script>
-        `); // prettier-ignore
+				.setHeader('Content-Type', 'text/html')
+				.status(422)
+				.send(`
+					<script>
+						alert("Invalid or missing URL");
+						window.history.back();
+					</script>
+				`); // prettier-ignore
 		}
 
 		try {
@@ -210,14 +270,14 @@ export async function search({
 		} catch (error) {
 			logger.error(`[search]: Error adding bookmark %o`, error);
 			return res
-        .setHeader('Content-Type', 'text/html')
-        .status(422)
-        .send(`
-          <script>
-            alert("Error adding bookmark");
-            window.location.href = "${url}";
-          </script>
-        `); // prettier-ignore
+				.setHeader('Content-Type', 'text/html')
+				.status(422)
+				.send(`
+					<script>
+						alert("Error adding bookmark");
+						window.location.href = "${url}";
+					</script>
+				`); // prettier-ignore
 		}
 	}
 
@@ -231,14 +291,14 @@ export async function search({
 		const trigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
 		if (!trigger || !url?.length) {
 			return res
-        .setHeader('Content-Type', 'text/html')
-        .status(422)
-        .send(`
-          <script>
-            alert("Invalid trigger or empty URL");
-            window.history.back();
-          </script>
-        `); // prettier-ignore
+				.setHeader('Content-Type', 'text/html')
+				.status(422)
+				.send(`
+					<script>
+						alert("Invalid trigger or empty URL");
+						window.history.back();
+					</script>
+				`); // prettier-ignore
 		}
 
 		// Check for existing bang with same trigger
@@ -255,19 +315,19 @@ export async function search({
 			}
 
 			return res
-        .setHeader('Content-Type', 'text/html')
-        .status(422)
-        .send(`
-          <script>
-            const newTrigger = prompt("${message}");
-            if (newTrigger) {
-              const domain = window.location.origin;
-              window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
-            } else {
-              window.history.back();
-            }
-          </script>
-        `); // prettier-ignore
+				.setHeader('Content-Type', 'text/html')
+				.status(422)
+				.send(`
+					<script>
+						const newTrigger = prompt("${message}");
+						if (newTrigger) {
+							const domain = window.location.origin;
+							window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
+						} else {
+							window.history.back();
+						}
+					</script>
+				`); // prettier-ignore
 		}
 
 		// Create new bang command in database
@@ -317,7 +377,7 @@ export async function search({
 		if (bang) {
 			// Handle search with bang (e.g., "!g python")
 			if (searchTerm) {
-				return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm)));
+				return res.redirect(handleBangRedirect(bang, searchTerm));
 			}
 
 			// `!trigger` without search term
@@ -332,7 +392,7 @@ export async function search({
 			//    u: 'http://duckduckgo.com/?q=timer+{{{s}}}&ia=answer'
 			// }
 			if (bang.u.includes('{{{s}}}')) {
-				return res.redirect(bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm)));
+				return res.redirect(handleBangRedirect(bang, searchTerm));
 			}
 
 			// Handle bang without search term (redirects to service homepage)
@@ -346,12 +406,13 @@ export async function search({
 			//    t: 'timer',
 			//    u: 'http://duckduckgo.com/?q=timer+{{{s}}}&ia=answer'
 			// }
-			return res.redirect(addHttps(bang.d));
+			return res.redirect(handleBangRedirect(bang, ''));
 		}
 	}
 
 	// Default search using user's preferred search engine
 	const defaultProvider = user.default_search_provider || 'duckduckgo';
+
 	// eg `!g cat videos`
 	let searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(searchTerm)); // prettier-ignore
 
