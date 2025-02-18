@@ -39,9 +39,9 @@ Before you can use the Bang command from your browser's search bar, you need to 
 
 ### 🎨 Special Commands
 
-- `!bm [url]` - Add a bookmark
+- `!bm [url]` - Add a bookmark (we will auto fetch the title)
+- `!bm [title] [url]` - Add a bookmark
 - `!add [trigger] [url]` - Create a custom bang
-- Custom bangs you create with `!add`
 
 ### 🔖 How to Add Bookmarklet
 
