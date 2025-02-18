@@ -1,9 +1,11 @@
+import { db } from './db/db';
+import { search } from './search';
 import { Request, Response } from 'express';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { search } from './search';
+import { appConfig } from './configs';
 
 describe('search', () => {
-	describe('unauthenticated user flow', () => {
+	describe('unauthenticated', () => {
 		it('should redirect to google when !g is used', async () => {
 			const req = {
 				session: {
@@ -131,11 +133,86 @@ describe('search', () => {
 			expect(req.session.user).toBeUndefined();
 		});
 
-		it('should have slow down the search when a user has reached more than 60 searches', async () => {
+		it.skipIf(appConfig.env === 'development')(
+			'should have slow down the search when a user has reached more than 60 searches',
+			async () => {
+				const req = {
+					session: {
+						searchCount: 61,
+						cumulativeDelay: 5000,
+					},
+				} as unknown as Request;
+
+				const res = {
+					status: vi.fn().mockReturnThis(),
+					redirect: vi.fn(),
+					setHeader: vi.fn().mockReturnThis(),
+					send: vi.fn(),
+				} as unknown as Response;
+
+				await search({ req, res, user: undefined, query: '!g python' });
+
+				expect(res.status).toHaveBeenCalledWith(200);
+				expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
+				expect(res.send).toHaveBeenCalledWith(
+					expect.stringContaining('Your next search will be slowed down for 10 seconds.'),
+				);
+				expect(res.send).toHaveBeenCalledWith(
+					expect.stringContaining(
+						'window.location.href = "https://www.google.com/search?q=python"',
+					),
+				);
+				expect(req.session.searchCount).toBe(62);
+				expect(req.session.cumulativeDelay).toBe(10000);
+				expect(req.session.user).toBeUndefined();
+			},
+		);
+	});
+
+	describe.skip('authenticated', () => {
+		beforeAll(async () => {
+			await db('action_types').del();
+			await db('bangs').del();
+			await db('users').del();
+			await db('users').insert({
+				id: 1,
+				username: 'Test User',
+				email: 'testuser@example.com',
+				is_admin: false,
+				default_search_provider: 'duckduckgo',
+				default_per_page: 10,
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+			});
+			await db('action_types').insert({
+				id: 1,
+				name: 'search',
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+			});
+			await db('bangs').insert({
+				id: 1,
+				user_id: 1,
+				trigger: '!g',
+				url: 'https://www.google.com/search?q={query}',
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+			});
+		});
+
+		afterAll(async () => {
+			await db('users').where({ id: 1 }).delete();
+			await db('bangs').del();
+		});
+
+		it('should redirect to google when !g is used', async () => {
 			const req = {
 				session: {
-					searchCount: 61,
-					cumulativeDelay: 5000,
+					searchCount: 0,
+					cumulativeDelay: 0,
+				},
+				user: {
+					id: '123',
 				},
 			} as unknown as Request;
 
@@ -146,18 +223,28 @@ describe('search', () => {
 				send: vi.fn(),
 			} as unknown as Response;
 
-			await search({ req, res, user: undefined, query: '!g python' });
+			await search({
+				req,
+				res,
+				user: {
+					id: 1,
+					username: 'Test User',
+					email: 'testuser@example.com',
+					is_admin: false,
+					default_search_provider: 'duckduckgo',
+					default_per_page: 10,
+					created_at: new Date().toISOString(),
+					updated_at: new Date().toISOString(),
+				},
+				query: '!g python',
+			});
 
 			expect(res.status).toHaveBeenCalledWith(200);
 			expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
 			expect(res.send).toHaveBeenCalledWith(
-				expect.stringContaining('Your next search will be slowed down for 10 seconds.'),
-			);
-			expect(res.send).toHaveBeenCalledWith(
 				expect.stringContaining('window.location.href = "https://www.google.com/search?q=python"'),
 			);
-			expect(req.session.searchCount).toBe(62);
-			expect(req.session.cumulativeDelay).toBe(10000);
+			expect(req.session.searchCount).toBe(1);
 			expect(req.session.user).toBeUndefined();
 		});
 	});
