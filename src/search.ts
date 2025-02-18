@@ -141,6 +141,9 @@ export function handleBangRedirect(bang: Bang, searchTerm: string) {
 }
 
 /**
+ *
+ * TODO: clean this function and write tests for all edge cases
+ *
  * Processes search queries and handles different user flows
  * - Unauthenticated user flow: Handles rate limiting, bang commands, and default search
  * - Authenticated user flow: Handles direct navigation commands, bookmark creation, and custom bang commands
