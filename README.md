@@ -41,6 +41,7 @@ Before you can use the Bang command from your browser's search bar, you need to 
 
 - `!bm [url]` - Add a bookmark (we will auto fetch the title)
 - `!bm [title] [url]` - Add a bookmark
+  - eg: `!bm this title can be super long https://bang.jaw.dev`
 - `!add [trigger] [url]` - Create a custom bang
 
 ### 🔖 How to Add Bookmarklet
