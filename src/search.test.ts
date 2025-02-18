@@ -1,3 +1,4 @@
+import { Request, Response } from 'express';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { search } from './search';
 
@@ -17,7 +18,7 @@ describe('search', () => {
 			redirect: vi.fn(),
 		} as unknown as Response;
 
-		await search({ req, res, user: null, query: '!g python' });
+		await search({ req, res, user: undefined, query: '!g python' });
 
 		expect(res.status).toBe(200);
 	});
