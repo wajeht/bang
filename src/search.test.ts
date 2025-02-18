@@ -42,5 +42,23 @@ describe('search', () => {
 			expect(res.status).toBe(200);
 			expect(res.redirect).toHaveBeenCalledWith('https://www.google.com');
 		});
+
+		it('should redirect ddg without a exclaimation mark when !doesnotecistanywhere is used', async () => {
+			const req = {
+				session: {
+					searchCount: 0,
+				},
+			} as unknown as Request;
+
+			const res = {
+				status: 200,
+				redirect: vi.fn(),
+			} as unknown as Response;
+
+			await search({ req, res, user: undefined, query: '!doesnotecistanywhere' });
+
+			expect(res.status).toBe(200);
+			expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=!doesnotecistanywhere');
+		});
 	});
 });
