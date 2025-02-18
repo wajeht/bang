@@ -290,7 +290,7 @@ export async function search({
 		}
 
 		// Track search history for analytics
-		trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
+		void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
 
 		// Handle bang commands for unauthenticated users
 		if (triggerWithoutBang) {
