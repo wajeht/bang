@@ -388,15 +388,18 @@ export async function search({
 		}
 
 		try {
-			// eg `!bm bang https://bang.jaw.dev` where `bang` is the title
-			let bookmarkTitle = '';
-			const bang = query.split(' ');
+			// The bookmark command (!bm) supports three formats:
+			// 1. !bm https://example.com - Creates bookmark with no title (will fetch title automatically)
+			// 2. !bm title https://example.com - Creates bookmark with a single-word title
+			// 3. !bm this is a long title https://example.com - Creates bookmark with a multi-word title
 
-			if (bang.length === 3) {
-				bookmarkTitle = bang[1]!;
-			}
+			// Find the URL in the command string
+			const urlIndex = query.indexOf(url!);
+			// Extract everything between "!bm " and the URL as the title
+			const titleSection = query.slice(4, urlIndex).trim();
 
-			void insertBookmarkQueue.push({ url, title: bookmarkTitle, userId: user.id });
+			void insertBookmarkQueue.push({ url, title: titleSection || '', userId: user.id });
+
 			return res.redirect(url);
 		} catch (error) {
 			logger.error(`[search]: Error adding bookmark %o`, error);
