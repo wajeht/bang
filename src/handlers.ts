@@ -461,7 +461,7 @@ export const postBookmarkHandler = [
 	async (req: Request, res: Response) => {
 		const { url, title } = req.body;
 
-		insertBookmarkQueue.push({ url, userId: req.user!.id, title });
+		void insertBookmarkQueue.push({ url, userId: req.user!.id, title });
 
 		if (isApiRequest(req)) {
 			res.status(201).json({ message: `Bookmark ${title} created successfully!` });

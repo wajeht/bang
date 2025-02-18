@@ -37,7 +37,7 @@ export function errorMiddleware() {
 
 		if (appConfig.env === 'production') {
 			try {
-				await sendNotificationQueue.push({ req, error });
+				void sendNotificationQueue.push({ req, error });
 			} catch (queueError) {
 				logger.error('Failed to push error to notification queue: %o', queueError);
 			}

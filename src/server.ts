@@ -79,7 +79,7 @@ process.on('uncaughtException', async (error: Error, origin: string) => {
 
 	if (appConfig.env === 'production') {
 		try {
-			await sendNotificationQueue.push({
+			void sendNotificationQueue.push({
 				req: {} as Request,
 				error,
 			});
@@ -97,7 +97,7 @@ process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknow
 
 		if (appConfig.env === 'production') {
 			try {
-				await sendNotificationQueue.push({
+				void sendNotificationQueue.push({
 					req: {} as Request,
 					error: reason,
 				});
