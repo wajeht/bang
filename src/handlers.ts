@@ -1,7 +1,6 @@
 import {
 	api,
 	github,
-	search,
 	bookmark,
 	expectJson,
 	isApiRequest,
@@ -9,6 +8,7 @@ import {
 	insertBookmarkQueue,
 } from './utils';
 import { db } from './db/db';
+import { search } from './search';
 import { body } from 'express-validator';
 import { Request, Response } from 'express';
 import { actions, bookmarks } from './repositories';
