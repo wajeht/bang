@@ -7,17 +7,20 @@ import { Request, Response } from 'express';
 import { defaultSearchProviders } from './configs';
 import { addHttps, insertBookmarkQueue, insertPageTitleQueue, isValidUrl } from './utils';
 
-// Maximum number of searches allowed for unauthenticated users
+/**
+ * Maximum number of searches allowed for unauthenticated users
+ */
 const SEARCH_LIMIT = 60 as const;
 
-// Time penalty increment for exceeding search limit (in milliseconds)
+/**
+ * Time penalty increment for exceeding search limit (in milliseconds)
+ */
 const DELAY_INCREMENT = 5000 as const;
 
-// Queue for tracking search history of unauthenticated users asynchronously
-export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(
-	trackUnauthenticatedUserSearchHistory,
-	10,
-);
+/**
+ * Queue for tracking search history of unauthenticated users asynchronously
+ */
+export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(trackUnauthenticatedUserSearchHistory, 10); // prettier-ignore
 
 /**
  * Tracks search history for unauthenticated users and manages rate limiting
@@ -41,7 +44,6 @@ export async function trackUnauthenticatedUserSearchHistory({
 		req.session.cumulativeDelay += DELAY_INCREMENT;
 	}
 
-	// Log search activity for monitoring
 	logger.info(`[trackUnauthenticatedUserSearchHistory]: %o`, {
 		sessionId: req.session.id,
 		query,
@@ -88,7 +90,24 @@ export function parseSearchQuery(query: string) {
 	const url = urlMatch ? urlMatch[1]! : null;
 	const searchTerm = trigger ? query.slice(trigger.length).trim() : query.trim();
 
-	return { trigger, triggerWithoutBang, url, searchTerm };
+	return {
+		/**
+		 * !g
+		 */
+		trigger,
+		/**
+		 * g
+		 */
+		triggerWithoutBang,
+		/**
+		 * https://example.com
+		 */
+		url,
+		/**
+		 * python
+		 */
+		searchTerm,
+	};
 }
 
 /**
@@ -106,20 +125,26 @@ export function handleRateLimiting(req: Request, searchCount: number) {
 				: `You have used ${searchCount} out of ${SEARCH_LIMIT} searches. Log in for unlimited searches!`;
 		return message;
 	}
+
 	return null;
 }
 
 /**
- * Processes bang redirect URLs
- * Handles both search queries and direct domain redirects
+ * Processes bang redirect URLs Handles both search queries and direct domain redirects
  */
 export function handleBangRedirect(bang: Bang, searchTerm: string) {
 	if (searchTerm) {
 		return bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm));
 	}
+
 	return addHttps(bang.d);
 }
 
+/**
+ * Processes search queries and handles different user flows
+ * - Unauthenticated user flow: Handles rate limiting, bang commands, and default search
+ * - Authenticated user flow: Handles direct navigation commands, bookmark creation, and custom bang commands
+ */
 export async function search({
 	res,
 	req,
