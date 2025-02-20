@@ -317,6 +317,7 @@ describe('search', () => {
 		it('should handle invalid bookmark URLs', async () => {
 			const req = {} as Request;
 			const res = {
+				redirect: vi.fn().mockReturnThis(),
 				setHeader: vi.fn().mockReturnThis(),
 				status: vi.fn().mockReturnThis(),
 				send: vi.fn(),
@@ -336,6 +337,7 @@ describe('search', () => {
 		it('should handle custom bang creation', async () => {
 			const req = {} as Request;
 			const res = {
+				redirect: vi.fn().mockReturnThis(),
 				setHeader: vi.fn().mockReturnThis(),
 				status: vi.fn().mockReturnThis(),
 				send: vi.fn(),
@@ -419,7 +421,7 @@ describe('search', () => {
 		it('should handle duplicate bang trigger creation', async () => {
 			const req = {} as Request;
 			const res = {
-				redirect: vi.fn(),
+				redirect: vi.fn().mockReturnThis(),
 				setHeader: vi.fn().mockReturnThis(),
 				status: vi.fn().mockReturnThis(),
 				send: vi.fn(),
@@ -433,7 +435,7 @@ describe('search', () => {
 			});
 
 			expect(res.status).toHaveBeenCalledWith(422);
-			expect(res.send).toHaveBeenCalledWith(expect.stringContaining('${trigger} already exists'));
+			expect(res.send).toHaveBeenCalledWith(expect.stringContaining(`!add already exists`));
 		});
 
 		it('should prevent creation of system bang commands', async () => {
@@ -441,6 +443,7 @@ describe('search', () => {
 			const res = {
 				setHeader: vi.fn().mockReturnThis(),
 				status: vi.fn().mockReturnThis(),
+				redirect: vi.fn().mockReturnThis(),
 				send: vi.fn(),
 			} as unknown as Response;
 
@@ -462,6 +465,7 @@ describe('search', () => {
 			const res = {
 				setHeader: vi.fn().mockReturnThis(),
 				status: vi.fn().mockReturnThis(),
+				redirect: vi.fn().mockReturnThis(),
 				send: vi.fn(),
 			} as unknown as Response;
 
@@ -519,6 +523,7 @@ describe('search', () => {
 		it('should handle !add with implicit bang prefix', async () => {
 			const req = {} as Request;
 			const res = {
+				redirect: vi.fn().mockReturnThis(),
 				setHeader: vi.fn().mockReturnThis(),
 				status: vi.fn().mockReturnThis(),
 				send: vi.fn(),

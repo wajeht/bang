@@ -272,8 +272,22 @@ async function handleUnauthenticatedSearch({
 	// Track search history asynchronously
 	void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
 
+	// Default search using DuckDuckGo
+	const searchUrl = defaultSearchProviders['duckduckgo'].replace(
+		'{{{s}}}',
+		encodeURIComponent(searchTerm || query),
+	);
+
+	// Show warning message if needed
+	if (warningMessage) {
+		return sendAlertAndRedirectResponse(res, searchUrl, warningMessage);
+	}
+
 	// Apply delay penalty if search limit is exceeded
 	if (req.session.cumulativeDelay) {
+		logger.warn(
+			`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay / 1000}s due to exceeding search limit.`,
+		);
 		await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
 	}
 
@@ -286,23 +300,14 @@ async function handleUnauthenticatedSearch({
 				return sendAlertAndRedirectResponse(
 					res,
 					redirectUrl,
-					`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
+					`Your next search will be delayed by ${req.session.cumulativeDelay / 1000} seconds.`,
 				);
 			}
 			return res.redirect(redirectUrl);
 		}
 	}
 
-	// Default search using DuckDuckGo
-	const searchUrl = defaultSearchProviders['duckduckgo'].replace(
-		'{{{s}}}',
-		encodeURIComponent(query),
-	);
-
-	if (warningMessage) {
-		return sendAlertAndRedirectResponse(res, searchUrl, warningMessage);
-	}
-
+	// Show delay warning if needed
 	if (req.session.cumulativeDelay) {
 		return sendAlertAndRedirectResponse(
 			res,
