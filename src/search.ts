@@ -55,9 +55,6 @@ export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(
 
 /**
  * Sends an HTML response that redirects the user with an alert message
- * @param res - Express response object
- * @param url - URL to redirect to
- * @param message - Alert message to display
  */
 function sendAlertAndRedirectResponse(res: Response, url: string, message: string) {
 	return res.setHeader('Content-Type', 'text/html').status(200).send(`
