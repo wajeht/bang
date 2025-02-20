@@ -85,7 +85,7 @@ export async function trackUnauthenticatedUserSearchHistory({
 /**
  * Sends an HTML response that redirects the user with an optional alert message
  */
-export function sendHtmlRedirect(res: Response, url: string, message?: string) {
+export function sendAlertAndRedirectResponse(res: Response, url: string, message?: string) {
 	return res.setHeader('Content-Type', 'text/html').status(200).send(`
 			<script>
 				${message ? `alert("${message}");` : ''}
@@ -97,7 +97,7 @@ export function sendHtmlRedirect(res: Response, url: string, message?: string) {
 /**
  * Sends an HTML error response with an alert message and browser history navigation
  */
-export function sendErrorResponse(res: Response, message: string) {
+export function sendAlertAndBackResponse(res: Response, message: string) {
 	return res.setHeader('Content-Type', 'text/html').status(422).send(`
 			<script>
 				alert("${message}");
@@ -202,7 +202,7 @@ export async function search({
 		// Display warning when user approaches or exceeds search limits
 		if (warningMessage) {
 			void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
-			return sendHtmlRedirect(
+			return sendAlertAndRedirectResponse(
 				res,
 				defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)),
 				warningMessage,
@@ -226,15 +226,10 @@ export async function search({
 				if (searchTerm) {
 					// Show warning if rate limiting is active
 					if (req.session.cumulativeDelay) {
-						return res
-							.setHeader('Content-Type', 'text/html')
-							.status(200)
-							.send(`
-								<script>
-									alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
-									window.location.href = "${handleBangRedirect(bang, searchTerm)}";
-								</script>
-							`); // prettier-ignore
+						return sendAlertAndRedirectResponse(
+							res,
+							`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
+						);
 					}
 
 					return res.redirect(handleBangRedirect(bang, searchTerm));
@@ -242,15 +237,11 @@ export async function search({
 
 				// Handle bang-only queries (e.g., "!g") - redirects to service homepage
 				if (req.session.cumulativeDelay) {
-					return res
-						.setHeader('Content-Type', 'text/html')
-						.status(200)
-						.send(`
-							<script>
-								alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
-								window.location.href = "${handleBangRedirect(bang, '')}";
-							</script>
-						`); // prettier-ignore
+					return sendAlertAndRedirectResponse(
+						res,
+						handleBangRedirect(bang, ''),
+						`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
+					);
 				}
 
 				return res.redirect(handleBangRedirect(bang, ''));
@@ -259,15 +250,11 @@ export async function search({
 
 		// Process regular search using DuckDuckGo (default for unauthenticated users)
 		if (req.session.cumulativeDelay) {
-			return res
-				.setHeader('Content-Type', 'text/html')
-				.status(200)
-				.send(`
-					<script>
-						alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
-						window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))}";
-					</script>
-				`); // prettier-ignore
+			return sendAlertAndRedirectResponse(
+				res,
+				defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
+				`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
+			);
 		}
 
 		return res.redirect(defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))); // prettier-ignore
@@ -290,15 +277,7 @@ export async function search({
 	// 3. !bm this is a long title https://example.com
 	if (trigger === '!bm') {
 		if (!url || !isValidUrl(url)) {
-			return res
-				.setHeader('Content-Type', 'text/html')
-				.status(422)
-				.send(`
-					<script>
-						alert("Invalid or missing URL");
-						window.history.back();
-					</script>
-				`); // prettier-ignore
+			return sendAlertAndBackResponse(res, 'Invalid or missing URL');
 		}
 
 		try {
@@ -311,15 +290,7 @@ export async function search({
 			return res.redirect(url);
 		} catch (error) {
 			logger.error(`[search]: Error adding bookmark %o`, error);
-			return res
-				.setHeader('Content-Type', 'text/html')
-				.status(422)
-				.send(`
-					<script>
-						alert("Error adding bookmark");
-						window.location.href = "${url}";
-					</script>
-				`); // prettier-ignore
+			return sendAlertAndRedirectResponse(res, 'Error adding bookmark');
 		}
 	}
 
@@ -331,15 +302,7 @@ export async function search({
 
 		// Validate command format
 		if (!trigger || !url?.length) {
-			return res
-				.setHeader('Content-Type', 'text/html')
-				.status(422)
-				.send(`
-					<script>
-						alert("Invalid trigger or empty URL");
-						window.history.back();
-					</script>
-				`); // prettier-ignore
+			return sendAlertAndBackResponse(res, 'Invalid trigger or empty URL');
 		}
 
 		// Prevent duplicates and system command conflicts
