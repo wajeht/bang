@@ -5,6 +5,7 @@ import { appConfig } from './configs';
 import { parseSearchQuery } from './search';
 import { Request, Response } from 'express';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import * as utils from './utils';
 
 describe('search', () => {
 	describe('unauthenticated', () => {
@@ -239,7 +240,7 @@ describe('search', () => {
 			expect(res.redirect).toHaveBeenCalledWith('/');
 		});
 
-		it.skip('should handle bookmark creation with title', async () => {
+		it('should handle bookmark creation with title', async () => {
 			const req = {} as Request;
 			const res = {
 				redirect: vi.fn(),
@@ -248,36 +249,32 @@ describe('search', () => {
 				send: vi.fn(),
 			} as unknown as Response;
 
-			// Mock utils
-			vi.mock('./utils', async () => {
-				const actual = await vi.importActual('./utils');
-				return {
-					...(actual as object),
-					insertBookmarkQueue: {
-						push: vi.fn().mockResolvedValue(undefined),
-					},
-					isValidUrl: () => true,
-					parseSearchQuery: () => ({
-						trigger: '!bm',
-						url: 'https://example.com',
-						searchTerm: '',
-						triggerWithoutBang: 'bm',
-					}),
-				};
-			});
+			const mockPush = vi.fn().mockResolvedValue(undefined);
+
+			vi.spyOn(utils, 'isValidUrl').mockReturnValue(true);
+			vi.spyOn(utils, 'insertBookmarkQueue', 'get').mockReturnValue({ push: mockPush } as any);
+
+			const query = '!bm My Bookmark https://example.com';
 
 			await search({
 				req,
 				res,
 				user: testUser,
-				query: '!bm My Bookmark https://example.com',
+				query,
+			});
+
+			expect(mockPush).toHaveBeenCalledWith({
+				url: 'https://example.com',
+				title: 'My Bookmark',
+				userId: testUser.id,
 			});
 
 			expect(res.redirect).toHaveBeenCalledWith('https://example.com');
-			vi.resetModules();
+
+			vi.restoreAllMocks();
 		});
 
-		it.skip('should handle bookmark creation without title', async () => {
+		it('should handle bookmark creation without title', async () => {
 			const req = {} as Request;
 			const res = {
 				redirect: vi.fn(),
@@ -286,33 +283,23 @@ describe('search', () => {
 				send: vi.fn(),
 			} as unknown as Response;
 
-			// Mock utils
-			vi.mock('./utils', async () => {
-				const actual = await vi.importActual('./utils');
-				return {
-					...(actual as object),
-					insertBookmarkQueue: {
-						push: vi.fn().mockResolvedValue(undefined),
-					},
-					isValidUrl: () => true,
-					parseSearchQuery: () => ({
-						trigger: '!bm',
-						url: 'https://example.com',
-						searchTerm: '',
-						triggerWithoutBang: 'bm',
-					}),
-				};
-			});
+			const mockPush = vi.fn().mockResolvedValue(undefined);
+
+			vi.spyOn(utils, 'isValidUrl').mockReturnValue(true);
+			vi.spyOn(utils, 'insertBookmarkQueue', 'get').mockReturnValue({ push: mockPush } as any);
+
+			const query = '!bm https://example.com';
 
 			await search({
 				req,
 				res,
 				user: testUser,
-				query: '!bm https://example.com',
+				query,
 			});
 
 			expect(res.redirect).toHaveBeenCalledWith('https://example.com');
-			vi.resetModules();
+
+			vi.restoreAllMocks();
 		});
 
 		it('should handle invalid bookmark URLs', async () => {
