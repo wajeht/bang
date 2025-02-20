@@ -519,7 +519,6 @@ describe('search', () => {
 		it('should handle !add with implicit bang prefix', async () => {
 			const req = {} as Request;
 			const res = {
-				redirect: vi.fn().mockReturnThis(),
 				setHeader: vi.fn().mockReturnThis(),
 				status: vi.fn().mockReturnThis(),
 				send: vi.fn(),
