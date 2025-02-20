@@ -30,7 +30,7 @@ const config = {
 	/**
 	 * Direct commands that can be used to navigate to different sections of the application
 	 */
-	directBangs: {
+	directCommands: {
 		'@a': '/actions',
 		'@actions': '/actions',
 		'@api': '/api-docs',
@@ -350,8 +350,8 @@ export async function search({
 	}
 
 	// Handle direct navigation commands (@settings, @bookmarks, etc)
-	if (config.directBangs[query as keyof typeof config.directBangs]) {
-		return res.redirect(config.directBangs[query as keyof typeof config.directBangs]);
+	if (config.directCommands[query as keyof typeof config.directCommands]) {
+		return res.redirect(config.directCommands[query as keyof typeof config.directCommands]);
 	}
 
 	// Handle system commands (!bm and !add)
