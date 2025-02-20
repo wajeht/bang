@@ -1,9 +1,8 @@
 import fastq from 'fastq';
 import { db } from './db/db';
-import { logger } from './logger';
-import { bangs as bangsTable } from './db/bangs';
 import { User, Bang } from './types';
 import { Request, Response } from 'express';
+import { bangs as bangsTable } from './db/bangs';
 import { defaultSearchProviders } from './configs';
 import { addHttps, insertBookmarkQueue, insertPageTitleQueue, isValidUrl } from './utils';
 
@@ -73,13 +72,6 @@ export async function trackUnauthenticatedUserSearchHistory({
 	if (req.session.searchCount > config.searchLimit) {
 		req.session.cumulativeDelay += config.delayIncrement;
 	}
-
-	logger.info(`[trackUnauthenticatedUserSearchHistory]: %o`, {
-		sessionId: req.session.id,
-		query,
-		searchCount: req.session.searchCount,
-		cumulativeDelay: req.session.cumulativeDelay,
-	});
 }
 
 /**
@@ -211,7 +203,6 @@ export async function search({
 
 		// Enforce rate limiting delay for users who exceeded search limits
 		if (req.session.cumulativeDelay) {
-			logger.warn(`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay / 1000}s due to exceeding search limit.`); // prettier-ignore
 			await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
 		}
 
@@ -289,7 +280,6 @@ export async function search({
 
 			return res.redirect(url);
 		} catch (error) {
-			logger.error(`[search]: Error adding bookmark %o`, error);
 			return sendAlertAndRedirectResponse(res, 'Error adding bookmark');
 		}
 	}
