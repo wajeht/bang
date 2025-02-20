@@ -466,7 +466,7 @@ describe('search', () => {
 			);
 		});
 
-		it.skip('should handle !bm with multi-word title', async () => {
+		it('should handle !bm with multi-word title', async () => {
 			const req = {} as Request;
 			const res = {
 				redirect: vi.fn(),
@@ -475,23 +475,10 @@ describe('search', () => {
 				send: vi.fn(),
 			} as unknown as Response;
 
-			// Mock utils
-			// vi.mock('./utils', async () => {
-			// 	const actual = await vi.importActual('./utils');
-			// 	return {
-			// 		...actual as object,
-			// 		insertBookmarkQueue: {
-			// 			push: vi.fn().mockResolvedValue(undefined)
-			// 		},
-			// 		isValidUrl: () => true,
-			// 		parseSearchQuery: () => ({
-			// 			trigger: '!bm',
-			// 			url: 'https://example.com',
-			// 			searchTerm: '',
-			// 			triggerWithoutBang: 'bm'
-			// 		})
-			// 	};
-			// });
+			const mockPush = vi.fn().mockResolvedValue(undefined);
+
+			vi.spyOn(utils, 'isValidUrl').mockReturnValue(true);
+			vi.spyOn(utils, 'insertBookmarkQueue', 'get').mockReturnValue({ push: mockPush } as any);
 
 			await search({
 				req,
@@ -501,7 +488,8 @@ describe('search', () => {
 			});
 
 			expect(res.redirect).toHaveBeenCalledWith('https://example.com');
-			vi.resetModules();
+
+			vi.restoreAllMocks();
 		});
 
 		it('should handle !add with implicit bang prefix', async () => {
