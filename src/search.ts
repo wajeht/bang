@@ -9,7 +9,7 @@ import { addHttps, insertBookmarkQueue, insertPageTitleQueue, isValidUrl } from 
 /**
  * Core configuration constants for the search functionality
  */
-const config = {
+const searchConfig = {
 	/**
 	 * List of bangs that are available to use from the bangs table
 	 */
@@ -46,16 +46,13 @@ const config = {
 /**
  * Queue for tracking search history of unauthenticated users asynchronously
  */
-export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(
-	trackUnauthenticatedUserSearchHistory,
-	10,
-);
+export const anonymousSearchHistoryQueue = fastq.promise(trackAnonymousUserSearch, 10);
 
 /**
  * Tracks search history for unauthenticated users and manages rate limiting
  * Increments search count and applies cumulative delay if limit is exceeded
  */
-export async function trackUnauthenticatedUserSearchHistory(req: Request) {
+export async function trackAnonymousUserSearch(req: Request) {
 	// Initialize or get existing session counters
 	req.session.searchCount = req.session.searchCount || 0;
 	req.session.cumulativeDelay = req.session.cumulativeDelay || 0;
@@ -63,15 +60,15 @@ export async function trackUnauthenticatedUserSearchHistory(req: Request) {
 	req.session.searchCount += 1;
 
 	// Apply delay penalty if search limit is exceeded
-	if (req.session.searchCount > config.searchLimit) {
-		req.session.cumulativeDelay += config.delayIncrement;
+	if (req.session.searchCount > searchConfig.searchLimit) {
+		req.session.cumulativeDelay += searchConfig.delayIncrement;
 	}
 }
 
 /**
  * Sends an HTML response that redirects the user with an optional alert message
  */
-export function sendAlertAndRedirectResponse(res: Response, url: string, message?: string) {
+export function redirectWithAlert(res: Response, url: string, message?: string) {
 	return res.setHeader('Content-Type', 'text/html').status(200).send(`
 			<script>
 				${message ? `alert("${message}");` : ''}
@@ -83,7 +80,7 @@ export function sendAlertAndRedirectResponse(res: Response, url: string, message
 /**
  * Sends an HTML error response with an alert message and browser history navigation
  */
-export function sendAlertAndBackResponse(res: Response, message: string) {
+export function goBackWithAlert(res: Response, message: string) {
 	return res.setHeader('Content-Type', 'text/html').status(422).send(`
 			<script>
 				alert("${message}");
@@ -180,15 +177,15 @@ export function parseSearchQuery(query: string) {
  * Handles rate limiting for unauthenticated users
  * Returns warning message when search count reaches multiples of 10
  */
-export function handleRateLimiting(req: Request, searchCount: number) {
-	const searchesLeft = config.searchLimit - searchCount;
+export function getSearchLimitWarning(req: Request, searchCount: number) {
+	const searchesLeft = searchConfig.searchLimit - searchCount;
 	const showWarning = searchCount % 10 === 0 && searchCount !== 0;
 
 	if (showWarning) {
 		const message =
 			searchesLeft <= 0
 				? "You've exceeded the search limit for unauthenticated users. Please log in for unlimited searches without delays."
-				: `You have used ${searchCount} out of ${config.searchLimit} searches. Log in for unlimited searches!`;
+				: `You have used ${searchCount} out of ${searchConfig.searchLimit} searches. Log in for unlimited searches!`;
 		return message;
 	}
 
@@ -198,7 +195,7 @@ export function handleRateLimiting(req: Request, searchCount: number) {
 /**
  * Processes bang redirect URLs Handles both search queries and direct domain redirects
  */
-export function handleBangRedirect(bang: Bang, searchTerm: string) {
+export function getBangRedirectUrl(bang: Bang, searchTerm: string) {
 	if (searchTerm) {
 		return bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm));
 	}
@@ -213,19 +210,19 @@ export function handleBangRedirect(bang: Bang, searchTerm: string) {
  * Asynchronously tracks search for analytics purposes
  * Processes bang commands for unauthenticated users
  */
-export async function handleUnauthenticatedUserFlow(
+export async function handleAnonymousSearch(
 	req: Request,
 	res: Response,
 	query: string,
 	triggerWithoutBang: string,
 	searchTerm: string,
 ) {
-	const warningMessage = handleRateLimiting(req, req.session.searchCount ?? 0);
+	const warningMessage = getSearchLimitWarning(req, req.session.searchCount ?? 0);
 
 	// Display warning when user approaches or exceeds search limits
 	if (warningMessage) {
-		void trackUnauthenticatedUserSearchHistoryQueue.push(req);
-		return sendAlertAndRedirectResponse(
+		void anonymousSearchHistoryQueue.push(req);
+		return redirectWithAlert(
 			res,
 			defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)),
 			warningMessage,
@@ -238,41 +235,41 @@ export async function handleUnauthenticatedUserFlow(
 	}
 
 	// Asynchronously track search for analytics purposes
-	void trackUnauthenticatedUserSearchHistoryQueue.push(req);
+	void anonymousSearchHistoryQueue.push(req);
 
 	// Process bang commands for unauthenticated users
 	if (triggerWithoutBang) {
-		const bang = config.bangs[triggerWithoutBang] as Bang;
+		const bang = searchConfig.bangs[triggerWithoutBang] as Bang;
 		if (bang) {
 			// Handle search queries with bang (e.g., "!g python")
 			if (searchTerm) {
 				// Show warning if rate limiting is active
 				if (req.session.cumulativeDelay) {
-					return sendAlertAndRedirectResponse(
+					return redirectWithAlert(
 						res,
 						`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
 					);
 				}
 
-				return res.redirect(handleBangRedirect(bang, searchTerm));
+				return res.redirect(getBangRedirectUrl(bang, searchTerm));
 			}
 
 			// Handle bang-only queries (e.g., "!g") - redirects to service homepage
 			if (req.session.cumulativeDelay) {
-				return sendAlertAndRedirectResponse(
+				return redirectWithAlert(
 					res,
-					handleBangRedirect(bang, ''),
+					getBangRedirectUrl(bang, ''),
 					`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
 				);
 			}
 
-			return res.redirect(handleBangRedirect(bang, ''));
+			return res.redirect(getBangRedirectUrl(bang, ''));
 		}
 	}
 
 	// Process regular search using DuckDuckGo (default for unauthenticated users)
 	if (req.session.cumulativeDelay) {
-		return sendAlertAndRedirectResponse(
+		return redirectWithAlert(
 			res,
 			defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
 			`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
@@ -304,17 +301,12 @@ export async function search({
 	const { trigger, triggerWithoutBang, url, searchTerm } = parseSearchQuery(query);
 
 	if (!user) {
-		return await handleUnauthenticatedUserFlow(
-			req,
-			res,
-			query,
-			triggerWithoutBang ?? '',
-			searchTerm ?? '',
-		);
+		return await handleAnonymousSearch(req, res, query, triggerWithoutBang ?? '', searchTerm ?? '');
 	}
 
 	// Handle application navigation shortcuts (e.g., "@settings", "@bookmarks")
-	const directCommand = config.directCommands[query as keyof typeof config.directCommands];
+	const directCommand =
+		searchConfig.directCommands[query as keyof typeof searchConfig.directCommands];
 	if (directCommand) {
 		return res.redirect(directCommand);
 	}
@@ -326,7 +318,7 @@ export async function search({
 	// 3. !bm this is a long title https://example.com
 	if (trigger === '!bm') {
 		if (!url || !isValidUrl(url)) {
-			return sendAlertAndBackResponse(res, 'Invalid or missing URL');
+			return goBackWithAlert(res, 'Invalid or missing URL');
 		}
 
 		try {
@@ -338,7 +330,7 @@ export async function search({
 
 			return res.redirect(url);
 		} catch (error) {
-			return sendAlertAndRedirectResponse(res, 'Error adding bookmark');
+			return redirectWithAlert(res, 'Error adding bookmark');
 		}
 	}
 
@@ -350,7 +342,7 @@ export async function search({
 
 		// Validate command format
 		if (!trigger || !url?.length) {
-			return sendAlertAndBackResponse(res, 'Invalid trigger or empty URL');
+			return goBackWithAlert(res, 'Invalid trigger or empty URL');
 		}
 
 		// Prevent duplicates and system command conflicts
@@ -424,21 +416,21 @@ export async function search({
 
 	// Process system-defined bang commands
 	if (triggerWithoutBang) {
-		const bang = config.bangs[triggerWithoutBang] as Bang;
+		const bang = searchConfig.bangs[triggerWithoutBang] as Bang;
 		if (bang) {
 			// Handle search queries with bang (e.g., "!g python")
 			if (searchTerm) {
-				return res.redirect(handleBangRedirect(bang, searchTerm));
+				return res.redirect(getBangRedirectUrl(bang, searchTerm));
 			}
 
 			// Handle special cases where bang URL requires search parameter
 			// Example: DuckDuckGo timer (!timer)
 			if (bang.u.includes('{{{s}}}')) {
-				return res.redirect(handleBangRedirect(bang, searchTerm));
+				return res.redirect(getBangRedirectUrl(bang, searchTerm));
 			}
 
 			// Handle bang-only queries - redirect to service homepage
-			return res.redirect(handleBangRedirect(bang, ''));
+			return res.redirect(getBangRedirectUrl(bang, ''));
 		}
 	}
 
