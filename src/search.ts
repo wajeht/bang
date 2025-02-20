@@ -120,7 +120,7 @@ export function parseSearchQuery(query: string) {
 	const urlMatch = sanitizedQuery.match(urlPattern);
 
 	const trigger = triggerMatch?.[1] ?? null;
-	const triggerWithoutBang = trigger?.slice(1) ?? null;
+	const triggerWithoutExclamationMark = trigger?.slice(1) ?? null;
 	const url = urlMatch?.[1] ?? null;
 
 	// Process search term with URL removal
@@ -149,7 +149,7 @@ export function parseSearchQuery(query: string) {
 		 * @example "g" for Google search
 		 * @example "bm" for bookmark command
 		 */
-		triggerWithoutBang,
+		triggerWithoutExclamationMark,
 
 		/**
 		 * First valid URL found in the query string
@@ -298,10 +298,16 @@ export async function search({
 	user?: User;
 	query: string;
 }) {
-	const { trigger, triggerWithoutBang, url, searchTerm } = parseSearchQuery(query);
+	const { trigger, triggerWithoutExclamationMark, url, searchTerm } = parseSearchQuery(query);
 
 	if (!user) {
-		return await handleAnonymousSearch(req, res, query, triggerWithoutBang ?? '', searchTerm ?? '');
+		return await handleAnonymousSearch(
+			req,
+			res,
+			query,
+			triggerWithoutExclamationMark ?? '',
+			searchTerm ?? '',
+		);
 	}
 
 	// Handle application navigation shortcuts (e.g., "@settings", "@bookmarks")
@@ -415,8 +421,8 @@ export async function search({
 	}
 
 	// Process system-defined bang commands
-	if (triggerWithoutBang) {
-		const bang = searchConfig.bangs[triggerWithoutBang] as Bang;
+	if (triggerWithoutExclamationMark) {
+		const bang = searchConfig.bangs[triggerWithoutExclamationMark] as Bang;
 		if (bang) {
 			// Handle search queries with bang (e.g., "!g python")
 			if (searchTerm) {
@@ -442,7 +448,7 @@ export async function search({
 
 	// Handle unknown bang commands by searching for them without the "!"
 	if (!searchTerm) {
-		searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(triggerWithoutBang ?? '')); // prettier-ignore
+		searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(triggerWithoutExclamationMark ?? '')); // prettier-ignore
 	}
 
 	return res.redirect(searchUrl);

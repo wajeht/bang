@@ -591,7 +591,7 @@ describe('parseSearchQuery', () => {
 		const result = parseSearchQuery('python tutorial');
 		expect(result).toEqual({
 			trigger: null,
-			triggerWithoutBang: null,
+			triggerWithoutExclamationMark: null,
 			url: null,
 			searchTerm: 'python tutorial',
 		});
@@ -601,7 +601,7 @@ describe('parseSearchQuery', () => {
 		const result = parseSearchQuery('!g python tutorial');
 		expect(result).toEqual({
 			trigger: '!g',
-			triggerWithoutBang: 'g',
+			triggerWithoutExclamationMark: 'g',
 			url: null,
 			searchTerm: 'python tutorial',
 		});
@@ -611,7 +611,7 @@ describe('parseSearchQuery', () => {
 		const result = parseSearchQuery('!bm My Bookmark https://example.com');
 		expect(result).toEqual({
 			trigger: '!bm',
-			triggerWithoutBang: 'bm',
+			triggerWithoutExclamationMark: 'bm',
 			url: 'https://example.com',
 			searchTerm: 'My Bookmark',
 		});
@@ -621,7 +621,7 @@ describe('parseSearchQuery', () => {
 		const result = parseSearchQuery('!bm https://example.com');
 		expect(result).toEqual({
 			trigger: '!bm',
-			triggerWithoutBang: 'bm',
+			triggerWithoutExclamationMark: 'bm',
 			url: 'https://example.com',
 			searchTerm: '',
 		});
@@ -631,7 +631,7 @@ describe('parseSearchQuery', () => {
 		const result = parseSearchQuery('!add !custom https://custom-search.com');
 		expect(result).toEqual({
 			trigger: '!add',
-			triggerWithoutBang: 'add',
+			triggerWithoutExclamationMark: 'add',
 			url: 'https://custom-search.com',
 			searchTerm: '!custom',
 		});
@@ -641,7 +641,7 @@ describe('parseSearchQuery', () => {
 		const result = parseSearchQuery('!my-bang search term');
 		expect(result).toEqual({
 			trigger: '!my-bang',
-			triggerWithoutBang: 'my-bang',
+			triggerWithoutExclamationMark: 'my-bang',
 			url: null,
 			searchTerm: 'search term',
 		});
@@ -651,7 +651,7 @@ describe('parseSearchQuery', () => {
 		const result = parseSearchQuery('!g    python     tutorial    ');
 		expect(result).toEqual({
 			trigger: '!g',
-			triggerWithoutBang: 'g',
+			triggerWithoutExclamationMark: 'g',
 			url: null,
 			searchTerm: 'python tutorial',
 		});
@@ -661,7 +661,7 @@ describe('parseSearchQuery', () => {
 		const result = parseSearchQuery('!bm My Site https://example.com/path?param=value');
 		expect(result).toEqual({
 			trigger: '!bm',
-			triggerWithoutBang: 'bm',
+			triggerWithoutExclamationMark: 'bm',
 			url: 'https://example.com/path?param=value',
 			searchTerm: 'My Site',
 		});
@@ -671,7 +671,7 @@ describe('parseSearchQuery', () => {
 		const result = parseSearchQuery('');
 		expect(result).toEqual({
 			trigger: null,
-			triggerWithoutBang: null,
+			triggerWithoutExclamationMark: null,
 			url: null,
 			searchTerm: '',
 		});
@@ -681,7 +681,7 @@ describe('parseSearchQuery', () => {
 		const result = parseSearchQuery('   ');
 		expect(result).toEqual({
 			trigger: null,
-			triggerWithoutBang: null,
+			triggerWithoutExclamationMark: null,
 			url: null,
 			searchTerm: '',
 		});
@@ -691,7 +691,7 @@ describe('parseSearchQuery', () => {
 		const result = parseSearchQuery('!g');
 		expect(result).toEqual({
 			trigger: '!g',
-			triggerWithoutBang: 'g',
+			triggerWithoutExclamationMark: 'g',
 			url: null,
 			searchTerm: '',
 		});
