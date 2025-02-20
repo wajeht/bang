@@ -2,6 +2,7 @@ import { db } from './db/db';
 import { User } from './types';
 import { search } from './search';
 import { appConfig } from './configs';
+import { parseSearchQuery } from './search';
 import { Request, Response } from 'express';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -614,6 +615,118 @@ describe('search', () => {
 				await search({ req, res, user: testUser, query: command });
 				expect(res.redirect).toHaveBeenCalledWith(path);
 			}
+		});
+	});
+});
+
+describe('parseSearchQuery', () => {
+	it('should parse a basic search query without bang', () => {
+		const result = parseSearchQuery('python tutorial');
+		expect(result).toEqual({
+			trigger: null,
+			triggerWithoutBang: null,
+			url: null,
+			searchTerm: 'python tutorial',
+		});
+	});
+
+	it('should parse a search query with bang', () => {
+		const result = parseSearchQuery('!g python tutorial');
+		expect(result).toEqual({
+			trigger: '!g',
+			triggerWithoutBang: 'g',
+			url: null,
+			searchTerm: 'python tutorial',
+		});
+	});
+
+	it('should parse a bookmark command with title and URL', () => {
+		const result = parseSearchQuery('!bm My Bookmark https://example.com');
+		expect(result).toEqual({
+			trigger: '!bm',
+			triggerWithoutBang: 'bm',
+			url: 'https://example.com',
+			searchTerm: 'My Bookmark',
+		});
+	});
+
+	it('should parse a bookmark command with only URL', () => {
+		const result = parseSearchQuery('!bm https://example.com');
+		expect(result).toEqual({
+			trigger: '!bm',
+			triggerWithoutBang: 'bm',
+			url: 'https://example.com',
+			searchTerm: '',
+		});
+	});
+
+	it('should parse a custom bang creation command', () => {
+		const result = parseSearchQuery('!add !custom https://custom-search.com');
+		expect(result).toEqual({
+			trigger: '!add',
+			triggerWithoutBang: 'add',
+			url: 'https://custom-search.com',
+			searchTerm: '!custom',
+		});
+	});
+
+	it('should handle bangs with hyphens', () => {
+		const result = parseSearchQuery('!my-bang search term');
+		expect(result).toEqual({
+			trigger: '!my-bang',
+			triggerWithoutBang: 'my-bang',
+			url: null,
+			searchTerm: 'search term',
+		});
+	});
+
+	it('should handle multiple spaces in query', () => {
+		const result = parseSearchQuery('!g    python     tutorial    ');
+		expect(result).toEqual({
+			trigger: '!g',
+			triggerWithoutBang: 'g',
+			url: null,
+			searchTerm: 'python tutorial',
+		});
+	});
+
+	it('should handle URLs with query parameters', () => {
+		const result = parseSearchQuery('!bm My Site https://example.com/path?param=value');
+		expect(result).toEqual({
+			trigger: '!bm',
+			triggerWithoutBang: 'bm',
+			url: 'https://example.com/path?param=value',
+			searchTerm: 'My Site',
+		});
+	});
+
+	it('should handle empty query', () => {
+		const result = parseSearchQuery('');
+		expect(result).toEqual({
+			trigger: null,
+			triggerWithoutBang: null,
+			url: null,
+			searchTerm: '',
+		});
+	});
+
+	it('should handle query with only spaces', () => {
+		const result = parseSearchQuery('   ');
+		expect(result).toEqual({
+			trigger: null,
+			triggerWithoutBang: null,
+			url: null,
+			searchTerm: '',
+		});
+	});
+
+	it('should handle bang-only query', () => {
+		const result = parseSearchQuery('!g');
+		expect(result).toEqual({
+			trigger: '!g',
+			triggerWithoutBang: 'g',
+			url: null,
+			searchTerm: '',
 		});
 	});
 });
