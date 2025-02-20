@@ -1,7 +1,7 @@
 import fastq from 'fastq';
 import { db } from './db/db';
 import { logger } from './logger';
-import { bangs } from './db/bangs';
+import { bangs as bangsTable } from './db/bangs';
 import { User, Bang } from './types';
 import { Request, Response } from 'express';
 import { defaultSearchProviders } from './configs';
@@ -14,7 +14,7 @@ const config = {
 	/**
 	 * List of bangs that are available to use from the bangs table
 	 */
-	bangs: bangs,
+	bangs: bangsTable,
 	/**
 	 * Maximum number of searches allowed for unauthenticated users
 	 */
