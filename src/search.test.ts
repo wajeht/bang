@@ -419,6 +419,7 @@ describe('search', () => {
 		it('should handle duplicate bang trigger creation', async () => {
 			const req = {} as Request;
 			const res = {
+				redirect: vi.fn(),
 				setHeader: vi.fn().mockReturnThis(),
 				status: vi.fn().mockReturnThis(),
 				send: vi.fn(),
