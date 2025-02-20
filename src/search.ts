@@ -71,25 +71,30 @@ export async function trackUnauthenticatedUserSearchHistory({
 /**
  * Sends an HTML response that redirects the user with an optional alert message
  */
-export function sendHtmlRedirect(res: Response, url: string, message?: string) {
-	return res.setHeader('Content-Type', 'text/html').status(200).send(`
+export function sendAlertAndRedirectResponse(res: Response, url: string, message?: string) {
+	return res.setHeader('Content-Type', 'text/html')
+		.status(200)
+		.send(`
 			<script>
 				${message ? `alert("${message}");` : ''}
 				window.location.href = "${url}";
 			</script>
-		`);
+		`); // prettier-ignore
 }
 
 /**
  * Sends an HTML error response with an alert message and browser history navigation
  */
 export function sendErrorResponse(res: Response, message: string) {
-	return res.setHeader('Content-Type', 'text/html').status(422).send(`
+	return res
+		.setHeader('Content-Type', 'text/html')
+		.status(422)
+		.send(`
 			<script>
 				alert("${message}");
 				window.history.back();
 			</script>
-		`);
+		`); // prettier-ignore
 }
 
 /**
@@ -186,11 +191,7 @@ export async function search({
 
 		if (warningMessage) {
 			void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
-			return sendHtmlRedirect(
-				res,
-				defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)),
-				warningMessage,
-			);
+			return sendAlertAndRedirectResponse(res, defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)), warningMessage); // prettier-ignore
 		}
 
 		// Apply rate limiting delay if user has exceeded limits
@@ -211,15 +212,7 @@ export async function search({
 				if (searchTerm) {
 					// Apply rate limiting warning if needed
 					if (req.session.cumulativeDelay) {
-						return res
-							.setHeader('Content-Type', 'text/html')
-							.status(200)
-							.send(`
-								<script>
-									alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
-									window.location.href = "${handleBangRedirect(bang, searchTerm)}";
-								</script>
-							`); // prettier-ignore
+						return sendAlertAndRedirectResponse(res, handleBangRedirect(bang, searchTerm), `Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`); // prettier-ignore
 					}
 
 					return res.redirect(handleBangRedirect(bang, searchTerm));
@@ -228,15 +221,7 @@ export async function search({
 				// Handle bang without search term (e.g., "!g")
 				// This typically redirects to the service's homepage
 				if (req.session.cumulativeDelay) {
-					return res
-						.setHeader('Content-Type', 'text/html')
-						.status(200)
-						.send(`
-							<script>
-								alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
-								window.location.href = "${handleBangRedirect(bang, '')}";
-							</script>
-						`); // prettier-ignore
+					return sendAlertAndRedirectResponse(res, handleBangRedirect(bang, ''), `Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`); // prettier-ignore
 				}
 
 				return res.redirect(handleBangRedirect(bang, ''));
@@ -245,15 +230,7 @@ export async function search({
 
 		// Handle default search for unauthenticated users (always uses DuckDuckGo)
 		if (req.session.cumulativeDelay) {
-			return res
-				.setHeader('Content-Type', 'text/html')
-				.status(200)
-				.send(`
-					<script>
-						alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
-						window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))}";
-					</script>
-				`); // prettier-ignore
+			return sendAlertAndRedirectResponse(res, defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)), `Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`); // prettier-ignore
 		}
 
 		return res.redirect(defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))); // prettier-ignore
