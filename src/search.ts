@@ -195,9 +195,11 @@ export async function search({
 	// Unauthenticated User Flow
 	// ==========================================
 	if (!user) {
+		// Initialize search count for new sessions
 		req.session.searchCount = req.session.searchCount || 0;
 		const warningMessage = handleRateLimiting(req, req.session.searchCount);
 
+		// Display warning when user approaches or exceeds search limits
 		if (warningMessage) {
 			void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
 			return sendHtmlRedirect(
@@ -207,23 +209,22 @@ export async function search({
 			);
 		}
 
-		// Apply rate limiting delay if user has exceeded limits
+		// Enforce rate limiting delay for users who exceeded search limits
 		if (req.session.cumulativeDelay) {
 			logger.warn(`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay / 1000}s due to exceeding search limit.`); // prettier-ignore
 			await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
 		}
 
-		// Track search history for analytics
+		// Asynchronously track search for analytics purposes
 		void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
 
-		// Handle bang commands for unauthenticated users
+		// Process bang commands for unauthenticated users
 		if (triggerWithoutExclamationMark) {
 			const bang = config.bangs[triggerWithoutExclamationMark] as Bang;
-			// Found matching bang command in predefined list
 			if (bang) {
-				// Handle search with bang (e.g., "!g python")
+				// Handle search queries with bang (e.g., "!g python")
 				if (searchTerm) {
-					// Apply rate limiting warning if needed
+					// Show warning if rate limiting is active
 					if (req.session.cumulativeDelay) {
 						return res
 							.setHeader('Content-Type', 'text/html')
@@ -239,8 +240,7 @@ export async function search({
 					return res.redirect(handleBangRedirect(bang, searchTerm));
 				}
 
-				// Handle bang without search term (e.g., "!g")
-				// This typically redirects to the service's homepage
+				// Handle bang-only queries (e.g., "!g") - redirects to service homepage
 				if (req.session.cumulativeDelay) {
 					return res
 						.setHeader('Content-Type', 'text/html')
@@ -257,7 +257,7 @@ export async function search({
 			}
 		}
 
-		// Handle default search for unauthenticated users (always uses DuckDuckGo)
+		// Process regular search using DuckDuckGo (default for unauthenticated users)
 		if (req.session.cumulativeDelay) {
 			return res
 				.setHeader('Content-Type', 'text/html')
@@ -277,15 +277,17 @@ export async function search({
 	// Authenticated User Flow
 	// ==========================================
 
-	// Handle direct navigation commands (e.g., @settings, @bookmarks)
-	// These provide quick access to different sections of the application
+	// Handle application navigation shortcuts (e.g., "@settings", "@bookmarks")
 	const directCommand = config.directCommands[query as keyof typeof config.directCommands];
 	if (directCommand) {
 		return res.redirect(directCommand);
 	}
 
-	// Handle bookmark creation command (!bm)
-	// Allows users to quickly bookmark URLs while searching
+	// Process bookmark creation command (!bm)
+	// Formats supported:
+	// 1. !bm https://example.com
+	// 2. !bm title https://example.com
+	// 3. !bm this is a long title https://example.com
 	if (trigger === '!bm') {
 		if (!url || !isValidUrl(url)) {
 			return res
@@ -300,14 +302,8 @@ export async function search({
 		}
 
 		try {
-			// The bookmark command (!bm) supports three formats:
-			// 1. !bm https://example.com - Creates bookmark with no title (will fetch title automatically)
-			// 2. !bm title https://example.com - Creates bookmark with a single-word title
-			// 3. !bm this is a long title https://example.com - Creates bookmark with a multi-word title
-
-			// Find the URL in the command string
+			// Extract title from command by removing "!bm" and URL
 			const urlIndex = query.indexOf(url!);
-			// Extract everything between "!bm " and the URL as the title
 			const titleSection = query.slice(4, urlIndex).trim();
 
 			void insertBookmarkQueue.push({ url, title: titleSection || '', userId: user.id });
@@ -327,14 +323,13 @@ export async function search({
 		}
 	}
 
-	// Handle custom bang creation command (!add)
-	// Allows users to create their own bang shortcuts
+	// Process custom bang creation command (!add)
+	// Format: !add !trigger URL or !add trigger URL
 	if (trigger === '!add') {
 		const [, rawTrigger, url] = query.split(' ');
-		// the second one
-		// !add !yt https://youtube.com
-		// !add yt https://youtube.com
 		const trigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
+
+		// Validate command format
 		if (!trigger || !url?.length) {
 			return res
 				.setHeader('Content-Type', 'text/html')
@@ -347,7 +342,7 @@ export async function search({
 				`); // prettier-ignore
 		}
 
-		// Check for existing bang with same trigger
+		// Prevent duplicates and system command conflicts
 		const hasSystemBangCommands = ['!add', '!bm'].includes(trigger);
 		const hasExistingCustomBangCommand = await db('bangs')
 			.where({ user_id: user.id, trigger })
@@ -376,7 +371,7 @@ export async function search({
 				`); // prettier-ignore
 		}
 
-		// Create new bang command in database
+		// Create new bang command and queue title fetch
 		const bangs = await db('bangs')
 			.insert({
 				user_id: user.id,
@@ -387,7 +382,6 @@ export async function search({
 			})
 			.returning('*');
 
-		// Queue async task to fetch page title
 		void insertPageTitleQueue.push({ actionId: bangs[0].id, url });
 
 		return res
@@ -396,7 +390,7 @@ export async function search({
 			.send(`<script> window.history.back(); </script>`);
 	}
 
-	// Handle user's custom bang commands
+	// Process user-defined custom bang commands
 	if (trigger) {
 		const customBang = await db('bangs')
 			.join('action_types', 'bangs.action_type_id', 'action_types.id')
@@ -404,67 +398,46 @@ export async function search({
 			.select('bangs.*', 'action_types.name as action_type')
 			.first();
 
-		// Handle different types of custom bangs
 		if (customBang) {
+			// Handle redirect-type bangs (direct URL navigation)
 			if (customBang.action_type === 'redirect') {
 				return res.redirect(customBang.url);
 			}
 
+			// Handle search-type bangs (URL with search parameter)
 			if (customBang.action_type === 'search') {
 				return res.redirect(customBang.url.replace('{{{s}}}', encodeURIComponent(searchTerm)));
 			}
 		}
 	}
 
-	// Handle default bang commands from predefined list
+	// Process system-defined bang commands
 	if (triggerWithoutExclamationMark) {
 		const bang = config.bangs[triggerWithoutExclamationMark] as Bang;
-		// Found matching bang in predefined list
 		if (bang) {
-			// Handle search with bang (e.g., "!g python")
+			// Handle search queries with bang (e.g., "!g python")
 			if (searchTerm) {
 				return res.redirect(handleBangRedirect(bang, searchTerm));
 			}
 
-			// `!trigger` without search term
-			// `!timer` which ddg has it
-			//  bang: {
-			//    c: 'Online Services',
-			//    d: 'duckduckgo.com',
-			//    r: 33,
-			//    s: 'DuckDuckGo Timer',
-			//    sc: 'Tools',
-			//    t: 'timer',
-			//    u: 'http://duckduckgo.com/?q=timer+{{{s}}}&ia=answer'
-			// }
+			// Handle special cases where bang URL requires search parameter
+			// Example: DuckDuckGo timer (!timer)
 			if (bang.u.includes('{{{s}}}')) {
 				return res.redirect(handleBangRedirect(bang, searchTerm));
 			}
 
-			// Handle bang without search term (redirects to service homepage)
-			// in this case we will redirect `bang.d`
-			//  bang: {
-			//    c: 'Online Services',
-			//    d: 'duckduckgo.com',
-			//    r: 33,
-			//    s: 'DuckDuckGo Timer',
-			//    sc: 'Tools',
-			//    t: 'timer',
-			//    u: 'http://duckduckgo.com/?q=timer+{{{s}}}&ia=answer'
-			// }
+			// Handle bang-only queries - redirect to service homepage
 			return res.redirect(handleBangRedirect(bang, ''));
 		}
 	}
 
-	// Default search using user's preferred search engine
+	// Process default search using user's preferred search engine
 	const defaultProvider = user.default_search_provider || 'duckduckgo';
 
-	// eg `!g cat videos`
+	// Handle regular search queries or fallback for unknown bangs
 	let searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(searchTerm)); // prettier-ignore
 
-	// eg `!somethingthatdoesnotexist`
-	// we will redirect to default search provider and it's keywords without `!`
-	// eg `https://duckduckgo.com/?q=somethingthatdoesnotexist`
+	// Handle unknown bang commands by searching for them without the "!"
 	if (!searchTerm) {
 		searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(triggerWithoutExclamationMark ?? '')); // prettier-ignore
 	}
