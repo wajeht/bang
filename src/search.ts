@@ -89,10 +89,13 @@ async function trackUnauthenticatedUserSearchHistory({
 	req: Request;
 	query: string;
 }) {
-	req.session.searchCount = (req.session.searchCount || 0) + 1;
+	req.session.searchCount = req.session.searchCount || 0;
+	req.session.cumulativeDelay = req.session.cumulativeDelay || 0;
+
+	req.session.searchCount += 1;
 
 	if (req.session.searchCount > config.searchLimit) {
-		req.session.cumulativeDelay = (req.session.cumulativeDelay || 0) + config.delayIncrement;
+		req.session.cumulativeDelay += config.delayIncrement;
 	}
 
 	logger.info('[trackUnauthenticatedUserSearchHistory]:', {
