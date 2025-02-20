@@ -18,6 +18,22 @@ const SEARCH_LIMIT = 60 as const;
 const DELAY_INCREMENT = 5000 as const;
 
 /**
+ * Direct commands that can be used to navigate to different sections of the application
+ */
+const DIRECT_COMMANDS: Record<string, string> = {
+	'@a': '/actions',
+	'@actions': '/actions',
+	'@api': '/api-docs',
+	'@b': '/',
+	'@bang': '/',
+	'@bm': '/bookmarks',
+	'@bookmarks': '/bookmarks',
+	'@data': '/settings/data',
+	'@s': '/settings',
+	'@settings': '/settings',
+};
+
+/**
  * Queue for tracking search history of unauthenticated users asynchronously
  */
 export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(trackUnauthenticatedUserSearchHistory, 10); // prettier-ignore
@@ -249,21 +265,9 @@ export async function search({
 
 	// Handle direct navigation commands (e.g., @settings, @bookmarks)
 	// These provide quick access to different sections of the application
-	const directCommands: Record<string, string> = {
-		'@a': '/actions',
-		'@actions': '/actions',
-		'@api': '/api-docs',
-		'@b': '/',
-		'@bang': '/',
-		'@bm': '/bookmarks',
-		'@bookmarks': '/bookmarks',
-		'@data': '/settings/data',
-		'@s': '/settings',
-		'@settings': '/settings',
-	};
 
-	if (directCommands[query]) {
-		return res.redirect(directCommands[query]);
+	if (DIRECT_COMMANDS[query]) {
+		return res.redirect(DIRECT_COMMANDS[query]);
 	}
 
 	// Handle bookmark creation command (!bm)
