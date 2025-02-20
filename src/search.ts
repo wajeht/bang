@@ -216,6 +216,82 @@ export function handleBangRedirect(bang: Bang, searchTerm: string) {
 }
 
 /**
+ * Handles the flow for unauthenticated users
+ * Displays warning when user approaches or exceeds search limits
+ * Enforces rate limiting delay for users who exceeded search limits
+ * Asynchronously tracks search for analytics purposes
+ * Processes bang commands for unauthenticated users
+ */
+export async function handleUnauthenticatedUserFlow(
+	req: Request,
+	res: Response,
+	query: string,
+	triggerWithoutBang: string,
+	searchTerm: string,
+) {
+	const warningMessage = handleRateLimiting(req, req.session.searchCount ?? 0);
+
+	// Display warning when user approaches or exceeds search limits
+	if (warningMessage) {
+		void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
+		return sendAlertAndRedirectResponse(
+			res,
+			defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)),
+			warningMessage,
+		);
+	}
+
+	// Enforce rate limiting delay for users who exceeded search limits
+	if (req.session.cumulativeDelay) {
+		await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
+	}
+
+	// Asynchronously track search for analytics purposes
+	void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
+
+	// Process bang commands for unauthenticated users
+	if (triggerWithoutBang) {
+		const bang = config.bangs[triggerWithoutBang] as Bang;
+		if (bang) {
+			// Handle search queries with bang (e.g., "!g python")
+			if (searchTerm) {
+				// Show warning if rate limiting is active
+				if (req.session.cumulativeDelay) {
+					return sendAlertAndRedirectResponse(
+						res,
+						`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
+					);
+				}
+
+				return res.redirect(handleBangRedirect(bang, searchTerm));
+			}
+
+			// Handle bang-only queries (e.g., "!g") - redirects to service homepage
+			if (req.session.cumulativeDelay) {
+				return sendAlertAndRedirectResponse(
+					res,
+					handleBangRedirect(bang, ''),
+					`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
+				);
+			}
+
+			return res.redirect(handleBangRedirect(bang, ''));
+		}
+	}
+
+	// Process regular search using DuckDuckGo (default for unauthenticated users)
+	if (req.session.cumulativeDelay) {
+		return sendAlertAndRedirectResponse(
+			res,
+			defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
+			`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
+		);
+	}
+
+	return res.redirect(defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))); // prettier-ignore
+}
+
+/**
  *
  * TODO: clean this function and write tests for all edge cases
  *
@@ -240,68 +316,13 @@ export async function search({
 	// Unauthenticated User Flow
 	// ==========================================
 	if (!user) {
-		// Initialize search count for new sessions
-		req.session.searchCount = req.session.searchCount || 0;
-		const warningMessage = handleRateLimiting(req, req.session.searchCount);
-
-		// Display warning when user approaches or exceeds search limits
-		if (warningMessage) {
-			void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
-			return sendAlertAndRedirectResponse(
-				res,
-				defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)),
-				warningMessage,
-			);
-		}
-
-		// Enforce rate limiting delay for users who exceeded search limits
-		if (req.session.cumulativeDelay) {
-			await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
-		}
-
-		// Asynchronously track search for analytics purposes
-		void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
-
-		// Process bang commands for unauthenticated users
-		if (triggerWithoutBang) {
-			const bang = config.bangs[triggerWithoutBang] as Bang;
-			if (bang) {
-				// Handle search queries with bang (e.g., "!g python")
-				if (searchTerm) {
-					// Show warning if rate limiting is active
-					if (req.session.cumulativeDelay) {
-						return sendAlertAndRedirectResponse(
-							res,
-							`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
-						);
-					}
-
-					return res.redirect(handleBangRedirect(bang, searchTerm));
-				}
-
-				// Handle bang-only queries (e.g., "!g") - redirects to service homepage
-				if (req.session.cumulativeDelay) {
-					return sendAlertAndRedirectResponse(
-						res,
-						handleBangRedirect(bang, ''),
-						`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
-					);
-				}
-
-				return res.redirect(handleBangRedirect(bang, ''));
-			}
-		}
-
-		// Process regular search using DuckDuckGo (default for unauthenticated users)
-		if (req.session.cumulativeDelay) {
-			return sendAlertAndRedirectResponse(
-				res,
-				defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
-				`Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
-			);
-		}
-
-		return res.redirect(defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))); // prettier-ignore
+		return await handleUnauthenticatedUserFlow(
+			req,
+			res,
+			query,
+			triggerWithoutBang ?? '',
+			searchTerm ?? '',
+		);
 	}
 
 	// ==========================================
