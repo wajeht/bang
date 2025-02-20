@@ -155,7 +155,6 @@ export function parseSearchQuery(query: string) {
 		/**
 		 * Bang trigger with "!" prefix removed
 		 * Used for looking up commands in bangs table
-		 * References: src/db/migrations/20241111003332_create_tables.ts:58-71
 		 * @example "g" for Google search
 		 * @example "bm" for bookmark command
 		 */
@@ -165,7 +164,6 @@ export function parseSearchQuery(query: string) {
 		 * First valid URL found in the query string
 		 * Used for bookmark creation and custom bang definition
 		 * Supports both http and https protocols
-		 * References: src/handlers.ts:194-196
 		 * @example "https://example.com" from "!bm title https://example.com"
 		 * @example null when no URL is present
 		 */
@@ -177,7 +175,6 @@ export function parseSearchQuery(query: string) {
 		 * - Search query for search bangs
 		 * - Title for bookmarks
 		 * - Trigger for custom bang creation
-		 * References: src/utils.ts:69-87
 		 * @example "python" from "!g python"
 		 * @example "My Bookmark" from "!bm My Bookmark https://example.com"
 		 */
@@ -312,9 +309,6 @@ export async function search({
 }) {
 	const { trigger, triggerWithoutBang, url, searchTerm } = parseSearchQuery(query);
 
-	// ==========================================
-	// Unauthenticated User Flow
-	// ==========================================
 	if (!user) {
 		return await handleUnauthenticatedUserFlow(
 			req,
@@ -324,10 +318,6 @@ export async function search({
 			searchTerm ?? '',
 		);
 	}
-
-	// ==========================================
-	// Authenticated User Flow
-	// ==========================================
 
 	// Handle application navigation shortcuts (e.g., "@settings", "@bookmarks")
 	const directCommand = config.directCommands[query as keyof typeof config.directCommands];
