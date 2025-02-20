@@ -12,6 +12,10 @@ import { addHttps, insertBookmarkQueue, insertPageTitleQueue, isValidUrl } from 
  */
 const config = {
 	/**
+	 * List of bangs that are available to use from the bangs table
+	 */
+	bangs: bangs,
+	/**
 	 * Maximum number of searches allowed for unauthenticated users
 	 */
 	searchLimit: 60,
@@ -132,11 +136,11 @@ function parseSearchQuery(query: string) {
 	const triggerMatch = query.match(/^(!\w+)/);
 	const urlMatch = query.match(/\s+(https?:\/\/\S+)/);
 	const trigger = triggerMatch?.[1] || null;
-	const triggerWithoutBang = trigger?.slice(1) || null;
+	const triggerWithoutExclamationMark = trigger?.slice(1) || null;
 	const url = urlMatch?.[1] || null;
 	const searchTerm = trigger ? query.slice(trigger.length).trim() : query.trim();
 
-	return { trigger, triggerWithoutBang, url, searchTerm };
+	return { trigger, triggerWithoutExclamationMark, url, searchTerm };
 }
 
 /**
@@ -147,6 +151,7 @@ function handleBangRedirect(bang: Bang, searchTerm: string) {
 	if (searchTerm) {
 		return bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm));
 	}
+
 	return addHttps(bang.d);
 }
 
@@ -249,14 +254,14 @@ async function handleUnauthenticatedSearch({
 	res,
 	req,
 	trigger,
-	triggerWithoutBang,
+	triggerWithoutExclamationMark,
 	searchTerm,
 	query,
 }: {
 	res: Response;
 	req: Request;
 	trigger: string | null;
-	triggerWithoutBang: string | null;
+	triggerWithoutExclamationMark: string | null;
 	searchTerm: string;
 	query: string;
 }) {
@@ -273,8 +278,8 @@ async function handleUnauthenticatedSearch({
 	}
 
 	// Process bang commands for unauthenticated users
-	if (triggerWithoutBang) {
-		const bang = bangs[triggerWithoutBang] as Bang;
+	if (triggerWithoutExclamationMark) {
+		const bang = config.bangs[triggerWithoutExclamationMark] as Bang;
 		if (bang) {
 			const redirectUrl = handleBangRedirect(bang, searchTerm);
 			if (req.session.cumulativeDelay) {
@@ -333,7 +338,7 @@ export async function search({
 	user?: User;
 	query: string;
 }) {
-	const { trigger, triggerWithoutBang, url, searchTerm } = parseSearchQuery(query);
+	const { trigger, triggerWithoutExclamationMark, url, searchTerm } = parseSearchQuery(query);
 
 	// Handle unauthenticated users first
 	if (!user) {
@@ -341,7 +346,7 @@ export async function search({
 			res,
 			req,
 			trigger,
-			triggerWithoutBang,
+			triggerWithoutExclamationMark,
 			searchTerm,
 			query,
 		});
@@ -376,8 +381,8 @@ export async function search({
 	}
 
 	// Handle default bang commands
-	if (triggerWithoutBang) {
-		const bang = bangs[triggerWithoutBang] as Bang;
+	if (triggerWithoutExclamationMark) {
+		const bang = config.bangs[triggerWithoutExclamationMark] as Bang;
 		if (bang) {
 			return res.redirect(handleBangRedirect(bang, searchTerm));
 		}
@@ -387,7 +392,7 @@ export async function search({
 	const provider = user.default_search_provider || 'duckduckgo';
 	const searchUrl = defaultSearchProviders[provider].replace(
 		'{{{s}}}',
-		encodeURIComponent(searchTerm || triggerWithoutBang || ''),
+		encodeURIComponent(searchTerm || triggerWithoutExclamationMark || ''),
 	);
 
 	return res.redirect(searchUrl);
