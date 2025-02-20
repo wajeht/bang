@@ -46,7 +46,6 @@ const config = {
 
 /**
  * Queue for tracking search history of unauthenticated users asynchronously
- * Uses fastq to handle concurrent requests with a concurrency limit of 10
  */
 export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(
 	trackUnauthenticatedUserSearchHistory,
@@ -54,12 +53,42 @@ export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(
 );
 
 /**
- * Sends an HTML response that redirects the user with an alert message
+ * Tracks search history for unauthenticated users and manages rate limiting
+ * Increments search count and applies cumulative delay if limit is exceeded
  */
-function sendAlertAndRedirectResponse(res: Response, url: string, message: string) {
+export async function trackUnauthenticatedUserSearchHistory({
+	req,
+	query,
+}: {
+	req: Request;
+	query: string;
+}) {
+	// Initialize or get existing session counters
+	req.session.searchCount = req.session.searchCount || 0;
+	req.session.cumulativeDelay = req.session.cumulativeDelay || 0;
+
+	req.session.searchCount += 1;
+
+	// Apply delay penalty if search limit is exceeded
+	if (req.session.searchCount > config.searchLimit) {
+		req.session.cumulativeDelay += config.delayIncrement;
+	}
+
+	logger.info(`[trackUnauthenticatedUserSearchHistory]: %o`, {
+		sessionId: req.session.id,
+		query,
+		searchCount: req.session.searchCount,
+		cumulativeDelay: req.session.cumulativeDelay,
+	});
+}
+
+/**
+ * Sends an HTML response that redirects the user with an optional alert message
+ */
+export function sendHtmlRedirect(res: Response, url: string, message?: string) {
 	return res.setHeader('Content-Type', 'text/html').status(200).send(`
 			<script>
-				alert("${message}");
+				${message ? `alert("${message}");` : ''}
 				window.location.href = "${url}";
 			</script>
 		`);
@@ -67,9 +96,8 @@ function sendAlertAndRedirectResponse(res: Response, url: string, message: strin
 
 /**
  * Sends an HTML error response with an alert message and browser history navigation
- * Used for error cases where we want to go back to the previous page
  */
-function sendAlertAndBackResponse(res: Response, message: string) {
+export function sendErrorResponse(res: Response, message: string) {
 	return res.setHeader('Content-Type', 'text/html').status(422).send(`
 			<script>
 				alert("${message}");
@@ -79,75 +107,62 @@ function sendAlertAndBackResponse(res: Response, message: string) {
 }
 
 /**
- * Tracks search history for unauthenticated users and manages rate limiting
- * Increments search count and applies cumulative delay if limit is exceeded
+ * Parses a search query to extract bang trigger, URL, and search terms
+ * Example inputs:
+ * - "!g python" -> { trigger: "!g", triggerWithoutBang: "g", searchTerm: "python" }
+ * - "!bm title https://example.com" -> { trigger: "!bm", url: "https://example.com", searchTerm: "title" }
  */
-async function trackUnauthenticatedUserSearchHistory({
-	req,
-	query,
-}: {
-	req: Request;
-	query: string;
-}) {
-	req.session.searchCount = req.session.searchCount || 0;
-	req.session.cumulativeDelay = req.session.cumulativeDelay || 0;
+export function parseSearchQuery(query: string) {
+	const triggerMatch = query.match(/^(!\w+)/);
+	const urlMatch = query.match(/\s+(https?:\/\/\S+)/);
+	const trigger = triggerMatch ? triggerMatch[1]! : null;
+	const triggerWithoutExclamationMark = trigger ? trigger.slice(1) : null;
+	const url = urlMatch ? urlMatch[1]! : null;
+	const searchTerm = trigger ? query.slice(trigger.length).trim() : query.trim();
 
-	req.session.searchCount += 1;
-
-	if (req.session.searchCount > config.searchLimit) {
-		req.session.cumulativeDelay += config.delayIncrement;
-	}
-
-	logger.info('[trackUnauthenticatedUserSearchHistory]:', {
-		sessionId: req.session.id,
-		query,
-		searchCount: req.session.searchCount,
-		cumulativeDelay: req.session.cumulativeDelay,
-	});
+	return {
+		/**
+		 * !g
+		 */
+		trigger,
+		/**
+		 * g
+		 */
+		triggerWithoutExclamationMark,
+		/**
+		 * https://example.com
+		 */
+		url,
+		/**
+		 * python
+		 */
+		searchTerm,
+	};
 }
 
 /**
- * Handles rate limiting logic and returns appropriate warning messages
- * Shows warnings at every 10th search and when limit is exceeded
+ * Handles rate limiting for unauthenticated users
+ * Returns warning message when search count reaches multiples of 10
  */
-function handleRateLimiting(searchCount: number): string | null {
+export function handleRateLimiting(req: Request, searchCount: number) {
 	const searchesLeft = config.searchLimit - searchCount;
 	const showWarning = searchCount % 10 === 0 && searchCount !== 0;
 
-	if (!showWarning) {
-		return null;
+	if (showWarning) {
+		const message =
+			searchesLeft <= 0
+				? "You've exceeded the search limit for unauthenticated users. Please log in for unlimited searches without delays."
+				: `You have used ${searchCount} out of ${config.searchLimit} searches. Log in for unlimited searches!`;
+		return message;
 	}
 
-	if (searchesLeft <= 0) {
-		return "You've exceeded the search limit for unauthenticated users. Please log in for unlimited searches without delays.";
-	}
-
-	return `You have used ${searchCount} out of ${config.searchLimit} searches. Log in for unlimited searches!`;
+	return null;
 }
 
 /**
- * Parses search query into its components:
- * - trigger: The bang command (e.g., "!g")
- * - triggerWithoutBang: The bang command without the ! prefix
- * - url: Any URL in the query
- * - searchTerm: The actual search terms
+ * Processes bang redirect URLs Handles both search queries and direct domain redirects
  */
-function parseSearchQuery(query: string) {
-	const triggerMatch = query.match(/^(!\w+)/);
-	const urlMatch = query.match(/\s+(https?:\/\/\S+)/);
-	const trigger = triggerMatch?.[1] || null;
-	const triggerWithoutExclamationMark = trigger?.slice(1) || null;
-	const url = urlMatch?.[1] || null;
-	const searchTerm = trigger ? query.slice(trigger.length).trim() : query.trim();
-
-	return { trigger, triggerWithoutExclamationMark, url, searchTerm };
-}
-
-/**
- * Processes bang redirect URLs
- * Handles both search queries and direct homepage redirects
- */
-function handleBangRedirect(bang: Bang, searchTerm: string) {
+export function handleBangRedirect(bang: Bang, searchTerm: string) {
 	if (searchTerm) {
 		return bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm));
 	}
@@ -156,181 +171,12 @@ function handleBangRedirect(bang: Bang, searchTerm: string) {
 }
 
 /**
- * Handles system-level bang commands (!bm and !add)
- * - !bm: Creates a new bookmark
- * - !add: Creates a new custom bang command
- */
-async function handleSystemCommands({
-	res,
-	user,
-	trigger,
-	url,
-	query,
-}: {
-	res: Response;
-	user: User;
-	trigger: string;
-	url: string | null;
-	query: string;
-}) {
-	// Handle bookmark creation (!bm)
-	if (trigger === '!bm') {
-		if (!url || !isValidUrl(url)) {
-			return sendAlertAndBackResponse(res, 'Invalid or missing URL');
-		}
-
-		try {
-			const urlIndex = query.indexOf(url);
-			const titleSection = query.slice(4, urlIndex).trim();
-			void insertBookmarkQueue.push({ url, title: titleSection || '', userId: user.id });
-			return res.redirect(url);
-		} catch (error) {
-			logger.error('[search]: Error adding bookmark', error);
-			return sendAlertAndBackResponse(res, 'Error adding bookmark');
-		}
-	}
-
-	// Handle custom bang creation (!add)
-	if (trigger === '!add') {
-		const [, rawTrigger, bangUrl] = query.split(' ');
-		const newTrigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
-
-		if (!newTrigger || !bangUrl?.length) {
-			return sendAlertAndBackResponse(res, 'Invalid trigger or empty URL');
-		}
-
-		// Check for conflicts with existing bangs
-		const hasSystemBangCommands = config.systemBangs.includes(
-			newTrigger as (typeof config.systemBangs)[number],
-		);
-		const hasExistingCustomBangCommand = await db('bangs')
-			.where({ user_id: user.id, trigger: newTrigger })
-			.first();
-
-		if (hasExistingCustomBangCommand || hasSystemBangCommands) {
-			const message = hasSystemBangCommands
-				? `${newTrigger} is a bang's systems command. Please enter a new trigger:`
-				: `Trigger ${newTrigger} already exists. Please enter a new trigger:`;
-
-			return res.setHeader('Content-Type', 'text/html').status(422).send(`
-					<script>
-						const newTrigger = prompt("${message}");
-						if (newTrigger) {
-							const domain = window.location.origin;
-							window.location.href = \`\${domain}/?q=!add \${newTrigger} ${bangUrl}\`;
-						} else {
-							window.history.back();
-						}
-					</script>
-				`);
-		}
-
-		// Create new bang command and queue title fetch
-		const bangs = await db('bangs')
-			.insert({
-				user_id: user.id,
-				trigger: newTrigger,
-				name: 'Fetching title...',
-				action_type_id: 2,
-				url: bangUrl,
-			})
-			.returning('*');
-
-		void insertPageTitleQueue.push({ actionId: bangs[0].id, url: bangUrl });
-		return res
-			.setHeader('Content-Type', 'text/html')
-			.status(200)
-			.send(`<script>window.history.back();</script>`);
-	}
-
-	return null;
-}
-
-/**
- * Handles search flow for unauthenticated users
- * Includes rate limiting, delay penalties, and warning messages
- */
-async function handleUnauthenticatedSearch({
-	res,
-	req,
-	trigger,
-	triggerWithoutExclamationMark,
-	searchTerm,
-	query,
-}: {
-	res: Response;
-	req: Request;
-	trigger: string | null;
-	triggerWithoutExclamationMark: string | null;
-	searchTerm: string;
-	query: string;
-}) {
-	// Initialize session counters
-	req.session.searchCount = req.session.searchCount || 0;
-	const warningMessage = handleRateLimiting(req.session.searchCount);
-
-	// Track search history asynchronously
-	void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
-
-	// Default search using DuckDuckGo
-	const searchUrl = defaultSearchProviders['duckduckgo'].replace(
-		'{{{s}}}',
-		encodeURIComponent(searchTerm || query),
-	);
-
-	// Show warning message if needed
-	if (warningMessage) {
-		return sendAlertAndRedirectResponse(res, searchUrl, warningMessage);
-	}
-
-	// Apply delay penalty if search limit is exceeded
-	if (req.session.cumulativeDelay) {
-		logger.warn(
-			`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay / 1000}s due to exceeding search limit.`,
-		);
-		await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
-	}
-
-	// Process bang commands for unauthenticated users
-	if (triggerWithoutExclamationMark) {
-		const bang = config.bangs[triggerWithoutExclamationMark] as Bang;
-		if (bang) {
-			const redirectUrl = handleBangRedirect(bang, searchTerm);
-			if (req.session.cumulativeDelay) {
-				return sendAlertAndRedirectResponse(
-					res,
-					redirectUrl,
-					`Your next search will be delayed by ${req.session.cumulativeDelay / 1000} seconds.`,
-				);
-			}
-			return res.redirect(redirectUrl);
-		}
-	}
-
-	// Show delay warning if needed
-	if (req.session.cumulativeDelay) {
-		return sendAlertAndRedirectResponse(
-			res,
-			searchUrl,
-			`Your next search will be delayed by ${req.session.cumulativeDelay / 1000} seconds.`,
-		);
-	}
-
-	return res.redirect(searchUrl);
-}
-
-/**
- * Main search handler
- * Processes search queries and redirects based on various commands and user state
  *
- * Flow:
- * 1. Parse search query
- * 2. Handle unauthenticated users
- * 3. Process direct commands
- * 4. Handle system commands
- * 5. Process custom bangs
- * 6. Handle default bangs
- * 7. Fall back to default search provider
+ * TODO: clean this function and write tests for all edge cases
+ *
+ * Processes search queries and handles different user flows
+ * - Unauthenticated user flow: Handles rate limiting, bang commands, and default search
+ * - Authenticated user flow: Handles direct navigation commands, bookmark creation, and custom bang commands
  */
 export async function search({
 	res,
@@ -345,30 +191,212 @@ export async function search({
 }) {
 	const { trigger, triggerWithoutExclamationMark, url, searchTerm } = parseSearchQuery(query);
 
-	// Handle unauthenticated users first
+	// ==========================================
+	// Unauthenticated User Flow
+	// ==========================================
 	if (!user) {
-		return await handleUnauthenticatedSearch({
-			res,
-			req,
-			trigger,
-			triggerWithoutExclamationMark,
-			searchTerm,
-			query,
-		});
+		req.session.searchCount = req.session.searchCount || 0;
+		const warningMessage = handleRateLimiting(req, req.session.searchCount);
+
+		if (warningMessage) {
+			void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
+			return sendHtmlRedirect(
+				res,
+				defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)),
+				warningMessage,
+			);
+		}
+
+		// Apply rate limiting delay if user has exceeded limits
+		if (req.session.cumulativeDelay) {
+			logger.warn(`[search]: Slowing down session: ${req.session.id}, delay: ${req.session.cumulativeDelay / 1000}s due to exceeding search limit.`); // prettier-ignore
+			await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
+		}
+
+		// Track search history for analytics
+		void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
+
+		// Handle bang commands for unauthenticated users
+		if (triggerWithoutExclamationMark) {
+			const bang = config.bangs[triggerWithoutExclamationMark] as Bang;
+			// Found matching bang command in predefined list
+			if (bang) {
+				// Handle search with bang (e.g., "!g python")
+				if (searchTerm) {
+					// Apply rate limiting warning if needed
+					if (req.session.cumulativeDelay) {
+						return res
+							.setHeader('Content-Type', 'text/html')
+							.status(200)
+							.send(`
+								<script>
+									alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
+									window.location.href = "${handleBangRedirect(bang, searchTerm)}";
+								</script>
+							`); // prettier-ignore
+					}
+
+					return res.redirect(handleBangRedirect(bang, searchTerm));
+				}
+
+				// Handle bang without search term (e.g., "!g")
+				// This typically redirects to the service's homepage
+				if (req.session.cumulativeDelay) {
+					return res
+						.setHeader('Content-Type', 'text/html')
+						.status(200)
+						.send(`
+							<script>
+								alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
+								window.location.href = "${handleBangRedirect(bang, '')}";
+							</script>
+						`); // prettier-ignore
+				}
+
+				return res.redirect(handleBangRedirect(bang, ''));
+			}
+		}
+
+		// Handle default search for unauthenticated users (always uses DuckDuckGo)
+		if (req.session.cumulativeDelay) {
+			return res
+				.setHeader('Content-Type', 'text/html')
+				.status(200)
+				.send(`
+					<script>
+						alert("Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.");
+						window.location.href = "${defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))}";
+					</script>
+				`); // prettier-ignore
+		}
+
+		return res.redirect(defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))); // prettier-ignore
 	}
 
-	// Handle direct navigation commands (@settings, @bookmarks, etc)
-	if (config.directCommands[query as keyof typeof config.directCommands]) {
-		return res.redirect(config.directCommands[query as keyof typeof config.directCommands]);
+	// ==========================================
+	// Authenticated User Flow
+	// ==========================================
+
+	// Handle direct navigation commands (e.g., @settings, @bookmarks)
+	// These provide quick access to different sections of the application
+	const directCommand = config.directCommands[query as keyof typeof config.directCommands];
+	if (directCommand) {
+		return res.redirect(directCommand);
 	}
 
-	// Handle system commands (!bm and !add)
-	if (trigger && config.systemBangs.includes(trigger as (typeof config.systemBangs)[number])) {
-		const result = await handleSystemCommands({ res, user, trigger, url, query });
-		if (result) return result;
+	// Handle bookmark creation command (!bm)
+	// Allows users to quickly bookmark URLs while searching
+	if (trigger === '!bm') {
+		if (!url || !isValidUrl(url)) {
+			return res
+				.setHeader('Content-Type', 'text/html')
+				.status(422)
+				.send(`
+					<script>
+						alert("Invalid or missing URL");
+						window.history.back();
+					</script>
+				`); // prettier-ignore
+		}
+
+		try {
+			// The bookmark command (!bm) supports three formats:
+			// 1. !bm https://example.com - Creates bookmark with no title (will fetch title automatically)
+			// 2. !bm title https://example.com - Creates bookmark with a single-word title
+			// 3. !bm this is a long title https://example.com - Creates bookmark with a multi-word title
+
+			// Find the URL in the command string
+			const urlIndex = query.indexOf(url!);
+			// Extract everything between "!bm " and the URL as the title
+			const titleSection = query.slice(4, urlIndex).trim();
+
+			void insertBookmarkQueue.push({ url, title: titleSection || '', userId: user.id });
+
+			return res.redirect(url);
+		} catch (error) {
+			logger.error(`[search]: Error adding bookmark %o`, error);
+			return res
+				.setHeader('Content-Type', 'text/html')
+				.status(422)
+				.send(`
+					<script>
+						alert("Error adding bookmark");
+						window.location.href = "${url}";
+					</script>
+				`); // prettier-ignore
+		}
 	}
 
-	// Process user's custom bang commands
+	// Handle custom bang creation command (!add)
+	// Allows users to create their own bang shortcuts
+	if (trigger === '!add') {
+		const [, rawTrigger, url] = query.split(' ');
+		// the second one
+		// !add !yt https://youtube.com
+		// !add yt https://youtube.com
+		const trigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
+		if (!trigger || !url?.length) {
+			return res
+				.setHeader('Content-Type', 'text/html')
+				.status(422)
+				.send(`
+					<script>
+						alert("Invalid trigger or empty URL");
+						window.history.back();
+					</script>
+				`); // prettier-ignore
+		}
+
+		// Check for existing bang with same trigger
+		const hasSystemBangCommands = ['!add', '!bm'].includes(trigger);
+		const hasExistingCustomBangCommand = await db('bangs')
+			.where({ user_id: user.id, trigger })
+			.first();
+
+		if (hasExistingCustomBangCommand || hasSystemBangCommands) {
+			let message = 'Trigger ${trigger} already exists. Please enter a new trigger:';
+
+			if (hasSystemBangCommands) {
+				message = `${trigger} is a bang's systems command. Please enter a new trigger:`;
+			}
+
+			return res
+				.setHeader('Content-Type', 'text/html')
+				.status(422)
+				.send(`
+					<script>
+						const newTrigger = prompt("${message}");
+						if (newTrigger) {
+							const domain = window.location.origin;
+							window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
+						} else {
+							window.history.back();
+						}
+					</script>
+				`); // prettier-ignore
+		}
+
+		// Create new bang command in database
+		const bangs = await db('bangs')
+			.insert({
+				user_id: user.id,
+				trigger,
+				name: 'Fetching title...',
+				action_type_id: 2, // redirect
+				url,
+			})
+			.returning('*');
+
+		// Queue async task to fetch page title
+		void insertPageTitleQueue.push({ actionId: bangs[0].id, url });
+
+		return res
+			.setHeader('Content-Type', 'text/html')
+			.status(200)
+			.send(`<script> window.history.back(); </script>`);
+	}
+
+	// Handle user's custom bang commands
 	if (trigger) {
 		const customBang = await db('bangs')
 			.join('action_types', 'bangs.action_type_id', 'action_types.id')
@@ -376,29 +404,70 @@ export async function search({
 			.select('bangs.*', 'action_types.name as action_type')
 			.first();
 
+		// Handle different types of custom bangs
 		if (customBang) {
-			return res.redirect(
-				customBang.action_type === 'search'
-					? customBang.url.replace('{{{s}}}', encodeURIComponent(searchTerm))
-					: customBang.url,
-			);
+			if (customBang.action_type === 'redirect') {
+				return res.redirect(customBang.url);
+			}
+
+			if (customBang.action_type === 'search') {
+				return res.redirect(customBang.url.replace('{{{s}}}', encodeURIComponent(searchTerm)));
+			}
 		}
 	}
 
-	// Handle default bang commands
+	// Handle default bang commands from predefined list
 	if (triggerWithoutExclamationMark) {
 		const bang = config.bangs[triggerWithoutExclamationMark] as Bang;
+		// Found matching bang in predefined list
 		if (bang) {
-			return res.redirect(handleBangRedirect(bang, searchTerm));
+			// Handle search with bang (e.g., "!g python")
+			if (searchTerm) {
+				return res.redirect(handleBangRedirect(bang, searchTerm));
+			}
+
+			// `!trigger` without search term
+			// `!timer` which ddg has it
+			//  bang: {
+			//    c: 'Online Services',
+			//    d: 'duckduckgo.com',
+			//    r: 33,
+			//    s: 'DuckDuckGo Timer',
+			//    sc: 'Tools',
+			//    t: 'timer',
+			//    u: 'http://duckduckgo.com/?q=timer+{{{s}}}&ia=answer'
+			// }
+			if (bang.u.includes('{{{s}}}')) {
+				return res.redirect(handleBangRedirect(bang, searchTerm));
+			}
+
+			// Handle bang without search term (redirects to service homepage)
+			// in this case we will redirect `bang.d`
+			//  bang: {
+			//    c: 'Online Services',
+			//    d: 'duckduckgo.com',
+			//    r: 33,
+			//    s: 'DuckDuckGo Timer',
+			//    sc: 'Tools',
+			//    t: 'timer',
+			//    u: 'http://duckduckgo.com/?q=timer+{{{s}}}&ia=answer'
+			// }
+			return res.redirect(handleBangRedirect(bang, ''));
 		}
 	}
 
-	// Fall back to user's preferred search engine
-	const provider = user.default_search_provider || 'duckduckgo';
-	const searchUrl = defaultSearchProviders[provider].replace(
-		'{{{s}}}',
-		encodeURIComponent(searchTerm || triggerWithoutExclamationMark || ''),
-	);
+	// Default search using user's preferred search engine
+	const defaultProvider = user.default_search_provider || 'duckduckgo';
+
+	// eg `!g cat videos`
+	let searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(searchTerm)); // prettier-ignore
+
+	// eg `!somethingthatdoesnotexist`
+	// we will redirect to default search provider and it's keywords without `!`
+	// eg `https://duckduckgo.com/?q=somethingthatdoesnotexist`
+	if (!searchTerm) {
+		searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(triggerWithoutExclamationMark ?? '')); // prettier-ignore
+	}
 
 	return res.redirect(searchUrl);
 }
