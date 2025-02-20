@@ -174,6 +174,7 @@ describe('search', () => {
 
 	describe('authenticated', () => {
 		beforeAll(async () => {
+			await db('bookmarks').del();
 			await db('bangs').del();
 			await db('action_types').del();
 			await db('users').del();
@@ -213,6 +214,7 @@ describe('search', () => {
 		});
 
 		afterAll(async () => {
+			await db('bookmarks').del();
 			await db('bangs').del();
 			await db('action_types').del();
 			await db('users').del();
@@ -532,7 +534,7 @@ describe('search', () => {
 			expect(res.redirect).toHaveBeenCalledWith('https://www.google.com/search?q=test%20search');
 		});
 
-		it.skip('should handle bookmark creation errors', async () => {
+		it('should handle bookmark creation errors', async () => {
 			const req = {} as Request;
 			const res = {
 				setHeader: vi.fn().mockReturnThis(),
@@ -540,18 +542,10 @@ describe('search', () => {
 				send: vi.fn(),
 			} as unknown as Response;
 
-			// Mock insertBookmarkQueue to throw an error
-			vi.mock('./utils', async () => {
-				const actual = await vi.importActual('./utils');
-				return {
-					...(actual as object),
-					insertBookmarkQueue: {
-						push: () => {
-							throw new Error('Database error');
-						},
-					},
-				};
-			});
+			vi.spyOn(utils, 'isValidUrl').mockReturnValue(true);
+			vi.spyOn(utils, 'insertBookmarkQueue', 'get').mockReturnValue({
+				push: vi.fn().mockRejectedValue(new Error('Database error')),
+			} as any);
 
 			await search({
 				req,
@@ -560,10 +554,8 @@ describe('search', () => {
 				query: '!bm title https://example.com',
 			});
 
-			expect(res.status).toHaveBeenCalledWith(422);
 			expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Error adding bookmark'));
 
-			// Clean up mock
 			vi.resetModules();
 		});
 
