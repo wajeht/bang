@@ -251,15 +251,7 @@ export async function search({
 	// Allows users to quickly bookmark URLs while searching
 	if (trigger === '!bm') {
 		if (!url || !isValidUrl(url)) {
-			return res
-				.setHeader('Content-Type', 'text/html')
-				.status(422)
-				.send(`
-					<script>
-						alert("Invalid or missing URL");
-						window.history.back();
-					</script>
-				`); // prettier-ignore
+			return sendErrorResponse(res, 'Invalid or missing URL');
 		}
 
 		try {
@@ -278,15 +270,7 @@ export async function search({
 			return res.redirect(url);
 		} catch (error) {
 			logger.error(`[search]: Error adding bookmark %o`, error);
-			return res
-				.setHeader('Content-Type', 'text/html')
-				.status(422)
-				.send(`
-					<script>
-						alert("Error adding bookmark");
-						window.location.href = "${url}";
-					</script>
-				`); // prettier-ignore
+			return sendErrorResponse(res, 'Error adding bookmark');
 		}
 	}
 
@@ -299,15 +283,7 @@ export async function search({
 		// !add yt https://youtube.com
 		const trigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
 		if (!trigger || !url?.length) {
-			return res
-				.setHeader('Content-Type', 'text/html')
-				.status(422)
-				.send(`
-					<script>
-						alert("Invalid trigger or empty URL");
-						window.history.back();
-					</script>
-				`); // prettier-ignore
+			return sendErrorResponse(res, 'Invalid trigger or empty URL');
 		}
 
 		// Check for existing bang with same trigger
