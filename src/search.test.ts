@@ -317,7 +317,6 @@ describe('search', () => {
 		it('should handle invalid bookmark URLs', async () => {
 			const req = {} as Request;
 			const res = {
-				redirect: vi.fn().mockReturnThis(),
 				setHeader: vi.fn().mockReturnThis(),
 				status: vi.fn().mockReturnThis(),
 				send: vi.fn(),
@@ -421,7 +420,6 @@ describe('search', () => {
 		it('should handle duplicate bang trigger creation', async () => {
 			const req = {} as Request;
 			const res = {
-				redirect: vi.fn().mockReturnThis(),
 				setHeader: vi.fn().mockReturnThis(),
 				status: vi.fn().mockReturnThis(),
 				send: vi.fn(),
@@ -435,7 +433,7 @@ describe('search', () => {
 			});
 
 			expect(res.status).toHaveBeenCalledWith(422);
-			expect(res.send).toHaveBeenCalledWith(expect.stringContaining(`!add already exists`));
+			expect(res.send).toHaveBeenCalledWith(expect.stringContaining('${trigger} already exists'));
 		});
 
 		it('should prevent creation of system bang commands', async () => {
