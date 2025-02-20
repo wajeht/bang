@@ -441,7 +441,6 @@ describe('search', () => {
 			const res = {
 				setHeader: vi.fn().mockReturnThis(),
 				status: vi.fn().mockReturnThis(),
-				redirect: vi.fn().mockReturnThis(),
 				send: vi.fn(),
 			} as unknown as Response;
 
@@ -463,7 +462,6 @@ describe('search', () => {
 			const res = {
 				setHeader: vi.fn().mockReturnThis(),
 				status: vi.fn().mockReturnThis(),
-				redirect: vi.fn().mockReturnThis(),
 				send: vi.fn(),
 			} as unknown as Response;
 
