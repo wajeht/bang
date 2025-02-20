@@ -99,34 +99,87 @@ export function sendAlertAndBackResponse(res: Response, message: string) {
 }
 
 /**
- * Parses a search query to extract bang trigger, URL, and search terms
- * Example inputs:
- * - "!g python" -> { trigger: "!g", triggerWithoutBang: "g", searchTerm: "python" }
- * - "!bm title https://example.com" -> { trigger: "!bm", url: "https://example.com", searchTerm: "title" }
+ * Parses a search query to extract components: bang trigger, URL, and search terms
+ *
+ * @param query - The raw search query string to parse
+ * @returns Parsed components of the search query
+ *
+ * @example Basic search
+ * parseSearchQuery("!g python")
+ * → { trigger: "!g", triggerWithoutBang: "g", url: null, searchTerm: "python" }
+ *
+ * @example Bookmark with title
+ * parseSearchQuery("!bm My Bookmark https://example.com")
+ * → { trigger: "!bm", triggerWithoutBang: "bm", url: "https://example.com", searchTerm: "My Bookmark" }
+ *
+ * @example Custom bang creation
+ * parseSearchQuery("!add !custom https://custom-search.com")
+ * → { trigger: "!add", triggerWithoutBang: "add", url: "https://custom-search.com", searchTerm: "!custom" }
  */
 export function parseSearchQuery(query: string) {
-	const triggerMatch = query.match(/^(!\w+)/);
-	const urlMatch = query.match(/\s+(https?:\/\/\S+)/);
-	const trigger = triggerMatch ? triggerMatch[1]! : null;
-	const triggerWithoutExclamationMark = trigger ? trigger.slice(1) : null;
-	const url = urlMatch ? urlMatch[1]! : null;
-	const searchTerm = trigger ? query.slice(trigger.length).trim() : query.trim();
+	// Sanitize input
+	const sanitizedQuery = query.trim().replace(/\s+/g, ' ');
+
+	// Enhanced regex patterns
+	const triggerPattern = /^(![\w-]+)/; // Supports hyphens in triggers
+	const urlPattern = /\s+((?:https?:\/\/)[^\s]+)/i; // Case-insensitive, more permissive URL matching
+
+	// Extract components
+	const triggerMatch = sanitizedQuery.match(triggerPattern);
+	const urlMatch = sanitizedQuery.match(urlPattern);
+
+	const trigger = triggerMatch?.[1] ?? null;
+	const triggerWithoutBang = trigger?.slice(1) ?? null;
+	const url = urlMatch?.[1] ?? null;
+
+	// Process search term with URL removal
+	let searchTerm = trigger ? sanitizedQuery.slice(trigger.length) : sanitizedQuery;
+
+	if (url) {
+		searchTerm = searchTerm.replace(url, '');
+	}
+
+	// Clean up search term
+	searchTerm = searchTerm.trim().replace(/\s+/g, ' ');
 
 	return {
 		/**
-		 * !g
+		 * The full bang trigger including "!" prefix
+		 * Used for command identification and routing
+		 * @example "!g" for Google search
+		 * @example "!bm" for bookmark command
+		 * @example "!add" for adding custom bangs
 		 */
 		trigger,
+
 		/**
-		 * g
+		 * Bang trigger with "!" prefix removed
+		 * Used for looking up commands in bangs table
+		 * References: src/db/migrations/20241111003332_create_tables.ts:58-71
+		 * @example "g" for Google search
+		 * @example "bm" for bookmark command
 		 */
-		triggerWithoutExclamationMark,
+		triggerWithoutBang,
+
 		/**
-		 * https://example.com
+		 * First valid URL found in the query string
+		 * Used for bookmark creation and custom bang definition
+		 * Supports both http and https protocols
+		 * References: src/handlers.ts:194-196
+		 * @example "https://example.com" from "!bm title https://example.com"
+		 * @example null when no URL is present
 		 */
 		url,
+
 		/**
-		 * python
+		 * The search terms or content after removing trigger and URL
+		 * Multiple uses based on context:
+		 * - Search query for search bangs
+		 * - Title for bookmarks
+		 * - Trigger for custom bang creation
+		 * References: src/utils.ts:69-87
+		 * @example "python" from "!g python"
+		 * @example "My Bookmark" from "!bm My Bookmark https://example.com"
 		 */
 		searchTerm,
 	};
@@ -181,7 +234,7 @@ export async function search({
 	user?: User;
 	query: string;
 }) {
-	const { trigger, triggerWithoutExclamationMark, url, searchTerm } = parseSearchQuery(query);
+	const { trigger, triggerWithoutBang, url, searchTerm } = parseSearchQuery(query);
 
 	// ==========================================
 	// Unauthenticated User Flow
@@ -210,8 +263,8 @@ export async function search({
 		void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
 
 		// Process bang commands for unauthenticated users
-		if (triggerWithoutExclamationMark) {
-			const bang = config.bangs[triggerWithoutExclamationMark] as Bang;
+		if (triggerWithoutBang) {
+			const bang = config.bangs[triggerWithoutBang] as Bang;
 			if (bang) {
 				// Handle search queries with bang (e.g., "!g python")
 				if (searchTerm) {
@@ -365,8 +418,8 @@ export async function search({
 	}
 
 	// Process system-defined bang commands
-	if (triggerWithoutExclamationMark) {
-		const bang = config.bangs[triggerWithoutExclamationMark] as Bang;
+	if (triggerWithoutBang) {
+		const bang = config.bangs[triggerWithoutBang] as Bang;
 		if (bang) {
 			// Handle search queries with bang (e.g., "!g python")
 			if (searchTerm) {
@@ -392,7 +445,7 @@ export async function search({
 
 	// Handle unknown bang commands by searching for them without the "!"
 	if (!searchTerm) {
-		searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(triggerWithoutExclamationMark ?? '')); // prettier-ignore
+		searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(triggerWithoutBang ?? '')); // prettier-ignore
 	}
 
 	return res.redirect(searchUrl);
