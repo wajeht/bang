@@ -1,5 +1,5 @@
 import { ApiKeyPayload, BookmarkToExport } from './types';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
 	bookmark,
 	isValidUrl,
@@ -16,6 +16,15 @@ import { db } from './db/db';
 import jwt from 'jsonwebtoken';
 import { Request } from 'express';
 import { appConfig } from './configs';
+
+beforeAll(async () => {
+	await db.migrate.latest();
+});
+
+afterAll(async () => {
+	await db.migrate.rollback();
+	await db.destroy();
+});
 
 describe.concurrent('isValidUrl', () => {
 	it('should return true for valid URLs', () => {
@@ -233,8 +242,12 @@ describe.concurrent('expectJson', () => {
 });
 
 describe('extractUser', () => {
-	beforeAll(async () => {
+	beforeEach(async () => {
+		await db('bookmarks').del();
+		await db('bangs').del();
+		await db('action_types').del();
 		await db('users').del();
+
 		await db('users').insert({
 			id: 1,
 			username: 'Test User',
@@ -245,8 +258,11 @@ describe('extractUser', () => {
 		});
 	});
 
-	afterAll(async () => {
-		await db('users').where({ id: 1 }).delete();
+	afterEach(async () => {
+		await db('bookmarks').del();
+		await db('bangs').del();
+		await db('action_types').del();
+		await db('users').del();
 	});
 
 	it('should return user from apiKeyPayload if isApiRequest is true', async () => {
@@ -337,7 +353,7 @@ describe.concurrent('extractPagination', () => {
 });
 
 describe.concurrent('api', () => {
-	beforeAll(async () => {
+	beforeEach(async () => {
 		await db('users').del();
 		await db('users').insert({
 			id: 1,
@@ -348,7 +364,7 @@ describe.concurrent('api', () => {
 		});
 	});
 
-	afterAll(async () => {
+	afterEach(async () => {
 		await db('users').where({ id: 1 }).delete();
 	});
 

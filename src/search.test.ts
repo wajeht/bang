@@ -4,8 +4,17 @@ import { search } from './search';
 import { appConfig } from './configs';
 import { parseSearchQuery } from './search';
 import { Request, Response } from 'express';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import * as utils from './utils';
+
+beforeAll(async () => {
+	await db.migrate.latest();
+});
+
+afterAll(async () => {
+	await db.migrate.rollback();
+	await db.destroy();
+});
 
 describe('search', () => {
 	describe('unauthenticated', () => {
@@ -173,7 +182,7 @@ describe('search', () => {
 	});
 
 	describe('authenticated', () => {
-		beforeAll(async () => {
+		beforeEach(async () => {
 			await db('bookmarks').del();
 			await db('bangs').del();
 			await db('action_types').del();
@@ -213,7 +222,7 @@ describe('search', () => {
 			]);
 		});
 
-		afterAll(async () => {
+		afterEach(async () => {
 			await db('bookmarks').del();
 			await db('bangs').del();
 			await db('action_types').del();
