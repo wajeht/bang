@@ -55,13 +55,7 @@ export const trackUnauthenticatedUserSearchHistoryQueue = fastq.promise(
  * Tracks search history for unauthenticated users and manages rate limiting
  * Increments search count and applies cumulative delay if limit is exceeded
  */
-export async function trackUnauthenticatedUserSearchHistory({
-	req,
-	query,
-}: {
-	req: Request;
-	query: string;
-}) {
+export async function trackUnauthenticatedUserSearchHistory(req: Request) {
 	// Initialize or get existing session counters
 	req.session.searchCount = req.session.searchCount || 0;
 	req.session.cumulativeDelay = req.session.cumulativeDelay || 0;
@@ -230,7 +224,7 @@ export async function handleUnauthenticatedUserFlow(
 
 	// Display warning when user approaches or exceeds search limits
 	if (warningMessage) {
-		void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
+		void trackUnauthenticatedUserSearchHistoryQueue.push(req);
 		return sendAlertAndRedirectResponse(
 			res,
 			defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)),
@@ -244,7 +238,7 @@ export async function handleUnauthenticatedUserFlow(
 	}
 
 	// Asynchronously track search for analytics purposes
-	void trackUnauthenticatedUserSearchHistoryQueue.push({ query, req });
+	void trackUnauthenticatedUserSearchHistoryQueue.push(req);
 
 	// Process bang commands for unauthenticated users
 	if (triggerWithoutBang) {
