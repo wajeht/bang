@@ -84,7 +84,8 @@ export function getLogoutHandler(req: Request, res: Response) {
 // GET /login
 export function getLoginHandler(req: Request, res: Response) {
 	if (req.session.user) {
-		return res.redirect('/search');
+		req.flash('info', "you've already been logged in!");
+		return res.redirect('/');
 	}
 
 	return res.redirect('/oauth/github');
@@ -94,7 +95,7 @@ export function getLoginHandler(req: Request, res: Response) {
 export async function getGithubHandler(req: Request, res: Response) {
 	if (req.user) {
 		req.flash('info', "you've already been logged in!");
-		return res.redirect('/search');
+		return res.redirect('/');
 	}
 
 	const qs = new URLSearchParams({
