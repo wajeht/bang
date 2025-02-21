@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -5,6 +6,14 @@ export default defineConfig({
 		clearMocks: true,
 		globals: true,
 		setupFiles: ['./src/tests/test-setup.ts'],
-		exclude: ['node_modules', './src/tests/browser', './dist'],
+		exclude: [
+			'node_modules',
+			'./src/tests/browser',
+			'./dist',
+			'./public',
+			'./test-results',
+			'./scripts',
+			'./playwright.config.ts',
+		],
 	},
 });
