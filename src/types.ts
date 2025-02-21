@@ -20,7 +20,7 @@ declare global {
 	}
 }
 
-import { defaultSearchProviders } from './configs.js';
+import { defaultSearchProviders } from './configs';
 
 export type DefaultSearchProviders = keyof typeof defaultSearchProviders;
 
