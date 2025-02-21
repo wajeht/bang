@@ -100,9 +100,9 @@ export function getGithubHandler(req: Request, res: Response, next: NextFunction
 	return passport.authenticate('github', { scope: ['user:email'] })(req, res, next);
 }
 
-// GET /oauth/github/callback
-export function getGithubRedirectHandler(_req: Request, _res: Response) {
-	console.log('xxxxxxxxxxxxxxxxxxx');
+// GET /oauth/github/redirect
+export function getGithubRedirectHandler(_req: Request, res: Response) {
+	res.redirect('/actions');
 }
 
 // POST /search
