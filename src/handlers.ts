@@ -94,7 +94,7 @@ export function getLoginHandler(req: Request, res: Response) {
 export function getGithubHandler(req: Request, res: Response, next: NextFunction) {
 	if (req.user) {
 		req.flash('info', "you've already been logged in!");
-		return res.redirect('/search');
+		return res.redirect('/');
 	}
 
 	return passport.authenticate('github', { scope: ['user:email'] })(req, res, next);
@@ -104,10 +104,10 @@ export function getGithubHandler(req: Request, res: Response, next: NextFunction
 export function getGithubRedirectHandler(req: Request, res: Response, next: NextFunction) {
 	if (req.user) {
 		req.flash('info', "you've already been logged in!");
-		return res.redirect('/search');
+		return res.redirect('/');
 	}
 
-	return passport.authenticate('github', { failureRedirect: '/login', successRedirect: '/search' })(
+	return passport.authenticate('github', { failureRedirect: '/login', successRedirect: '/' })(
 		req,
 		res,
 		next,

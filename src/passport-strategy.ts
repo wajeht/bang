@@ -22,14 +22,15 @@ passport.use(
 			clientID: oauthConfig.github.client_id,
 			clientSecret: oauthConfig.github.client_secret,
 			callbackURL: '/oauth/github/redirect',
+			scope: ['user:email'],
 		},
 		async (_accessToken: string, _refreshToken: string, profile: any, done: any) => {
 			try {
 				const emails = profile.emails || [];
-				const email = emails.find((e: any) => e.primary && e.verified)?.value;
+				const email = emails[0]?.value;
 
 				if (!email) {
-					return done(new Error('No verified primary email found'));
+					return done(new Error('No email address found in GitHub profile'), undefined);
 				}
 
 				let user = await db('users').where({ email }).first();
