@@ -238,50 +238,39 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
 
 export async function authenticationMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
-		// Check if user is already authenticated in session and valid
-		if (req.session?.user?.id) {
-			req.user = req.session.user;
-			return next();
-		}
-
-		// Get API key if present
 		const apiKey = getApiKey(req);
-		if (!apiKey && !isApiRequest(req)) {
-			return res.redirect('/login');
+
+		let user: User | null = null;
+
+		if (req.session?.user) {
+			user = await db.select('*').from('users').where({ id: req.session.user.id }).first();
 		}
 
-		// Verify API key and get user
-		let user: User | null = null;
 		if (apiKey) {
 			const apiKeyPayload = await api.verify(apiKey);
-			if (!apiKeyPayload?.userId) {
-				throw new UnauthorizedError('Invalid API key');
+
+			if (!apiKeyPayload) {
+				throw new UnauthorizedError('Invalid API key or Bearer token');
 			}
 
 			user = await db.select('*').from('users').where({ id: apiKeyPayload.userId }).first();
 		}
 
-		// Handle unauthorized access
 		if (!user) {
 			if (isApiRequest(req)) {
 				throw new UnauthorizedError('Unauthorized');
 			}
+
 			return res.redirect('/login');
 		}
 
-		// Set user in request and session
 		req.user = user;
 		req.session.user = user;
-		await new Promise<void>((resolve, reject) => {
-			req.session.save((err) => {
-				if (err) reject(err);
-				resolve();
-			});
-		});
+		req.session.save();
 
 		next();
 	} catch (error) {
-		logger.error('Authentication error:', { error });
+		logger.error('Authentication error: %o', error);
 		next(error);
 	}
 }
