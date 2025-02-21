@@ -101,8 +101,17 @@ export function getGithubHandler(req: Request, res: Response, next: NextFunction
 }
 
 // GET /oauth/github/redirect
-export function getGithubRedirectHandler(_req: Request, res: Response) {
-	res.redirect('/actions');
+export function getGithubRedirectHandler(req: Request, res: Response, next: NextFunction) {
+	if (req.user) {
+		req.flash('info', "you've already been logged in!");
+		return res.redirect('/search');
+	}
+
+	return passport.authenticate('github', { failureRedirect: '/login', successRedirect: '/search' })(
+		req,
+		res,
+		next,
+	);
 }
 
 // POST /search

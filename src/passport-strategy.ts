@@ -21,7 +21,7 @@ passport.use(
 		{
 			clientID: oauthConfig.github.client_id,
 			clientSecret: oauthConfig.github.client_secret,
-			callbackURL: `${oauthConfig.github.redirect_uri}/oauth/github/redirect`,
+			callbackURL: '/oauth/github/redirect',
 		},
 		async (_accessToken: string, _refreshToken: string, profile: any, done: any) => {
 			try {
