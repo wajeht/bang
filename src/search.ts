@@ -280,9 +280,6 @@ export async function handleAnonymousSearch(
 }
 
 /**
- *
- * TODO: clean this function and write tests for all edge cases
- *
  * Processes search queries and handles different user flows
  * - Unauthenticated user flow: Handles rate limiting, bang commands, and default search
  * - Authenticated user flow: Handles direct navigation commands, bookmark creation, and custom bang commands
@@ -352,7 +349,9 @@ export async function search({
 		}
 
 		// Prevent duplicates and system command conflicts
-		const hasSystemBangCommands = ['!add', '!bm'].includes(trigger);
+		const hasSystemBangCommands = searchConfig.systemBangs.includes(
+			trigger as (typeof searchConfig.systemBangs)[number],
+		);
 		const hasExistingCustomBangCommand = await db('bangs')
 			.where({ user_id: user.id, trigger })
 			.first();
