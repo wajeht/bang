@@ -119,7 +119,7 @@ export function parseSearchQuery(query: string) {
 	const triggerMatch = sanitizedQuery.match(triggerPattern);
 	const urlMatch = sanitizedQuery.match(urlPattern);
 
-	const trigger = triggerMatch?.[1] ?? null;
+	const trigger = triggerMatch?.[1]?.toString() ?? null;
 	const triggerWithoutExclamationMark = trigger?.slice(1) ?? null;
 	const url = urlMatch?.[1] ?? null;
 

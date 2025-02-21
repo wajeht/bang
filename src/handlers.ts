@@ -223,11 +223,11 @@ export const postActionHandler = [
 	async (req: Request, res: Response) => {
 		const { trigger, url, actionType, name } = req.body;
 
-		const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+		const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
 		await actions.create({
 			name: name.trim(),
-			trigger: formattedTrigger,
+			trigger: formattedTrigger.toLowerCase(),
 			url,
 			actionType,
 			user_id: (req.user as User).id,
