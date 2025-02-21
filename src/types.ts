@@ -15,7 +15,6 @@ declare global {
 	// eslint-disable-next-line @typescript-eslint/no-namespace
 	namespace Express {
 		interface Request {
-			user: User | null;
 			apiKeyPayload: ApiKeyPayload | null;
 		}
 	}
@@ -30,8 +29,6 @@ export type ActionTypes = 'bookmark' | 'redirect' | 'search';
 export type ApiKeyPayload = { userId: number; apiKeyVersion: number };
 
 export type Env = 'production' | 'development' | 'testing';
-
-export type GitHubOauthToken = { access_token: string };
 
 export interface Api {
 	generate: (payload: ApiKeyPayload) => Promise<string>;
@@ -64,20 +61,6 @@ export type User = {
 	is_admin: boolean;
 	created_at: string;
 	updated_at: string;
-};
-
-export interface GitHubUser {
-	login: string;
-	avatar_url: string;
-	name: string;
-	email: string;
-}
-
-export type GithubUserEmail = {
-	email: string;
-	primary: boolean;
-	verified: boolean;
-	visibility: string | null;
 };
 
 export type BookmarkToExport = {

@@ -24,10 +24,8 @@ export const appConfig = {
 
 export const oauthConfig = {
 	github: {
-		redirect_uri: process.env.GITHUB_REDIRECT_URI || 'http://localhost/oauth/github/redirect',
 		client_id: process.env.GITHUB_CLIENT_ID || '',
 		client_secret: process.env.GITHUB_CLIENT_SECRET || '',
-		root_url: 'https://github.com/login/oauth/authorize',
 	},
 } as const;
 

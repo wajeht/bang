@@ -1,8 +1,9 @@
 import helmet from 'helmet';
 import { db } from './db/db';
+import { User } from './types';
 import { logger } from './logger';
-import session from 'express-session';
 import { csrfSync } from 'csrf-sync';
+import session from 'express-session';
 import rateLimit from 'express-rate-limit';
 import { appConfig, sessionConfig } from './configs';
 import { validationResult } from 'express-validator';
@@ -85,7 +86,7 @@ export async function adminOnlyMiddleware(req: Request, _res: Response, next: Ne
 			throw new UnauthorizedError('Unauthorized');
 		}
 
-		if (!req.user.is_admin) {
+		if (!(req.user as User).is_admin) {
 			throw new UnauthorizedError('User is not an admin');
 		}
 
