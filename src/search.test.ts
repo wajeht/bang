@@ -182,7 +182,7 @@ describe('search', () => {
 	});
 
 	describe('authenticated', () => {
-		beforeEach(async () => {
+		beforeEach(async () =>
 			await db('bookmarks').del();
 			await db('bangs').del();
 			await db('action_types').del();
@@ -221,7 +221,7 @@ describe('search', () => {
 				},
 			]);
 		});
-
+  
 		afterEach(async () => {
 			await db('bookmarks').del();
 			await db('bangs').del();
