@@ -5,15 +5,15 @@ import {
 	notFoundMiddleware,
 	rateLimitMiddleware,
 	appLocalStateMiddleware,
-} from './middlewares.js';
+} from './middlewares';
 import ejs from 'ejs';
 import cors from 'cors';
 import express from 'express';
 import flash from 'connect-flash';
 import { router } from './router';
 import compression from 'compression';
-import { passport } from './passport-strategy.js';
 import { appConfig } from './configs';
+import { passport } from './passport-strategy';
 import expressLayouts from 'express-ejs-layouts';
 import { expressJSDocSwaggerHandler, swagger } from './swagger';
 import { expressTemplatesReload as reload } from '@wajeht/express-templates-reload';
