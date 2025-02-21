@@ -244,6 +244,14 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 
 		if (req.session?.user) {
 			user = await db.select('*').from('users').where({ id: req.session.user.id }).first();
+			// If user exists in session but not in DB, clear the session
+			if (!user) {
+				req.session.destroy((err) => {
+					if (err) {
+						logger.error('Session destruction error: %o', err);
+					}
+				});
+			}
 		}
 
 		if (apiKey) {
