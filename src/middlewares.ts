@@ -1,5 +1,6 @@
 import helmet from 'helmet';
 import { db } from './db/db';
+import { User } from './types';
 import { logger } from './logger';
 import session from 'express-session';
 import { csrfSync } from 'csrf-sync';
@@ -85,7 +86,7 @@ export async function adminOnlyMiddleware(req: Request, _res: Response, next: Ne
 			throw new UnauthorizedError('Unauthorized');
 		}
 
-		if (!req.user.is_admin) {
+		if (!(req.user as User).is_admin) {
 			throw new UnauthorizedError('User is not an admin');
 		}
 
@@ -239,7 +240,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 	try {
 		const apiKey = getApiKey(req);
 
-		let user;
+		let user: User | null = null;
 
 		if (apiKey) {
 			const apiKeyPayload = await api.verify(apiKey);
