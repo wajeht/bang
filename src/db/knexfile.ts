@@ -16,7 +16,7 @@ function _getFormattedTimestamp() {
 
 // const _developmentEnvironmentOnly = appConfig.env === 'development';
 
-const knexConfig: Knex.Config = {
+let knexConfig: Knex.Config = {
 	client: 'better-sqlite3',
 	useNullAsDefault: true,
 	asyncStackTraces: false,
@@ -26,7 +26,10 @@ const knexConfig: Knex.Config = {
 		tableName: 'knex_migrations',
 		directory: path.resolve(__dirname, './migrations'),
 	},
-	seeds: { directory: path.resolve(__dirname, './seeds') },
+	seeds: {
+		extension: 'ts',
+		directory: path.resolve(__dirname, './seeds'),
+	},
 	// debug: _developmentEnvironmentOnly,
 	pool: {
 		min: 2,
@@ -79,8 +82,11 @@ const knexConfig: Knex.Config = {
 };
 
 if (appConfig.env === 'testing') {
-	knexConfig.connection = {
-		filename: ':memory:',
+	knexConfig = {
+		...knexConfig,
+		connection: {
+			filename: ':memory:',
+		},
 	};
 }
 
