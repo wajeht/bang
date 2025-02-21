@@ -34,8 +34,10 @@ passport.use(
 				}
 
 				let user = await db('users').where({ email }).first();
+				let isNewUser = false;
 
 				if (!user) {
+					isNewUser = true;
 					[user] = await db('users')
 						.insert({
 							username: email.split('@')[0],
@@ -45,7 +47,7 @@ passport.use(
 						.returning('*');
 				}
 
-				return done(null, user);
+				return done(null, user, { isNewUser });
 			} catch (error) {
 				return done(error as Error, undefined);
 			}
