@@ -1,7 +1,7 @@
+import fs from 'node:fs';
+import type { Bang } from './types';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fetchBangs, createHashMap, writeHashMapToFile, generateBangsHashMap } from './banger.mjs';
-import fs from 'node:fs';
-import type { Bang } from './types.js';
 
 vi.mock('node:fs', () => ({
 	default: {

@@ -1,7 +1,9 @@
 import dotenv from 'dotenv';
-import path from 'node:path';
 import { Knex } from 'knex';
+import path from 'node:path';
+
 const env = dotenv.config({ path: path.resolve(path.join(process.cwd(), '..', '..', '.env')) });
+
 export async function seed(knex: Knex): Promise<void> {
 	await knex('bangs').del();
 	await knex('bookmarks').del();

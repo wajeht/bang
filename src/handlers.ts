@@ -70,7 +70,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 export function getLogoutHandler(req: Request, res: Response) {
 	if ((req.session && req.session.user) || req.user) {
 		req.session.user = null;
-		req.user = null;
+		req.user = undefined;
 		req.session.destroy((error) => {
 			if (error) {
 				throw new HttpError(error);
@@ -748,7 +748,7 @@ export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Res
 
 	if ((req.session && req.session.user) || req.user) {
 		req.session.user = null;
-		req.user = null;
+		req.user = undefined;
 		req.session.destroy((error) => {
 			if (error) {
 				throw new HttpError(error);
