@@ -143,7 +143,7 @@ export function getGithubRedirectHandler(req: Request, res: Response, next: Next
 					req.flash('success', `🙏 welcome back, ${user.username}!`);
 				}
 
-				return res.redirect('/actions');
+				return res.redirect('/');
 			});
 		},
 	)(req, res, next);
