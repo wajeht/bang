@@ -218,7 +218,7 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
 				warning: req.flash('warning'),
 			},
 			version: {
-				style: isProd ? '0.6' : randomNumber,
+				style: isProd ? '0.7' : randomNumber,
 				script: isProd ? '0.8' : randomNumber,
 			},
 		};

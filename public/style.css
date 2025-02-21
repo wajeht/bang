@@ -14,7 +14,7 @@
 	--pre-background: #f8f9fa;
 	--pre-border: #edeff0;
 	--link-color: #0000ee;
-	--visited-link-color: #6f3788;
+	--visited-link-color: #551a8b;
 	--border-color: #1a1a1a;
 	--sub-table-background: #f8f9fa;
 }
@@ -42,6 +42,29 @@ html {
 	--checkbox-check: #ffffff;
 	--button-hover-background: #5a5a5a;
 	--sub-table-background: #2a2a2a;
+}
+
+[data-theme='dark'] {
+	scrollbar-color: #666666 #2a2a2a;
+}
+
+[data-theme='dark']::-webkit-scrollbar {
+	width: 12px;
+	height: 12px;
+}
+
+[data-theme='dark']::-webkit-scrollbar-track {
+	background: #2a2a2a;
+}
+
+[data-theme='dark']::-webkit-scrollbar-thumb {
+	background-color: #666666;
+	border-radius: 6px;
+	border: 2px solid #2a2a2a;
+}
+
+[data-theme='dark']::-webkit-scrollbar-thumb:hover {
+	background-color: #808080;
 }
 
 body {
@@ -198,7 +221,6 @@ table {
 
 td {
 	overflow: auto;
-	/* word-break: break-all; */
 }
 
 .no-style-btn:hover {
