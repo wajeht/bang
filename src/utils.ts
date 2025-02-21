@@ -325,7 +325,7 @@ export async function extractUser(req: Request): Promise<User> {
 
 export function extractPagination(req: Request) {
 	return {
-		perPage: parseInt(req.query.per_page as string, 10) || req.user!.default_per_page,
+		perPage: parseInt(req.query.per_page as string, 10) || (req.user as User).default_per_page,
 		page: parseInt(req.query.page as string, 10) || 1,
 		search: ((req.query.search as string) || '').toLowerCase(),
 		sortKey: (req.query.sort_key as string) || 'created_at',
