@@ -1,11 +1,11 @@
 import { db } from './db/db';
 import { User } from './types';
+import * as utils from './utils';
 import { search } from './search';
 import { appConfig } from './configs';
 import { parseSearchQuery } from './search';
 import { Request, Response } from 'express';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import * as utils from './utils';
 
 describe('search', () => {
 	describe('unauthenticated', () => {

@@ -5,6 +5,6 @@ export default defineConfig({
 		clearMocks: true,
 		globals: true,
 		setupFiles: ['./src/tests/test-setup.ts'],
-		exclude: ['node_modules', './src/tests/browser'],
+		exclude: ['node_modules', './src/tests/browser', './dist'],
 	},
 });
