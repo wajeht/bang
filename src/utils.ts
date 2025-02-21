@@ -1,12 +1,4 @@
-import {
-	Api,
-	User,
-	ApiKeyPayload,
-	GithubUserEmail,
-	BookmarkToExport,
-	GitHubOauthToken,
-} from './types';
-import qs from 'qs';
+import { Api, User, ApiKeyPayload, BookmarkToExport } from './types';
 import fastq from 'fastq';
 import { db } from './db/db';
 import http from 'node:http';
@@ -16,55 +8,11 @@ import { Request } from 'express';
 import { logger } from './logger';
 import { HttpError } from './errors';
 import { bookmarks } from './repositories';
-import { appConfig, notifyConfig, oauthConfig } from './configs';
+import { appConfig, notifyConfig } from './configs';
 
 export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
 export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
 export const sendNotificationQueue = fastq.promise(sendNotification, 10);
-
-export const github = {
-	getOauthToken: async function (code: string): Promise<GitHubOauthToken> {
-		const rootUrl = 'https://github.com/login/oauth/access_token';
-
-		const options = {
-			client_id: oauthConfig.github.client_id,
-			client_secret: oauthConfig.github.client_secret,
-			code,
-		};
-
-		const queryString = qs.stringify(options);
-
-		const response = await fetch(`${rootUrl}?${queryString}`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
-			},
-		});
-
-		if (!response.ok) {
-			logger.error('[getUserEmails]: Failed to fetch GitHub OAuth tokens');
-			throw new HttpError(500, 'Failed to fetch GitHub OAuth tokens');
-		}
-
-		const data = await response.text();
-		return qs.parse(data) as GitHubOauthToken;
-	},
-
-	getUserEmails: async function (access_token: string): Promise<GithubUserEmail[]> {
-		const response = await fetch('https://api.github.com/user/emails', {
-			headers: {
-				Authorization: `Bearer ${access_token}`,
-			},
-		});
-
-		if (!response.ok) {
-			logger.error('[getUserEmails]: Failed to fetch GitHub user emails');
-			throw new HttpError(500, 'Failed to fetch GitHub user emails');
-		}
-
-		return (await response.json()) as GithubUserEmail[];
-	},
-};
 
 export async function insertBookmark({
 	url,
