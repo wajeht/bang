@@ -177,7 +177,7 @@ export function parseSearchQuery(query: string) {
  * Handles rate limiting for unauthenticated users
  * Returns warning message when search count reaches multiples of 10
  */
-export function getSearchLimitWarning(req: Request, searchCount: number) {
+export function getSearchLimitWarning(_req: Request, searchCount: number) {
 	const searchesLeft = searchConfig.searchLimit - searchCount;
 	const showWarning = searchCount % 10 === 0 && searchCount !== 0;
 

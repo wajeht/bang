@@ -1,6 +1,5 @@
 import {
 	api,
-	github,
 	bookmark,
 	expectJson,
 	isApiRequest,
@@ -8,14 +7,15 @@ import {
 	insertBookmarkQueue,
 } from './utils';
 import { db } from './db/db';
+import { passport } from './passport-strategy';
 import { search } from './search';
 import { body } from 'express-validator';
-import { Request, Response } from 'express';
 import { actions, bookmarks } from './repositories';
-import { ApiKeyPayload, BookmarkToExport } from './types';
+import { Request, Response, NextFunction } from 'express';
 import { validateRequestMiddleware } from './middlewares';
-import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './configs';
-import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
+import { ApiKeyPayload, BookmarkToExport, User } from './types';
+import { actionTypes, defaultSearchProviders } from './configs';
+import { HttpError, NotFoundError, ValidationError } from './errors';
 
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {
@@ -70,7 +70,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 export function getLogoutHandler(req: Request, res: Response) {
 	if ((req.session && req.session.user) || req.user) {
 		req.session.user = null;
-		req.user = null;
+		req.user = undefined;
 		req.session.destroy((error) => {
 			if (error) {
 				throw new HttpError(error);
@@ -91,76 +91,29 @@ export function getLoginHandler(req: Request, res: Response) {
 }
 
 // GET /oauth/github
-export async function getGithubHandler(req: Request, res: Response) {
+export function getGithubHandler(req: Request, res: Response, next: NextFunction) {
 	if (req.user) {
 		req.flash('info', "you've already been logged in!");
 		return res.redirect('/search');
 	}
 
-	const qs = new URLSearchParams({
-		redirect_uri: oauthConfig.github.redirect_uri,
-		client_id: oauthConfig.github.client_id,
-		scope: 'user:email',
-	});
-
-	return res.redirect(`${oauthConfig.github.root_url}?${qs.toString()}`);
+	return passport.authenticate('github', { scope: ['user:email'] })(req, res, next);
 }
 
-// GET /oauth/github/redirect
-export async function getGithubRedirectHandler(req: Request, res: Response) {
-	const code = req.query.code as string;
-
-	if (!code) {
-		throw new UnauthorizedError('Something went wrong while authenticating with github');
-	}
-
-	const { access_token } = await github.getOauthToken(code);
-
-	const emails = await github.getUserEmails(access_token);
-
-	const email = emails.filter((email) => email.primary && email.verified)[0]?.email;
-
-	let foundUser = await db.select('*').from('users').where({ email }).first();
-
-	if (!foundUser) {
-		[foundUser] = await db('users')
-			.insert({
-				username: email?.split('@')[0],
-				email,
-				is_admin: appConfig.adminEmail === email,
-			})
-			.returning('*');
-	}
-
-	req.user = foundUser;
-	req.session.user = foundUser;
-
-	const redirectTo = req.session.redirectTo;
-	delete req.session.redirectTo;
-	req.session.save();
-
-	if (redirectTo) {
-		return res.redirect(redirectTo);
-	}
-
-	if (!foundUser) {
-		req.flash('success', '✌️ enjoy bang!');
-		return res.redirect('/actions');
-	}
-
-	req.flash('success', `🙏 welcome back, ${foundUser.username}!`);
-	return res.redirect('/actions');
+// GET /oauth/github/callback
+export function getGithubRedirectHandler(_req: Request, _res: Response) {
+	console.log('xxxxxxxxxxxxxxxxxxx');
 }
 
 // POST /search
 export async function postSearchHandler(req: Request, res: Response) {
 	const query = req.body.q?.toString().trim() || '';
-	await search({ res, user: req.session.user!, query, req });
+	await search({ res, user: req.session.user as User, query, req });
 }
 
 // GET /actions or /api/actions
 export async function getActionsHandler(req: Request, res: Response) {
-	const user = req.user!;
+	const user = req.user as User;
 	const { perPage, page, search, sortKey, direction } = extractPagination(req);
 
 	const { data, pagination } = await actions.all({
@@ -229,7 +182,7 @@ export const postActionHandler = [
 			trigger: formattedTrigger,
 			url,
 			actionType,
-			user_id: req.user!.id,
+			user_id: (req.user as User).id,
 		});
 
 		if (isApiRequest(req)) {
@@ -254,7 +207,7 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 
 // POST /actions/:id/delete or DELETE /api/actions
 export async function deleteActionHandler(req: Request, res: Response) {
-	const deleted = await actions.delete(req.params.id as unknown as number, req.user!.id);
+	const deleted = await actions.delete(req.params.id as unknown as number, (req.user as User).id);
 
 	if (!deleted) {
 		throw new NotFoundError();
@@ -276,7 +229,7 @@ export async function getEditActionPageHandler(req: Request, res: Response) {
 		.from('bangs')
 		.where({
 			'bangs.id': req.params.id,
-			'bangs.user_id': req.user!.id,
+			'bangs.user_id': (req.user as User).id,
 		})
 		.join('action_types', 'bangs.action_type_id', 'action_types.id')
 		.first();
@@ -327,12 +280,16 @@ export const updateActionHandler = [
 		const { trigger, url, actionType, name } = req.body;
 		const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-		const updatedAction = await actions.update(req.params.id as unknown as number, req.user!.id, {
-			trigger: formattedTrigger,
-			name: name.trim(),
-			url,
-			actionType,
-		});
+		const updatedAction = await actions.update(
+			req.params.id as unknown as number,
+			(req.user as User).id,
+			{
+				trigger: formattedTrigger,
+				name: name.trim(),
+				url,
+				actionType,
+			},
+		);
 
 		if (isApiRequest(req)) {
 			res.status(200).json({ message: `Action ${updatedAction.trigger} updated successfully!` });
@@ -358,7 +315,7 @@ export async function getBookmarksHandler(req: Request, res: Response) {
 	const { perPage, page, search, sortKey, direction } = extractPagination(req);
 
 	const { data, pagination } = await bookmarks.all({
-		user: req.user!,
+		user: req.user as User,
 		perPage,
 		page,
 		search,
@@ -385,7 +342,7 @@ export async function getBookmarksHandler(req: Request, res: Response) {
 
 // POST /bookmarks/:id/delete or DELETE /api/bookmarks/:id
 export async function deleteBookmarkHandler(req: Request, res: Response) {
-	const deleted = await bookmarks.delete(req.params.id as unknown as number, req.user!.id);
+	const deleted = await bookmarks.delete(req.params.id as unknown as number, (req.user as User).id);
 
 	if (!deleted) {
 		throw new NotFoundError();
@@ -440,7 +397,7 @@ export const updateBookmarkHandler = [
 
 		const updatedBookmark = await bookmarks.update(
 			req.params.id as unknown as number,
-			req.user!.id,
+			(req.user as User).id,
 			{
 				url,
 				title,
@@ -461,7 +418,7 @@ export const postBookmarkHandler = [
 	async (req: Request, res: Response) => {
 		const { url, title } = req.body;
 
-		void insertBookmarkQueue.push({ url, userId: req.user!.id, title });
+		void insertBookmarkQueue.push({ url, userId: (req.user as User).id, title });
 
 		if (isApiRequest(req)) {
 			res.status(201).json({ message: `Bookmark ${title} created successfully!` });
@@ -587,7 +544,7 @@ export const postSettingsAccountHandler = [
 				default_search_provider,
 				default_per_page,
 			})
-			.where({ id: req.user?.id });
+			.where({ id: (req.user as User).id });
 
 		req.flash('success', '🔄 updated!');
 		return res.redirect('/settings/account');
@@ -615,7 +572,7 @@ export const postExportDataHandler = [
 		}),
 	]),
 	async (req: Request, res: Response) => {
-		const userId = req.user?.id;
+		const userId = (req.user as User).id;
 		const includeBookmarks = req.body.options.includes('bookmarks');
 		const includeActions = req.body.options.includes('actions');
 
@@ -743,7 +700,7 @@ export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Res
 
 	if ((req.session && req.session.user) || req.user) {
 		req.session.user = null;
-		req.user = null;
+		req.user = undefined;
 		req.session.destroy((error) => {
 			if (error) {
 				throw new HttpError(error);
@@ -756,7 +713,7 @@ export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Res
 
 // GET /settings/data/export
 export async function getExportAllDataHandler(req: Request, res: Response) {
-	const userId = req.user?.id;
+	const userId = (req.user as User).id;
 
 	const [user, bangs, bookmarks] = await Promise.all([
 		db('users')

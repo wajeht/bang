@@ -5,14 +5,15 @@ import {
 	notFoundMiddleware,
 	rateLimitMiddleware,
 	appLocalStateMiddleware,
-} from './middlewares';
+} from './middlewares.js';
 import ejs from 'ejs';
 import cors from 'cors';
 import express from 'express';
-import { router } from './router';
 import flash from 'connect-flash';
-import { appConfig } from './configs';
+import { router } from './router';
 import compression from 'compression';
+import { passport } from './passport-strategy.js';
+import { appConfig } from './configs';
 import expressLayouts from 'express-ejs-layouts';
 import { expressJSDocSwaggerHandler, swagger } from './swagger';
 import { expressTemplatesReload as reload } from '@wajeht/express-templates-reload';
@@ -20,6 +21,8 @@ import { expressTemplatesReload as reload } from '@wajeht/express-templates-relo
 const app = express()
 	.set('trust proxy', 1)
 	.use(sessionMiddleware())
+	.use(passport.initialize())
+	.use(passport.session())
 	.use(flash())
 	.use(compression())
 	.use(cors())

@@ -15,13 +15,12 @@ declare global {
 	// eslint-disable-next-line @typescript-eslint/no-namespace
 	namespace Express {
 		interface Request {
-			user: User | null;
 			apiKeyPayload: ApiKeyPayload | null;
 		}
 	}
 }
 
-import { defaultSearchProviders } from './configs';
+import { defaultSearchProviders } from './configs.js';
 
 export type DefaultSearchProviders = keyof typeof defaultSearchProviders;
 

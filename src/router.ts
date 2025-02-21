@@ -47,7 +47,7 @@ router.get('/terms-of-service', getTermsOfServicePageHandler);
 router.get('/login', getLoginHandler);
 router.get('/logout', getLogoutHandler);
 router.get('/oauth/github', getGithubHandler);
-router.get('/oauth/github/redirect', getGithubRedirectHandler);
+router.get('/oauth/github/callback', getGithubRedirectHandler);
 router.post('/search', authenticationMiddleware, csrfMiddleware, postSearchHandler);
 
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler);
