@@ -107,11 +107,47 @@ export function getGithubRedirectHandler(req: Request, res: Response, next: Next
 		return res.redirect('/');
 	}
 
-	return passport.authenticate('github', { failureRedirect: '/login', successRedirect: '/' })(
-		req,
-		res,
-		next,
-	);
+	return passport.authenticate(
+		'github',
+		{
+			failureRedirect: '/login',
+			successRedirect: undefined, // Disable default redirect
+		},
+		(err: any, user: User) => {
+			if (err) {
+				req.flash('error', 'Something went wrong while authenticating with GitHub');
+				return res.redirect('/login');
+			}
+
+			if (!user) {
+				req.flash('error', 'Failed to authenticate with GitHub');
+				return res.redirect('/login');
+			}
+
+			// Set user in session
+			req.user = user;
+			req.session.user = user;
+
+			// Handle custom redirect logic
+			const redirectTo = req.session.redirectTo;
+			delete req.session.redirectTo;
+			req.session.save(() => {
+				if (redirectTo) {
+					return res.redirect(redirectTo);
+				}
+
+				// Show welcome message based on whether user is new or returning
+				const isNewUser = user.created_at === user.updated_at;
+				if (isNewUser) {
+					req.flash('success', '✌️ enjoy bang!');
+					return res.redirect('/actions');
+				}
+
+				req.flash('success', `🙏 welcome back, ${user.username}!`);
+				return res.redirect('/actions');
+			});
+		},
+	)(req, res, next);
 }
 
 // POST /search

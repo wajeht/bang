@@ -53,6 +53,7 @@ db-reset:
 	make db-seed
 
 up:
+	rm -rf ./src/db/sqlite/*sqlite*
 	@docker compose -f docker-compose.dev.yml up
 
 up-d:
