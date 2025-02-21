@@ -1,1 +1,1 @@
-console.log('test-setup.ts');
+process.env.NODE_ENV = 'testing';
