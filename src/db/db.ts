@@ -1,8 +1,8 @@
 import knex from 'knex';
 import path from 'node:path';
-import { logger } from '../logger.js';
-import knexConfig from './knexfile.js';
-import { appConfig } from '../configs.js';
+import { logger } from '../logger';
+import knexConfig from './knexfile';
+import { appConfig } from '../configs';
 import { attachPaginate } from 'knex-paginate';
 
 attachPaginate();

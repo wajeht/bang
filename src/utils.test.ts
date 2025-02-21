@@ -1,4 +1,4 @@
-import { ApiKeyPayload, BookmarkToExport } from './types.js';
+import { ApiKeyPayload, BookmarkToExport } from './types';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
 	bookmark,
