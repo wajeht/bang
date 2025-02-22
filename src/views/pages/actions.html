@@ -40,61 +40,71 @@
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="border-bottom: 1px dashed #ddd;">
-                        <th style="text-align: left; padding: 10px;">
-                            <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=name&direction=<%= (sortKey === 'name' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
-                                📝 Name
-                                <% if (sortKey === 'name') { %>
-                                    <%= direction === 'asc' ? '↑' : '↓' %>
-                                <% } else { %>
-                                    <span>↕️</span>
-                                <% } %>
-                            </a>
-                        </th>
-                        <th style="text-align: left; padding: 10px;">
-                            <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=trigger&direction=<%= (sortKey === 'trigger' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
-                                🔥 Trigger
-                                <% if (sortKey === 'trigger') { %>
-                                    <%= direction === 'asc' ? '↑' : '↓' %>
-                                <% } else { %>
-                                    <span>↕️</span>
-                                <% } %>
-                            </a>
-                        </th>
-                        <th style="text-align: left; padding: 10px;">
-                            <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=url&direction=<%= (sortKey === 'url' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
-                                🌐 URL
-                                <% if (sortKey === 'url') { %>
-                                    <%= direction === 'asc' ? '↑' : '↓' %>
-                                <% } else { %>
-                                    <span>↕️</span>
-                                <% } %>
-                            </a>
-                        </th>
-                        <th style="text-align: left; padding: 10px;">
-                            <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=action_type&direction=<%= (sortKey === 'action_type' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
-                                🔄 Type
-                                <% if (sortKey === 'action_type') { %>
-                                    <%= direction === 'asc' ? '↑' : '↓' %>
-                                <% } else { %>
-                                    <span>↕️</span>
-                                <% } %>
-                            </a>
-                        </th>
-                        <th style="text-align: left; padding: 10px;">
-                            <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
-                                📅 Created
-                                <% if (sortKey === 'created_at') { %>
-                                    <%= direction === 'asc' ? '↑' : '↓' %>
-                                <% } else { %>
-                                    <span>↕️</span>
-                                <% } %>
-                            </a>
-                        </th>
+                        <% if (state.user.column_preferences?.actions?.name !== false) { %>
+                            <th style="text-align: left; padding: 10px;">
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=name&direction=<%= (sortKey === 'name' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                    📝 Name
+                                    <% if (sortKey === 'name') { %>
+                                        <%= direction === 'asc' ? '↑' : '↓' %>
+                                    <% } else { %>
+                                        <span>↕️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.actions?.trigger !== false) { %>
+                            <th style="text-align: left; padding: 10px;">
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=trigger&direction=<%= (sortKey === 'trigger' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                    🔥 Trigger
+                                    <% if (sortKey === 'trigger') { %>
+                                        <%= direction === 'asc' ? '↑' : '↓' %>
+                                    <% } else { %>
+                                        <span>↕️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.actions?.url !== false) { %>
+                            <th style="text-align: left; padding: 10px;">
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=url&direction=<%= (sortKey === 'url' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                    🌐 URL
+                                    <% if (sortKey === 'url') { %>
+                                        <%= direction === 'asc' ? '↑' : '↓' %>
+                                    <% } else { %>
+                                        <span>↕️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.actions?.action_type !== false) { %>
+                            <th style="text-align: left; padding: 10px;">
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=action_type&direction=<%= (sortKey === 'action_type' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                    🔄 Type
+                                    <% if (sortKey === 'action_type') { %>
+                                        <%= direction === 'asc' ? '↑' : '↓' %>
+                                    <% } else { %>
+                                        <span>↕️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.actions?.created_at !== false) { %>
+                            <th style="text-align: left; padding: 10px;">
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                    📅 Created
+                                    <% if (sortKey === 'created_at') { %>
+                                        <%= direction === 'asc' ? '↑' : '↓' %>
+                                    <% } else { %>
+                                        <span>↕️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
                         <th style="text-align: left; padding: 10px;">⚡ Actions</th>
                     </tr>
                 </thead>
@@ -102,24 +112,34 @@
                 <tbody>
                     <% for (let i = 0; i < data.length; i++) { %>
                         <tr style="border-bottom: 1px dashed #ddd;">
-                            <td style="padding: 10px;"><%= data[i].name %></td>
-                            <td style="padding: 10px;">
-                                <code style="font-family: monospace; padding: 2px 6px; border-radius: 3px; border: 1px dashed #ddd;">
-                                    <%= data[i].trigger %>
-                                </code>
-                            </td>
-                            <td style="padding: 10px;">
-                               <button id="url-button-<%- i + 1 %>" class="no-style-btn" type="button" onclick="viewUrl(`<%- i + 1 %>`, `<%- data[i].url %>`)">👁️</button>
-                               <a id="url-<%- i + 1 %>" href="<%= data[i].url %>" target="_blank" rel="noopener noreferrer">
-                                    ••••••••••••••••••••••
-                                </a>
-                            </td>
-                            <td style="padding: 10px;">
-                                <code style="font-family: monospace; padding: 2px 6px; border-radius: 3px; border: 1px dashed #ddd;">
-                                    <%= data[i].action_type %>
-                                </code>
-                            </td>
-                            <td style="padding: 10px;"><%= new Date(data[i].created_at).toLocaleDateString() %></td>
+                            <% if (state.user.column_preferences?.actions?.name !== false) { %>
+                                <td style="padding: 10px;"><%= data[i].name %></td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.actions?.trigger !== false) { %>
+                                <td style="padding: 10px;">
+                                    <code style="font-family: monospace; padding: 2px 6px; border-radius: 3px; border: 1px dashed #ddd;">
+                                        <%= data[i].trigger %>
+                                    </code>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.actions?.url !== false) { %>
+                                <td style="padding: 10px;">
+                                   <button id="url-button-<%- i + 1 %>" class="no-style-btn" type="button" onclick="viewUrl(`<%- i + 1 %>`, `<%- data[i].url %>`)">👁️</button>
+                                   <a id="url-<%- i + 1 %>" href="<%= data[i].url %>" target="_blank" rel="noopener noreferrer">
+                                        ••••••••••••••••••••••
+                                    </a>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.actions?.action_type !== false) { %>
+                                <td style="padding: 10px;">
+                                    <code style="font-family: monospace; padding: 2px 6px; border-radius: 3px; border: 1px dashed #ddd;">
+                                        <%= data[i].action_type %>
+                                    </code>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.actions?.created_at !== false) { %>
+                                <td style="padding: 10px;"><%= new Date(data[i].created_at).toLocaleDateString() %></td>
+                            <% } %>
                             <td style="padding: 10px;">
                                 <div style="display: flex; gap: 10px;">
                                     <a
@@ -163,7 +183,7 @@
     <!-- Back to Paginated View -->
     <% if (pagination.perPage === pagination.total) { %>
         <div style="display: flex; justify-content: center; gap: 10px; align-items: center;">
-            <a href="<%= path %>?page=1&per_page=<%= state.user.default_per_page  %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Back to Paginated View">Back to Paginated View</a>
+            <a href="<%= path %>?page=1&per_page=<%= state.user.actions_per_page  %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Back to Paginated View">Back to Paginated View</a>
         </div>
     <% } %>
 

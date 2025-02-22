@@ -57,18 +57,25 @@ export type Bang = {
 	u: string;
 };
 
+export type ColumnPreferences = {
+	actions: Record<string, boolean>;
+	bookmarks: Record<string, boolean>;
+};
+
 export type User = {
 	id: number;
 	username: string;
 	email: string;
 	is_admin: boolean;
 	default_search_provider: DefaultSearchProviders;
-	default_per_page: number;
+	bookmarks_per_page: number;
+	actions_per_page: number;
 	api_key: string;
 	api_key_version: number;
 	api_key_created_at: string;
 	created_at: string;
 	updated_at: string;
+	column_preferences: ColumnPreferences;
 };
 
 export interface GitHubUser {

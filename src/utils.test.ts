@@ -241,7 +241,6 @@ describe('extractUser', () => {
 			email: 'testuser@example.com',
 			is_admin: false,
 			default_search_provider: 'duckduckgo',
-			default_per_page: 10,
 		});
 	});
 
@@ -265,7 +264,6 @@ describe('extractUser', () => {
 			email: 'testuser@example.com',
 			is_admin: 0,
 			default_search_provider: 'duckduckgo',
-			default_per_page: 10,
 			api_key: null,
 			api_key_created_at: null,
 			api_key_version: 0,
@@ -306,7 +304,7 @@ describe.concurrent('extractPagination', () => {
 				sort_key: 'title',
 				direction: 'asc',
 			},
-			user: { default_per_page: 5 },
+			user: { bookmarks_per_page: 5 },
 		} as unknown as Request;
 
 		const pagination = extractPagination(req);
@@ -322,7 +320,7 @@ describe.concurrent('extractPagination', () => {
 	it('should return default values if query parameters are not provided', () => {
 		const req = {
 			query: {},
-			user: { default_per_page: 5 },
+			user: { bookmarks_per_page: 5 },
 		} as unknown as Request;
 
 		const pagination = extractPagination(req);

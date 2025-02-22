@@ -24,10 +24,12 @@ import {
 	getActionCreatePageHandler,
 	getSettingsDataPageHandler,
 	postSettingsAccountHandler,
+	postSettingsDisplayHandler,
 	getPrivacyPolicyPageHandler,
 	getHomePageAndSearchHandler,
 	getBookmarkCreatePageHandler,
 	getTermsOfServicePageHandler,
+	getSettingsDisplayPageHandler,
 	getSettingsAccountPageHandler,
 	postSettingsCreateApiKeyHandler,
 	getSettingsDangerZonePageHandler,
@@ -53,6 +55,8 @@ router.post('/search', authenticationMiddleware, csrfMiddleware, postSearchHandl
 
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler);
 router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler);
+router.get('/settings/display', authenticationMiddleware, csrfMiddleware, getSettingsDisplayPageHandler); // prettier-ignore
+router.post('/settings/display', authenticationMiddleware, csrfMiddleware, postSettingsDisplayHandler); // prettier-ignore
 router.post('/settings/data/export', authenticationMiddleware, csrfMiddleware, postExportDataHandler); // prettier-ignore
 router.post('/settings/data/import', authenticationMiddleware, csrfMiddleware, postImportDataHandler); // prettier-ignore
 router.post('/settings/account', authenticationMiddleware, csrfMiddleware, postSettingsAccountHandler); // prettier-ignore
@@ -238,11 +242,6 @@ router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHand
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  */
-router.get(
-	'/api/actions-and-bookmarks',
-	authenticationMiddleware,
-	cacheMiddleware(1, 'hour'),
-	getActionsAndBookmarksHandler,
-);
+router.get('/api/actions-and-bookmarks', authenticationMiddleware, cacheMiddleware(1, 'hour'), getActionsAndBookmarksHandler); // prettier-ignore
 
 export { router };

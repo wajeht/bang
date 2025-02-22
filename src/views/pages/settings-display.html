@@ -1,0 +1,129 @@
+<div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
+
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <h2 style="margin: 0;">👁️ Display</h2>
+      <p>Customize how your data is displayed.</p>
+    </div>
+  </div>
+
+  <form action="/settings/display" method="POST" style="width: 32.5%; display: flex; flex-direction: column; gap: 20px;">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+    <div style="border: dashed; padding: 20px; border-radius: 5px;">
+      <h3 style="margin: 0 0 15px 0;">🔖 Bookmarks Display</h3>
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="bookmarks_per_page">📜 Items Per Page<span style="color: red;">*</span></label>
+          <input
+            type="number"
+            id="bookmarks_per_page"
+            name="bookmarks_per_page"
+            value="<%= state.input.bookmarks_per_page ?? user.bookmarks_per_page %>"
+            min="1"
+            required
+          >
+          <% if (state.errors.bookmarks_per_page) { %>
+            <small style="color: red;"><%= state.errors.bookmarks_per_page %></small>
+          <% } %>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <h4 style="margin: 0;">Visible Columns</h4>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[bookmarks][title]"
+              <%= user.column_preferences?.bookmarks?.title !== false ? 'checked' : '' %>
+            >
+            📝 Title
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[bookmarks][url]"
+              <%= user.column_preferences?.bookmarks?.url !== false ? 'checked' : '' %>
+            >
+            🌐 URL
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[bookmarks][created_at]"
+              <%= user.column_preferences?.bookmarks?.created_at !== false ? 'checked' : '' %>
+            >
+            📅 Created At
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div style="border: dashed; padding: 20px; border-radius: 5px;">
+      <h3 style="margin: 0 0 15px 0;">⚡ Actions Display</h3>
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="actions_per_page">📜 Items Per Page<span style="color: red;">*</span></label>
+          <input
+            type="number"
+            id="actions_per_page"
+            name="actions_per_page"
+            value="<%= state.input.actions_per_page ?? user.actions_per_page %>"
+            min="1"
+            required
+          >
+          <% if (state.errors.actions_per_page) { %>
+            <small style="color: red;"><%= state.errors.actions_per_page %></small>
+          <% } %>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <h4 style="margin: 0;">Visible Columns</h4>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[actions][name]"
+              <%= user.column_preferences?.actions?.name !== false ? 'checked' : '' %>
+            >
+            📝 Name
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[actions][trigger]"
+              <%= user.column_preferences?.actions?.trigger !== false ? 'checked' : '' %>
+            >
+            🔥 Trigger
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[actions][url]"
+              <%= user.column_preferences?.actions?.url !== false ? 'checked' : '' %>
+            >
+            🌐 URL
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[actions][action_type]"
+              <%= user.column_preferences?.actions?.action_type !== false ? 'checked' : '' %>
+            >
+            🔄 Type
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[actions][created_at]"
+              <%= user.column_preferences?.actions?.created_at !== false ? 'checked' : '' %>
+            >
+            📅 Created At
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit">💾 Save Changes</button>
+  </form>
+</div>
