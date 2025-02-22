@@ -58,7 +58,7 @@ export function notFoundMiddleware() {
 
 export function errorMiddleware() {
 	return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
-		logger.error('%o', error);
+		logger.error(`${req.method} ${req.path} - ${error.message}`, error);
 
 		if (appConfig.env === 'production') {
 			try {
