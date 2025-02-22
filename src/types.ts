@@ -21,7 +21,9 @@ declare global {
 	}
 }
 
-import { defaultSearchProviders } from './configs';
+import { CACHE_DURATION, defaultSearchProviders } from './configs';
+
+export type CacheDuration = keyof typeof CACHE_DURATION;
 
 export type DefaultSearchProviders = keyof typeof defaultSearchProviders;
 
