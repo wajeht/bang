@@ -59,9 +59,12 @@ export type User = {
 	id: number;
 	username: string;
 	email: string;
+	is_admin: boolean;
 	default_search_provider: DefaultSearchProviders;
 	default_per_page: number;
-	is_admin: boolean;
+	api_key: string;
+	api_key_version: number;
+	api_key_created_at: string;
 	created_at: string;
 	updated_at: string;
 };
