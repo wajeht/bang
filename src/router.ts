@@ -230,7 +230,7 @@ router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHand
 /**
  * GET /api/actions-and-bookmarks
  *
- * @tags actions,bookmarks
+ * @tags actions, bookmarks
  * @summary get both actions and bookmarks in a single request
  *
  * @security BearerAuth
