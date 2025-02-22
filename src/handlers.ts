@@ -796,3 +796,40 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
 		.setHeader('Content-Type', 'application/json')
 		.send(JSON.stringify(exportData, null, 2));
 }
+
+// GET /api/actions-and-bookmarks
+export async function getActionsAndBookmarksHandler(req: Request, res: Response) {
+	const user = req.user as User;
+	const { perPage, page, search, sortKey, direction } = extractPagination(req);
+
+	if (!isApiRequest(req)) {
+		throw new HttpError(400, 'This endpoint only supports API requests');
+	}
+
+	const [actionsResult, bookmarksResult] = await Promise.all([
+		actions.all({
+			user,
+			perPage,
+			page,
+			search,
+			sortKey,
+			direction,
+		}),
+		bookmarks.all({
+			user,
+			perPage,
+			page,
+			search,
+			sortKey,
+			direction,
+		}),
+	]);
+
+	res.json({
+		actions: actionsResult,
+		bookmarks: bookmarksResult,
+		search,
+		sortKey,
+		direction,
+	});
+}

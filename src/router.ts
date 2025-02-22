@@ -33,6 +33,7 @@ import {
 	getSettingsDangerZonePageHandler,
 	getBookmarkActionCreatePageHandler,
 	postDeleteSettingsDangerZoneHandler,
+	getActionsAndBookmarksHandler,
 } from './handlers';
 
 import { csrfMiddleware, authenticationMiddleware } from './middlewares';
@@ -225,5 +226,18 @@ router.patch('/api/bookmarks/:id', authenticationMiddleware, updateBookmarkHandl
  *
  */
 router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHandler);
+
+/**
+ * GET /api/actions-and-bookmarks
+ *
+ * @tags actions,bookmarks
+ * @summary get both actions and bookmarks in a single request
+ *
+ * @security BearerAuth
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ */
+router.get('/api/actions-and-bookmarks', authenticationMiddleware, getActionsAndBookmarksHandler);
 
 export { router };
