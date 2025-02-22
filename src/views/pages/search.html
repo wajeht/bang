@@ -1,12 +1,34 @@
 <script>
+  const actionTemplate = (action) => `
+    <li data-type="action" data-trigger="${action.trigger}" style="padding: 5px 10px; cursor: pointer;">
+      <span style="font-weight: bold;">${action.trigger}</span> - ${action.name}
+    </li>
+  `;
+
+  const searchTemplate = {
+    action: (action) => `
+      <li data-type="action" data-trigger="${action.trigger}" data-name="${action.name}" style="padding: 5px 10px; cursor: pointer;">
+        <span style="font-weight: bold;">Action:</span> ${action.name}
+      </li>
+    `,
+    bookmark: (bookmark) => `
+      <li data-type="bookmark" data-url="${bookmark.url}" data-title="${bookmark.title}" style="padding: 5px 10px; cursor: pointer;">
+        <span style="font-weight: bold;">Bookmark:</span> ${bookmark.title}
+      </li>
+    `
+  };
+
   async function getActionsAndBookmarks() {
     try {
       const response = await fetch('/api/actions-and-bookmarks?per_page=999999999999', {
         headers: { 'Content-Type': 'application/json' },
-        cache: 'default' // Let the browser handle caching
+        cache: 'default'
       });
       const data = await response.json();
-      return { actions: data.actions.data, bookmarks: data.bookmarks.data };
+      return {
+        actions: data.actions.data,
+        bookmarks: data.bookmarks.data
+      };
     } catch (error) {
       console.error('Error fetching actions and bookmarks:', error);
       return { actions: [], bookmarks: [] };
@@ -20,8 +42,13 @@
   }
 
   function updateSelection(index, dropdown, input, selectedIndex, updateInputValue = false) {
-    const items = dropdown.querySelectorAll('li');
-    items.forEach(item => item.classList.remove('selected'));
+    const items = dropdown.children;
+    if (items.length === 0) return selectedIndex;
+
+    // Remove previous selection
+    if (selectedIndex >= 0 && selectedIndex < items.length) {
+      items[selectedIndex].classList.remove('selected');
+    }
 
     if (index >= 0 && index < items.length) {
       selectedIndex = index;
@@ -29,9 +56,8 @@
       selectedItem.classList.add('selected');
       selectedItem.scrollIntoView({ block: 'nearest' });
 
-      if (updateInputValue) {
-        const bangTrigger = selectedItem.textContent.split(' - ')[0].trim();
-        input.value = bangTrigger;
+      if (updateInputValue && selectedItem.dataset.trigger) {
+        input.value = selectedItem.dataset.trigger;
       }
     }
 
@@ -39,14 +65,14 @@
   }
 
   function handleKeyboardNavigation(e, dropdown, input, selectedIndex) {
-    const items = dropdown.querySelectorAll('li');
-    if (!items.length || dropdown.style.display === 'none') return selectedIndex;
+    if (dropdown.style.display === 'none') return selectedIndex;
+    const itemCount = dropdown.children.length;
 
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
         return updateSelection(
-          selectedIndex < items.length - 1 ? selectedIndex + 1 : 0,
+          selectedIndex < itemCount - 1 ? selectedIndex + 1 : 0,
           dropdown,
           input,
           selectedIndex,
@@ -55,7 +81,7 @@
       case 'ArrowUp':
         e.preventDefault();
         return updateSelection(
-          selectedIndex > 0 ? selectedIndex - 1 : items.length - 1,
+          selectedIndex > 0 ? selectedIndex - 1 : itemCount - 1,
           dropdown,
           input,
           selectedIndex,
@@ -64,8 +90,12 @@
       case 'Enter':
         if (selectedIndex >= 0) {
           e.preventDefault();
-          const bangTrigger = items[selectedIndex].textContent.split(' - ')[0].trim();
-          submitBang(bangTrigger, input, dropdown);
+          const selectedItem = dropdown.children[selectedIndex];
+          if (selectedItem.dataset.type === 'action') {
+            submitBang(selectedItem.dataset.trigger, input, dropdown);
+          } else {
+            window.location.href = selectedItem.dataset.url;
+          }
         }
         return selectedIndex;
       case 'Escape':
@@ -79,10 +109,18 @@
   function handleInputChange(e, data, dropdown, input, selectedIndex) {
     const value = e.target.value.trim();
 
+    if (!value) {
+      dropdown.style.display = 'none';
+      return -1;
+    }
+
+    const lowerValue = value.toLowerCase();
+    let html = '';
+
     if (value.startsWith('!')) {
       // Bang search logic
       const matches = data.actions.filter(action =>
-        action.trigger.toLowerCase().startsWith(value.toLowerCase())
+        action.trigger.toLowerCase().startsWith(lowerValue)
       );
 
       if (!matches.length) {
@@ -90,21 +128,15 @@
         return -1;
       }
 
-      dropdown.innerHTML = matches
-        .map(action => `
-          <li style="padding: 5px 10px; cursor: pointer;">
-            <span style="font-weight: bold;">${action.trigger}</span> - ${action.name}
-          </li>
-        `)
-        .join('');
-    } else if (value) {
+      html = matches.map(actionTemplate).join('');
+    } else {
       // General search logic
       const actionMatches = data.actions.filter(action =>
-        action.name.toLowerCase().includes(value.toLowerCase())
+        action.name.toLowerCase().includes(lowerValue)
       );
 
       const bookmarkMatches = data.bookmarks.filter(bookmark =>
-        bookmark.title.toLowerCase().includes(value.toLowerCase())
+        bookmark.title.toLowerCase().includes(lowerValue)
       );
 
       if (!actionMatches.length && !bookmarkMatches.length) {
@@ -112,50 +144,35 @@
         return -1;
       }
 
-      dropdown.innerHTML = [
-        ...actionMatches.map(action => `
-          <li style="padding: 5px 10px; cursor: pointer;">
-            <span style="font-weight: bold;">Action:</span> ${action.name}
-          </li>
-        `),
-        ...bookmarkMatches.map(bookmark => `
-          <li style="padding: 5px 10px; cursor: pointer;">
-            <span style="font-weight: bold;">Bookmark:</span> ${bookmark.title}
-          </li>
-        `)
+      html = [
+        ...actionMatches.map(searchTemplate.action),
+        ...bookmarkMatches.map(searchTemplate.bookmark)
       ].join('');
-    } else {
-      dropdown.style.display = 'none';
-      return -1;
     }
 
+    dropdown.innerHTML = html;
     dropdown.style.display = 'block';
 
-    dropdown.querySelectorAll('li').forEach((item, index) => {
-      item.onclick = () => {
-        const text = item.textContent.trim();
-        if (text.startsWith('Action:')) {
-          // Handle action click
-          const actionName = text.replace('Action:', '').trim();
-          const action = data.actions.find(a => a.name === actionName);
-          if (action) {
-            submitBang(action.trigger, input, dropdown);
-          }
-        } else {
-          // Handle bookmark click
-          const bookmarkTitle = text.replace('Bookmark:', '').trim();
-          const bookmark = data.bookmarks.find(b => b.title === bookmarkTitle);
-          if (bookmark) {
-            window.location.href = bookmark.url;
-          }
-        }
-      };
+    // Use event delegation instead of attaching handlers to each item
+    dropdown.onclick = (event) => {
+      const item = event.target.closest('li');
+      if (!item) return;
 
-      item.onmouseover = () => {
-        selectedIndex = updateSelection(index, dropdown, input, selectedIndex, false);
-        input.focus();
-      };
-    });
+      if (item.dataset.type === 'action') {
+        submitBang(item.dataset.trigger, input, dropdown);
+      } else {
+        window.location.href = item.dataset.url;
+      }
+    };
+
+    dropdown.onmouseover = (event) => {
+      const item = event.target.closest('li');
+      if (!item) return;
+
+      const index = Array.from(dropdown.children).indexOf(item);
+      selectedIndex = updateSelection(index, dropdown, input, selectedIndex, false);
+      input.focus();
+    };
 
     return -1;
   }
@@ -163,32 +180,32 @@
   document.addEventListener('DOMContentLoaded', async () => {
     const input = document.getElementById('q');
     const dropdown = document.getElementById('bangsDropdown');
-    let data = { actions: [], bookmarks: [] };
+    const data = await getActionsAndBookmarks();
     let selectedIndex = -1;
 
-    // Fetch combined data
-    data = await getActionsAndBookmarks();
+    input.addEventListener('keydown', (e) =>
+      selectedIndex = handleKeyboardNavigation(e, dropdown, input, selectedIndex)
+    );
 
-    // Set up event listeners
-    input.addEventListener('keydown', (e) => selectedIndex = handleKeyboardNavigation(e, dropdown, input, selectedIndex));
-    input.addEventListener('input', (e) => selectedIndex = handleInputChange(e, data, dropdown, input, selectedIndex));
+    input.addEventListener('input', (e) =>
+      selectedIndex = handleInputChange(e, data, dropdown, input, selectedIndex)
+    );
 
-    // Close dropdown when clicking outside
+    // Use capturing for document click to improve performance
     document.addEventListener('click', (e) => {
       if (!dropdown.contains(e.target) && e.target !== input) {
         dropdown.style.display = 'none';
         selectedIndex = -1;
       }
-    });
+    }, true);
 
-    // Add global keyboard shortcut
+    // Global keyboard shortcut
     document.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         input.focus();
       }
     });
-
   });
 </script>
 
