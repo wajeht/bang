@@ -1,16 +1,30 @@
 import helmet from 'helmet';
 import { db } from './db/db';
-import { User } from './types';
 import { logger } from './logger';
 import session from 'express-session';
 import { csrfSync } from 'csrf-sync';
 import rateLimit from 'express-rate-limit';
-import { appConfig, sessionConfig } from './configs';
+import { CacheDuration, User } from './types';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
+import { appConfig, CACHE_DURATION, sessionConfig } from './configs';
 import { HttpError, UnauthorizedError, ValidationError } from './errors';
 import { api, getApiKey, isApiRequest, sendNotificationQueue } from './utils';
+
+export function cacheMiddleware(value: number, unit: CacheDuration = 'second') {
+	const seconds = value * CACHE_DURATION[unit];
+
+	return (req: Request, res: Response, next: NextFunction) => {
+		if (req.method !== 'GET') {
+			res.set('Cache-Control', 'no-store');
+			return next();
+		}
+
+		res.set('Cache-Control', `public, max-age=${seconds}`);
+		next();
+	};
+}
 
 export function notFoundMiddleware() {
 	return (req: Request, res: Response, _next: NextFunction) => {
