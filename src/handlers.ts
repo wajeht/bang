@@ -802,19 +802,6 @@ export async function getActionsAndBookmarksHandler(req: Request, res: Response)
 	const user = req.user as User;
 	const { perPage, page, search, sortKey, direction } = extractPagination(req);
 
-	res.set({
-		'Cache-Control': 'private, max-age=300', // Cache for 5 minutes
-		ETag: `"${user.id}-${user.api_key_version}"`, // ETag based on user ID and API key version
-		Vary: 'Authorization', // Vary cache by auth header since results are user-specific
-	});
-
-	// Check if client has a valid cached version
-	const clientETag = req.header('If-None-Match');
-	if (clientETag === `"${user.id}-${user.api_key_version}"`) {
-		res.status(304).send(); // Not Modified
-		return;
-	}
-
 	const [actionsResult, bookmarksResult] = await Promise.all([
 		actions.all({
 			user,

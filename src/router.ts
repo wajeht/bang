@@ -36,7 +36,7 @@ import {
 	getActionsAndBookmarksHandler,
 } from './handlers';
 
-import { csrfMiddleware, authenticationMiddleware } from './middlewares';
+import { csrfMiddleware, authenticationMiddleware, cacheMiddleware } from './middlewares';
 
 const router = express.Router();
 
@@ -238,6 +238,11 @@ router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHand
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  */
-router.get('/api/actions-and-bookmarks', authenticationMiddleware, getActionsAndBookmarksHandler);
+router.get(
+	'/api/actions-and-bookmarks',
+	authenticationMiddleware,
+	cacheMiddleware(1, 'hour'),
+	getActionsAndBookmarksHandler,
+);
 
 export { router };

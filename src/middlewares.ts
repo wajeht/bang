@@ -17,11 +17,21 @@ export function cacheMiddleware(value: number, unit: CacheDuration = 'second') {
 
 	return (req: Request, res: Response, next: NextFunction) => {
 		if (req.method !== 'GET') {
-			res.set('Cache-Control', 'no-store');
 			return next();
 		}
 
-		res.set('Cache-Control', `public, max-age=${seconds}`);
+		if (isApiRequest(req)) {
+			res.set({
+				'Cache-Control': `private, max-age=${seconds}, must-revalidate`,
+				Vary: 'Authorization, Accept-Encoding',
+				'Surrogate-Control': `max-age=${seconds}`,
+				'stale-while-revalidate': '30',
+				'stale-if-error': '86400',
+			});
+		} else {
+			res.set('Cache-Control', `public, max-age=${seconds}`);
+		}
+
 		next();
 	};
 }
