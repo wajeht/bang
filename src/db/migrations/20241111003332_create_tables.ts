@@ -20,10 +20,30 @@ export async function up(knex: Knex): Promise<void> {
 			table.string('email').unique().notNullable();
 			table.boolean('is_admin').defaultTo(false);
 			table.string('default_search_provider').defaultTo('duckduckgo');
-			table.integer('default_per_page').defaultTo(10);
 			table.string('api_key').unique().nullable();
 			table.integer('api_key_version').defaultTo(0).notNullable();
 			table.timestamp('api_key_created_at').nullable();
+			table.jsonb('column_preferences').defaultTo(
+				JSON.stringify({
+					bookmarks: {
+						id: true,
+						title: true,
+						url: true,
+						default_per_page: 10,
+						created_at: true,
+						updated_at: true,
+					},
+					actions: {
+						id: true,
+						name: true,
+						trigger: true,
+						url: true,
+						default_per_page: 10,
+						created_at: true,
+						updated_at: true,
+					},
+				}),
+			);
 			table.timestamps(true, true);
 
 			table.index('api_key');
