@@ -806,6 +806,18 @@ export async function getActionsAndBookmarksHandler(req: Request, res: Response)
 		throw new HttpError(400, 'This endpoint only supports API requests');
 	}
 
+	res.set({
+		'Cache-Control': 'private, max-age=300', // Cache for 5 minutes
+		ETag: `"${user.id}-${user.api_key_version}"`, // ETag based on user ID and API key version
+		Vary: 'Authorization', // Vary cache by auth header since results are user-specific
+	});
+
+	// Check if client has a valid cached version
+	const clientETag = req.header('If-None-Match');
+	if (clientETag === `"${user.id}-${user.api_key_version}"`) {
+		return res.status(304).send(); // Not Modified
+	}
+
 	const [actionsResult, bookmarksResult] = await Promise.all([
 		actions.all({
 			user,

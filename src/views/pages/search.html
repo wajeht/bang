@@ -2,13 +2,11 @@
   async function getActionsAndBookmarks() {
     try {
       const response = await fetch('/api/actions-and-bookmarks?per_page=999999999999', {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'default' // Let the browser handle caching
       });
       const data = await response.json();
-      return {
-        actions: data.actions.data,
-        bookmarks: data.bookmarks.data
-      };
+      return { actions: data.actions.data, bookmarks: data.bookmarks.data };
     } catch (error) {
       console.error('Error fetching actions and bookmarks:', error);
       return { actions: [], bookmarks: [] };
