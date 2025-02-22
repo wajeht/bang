@@ -122,31 +122,31 @@ function initializeToast() {
  * @returns {AppLocalState} The parsed local state object.
  */
 function getAppLocalState() {
-	const scriptTag = /** @type {HTMLScriptElement} */ (document.querySelector('script[data-state]'));
-	if (!scriptTag) {
-		throw new Error('State script tag not found');
-	}
+	try {
+		const scriptTag = /** @type {HTMLScriptElement} */ (
+			document.querySelector('script[data-state]')
+		);
+		if (!scriptTag) {
+			throw new Error('State script tag not found');
+		}
 
-	const state = scriptTag.getAttribute('data-state');
-	if (!state) {
-		throw new Error('State attribute is missing or empty');
-	}
+		const state = scriptTag.getAttribute('data-state');
+		if (!state) {
+			throw new Error('State attribute is missing or empty');
+		}
 
-	return JSON.parse(state);
+		return JSON.parse(state);
+	} catch (error) {
+		// @ts-ignore
+		return {};
+	}
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-	initializeToast();
-	updateButtonText(localStorage.getItem('theme') || 'light');
-
-	let user = null;
-
-	try {
-		const { user: localUser } = getAppLocalState();
-		user = localUser;
-	} catch {}
-
-	if (user && window.location.pathname !== '/') {
+/**
+ * Sets up global keyboard shortcuts for navigation
+ */
+function initializeKeyboardShortcuts() {
+	if (window.location.pathname !== '/') {
 		document.addEventListener('keydown', (e) => {
 			if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
 				e.preventDefault();
@@ -154,4 +154,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 		});
 	}
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+	initializeToast();
+	updateButtonText(localStorage.getItem('theme') || 'light');
+
+	const { user } = getAppLocalState();
+
+	if (user) initializeKeyboardShortcuts();
 });

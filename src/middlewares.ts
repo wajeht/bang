@@ -219,7 +219,7 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
 			},
 			version: {
 				style: isProd ? '0.7' : randomNumber,
-				script: isProd ? '0.8' : randomNumber,
+				script: isProd ? '0.9' : randomNumber,
 			},
 		};
 
