@@ -811,7 +811,8 @@ export async function getActionsAndBookmarksHandler(req: Request, res: Response)
 	// Check if client has a valid cached version
 	const clientETag = req.header('If-None-Match');
 	if (clientETag === `"${user.id}-${user.api_key_version}"`) {
-		return res.status(304).send(); // Not Modified
+		res.status(304).send(); // Not Modified
+		return;
 	}
 
 	const [actionsResult, bookmarksResult] = await Promise.all([
