@@ -802,10 +802,6 @@ export async function getActionsAndBookmarksHandler(req: Request, res: Response)
 	const user = req.user as User;
 	const { perPage, page, search, sortKey, direction } = extractPagination(req);
 
-	if (!isApiRequest(req)) {
-		throw new HttpError(400, 'This endpoint only supports API requests');
-	}
-
 	res.set({
 		'Cache-Control': 'private, max-age=300', // Cache for 5 minutes
 		ETag: `"${user.id}-${user.api_key_version}"`, // ETag based on user ID and API key version
