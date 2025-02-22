@@ -1,25 +1,17 @@
 <script>
-  async function getActions() {
+  async function getActionsAndBookmarks() {
     try {
-      const response = await fetch('/actions?per_page=999999999999', {
+      const response = await fetch('/api/actions-and-bookmarks?per_page=999999999999', {
         headers: { 'Content-Type': 'application/json' }
       });
-      return (await response.json()).data;
+      const data = await response.json();
+      return {
+        actions: data.actions.data,
+        bookmarks: data.bookmarks.data
+      };
     } catch (error) {
-      console.error('Error fetching actions:', error);
-      return [];
-    }
-  }
-
-  async function getBookmarks() {
-    try {
-      const response = await fetch('/bookmarks?per_page=999999999999', {
-        headers: { 'Content-Type': 'application/json' }
-      });
-      return (await response.json()).data;
-    } catch (error) {
-      console.error('Error fetching bookmarks:', error);
-      return [];
+      console.error('Error fetching actions and bookmarks:', error);
+      return { actions: [], bookmarks: [] };
     }
   }
 
@@ -86,38 +78,81 @@
     }
   }
 
-  function handleInputChange(e, bangs, dropdown, input, selectedIndex) {
+  function handleInputChange(e, data, dropdown, input, selectedIndex) {
     const value = e.target.value.trim();
-    if (!value.startsWith('!')) {
+
+    if (value.startsWith('!')) {
+      // Bang search logic
+      const matches = data.actions.filter(action =>
+        action.trigger.toLowerCase().startsWith(value.toLowerCase())
+      );
+
+      if (!matches.length) {
+        dropdown.style.display = 'none';
+        return -1;
+      }
+
+      dropdown.innerHTML = matches
+        .map(action => `
+          <li style="padding: 5px 10px; cursor: pointer;">
+            <span style="font-weight: bold;">${action.trigger}</span> - ${action.name}
+          </li>
+        `)
+        .join('');
+    } else if (value) {
+      // General search logic
+      const actionMatches = data.actions.filter(action =>
+        action.name.toLowerCase().includes(value.toLowerCase())
+      );
+
+      const bookmarkMatches = data.bookmarks.filter(bookmark =>
+        bookmark.title.toLowerCase().includes(value.toLowerCase())
+      );
+
+      if (!actionMatches.length && !bookmarkMatches.length) {
+        dropdown.style.display = 'none';
+        return -1;
+      }
+
+      dropdown.innerHTML = [
+        ...actionMatches.map(action => `
+          <li style="padding: 5px 10px; cursor: pointer;">
+            <span style="font-weight: bold;">Action:</span> ${action.name}
+          </li>
+        `),
+        ...bookmarkMatches.map(bookmark => `
+          <li style="padding: 5px 10px; cursor: pointer;">
+            <span style="font-weight: bold;">Bookmark:</span> ${bookmark.title}
+          </li>
+        `)
+      ].join('');
+    } else {
       dropdown.style.display = 'none';
       return -1;
     }
-
-    const matches = bangs.filter(bang =>
-      bang.trigger.toLowerCase().startsWith(value)
-    );
-
-    if (!matches.length) {
-      dropdown.style.display = 'none';
-      return -1;
-    }
-
-    dropdown.innerHTML = matches
-      .map(bang => `
-        <li style="padding: 5px 10px; cursor: pointer;">
-          <span style="font-weight: bold;">${bang.trigger}</span> - ${bang.name}
-        </li>
-      `)
-      .join('');
 
     dropdown.style.display = 'block';
 
     dropdown.querySelectorAll('li').forEach((item, index) => {
-      item.onclick = () => submitBang(
-        item.textContent.split(' - ')[0].trim(),
-        input,
-        dropdown
-      );
+      item.onclick = () => {
+        const text = item.textContent.trim();
+        if (text.startsWith('Action:')) {
+          // Handle action click
+          const actionName = text.replace('Action:', '').trim();
+          const action = data.actions.find(a => a.name === actionName);
+          if (action) {
+            submitBang(action.trigger, input, dropdown);
+          }
+        } else {
+          // Handle bookmark click
+          const bookmarkTitle = text.replace('Bookmark:', '').trim();
+          const bookmark = data.bookmarks.find(b => b.title === bookmarkTitle);
+          if (bookmark) {
+            window.location.href = bookmark.url;
+          }
+        }
+      };
+
       item.onmouseover = () => {
         selectedIndex = updateSelection(index, dropdown, input, selectedIndex, false);
         input.focus();
@@ -130,15 +165,15 @@
   document.addEventListener('DOMContentLoaded', async () => {
     const input = document.getElementById('q');
     const dropdown = document.getElementById('bangsDropdown');
-    let bangs = [];
+    let data = { actions: [], bookmarks: [] };
     let selectedIndex = -1;
 
-    // Fetch bangs data
-    bangs = await getActions();
+    // Fetch combined data
+    data = await getActionsAndBookmarks();
 
     // Set up event listeners
     input.addEventListener('keydown', (e) => selectedIndex = handleKeyboardNavigation(e, dropdown, input, selectedIndex));
-    input.addEventListener('input', (e) => selectedIndex = handleInputChange(e, bangs, dropdown, input, selectedIndex));
+    input.addEventListener('input', (e) => selectedIndex = handleInputChange(e, data, dropdown, input, selectedIndex));
 
     // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
