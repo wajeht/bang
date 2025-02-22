@@ -1,9 +1,152 @@
 <script>
+  async function getActions() {
+    try {
+      const response = await fetch('/actions?per_page=999999999999', {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return (await response.json()).data;
+    } catch (error) {
+      console.error('Error fetching actions:', error);
+      return [];
+    }
+  }
+
+  async function getBookmarks() {
+    try {
+      const response = await fetch('/bookmarks?per_page=999999999999', {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return (await response.json()).data;
+    } catch (error) {
+      console.error('Error fetching bookmarks:', error);
+      return [];
+    }
+  }
+
+  function submitBang(bangTrigger, input, dropdown) {
+    input.value = bangTrigger;
+    dropdown.style.display = 'none';
+    input.form.submit();
+  }
+
+  function updateSelection(index, dropdown, input, selectedIndex, updateInputValue = false) {
+    const items = dropdown.querySelectorAll('li');
+    items.forEach(item => item.classList.remove('selected'));
+
+    if (index >= 0 && index < items.length) {
+      selectedIndex = index;
+      const selectedItem = items[index];
+      selectedItem.classList.add('selected');
+      selectedItem.scrollIntoView({ block: 'nearest' });
+
+      if (updateInputValue) {
+        const bangTrigger = selectedItem.textContent.split(' - ')[0].trim();
+        input.value = bangTrigger;
+      }
+    }
+
+    return selectedIndex;
+  }
+
+  function handleKeyboardNavigation(e, dropdown, input, selectedIndex) {
+    const items = dropdown.querySelectorAll('li');
+    if (!items.length || dropdown.style.display === 'none') return selectedIndex;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        return updateSelection(
+          selectedIndex < items.length - 1 ? selectedIndex + 1 : 0,
+          dropdown,
+          input,
+          selectedIndex,
+          true
+        );
+      case 'ArrowUp':
+        e.preventDefault();
+        return updateSelection(
+          selectedIndex > 0 ? selectedIndex - 1 : items.length - 1,
+          dropdown,
+          input,
+          selectedIndex,
+          true
+        );
+      case 'Enter':
+        if (selectedIndex >= 0) {
+          e.preventDefault();
+          const bangTrigger = items[selectedIndex].textContent.split(' - ')[0].trim();
+          submitBang(bangTrigger, input, dropdown);
+        }
+        return selectedIndex;
+      case 'Escape':
+        dropdown.style.display = 'none';
+        return -1;
+      default:
+        return selectedIndex;
+    }
+  }
+
+  function handleInputChange(e, bangs, dropdown, input, selectedIndex) {
+    const value = e.target.value.trim();
+    if (!value.startsWith('!')) {
+      dropdown.style.display = 'none';
+      return -1;
+    }
+
+    const matches = bangs.filter(bang =>
+      bang.trigger.toLowerCase().startsWith(value)
+    );
+
+    if (!matches.length) {
+      dropdown.style.display = 'none';
+      return -1;
+    }
+
+    dropdown.innerHTML = matches
+      .map(bang => `
+        <li style="padding: 5px 10px; cursor: pointer;">
+          <span style="font-weight: bold;">${bang.trigger}</span> - ${bang.name}
+        </li>
+      `)
+      .join('');
+
+    dropdown.style.display = 'block';
+
+    dropdown.querySelectorAll('li').forEach((item, index) => {
+      item.onclick = () => submitBang(
+        item.textContent.split(' - ')[0].trim(),
+        input,
+        dropdown
+      );
+      item.onmouseover = () => {
+        selectedIndex = updateSelection(index, dropdown, input, selectedIndex, false);
+        input.focus();
+      };
+    });
+
+    return -1;
+  }
+
   document.addEventListener('DOMContentLoaded', async () => {
     const input = document.getElementById('q');
     const dropdown = document.getElementById('bangsDropdown');
     let bangs = [];
     let selectedIndex = -1;
+
+    // Fetch bangs data
+    bangs = await getActions();
+
+    // Set up event listeners
+    input.addEventListener('keydown', (e) => selectedIndex = handleKeyboardNavigation(e, dropdown, input, selectedIndex));
+    input.addEventListener('input', (e) => selectedIndex = handleInputChange(e, bangs, dropdown, input, selectedIndex));
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!dropdown.contains(e.target) && e.target !== input) {
+        dropdown.style.display = 'none';
+        selectedIndex = -1;
+      }
+    });
 
     // Add global keyboard shortcut
     document.addEventListener('keydown', (e) => {
@@ -13,101 +156,6 @@
       }
     });
 
-    try {
-      const response = await fetch('/actions?per_page=999999999999', { headers: { 'Content-Type': 'application/json' } });
-      bangs = (await response.json()).data.sort((a, b) => a.trigger.localeCompare(b.trigger));
-    } catch (error) {
-      console.error('Error fetching bangs:', error);
-    }
-
-    // Handle dropdown selection and submission
-    function submitBang(bangTrigger) {
-      input.value = bangTrigger;
-      dropdown.style.display = 'none';
-      input.form.submit();
-    }
-
-    function updateSelection(index, updateInputValue = false) {
-      const items = dropdown.querySelectorAll('li');
-      items.forEach(item => item.classList.remove('selected'));
-
-      if (index >= 0 && index < items.length) {
-        selectedIndex = index;
-        const selectedItem = items[index];
-        selectedItem.classList.add('selected');
-        selectedItem.scrollIntoView({ block: 'nearest' });
-
-        // Only update input value if explicitly requested (keyboard navigation)
-        if (updateInputValue) {
-          const bangTrigger = selectedItem.textContent.split(' - ')[0].trim();
-          input.value = bangTrigger;
-        }
-      }
-    }
-
-    // Handle keyboard navigation
-    input.addEventListener('keydown', (e) => {
-      const items = dropdown.querySelectorAll('li');
-      if (!items.length || dropdown.style.display === 'none') return;
-
-      switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault();
-          updateSelection(selectedIndex < items.length - 1 ? selectedIndex + 1 : 0, true);
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          updateSelection(selectedIndex > 0 ? selectedIndex - 1 : items.length - 1, true);
-          break;
-        case 'Enter':
-          if (selectedIndex >= 0) {
-            e.preventDefault();
-            const bangTrigger = items[selectedIndex].textContent.split(' - ')[0].trim();
-            submitBang(bangTrigger);
-          }
-          break;
-        case 'Escape':
-          dropdown.style.display = 'none';
-          selectedIndex = -1;
-          break;
-      }
-    });
-
-    // Handle input changes
-    input.addEventListener('input', (e) => {
-      const value = e.target.value.trim();
-      selectedIndex = -1;
-      if (!value.startsWith('!')) {
-        dropdown.style.display = 'none';
-        return;
-      }
-
-      const matches = bangs.filter(bang => bang.trigger.toLowerCase().startsWith(value));
-      if (!matches.length) {
-        dropdown.style.display = 'none';
-        return;
-      }
-      dropdown.innerHTML = matches
-        .map(bang => `<li style="padding: 5px 10px; cursor: pointer;"><span style="font-weight: bold;">${bang.trigger}</span> - ${bang.name}</li>`)
-        .join('');
-
-      dropdown.style.display = 'block';
-      dropdown.querySelectorAll('li').forEach((item, index) => {
-        item.onclick = () => submitBang(item.textContent.split(' - ')[0].trim());
-        item.onmouseover = () => {
-          updateSelection(index, false);  // Don't update input value on hover
-          input.focus();
-        };
-      });
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!dropdown.contains(e.target) && e.target !== input) {
-        dropdown.style.display = 'none';
-        selectedIndex = -1;
-      }
-    });
   });
 </script>
 
