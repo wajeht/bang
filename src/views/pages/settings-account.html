@@ -45,14 +45,6 @@
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 5px;">
-        <label for="default_per_page">📜 Default Per Page<span style="color: red;">*</span></label>
-        <input type="text" id="default_per_page" name="default_per_page" value="<%= state.input.default_per_page ?? user.default_per_page %>" required>
-        <% if (state.errors.default_per_page) { %>
-          <small style="color: red;"><%= state.errors.default_per_page %></small>
-        <% } %>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 5px;">
         <label for="default_search_provider">🔎 Default Search Provider<span style="color: red;">*</span></label>
         <select id="default_search_provider" name="default_search_provider" required>
             <% defaultSearchProviders.forEach(provider => { %>

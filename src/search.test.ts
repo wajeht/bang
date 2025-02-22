@@ -186,7 +186,6 @@ describe('search', () => {
 				email: 'test@example.com',
 				is_admin: false,
 				default_search_provider: 'duckduckgo',
-				default_per_page: 10,
 			});
 
 			await db('action_types').insert([
@@ -226,7 +225,6 @@ describe('search', () => {
 			email: 'test@example.com',
 			is_admin: false,
 			default_search_provider: 'duckduckgo',
-			default_per_page: 10,
 		} as User;
 
 		it('should handle direct navigation commands', async () => {

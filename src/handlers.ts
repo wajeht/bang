@@ -580,17 +580,15 @@ export const postSettingsAccountHandler = [
 			.notEmpty()
 			.isIn(Object.keys(defaultSearchProviders))
 			.withMessage('Invalid search provider selected'),
-		body('default_per_page').notEmpty().isInt().withMessage('must be an integer'),
 	]),
 	async (req: Request, res: Response) => {
-		const { email, username, default_search_provider, default_per_page } = req.body;
+		const { email, username, default_search_provider } = req.body;
 
 		await db('users')
 			.update({
 				email,
 				username,
 				default_search_provider,
-				default_per_page,
 			})
 			.where({ id: (req.user as User).id });
 
@@ -828,4 +826,41 @@ export async function getActionsAndBookmarksHandler(req: Request, res: Response)
 		sortKey,
 		direction,
 	});
+}
+
+// GET /settings/display
+export async function getSettingsDisplayPageHandler(req: Request, res: Response) {
+	return res.render('settings-display.html', {
+		user: req.session?.user,
+		title: 'Display Settings',
+		path: '/settings/display',
+		layout: '../layouts/settings.html',
+	});
+}
+
+// POST /settings/display
+export async function postSettingsDisplayHandler(req: Request, res: Response) {
+	const user = req.user as User;
+	const { column_preferences, bookmarks_per_page, actions_per_page } = req.body;
+
+	// Validate per page values
+	const booksPerPage = parseInt(bookmarks_per_page);
+	const actionsPerPage = parseInt(actions_per_page);
+
+	if (isNaN(booksPerPage) || booksPerPage < 1 || isNaN(actionsPerPage) || actionsPerPage < 1) {
+		throw new Error('Invalid per page values');
+	}
+
+	await db('users').where('id', user.id).update({
+		column_preferences,
+		bookmarks_per_page: booksPerPage,
+		actions_per_page: actionsPerPage,
+	});
+
+	// Update session
+	req.session.user!.column_preferences = column_preferences;
+	req.session.user!.bookmarks_per_page = booksPerPage;
+	req.session.user!.actions_per_page = actionsPerPage;
+
+	return res.redirect('/settings/display');
 }
