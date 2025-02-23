@@ -849,7 +849,6 @@ export async function getSettingsDisplayPageHandler(req: Request, res: Response)
 export const postSettingsDisplayHandler = [
 	validateRequestMiddleware([
 		body('column_preferences').custom((value) => {
-			console.log(value);
 			if (value === undefined) {
 				throw new ValidationError('Column preferences are required');
 			}
@@ -858,36 +857,32 @@ export const postSettingsDisplayHandler = [
 				throw new ValidationError('Column preferences must be an object');
 			}
 
-			// Convert and validate bookmarks preferences
 			if (typeof value.bookmarks !== 'object') {
 				throw new ValidationError('Bookmarks must be an object');
 			}
 
-			// Convert checkbox values to booleans
 			value.bookmarks.title = value.bookmarks.title === 'on';
 			value.bookmarks.url = value.bookmarks.url === 'on';
 			value.bookmarks.created_at = value.bookmarks.created_at === 'on';
 
-			// Convert and validate per_page
 			value.bookmarks.default_per_page = parseInt(value.bookmarks.default_per_page, 10);
+
 			if (isNaN(value.bookmarks.default_per_page) || value.bookmarks.default_per_page < 1) {
 				throw new ValidationError('Bookmarks per page must be greater than 0');
 			}
 
-			// Convert and validate actions preferences
 			if (typeof value.actions !== 'object') {
 				throw new ValidationError('Actions must be an object');
 			}
 
-			// Set default false values for missing checkbox fields
 			value.actions.name = value.actions.name === 'on';
 			value.actions.trigger = value.actions.trigger === 'on';
 			value.actions.url = value.actions.url === 'on';
 			value.actions.action_type = value.actions.action_type === 'on';
 			value.actions.created_at = value.actions.created_at === 'on';
 
-			// Convert and validate per_page
 			value.actions.default_per_page = parseInt(value.actions.default_per_page, 10);
+
 			if (isNaN(value.actions.default_per_page) || value.actions.default_per_page < 1) {
 				throw new ValidationError('Actions per page must be greater than 0');
 			}
