@@ -34,7 +34,9 @@ Before you can use the Bang command from your browser's search bar, you need to 
 ### 🎯 Default Commands
 
 - `@a`, `@actions` - Quick access to your actions
-- `@b`, `@bookmarks` - View your bookmarks
+- `@api`, `@actions` - Go to Swagger API docs
+- `@b`, `@bangs` - Go to home page
+- `@bm`, `@bookmarks` - View your bookmarks
 - `@s`, `@settings` - Access settings
 - `@n`, `@notes` - Access notes
 
