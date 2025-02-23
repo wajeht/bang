@@ -117,9 +117,7 @@
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.trigger !== false) { %>
                                 <td style="padding: 10px;">
-                                    <code style="font-family: monospace; padding: 2px 6px; border-radius: 3px; border: 1px dashed #ddd;">
-                                        <%= data[i].trigger %>
-                                    </code>
+                                    <code> <%= data[i].trigger %> </code>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.url !== false) { %>
@@ -132,9 +130,7 @@
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.action_type !== false) { %>
                                 <td style="padding: 10px;">
-                                    <code style="font-family: monospace; padding: 2px 6px; border-radius: 3px; border: 1px dashed #ddd;">
-                                        <%= data[i].action_type %>
-                                    </code>
+                                    <code> <%= data[i].action_type %> </code>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.created_at !== false) { %>

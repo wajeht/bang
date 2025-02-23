@@ -166,9 +166,11 @@ code {
 	word-break: break-all;
 	overflow-wrap: break-word;
 	width: fit-content;
+	font-family: monospace;
+	border: 1px dashed #dddddd;
+	padding: 2px 6px;
 	background-color: var(--pre-background);
-	border: 1px solid var(--pre-border);
-	padding: 1px 3px;
+	height: fit-content;
 	border-radius: 5px;
 	font-size: 0.9em;
 }
