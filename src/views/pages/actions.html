@@ -113,7 +113,7 @@
                     <% for (let i = 0; i < data.length; i++) { %>
                         <tr style="border-bottom: 1px dashed #ddd;">
                             <% if (state.user.column_preferences?.actions?.name !== false) { %>
-                                <td style="padding: 10px;"><%= data[i].name %></td>
+                                <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%= data[i].name %></td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.trigger !== false) { %>
                                 <td style="padding: 10px;">
