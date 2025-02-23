@@ -40,6 +40,18 @@
             >
             📅 Created At
           </label>
+
+          <% if (user.column_preferences?.bookmarks?.title === false) { %>
+            <input type="hidden" name="column_preferences[bookmarks][title]" value="false">
+          <% } %>
+
+          <% if (user.column_preferences?.bookmarks?.url === false) { %>
+            <input type="hidden" name="column_preferences[bookmarks][url]" value="false">
+          <% } %>
+
+          <% if (user.column_preferences?.bookmarks?.created_at === false) { %>
+            <input type="hidden" name="column_preferences[bookmarks][created_at]" value="false">
+          <% } %>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -47,13 +59,13 @@
           <input
             type="number"
             id="bookmarks_per_page"
-            name="bookmarks_per_page"
+            name="column_preferences[bookmarks][default_per_page]"
             value="<%= state.input.bookmarks_per_page ?? user.column_preferences.bookmarks.default_per_page %>"
             min="1"
             required
           >
-          <% if (state.errors.bookmarks_per_page) { %>
-            <small style="color: red;"><%= state.errors.bookmarks_per_page %></small>
+          <% if (state.errors.column_preferences) { %>
+            <small style="color: red;"><%= state.errors.column_preferences %></small>
           <% } %>
         </div>
       </div>
@@ -113,13 +125,13 @@
           <input
             type="number"
             id="actions_per_page"
-            name="actions_per_page"
+            name="column_preferences[actions][default_per_page]"
             value="<%= state.input.actions_per_page ?? user.column_preferences.actions.default_per_page %>"
             min="1"
             required
           >
-          <% if (state.errors.actions_per_page) { %>
-            <small style="color: red;"><%= state.errors.actions_per_page %></small>
+          <% if (state.errors.column_preferences) { %>
+            <small style="color: red;"><%= state.errors.column_preferences %></small>
           <% } %>
         </div>
       </div>
