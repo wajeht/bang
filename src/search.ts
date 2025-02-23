@@ -25,7 +25,7 @@ const searchConfig = {
 	/**
 	 * System-level bang commands that cannot be overridden by user-defined bangs
 	 */
-	systemBangs: ['!add', '!bm'],
+	systemBangs: ['!add', '!bm', '!note'],
 	/**
 	 * Direct commands that can be used to navigate to different sections of the application
 	 */
@@ -40,6 +40,8 @@ const searchConfig = {
 		'@data': '/settings/data',
 		'@s': '/settings',
 		'@settings': '/settings',
+		'@n': '/notes',
+		'@notes': '/notes',
 	},
 } as const;
 
@@ -396,6 +398,29 @@ export async function search({
 			.setHeader('Content-Type', 'text/html')
 			.status(200)
 			.send(`<script> window.history.back(); </script>`);
+	}
+
+	// Process note creation command (!note)
+	// Format: !note This is the title | This is the content
+	if (trigger === '!note') {
+		const [title, ...contentParts] = searchTerm.split('|');
+		const content = contentParts.join('|').trim();
+
+		if (!title || !content) {
+			return goBackWithAlert(res, 'Invalid note format. Use: !note title | content');
+		}
+
+		try {
+			await db('notes').insert({
+				user_id: user.id,
+				title: title.trim(),
+				content,
+			});
+
+			return redirectWithAlert(res, '/notes', 'Note created successfully!');
+		} catch (error) {
+			return redirectWithAlert(res, '/notes', 'Error creating note');
+		}
 	}
 
 	// Process user-defined custom bang commands

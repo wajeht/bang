@@ -23,7 +23,7 @@ declare global {
 
 import { CACHE_DURATION, defaultSearchProviders } from './configs';
 
-export type PageType = 'actions' | 'bookmarks';
+export type PageType = 'actions' | 'bookmarks' | 'notes';
 
 export type CacheDuration = keyof typeof CACHE_DURATION;
 
@@ -70,6 +70,12 @@ export type ColumnPreferences = {
 		name: boolean;
 		trigger: boolean;
 		url: boolean;
+		default_per_page: number;
+		created_at: boolean;
+	};
+	notes: {
+		title: boolean;
+		content: boolean;
 		default_per_page: number;
 		created_at: boolean;
 	};

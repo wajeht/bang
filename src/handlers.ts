@@ -921,3 +921,129 @@ export const postSettingsDisplayHandler = [
 		return res.redirect('/settings/display');
 	},
 ];
+
+// GET /notes
+export async function getNotesHandler(req: Request, res: Response) {
+	const user = req.user as User;
+	const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
+
+	const query = db.select('*').from('notes').where('user_id', user.id);
+
+	if (search) {
+		query.where((q) =>
+			q
+				.whereRaw('LOWER(title) LIKE ?', [`%${search.toLowerCase()}%`])
+				.orWhereRaw('LOWER(content) LIKE ?', [`%${search.toLowerCase()}%`]),
+		);
+	}
+
+	if (['title', 'content', 'created_at'].includes(sortKey)) {
+		query.orderBy(sortKey, direction);
+	} else {
+		query.orderBy('created_at', 'desc');
+	}
+
+	const { data, pagination } = await query.paginate({
+		perPage,
+		currentPage: page,
+		isLengthAware: true,
+	});
+
+	return res.render('notes', {
+		title: 'Notes',
+		path: '/notes',
+		layout: '../layouts/auth',
+		data,
+		search,
+		pagination,
+		sortKey,
+		direction,
+	});
+}
+
+// POST /notes
+export const postNoteHandler = [
+	validateRequestMiddleware([
+		body('title').notEmpty().withMessage('Title is required').trim(),
+		body('content').notEmpty().withMessage('Content is required').trim(),
+	]),
+	async (req: Request, res: Response) => {
+		const { title, content } = req.body;
+
+		await db('notes').insert({
+			user_id: (req.user as User).id,
+			title: title.trim(),
+			content: content.trim(),
+		});
+
+		req.flash('success', 'Note created successfully!');
+		return res.redirect('/notes');
+	},
+];
+
+// POST /notes/:id/delete
+export async function deleteNoteHandler(req: Request, res: Response) {
+	const deleted = await db('notes')
+		.where({
+			id: req.params.id,
+			user_id: (req.user as User).id,
+		})
+		.delete();
+
+	if (!deleted) {
+		throw new NotFoundError('Note not found');
+	}
+
+	req.flash('success', 'Note deleted successfully');
+	return res.redirect('/notes');
+}
+
+// POST /notes/:id/update
+export const updateNoteHandler = [
+	validateRequestMiddleware([
+		body('title').notEmpty().withMessage('Title is required').trim(),
+		body('content').notEmpty().withMessage('Content is required').trim(),
+	]),
+	async (req: Request, res: Response) => {
+		const { title, content } = req.body;
+
+		const [updatedNote] = await db('notes')
+			.where({
+				id: req.params.id,
+				user_id: (req.user as User).id,
+			})
+			.update({
+				title: title.trim(),
+				content: content.trim(),
+			})
+			.returning('*');
+
+		if (!updatedNote) {
+			throw new NotFoundError('Note not found');
+		}
+
+		req.flash('success', 'Note updated successfully');
+		return res.redirect('/notes');
+	},
+];
+
+// GET /notes/:id/edit
+export async function getEditNotePageHandler(req: Request, res: Response) {
+	const note = await db('notes')
+		.where({
+			id: req.params.id,
+			user_id: (req.user as User).id,
+		})
+		.first();
+
+	if (!note) {
+		throw new NotFoundError('Note not found');
+	}
+
+	return res.render('notes-edit', {
+		title: 'Notes / Edit',
+		path: '/notes/edit',
+		layout: '../layouts/auth',
+		note,
+	});
+}

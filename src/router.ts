@@ -36,6 +36,11 @@ import {
 	getBookmarkActionCreatePageHandler,
 	postDeleteSettingsDangerZoneHandler,
 	getActionsAndBookmarksHandler,
+	getNotesHandler,
+	postNoteHandler,
+	deleteNoteHandler,
+	updateNoteHandler,
+	getEditNotePageHandler,
 } from './handlers';
 
 import { csrfMiddleware, authenticationMiddleware, cacheMiddleware } from './middlewares';
@@ -243,5 +248,12 @@ router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHand
  * @return {object} 400 - Bad request response - application/json
  */
 router.get('/api/actions-and-bookmarks', authenticationMiddleware, cacheMiddleware(1, 'hour'), getActionsAndBookmarksHandler); // prettier-ignore
+
+// Notes routes
+router.get('/notes', authenticationMiddleware, csrfMiddleware, getNotesHandler);
+router.post('/notes', authenticationMiddleware, csrfMiddleware, postNoteHandler);
+router.post('/notes/:id/delete', authenticationMiddleware, csrfMiddleware, deleteNoteHandler);
+router.post('/notes/:id/update', authenticationMiddleware, csrfMiddleware, updateNoteHandler);
+router.get('/notes/:id/edit', authenticationMiddleware, csrfMiddleware, getEditNotePageHandler);
 
 export { router };
