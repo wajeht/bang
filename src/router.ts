@@ -57,20 +57,9 @@ router.get('/login', getLoginHandler);
 router.get('/logout', getLogoutHandler);
 router.get('/oauth/github', getGithubHandler);
 router.get('/oauth/github/redirect', getGithubRedirectHandler);
-router.post(
-	'/search',
-	authenticationMiddleware,
-	csrfMiddleware,
-	cacheMiddleware(1, 'day'),
-	postSearchHandler,
-);
+router.post('/search', authenticationMiddleware, csrfMiddleware, cacheMiddleware(1, 'day'), postSearchHandler); // prettier-ignore
 
-router.get(
-	'/settings',
-	authenticationMiddleware,
-	cacheMiddleware(1, 'day'),
-	getSettingsPageHandler,
-);
+router.get('/settings', authenticationMiddleware, cacheMiddleware(1, 'day'), getSettingsPageHandler); // prettier-ignore
 router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler);
 router.get('/settings/display', authenticationMiddleware, csrfMiddleware, getSettingsDisplayPageHandler); // prettier-ignore
 router.post('/settings/display', authenticationMiddleware, csrfMiddleware, postSettingsDisplayHandler); // prettier-ignore
@@ -266,12 +255,7 @@ router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHand
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  */
-router.get(
-	'/api/collections',
-	authenticationMiddleware,
-	cacheMiddleware(1, 'hour'),
-	getCollectionsHandler,
-);
+router.get('/api/collections', authenticationMiddleware, cacheMiddleware(1, 'day'), getCollectionsHandler); // prettier-ignore
 
 /**
  * A note
