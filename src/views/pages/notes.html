@@ -129,8 +129,13 @@
             </table>
         <% } else { %>
             <div style="text-align: center; padding: 20px;">
-                <p>📭 You haven't created any notes yet.</p>
-                <p>Use <code>!note Title | Content</code> in the search box to create a note!</p>
+                <% if (search) { %>
+                    <p>🔍 No notes found matching "<%= search %>"</p>
+                    <p>Try a different search term or <a href="/notes">view all notes</a></p>
+                <% } else { %>
+                    <p>📭 You haven't created any notes yet.</p>
+                    <p>Use <code>!note Title | Content</code> in the search box to create a note!</p>
+                <% } %>
             </div>
         <% } %>
     </div>

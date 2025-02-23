@@ -174,8 +174,13 @@
 
         <% } else { %>
             <div style="text-align: center; padding: 20px;">
-                <p>📭 You haven't created any actions yet.</p>
-                <p>Get started by clicking "Create New Action" above!</p>
+                <% if (search) { %>
+                    <p>🔍 No actions found matching "<%= search %>"</p>
+                    <p>Try a different search term or <a href="/actions">view all actions</a></p>
+                <% } else { %>
+                    <p>📭 You haven't created any actions yet.</p>
+                    <p>Get started by clicking "Create New Action" above!</p>
+                <% } %>
             </div>
         <% } %>
     </div>

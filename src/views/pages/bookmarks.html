@@ -138,8 +138,13 @@
             </table>
         <% } else { %>
             <div style="text-align: center; padding: 20px;">
-                <p>📭 You haven't saved any bookmarks yet.</p>
-                <p>Use <code>!bm URL</code> in the search box to save a bookmark!</p>
+                <% if (search) { %>
+                    <p>🔍 No bookmarks found matching "<%= search %>"</p>
+                    <p>Try a different search term or <a href="/bookmarks">view all bookmarks</a></p>
+                <% } else { %>
+                    <p>📭 You haven't created any bookmarks yet.</p>
+                    <p>Get started by clicking "Create New Bookmark" above!</p>
+                <% } %>
             </div>
         <% } %>
     </div>
