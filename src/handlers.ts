@@ -258,7 +258,7 @@ export function getActionCreatePageHandler(_req: Request, res: Response) {
 	});
 }
 
-// POST /actions/:id/delete or DELETE /api/actions
+// POST /actions/:id/delete or DELETE /api/actions/:id
 export async function deleteActionHandler(req: Request, res: Response) {
 	const deleted = await actions.delete(req.params.id as unknown as number, (req.user as User).id);
 
@@ -922,7 +922,7 @@ export const postSettingsDisplayHandler = [
 	},
 ];
 
-// GET /notes
+// GET /notes or /api/notes
 export async function getNotesHandler(req: Request, res: Response) {
 	const user = req.user as User;
 	const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
@@ -937,7 +937,8 @@ export async function getNotesHandler(req: Request, res: Response) {
 	});
 
 	if (isApiRequest(req)) {
-		return res.json({ data, pagination });
+		res.json({ data, pagination, search, sortKey, direction });
+		return;
 	}
 
 	return res.render('notes', {
@@ -953,16 +954,16 @@ export async function getNotesHandler(req: Request, res: Response) {
 }
 
 // GET /notes/create
-export async function getCreateNotePageHandler(req: Request, res: Response) {
+export async function getNoteCreatePageHandler(req: Request, res: Response) {
 	return res.render('notes-create', {
-		title: 'Notes / New',
+		title: 'Notes / Create',
 		path: '/notes/create',
 		layout: '../layouts/auth',
 	});
 }
 
-// POST /notes
-export const createNoteHandler = [
+// POST /notes or /api/notes
+export const postNoteHandler = [
 	validateRequestMiddleware([
 		body('title')
 			.trim()
@@ -983,7 +984,8 @@ export const createNoteHandler = [
 		});
 
 		if (isApiRequest(req)) {
-			return res.status(201).json(note);
+			res.status(201).json({ message: `Note ${note.title} created successfully!` });
+			return;
 		}
 
 		req.flash('success', 'Note created successfully');
@@ -994,7 +996,11 @@ export const createNoteHandler = [
 // GET /notes/:id/edit
 export async function getEditNotePageHandler(req: Request, res: Response) {
 	const user = req.user as User;
-	const note = await notes.read(parseInt(req.params.id), user.id);
+	const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
+
+	if (!note) {
+		throw new NotFoundError();
+	}
 
 	return res.render('notes-edit', {
 		title: 'Notes / Edit',
@@ -1004,7 +1010,7 @@ export async function getEditNotePageHandler(req: Request, res: Response) {
 	});
 }
 
-// PUT /notes/:id
+// POST /notes/:id/update or PATCH /api/notes/:id
 export const updateNoteHandler = [
 	validateRequestMiddleware([
 		body('title')
@@ -1019,27 +1025,33 @@ export const updateNoteHandler = [
 		const { title, content } = req.body;
 		const user = req.user as User;
 
-		const updatedNote = await notes.update(parseInt(req.params.id), user.id, {
+		const updatedNote = await notes.update(parseInt(req.params.id as unknown as string), user.id, {
 			title: title.trim(),
 			content: content.trim(),
 		});
 
 		if (isApiRequest(req)) {
-			return res.json(updatedNote);
+			res.status(200).json({ message: 'note updated successfully' });
+			return;
 		}
 
-		req.flash('success', 'Note updated successfully');
+		req.flash('success', `Note ${updatedNote.title} updated successfully`);
 		return res.redirect('/notes');
 	},
 ];
 
-// DELETE /notes/:id
+// POST /notes/:id/delete or DELETE /api/notes/:id
 export async function deleteNoteHandler(req: Request, res: Response) {
 	const user = req.user as User;
-	const deletedNote = await notes.delete(parseInt(req.params.id), user.id);
+	const deleted = await notes.delete(parseInt(req.params.id as unknown as string), user.id);
+
+	if (!deleted) {
+		throw new NotFoundError();
+	}
 
 	if (isApiRequest(req)) {
-		return res.json(deletedNote);
+		res.status(200).json({ message: 'note deleted successfully' });
+		return;
 	}
 
 	req.flash('success', 'Note deleted successfully');
@@ -1103,7 +1115,7 @@ export const updateNoteByApiHandler = [
 		const { title, content } = req.body;
 		const user = req.user as User;
 
-		const updatedNote = await notes.update(parseInt(req.params.id), user.id, {
+		const updatedNote = await notes.update(parseInt(req.params.id as unknown as string), user.id, {
 			title: title.trim(),
 			content: content.trim(),
 		});
@@ -1115,7 +1127,7 @@ export const updateNoteByApiHandler = [
 // DELETE /api/notes/:id
 export async function deleteNoteByApiHandler(req: Request, res: Response) {
 	const user = req.user as User;
-	const deletedNote = await notes.delete(parseInt(req.params.id), user.id);
+	const deletedNote = await notes.delete(parseInt(req.params.id as unknown as string), user.id);
 
 	return res.json(deletedNote);
 }

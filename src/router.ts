@@ -40,8 +40,8 @@ import {
 	deleteNoteHandler,
 	updateNoteHandler,
 	getEditNotePageHandler,
-	getCreateNotePageHandler,
-	createNoteHandler,
+	postNoteHandler,
+	getNoteCreatePageHandler,
 } from './handlers';
 
 import { csrfMiddleware, authenticationMiddleware, cacheMiddleware } from './middlewares';
@@ -88,11 +88,11 @@ router.get('/bookmarks/create', authenticationMiddleware, csrfMiddleware, getBoo
 router.get('/bookmarks/:id/actions/create', authenticationMiddleware, csrfMiddleware, getBookmarkActionCreatePageHandler); // prettier-ignore
 
 router.get('/notes', authenticationMiddleware, csrfMiddleware, getNotesHandler);
-router.get('/notes/create', authenticationMiddleware, csrfMiddleware, getCreateNotePageHandler);
-router.post('/notes', authenticationMiddleware, csrfMiddleware, createNoteHandler);
+router.post('/notes', authenticationMiddleware, csrfMiddleware, postNoteHandler);
+router.post('/notes/:id/update', authenticationMiddleware, csrfMiddleware, updateNoteHandler);
+router.post('/notes/:id/delete', authenticationMiddleware, csrfMiddleware, deleteNoteHandler);
+router.get('/notes/create', authenticationMiddleware, csrfMiddleware, getNoteCreatePageHandler);
 router.get('/notes/:id/edit', authenticationMiddleware, csrfMiddleware, getEditNotePageHandler);
-router.put('/notes/:id', authenticationMiddleware, csrfMiddleware, updateNoteHandler);
-router.delete('/notes/:id', authenticationMiddleware, csrfMiddleware, deleteNoteHandler);
 
 /**
  * A action
@@ -171,6 +171,13 @@ router.patch('/api/actions/:id', authenticationMiddleware, updateActionHandler);
 router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler);
 
 /**
+ * A bookmark
+ * @typedef {object} Bookmark
+ * @property {string} url.required - url
+ * @property {string} title.required - title
+ */
+
+/**
  *
  * GET /api/bookmarks
  *
@@ -184,13 +191,6 @@ router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler)
  *
  */
 router.get('/api/bookmarks', authenticationMiddleware, getBookmarksHandler);
-
-/**
- * A bookmark
- * @typedef {object} Bookmark
- * @property {string} url.required - url
- * @property {string} title.required - title
- */
 
 /**
  *
@@ -257,13 +257,20 @@ router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHand
  */
 router.get('/api/actions-and-bookmarks', authenticationMiddleware, cacheMiddleware(1, 'hour'), getActionsAndBookmarksHandler); // prettier-ignore
 
-// Notes API routes
+/**
+ * A note
+ * @typedef {object} Note
+ * @property {string} title.required - title
+ * @property {string} content.required - content
+ */
+
 /**
  * GET /api/notes
  * @tags Notes
  * @summary Get all notes
  * @security BearerAuth
  * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
  */
 router.get('/api/notes', authenticationMiddleware, getNotesHandler);
 
@@ -276,7 +283,7 @@ router.get('/api/notes', authenticationMiddleware, getNotesHandler);
  * @return {object} 201 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  */
-router.post('/api/notes', authenticationMiddleware, createNoteHandler);
+router.post('/api/notes', authenticationMiddleware, postNoteHandler);
 
 /**
  * PUT /api/notes/{id}
