@@ -1,7 +1,7 @@
 import { app } from './app';
 import { Application } from 'express';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
-import { authenticationMiddleware } from './middlewares';
+import { authenticationMiddleware, cacheMiddleware } from './middlewares';
 
 export const swagger = {
 	info: {
@@ -37,6 +37,6 @@ export const swagger = {
 };
 
 export function expressJSDocSwaggerHandler(express: Application, swaggerConfig: typeof swagger) {
-	express.use('/api-docs', authenticationMiddleware);
+	express.use('/api-docs', authenticationMiddleware, cacheMiddleware(1, 'day'));
 	expressJSDocSwagger(app)(swaggerConfig);
 }
