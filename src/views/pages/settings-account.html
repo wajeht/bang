@@ -44,6 +44,16 @@
         <% } %>
       </div>
 
+
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <label for="email">📧 Email<span style="color: red;">*</span></label>
+        <input type="email" id="email" name="email" value="<%= state.input.email ?? user.email %>" required>
+
+        <% if (state.errors.email) { %>
+          <small style="color: red;"><%= state.errors.email %></small>
+        <% } %>
+      </div>
+
       <div style="display: flex; flex-direction: column; gap: 5px;">
         <label for="default_search_provider">🔎 Default Search Provider<span style="color: red;">*</span></label>
         <select id="default_search_provider" name="default_search_provider" required>
@@ -55,15 +65,6 @@
         </select>
         <% if (state.errors.default_search_provider) { %>
           <small style="color: red;"><%= state.errors.default_search_provider %></small>
-        <% } %>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 5px;">
-        <label for="email">📧 Email<span style="color: red;">*</span></label>
-        <input type="email" id="email" name="email" value="<%= state.input.email ?? user.email %>" required>
-
-        <% if (state.errors.email) { %>
-          <small style="color: red;"><%= state.errors.email %></small>
         <% } %>
       </div>
 
