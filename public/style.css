@@ -165,7 +165,7 @@ pre {
 code {
 	word-break: break-all;
 	overflow-wrap: break-word;
-	white-space: pre-wrap;
+	width: fit-content;
 	background-color: var(--pre-background);
 	border: 1px solid var(--pre-border);
 	padding: 2px 3px;

@@ -857,6 +857,7 @@ export const postSettingsDisplayHandler = [
 				throw new ValidationError('Column preferences must be an object');
 			}
 
+			// bookmarks
 			if (typeof value.bookmarks !== 'object') {
 				throw new ValidationError('Bookmarks must be an object');
 			}
@@ -875,6 +876,7 @@ export const postSettingsDisplayHandler = [
 				throw new ValidationError('At least one bookmark column must be enabled');
 			}
 
+			// actions
 			if (typeof value.actions !== 'object') {
 				throw new ValidationError('Actions must be an object');
 			}
@@ -899,6 +901,25 @@ export const postSettingsDisplayHandler = [
 				!value.actions.created_at
 			) {
 				throw new ValidationError('At least one action column must be enabled');
+			}
+
+			// notes
+			if (typeof value.notes !== 'object') {
+				throw new ValidationError('Notes must be an object');
+			}
+
+			value.notes.title = value.notes.title === 'on';
+			value.notes.content = value.notes.content === 'on';
+			value.notes.created_at = value.notes.created_at === 'on';
+
+			if (!value.notes.title && !value.notes.content) {
+				throw new ValidationError('At least one note column must be enabled');
+			}
+
+			value.notes.default_per_page = parseInt(value.notes.default_per_page, 10);
+
+			if (isNaN(value.notes.default_per_page) || value.notes.default_per_page < 1) {
+				throw new ValidationError('Notes per page must be greater than 0');
 			}
 
 			return true;
