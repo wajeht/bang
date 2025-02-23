@@ -20,7 +20,6 @@
     // Update title visibility
     titles.forEach((title, i) => {
       title.style.display = i === index ? 'block' : 'none';
-      title.style.fontWeight = i === index ? 'bold' : 'normal';
     });
   }
 </script>
@@ -93,9 +92,9 @@
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 15px;">
           <!-- Video Titles -->
           <div class="video-titles">
-            <p style="margin: 0; font-weight: bold; display: block;">How to use Bang for quick searches</p>
-            <p style="margin: 0; font-weight: normal; display: none;">Customizing your Bang shortcuts</p>
-            <p style="margin: 0; font-weight: normal; display: none;">Advanced Bang features and tips</p>
+            <p style="margin: 0; display: block;">using <code>!add [trigger] [url]</code> for custom shortcuts</p>
+            <p style="margin: 0; display: none;">using <code>!bm [title] [url]</code> to add a bookmark</p>
+            <p style="margin: 0; display: none;">using <code>!note [title] | [content]</code> to create a note</p>
           </div>
 
           <!-- Navigation Buttons -->
