@@ -37,6 +37,13 @@ export async function seed(knex: Knex): Promise<void> {
 						created_at: true,
 						updated_at: true,
 					},
+					notes: {
+						id: true,
+						title: true,
+						content: true,
+						default_per_page: 10,
+						created_at: true,
+					},
 				}),
 			})
 			.returning('*');
@@ -129,6 +136,22 @@ export async function seed(knex: Knex): Promise<void> {
 		];
 
 		await knex('bookmarks').insert(bookmarks);
+
+		// Default notes
+		const notes = [
+			{
+				user_id: user.id,
+				title: 'Note 1',
+				content: 'This is the content of note 1',
+			},
+			{
+				user_id: user.id,
+				title: 'Note 2',
+				content: 'This is the content of note 2',
+			},
+		];
+
+		await knex('notes').insert(notes);
 	} catch (error) {
 		console.error('Seed failed:', error);
 		throw error;
