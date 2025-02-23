@@ -1,7 +1,7 @@
 <div style="display: flex; flex-direction: column; gap: 20px;">
   <div>
       <h2>🔖 Bookmarks / New</h2>
-      <p>Create a new bookmark</p>
+      <p>Create a new bookmark to quickly access your favorite websites</p>
   </div>
 
   <form
@@ -17,10 +17,11 @@
               type="text"
               id="title"
               name="title"
-              placeholder="bang"
+              placeholder="e.g., My Search Engine"
               value="<%= state.input.title ?? state.input.title %>"
               style="width: 100%;"
           >
+          <small style="color: #666;">Give your bookmark a memorable name (optional)</small>
           <% if (state.errors.title) { %>
               <small style="color: red;"><%= state.errors.title %></small>
           <% } %>
@@ -32,18 +33,19 @@
               type="url"
               name="url"
               id="url"
-              placeholder="https://bang.jaw.dev/"
+              placeholder="https://example.com"
               value="<%= state.input.url ?? state.input.url %>"
               style="width: 100%;"
               required
           >
+          <small style="color: #666;">Enter the full website address, including https:// or http://</small>
           <% if (state.errors.url) { %>
               <small style="color: red;"><%= state.errors.url %></small>
           <% } %>
       </div>
 
       <div style="display: flex; gap: 10px;">
-          <button type="submit" style="flex: 1;">Submit 🚀</button>
+          <button type="submit" style="flex: 1;">Create Bookmark 🚀</button>
       </div>
   </form>
 </div>
