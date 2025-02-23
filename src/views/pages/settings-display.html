@@ -10,62 +10,14 @@
   <form action="/settings/display" method="POST" style="width: 32.5%; display: flex; flex-direction: column; gap: 20px;">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
+    <!-- Actions -->
     <div style="border: dashed; padding: 20px; border-radius: 5px;">
-      <h3 style="margin: 0 0 15px 0;">🔖 Bookmarks Display</h3>
+      <h3 style="margin: 0 0 15px 0;">⚡ Actions</h3>
 
+      <!-- Visible Columns -->
       <div style="display: flex; flex-direction: column; gap: 15px;">
         <div style="display: flex; flex-direction: column; gap: 8px;">
-          <h4 style="margin: 0;">Visible Columns</h4>
-          <label style="display: flex; align-items: center; gap: 10px;">
-            <input
-              type="checkbox"
-              name="column_preferences[bookmarks][title]"
-              <%= user.column_preferences?.bookmarks?.title !== false ? 'checked' : '' %>
-            >
-            📝 Title
-          </label>
-          <label style="display: flex; align-items: center; gap: 10px;">
-            <input
-              type="checkbox"
-              name="column_preferences[bookmarks][url]"
-              <%= user.column_preferences?.bookmarks?.url !== false ? 'checked' : '' %>
-            >
-            🌐 URL
-          </label>
-          <label style="display: flex; align-items: center; gap: 10px;">
-            <input
-              type="checkbox"
-              name="column_preferences[bookmarks][created_at]"
-              <%= user.column_preferences?.bookmarks?.created_at !== false ? 'checked' : '' %>
-            >
-            📅 Created At
-          </label>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-          <label for="bookmarks_per_page">📜 Items Per Page<span style="color: red;">*</span></label>
-          <input
-            type="number"
-            id="bookmarks_per_page"
-            name="column_preferences[bookmarks][default_per_page]"
-            value="<%= state.input.bookmarks_per_page ?? user.column_preferences.bookmarks.default_per_page %>"
-            min="1"
-            required
-          >
-          <% if (state.errors.column_preferences) { %>
-            <small style="color: red;"><%= state.errors.column_preferences %></small>
-          <% } %>
-        </div>
-      </div>
-    </div>
-
-    <div style="border: dashed; padding: 20px; border-radius: 5px;">
-      <h3 style="margin: 0 0 15px 0;">⚡ Actions Display</h3>
-
-      <div style="display: flex; flex-direction: column; gap: 15px;">
-
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <h4 style="margin: 0;">Visible Columns</h4>
+          <h4 style="margin: 0;">Columns</h4>
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
@@ -108,6 +60,7 @@
           </label>
         </div>
 
+        <!-- Items Per Page -->
         <div style="display: flex; flex-direction: column; gap: 5px;">
           <label for="actions_per_page">📜 Items Per Page<span style="color: red;">*</span></label>
           <input
@@ -118,12 +71,62 @@
             min="1"
             required
           >
-          <% if (state.errors.column_preferences) { %>
-            <small style="color: red;"><%= state.errors.column_preferences %></small>
-          <% } %>
         </div>
       </div>
     </div>
+
+    <!-- Bookmarks -->
+    <div style="border: dashed; padding: 20px; border-radius: 5px;">
+      <h3 style="margin: 0 0 15px 0;">🔖 Bookmarks</h3>
+
+      <!-- Visible Columns -->
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <h4 style="margin: 0;">Columns</h4>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[bookmarks][title]"
+              <%= user.column_preferences?.bookmarks?.title !== false ? 'checked' : '' %>
+            >
+            📝 Title
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[bookmarks][url]"
+              <%= user.column_preferences?.bookmarks?.url !== false ? 'checked' : '' %>
+            >
+            🌐 URL
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[bookmarks][created_at]"
+              <%= user.column_preferences?.bookmarks?.created_at !== false ? 'checked' : '' %>
+            >
+            📅 Created At
+          </label>
+        </div>
+
+        <!-- Items Per Page -->
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="bookmarks_per_page">📜 Items Per Page<span style="color: red;">*</span></label>
+          <input
+            type="number"
+            id="bookmarks_per_page"
+            name="column_preferences[bookmarks][default_per_page]"
+            value="<%= state.input.bookmarks_per_page ?? user.column_preferences.bookmarks.default_per_page %>"
+            min="1"
+            required
+          >
+        </div>
+      </div>
+    </div>
+
+    <% if (state.errors.column_preferences) { %>
+      <small style="color: red;"><%= state.errors.column_preferences %></small>
+    <% } %>
 
     <button type="submit">💾 Save Changes</button>
   </form>
