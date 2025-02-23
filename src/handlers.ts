@@ -627,12 +627,13 @@ export const postExportDataHandler = [
 		const userId = (req.user as User).id;
 		const includeBookmarks = req.body.options.includes('bookmarks');
 		const includeActions = req.body.options.includes('actions');
-
+		const includeNotes = req.body.options.includes('notes');
 		const exportData: {
 			exported_at: string;
 			version: string;
 			bookmarks?: any[];
 			actions?: any[];
+			notes?: any[];
 		} = {
 			exported_at: new Date().toISOString(),
 			version: '1.0',
@@ -658,10 +659,20 @@ export const postExportDataHandler = [
 						.where('bangs.user_id', userId)
 				: Promise.resolve([]);
 
-		const [bookmarks, actions] = await Promise.all([fetchBookmarks(), fetchActions()]);
+		const fetchNotes = () =>
+			includeNotes
+				? db('notes').where('user_id', userId).select('title', 'content', 'created_at')
+				: Promise.resolve([]);
+
+		const [bookmarks, actions, notes] = await Promise.all([
+			fetchBookmarks(),
+			fetchActions(),
+			fetchNotes(),
+		]);
 
 		if (includeBookmarks) exportData.bookmarks = bookmarks;
 		if (includeActions) exportData.actions = actions;
+		if (includeNotes) exportData.notes = notes;
 
 		res
 			.setHeader(
@@ -724,6 +735,17 @@ export const postImportDataHandler = [
 							});
 						}
 					}
+				}
+
+				if (importData.notes?.length > 0) {
+					const notes = importData.notes.map((note: any) => ({
+						user_id: userId,
+						title: note.title,
+						content: note.content,
+						created_at: db.fn.now(),
+					}));
+
+					await trx('notes').insert(notes);
 				}
 			});
 

@@ -48,6 +48,13 @@
                 Include Actions
               </label>
             </div>
+            <div>
+              <label for="notes-checkbox">
+                <input type="checkbox" id="notes-checkbox" name="options[]" value="notes">
+                Include Notes
+              </label>
+            </div>
+
             <% if (state.errors.options) { %>
               <small style="color: red;"><%= state.errors.options %></small>
             <% } %>
