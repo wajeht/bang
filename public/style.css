@@ -13,6 +13,8 @@
 	--background-color: #ffffff;
 	--pre-background: #f8f9fa;
 	--pre-border: #edeff0;
+	--code-background: #f8f9fa;
+	--code-border: #edeff0;
 	--link-color: #0000ee;
 	--visited-link-color: #551a8b;
 	--border-color: #1a1a1a;
@@ -29,6 +31,8 @@ html {
 	--background-color: #1a1a1a;
 	--pre-background: #2a2a2a;
 	--pre-border: #3a3a3a;
+	--code-background: #2a2a2a;
+	--code-border: #3a3a3a;
 	--link-color: #6495ed;
 	--visited-link-color: #9370db;
 	--border-color: #ffffff;
@@ -154,6 +158,17 @@ pre {
 	background-color: var(--pre-background);
 	border: 1px solid var(--pre-border);
 	padding: 10px;
+	border-radius: 5px;
+	font-size: 0.9em;
+}
+
+code {
+	word-break: break-all;
+	overflow-wrap: break-word;
+	white-space: pre-wrap;
+	background-color: var(--pre-background);
+	border: 1px solid var(--pre-border);
+	padding: 2px 3px;
 	border-radius: 5px;
 	font-size: 0.9em;
 }
