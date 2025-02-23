@@ -35,6 +35,7 @@ const searchConfig = {
 		'@api': '/api-docs',
 		'@b': '/',
 		'@bang': '/',
+		'@bangs': '/',
 		'@bm': '/bookmarks',
 		'@bookmarks': '/bookmarks',
 		'@data': '/settings/data',
