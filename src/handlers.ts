@@ -133,8 +133,13 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 			.returning('*');
 	}
 
-	req.user = foundUser;
-	req.session.user = foundUser;
+	const parsedUser = {
+		...foundUser,
+		column_preferences: JSON.parse(foundUser.column_preferences),
+	};
+
+	req.user = parsedUser;
+	req.session.user = parsedUser;
 
 	const redirectTo = req.session.redirectTo;
 	delete req.session.redirectTo;
