@@ -891,7 +891,13 @@ export const postSettingsDisplayHandler = [
 				throw new ValidationError('Actions per page must be greater than 0');
 			}
 
-			if (!value.actions.name && !value.actions.trigger && !value.actions.url && !value.actions.action_type && !value.actions.created_at) {
+			if (
+				!value.actions.name &&
+				!value.actions.trigger &&
+				!value.actions.url &&
+				!value.actions.action_type &&
+				!value.actions.created_at
+			) {
 				throw new ValidationError('At least one action column must be enabled');
 			}
 

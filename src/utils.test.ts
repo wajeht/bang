@@ -241,6 +241,22 @@ describe('extractUser', () => {
 			email: 'testuser@example.com',
 			is_admin: false,
 			default_search_provider: 'duckduckgo',
+			column_preferences: JSON.stringify({
+				bookmarks: {
+					title: true,
+					url: true,
+					created_at: true,
+					default_per_page: 10,
+				},
+				actions: {
+					name: true,
+					trigger: true,
+					url: true,
+					action_type: true,
+					created_at: true,
+					default_per_page: 10,
+				},
+			}),
 		});
 	});
 
@@ -267,6 +283,22 @@ describe('extractUser', () => {
 			api_key: null,
 			api_key_created_at: null,
 			api_key_version: 0,
+			column_preferences: JSON.stringify({
+				bookmarks: {
+					title: true,
+					url: true,
+					created_at: true,
+					default_per_page: 10,
+				},
+				actions: {
+					name: true,
+					trigger: true,
+					url: true,
+					action_type: true,
+					created_at: true,
+					default_per_page: 10,
+				},
+			}),
 			created_at: expect.any(String),
 			updated_at: expect.any(String),
 		});
@@ -304,10 +336,15 @@ describe.concurrent('extractPagination', () => {
 				sort_key: 'title',
 				direction: 'asc',
 			},
-			user: { bookmarks_per_page: 5 },
+			user: {
+				column_preferences: {
+					bookmarks: { default_per_page: 5 },
+					actions: { default_per_page: 5 },
+				},
+			},
 		} as unknown as Request;
 
-		const pagination = extractPagination(req);
+		const pagination = extractPagination(req, 'bookmarks');
 		expect(pagination).toEqual({
 			perPage: 10,
 			page: 2,
@@ -320,10 +357,15 @@ describe.concurrent('extractPagination', () => {
 	it('should return default values if query parameters are not provided', () => {
 		const req = {
 			query: {},
-			user: { bookmarks_per_page: 5 },
+			user: {
+				column_preferences: {
+					bookmarks: { default_per_page: 5 },
+					actions: { default_per_page: 5 },
+				},
+			},
 		} as unknown as Request;
 
-		const pagination = extractPagination(req);
+		const pagination = extractPagination(req, 'bookmarks');
 		expect(pagination).toEqual({
 			perPage: 5,
 			page: 1,
