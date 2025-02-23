@@ -198,7 +198,16 @@ export async function getActionsHandler(req: Request, res: Response) {
 // POST /actions or POST /api/actions
 export const postActionHandler = [
 	validateRequestMiddleware([
-		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
+		body('url')
+			.custom((value, { req }) => {
+				if (req.body.actionType === 'ai') {
+					return true;
+				}
+				if (!value || !isURL(value)) {
+					throw new Error('Valid URL is required for non-AI actions');
+				}
+				return true;
+			}),
 		body('name').notEmpty().withMessage('Name is required').trim(),
 		body('actionType')
 			.notEmpty()
@@ -224,11 +233,76 @@ export const postActionHandler = [
 
 				return true;
 			}),
+		body('options.ai.provider')
+			.optional()
+			.isIn(['openai', 'anthropic', 'gemini'])
+			.withMessage('Invalid AI provider'),
+		body('options.ai.model')
+			.optional()
+			.custom((value, { req }) => {
+				const provider = req.body.options?.ai?.provider;
+				const validModels = {
+					openai: ['gpt-4', 'gpt-3.5-turbo'],
+					anthropic: ['claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-2.1'],
+					gemini: ['gemini-pro', 'gemini-pro-vision']
+				};
+				if (!validModels[provider]?.includes(value)) {
+					throw new Error('Invalid model for selected provider');
+				}
+				return true;
+			}),
+		body('options.ai.temperature')
+			.optional()
+			.isFloat({ min: 0, max: 2 })
+			.withMessage('Temperature must be between 0 and 2'),
+		body('options.ai.max_tokens')
+			.optional()
+			.isInt({ min: 1, max: 4000 })
+			.withMessage('Max tokens must be between 1 and 4000'),
+		body('options.ai.apiKey')
+			.optional()
+			.custom((value, { req }) => {
+				const provider = req.body.options?.ai?.provider;
+				if (!value) return true;
+
+				switch (provider) {
+					case 'openai':
+						if (!value.startsWith('sk-')) {
+							throw new Error('Invalid OpenAI API key format');
+						}
+						break;
+					case 'anthropic':
+						if (!value.startsWith('sk-ant-')) {
+							throw new Error('Invalid Anthropic API key format');
+						}
+						break;
+					case 'gemini':
+						if (!value.startsWith('AI')) {
+							throw new Error('Invalid Gemini API key format');
+						}
+						break;
+				}
+				return true;
+			}),
 	]),
 	async (req: Request, res: Response) => {
-		const { trigger, url, actionType, name } = req.body;
+		const { trigger, actionType, name, options } = req.body;
+		const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-		const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
+		const url = actionType === 'ai' ? null : req.body.url;
+
+		let optionsJson = null;
+		if (actionType === 'ai') {
+			optionsJson = {
+				ai: {
+					provider: options?.ai?.provider || 'openai',
+					model: options?.ai?.model,
+					temperature: parseFloat(options?.ai?.temperature || '0.7'),
+					max_tokens: parseInt(options?.ai?.max_tokens || '1000', 10),
+					apiKey: options?.ai?.apiKey || null,
+				}
+			};
+		}
 
 		await actions.create({
 			name: name.trim(),
@@ -236,6 +310,7 @@ export const postActionHandler = [
 			url,
 			actionType,
 			user_id: (req.user as User).id,
+			options: optionsJson ? JSON.stringify(optionsJson) : null,
 		});
 
 		if (isApiRequest(req)) {
