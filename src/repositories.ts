@@ -278,12 +278,7 @@ export const notes = {
 	},
 
 	delete: async (id: number, userId: number) => {
-		const [deletedNote] = await db('notes').where({ id, user_id: userId }).delete().returning('*');
-
-		if (!deletedNote) {
-			throw new Error('Note not found');
-		}
-
-		return deletedNote;
+		const rowsAffected = await db('notes').where({ id, user_id: userId }).delete();
+		return rowsAffected > 0;
 	},
 };
