@@ -162,7 +162,7 @@ export async function postSearchHandler(req: Request, res: Response) {
 // GET /actions or /api/actions
 export async function getActionsHandler(req: Request, res: Response) {
 	const user = req.user as User;
-	const { perPage, page, search, sortKey, direction } = extractPagination(req);
+	const { perPage, page, search, sortKey, direction } = extractPagination(req, 'actions');
 
 	const { data, pagination } = await actions.all({
 		user,
@@ -360,10 +360,11 @@ export function getBookmarkCreatePageHandler(_req: Request, res: Response) {
 
 // GET /bookmarks or GET /api/bookmarks
 export async function getBookmarksHandler(req: Request, res: Response) {
-	const { perPage, page, search, sortKey, direction } = extractPagination(req);
+	const user = req.user as User;
+	const { perPage, page, search, sortKey, direction } = extractPagination(req, 'bookmarks');
 
 	const { data, pagination } = await bookmarks.all({
-		user: req.user as User,
+		user,
 		perPage,
 		page,
 		search,
@@ -798,33 +799,34 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
 // GET /api/actions-and-bookmarks
 export async function getActionsAndBookmarksHandler(req: Request, res: Response) {
 	const user = req.user as User;
-	const { perPage, page, search, sortKey, direction } = extractPagination(req);
+	const actionsParams = extractPagination(req, 'actions');
+	const bookmarksParams = extractPagination(req, 'bookmarks');
 
 	const [actionsResult, bookmarksResult] = await Promise.all([
 		actions.all({
 			user,
-			perPage,
-			page,
-			search,
-			sortKey,
-			direction,
+			perPage: actionsParams.perPage,
+			page: actionsParams.page,
+			search: actionsParams.search,
+			sortKey: actionsParams.sortKey,
+			direction: actionsParams.direction,
 		}),
 		bookmarks.all({
 			user,
-			perPage,
-			page,
-			search,
-			sortKey,
-			direction,
+			perPage: bookmarksParams.perPage,
+			page: bookmarksParams.page,
+			search: bookmarksParams.search,
+			sortKey: bookmarksParams.sortKey,
+			direction: bookmarksParams.direction,
 		}),
 	]);
 
 	res.json({
 		actions: actionsResult,
 		bookmarks: bookmarksResult,
-		search,
-		sortKey,
-		direction,
+		search: actionsParams.search, // or bookmarksParams.search, the same search for both
+		sortKey: actionsParams.sortKey, // or bookmarksParams.sortKey, the same sortKey for both
+		direction: actionsParams.direction, // or bookmarksParams.direction, the same direction for both
 	});
 }
 
