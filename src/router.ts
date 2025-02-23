@@ -42,9 +42,15 @@ import {
 	getSettingsDangerZonePageHandler,
 	getBookmarkActionCreatePageHandler,
 	postDeleteSettingsDangerZoneHandler,
+	getAdminUsersHandler,
 } from './handlers';
 
-import { csrfMiddleware, authenticationMiddleware, cacheMiddleware } from './middlewares';
+import {
+	csrfMiddleware,
+	authenticationMiddleware,
+	cacheMiddleware,
+	adminOnlyMiddleware,
+} from './middlewares';
 
 const router = express.Router();
 
@@ -58,6 +64,21 @@ router.get('/logout', getLogoutHandler);
 router.get('/oauth/github', getGithubHandler);
 router.get('/oauth/github/redirect', getGithubRedirectHandler);
 router.post('/search', authenticationMiddleware, csrfMiddleware, cacheMiddleware(1, 'day'), postSearchHandler); // prettier-ignore
+
+router.get(
+	'/admin',
+	authenticationMiddleware,
+	adminOnlyMiddleware,
+	csrfMiddleware,
+	getAdminUsersHandler,
+);
+router.get(
+	'/admin/users',
+	authenticationMiddleware,
+	adminOnlyMiddleware,
+	csrfMiddleware,
+	getAdminUsersHandler,
+);
 
 router.get('/settings', authenticationMiddleware, cacheMiddleware(1, 'day'), getSettingsPageHandler); // prettier-ignore
 router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler);

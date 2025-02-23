@@ -324,7 +324,7 @@ export async function extractUser(req: Request): Promise<User> {
 	throw new HttpError(500, 'User not found from request!');
 }
 
-export function extractPagination(req: Request, pageType: PageType) {
+export function extractPagination(req: Request, pageType: PageType | 'admin') {
 	const user = req.user as User;
 	let defaultPerPage = 10;
 
@@ -338,6 +338,10 @@ export function extractPagination(req: Request, pageType: PageType) {
 
 	if (pageType === 'notes') {
 		defaultPerPage = user.column_preferences.notes.default_per_page;
+	}
+
+	if (pageType === 'admin') {
+		defaultPerPage = 10;
 	}
 
 	return {

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+  <%- include('../components/head.html') %>
+
+  <body style="display: flex; flex-direction: column; gap: 30px; min-height: 100vh;">
+    <%- include('../components/header.html') %>
+
+    <main style="flex: 1; display: flex; flex-direction: column; gap: 30px;">
+      <div>
+        <h2>🛡️ Admin</h2>
+        <p>Manage your application</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 15% 85%; flex: 1;">
+        <aside style="display: inline-block; height: 100%; padding-right: 40px">
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/admin/users' ? 'bold' : 'normal' %>; <%= path === '/admin/users' ? 'text-decoration: underline' : null %>" href="/admin/users">👥 Users</a>
+            <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: normal;" href="/settings">⚙️ Settings</a>
+          </div>
+        </aside>
+
+        <div style="display: inline-block; border: dashed; border-radius: 5px; padding: 30px">
+          <%- body %>
+        </div>
+      </div>
+    </main>
+
+    <%- include('../components/footer.html') %>
+  </body>
+</html>

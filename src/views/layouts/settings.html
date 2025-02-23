@@ -16,6 +16,9 @@
       <div style="display: grid; grid-template-columns: 15% 85%; flex: 1;">
         <aside style="display: inline-block; height: 100%; padding-right: 40px">
           <div style="display: flex; flex-direction: column; gap: 10px">
+            <% if (state.user.is_admin) { %>
+              <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: normal;" href="/admin">🛡️ Admin</a>
+            <% } %>
             <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= (path === '/settings' || path === '/settings/account') ? 'bold' : 'normal' %>; <%= (path === '/settings' || path === '/settings/account') ? 'text-decoration: underline' : null %>" href="/settings/account">👤 Account</a>
             <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/settings/display' ? 'bold' : 'normal' %>; <%= path === '/settings/display' ? 'text-decoration: underline' : null %>" href="/settings/display">👁️ Display</a>
             <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/settings/data' ? 'bold' : 'normal' %>; <%= path === '/settings/data' ? 'text-decoration: underline' : null %>" href="/settings/data">📦 Data</a>

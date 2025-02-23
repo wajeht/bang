@@ -1184,3 +1184,33 @@ export async function deleteNoteByApiHandler(req: Request, res: Response) {
 
 	return res.json(deletedNote);
 }
+
+// GET /admin/users
+export async function getAdminUsersHandler(req: Request, res: Response) {
+	const { perPage, page, search, sortKey, direction } = extractPagination(req, 'admin');
+
+	const query = db.select('*').from('users');
+
+	if (search) {
+		query.where((q) =>
+			q
+				.whereRaw('LOWER(username) LIKE ?', [`%${search.toLowerCase()}%`])
+				.orWhereRaw('LOWER(email) LIKE ?', [`%${search.toLowerCase()}%`]),
+		);
+	}
+
+	const { data, pagination } = await query
+		.orderBy(sortKey || 'created_at', direction || 'desc')
+		.paginate({ perPage, currentPage: page, isLengthAware: true });
+
+	return res.render('admin-users.html', {
+		title: 'Admin / Users',
+		path: '/admin/users',
+		layout: '../layouts/admin.html',
+		data,
+		pagination,
+		search,
+		sortKey,
+		direction,
+	});
+}
