@@ -846,28 +846,66 @@ export async function getSettingsDisplayPageHandler(req: Request, res: Response)
 }
 
 // POST /settings/display
-export async function postSettingsDisplayHandler(req: Request, res: Response) {
-	const user = req.user as User;
-	const { column_preferences, bookmarks_per_page, actions_per_page } = req.body;
+export const postSettingsDisplayHandler = [
+	validateRequestMiddleware([
+		body('column_preferences').custom((value) => {
+			if (value === undefined) {
+				throw new ValidationError('Column preferences are required');
+			}
 
-	// Validate per page values
-	const booksPerPage = parseInt(bookmarks_per_page);
-	const actionsPerPage = parseInt(actions_per_page);
+			if (typeof value !== 'object') {
+				throw new ValidationError('Column preferences must be an object');
+			}
 
-	if (isNaN(booksPerPage) || booksPerPage < 1 || isNaN(actionsPerPage) || actionsPerPage < 1) {
-		throw new Error('Invalid per page values');
-	}
+			// Convert and validate bookmarks preferences
+			if (typeof value.bookmarks !== 'object') {
+				throw new ValidationError('Bookmarks must be an object');
+			}
 
-	await db('users').where('id', user.id).update({
-		column_preferences,
-		bookmarks_per_page: booksPerPage,
-		actions_per_page: actionsPerPage,
-	});
+			// Convert checkbox values to booleans
+			value.bookmarks.title = value.bookmarks.title === 'on';
+			value.bookmarks.url = value.bookmarks.url === 'on';
+			value.bookmarks.created_at = value.bookmarks.created_at === 'on';
 
-	// Update session
-	req.session.user!.column_preferences = column_preferences;
-	req.session.user!.bookmarks_per_page = booksPerPage;
-	req.session.user!.actions_per_page = actionsPerPage;
+			// Convert and validate per_page
+			value.bookmarks.default_per_page = parseInt(value.bookmarks.default_per_page, 10);
+			if (isNaN(value.bookmarks.default_per_page) || value.bookmarks.default_per_page < 1) {
+				throw new ValidationError('Bookmarks per page must be greater than 0');
+			}
 
-	return res.redirect('/settings/display');
-}
+			// Convert and validate actions preferences
+			if (typeof value.actions !== 'object') {
+				throw new ValidationError('Actions must be an object');
+			}
+
+			// Convert checkbox values to booleans
+			value.actions.name = value.actions.name === 'on';
+			value.actions.trigger = value.actions.trigger === 'on';
+			value.actions.url = value.actions.url === 'on';
+			value.actions.action_type = value.actions.action_type === 'on';
+			value.actions.created_at = value.actions.created_at === 'on';
+
+			// Convert and validate per_page
+			value.actions.default_per_page = parseInt(value.actions.default_per_page, 10);
+			if (isNaN(value.actions.default_per_page) || value.actions.default_per_page < 1) {
+				throw new ValidationError('Actions per page must be greater than 0');
+			}
+
+			return true;
+		}),
+	]),
+	async (req: Request, res: Response) => {
+		const user = req.user as User;
+		const { column_preferences } = req.body;
+
+		await db('users')
+			.where('id', user.id)
+			.update({
+				column_preferences: JSON.stringify(column_preferences),
+			});
+
+		req.session.user!.column_preferences = column_preferences;
+
+		return res.redirect('/settings/display');
+	},
+];
