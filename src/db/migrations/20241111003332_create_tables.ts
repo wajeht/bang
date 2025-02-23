@@ -23,7 +23,7 @@ export async function up(knex: Knex): Promise<void> {
 			table.string('api_key').unique().nullable();
 			table.integer('api_key_version').defaultTo(0).notNullable();
 			table.timestamp('api_key_created_at').nullable();
-			table.jsonb('column_preferences').defaultTo(
+			table.json('column_preferences').defaultTo(
 				JSON.stringify({
 					bookmarks: {
 						id: true,

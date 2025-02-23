@@ -1,6 +1,7 @@
 import {
 	Api,
 	User,
+	PageType,
 	ApiKeyPayload,
 	GithubUserEmail,
 	BookmarkToExport,
@@ -323,9 +324,12 @@ export async function extractUser(req: Request): Promise<User> {
 	throw new HttpError(500, 'User not found from request!');
 }
 
-export function extractPagination(req: Request) {
+export function extractPagination(req: Request, pageType: PageType) {
+	const user = req.user as User;
+	const defaultPerPage = pageType === 'actions' ? user.actions_per_page : user.bookmarks_per_page;
+
 	return {
-		perPage: parseInt(req.query.per_page as string, 10) || (req.user as User).default_per_page,
+		perPage: parseInt(req.query.per_page as string, 10) || defaultPerPage || 10,
 		page: parseInt(req.query.page as string, 10) || 1,
 		search: ((req.query.search as string) || '').toLowerCase(),
 		sortKey: (req.query.sort_key as string) || 'created_at',

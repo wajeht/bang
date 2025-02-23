@@ -23,6 +23,8 @@ declare global {
 
 import { CACHE_DURATION, defaultSearchProviders } from './configs';
 
+export type PageType = 'actions' | 'bookmarks';
+
 export type CacheDuration = keyof typeof CACHE_DURATION;
 
 export type DefaultSearchProviders = keyof typeof defaultSearchProviders;
