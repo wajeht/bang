@@ -49,28 +49,12 @@
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="url">🌐 URL<span style="color: red;">*</span></label>
-            <input
-                type="url"
-                name="url"
-                id="url"
-                placeholder="https://google.com/search?q={query}"
-                value="<%= state.input.url ?? state.input.url %>"
-                style="width: 100%;"
-                required
-            >
-            <small>For search actions, use {query} where the search term should go</small>
-            <% if (state.errors.url) { %>
-                <small style="color: red;"><%= state.errors.trigger %></small>
-            <% } %>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 5px;">
             <label for="actionType">🔄 Action Type<span style="color: red;">*</span></label>
             <select
                 id="actionType"
                 name="actionType"
                 style="width: 100%;"
+                onchange="toggleAiOptions()"
                 required
             >
                 <% actionTypes.forEach(type => { %>
@@ -81,7 +65,154 @@
             </select>
         </div>
 
+        <!-- New AI Options Section -->
+        <div id="aiOptions" style="display: none; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+            <h4 style="margin-top: 0;">🤖 AI Options</h4>
+
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label for="aiProvider">Provider</label>
+                <select id="aiProvider" name="options[ai][provider]" style="width: 100%;" onchange="updateModelOptions()">
+                    <option value="openai">OpenAI</option>
+                    <option value="anthropic">Claude (Anthropic)</option>
+                    <option value="gemini">Gemini (Google)</option>
+                </select>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 10px;">
+                <label for="aiModel">Model</label>
+                <select id="aiModel" name="options[ai][model]" style="width: 100%;">
+                    <!-- Models will be populated by JavaScript -->
+                </select>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 10px;">
+                <label for="aiApiKey">API Key</label>
+                <input
+                    type="password"
+                    id="aiApiKey"
+                    name="options[ai][apiKey]"
+                    placeholder="Enter your API key"
+                    style="width: 100%;"
+                >
+                <small>Your API key (optional - uses system key if not provided)</small>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 10px;">
+                <label for="aiTemperature">Temperature (0-2)</label>
+                <input
+                    type="range"
+                    id="aiTemperature"
+                    name="options[ai][temperature]"
+                    min="0"
+                    max="2"
+                    step="0.1"
+                    value="0.7"
+                    oninput="updateTemperatureValue(this.value)"
+                >
+                <small id="temperatureValue">0.7</small>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 10px;">
+                <label for="aiMaxTokens">Max Tokens</label>
+                <input
+                    type="number"
+                    id="aiMaxTokens"
+                    name="options[ai][max_tokens]"
+                    value="1000"
+                    min="1"
+                    max="4000"
+                    style="width: 100%;"
+                >
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label for="url" id="urlLabel">🌐 URL<span style="color: red;">*</span></label>
+            <input
+                type="url"
+                name="url"
+                id="url"
+                placeholder="https://google.com/search?q={query}"
+                value="<%= state.input.url ?? state.input.url %>"
+                style="width: 100%;"
+                required
+            >
+            <small id="urlHelpText">For search actions, use {query} where the search term should go</small>
+        </div>
 
         <button type="submit" style="width: 100%;">Submit 🚀</button>
     </form>
 </div>
+
+<script>
+const modelsByProvider = {
+    openai: [
+        { value: 'gpt-4', label: 'GPT-4' },
+        { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
+    ],
+    anthropic: [
+        { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' },
+        { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet' },
+        { value: 'claude-2.1', label: 'Claude 2.1' }
+    ],
+    gemini: [
+        { value: 'gemini-pro', label: 'Gemini Pro' },
+        { value: 'gemini-pro-vision', label: 'Gemini Pro Vision' }
+    ]
+};
+
+function updateModelOptions() {
+    const provider = document.getElementById('aiProvider').value;
+    const modelSelect = document.getElementById('aiModel');
+    const apiKeyInput = document.getElementById('aiApiKey');
+
+    // Update placeholder based on provider
+    switch(provider) {
+        case 'openai':
+            apiKeyInput.placeholder = 'sk-...';
+            break;
+        case 'anthropic':
+            apiKeyInput.placeholder = 'sk-ant-...';
+            break;
+        case 'gemini':
+            apiKeyInput.placeholder = 'AI...';
+            break;
+    }
+
+    // Clear existing options
+    modelSelect.innerHTML = '';
+
+    // Add new options
+    modelsByProvider[provider].forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.value;
+        option.textContent = model.label;
+        modelSelect.appendChild(option);
+    });
+}
+
+function toggleAiOptions() {
+    const actionType = document.getElementById('actionType').value;
+    const aiOptions = document.getElementById('aiOptions');
+    const urlContainer = document.getElementById('url').parentElement;
+
+    if (actionType === 'ai') {
+        aiOptions.style.display = 'block';
+        urlContainer.style.display = 'none';  // Hide URL field for AI actions
+        document.getElementById('url').value = 'https://api.openai.com/v1/chat/completions';  // Set a dummy value to satisfy required field
+    } else {
+        aiOptions.style.display = 'none';
+        urlContainer.style.display = 'flex';  // Show URL field for other actions
+        document.getElementById('url').value = '';  // Clear the dummy value
+    }
+}
+
+function updateTemperatureValue(value) {
+    document.getElementById('temperatureValue').textContent = value;
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    toggleAiOptions();
+});
+</script>

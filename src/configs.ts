@@ -4,7 +4,7 @@ import { Env } from './types';
 
 dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')) });
 
-export const actionTypes = ['search', 'redirect'];
+export const actionTypes = ['search', 'redirect', 'ai'];
 
 export const CACHE_DURATION = {
 	second: 1,

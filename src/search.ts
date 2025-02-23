@@ -5,6 +5,9 @@ import { Request, Response } from 'express';
 import { bangs as bangsTable } from './db/bangs';
 import { defaultSearchProviders } from './configs';
 import { addHttps, insertBookmarkQueue, insertPageTitleQueue, isValidUrl } from './utils';
+import OpenAIApi from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import Anthropic from '@anthropic-ai/sdk';
 
 /**
  * Core configuration constants for the search functionality
@@ -46,6 +49,18 @@ const searchConfig = {
 		'@notes': '/notes',
 	},
 } as const;
+
+// Initialize AI clients
+const openai = new OpenAIApi({
+		apiKey: process.env.OPENAI_API_KEY || '',
+	}
+);
+
+const anthropic = new Anthropic({
+	apiKey: process.env.ANTHROPIC_API_KEY || '',
+});
+
+const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 /**
  * Queue for tracking search history of unauthenticated users asynchronously
@@ -291,6 +306,57 @@ export async function handleAnonymousSearch(
 	return res.redirect(defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))); // prettier-ignore
 }
 
+async function handleAIResponse(provider: string, model: string, apiKey: string | null, prompt: string) {
+	try {
+		let response: string;
+
+		switch (provider) {
+			case 'openai':
+				const openaiClient = apiKey ?
+					new OpenAIApi(new Configuration({ apiKey })) :
+					openai;
+
+				const completion = await openaiClient.createChatCompletion({
+					model,
+					messages: [{ role: "user", content: prompt }],
+					temperature: 0.7,
+				});
+				response = completion.data.choices[0]?.message?.content || 'No response generated';
+				break;
+
+			case 'anthropic':
+				const anthropicClient = apiKey ?
+					new Anthropic({ apiKey }) :
+					anthropic;
+
+				const message = await anthropicClient.messages.create({
+					model,
+					messages: [{ role: "user", content: prompt }],
+				});
+				response = message.content[0].text;
+				break;
+
+			case 'gemini':
+				const geminiClient = apiKey ?
+					new GoogleGenerativeAI(apiKey) :
+					gemini;
+
+				const genAI = geminiClient.getGenerativeModel({ model });
+				const result = await genAI.generateText(prompt);
+				response = result.response.text();
+				break;
+
+			default:
+				throw new Error(`Unsupported AI provider: ${provider}`);
+		}
+
+		return response;
+	} catch (error) {
+		console.error('AI Provider Error:', error);
+		throw error;
+	}
+}
+
 /**
  * Processes search queries and handles different user flows
  * - Unauthenticated user flow: Handles rate limiting, bang commands, and default search
@@ -435,6 +501,37 @@ export async function search({
 			.first();
 
 		if (customBang) {
+			// Add this new condition for AI actions
+			if (customBang.action_type === 'ai') {
+				try {
+					const options = JSON.parse(customBang.options || '{}').ai;
+					const response = await handleAIResponse(
+						options?.provider || 'openai',
+						options?.model || 'gpt-4',
+						options?.apiKey,
+						searchTerm
+					);
+
+					return res.setHeader('Content-Type', 'text/html').status(200).send(`
+						<script>
+							const response = ${JSON.stringify(response)};
+							navigator.clipboard.writeText(response)
+								.then(() => {
+									alert("Response copied to clipboard!");
+								})
+								.catch(() => {
+									alert("Couldn't copy to clipboard - but response is shown below");
+								});
+							window.history.back();
+						</script>
+						<pre>${response}</pre>
+					`);
+				} catch (error) {
+					console.error('AI Action Error:', error);
+					return goBackWithAlert(res, 'Error processing AI request');
+				}
+			}
+
 			// Handle redirect-type bangs (direct URL navigation)
 			if (customBang.action_type === 'redirect') {
 				return res.redirect(customBang.url);

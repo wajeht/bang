@@ -85,6 +85,15 @@ export async function up(knex: Knex): Promise<void> {
 			table.string('name').notNullable();
 			table.integer('action_type_id').unsigned().references('id').inTable('action_types');
 			table.text('url').notNullable();
+			table.json('options').nullable().defaultTo(JSON.stringify({
+				ai: {
+					model: 'gpt-4',
+					temperature: 0.7,
+					max_tokens: 1000,
+					top_p: 1,
+					presence_penalty: 0,
+				},
+			}));
 			table.timestamps(true, true);
 
 			table.unique(['user_id', 'trigger']);
@@ -110,6 +119,7 @@ export async function up(knex: Knex): Promise<void> {
 		{ name: 'search' },
 		{ name: 'redirect' },
 		{ name: 'bookmark' },
+		{ name: 'ai' },
 	]);
 }
 
