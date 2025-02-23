@@ -11,7 +11,7 @@ import { db } from './db/db';
 import { search } from './search';
 import { body } from 'express-validator';
 import { Request, Response } from 'express';
-import { actions, bookmarks } from './repositories';
+import { actions, bookmarks, notes } from './repositories';
 import { ApiKeyPayload, BookmarkToExport, User } from './types';
 import { validateRequestMiddleware } from './middlewares';
 import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './configs';
@@ -927,27 +927,18 @@ export async function getNotesHandler(req: Request, res: Response) {
 	const user = req.user as User;
 	const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
 
-	const query = db.select('*').from('notes').where('user_id', user.id);
-
-	if (search) {
-		query.where((q) =>
-			q
-				.whereRaw('LOWER(title) LIKE ?', [`%${search.toLowerCase()}%`])
-				.orWhereRaw('LOWER(content) LIKE ?', [`%${search.toLowerCase()}%`]),
-		);
-	}
-
-	if (['title', 'content', 'created_at'].includes(sortKey)) {
-		query.orderBy(sortKey, direction);
-	} else {
-		query.orderBy('created_at', 'desc');
-	}
-
-	const { data, pagination } = await query.paginate({
+	const { data, pagination } = await notes.all({
+		user,
 		perPage,
-		currentPage: page,
-		isLengthAware: true,
+		page,
+		search,
+		sortKey,
+		direction,
 	});
+
+	if (isApiRequest(req)) {
+		return res.json({ data, pagination });
+	}
 
 	return res.render('notes', {
 		title: 'Notes',
@@ -961,84 +952,49 @@ export async function getNotesHandler(req: Request, res: Response) {
 	});
 }
 
+// GET /notes/create
+export async function getCreateNotePageHandler(req: Request, res: Response) {
+	return res.render('notes-create', {
+		title: 'Notes / New',
+		path: '/notes/create',
+		layout: '../layouts/auth',
+	});
+}
+
 // POST /notes
-export const postNoteHandler = [
+export const createNoteHandler = [
 	validateRequestMiddleware([
-		body('title').notEmpty().withMessage('Title is required').trim(),
-		body('content').notEmpty().withMessage('Content is required').trim(),
+		body('title')
+			.trim()
+			.notEmpty()
+			.withMessage('Title is required')
+			.isLength({ max: 255 })
+			.withMessage('Title must be less than 255 characters'),
+		body('content').trim().notEmpty().withMessage('Content is required'),
 	]),
 	async (req: Request, res: Response) => {
 		const { title, content } = req.body;
+		const user = req.user as User;
 
-		await db('notes').insert({
-			user_id: (req.user as User).id,
+		const note = await notes.create({
+			user_id: user.id,
 			title: title.trim(),
 			content: content.trim(),
 		});
 
-		req.flash('success', 'Note created successfully!');
-		return res.redirect('/notes');
-	},
-];
-
-// POST /notes/:id/delete
-export async function deleteNoteHandler(req: Request, res: Response) {
-	const deleted = await db('notes')
-		.where({
-			id: req.params.id,
-			user_id: (req.user as User).id,
-		})
-		.delete();
-
-	if (!deleted) {
-		throw new NotFoundError('Note not found');
-	}
-
-	req.flash('success', 'Note deleted successfully');
-	return res.redirect('/notes');
-}
-
-// POST /notes/:id/update
-export const updateNoteHandler = [
-	validateRequestMiddleware([
-		body('title').notEmpty().withMessage('Title is required').trim(),
-		body('content').notEmpty().withMessage('Content is required').trim(),
-	]),
-	async (req: Request, res: Response) => {
-		const { title, content } = req.body;
-
-		const [updatedNote] = await db('notes')
-			.where({
-				id: req.params.id,
-				user_id: (req.user as User).id,
-			})
-			.update({
-				title: title.trim(),
-				content: content.trim(),
-			})
-			.returning('*');
-
-		if (!updatedNote) {
-			throw new NotFoundError('Note not found');
+		if (isApiRequest(req)) {
+			return res.status(201).json(note);
 		}
 
-		req.flash('success', 'Note updated successfully');
+		req.flash('success', 'Note created successfully');
 		return res.redirect('/notes');
 	},
 ];
 
 // GET /notes/:id/edit
 export async function getEditNotePageHandler(req: Request, res: Response) {
-	const note = await db('notes')
-		.where({
-			id: req.params.id,
-			user_id: (req.user as User).id,
-		})
-		.first();
-
-	if (!note) {
-		throw new NotFoundError('Note not found');
-	}
+	const user = req.user as User;
+	const note = await notes.read(parseInt(req.params.id), user.id);
 
 	return res.render('notes-edit', {
 		title: 'Notes / Edit',
@@ -1046,4 +1002,120 @@ export async function getEditNotePageHandler(req: Request, res: Response) {
 		layout: '../layouts/auth',
 		note,
 	});
+}
+
+// PUT /notes/:id
+export const updateNoteHandler = [
+	validateRequestMiddleware([
+		body('title')
+			.trim()
+			.notEmpty()
+			.withMessage('Title is required')
+			.isLength({ max: 255 })
+			.withMessage('Title must be less than 255 characters'),
+		body('content').trim().notEmpty().withMessage('Content is required'),
+	]),
+	async (req: Request, res: Response) => {
+		const { title, content } = req.body;
+		const user = req.user as User;
+
+		const updatedNote = await notes.update(parseInt(req.params.id), user.id, {
+			title: title.trim(),
+			content: content.trim(),
+		});
+
+		if (isApiRequest(req)) {
+			return res.json(updatedNote);
+		}
+
+		req.flash('success', 'Note updated successfully');
+		return res.redirect('/notes');
+	},
+];
+
+// DELETE /notes/:id
+export async function deleteNoteHandler(req: Request, res: Response) {
+	const user = req.user as User;
+	const deletedNote = await notes.delete(parseInt(req.params.id), user.id);
+
+	if (isApiRequest(req)) {
+		return res.json(deletedNote);
+	}
+
+	req.flash('success', 'Note deleted successfully');
+	return res.redirect('/notes');
+}
+
+// GET /api/notes
+export async function getNotesByApiHandler(req: Request, res: Response) {
+	const user = req.user as User;
+	const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
+
+	const { data, pagination } = await notes.all({
+		user,
+		perPage,
+		page,
+		search,
+		sortKey,
+		direction,
+	});
+
+	return res.json({ data, pagination });
+}
+
+// POST /api/notes
+export const createNoteByApiHandler = [
+	validateRequestMiddleware([
+		body('title')
+			.trim()
+			.notEmpty()
+			.withMessage('Title is required')
+			.isLength({ max: 255 })
+			.withMessage('Title must be less than 255 characters'),
+		body('content').trim().notEmpty().withMessage('Content is required'),
+	]),
+	async (req: Request, res: Response) => {
+		const { title, content } = req.body;
+		const user = req.user as User;
+
+		const note = await notes.create({
+			user_id: user.id,
+			title: title.trim(),
+			content: content.trim(),
+		});
+
+		return res.status(201).json(note);
+	},
+];
+
+// PUT /api/notes/:id
+export const updateNoteByApiHandler = [
+	validateRequestMiddleware([
+		body('title')
+			.trim()
+			.notEmpty()
+			.withMessage('Title is required')
+			.isLength({ max: 255 })
+			.withMessage('Title must be less than 255 characters'),
+		body('content').trim().notEmpty().withMessage('Content is required'),
+	]),
+	async (req: Request, res: Response) => {
+		const { title, content } = req.body;
+		const user = req.user as User;
+
+		const updatedNote = await notes.update(parseInt(req.params.id), user.id, {
+			title: title.trim(),
+			content: content.trim(),
+		});
+
+		return res.json(updatedNote);
+	},
+];
+
+// DELETE /api/notes/:id
+export async function deleteNoteByApiHandler(req: Request, res: Response) {
+	const user = req.user as User;
+	const deletedNote = await notes.delete(parseInt(req.params.id), user.id);
+
+	return res.json(deletedNote);
 }

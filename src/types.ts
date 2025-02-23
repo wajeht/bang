@@ -153,3 +153,20 @@ export type BookmarksQueryParams = {
 	sortKey: string | 'created_at';
 	direction: string | 'asc' | 'desc';
 };
+
+export type Note = {
+	id?: number;
+	title: string;
+	content: string;
+	user_id: number;
+	created_at?: string;
+};
+
+export type NotesQueryParams = {
+	user: { id: number };
+	perPage: number;
+	page: number;
+	search: string;
+	sortKey: string | 'created_at';
+	direction: string | 'asc' | 'desc';
+};

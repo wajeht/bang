@@ -1,0 +1,49 @@
+<div style="display: flex; flex-direction: column; gap: 20px;">
+    <div>
+        <h2>📝 Notes / <%= note.id %> / Edit</h2>
+        <p>Edit your note</p>
+    </div>
+
+    <form
+        method="POST"
+        action="/notes/<%= note.id %>/update"
+        style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+    >
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label for="title">📝 Title<span style="color: red;">*</span></label>
+            <input
+                type="text"
+                name="title"
+                id="title"
+                placeholder="My Note Title"
+                value="<%= state.input.title ?? note.title %>"
+                style="width: 100%;"
+                required
+            >
+            <% if (state.errors.title) { %>
+                <small style="color: red;"><%= state.errors.title %></small>
+            <% } %>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label for="content">📄 Content<span style="color: red;">*</span></label>
+            <textarea
+                name="content"
+                id="content"
+                placeholder="Note content..."
+                style="width: 100%; min-height: 200px; resize: vertical;"
+                required
+            ><%= state.input.content ?? note.content %></textarea>
+            <% if (state.errors.content) { %>
+                <small style="color: red;"><%= state.errors.content %></small>
+            <% } %>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+            <button type="button" onclick="location.href='/notes'">❌ Cancel</button>
+            <button type="submit">💾 Save</button>
+        </div>
+    </form>
+</div>
