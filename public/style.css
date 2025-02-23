@@ -168,7 +168,7 @@ code {
 	width: fit-content;
 	background-color: var(--pre-background);
 	border: 1px solid var(--pre-border);
-	padding: 2px 3px;
+	padding: 1px 3px;
 	border-radius: 5px;
 	font-size: 0.9em;
 }

@@ -7,27 +7,21 @@
 
   const searchTemplate = {
     action: (action) => `
-      <li data-type="action" data-trigger="${action.trigger}" data-name="${action.name}" style="padding: 5px 10px; cursor: pointer;">
-        <div style="display: flex; justify-content: space-between;">
-          <span>${action.name}</span>
-          <span style="color: var(--text-muted);">action</span>
-        </div>
+      <li data-type="action" data-trigger="${action.trigger}" style="padding: 5px 10px; cursor: pointer; display: flex;">
+        <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${action.name}</span>
+        <code>action</code>
       </li>
     `,
     bookmark: (bookmark) => `
-      <li data-type="bookmark" data-url="${bookmark.url}" data-title="${bookmark.title}" style="padding: 5px 10px; cursor: pointer;">
-        <div style="display: flex; justify-content: space-between;">
-          <span>${bookmark.title}</span>
-          <span style="color: var(--text-muted);">bookmark</span>
-        </div>
+      <li data-type="bookmark" data-url="${bookmark.url}" style="padding: 5px 10px; cursor: pointer; display: flex;">
+        <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${bookmark.title}</span>
+        <code>bookmark</code>
       </li>
     `,
     note: (note) => `
-      <li data-type="note" data-id="${note.id}" data-title="${note.title}" style="padding: 5px 10px; cursor: pointer;">
-        <div style="display: flex; justify-content: space-between;">
-          <span>${note.title}</span>
-          <span style="color: var(--text-muted);">note</span>
-        </div>
+      <li data-type="note" data-url="${note.id}" style="padding: 5px 10px; cursor: pointer; display: flex;">
+        <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${note.title}</span>
+        <code>note</code>
       </li>
     `
   };
