@@ -61,21 +61,17 @@ export type Bang = {
 
 export type ColumnPreferences = {
 	bookmarks: {
-		id: boolean;
 		title: boolean;
 		url: boolean;
 		default_per_page: number;
 		created_at: boolean;
-		updated_at: boolean;
 	};
 	actions: {
-		id: boolean;
 		name: boolean;
 		trigger: boolean;
 		url: boolean;
 		default_per_page: number;
 		created_at: boolean;
-		updated_at: boolean;
 	};
 };
 

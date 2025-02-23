@@ -26,21 +26,17 @@ export async function up(knex: Knex): Promise<void> {
 			table.json('column_preferences').defaultTo(
 				JSON.stringify({
 					bookmarks: {
-						id: true,
 						title: true,
 						url: true,
 						default_per_page: 10,
 						created_at: true,
-						updated_at: true,
 					},
 					actions: {
-						id: true,
 						name: true,
 						trigger: true,
 						url: true,
 						default_per_page: 10,
 						created_at: true,
-						updated_at: true,
 					},
 				}),
 			);
