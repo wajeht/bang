@@ -33,16 +33,26 @@ Before you can use the Bang command from your browser's search bar, you need to 
 
 ### 🎯 Default Commands
 
-- `@actions` - Quick access to your actions
-- `@bookmarks` - View your bookmarks
-- `@settings` - Access settings
+- `@a`, `@actions` - Quick access to your actions
+- `@b`, `@bookmarks` - View your bookmarks
+- `@s`, `@settings` - Access settings
+- `@n`, `@notes` - Access notes
 
 ### 🎨 Special Commands
 
-- `!bm [url]` - Add a bookmark (we will auto fetch the title)
+- `!bm [url]` - Add a bookmark
 - `!bm [title] [url]` - Add a bookmark
+  - `[title]` is optional, if not provided, we will auto fetch the title
+  - `[url]` is required
   - eg: `!bm this title can be super long https://bang.jaw.dev`
 - `!add [trigger] [url]` - Create a custom bang
+  - `[trigger]` is required
+  - `[url]` is required
+  - eg: `!add jaw https://bang.jaw.dev`
+- `!note [title] | [content]` - Create a note
+  - `[title]` is optional, if not provided, we will auto fetch the title
+  - `[content]` is required
+  - eg: `!note some title | this is a note https://bang.jaw.dev`
 
 ### 🔖 How to Add Bookmarklet
 
