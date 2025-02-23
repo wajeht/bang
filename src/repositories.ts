@@ -1,5 +1,12 @@
 import { db } from './db/db';
-import { Action, ActionsQueryParams, Bookmark, BookmarksQueryParams } from './types';
+import {
+	Action,
+	ActionsQueryParams,
+	Bookmark,
+	BookmarksQueryParams,
+	Note,
+	NotesQueryParams,
+} from './types';
 
 export const actions = {
 	all: async ({
@@ -197,5 +204,86 @@ export const bookmarks = {
 	delete: async (id: number, userId: number) => {
 		const rowsAffected = await db('bookmarks').where({ id, user_id: userId }).delete();
 		return rowsAffected > 0;
+	},
+};
+
+export const notes = {
+	all: async ({
+		user,
+		perPage = 10,
+		page = 1,
+		search = '',
+		sortKey = 'created_at',
+		direction = 'desc',
+	}: NotesQueryParams) => {
+		const query = db.select('*').from('notes').where('user_id', user.id);
+
+		if (search) {
+			query.where((q) =>
+				q
+					.whereRaw('LOWER(title) LIKE ?', [`%${search.toLowerCase()}%`])
+					.orWhereRaw('LOWER(content) LIKE ?', [`%${search.toLowerCase()}%`]),
+			);
+		}
+
+		if (['title', 'content', 'created_at'].includes(sortKey)) {
+			query.orderBy(sortKey, direction);
+		} else {
+			query.orderBy('created_at', 'desc');
+		}
+
+		return query.paginate({ perPage, currentPage: page, isLengthAware: true });
+	},
+
+	create: async (note: Note) => {
+		if (!note.title || !note.content || !note.user_id) {
+			throw new Error('Missing required fields to create a note');
+		}
+
+		const [createdNote] = await db('notes').insert(note).returning('*');
+		return createdNote;
+	},
+
+	read: async (id: number, userId: number) => {
+		const note = await db.select('*').from('notes').where({ id, user_id: userId }).first();
+
+		if (!note) {
+			throw new Error('Note not found');
+		}
+
+		return note;
+	},
+
+	update: async (id: number, userId: number, updates: Partial<Note>) => {
+		const allowedFields = ['title', 'content'];
+
+		const updateData = Object.fromEntries(
+			Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
+		);
+
+		if (Object.keys(updateData).length === 0) {
+			throw new Error('No valid fields provided for update');
+		}
+
+		const [updatedNote] = await db('notes')
+			.where({ id, user_id: userId })
+			.update(updateData)
+			.returning('*');
+
+		if (!updatedNote) {
+			throw new Error('Note not found');
+		}
+
+		return updatedNote;
+	},
+
+	delete: async (id: number, userId: number) => {
+		const [deletedNote] = await db('notes').where({ id, user_id: userId }).delete().returning('*');
+
+		if (!deletedNote) {
+			throw new Error('Note not found');
+		}
+
+		return deletedNote;
 	},
 };
