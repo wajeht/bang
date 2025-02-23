@@ -49,17 +49,17 @@ import { csrfMiddleware, authenticationMiddleware, cacheMiddleware } from './mid
 const router = express.Router();
 
 router.get('/healthz', getHealthzHandler);
-router.get('/privacy-policy', getPrivacyPolicyPageHandler);
-router.get('/', csrfMiddleware, getHomePageAndSearchHandler);
-router.get('/terms-of-service', getTermsOfServicePageHandler);
+router.get('/privacy-policy', cacheMiddleware(1, 'day'), getPrivacyPolicyPageHandler);
+router.get('/', csrfMiddleware, cacheMiddleware(1, 'day'), getHomePageAndSearchHandler);
+router.get('/terms-of-service', cacheMiddleware(1, 'day'), getTermsOfServicePageHandler);
 
 router.get('/login', getLoginHandler);
 router.get('/logout', getLogoutHandler);
 router.get('/oauth/github', getGithubHandler);
 router.get('/oauth/github/redirect', getGithubRedirectHandler);
-router.post('/search', authenticationMiddleware, csrfMiddleware, postSearchHandler);
+router.post('/search', authenticationMiddleware, csrfMiddleware, cacheMiddleware(1, 'day'), postSearchHandler);
 
-router.get('/settings', authenticationMiddleware, getSettingsPageHandler);
+router.get('/settings', authenticationMiddleware, cacheMiddleware(1, 'day'), getSettingsPageHandler);
 router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler);
 router.get('/settings/display', authenticationMiddleware, csrfMiddleware, getSettingsDisplayPageHandler); // prettier-ignore
 router.post('/settings/display', authenticationMiddleware, csrfMiddleware, postSettingsDisplayHandler); // prettier-ignore
