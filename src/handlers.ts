@@ -849,6 +849,7 @@ export async function getSettingsDisplayPageHandler(req: Request, res: Response)
 export const postSettingsDisplayHandler = [
 	validateRequestMiddleware([
 		body('column_preferences').custom((value) => {
+			console.log(value);
 			if (value === undefined) {
 				throw new ValidationError('Column preferences are required');
 			}
@@ -878,7 +879,7 @@ export const postSettingsDisplayHandler = [
 				throw new ValidationError('Actions must be an object');
 			}
 
-			// Convert checkbox values to booleans
+			// Set default false values for missing checkbox fields
 			value.actions.name = value.actions.name === 'on';
 			value.actions.trigger = value.actions.trigger === 'on';
 			value.actions.url = value.actions.url === 'on';
@@ -905,6 +906,8 @@ export const postSettingsDisplayHandler = [
 			});
 
 		req.session.user!.column_preferences = column_preferences;
+
+		req.flash('success', 'Display settings updated');
 
 		return res.redirect('/settings/display');
 	},

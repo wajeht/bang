@@ -40,18 +40,6 @@
             >
             📅 Created At
           </label>
-
-          <% if (user.column_preferences?.bookmarks?.title === false) { %>
-            <input type="hidden" name="column_preferences[bookmarks][title]" value="false">
-          <% } %>
-
-          <% if (user.column_preferences?.bookmarks?.url === false) { %>
-            <input type="hidden" name="column_preferences[bookmarks][url]" value="false">
-          <% } %>
-
-          <% if (user.column_preferences?.bookmarks?.created_at === false) { %>
-            <input type="hidden" name="column_preferences[bookmarks][created_at]" value="false">
-          <% } %>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 5px;">
