@@ -96,6 +96,18 @@ javascript: (function () {
 })();
 ```
 
+#### 📝 Note
+
+```javascript
+javascript: (function () {
+	const title = prompt('please enter a title').trim();
+	if (!title) return;
+	const content = prompt('please enter the content').trim();
+	if (!content) return;
+	window.location.href = `http://bang.jaw.dev/?q=!note ${title} | ${content}`;
+})();
+```
+
 ## 📑 Docs
 
 - See [ROADMAP](./docs/roadmap.md) for `roadmap` guide.
