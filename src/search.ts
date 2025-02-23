@@ -41,6 +41,7 @@ const searchConfig = {
 		'@s': '/settings',
 		'@settings': '/settings',
 		'@n': '/notes',
+		'@note': '/notes',
 		'@notes': '/notes',
 	},
 } as const;
@@ -86,6 +87,14 @@ export function goBackWithAlert(res: Response, message: string) {
 	return res.setHeader('Content-Type', 'text/html').status(422).send(`
 			<script>
 				alert("${message}");
+				window.history.back();
+			</script>
+		`);
+}
+
+export function goBack(res: Response) {
+	return res.setHeader('Content-Type', 'text/html').status(200).send(`
+			<script>
 				window.history.back();
 			</script>
 		`);
@@ -394,10 +403,7 @@ export async function search({
 
 		void insertPageTitleQueue.push({ actionId: bangs[0].id, url });
 
-		return res
-			.setHeader('Content-Type', 'text/html')
-			.status(200)
-			.send(`<script> window.history.back(); </script>`);
+		return goBack(res);
 	}
 
 	// Process note creation command (!note)
@@ -410,17 +416,13 @@ export async function search({
 			return goBackWithAlert(res, 'Invalid note format. Use: !note title | content');
 		}
 
-		try {
-			await db('notes').insert({
-				user_id: user.id,
-				title: title.trim(),
-				content,
-			});
+		await db('notes').insert({
+			user_id: user.id,
+			title: title.trim(),
+			content,
+		});
 
-			return redirectWithAlert(res, '/notes', 'Note created successfully!');
-		} catch (error) {
-			return redirectWithAlert(res, '/notes', 'Error creating note');
-		}
+		return goBack(res);
 	}
 
 	// Process user-defined custom bang commands
