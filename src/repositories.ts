@@ -1,12 +1,12 @@
-import { db } from './db/db';
 import {
-	Action,
-	ActionsQueryParams,
-	Bookmark,
-	BookmarksQueryParams,
 	Note,
+	Action,
+	Bookmark,
 	NotesQueryParams,
+	ActionsQueryParams,
+	BookmarksQueryParams,
 } from './types';
+import { db } from './db/db';
 
 export const actions = {
 	all: async ({

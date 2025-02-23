@@ -1,5 +1,3 @@
-import { ApiKeyPayload, BookmarkToExport } from './types';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
 	bookmark,
 	isValidUrl,
@@ -16,6 +14,8 @@ import { db } from './db/db';
 import jwt from 'jsonwebtoken';
 import { Request } from 'express';
 import { appConfig } from './configs';
+import { ApiKeyPayload, BookmarkToExport } from './types';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 describe.concurrent('isValidUrl', () => {
 	it('should return true for valid URLs', () => {
