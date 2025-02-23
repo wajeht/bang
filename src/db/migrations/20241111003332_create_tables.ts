@@ -38,6 +38,12 @@ export async function up(knex: Knex): Promise<void> {
 						default_per_page: 10,
 						created_at: true,
 					},
+					notes: {
+						title: true,
+						content: true,
+						default_per_page: 10,
+						created_at: true,
+					},
 				}),
 			);
 			table.timestamps(true, true);
@@ -83,6 +89,19 @@ export async function up(knex: Knex): Promise<void> {
 
 			table.unique(['user_id', 'trigger']);
 			table.index(['user_id', 'trigger']);
+		});
+	}
+
+	const hasNotesTable = await knex.schema.hasTable('notes');
+	if (!hasNotesTable) {
+		await knex.schema.createTable('notes', (table) => {
+			table.increments('id').primary();
+			table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE');
+			table.string('title').notNullable();
+			table.text('content').notNullable();
+			table.timestamps(true, true);
+
+			table.index(['user_id', 'created_at']);
 		});
 	}
 

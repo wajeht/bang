@@ -326,10 +326,19 @@ export async function extractUser(req: Request): Promise<User> {
 
 export function extractPagination(req: Request, pageType: PageType) {
 	const user = req.user as User;
-	const defaultPerPage =
-		pageType === 'actions'
-			? user.column_preferences.actions.default_per_page
-			: user.column_preferences.bookmarks.default_per_page;
+	let defaultPerPage = 10;
+
+	if (pageType === 'actions') {
+		defaultPerPage = user.column_preferences.actions.default_per_page;
+	}
+
+	if (pageType === 'bookmarks') {
+		defaultPerPage = user.column_preferences.bookmarks.default_per_page;
+	}
+
+	if (pageType === 'notes') {
+		defaultPerPage = user.column_preferences.notes.default_per_page;
+	}
 
 	return {
 		perPage: parseInt(req.query.per_page as string, 10) || defaultPerPage || 10,
