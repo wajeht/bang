@@ -4,10 +4,14 @@ import {
 	getLoginHandler,
 	getGithubHandler,
 	getLogoutHandler,
+	getNotesHandler,
+	postNoteHandler,
 	getActionsHandler,
 	getHealthzHandler,
 	postSearchHandler,
 	postActionHandler,
+	deleteNoteHandler,
+	updateNoteHandler,
 	updateActionHandler,
 	deleteActionHandler,
 	getBookmarksHandler,
@@ -16,8 +20,11 @@ import {
 	postImportDataHandler,
 	deleteBookmarkHandler,
 	updateBookmarkHandler,
+	getCollectionsHandler,
 	getSettingsPageHandler,
+	getEditNotePageHandler,
 	getGithubRedirectHandler,
+	getNoteCreatePageHandler,
 	getEditActionPageHandler,
 	getExportBookmarksHandler,
 	getEditBookmarkPageHandler,
@@ -35,13 +42,6 @@ import {
 	getSettingsDangerZonePageHandler,
 	getBookmarkActionCreatePageHandler,
 	postDeleteSettingsDangerZoneHandler,
-	getActionsAndBookmarksHandler,
-	getNotesHandler,
-	deleteNoteHandler,
-	updateNoteHandler,
-	getEditNotePageHandler,
-	postNoteHandler,
-	getNoteCreatePageHandler,
 } from './handlers';
 
 import { csrfMiddleware, authenticationMiddleware, cacheMiddleware } from './middlewares';
@@ -245,17 +245,22 @@ router.patch('/api/bookmarks/:id', authenticationMiddleware, updateBookmarkHandl
 router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHandler);
 
 /**
- * GET /api/actions-and-bookmarks
+ * GET /api/collections
  *
- * @tags actions, bookmarks
- * @summary get both actions and bookmarks in a single request
+ * @tags collections
+ * @summary Get all user collections (actions, bookmarks, and notes)
  *
  * @security BearerAuth
  *
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  */
-router.get('/api/actions-and-bookmarks', authenticationMiddleware, cacheMiddleware(1, 'hour'), getActionsAndBookmarksHandler); // prettier-ignore
+router.get(
+	'/api/collections',
+	authenticationMiddleware,
+	cacheMiddleware(1, 'hour'),
+	getCollectionsHandler,
+);
 
 /**
  * A note

@@ -823,13 +823,14 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
 		.send(JSON.stringify(exportData, null, 2));
 }
 
-// GET /api/actions-and-bookmarks
-export async function getActionsAndBookmarksHandler(req: Request, res: Response) {
+// GET /api/collections
+export async function getCollectionsHandler(req: Request, res: Response) {
 	const user = req.user as User;
 	const actionsParams = extractPagination(req, 'actions');
 	const bookmarksParams = extractPagination(req, 'bookmarks');
+	const notesParams = extractPagination(req, 'notes');
 
-	const [actionsResult, bookmarksResult] = await Promise.all([
+	const [actionsResult, bookmarksResult, notesResult] = await Promise.all([
 		actions.all({
 			user,
 			perPage: actionsParams.perPage,
@@ -846,11 +847,20 @@ export async function getActionsAndBookmarksHandler(req: Request, res: Response)
 			sortKey: bookmarksParams.sortKey,
 			direction: bookmarksParams.direction,
 		}),
+		notes.all({
+			user,
+			perPage: notesParams.perPage,
+			page: notesParams.page,
+			search: notesParams.search,
+			sortKey: notesParams.sortKey,
+			direction: notesParams.direction,
+		}),
 	]);
 
 	res.json({
 		actions: actionsResult,
 		bookmarks: bookmarksResult,
+		notes: notesResult,
 		search: actionsParams.search, // or bookmarksParams.search, the same search for both
 		sortKey: actionsParams.sortKey, // or bookmarksParams.sortKey, the same sortKey for both
 		direction: actionsParams.direction, // or bookmarksParams.direction, the same direction for both
