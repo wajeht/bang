@@ -296,8 +296,13 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 			return res.redirect('/login');
 		}
 
-		req.user = user;
-		req.session.user = user;
+		const parsedUser = {
+			...user,
+			column_preferences: JSON.parse(user.column_preferences as unknown as string),
+		};
+
+		req.user = parsedUser;
+		req.session.user = parsedUser;
 		req.session.save();
 
 		next();
