@@ -871,6 +871,10 @@ export const postSettingsDisplayHandler = [
 				throw new ValidationError('Bookmarks per page must be greater than 0');
 			}
 
+			if (!value.bookmarks.title && !value.bookmarks.url && !value.bookmarks.created_at) {
+				throw new ValidationError('At least one bookmark column must be enabled');
+			}
+
 			if (typeof value.actions !== 'object') {
 				throw new ValidationError('Actions must be an object');
 			}
@@ -885,6 +889,10 @@ export const postSettingsDisplayHandler = [
 
 			if (isNaN(value.actions.default_per_page) || value.actions.default_per_page < 1) {
 				throw new ValidationError('Actions per page must be greater than 0');
+			}
+
+			if (!value.actions.name && !value.actions.trigger && !value.actions.url && !value.actions.action_type && !value.actions.created_at) {
+				throw new ValidationError('At least one action column must be enabled');
 			}
 
 			return true;
