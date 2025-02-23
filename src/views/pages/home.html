@@ -1,3 +1,30 @@
+<script>
+  function changeVideo(index) {
+    const slider = document.querySelector('.video-slider');
+    const videos = document.querySelectorAll('.slider-video');
+    const dots = document.querySelectorAll('.nav-dot');
+    const titles = document.querySelectorAll('.video-titles p');
+
+    // Stop all videos
+    videos.forEach(video => video.pause());
+
+    // Move slider to selected video
+    slider.style.transform = `translateX(-${index * 100}%)`;
+
+    // Update dot styles
+    dots.forEach((dot, i) => {
+      dot.style.fontWeight = i === index ? 'bold' : 'normal';
+      dot.setAttribute('data-active', i === index ? 'true' : 'false');
+    });
+
+    // Update title visibility
+    titles.forEach((title, i) => {
+      title.style.display = i === index ? 'block' : 'none';
+      title.style.fontWeight = i === index ? 'bold' : 'normal';
+    });
+  }
+</script>
+
 <div style="display: flex; flex-direction: column; align-items: center; gap: 100px;">
   <header
     style="display: flex; flex-direction: column; align-items: center; text-align: center; border-radius: 5px; border: dashed; padding-bottom: 30px; padding-top: 30px; width: 100%; max-width: 720px;">
@@ -13,17 +40,90 @@
         without this?" 🤯</p>
     </div>
     <div style="border: dashed; border-radius: 5px; padding: 20px; max-width: 710px;">
-      <video
-        controls
-        playsinline
-        muted
-        preload="none"
-        disablePictureInPicture
-        poster="/demo.png"
-        controlsList="nodownload nofullscreen noremoteplayback">
-        <source src="/demo.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+      <div style="position: relative;">
+        <!-- Video Container -->
+        <div style="position: relative; width: 100%; overflow: hidden;">
+          <div class="video-slider" style="display: flex; transition: transform 0.3s ease;">
+            <!-- Video 1 -->
+            <video
+              class="slider-video"
+              controls
+              playsinline
+              muted
+              preload="none"
+              disablePictureInPicture
+              poster="/demo.png"
+              controlsList="nodownload nofullscreen noremoteplayback"
+              style="width: 100%; flex-shrink: 0;">
+              <source src="/demo.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            <!-- Video 2 -->
+            <video
+              class="slider-video"
+              controls
+              playsinline
+              muted
+              preload="none"
+              disablePictureInPicture
+              poster="/demo.png"
+              controlsList="nodownload nofullscreen noremoteplayback"
+              style="width: 100%; flex-shrink: 0;">
+              <source src="/demo.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            <!-- Video 3 -->
+            <video
+              class="slider-video"
+              controls
+              playsinline
+              muted
+              preload="none"
+              disablePictureInPicture
+              poster="/demo.png"
+              controlsList="nodownload nofullscreen noremoteplayback"
+              style="width: 100%; flex-shrink: 0;">
+              <source src="/demo.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+
+        <!-- Video Navigation Section -->
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 15px;">
+          <!-- Video Titles -->
+          <div class="video-titles">
+            <p style="margin: 0; font-weight: bold; display: block;">How to use Bang for quick searches</p>
+            <p style="margin: 0; font-weight: normal; display: none;">Customizing your Bang shortcuts</p>
+            <p style="margin: 0; font-weight: normal; display: none;">Advanced Bang features and tips</p>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div style="display: flex; justify-content: center; gap: 10px;">
+            <button
+              onclick="changeVideo(0)"
+              class="nav-dot"
+              data-active="true"
+              style="font-weight: bold; font-size: .8em; cursor: pointer; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; border: .5px solid var(--border-color);">
+              1
+            </button>
+            <button
+              onclick="changeVideo(1)"
+              class="nav-dot"
+              data-active="false"
+              style="font-size: .8em; cursor: pointer; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; border: .5px solid var(--border-color);">
+              2
+            </button>
+            <button
+              onclick="changeVideo(2)"
+              class="nav-dot"
+              data-active="false"
+              style="font-size: .8em; cursor: pointer; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; border: .5px solid var(--border-color);">
+              3
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
