@@ -13,7 +13,7 @@
 
     // Update dot styles
     dots.forEach((dot, i) => {
-      dot.style.fontWeight = i === index ? 'bold' : 'normal';
+      dot.style.fontWeight = i === index ? '900' : 'normal';
       dot.setAttribute('data-active', i === index ? 'true' : 'false');
     });
 
@@ -102,7 +102,7 @@
               onclick="changeVideo(0)"
               class="nav-dot"
               data-active="true"
-              style="font-weight: bold; font-size: .8em; cursor: pointer; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; border: .5px solid var(--border-color);">
+              style="font-weight: 900; font-size: .8em; cursor: pointer; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; border: .5px solid var(--border-color);">
               1
             </button>
             <button
