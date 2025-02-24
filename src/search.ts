@@ -32,6 +32,8 @@ const searchConfig = {
 	directCommands: {
 		'@a': '/actions',
 		'@actions': '/actions',
+		'@admin': '/admin',
+		'@am': '/admin',
 		'@api': '/api-docs',
 		'@b': '/',
 		'@bang': '/',
@@ -376,9 +378,9 @@ export async function search({
 			}
 
 			return res
-				.setHeader('Content-Type', 'text/html')
-				.status(422)
-				.send(`
+                .setHeader('Content-Type', 'text/html')
+                .status(422)
+                .send(`
 					<script>
 						const newTrigger = prompt("${message}");
 						if (newTrigger) {
