@@ -52,7 +52,7 @@ Before you can use the Bang command from your browser's search bar, you need to 
   - `[url]` is required
   - eg: `!add jaw https://bang.jaw.dev`
 - `!note [title] | [content]` - Create a note
-  - `[title]` is optional, if not provided, we will auto fetch the title
+  - `[title]` is optional, if not provided, we will use it as `Untitle`
   - `[content]` is required
   - eg: `!note some title | this is a note https://bang.jaw.dev`
   - eg: `!note this is a content without any title`
