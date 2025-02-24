@@ -63,7 +63,7 @@ router.get('/login', getLoginHandler);
 router.get('/logout', getLogoutHandler);
 router.get('/oauth/github', getGithubHandler);
 router.get('/oauth/github/redirect', getGithubRedirectHandler);
-router.post('/search', authenticationMiddleware, csrfMiddleware, cacheMiddleware(1, 'day'), postSearchHandler); // prettier-ignore
+router.post('/search', authenticationMiddleware, csrfMiddleware, postSearchHandler);
 
 router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler); // prettier-ignore
 router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler); // prettier-ignore
