@@ -408,18 +408,33 @@ export async function search({
 	}
 
 	// Process note creation command (!note)
-	// Format: !note This is the title | This is the content
+	// Formats supported:
+	// 1. !note this is the title | this is the content
+	// 2. !note this is the content without title
 	if (trigger === '!note') {
-		const [title, ...contentParts] = searchTerm.split('|');
-		const content = contentParts.join('|').trim();
+		const parts = searchTerm?.split('|') || [];
+		let title, content;
 
-		if (!title || !content) {
-			return goBackWithAlert(res, 'Invalid note format. Use: !note title | content');
+		if (parts.length > 1) {
+			// Format 1: title | content
+			title = parts[0]?.trim() || 'Untitled';
+			content = parts.slice(1).join('|').trim();
+		} else {
+			// Format 2: content only
+			title = 'Untitled';
+			content = parts[0]?.trim() || '';
+		}
+
+		if (content.length === 0) {
+			return goBackWithAlert(
+				res,
+				'Invalid note format. Use: !note content or !note title | content',
+			);
 		}
 
 		await db('notes').insert({
 			user_id: user.id,
-			title: title.trim(),
+			title,
 			content,
 		});
 
