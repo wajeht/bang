@@ -55,8 +55,8 @@ import {
 const router = express.Router();
 
 router.get('/healthz', getHealthzHandler);
+router.get('/', csrfMiddleware, getHomePageAndSearchHandler);
 router.get('/privacy-policy', cacheMiddleware(1, 'day'), getPrivacyPolicyPageHandler);
-router.get('/', csrfMiddleware, cacheMiddleware(1, 'day'), getHomePageAndSearchHandler);
 router.get('/terms-of-service', cacheMiddleware(1, 'day'), getTermsOfServicePageHandler);
 
 router.get('/login', getLoginHandler);
