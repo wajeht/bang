@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'node:path';
-import { Env } from './types';
+import { Env } from './type';
 
 dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')) });
 

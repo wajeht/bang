@@ -5,13 +5,13 @@ import {
 	notFoundMiddleware,
 	rateLimitMiddleware,
 	appLocalStateMiddleware,
-} from './middlewares';
+} from './middleware';
 import ejs from 'ejs';
 import cors from 'cors';
 import express from 'express';
 import { router } from './router';
 import flash from 'connect-flash';
-import { appConfig } from './configs';
+import { appConfig } from './config';
 import compression from 'compression';
 import expressLayouts from 'express-ejs-layouts';
 import { expressJSDocSwaggerHandler, swagger } from './swagger';

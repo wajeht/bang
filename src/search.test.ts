@@ -1,8 +1,8 @@
 import { db } from './db/db';
-import { User } from './types';
-import * as utils from './utils';
+import { User } from './type';
+import * as utils from './util';
 import { search } from './search';
-import { appConfig } from './configs';
+import { appConfig } from './config';
 import { parseSearchQuery } from './search';
 import { Request, Response } from 'express';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';

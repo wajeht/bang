@@ -43,14 +43,14 @@ import {
 	getBookmarkActionCreatePageHandler,
 	postDeleteSettingsDangerZoneHandler,
 	getAdminUsersHandler,
-} from './handlers';
+} from './handler';
 
 import {
 	csrfMiddleware,
 	authenticationMiddleware,
 	cacheMiddleware,
 	adminOnlyMiddleware,
-} from './middlewares';
+} from './middleware';
 
 const router = express.Router();
 

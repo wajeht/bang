@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import type { Bang } from './types.js';
+import type { Bang } from './type.js';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fetchBangs, createHashMap, writeHashMapToFile, generateBangsHashMap } from './banger.mjs';
 

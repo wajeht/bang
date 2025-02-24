@@ -4,13 +4,13 @@ import { logger } from './logger';
 import session from 'express-session';
 import { csrfSync } from 'csrf-sync';
 import rateLimit from 'express-rate-limit';
-import { CacheDuration, User } from './types';
+import { CacheDuration, User } from './type';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
-import { appConfig, CACHE_DURATION, sessionConfig } from './configs';
-import { HttpError, UnauthorizedError, ValidationError } from './errors';
-import { api, getApiKey, isApiRequest, sendNotificationQueue } from './utils';
+import { appConfig, CACHE_DURATION, sessionConfig } from './config';
+import { HttpError, UnauthorizedError, ValidationError } from './error';
+import { api, getApiKey, isApiRequest, sendNotificationQueue } from './util';
 
 export function cacheMiddleware(value: number, unit: CacheDuration = 'second') {
 	const seconds = value * CACHE_DURATION[unit];

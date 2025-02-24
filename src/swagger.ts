@@ -1,7 +1,7 @@
 import { app } from './app';
 import { Application } from 'express';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
-import { authenticationMiddleware, cacheMiddleware } from './middlewares';
+import { authenticationMiddleware, cacheMiddleware } from './middleware';
 
 export const swagger = {
 	info: {

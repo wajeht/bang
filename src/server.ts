@@ -2,10 +2,10 @@ import { app } from './app';
 import { logger } from './logger';
 import { Request } from 'express';
 import { Server } from 'node:http';
-import { appConfig } from './configs';
+import { appConfig } from './config';
 import { AddressInfo } from 'node:net';
 import { db, runMigrations } from './db/db';
-import { sendNotificationQueue } from './utils';
+import { sendNotificationQueue } from './util';
 
 const server: Server = app.listen(appConfig.port);
 

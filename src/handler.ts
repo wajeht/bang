@@ -6,16 +6,16 @@ import {
 	isApiRequest,
 	extractPagination,
 	insertBookmarkQueue,
-} from './utils';
+} from './util';
 import { db } from './db/db';
 import { search } from './search';
 import { body } from 'express-validator';
 import { Request, Response } from 'express';
-import { actions, bookmarks, notes } from './repositories';
-import { ApiKeyPayload, BookmarkToExport, User } from './types';
-import { validateRequestMiddleware } from './middlewares';
-import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './configs';
-import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './errors';
+import { actions, bookmarks, notes } from './repository';
+import { ApiKeyPayload, BookmarkToExport, User } from './type';
+import { validateRequestMiddleware } from './middleware';
+import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './config';
+import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
 
 // GET /healthz
 export function getHealthzHandler(req: Request, res: Response) {

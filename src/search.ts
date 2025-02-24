@@ -1,10 +1,10 @@
 import fastq from 'fastq';
 import { db } from './db/db';
-import { User, Bang } from './types';
+import { User, Bang } from './type';
 import { Request, Response } from 'express';
-import { bangs as bangsTable } from './db/bangs';
-import { defaultSearchProviders } from './configs';
-import { addHttps, insertBookmarkQueue, insertPageTitleQueue, isValidUrl } from './utils';
+import { bangs as bangsTable } from './db/bang';
+import { defaultSearchProviders } from './config';
+import { addHttps, insertBookmarkQueue, insertPageTitleQueue, isValidUrl } from './util';
 
 /**
  * Core configuration constants for the search functionality

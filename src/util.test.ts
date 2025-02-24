@@ -9,12 +9,12 @@ import {
 	extractUser,
 	extractPagination,
 	api,
-} from './utils';
+} from './util';
 import { db } from './db/db';
 import jwt from 'jsonwebtoken';
 import { Request } from 'express';
-import { appConfig } from './configs';
-import { ApiKeyPayload, BookmarkToExport } from './types';
+import { appConfig } from './config';
+import { ApiKeyPayload, BookmarkToExport } from './type';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 describe.concurrent('isValidUrl', () => {

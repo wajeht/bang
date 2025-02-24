@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
-import { appConfig } from '../configs';
+import { appConfig } from '../config';
 
 function _getFormattedTimestamp() {
 	const now = new Date();

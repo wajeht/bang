@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import type { Bang } from './types.js';
+import type { Bang } from './type.js';
 
 export async function fetchBangs(source: string): Promise<Bang[]> {
 	if (source.startsWith('http')) {

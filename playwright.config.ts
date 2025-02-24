@@ -1,4 +1,4 @@
-import { appConfig } from './src/configs';
+import { appConfig } from './src/config';
 import { defineConfig, devices } from '@playwright/test';
 
 /**

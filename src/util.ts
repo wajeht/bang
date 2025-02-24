@@ -6,7 +6,7 @@ import {
 	GithubUserEmail,
 	BookmarkToExport,
 	GitHubOauthToken,
-} from './types';
+} from './type';
 import qs from 'qs';
 import fastq from 'fastq';
 import { db } from './db/db';
@@ -15,9 +15,9 @@ import https from 'node:https';
 import jwt from 'jsonwebtoken';
 import { Request } from 'express';
 import { logger } from './logger';
-import { HttpError } from './errors';
-import { bookmarks } from './repositories';
-import { appConfig, notifyConfig, oauthConfig } from './configs';
+import { HttpError } from './error';
+import { bookmarks } from './repository';
+import { appConfig, notifyConfig, oauthConfig } from './config';
 
 export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
 export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);

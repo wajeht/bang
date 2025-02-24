@@ -5,7 +5,7 @@ import {
 	NotesQueryParams,
 	ActionsQueryParams,
 	BookmarksQueryParams,
-} from './types';
+} from './type';
 import { db } from './db/db';
 
 export const actions = {
