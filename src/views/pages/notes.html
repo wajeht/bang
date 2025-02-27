@@ -36,10 +36,10 @@
     </div>
 
     <% if (state.user.column_preferences?.notes?.view_type === 'card') { %>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between;">
             <% if (data && data.length > 0) { %>
                 <% for (let i = 0; i < data.length; i++) { %>
-                    <div style="border-style: dashed; border-radius: 5px; padding: 20px;">
+                    <div style="border-style: dashed; border-radius: 5px; padding: 20px; flex: 1; min-width: 300px; max-width: calc(33.33% - 14px);">
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
                             <h3><%= data[i].title %></h3>
                         <% } %>
@@ -59,7 +59,7 @@
                     </div>
                 <% } %>
             <% } else { %>
-                <div style="text-align: center; padding: 20px; grid-column: 1 / -1;">
+                <div style="text-align: center; padding: 20px; width: 100%;">
                     <% if (search) { %>
                         <p>🔍 No notes found matching "<%= search %>"</p>
                         <p>Try a different search term or <a href="/notes">view all notes</a></p>
