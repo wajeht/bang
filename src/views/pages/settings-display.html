@@ -171,6 +171,29 @@
           >
         </div>
       </div>
+
+      <!-- Default View -->
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+        <h4 style="margin: 0; font-weight: normal;">Default View<span style="color: red;">*</span></h4>
+        <label style="display: flex; align-items: center; gap: 10px;">
+          <input
+            type="radio"
+            name="column_preferences[notes][view_type]"
+            value="table"
+            <%= user.column_preferences?.notes?.view_type !== 'card' ? 'checked' : '' %>
+          >
+          📋 Table View
+        </label>
+        <label style="display: flex; align-items: center; gap: 10px;">
+          <input
+            type="radio"
+            name="column_preferences[notes][view_type]"
+            value="card"
+            <%= user.column_preferences?.notes?.view_type === 'card' ? 'checked' : '' %>
+          >
+          🗂️ Card View
+        </label>
+      </div>
     </div>
 
     <% if (state.errors.column_preferences) { %>

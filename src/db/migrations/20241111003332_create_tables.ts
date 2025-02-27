@@ -43,6 +43,7 @@ export async function up(knex: Knex): Promise<void> {
 						content: true,
 						default_per_page: 10,
 						created_at: true,
+						view_type: 'table',
 					},
 				}),
 			);

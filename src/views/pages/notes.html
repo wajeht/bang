@@ -35,110 +35,148 @@
         </div>
     </div>
 
-    <div style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
-        <% if (data && data.length > 0) { %>
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="border-bottom: 1px dashed #ddd;">
+    <% if (state.user.column_preferences?.notes?.view_type === 'card') { %>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+            <% if (data && data.length > 0) { %>
+                <% for (let i = 0; i < data.length; i++) { %>
+                    <div style="border-style: dashed; border-radius: 5px; padding: 20px;">
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
-                            <th style="text-align: left; padding: 10px;">
-                                <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=title&direction=<%= (sortKey === 'title' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
-                                    📝 Title
-                                    <% if (sortKey === 'title') { %>
-                                        <%= direction === 'asc' ? '↑' : '↓' %>
-                                    <% } else { %>
-                                        <span>↕️</span>
-                                    <% } %>
-                                </a>
-                            </th>
+                            <h3><%= data[i].title %></h3>
                         <% } %>
                         <% if (state.user.column_preferences?.notes?.content !== false) { %>
-                            <th style="text-align: left; padding: 10px;">
-                                <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=content&direction=<%= (sortKey === 'content' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
-                                    📄 Content
-                                    <% if (sortKey === 'content') { %>
-                                        <%= direction === 'asc' ? '↑' : '↓' %>
-                                    <% } else { %>
-                                        <span>↕️</span>
-                                    <% } %>
-                                </a>
-                            </th>
+                            <div>
+                                <button id="content-button-<%= i + 1 %>" class="no-style-btn" type="button" onclick="viewContent('<%= i + 1 %>', '<%= data[i].content.replace(/'/g, "\\'") %>')">👁️</button>
+                                <span id="content-<%= i + 1 %>">••••••••••••••••••••••</span>
+                            </div>
                         <% } %>
                         <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
-                            <th style="text-align: left; padding: 10px;">
-                                <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
-                                    📅 Created
-                                    <% if (sortKey === 'created_at') { %>
-                                        <%= direction === 'asc' ? '↑' : '↓' %>
-                                    <% } else { %>
-                                        <span>↕️</span>
-                                    <% } %>
-                                </a>
-                            </th>
+                            <p>Created: <%= new Date(data[i].created_at).toLocaleDateString() %></p>
                         <% } %>
-                        <th style="text-align: left; padding: 10px;">⚡ Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% for (let i = 0; i < data.length; i++) { %>
+                        <div>
+                            <a href="/notes/<%= data[i].id %>/edit">✏️ Edit</a>
+                            <button type="button" class="no-style-btn" onclick="document.getElementById('delete-note-<%= data[i].id %>-modal').showModal()">🗑️ Delete</button>
+                        </div>
+                    </div>
+                <% } %>
+            <% } else { %>
+                <div style="text-align: center; padding: 20px; grid-column: 1 / -1;">
+                    <% if (search) { %>
+                        <p>🔍 No notes found matching "<%= search %>"</p>
+                        <p>Try a different search term or <a href="/notes">view all notes</a></p>
+                    <% } else { %>
+                        <p>📭 No notes found. <a href="/notes/create">Create your first note</a></p>
+                    <% } %>
+                </div>
+            <% } %>
+        </div>
+    <% } %>
+
+    <% if (state.user.column_preferences?.notes?.view_type === 'table') { %>
+        <div style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+            <% if (data && data.length > 0) { %>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
                         <tr style="border-bottom: 1px dashed #ddd;">
                             <% if (state.user.column_preferences?.notes?.title !== false) { %>
-                                <td style="padding: 10px;"><%= data[i].title %></td>
+                                <th style="text-align: left; padding: 10px;">
+                                    <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=title&direction=<%= (sortKey === 'title' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                        📝 Title
+                                        <% if (sortKey === 'title') { %>
+                                            <%= direction === 'asc' ? '↑' : '↓' %>
+                                        <% } else { %>
+                                            <span>↕️</span>
+                                        <% } %>
+                                    </a>
+                                </th>
                             <% } %>
                             <% if (state.user.column_preferences?.notes?.content !== false) { %>
-                                <td style="padding: 10px;">
-                                    <button id="content-button-<%- i + 1 %>" class="no-style-btn" type="button" onclick="viewContent(`<%- i + 1 %>`, `<%- data[i].content %>`)">👁️</button>
-                                    <span id="content-<%- i + 1 %>">••••••••••••••••••••••</span>
-                                </td>
+                                <th style="text-align: left; padding: 10px;">
+                                    <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=content&direction=<%= (sortKey === 'content' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                        📄 Content
+                                        <% if (sortKey === 'content') { %>
+                                            <%= direction === 'asc' ? '↑' : '↓' %>
+                                        <% } else { %>
+                                            <span>↕️</span>
+                                        <% } %>
+                                    </a>
+                                </th>
                             <% } %>
                             <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
-                                <td style="padding: 10px;"><%= new Date(data[i].created_at).toLocaleDateString() %></td>
-                            <% } %>
-                            <td style="padding: 10px;">
-                                <div style="display: flex; gap: 10px;">
-                                    <a
-                                        href="/notes/<%= data[i].id %>/edit"
-                                        style="display: inline-flex; align-items: center;"
-                                    >
-                                        ✏️ Edit
+                                <th style="text-align: left; padding: 10px;">
+                                    <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                        📅 Created
+                                        <% if (sortKey === 'created_at') { %>
+                                            <%= direction === 'asc' ? '↑' : '↓' %>
+                                        <% } else { %>
+                                            <span>↕️</span>
+                                        <% } %>
                                     </a>
-
-                                    <button type="button" class="no-style-btn" onclick="document.getElementById('delete-note-<%= data[i].id %>-modal').showModal()">
-                                        🗑️ Delete
-                                    </button>
-
-                                    <dialog id="delete-note-<%= data[i].id %>-modal">
-                                        <h2>Confirm</h2>
-                                        <p>Are you sure you want to delete <span style="font-weight: bold;"><%= data[i].title %></span>?</p>
-                                        <form action="/notes/<%= data[i].id %>/delete" method="POST">
-                                            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-                                            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                                                <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-                                                <button type="submit">🗑️ Delete</button>
-                                            </div>
-                                        </form>
-                                    </dialog>
-                                </div>
-                            </td>
+                                </th>
+                            <% } %>
+                            <th style="text-align: left; padding: 10px;">⚡ Actions</th>
                         </tr>
+                    </thead>
+                    <tbody>
+                        <% for (let i = 0; i < data.length; i++) { %>
+                            <tr style="border-bottom: 1px dashed #ddd;">
+                                <% if (state.user.column_preferences?.notes?.title !== false) { %>
+                                    <td style="padding: 10px;"><%= data[i].title %></td>
+                                <% } %>
+                                <% if (state.user.column_preferences?.notes?.content !== false) { %>
+                                    <td style="padding: 10px;">
+                                        <button id="content-button-<%- i + 1 %>" class="no-style-btn" type="button" onclick="viewContent(`<%- i + 1 %>`, `<%- data[i].content %>`)">👁️</button>
+                                        <span id="content-<%- i + 1 %>">••••••••••••••••••••••</span>
+                                    </td>
+                                <% } %>
+                                <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
+                                    <td style="padding: 10px;"><%= new Date(data[i].created_at).toLocaleDateString() %></td>
+                                <% } %>
+                                <td style="padding: 10px;">
+                                    <div style="display: flex; gap: 10px;">
+                                        <a
+                                            href="/notes/<%= data[i].id %>/edit"
+                                            style="display: inline-flex; align-items: center;"
+                                        >
+                                            ✏️ Edit
+                                        </a>
+
+                                        <button type="button" class="no-style-btn" onclick="document.getElementById('delete-note-<%= data[i].id %>-modal').showModal()">
+                                            🗑️ Delete
+                                        </button>
+
+                                        <dialog id="delete-note-<%= data[i].id %>-modal">
+                                            <h2>Confirm</h2>
+                                            <p>Are you sure you want to delete <span style="font-weight: bold;"><%= data[i].title %></span>?</p>
+                                            <form action="/notes/<%= data[i].id %>/delete" method="POST">
+                                                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                                                    <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+                                                    <button type="submit">🗑️ Delete</button>
+                                                </div>
+                                            </form>
+                                        </dialog>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <div style="text-align: center; padding: 20px;">
+                    <% if (search) { %>
+                        <p>🔍 No notes found matching "<%= search %>"</p>
+                        <p>Try a different search term or <a href="/notes">view all notes</a></p>
+                    <% } else { %>
+                        <p>📭 You haven't created any notes yet.</p>
+                        <p>Use <code>!note [title] | [content]</code> in the search box to create a note! or <a href="/notes/create">click here</a> to create a note!</p>
                     <% } %>
-                </tbody>
-            </table>
-        <% } else { %>
-            <div style="text-align: center; padding: 20px;">
-                <% if (search) { %>
-                    <p>🔍 No notes found matching "<%= search %>"</p>
-                    <p>Try a different search term or <a href="/notes">view all notes</a></p>
-                <% } else { %>
-                    <p>📭 You haven't created any notes yet.</p>
-                    <p>Use <code>!note [title] | [content]</code> in the search box to create a note! or <a href="/notes/create">click here</a> to create a note!</p>
-                <% } %>
-            </div>
-        <% } %>
-    </div>
+                </div>
+            <% } %>
+        </div>
+    <% } %>
 
     <!-- Pagination section -->
     <% if (pagination.perPage === pagination.total) { %>

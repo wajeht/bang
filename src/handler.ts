@@ -880,7 +880,7 @@ export async function getSettingsDisplayPageHandler(req: Request, res: Response)
 // POST /settings/display
 export const postSettingsDisplayHandler = [
 	validateRequestMiddleware([
-		body('column_preferences').custom((value) => {
+		body('column_preferences').custom((value, { req }) => {
 			if (value === undefined) {
 				throw new ValidationError('Column preferences are required');
 			}
@@ -944,6 +944,11 @@ export const postSettingsDisplayHandler = [
 			value.notes.content = value.notes.content === 'on';
 			value.notes.created_at = value.notes.created_at === 'on';
 
+			// Handle view_type preference
+			if (value.notes.view_type && !['card', 'table'].includes(value.notes.view_type)) {
+				value.notes.view_type = 'table'; // Default to table if invalid
+			}
+
 			if (!value.notes.title && !value.notes.content) {
 				throw new ValidationError('At least one note column must be enabled');
 			}
@@ -952,6 +957,11 @@ export const postSettingsDisplayHandler = [
 
 			if (isNaN(value.notes.default_per_page) || value.notes.default_per_page < 1) {
 				throw new ValidationError('Notes per page must be greater than 0');
+			}
+
+			// Preserve the view_type if it's not in the form submission
+			if (!value.notes.view_type && req.session?.user?.column_preferences?.notes?.view_type) {
+				value.notes.view_type = req.session.user.column_preferences.notes.view_type;
 			}
 
 			return true;
