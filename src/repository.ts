@@ -31,8 +31,6 @@ export const actions = {
 				.filter((term) => term.length > 0)
 				.map((term) => term.replace(/[%_]/g, '\\$&'));
 
-			console.log(searchTerms, 'xxxxxxxxxxxxx');
-
 			query.where((q) => {
 				// Each term must match name, trigger, or url
 				searchTerms.forEach((term) => {
