@@ -1,23 +1,22 @@
 #!/bin/bash
+set -e
 
 source .env
 
-if [ "$NODE_ENV" = "production" ]; then
-  echo "Error: Script cannot run in production environment."
-  exit 1
-fi
-
-if [ -z "$PRODUCTION_SSH_URL" ]; then
-  echo "Error: PRODUCTION_SSH_URL is not set in .env file"
-  exit 1
+# Check environment and config
+if [[ "$NODE_ENV" == "production" || -z "$PRODUCTION_SSH_URL" ]]; then
+    echo "Error: Invalid environment or missing PRODUCTION_SSH_URL"
+    exit 1
 fi
 
 LOCAL_DIR="./src/db/sqlite"
-REMOTE_PATH="$PRODUCTION_SSH_URL:~/databases/bang/*.sqlite*"
+mkdir -p "$LOCAL_DIR"
 
-# don't use rm -rf
-trash ./src/db/sqlite/*.sqlite*
+# remove our local db
+rm -rf ./src/db/sqlite/*.sqlite*
 
-scp "$REMOTE_PATH" "$LOCAL_DIR"
+# Backup and sync database files
+echo "Syncing database files..."
+rsync -avz "$PRODUCTION_SSH_URL:~/databases/bang/*.sqlite*" "$LOCAL_DIR/"
 
-echo "Files copied successfully."
+echo "✨ Database files synchronized"
