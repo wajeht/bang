@@ -1,17 +1,3 @@
-<script>
-    function viewContent(id, content) {
-        const contentElement = document.getElementById(`content-${id}`);
-        const contentButton = document.getElementById(`content-button-${id}`);
-        if (contentElement && contentElement.textContent === content) {
-            contentElement.textContent = '••••••••••••••••••••••';
-            contentButton.textContent = '👁️';
-        } else {
-            contentElement.textContent = content;
-            contentButton.textContent = '❌';
-        }
-    }
-</script>
-
 <div style="display: flex; flex-direction: column; gap: 30px;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
@@ -45,8 +31,7 @@
                         <% } %>
                         <% if (state.user.column_preferences?.notes?.content !== false) { %>
                             <div>
-                                <button id="content-button-<%= i + 1 %>" class="no-style-btn" type="button" onclick="viewContent('<%= i + 1 %>', '<%= data[i].content.replace(/'/g, "\\'") %>')">👁️</button>
-                                <span id="content-<%= i + 1 %>">••••••••••••••••••••••</span>
+                               <%= data[i].content %>
                             </div>
                         <% } %>
                         <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
@@ -140,8 +125,7 @@
                                 <% } %>
                                 <% if (state.user.column_preferences?.notes?.content !== false) { %>
                                     <td style="padding: 10px;">
-                                        <button id="content-button-<%- i + 1 %>" class="no-style-btn" type="button" onclick="viewContent(`<%- i + 1 %>`, `<%- data[i].content %>`)">👁️</button>
-                                        <span id="content-<%- i + 1 %>">••••••••••••••••••••••</span>
+                                        <%= data[i].content %>
                                     </td>
                                 <% } %>
                                 <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
