@@ -36,10 +36,10 @@
     </div>
 
     <% if (state.user.column_preferences?.notes?.view_type === 'card') { %>
-        <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between;">
+        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
             <% if (data && data.length > 0) { %>
                 <% for (let i = 0; i < data.length; i++) { %>
-                    <div style="border-style: dashed; border-radius: 5px; padding: 20px; flex: 1; min-width: 300px; max-width: calc(33.33% - 14px);">
+                    <div style="border-style: dashed; border-radius: 5px; padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px;">
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
                             <h3><%= data[i].title %></h3>
                         <% } %>
