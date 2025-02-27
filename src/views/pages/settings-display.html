@@ -15,8 +15,21 @@
       <div style="border: dashed; padding: 20px; border-radius: 5px; flex: 1; min-width: 300px; max-width: calc(33.33% - 14px);">
         <h3 style="margin: 0 0 15px 0;">⚡ Actions</h3>
 
-        <!-- Visible Columns -->
         <div style="display: flex; flex-direction: column; gap: 15px;">
+          <!-- Items Per Page -->
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label for="actions_per_page">📜 Items Per Page<span style="color: red;">*</span></label>
+            <input
+              type="number"
+              id="actions_per_page"
+              name="column_preferences[actions][default_per_page]"
+              value="<%= state.input.actions_per_page ?? user.column_preferences.actions.default_per_page %>"
+              min="1"
+              required
+            >
+          </div>
+
+          <!-- Visible Columns -->
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <h4 style="margin: 0; font-weight: normal;">Columns<span style="color: red;">*</span></h4>
             <label style="display: flex; align-items: center; gap: 10px;">
@@ -60,19 +73,6 @@
               📅 Created At
             </label>
           </div>
-
-          <!-- Items Per Page -->
-          <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="actions_per_page">📜 Items Per Page<span style="color: red;">*</span></label>
-            <input
-              type="number"
-              id="actions_per_page"
-              name="column_preferences[actions][default_per_page]"
-              value="<%= state.input.actions_per_page ?? user.column_preferences.actions.default_per_page %>"
-              min="1"
-              required
-            >
-          </div>
         </div>
       </div>
 
@@ -80,8 +80,21 @@
       <div style="border: dashed; padding: 20px; border-radius: 5px; flex: 1; min-width: 300px; max-width: calc(33.33% - 14px);">
         <h3 style="margin: 0 0 15px 0;">🔖 Bookmarks</h3>
 
-        <!-- Visible Columns -->
         <div style="display: flex; flex-direction: column; gap: 15px;">
+          <!-- Items Per Page -->
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label for="bookmarks_per_page">📜 Items Per Page<span style="color: red;">*</span></label>
+            <input
+              type="number"
+              id="bookmarks_per_page"
+              name="column_preferences[bookmarks][default_per_page]"
+              value="<%= state.input.bookmarks_per_page ?? user.column_preferences.bookmarks.default_per_page %>"
+              min="1"
+              required
+            >
+          </div>
+
+          <!-- Visible Columns -->
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <h4 style="margin: 0; font-weight: normal;">Columns<span style="color: red;">*</span></h4>
             <label style="display: flex; align-items: center; gap: 10px;">
@@ -109,19 +122,6 @@
               📅 Created At
             </label>
           </div>
-
-          <!-- Items Per Page -->
-          <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="bookmarks_per_page">📜 Items Per Page<span style="color: red;">*</span></label>
-            <input
-              type="number"
-              id="bookmarks_per_page"
-              name="column_preferences[bookmarks][default_per_page]"
-              value="<%= state.input.bookmarks_per_page ?? user.column_preferences.bookmarks.default_per_page %>"
-              min="1"
-              required
-            >
-          </div>
         </div>
       </div>
 
@@ -129,8 +129,21 @@
       <div style="border: dashed; padding: 20px; border-radius: 5px; flex: 1; min-width: 300px; max-width: calc(33.33% - 14px);">
         <h3 style="margin: 0 0 15px 0;">📝 Notes</h3>
 
-        <!-- Visible Columns -->
         <div style="display: flex; flex-direction: column; gap: 15px;">
+          <!-- Items Per Page -->
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label for="notes_per_page">📜 Items Per Page<span style="color: red;">*</span></label>
+            <input
+              type="number"
+              id="notes_per_page"
+              name="column_preferences[notes][default_per_page]"
+              value="<%= state.input.notes_per_page ?? user.column_preferences.notes.default_per_page %>"
+              min="1"
+              required
+            >
+          </div>
+
+          <!-- Visible Columns -->
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <h4 style="margin: 0; font-weight: normal;">Columns<span style="color: red;">*</span></h4>
             <label style="display: flex; align-items: center; gap: 10px;">
@@ -157,19 +170,6 @@
               >
               📅 Created At
             </label>
-          </div>
-
-          <!-- Items Per Page -->
-          <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="notes_per_page">📜 Items Per Page<span style="color: red;">*</span></label>
-            <input
-              type="number"
-              id="notes_per_page"
-              name="column_preferences[notes][default_per_page]"
-              value="<%= state.input.notes_per_page ?? user.column_preferences.notes.default_per_page %>"
-              min="1"
-              required
-            >
           </div>
         </div>
 
@@ -202,6 +202,6 @@
       <small style="color: red;"><%= state.errors.column_preferences %></small>
     <% } %>
 
-    <button type="submit" style="width: fit-content;">💾 Save Changes</button>
+    <button type="submit" style="min-width: 300px; max-width: calc(33.33% - 14px);">💾 Save Changes</button>
   </form>
 </div>
