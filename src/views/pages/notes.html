@@ -37,8 +37,9 @@
                         <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
                             <p>Created: <%= new Date(data[i].created_at).toLocaleDateString() %></p>
                         <% } %>
-                        <div>
+                        <div style="display: flex; gap: 20px; align-items: center;">
                             <a href="/notes/<%= data[i].id %>/edit">✏️ Edit</a>
+                            <span>|</span>
                             <button type="button" class="no-style-btn" onclick="document.getElementById('delete-note-<%= data[i].id %>-modal').showModal()">🗑️ Delete</button>
 
                             <dialog id="delete-note-<%= data[i].id %>-modal">
