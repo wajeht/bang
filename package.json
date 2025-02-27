@@ -6,6 +6,7 @@
 	"scripts": {
 		"start": "export APP_ENV=production && node --no-warnings ./dist/src/server.js",
 		"dev:inspect": "npm run build && npm run db:prepare:prod && export APP_ENV=development && node --inspect ./dist/src/server.js",
+		"dev:only": "export APP_ENV=development && tsx watch --no-warnings --clear-screen=false ./src/server.ts",
 		"dev": "export APP_ENV=development && npm run db:prepare:dev && tsx watch --no-warnings --clear-screen=false ./src/server.ts",
 		"build:server": "tsc",
 		"build": "npm run build:server",

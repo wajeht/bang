@@ -18,25 +18,32 @@ export const actions = {
 		direction = 'desc',
 	}: ActionsQueryParams) => {
 		const query = db
-			.select(
-				'bangs.id',
-				'bangs.name',
-				'bangs.trigger',
-				'bangs.url',
-				'action_types.name as action_type',
-				'bangs.created_at',
-			)
+			.select('bangs.*', 'action_types.name as action_type')
 			.from('bangs')
-			.where('bangs.user_id', user.id)
-			.join('action_types', 'bangs.action_type_id', 'action_types.id');
+			.join('action_types', 'bangs.action_type_id', 'action_types.id')
+			.where('bangs.user_id', user.id);
 
 		if (search) {
-			query.where((q) =>
-				q
-					.whereRaw('LOWER(bangs.name) LIKE ?', [`%${search}%`])
-					.orWhereRaw('LOWER(bangs.trigger) LIKE ?', [`%${search}%`])
-					.orWhereRaw('LOWER(bangs.url) LIKE ?', [`%${search}%`]),
-			);
+			const searchTerms = search
+				.toLowerCase()
+				.trim()
+				.split(/\s+/)
+				.filter((term) => term.length > 0)
+				.map((term) => term.replace(/[%_]/g, '\\$&'));
+
+			console.log(searchTerms, 'xxxxxxxxxxxxx');
+
+			query.where((q) => {
+				// Each term must match name, trigger, or url
+				searchTerms.forEach((term) => {
+					q.andWhere((subQ) => {
+						subQ
+							.whereRaw('LOWER(bangs.name) LIKE ?', [`%${term}%`])
+							.orWhereRaw('LOWER(bangs.trigger) LIKE ?', [`%${term}%`])
+							.orWhereRaw('LOWER(bangs.url) LIKE ?', [`%${term}%`]);
+					});
+				});
+			});
 		}
 
 		if (['name', 'trigger', 'url', 'created_at', 'action_type'].includes(sortKey)) {
@@ -143,11 +150,23 @@ export const bookmarks = {
 		const query = db.select('*').from('bookmarks').where('user_id', user.id);
 
 		if (search) {
-			query.where((q) =>
-				q
-					.whereRaw('LOWER(title) LIKE ?', [`%${search}%`])
-					.orWhereRaw('LOWER(url) LIKE ?', [`%${search}%`]),
-			);
+			const searchTerms = search
+				.toLowerCase()
+				.trim()
+				.split(/\s+/) // Split on whitespace
+				.filter((term) => term.length > 0)
+				.map((term) => term.replace(/[%_]/g, '\\$&')); // Escape LIKE special chars
+
+			query.where((q) => {
+				// Each term must match either title or url
+				searchTerms.forEach((term) => {
+					q.andWhere((subQ) => {
+						subQ
+							.whereRaw('LOWER(title) LIKE ?', [`%${term}%`])
+							.orWhereRaw('LOWER(url) LIKE ?', [`%${term}%`]);
+					});
+				});
+			});
 		}
 
 		if (['title', 'url', 'created_at'].includes(sortKey)) {
@@ -219,11 +238,23 @@ export const notes = {
 		const query = db.select('*').from('notes').where('user_id', user.id);
 
 		if (search) {
-			query.where((q) =>
-				q
-					.whereRaw('LOWER(title) LIKE ?', [`%${search.toLowerCase()}%`])
-					.orWhereRaw('LOWER(content) LIKE ?', [`%${search.toLowerCase()}%`]),
-			);
+			const searchTerms = search
+				.toLowerCase()
+				.trim()
+				.split(/\s+/)
+				.filter((term) => term.length > 0)
+				.map((term) => term.replace(/[%_]/g, '\\$&'));
+
+			query.where((q) => {
+				// Each term must match either title or content
+				searchTerms.forEach((term) => {
+					q.andWhere((subQ) => {
+						subQ
+							.whereRaw('LOWER(title) LIKE ?', [`%${term}%`])
+							.orWhereRaw('LOWER(content) LIKE ?', [`%${term}%`]);
+					});
+				});
+			});
 		}
 
 		if (['title', 'content', 'created_at'].includes(sortKey)) {
