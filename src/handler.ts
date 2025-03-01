@@ -154,7 +154,13 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 // POST /search
 export async function postSearchHandler(req: Request, res: Response) {
 	const query = req.body.q?.toString().trim() || '';
-	await search({ res, user: req.session.user!, query, req });
+	const user = req.session.user;
+
+	if (user) {
+		await search({ res, user, query, req });
+	}
+
+	await search({ res, user: undefined, query, req });
 }
 
 // GET /actions or /api/actions
