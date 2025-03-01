@@ -1,256 +1,274 @@
-<script>
-  function changeVideo(index) {
-    const slider = document.querySelector('.video-slider');
-    const videos = document.querySelectorAll('.slider-video');
-    const dots = document.querySelectorAll('.nav-dot');
-    const titles = document.querySelectorAll('.video-titles p');
+<% if (typeof state?.user !== 'undefined') { %>
+  <script>
+    const actionTemplate = (action) => `
+      <li data-type="action" data-trigger="${action.trigger}" style="padding: 5px 10px; cursor: pointer;">
+        <span style="font-weight: bold;">${action.trigger}</span> - ${action.name}
+      </li>
+    `;
 
-    // Stop all videos
-    videos.forEach(video => video.pause());
+    const searchTemplate = {
+      action: (action) => `
+        <li data-type="action" data-trigger="${action.trigger}" style="padding: 5px 10px; cursor: pointer; display: flex;">
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${action.name}</span>
+          <code>action</code>
+        </li>
+      `,
+      bookmark: (bookmark) => `
+        <li data-type="bookmark" data-url="${bookmark.url}" style="padding: 5px 10px; cursor: pointer; display: flex;">
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${bookmark.title}</span>
+          <code>bookmark</code>
+        </li>
+      `,
+      note: (note) => `
+        <li data-type="note" data-url="${note.id}" style="padding: 5px 10px; cursor: pointer; display: flex;">
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${note.title}</span>
+          <code>note</code>
+        </li>
+      `
+    };
 
-    // Move slider to selected video
-    slider.style.transform = `translateX(-${index * 100}%)`;
+    async function getActionsAndBookmarks() {
+      try {
+        const response = await fetch('/api/collections?per_page=999999999999', {
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'default'
+        });
+        const data = await response.json();
+        return {
+          actions: data.actions.data,
+          bookmarks: data.bookmarks.data,
+          notes: data.notes.data
+        };
+      } catch (error) {
+        console.error('Error fetching actions and bookmarks:', error);
+        return { actions: [], bookmarks: [], notes: [] };
+      }
+    }
 
-    // Update dot styles
-    dots.forEach((dot, i) => {
-      dot.style.fontWeight = i === index ? '900' : 'normal';
-      dot.setAttribute('data-active', i === index ? 'true' : 'false');
+    function submitBang(bangTrigger, input, dropdown) {
+      input.value = bangTrigger;
+      dropdown.style.display = 'none';
+      input.form.submit();
+    }
+
+    function updateSelection(index, dropdown, input, selectedIndex, updateInputValue = false) {
+      const items = dropdown.children;
+      if (items.length === 0) return selectedIndex;
+
+      // Remove previous selection
+      if (selectedIndex >= 0 && selectedIndex < items.length) {
+        items[selectedIndex].classList.remove('selected');
+      }
+
+      if (index >= 0 && index < items.length) {
+        selectedIndex = index;
+        const selectedItem = items[index];
+        selectedItem.classList.add('selected');
+        selectedItem.scrollIntoView({ block: 'nearest' });
+
+        if (updateInputValue && selectedItem.dataset.trigger) {
+          input.value = selectedItem.dataset.trigger;
+        }
+      }
+
+      return selectedIndex;
+    }
+
+    function handleKeyboardNavigation(e, dropdown, input, selectedIndex) {
+      if (dropdown.style.display === 'none') return selectedIndex;
+      const itemCount = dropdown.children.length;
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          return updateSelection(
+            selectedIndex < itemCount - 1 ? selectedIndex + 1 : 0,
+            dropdown,
+            input,
+            selectedIndex,
+            true
+          );
+        case 'ArrowUp':
+          e.preventDefault();
+          return updateSelection(
+            selectedIndex > 0 ? selectedIndex - 1 : itemCount - 1,
+            dropdown,
+            input,
+            selectedIndex,
+            true
+          );
+        case 'Enter':
+          if (selectedIndex >= 0) {
+            e.preventDefault();
+            const selectedItem = dropdown.children[selectedIndex];
+            if (selectedItem.dataset.type === 'action') {
+              submitBang(selectedItem.dataset.trigger, input, dropdown);
+            } else if (selectedItem.dataset.type === 'note') {
+              window.location.href = `/notes/${selectedItem.dataset.id}`;
+            } else {
+              window.location.href = selectedItem.dataset.url;
+            }
+          }
+          return selectedIndex;
+        case 'Escape':
+          dropdown.style.display = 'none';
+          return -1;
+        default:
+          return selectedIndex;
+      }
+    }
+
+    function handleInputChange(e, data, dropdown, input, selectedIndex) {
+      const value = e.target.value.trim();
+
+      if (!value) {
+        dropdown.style.display = 'none';
+        return -1;
+      }
+
+      const lowerValue = value.toLowerCase();
+      let html = '';
+
+      if (value.startsWith('!')) {
+        // Bang search logic
+        const matches = data.actions.filter(action =>
+          action.trigger.toLowerCase().startsWith(lowerValue)
+        );
+
+        if (!matches.length) {
+          dropdown.style.display = 'none';
+          return -1;
+        }
+
+        html = matches.map(actionTemplate).join('');
+      } else {
+        // General search logic - now with sorting by relevance
+        const actionMatches = data.actions.filter(action =>
+          action.name.toLowerCase().includes(lowerValue)
+        ).map(action => ({...action, type: 'action', text: action.name}));
+
+        const bookmarkMatches = data.bookmarks.filter(bookmark =>
+          bookmark.title.toLowerCase().includes(lowerValue)
+        ).map(bookmark => ({...bookmark, type: 'bookmark', text: bookmark.title}));
+
+        const noteMatches = data.notes.filter(note =>
+          note.title.toLowerCase().includes(lowerValue)
+        ).map(note => ({...note, type: 'note', text: note.title}));
+
+        // Combine all matches and sort by relevance
+        const allMatches = [...actionMatches, ...bookmarkMatches, ...noteMatches]
+          .sort((a, b) => {
+            // Sort by whether the text starts with the search term
+            const aStarts = a.text.toLowerCase().startsWith(lowerValue);
+            const bStarts = b.text.toLowerCase().startsWith(lowerValue);
+            if (aStarts !== bStarts) return bStarts ? 1 : -1;
+
+            // Then sort by text length (shorter = more relevant)
+            return a.text.length - b.text.length;
+          });
+
+        if (!allMatches.length) {
+          dropdown.style.display = 'none';
+          return -1;
+        }
+
+        // Generate HTML using appropriate template for each type
+        html = allMatches.map(match => {
+          switch (match.type) {
+            case 'action': return searchTemplate.action(match);
+            case 'bookmark': return searchTemplate.bookmark(match);
+            case 'note': return searchTemplate.note(match);
+          }
+        }).join('');
+      }
+
+      dropdown.innerHTML = html;
+      dropdown.style.display = 'block';
+
+      // Use event delegation instead of attaching handlers to each item
+      dropdown.onclick = (event) => {
+        const item = event.target.closest('li');
+        if (!item) return;
+
+        if (item.dataset.type === 'action') {
+          submitBang(item.dataset.trigger, input, dropdown);
+        } else if (item.dataset.type === 'note') {
+          window.location.href = `/notes/${item.dataset.id}`;
+        } else {
+          window.location.href = item.dataset.url;
+        }
+      };
+
+      dropdown.onmouseover = (event) => {
+        const item = event.target.closest('li');
+        if (!item) return;
+
+        const index = Array.from(dropdown.children).indexOf(item);
+        selectedIndex = updateSelection(index, dropdown, input, selectedIndex, false);
+        input.focus();
+      };
+
+      return -1;
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const input = document.getElementById('q');
+      const dropdown = document.getElementById('bangsDropdown');
+      const data = await getActionsAndBookmarks();
+      let selectedIndex = -1;
+
+      input.addEventListener('keydown', (e) =>
+        selectedIndex = handleKeyboardNavigation(e, dropdown, input, selectedIndex)
+      );
+
+      input.addEventListener('input', (e) =>
+        selectedIndex = handleInputChange(e, data, dropdown, input, selectedIndex)
+      );
+
+      // Use capturing for document click to improve performance
+      document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && e.target !== input) {
+          dropdown.style.display = 'none';
+          selectedIndex = -1;
+        }
+      }, true);
+
+      // Global keyboard shortcut
+      document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+          e.preventDefault();
+          input.focus();
+        }
+      });
     });
+  </script>
+<% } %>
 
-    // Update title visibility
-    titles.forEach((title, i) => {
-      title.style.display = i === index ? 'block' : 'none';
-    });
-  }
-</script>
-
-<div style="display: flex; flex-direction: column; align-items: center; gap: 100px;">
-  <header
-    style="display: flex; flex-direction: column; align-items: center; text-align: center; border-radius: 5px; border: dashed; padding-bottom: 30px; padding-top: 30px; width: 100%; max-width: 720px;">
-    <h1><span style="color: red; margin-right: 5px;">!</span>Bang</h1>
-    <p>DuckDuckGo's !Bangs, but on steroids. 😉</p>
-  </header>
-
-  <section style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 50px;">
-    <div
-      style="display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 10px; text-align: center;">
-      <h2>⚡️ Supercharge Your Search Experience</h2>
-      <p>Type '!' followed by your command to instantly search across any platform. Simple, fast, and powerful. 🚀</p>
-    </div>
-    <div style="border: dashed; border-radius: 5px; padding: 20px; max-width: 710px;">
-      <div style="position: relative;">
-        <!-- Video Container -->
-        <div style="position: relative; width: 100%; overflow: hidden;">
-          <div class="video-slider" style="display: flex; transition: transform 0.3s ease;">
-            <!-- Video 1 -->
-            <video
-              class="slider-video"
-              controls
-              playsinline
-              muted
-              preload="none"
-              disablePictureInPicture
-              poster="/demo.png"
-              controlsList="nodownload nofullscreen noremoteplayback"
-              style="width: 100%; flex-shrink: 0;">
-              <source src="/demo.mp4" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-            <!-- Video 2 -->
-            <video
-              class="slider-video"
-              controls
-              playsinline
-              muted
-              preload="none"
-              disablePictureInPicture
-              poster="/demo.png"
-              controlsList="nodownload nofullscreen noremoteplayback"
-              style="width: 100%; flex-shrink: 0;">
-              <source src="/demo.mp4" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-            <!-- Video 3 -->
-            <video
-              class="slider-video"
-              controls
-              playsinline
-              muted
-              preload="none"
-              disablePictureInPicture
-              poster="/demo.png"
-              controlsList="nodownload nofullscreen noremoteplayback"
-              style="width: 100%; flex-shrink: 0;">
-              <source src="/demo.mp4" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          </div>
-        </div>
-
-        <!-- Video Navigation Section -->
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 15px;">
-          <!-- Video Titles -->
-          <div class="video-titles">
-            <p style="margin: 0; display: block;">using <code>!add [trigger] [url]</code> for custom shortcuts</p>
-            <p style="margin: 0; display: none;">using <code>!bm [title] [url]</code> to add a bookmark</p>
-            <p style="margin: 0; display: none;">using <code>!note [title] | [content]</code> to create a note</p>
-          </div>
-
-          <!-- Navigation Buttons -->
-          <div style="display: flex; justify-content: center; gap: 15px;">
-            <button
-              onclick="changeVideo(0)"
-              class="nav-dot"
-              data-active="true"
-              style="font-weight: 900; font-size: .8em; cursor: pointer; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; border: .5px solid var(--border-color);">
-              1
-            </button>
-            <button
-              onclick="changeVideo(1)"
-              class="nav-dot"
-              data-active="false"
-              style="font-size: .8em; cursor: pointer; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; border: .5px solid var(--border-color);">
-              2
-            </button>
-            <button
-              onclick="changeVideo(2)"
-              class="nav-dot"
-              data-active="false"
-              style="font-size: .8em; cursor: pointer; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; border: .5px solid var(--border-color);">
-              3
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 50px;">
-    <h2>🌟 Why Choose Bang?</h2>
-    <div style="display: flex; justify-content: space-around; width: 100%; flex-wrap: wrap; gap: 20px;">
-      <div
-        style="flex: 1 1 200px; padding: 10px; text-align: center; border: dashed; border-radius: 5px; display: flex; flex-direction: column; gap: 10px;">
-        <h4>🚀 Lightning Fast</h4>
-        <p>Search instantly across any platform with simple commands</p>
-      </div>
-      <div
-        style="flex: 1 1 200px; padding: 10px; text-align: center; border: dashed; border-radius: 5px; display: flex; flex-direction: column; gap: 10px;">
-        <h4>🧠 Streamlined Workflow</h4>
-        <p>Save time with customizable shortcuts and commands</p>
-      </div>
-      <div
-        style="flex: 1 1 200px; padding: 10px; text-align: center; border: dashed; border-radius: 5px; display: flex; flex-direction: column; gap: 10px;">
-        <h4>🌈 Limitless Integration</h4>
-        <p>Connect with hundreds of platforms and services</p>
-      </div>
-    </div>
-  </section>
-
-  <section style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 50px;">
-    <h2>📦 Our Packages</h2>
-
-    <div style="display: flex; gap: 100px; flex-wrap: wrap; justify-content: center; width: 100%;">
-      <!-- Hosted Package -->
-      <div style="border: dashed; padding: 20px; display: flex; flex-direction: column; border-radius: 5px; width: 350px; position: relative; overflow: hidden;">
-        <h3 style="margin: 0 0 15px 0;">☁️ Hosted</h3>
-        <div style="position: absolute; top: 45px; right: -50px; transform: rotate(50deg); background: #ffcc00; text-align: center; width: 200px; line-height: 30px; z-index: 1;">
-          most popular
-        </div>
-        <p style="font-size: 2em; margin: 0 0 15px 0;">$0<span style="font-size: 0.5em;">/month</span></p>
-        <ul style="flex-grow: 1; padding-left: 20px; margin: 0;">
-          <li>🚀 Instant setup</li>
-          <li>🔧 Zero maintenance</li>
-          <li>🔔 Unlimited actions/bookmarks</li>
-          <li>💬 Community support</li>
-        </ul>
-        <p style="margin: 15px 0 0 0; font-style: italic;">Perfect for teams who want a managed solution</p>
-        <button style="margin-top: 20px;" onclick="document.getElementById('sign-up-modal').showModal()">
-          🚀 Get Started
-        </button>
-      </div>
-
-      <!-- Self-Hosted Package -->
-      <div style="border: dashed; padding: 20px; display: flex; flex-direction: column; border-radius: 5px; width: 350px;">
-        <h3 style="margin: 0 0 15px 0;">🛠️ Self-Hosted</h3>
-        <p style="font-size: 2em; margin: 0 0 15px 0;">Free</p>
-        <ul style="flex-grow: 1; padding-left: 20px; margin: 0;">
-          <li>💻 Open source</li>
-          <li>🔧 Full customization</li>
-          <li>📈 Unlimited everything</li>
-          <li>🤓 DIY support</li>
-        </ul>
-        <p style="margin: 15px 0 0 0; font-style: italic;">For developers who want complete control</p>
-        <a href="https://github.com/wajeht/bang" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
-          <button style="margin-top: 20px; width: 100%;">👨‍💻 View on GitHub</button>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <section style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 50px;">
-    <h2>❓ Frequently Asked Questions</h2>
-    <div style="width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 20px;">
-      <details style="border: dashed; border-radius: 5px; padding: 20px;">
-        <summary class="home-summary-title">🤔 What is Bang?</summary>
-        <p>Bang is a supercharged search shortcut system inspired by DuckDuckGo's !bangs. It lets you search across
-          multiple platforms instantly using simple commands.</p>
-      </details>
-      <details style="border: dashed; border-radius: 5px; padding: 20px;">
-        <summary class="home-summary-title">🎯 How do I use Bang?</summary>
-        <p>Just type '!' followed by your preferred shortcut (e.g., 'yt' for YouTube) and your search query. Example:
-          !yt cute cats</p>
-      </details>
-      <details style="border: dashed; border-radius: 5px; padding: 20px;">
-        <summary class="home-summary-title">💫 What makes Bang special?</summary>
-        <p>Unlike traditional !bangs, Bang offers customizable shortcuts, search history, and faster response times
-          across all your favorite platforms!</p>
-      </details>
-      <details style="border: dashed; border-radius: 5px; padding: 20px;">
-        <summary class="home-summary-title">🔐 Do I need an account?</summary>
-        <p>While Bang works without an account, signing up lets you customize shortcuts and sync them across devices.
-        </p>
-      </details>
-      <details style="border: dashed; border-radius: 5px; padding: 20px;">
-        <summary class="home-summary-title">🌐 Which sites are supported?</summary>
-        <p>Bang supports major platforms like YouTube, Wikipedia, GitHub, and hundreds more. Plus, you can add custom
-          search engines!</p>
-      </details>
-      <details style="border: dashed; border-radius: 5px; padding: 20px;">
-        <summary class="home-summary-title">💻 Is Bang open source?</summary>
-        <p>Yes! Check out our <a href="https://github.com/wajeht/bang" target="_blank">Github</a> repository to contribute or self-host your own instance.</p>
-      </details>
-    </div>
-  </section>
-
-  <section style="display: flex; flex-direction: column; align-items: center; max-width: 710px; gap: 50px;">
-    <h2>🎭 Bang in Action</h2>
-    <div style="width: 100%; padding: 20px; border: dashed; border-radius: 5px;">
-      <p style="font-style: italic; margin-bottom: 10px;">
-        "Bang has transformed how our team navigates the web. The customizable shortcuts and instant search capabilities have significantly improved our productivity."
-      </p>
-      <p style="text-align: right;">
-        - Developer testimonial
-      </p>
-    </div>
-  </section>
-
-  <section
-    style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 50px; padding-bottom: 60px; text-align: center;">
-    <h2>🚀 Ready to Transform Your Search Experience?</h2>
-    <button onclick="document.getElementById('sign-up-modal').showModal()">Get Started</button>
-  </section>
+<div style="margin-top: 30%; display: flex; justify-content: center; align-items: center; width: 100%;">
+  <form method="POST" action="/search" style="display: flex; gap: 5px; width: 45%; position: relative;">
+    <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+    <input type="search" name="q" id="q" placeholder="Search..." required autofocus style="width: 100%;">
+    <ul id="bangsDropdown" style="position: absolute; top: 50px; left: 0; width: 100%; background: var(--background-color); border: 1px dashed var(--border-color); border-radius: 3px; list-style: none; padding: 0; margin: 0; display: none; z-index: 10; max-height: 350px; overflow-y: auto;"></ul>
+    <button type="submit">🔎</button>
+  </form>
 </div>
 
-<dialog id="sign-up-modal" style="max-width: 500px;">
-  <div style="display: flex; flex-direction: column; gap: 10px;">
-    <h2>🔐 Create Your Account</h2>
-    <p>Join thousands of developers optimizing their workflow with Bang</p>
-    <a href="/login" style="text-decoration: none;">
-      <button style="width: 100%;">Continue with GitHub</button>
-    </a>
-    <p>By signing up, you agree to our <a href="/terms-of-service">📜 Terms of Service</a></p>
-    <div style="display: flex; justify-content: flex-end;">
-      <button onclick="document.getElementById('sign-up-modal').close()">❌ No thanks!</button>
-    </div>
-  </div>
-</dialog>
+<% if (typeof state?.user !== 'undefined') { %>
+  <style>
+    [data-theme='dark'] #bangsDropdown li.selected {
+      background-color: var(--button-background);
+    }
+
+    [data-theme='dark'] #bangsDropdown li:hover {
+      background-color: var(--button-background);
+    }
+
+    #bangsDropdown li.selected {
+      background-color: #f0f0f0;
+    }
+
+    #bangsDropdown li:hover {
+      background-color: #f0f0f0;
+    }
+  </style>
+<% } %>

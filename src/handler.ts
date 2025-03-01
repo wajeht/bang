@@ -49,14 +49,7 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	const user = req.session.user!;
 
 	if (!query) {
-		if (!user) {
-			return res.render('home.html', {
-				path: '/',
-				title: "DuckDuckGo's !Bangs, but on steroids.",
-			});
-		}
-
-		return res.render('search.html', {
+		return res.render('home.html', {
 			path: '/',
 			title: 'Search',
 			layout: '../layouts/search.html',
