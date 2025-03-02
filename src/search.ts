@@ -75,32 +75,38 @@ export async function trackAnonymousUserSearch(req: Request) {
  * Sends an HTML response that redirects the user with an optional alert message
  */
 export function redirectWithAlert(res: Response, url: string, message?: string) {
-	return res.setHeader('Content-Type', 'text/html').status(200).send(`
+	return res.setHeader('Content-Type', 'text/html')
+		.status(200)
+		.send(`
 			<script>
 				${message ? `alert("${message}");` : ''}
 				window.location.href = "${url}";
 			</script>
-		`);
+		`); // prettier-ignore
 }
 
 /**
  * Sends an HTML error response with an alert message and browser history navigation
  */
 export function goBackWithAlert(res: Response, message: string) {
-	return res.setHeader('Content-Type', 'text/html').status(422).send(`
+	return res.setHeader('Content-Type', 'text/html')
+		.status(422)
+		.send(`
 			<script>
 				alert("${message}");
 				window.history.back();
 			</script>
-		`);
+		`); // prettier-ignore
 }
 
 export function goBack(res: Response) {
-	return res.setHeader('Content-Type', 'text/html').status(200).send(`
+	return res.setHeader('Content-Type', 'text/html')
+		.status(200)
+		.send(`
 			<script>
 				window.history.back();
 			</script>
-		`);
+		`); // prettier-ignore
 }
 
 /**
@@ -378,9 +384,9 @@ export async function search({
 			}
 
 			return res
-                .setHeader('Content-Type', 'text/html')
-                .status(422)
-                .send(`
+              .setHeader('Content-Type', 'text/html')
+              .status(422)
+              .send(`
 					<script>
 						const newTrigger = prompt("${message}");
 						if (newTrigger) {
