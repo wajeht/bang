@@ -21,7 +21,7 @@
               value="<%= state.input.title ?? state.input.title %>"
               style="width: 100%;"
           >
-          <small style="color: #666;">Give your bookmark a memorable name (optional)</small>
+          <small>Give your bookmark a memorable name (optional)</small>
           <% if (state.errors.title) { %>
               <small style="color: red;"><%= state.errors.title %></small>
           <% } %>
@@ -38,14 +38,15 @@
               style="width: 100%;"
               required
           >
-          <small style="color: #666;">Enter the full website address, including https:// or http://</small>
+          <small>Enter the full website address, including https:// or http://</small>
           <% if (state.errors.url) { %>
               <small style="color: red;"><%= state.errors.url %></small>
           <% } %>
       </div>
 
-      <div style="display: flex; gap: 10px;">
-          <button type="submit" style="flex: 1;">💾 Save</button>
-      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <button type="button" onclick="location.href='/notes'">❌ Cancel</button>
+        <button type="submit">💾 Save</button>
+    </div>
   </form>
 </div>
