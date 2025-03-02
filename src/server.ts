@@ -55,10 +55,15 @@ server.on('error', (error: NodeJS.ErrnoException) => {
 
 // Set up memory usage logging in non-test environments
 if (appConfig.env !== 'testing') {
-	setInterval(() => {
-		const memoryUsage = process.memoryUsage();
-		logger.info(`Memory usage: RSS: ${Math.round(memoryUsage.rss / 1024 / 1024)}MB, Heap: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}/${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`);
-	}, 5 * 60 * 1000); // Log every 5 minutes
+	setInterval(
+		() => {
+			const memoryUsage = process.memoryUsage();
+			logger.info(
+				`Memory usage: RSS: ${Math.round(memoryUsage.rss / 1024 / 1024)}MB, Heap: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}/${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`,
+			);
+		},
+		5 * 60 * 1000,
+	); // Log every 5 minutes
 }
 
 function gracefulShutdown(signal: string): void {
