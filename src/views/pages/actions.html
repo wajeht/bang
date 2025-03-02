@@ -32,9 +32,9 @@
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
                                     📝 Name
                                     <% if (sortKey === 'name') { %>
-                                        <%= direction === 'asc' ? '↑' : '↓' %>
+                                        <%= direction === 'asc' ? '🔼' : '🔽' %>
                                     <% } else { %>
-                                        <span>↕️</span>
+                                        <span>⏺️</span>
                                     <% } %>
                                 </a>
                             </th>
@@ -45,9 +45,9 @@
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
                                     🔥 Trigger
                                     <% if (sortKey === 'trigger') { %>
-                                        <%= direction === 'asc' ? '↑' : '↓' %>
+                                        <%= direction === 'asc' ? '🔼' : '🔽' %>
                                     <% } else { %>
-                                        <span>↕️</span>
+                                        <span>⏺️</span>
                                     <% } %>
                                 </a>
                             </th>
@@ -58,9 +58,9 @@
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
                                     🌐 URL
                                     <% if (sortKey === 'url') { %>
-                                        <%= direction === 'asc' ? '↑' : '↓' %>
+                                        <%= direction === 'asc' ? '🔼' : '🔽' %>
                                     <% } else { %>
-                                        <span>↕️</span>
+                                        <span>⏺️</span>
                                     <% } %>
                                 </a>
                             </th>
@@ -69,11 +69,11 @@
                             <th style="text-align: left; padding: 10px;">
                                 <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=action_type&direction=<%= (sortKey === 'action_type' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
-                                    🔄 Type
+                                    🏷️ Type
                                     <% if (sortKey === 'action_type') { %>
-                                        <%= direction === 'asc' ? '↑' : '↓' %>
+                                        <%= direction === 'asc' ? '🔼' : '🔽' %>
                                     <% } else { %>
-                                        <span>↕️</span>
+                                        <span>⏺️</span>
                                     <% } %>
                                 </a>
                             </th>
@@ -84,9 +84,9 @@
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
                                     📅 Created
                                     <% if (sortKey === 'created_at') { %>
-                                        <%= direction === 'asc' ? '↑' : '↓' %>
+                                        <%= direction === 'asc' ? '🔼' : '🔽' %>
                                     <% } else { %>
-                                        <span>↕️</span>
+                                        <span>⏺️</span>
                                     <% } %>
                                 </a>
                             </th>
