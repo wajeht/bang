@@ -58,8 +58,8 @@ const router = express.Router();
 router.get('/healthz', getHealthzHandler);
 router.get('/', csrfMiddleware, getHomePageAndSearchHandler);
 router.get('/how-to', cacheMiddleware(1, 'day'), getHowToPageHandler);
-router.get('/privacy-policy', cacheMiddleware(1, 'day'), getPrivacyPolicyPageHandler);
-router.get('/terms-of-service', cacheMiddleware(1, 'day'), getTermsOfServicePageHandler);
+router.get('/privacy-policy', getPrivacyPolicyPageHandler);
+router.get('/terms-of-service', getTermsOfServicePageHandler);
 
 router.get('/login', getLoginHandler);
 router.get('/logout', getLogoutHandler);
@@ -70,7 +70,7 @@ router.get('/oauth/github/redirect', getGithubRedirectHandler);
 router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler); // prettier-ignore
 router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler); // prettier-ignore
 
-router.get('/settings', authenticationMiddleware, cacheMiddleware(1, 'day'), getSettingsPageHandler); // prettier-ignore
+router.get('/settings', authenticationMiddleware, getSettingsPageHandler); // prettier-ignore
 router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler);
 router.get('/settings/display', authenticationMiddleware, csrfMiddleware, getSettingsDisplayPageHandler); // prettier-ignore
 router.post('/settings/display', authenticationMiddleware, csrfMiddleware, postSettingsDisplayHandler); // prettier-ignore
