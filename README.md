@@ -1,6 +1,6 @@
 https://github.com/user-attachments/assets/5f033de3-afa1-44a7-b55b-dc45fc203d10
 
-# ‼️ Bang
+# ❗️Bang
 
 [![Node.js CI](https://github.com/wajeht/bang/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wajeht/bang/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
