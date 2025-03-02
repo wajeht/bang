@@ -2,26 +2,26 @@
   <script>
     const actionTemplate = (action) => `
       <li data-type="action" data-trigger="${action.trigger}" style="padding: 5px 10px; cursor: pointer;">
-        <span style="font-weight: bold;">${action.trigger}</span> - ${action.name}
+        <span style="font-weight: bold;">${action.trigger}</span> - ⚡ ${action.name}
       </li>
     `;
 
     const searchTemplate = {
       action: (action) => `
         <li data-type="action" data-trigger="${action.trigger}" style="padding: 5px 10px; cursor: pointer; display: flex;">
-          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${action.name}</span>
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚡ ${action.name}</span>
           <code>action</code>
         </li>
       `,
       bookmark: (bookmark) => `
         <li data-type="bookmark" data-url="${bookmark.url}" style="padding: 5px 10px; cursor: pointer; display: flex;">
-          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${bookmark.title}</span>
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🔖 ${bookmark.title}</span>
           <code>bookmark</code>
         </li>
       `,
       note: (note) => `
         <li data-type="note" data-url="${note.id}" style="padding: 5px 10px; cursor: pointer; display: flex;">
-          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${note.title}</span>
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📝 ${note.title}</span>
           <code>note</code>
         </li>
       `
