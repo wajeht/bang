@@ -244,7 +244,8 @@
   </script>
 <% } %>
 
-<div style="margin-top: 30%; display: flex; justify-content: center; align-items: center; width: 100%;">
+<div style="margin-top: 25%; display: flex; justify-content: center; flex-direction: column; gap: 20px; align-items: center; width: 100%;">
+  <h1>❗️Bang</h1>
   <form method="POST" action="/search" style="display: flex; gap: 5px; width: 45%; position: relative;">
     <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
     <input type="search" name="q" id="q" placeholder="Search..." required autofocus style="width: 100%;">
