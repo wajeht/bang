@@ -11,9 +11,9 @@ import { db } from './db/db';
 import { search } from './search';
 import { body } from 'express-validator';
 import { Request, Response } from 'express';
+import { validateRequestMiddleware } from './middleware';
 import { actions, bookmarks, notes } from './repository';
 import { ApiKeyPayload, BookmarkToExport, User } from './type';
-import { validateRequestMiddleware } from './middleware';
 import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './config';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
 

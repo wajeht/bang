@@ -12,10 +12,12 @@ import {
 	postActionHandler,
 	deleteNoteHandler,
 	updateNoteHandler,
+	getHowToPageHandler,
 	updateActionHandler,
 	deleteActionHandler,
 	getBookmarksHandler,
 	postBookmarkHandler,
+	getAdminUsersHandler,
 	postExportDataHandler,
 	postImportDataHandler,
 	deleteBookmarkHandler,
@@ -42,8 +44,6 @@ import {
 	getSettingsDangerZonePageHandler,
 	getBookmarkActionCreatePageHandler,
 	postDeleteSettingsDangerZoneHandler,
-	getAdminUsersHandler,
-	getHowToPageHandler,
 } from './handler';
 
 import {
