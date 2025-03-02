@@ -52,7 +52,6 @@ export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 		return res.render('home.html', {
 			path: '/',
 			title: 'Search',
-			layout: '../layouts/search.html',
 		});
 	}
 
