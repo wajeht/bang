@@ -5,7 +5,7 @@
 function updateButtonText(theme) {
 	const button = /** @type {HTMLButtonElement} */ (document.getElementById('theme-toggle'));
 	if (button) {
-		button.textContent = theme === 'dark' ? 'Light' : 'Dark';
+		button.textContent = theme === 'dark' ? '🌓 Light' : '🌓 Dark';
 	}
 }
 
