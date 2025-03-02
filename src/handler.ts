@@ -18,13 +18,29 @@ import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './c
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
 
 // GET /healthz
-export function getHealthzHandler(req: Request, res: Response) {
-	if (expectJson(req)) {
-		res.status(200).json({ message: 'ok' });
-		return;
-	}
+export async function getHealthzHandler(req: Request, res: Response) {
+	try {
+		await db.raw('SELECT 1');
 
-	res.setHeader('Content-Type', 'text/html').status(200).send('<p>ok</p>');
+		if (expectJson(req)) {
+			res.status(200).json({ status: 'ok', database: 'connected' });
+			return;
+		}
+
+		res.setHeader('Content-Type', 'text/html').status(200).send('<p>ok</p>');
+	} catch (error) {
+		if (expectJson(req)) {
+			res
+				.status(503)
+				.json({ status: 'error', database: 'disconnected', message: 'Database connection failed' });
+			return;
+		}
+
+		res
+			.setHeader('Content-Type', 'text/html')
+			.status(503)
+			.send('<p>error: database connection failed</p>');
+	}
 }
 
 // GET /terms-of-service
