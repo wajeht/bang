@@ -242,19 +242,7 @@
       });
     });
   </script>
-<% } %>
 
-<div style="margin-top: 25%; display: flex; justify-content: center; flex-direction: column; gap: 20px; align-items: center; width: 100%;">
-  <h1>❗️Bang</h1>
-  <form method="POST" action="/search" style="display: flex; gap: 5px; width: 45%; position: relative;">
-    <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
-    <input type="search" name="q" id="q" placeholder="Search..." required autofocus style="width: 100%;">
-    <ul id="bangsDropdown" style="position: absolute; top: 50px; left: 0; width: 100%; background: var(--background-color); border: 1px dashed var(--border-color); border-radius: 3px; list-style: none; padding: 0; margin: 0; display: none; z-index: 10; max-height: 350px; overflow-y: auto;"></ul>
-    <button type="submit">🔎</button>
-  </form>
-</div>
-
-<% if (typeof state?.user !== 'undefined') { %>
   <style>
     [data-theme='dark'] #bangsDropdown li.selected {
       background-color: var(--button-background);
@@ -273,3 +261,13 @@
     }
   </style>
 <% } %>
+
+<div style="margin-top: 25%; display: flex; justify-content: center; flex-direction: column; gap: 40px; align-items: center; width: 100%;">
+  <h1>❗️Bang</h1>
+  <form method="POST" action="/search" style="display: flex; gap: 5px; width: 50%; position: relative;">
+    <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+    <input type="search" name="q" id="q" placeholder="Search..." required autofocus style="width: 100%;">
+    <ul id="bangsDropdown" style="position: absolute; top: 50px; left: 0; width: 100%; background: var(--background-color); border: 1px dashed var(--border-color); border-radius: 3px; list-style: none; padding: 0; margin: 0; display: none; z-index: 10; max-height: 350px; overflow-y: auto;"></ul>
+    <button type="submit">🔎</button>
+  </form>
+</div>
