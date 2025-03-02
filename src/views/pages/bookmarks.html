@@ -108,7 +108,7 @@
                                         <h2>Confirm</h2>
                                         <p>Are you sure you want to delete <span style="font-weight: bold;"><%= data[i].title %></span>?</p>
                                         <form action="/bookmarks/<%= data[i].id %>/delete" method="POST">
-                                            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                                            <%- include('../components/input-csrf.html') %>
                                             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                                                 <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
                                                 <button type="submit">🗑️ Delete</button>

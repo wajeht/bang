@@ -34,7 +34,7 @@
         <p>Export your bookmarks and custom actions</p>
 
         <form method="POST" action="/settings/data/export">
-          <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+          <%- include('../components/input-csrf.html') %>
           <div style="display: flex; flex-direction: column; gap: 10px;">
             <div>
               <label for="bookmarks-checkbox">
@@ -76,7 +76,7 @@
       </div>
 
       <form method="POST" action="/settings/data/import">
-        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+        <%- include('../components/input-csrf.html') %>
         <div style="display: flex; flex-direction: column; gap: 10px;">
           <textarea
             name="config"

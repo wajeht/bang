@@ -8,7 +8,7 @@
   </div>
 
   <form action="/settings/display" method="POST" style="width: 100%; display: flex; flex-direction: column; gap: 20px;">
-    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+    <%- include('../components/input-csrf.html') %>
 
     <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between;">
       <!-- Actions -->
