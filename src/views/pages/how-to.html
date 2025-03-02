@@ -1,0 +1,93 @@
+<h1>How to Use Bang</h1>
+<br>
+
+<section>
+  <h2>🔍 Setting Up Your Browser</h2>
+  <p>Before you can use Bang commands from your browser's search bar, add Bang as a custom search engine:</p>
+  <ol>
+    <li>
+      <p>In your browser settings, add a new search engine:</p>
+      <ul>
+        <li><strong>Name</strong>: Bang (or whatever you prefer)</li>
+        <li><strong>Shortcut</strong>: bd (or any keyword you prefer)</li>
+        <li><strong>URL</strong>: <code>http://bang.jaw.dev/?q=%s</code></li>
+      </ul>
+    </li>
+    <li>
+      <p>Now you can use Bang directly from your browser's address bar!</p>
+    </li>
+  </ol>
+</section>
+<br>
+
+<section>
+  <h2>⚙️ Browser-Specific Setup Instructions</h2>
+  <ul>
+    <li><strong>Chrome</strong>: Settings → Search Engines → Manage Search Engines → Add</li>
+    <li><strong>Firefox</strong>: Bookmarks → Manage Bookmarks → Right-click → New Bookmark → Add %s in URL</li>
+    <li><strong>Edge</strong>: Settings → Privacy, search, and services → Address bar and search → Manage search engines → Add</li>
+  </ul>
+</section>
+<br>
+
+<section>
+  <h2>🎯 Default Commands</h2>
+  <ul>
+    <li><code>@a</code>, <code>@actions</code> - <a href="/actions">Quick access to your actions</a></li>
+    <li><code>@api</code> - <a href="/api-docs">Go to Swagger API docs</a></li>
+    <li><code>@b</code>, <code>@bangs</code> - <a href="/">Go to home page</a></li>
+    <li><code>@bm</code>, <code>@bookmarks</code> - <a href="/bookmarks">View your bookmarks</a></li>
+    <li><code>@s</code>, <code>@settings</code> - <a href="/settings">Access settings</a></li>
+    <li><code>@n</code>, <code>@notes</code> - <a href="/notes">Access notes</a></li>
+  </ul>
+</section>
+<br>
+
+<section>
+  <h2>🎨 Special Commands</h2>
+  <ul>
+    <li>
+      <p><code>!bm [url]</code> or <code>!bm [title] [url]</code> - Add a bookmark</p>
+      <ul>
+        <li><code>[title]</code> is optional - if not provided, we'll automatically fetch the page title</li>
+        <li>Example: <code>!bm this is my bookmark title https://example.com</code></li>
+      </ul>
+    </li>
+    <li>
+      <p><code>!add [trigger] [url]</code> - Create a custom bang</p>
+      <ul>
+        <li>Example: <code>!add jaw https://bang.jaw.dev</code></li>
+      </ul>
+    </li>
+    <li>
+      <p><code>!note [title] | [content]</code> - Create a note</p>
+      <ul>
+        <li><code>[title]</code> is optional - if not provided, we'll use "Untitled"</li>
+        <li>Example with title: <code>!note Important | Remember to check this website later</code></li>
+        <li>Example without title: <code>!note This is a note without a title</code></li>
+      </ul>
+    </li>
+  </ul>
+</section>
+<br>
+
+<section>
+  <h2>📄 Additional Documentation</h2>
+  <p>For more detailed information, check out our documentation:</p>
+  <ul>
+    <li><a href="https://github.com/wajeht/bang/blob/main/docs/recipe.md" target="_blank" rel="noopener">Recipe Guide</a></li>
+    <li><a href="https://github.com/wajeht/bang/blob/main/docs/roadmap.md" target="_blank" rel="noopener">Roadmap</a></li>
+    <li><a href="https://github.com/wajeht/bang/blob/main/docs/development.md" target="_blank" rel="noopener">Development Guide</a></li>
+    <li><a href="https://github.com/wajeht/bang/blob/main/docs/contribution.md" target="_blank" rel="noopener">Contribution Guide</a></li>
+  </ul>
+</section>
+
+<section>
+  <div style="text-align: center; margin-top: 40px;">
+    <a href="/" style="display: inline-block; padding: 8px 16px; margin: 0 10px; background-color: var(--primary-color); color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Back to Home</a>
+    <% if (typeof state?.user === 'undefined') { %>
+      <a href="/login" style="display: inline-block; padding: 8px 16px; margin: 0 10px; background-color: var(--primary-color); color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Login</a>
+      <a href="/register" style="display: inline-block; padding: 8px 16px; margin: 0 10px; background-color: var(--primary-color); color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Register</a>
+    <% } %>
+  </div>
+</section>

@@ -43,6 +43,14 @@ export function getPrivacyPolicyPageHandler(_req: Request, res: Response) {
 	});
 }
 
+// GET /how-to
+export function getHowToPageHandler(_req: Request, res: Response) {
+	return res.render('how-to', {
+		path: '/how-to',
+		title: 'How To',
+	});
+}
+
 // GET /
 export async function getHomePageAndSearchHandler(req: Request, res: Response) {
 	const query = req.query.q?.toString().trim() || '';

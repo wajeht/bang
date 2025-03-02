@@ -43,6 +43,7 @@ import {
 	getBookmarkActionCreatePageHandler,
 	postDeleteSettingsDangerZoneHandler,
 	getAdminUsersHandler,
+	getHowToPageHandler,
 } from './handler';
 
 import {
@@ -56,6 +57,7 @@ const router = express.Router();
 
 router.get('/healthz', getHealthzHandler);
 router.get('/', csrfMiddleware, getHomePageAndSearchHandler);
+router.get('/how-to', cacheMiddleware(1, 'day'), getHowToPageHandler);
 router.get('/privacy-policy', cacheMiddleware(1, 'day'), getPrivacyPolicyPageHandler);
 router.get('/terms-of-service', cacheMiddleware(1, 'day'), getTermsOfServicePageHandler);
 

@@ -24,8 +24,10 @@
         </details>
       <% } else { %>
         <!-- top left -->
-        <div style="position: absolute; left: 0; margin-left: 3rem;">
-          <a href="/about">About</a>
+        <div style="position: absolute; left: 0; margin-left: 3rem; display: flex; gap: 20px;">
+          <a href="/" style="font-weight: <%= path === '/' ? 'bold' : 'normal' %>; <%= path === '/' ? 'text-decoration: underline;' : null %>">Search</a>
+          <span>|</span>
+          <a href="/how-to" style="font-weight: <%= path === '/how-to' ? 'bold' : 'normal' %>; <%= path === '/how-to' ? 'text-decoration: underline;' : null %>">How To</a>
         </div>
 
         <!-- top right -->
