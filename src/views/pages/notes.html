@@ -27,19 +27,19 @@
                 <% for (let i = 0; i < data.length; i++) { %>
                     <div style="border-style: dashed; border-radius: 5px; padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px;">
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
-                            <h3><a href="/notes/<%- data[i].id %>"><%= data[i].title %></a></h3>
+                            <h3><a href="/notes/<%- data[i].id %>">📝 <%= data[i].title %></a></h3>
                         <% } %>
                         <% if (state.user.column_preferences?.notes?.content !== false) { %>
                             <div style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;">
-                               <%= data[i].content %>
+                               📄 <%= data[i].content %>
                             </div>
                         <% } %>
                         <div style="display: flex; justify-content: space-between; gap: 10px;">
                             <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
-                                <p>Created: <%= new Date(data[i].created_at).toLocaleDateString() %></p>
+                                <p>📅 Created: <%= new Date(data[i].created_at).toLocaleDateString() %></p>
                             <% } %>
                             <div style="display: flex; gap: 10px; align-items: center;">
-                                <a href="/notes/<%= data[i].id %>/edit">✏️ Edit</a>
+                                <a href="/notes/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;">✏️ Edit</a>
                                 <button type="button" class="no-style-btn" onclick="document.getElementById('delete-note-<%= data[i].id %>-modal').showModal()">🗑️ Delete</button>
 
                                 <dialog id="delete-note-<%= data[i].id %>-modal">
