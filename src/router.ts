@@ -120,7 +120,7 @@ router.get('/notes/:id', authenticationMiddleware, csrfMiddleware, getNoteHandle
  *
  * GET /api/actions
  *
- * @tags actions
+ * @tags Actions
  * @summary get actions
  *
  * @security BearerAuth
@@ -135,7 +135,7 @@ router.get('/api/actions', authenticationMiddleware, getActionsHandler);
  *
  * POST /api/actions
  *
- * @tags actions
+ * @tags Actions
  * @summary create a action
  *
  * @param {Action} request.body.required - action info
@@ -152,7 +152,7 @@ router.post('/api/actions', authenticationMiddleware, postActionHandler);
  *
  * PATCH /api/actions/{id}
  *
- * @tags actions
+ * @tags Actions
  * @summary update a action
  *
  * @param {string} id.path.required - action id
@@ -170,7 +170,7 @@ router.patch('/api/actions/:id', authenticationMiddleware, updateActionHandler);
  *
  * DELETE /api/actions/{id}
  *
- * @tags actions
+ * @tags Actions
  * @summary delete a action
  *
  * @param {string} id.path.required - action id
@@ -194,7 +194,7 @@ router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler)
  *
  * GET /api/bookmarks
  *
- * @tags bookmarks
+ * @tags Bookmarks
  * @summary get bookmarks
  *
  * @security BearerAuth
@@ -209,7 +209,7 @@ router.get('/api/bookmarks', authenticationMiddleware, getBookmarksHandler);
  *
  * POST /api/bookmarks
  *
- * @tags bookmarks
+ * @tags Bookmarks
  * @summary create a bookmarks
  *
  * @param {Bookmark} request.body.required - bookmark info
@@ -226,7 +226,7 @@ router.post('/api/bookmarks', authenticationMiddleware, postBookmarkHandler);
  *
  * PATCH /api/bookmarks/{id}
  *
- * @tags bookmarks
+ * @tags Bookmarks
  * @summary update a bookmarks
  *
  * @param {number} id.path.required - bookmark id
@@ -244,7 +244,7 @@ router.patch('/api/bookmarks/:id', authenticationMiddleware, updateBookmarkHandl
  *
  * DELETE /api/bookmarks/{id}
  *
- * @tags bookmarks
+ * @tags Bookmarks
  * @summary delete a bookmark
  *
  * @param {string} id.path.required - bookmark id
@@ -260,7 +260,7 @@ router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHand
 /**
  * GET /api/collections
  *
- * @tags collections
+ * @tags Collections
  * @summary Get all user collections (actions, bookmarks, and notes)
  *
  * @security BearerAuth
