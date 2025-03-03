@@ -1,3 +1,41 @@
-<pre>
-  <%- JSON.stringify(note, null, 2) %>
-</pre>
+<div style="display: flex; flex-direction: column; gap: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h2>📝 Note Details</h2>
+            <p>Viewing your note</p>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button type="button" onclick="location.href='/notes'">← Back to Notes</button>
+            <button type="button" onclick="location.href='/notes/<%= note.id %>/edit'">✏️ Edit</button>
+            <button type="button" onclick="document.getElementById('delete-note-modal').showModal()">🗑️ Delete</button>
+        </div>
+    </div>
+
+    <div style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
+        <h1 style="margin: 0;"><%= note.title %></h1>
+
+        <div style="display: flex; gap: 15px; color: #666;">
+            <div>📅 Created: <%= new Date(note.created_at).toLocaleDateString() %></div>
+            <% if (note.updated_at && note.updated_at !== note.created_at) { %>
+                <div>🔄 Updated: <%= new Date(note.updated_at).toLocaleDateString() %></div>
+            <% } %>
+        </div>
+
+        <div>
+            <%= note.content %>
+        </div>
+    </div>
+</div>
+
+<dialog id="delete-note-modal">
+    <h2>Confirm</h2>
+    <p>Are you sure you want to delete <span style="font-weight: bold;"><%= note.title %></span>?</p>
+    <form action="/notes/<%= note.id %>/delete" method="POST">
+        <%- include('../components/input-csrf.html') %>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+            <button type="submit">🗑️ Delete</button>
+        </div>
+    </form>
+</dialog>
