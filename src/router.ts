@@ -1,6 +1,7 @@
 import express from 'express';
 
 import {
+	getNoteHandler,
 	getLoginHandler,
 	getGithubHandler,
 	getLogoutHandler,
@@ -104,6 +105,7 @@ router.post('/notes/:id/update', authenticationMiddleware, csrfMiddleware, updat
 router.post('/notes/:id/delete', authenticationMiddleware, csrfMiddleware, deleteNoteHandler);
 router.get('/notes/create', authenticationMiddleware, csrfMiddleware, getNoteCreatePageHandler);
 router.get('/notes/:id/edit', authenticationMiddleware, csrfMiddleware, getEditNotePageHandler);
+router.get('/notes/:id', authenticationMiddleware, csrfMiddleware, getNoteHandler);
 
 /**
  * A action
@@ -284,6 +286,16 @@ router.get('/api/collections', authenticationMiddleware, cacheMiddleware(1, 'day
  * @return {object} 400 - Bad request response - application/json
  */
 router.get('/api/notes', authenticationMiddleware, getNotesHandler);
+
+/**
+ * GET /api/notes/{id}
+ * @tags Notes
+ * @summary Get a specific note
+ * @security BearerAuth
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ */
+router.get('/api/notes/:id', authenticationMiddleware, getNoteHandler);
 
 /**
  * POST /api/notes

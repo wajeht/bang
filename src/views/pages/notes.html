@@ -125,7 +125,7 @@
                                     <td style="padding: 10px;"><%= data[i].title %></td>
                                 <% } %>
                                 <% if (state.user.column_preferences?.notes?.content !== false) { %>
-                                    <td style="padding: 10px;">
+                                    <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <%= data[i].content %>
                                     </td>
                                 <% } %>

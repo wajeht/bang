@@ -1121,6 +1121,31 @@ export const updateNoteHandler = [
 	},
 ];
 
+// GET /notes/:id or GET /api/notes/:id
+export async function getNoteHandler(req: Request, res: Response) {
+	const user = req.user as User;
+	const data = await notes.read(parseInt(req.params.id as unknown as string), user.id);
+
+	if (!data) {
+		throw new NotFoundError();
+	}
+
+	if (isApiRequest(req)) {
+		res.status(200).json({
+			message: 'note retrieved successfully',
+			data,
+		});
+		return;
+	}
+
+	return res.render('notes-id-get', {
+		title: `Notes / ${data.title}`,
+		path: `/notes/${data.id}`,
+		layout: '../layouts/auth',
+		data,
+	});
+}
+
 // POST /notes/:id/delete or DELETE /api/notes/:id
 export async function deleteNoteHandler(req: Request, res: Response) {
 	const user = req.user as User;
