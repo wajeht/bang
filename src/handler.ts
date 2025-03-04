@@ -1,11 +1,11 @@
 import {
-	api,
-	github,
-	bookmark,
-	expectJson,
-	isApiRequest,
-	extractPagination,
-	insertBookmarkQueue,
+    api,
+    github,
+    bookmark,
+    expectJson,
+    isApiRequest,
+    extractPagination,
+    insertBookmarkQueue,
 } from './util';
 import { db } from './db/db';
 import { search } from './search';
@@ -19,1251 +19,1281 @@ import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './
 
 // GET /healthz
 export async function getHealthzHandler(req: Request, res: Response) {
-	try {
-		await db.raw('SELECT 1');
+    try {
+        await db.raw('SELECT 1');
 
-		if (expectJson(req)) {
-			res.status(200).json({ status: 'ok', database: 'connected' });
-			return;
-		}
+        if (expectJson(req)) {
+            res.status(200).json({ status: 'ok', database: 'connected' });
+            return;
+        }
 
-		res.setHeader('Content-Type', 'text/html').status(200).send('<p>ok</p>');
-	} catch (error) {
-		if (expectJson(req)) {
-			res
-				.status(503)
-				.json({ status: 'error', database: 'disconnected', message: 'Database connection failed' });
-			return;
-		}
+        res.setHeader('Content-Type', 'text/html').status(200).send('<p>ok</p>');
+    } catch (error) {
+        if (expectJson(req)) {
+            res.status(503).json({
+                status: 'error',
+                database: 'disconnected',
+                message: 'Database connection failed',
+            });
+            return;
+        }
 
-		res
-			.setHeader('Content-Type', 'text/html')
-			.status(503)
-			.send('<p>error: database connection failed</p>');
-	}
+        res.setHeader('Content-Type', 'text/html')
+            .status(503)
+            .send('<p>error: database connection failed</p>');
+    }
 }
 
 // GET /terms-of-service
 export function getTermsOfServicePageHandler(_req: Request, res: Response) {
-	return res.render('terms-of-service.html', {
-		path: '/terms-of-service',
-		title: 'Terms of Service',
-	});
+    return res.render('terms-of-service.html', {
+        path: '/terms-of-service',
+        title: 'Terms of Service',
+    });
 }
 
 // GET /privacy-policy
 export function getPrivacyPolicyPageHandler(_req: Request, res: Response) {
-	return res.render('privacy-policy', {
-		path: '/privacy-policy',
-		title: 'Privacy Policy',
-	});
+    return res.render('privacy-policy', {
+        path: '/privacy-policy',
+        title: 'Privacy Policy',
+    });
 }
 
 // GET /how-to
 export function getHowToPageHandler(_req: Request, res: Response) {
-	return res.render('how-to', {
-		path: '/how-to',
-		title: 'How To',
-	});
+    return res.render('how-to', {
+        path: '/how-to',
+        title: 'How To',
+    });
 }
 
 // GET /
 export async function getHomePageAndSearchHandler(req: Request, res: Response) {
-	const query = req.query.q?.toString().trim() || '';
-	const user = req.session.user!;
+    const query = req.query.q?.toString().trim() || '';
+    const user = req.session.user!;
 
-	if (!query) {
-		return res.render('home.html', {
-			path: '/',
-			title: 'Search',
-		});
-	}
+    if (!query) {
+        return res.render('home.html', {
+            path: '/',
+            title: 'Search',
+        });
+    }
 
-	await search({ res, user, query, req });
+    await search({ res, user, query, req });
 }
 
 // GET /logout
 export function getLogoutHandler(req: Request, res: Response) {
-	if ((req.session && req.session.user) || req.user) {
-		req.session.user = null;
-		req.user = undefined;
-		req.session.destroy((error) => {
-			if (error) {
-				throw new HttpError(error);
-			}
-		});
-	}
+    if ((req.session && req.session.user) || req.user) {
+        req.session.user = null;
+        req.user = undefined;
+        req.session.destroy((error) => {
+            if (error) {
+                throw new HttpError(error);
+            }
+        });
+    }
 
-	return res.redirect(`/?toast=${encodeURIComponent('✌️ see ya!')}`);
+    return res.redirect(`/?toast=${encodeURIComponent('✌️ see ya!')}`);
 }
 
 // GET /login
 export function getLoginHandler(req: Request, res: Response) {
-	if (req.session.user) {
-		req.flash('info', "you've already been logged in!");
-		return res.redirect('/');
-	}
+    if (req.session.user) {
+        req.flash('info', "you've already been logged in!");
+        return res.redirect('/');
+    }
 
-	return res.redirect('/oauth/github');
+    return res.redirect('/oauth/github');
 }
 
 // GET /oauth/github
 export async function getGithubHandler(req: Request, res: Response) {
-	if (req.user) {
-		req.flash('info', "you've already been logged in!");
-		return res.redirect('/');
-	}
+    if (req.user) {
+        req.flash('info', "you've already been logged in!");
+        return res.redirect('/');
+    }
 
-	const qs = new URLSearchParams({
-		redirect_uri: oauthConfig.github.redirect_uri,
-		client_id: oauthConfig.github.client_id,
-		scope: 'user:email',
-	});
+    const qs = new URLSearchParams({
+        redirect_uri: oauthConfig.github.redirect_uri,
+        client_id: oauthConfig.github.client_id,
+        scope: 'user:email',
+    });
 
-	return res.redirect(`${oauthConfig.github.root_url}?${qs.toString()}`);
+    return res.redirect(`${oauthConfig.github.root_url}?${qs.toString()}`);
 }
 
 // GET /oauth/github/redirect
 export async function getGithubRedirectHandler(req: Request, res: Response) {
-	const code = req.query.code as string;
+    const code = req.query.code as string;
 
-	if (!code) {
-		throw new UnauthorizedError('Something went wrong while authenticating with github');
-	}
+    if (!code) {
+        throw new UnauthorizedError('Something went wrong while authenticating with github');
+    }
 
-	const { access_token } = await github.getOauthToken(code);
+    const { access_token } = await github.getOauthToken(code);
 
-	const emails = await github.getUserEmails(access_token);
+    const emails = await github.getUserEmails(access_token);
 
-	const email = emails.filter((email) => email.primary && email.verified)[0]?.email;
+    const email = emails.filter((email) => email.primary && email.verified)[0]?.email;
 
-	let foundUser = await db.select('*').from('users').where({ email }).first();
+    let foundUser = await db.select('*').from('users').where({ email }).first();
 
-	if (!foundUser) {
-		[foundUser] = await db('users')
-			.insert({
-				username: email?.split('@')[0],
-				email,
-				is_admin: appConfig.adminEmail === email,
-			})
-			.returning('*');
-	}
+    if (!foundUser) {
+        [foundUser] = await db('users')
+            .insert({
+                username: email?.split('@')[0],
+                email,
+                is_admin: appConfig.adminEmail === email,
+            })
+            .returning('*');
+    }
 
-	const parsedUser = {
-		...foundUser,
-		column_preferences: JSON.parse(foundUser.column_preferences),
-	};
+    const parsedUser = {
+        ...foundUser,
+        column_preferences: JSON.parse(foundUser.column_preferences),
+    };
 
-	req.user = parsedUser;
-	req.session.user = parsedUser;
+    req.user = parsedUser;
+    req.session.user = parsedUser;
 
-	const redirectTo = req.session.redirectTo;
-	delete req.session.redirectTo;
-	req.session.save();
+    const redirectTo = req.session.redirectTo;
+    delete req.session.redirectTo;
+    req.session.save();
 
-	if (redirectTo) {
-		return res.redirect(redirectTo);
-	}
+    if (redirectTo) {
+        return res.redirect(redirectTo);
+    }
 
-	if (!foundUser) {
-		req.flash('success', '✌️ enjoy bang!');
-		return res.redirect('/actions');
-	}
+    if (!foundUser) {
+        req.flash('success', '✌️ enjoy bang!');
+        return res.redirect('/actions');
+    }
 
-	req.flash('success', `🙏 welcome back, ${foundUser.username}!`);
-	return res.redirect('/actions');
+    req.flash('success', `🙏 welcome back, ${foundUser.username}!`);
+    return res.redirect('/actions');
 }
 
 // POST /search
 export async function postSearchHandler(req: Request, res: Response) {
-	const query = req.body.q?.toString().trim() || '';
-	const user = req.session.user || undefined;
+    const query = req.body.q?.toString().trim() || '';
+    const user = req.session.user || undefined;
 
-	await search({ res, user, query, req });
+    await search({ res, user, query, req });
 }
 
 // GET /actions or /api/actions
 export async function getActionsHandler(req: Request, res: Response) {
-	const user = req.user as User;
-	const { perPage, page, search, sortKey, direction } = extractPagination(req, 'actions');
+    const user = req.user as User;
+    const { perPage, page, search, sortKey, direction } = extractPagination(req, 'actions');
 
-	const { data, pagination } = await actions.all({
-		user,
-		perPage,
-		page,
-		search,
-		sortKey,
-		direction,
-	});
+    const { data, pagination } = await actions.all({
+        user,
+        perPage,
+        page,
+        search,
+        sortKey,
+        direction,
+    });
 
-	if (isApiRequest(req)) {
-		res.json({ data, pagination, search, sortKey, direction });
-		return;
-	}
+    if (isApiRequest(req)) {
+        res.json({ data, pagination, search, sortKey, direction });
+        return;
+    }
 
-	return res.render('actions.html', {
-		path: '/actions',
-		title: 'Actions',
-		layout: '../layouts/auth.html',
-		data,
-		pagination,
-		search,
-		sortKey,
-		direction,
-	});
+    return res.render('actions.html', {
+        path: '/actions',
+        title: 'Actions',
+        layout: '../layouts/auth.html',
+        data,
+        pagination,
+        search,
+        sortKey,
+        direction,
+    });
 }
 
 // POST /actions or POST /api/actions
 export const postActionHandler = [
-	validateRequestMiddleware([
-		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
-		body('name').notEmpty().withMessage('Name is required').trim(),
-		body('actionType')
-			.notEmpty()
-			.withMessage('Action type is required')
-			.isIn(actionTypes)
-			.withMessage('Invalid action type'),
-		body('trigger')
-			.notEmpty()
-			.withMessage('Trigger is required')
-			.custom(async (trigger, { req }) => {
-				const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+    validateRequestMiddleware([
+        body('url')
+            .notEmpty()
+            .withMessage('URL is required')
+            .isURL()
+            .withMessage('Invalid URL format'),
+        body('name').notEmpty().withMessage('Name is required').trim(),
+        body('actionType')
+            .notEmpty()
+            .withMessage('Action type is required')
+            .isIn(actionTypes)
+            .withMessage('Invalid action type'),
+        body('trigger')
+            .notEmpty()
+            .withMessage('Trigger is required')
+            .custom(async (trigger, { req }) => {
+                const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-				const existingBang = await db('bangs')
-					.where({
-						trigger: formattedTrigger,
-						user_id: req.user.id,
-					})
-					.first();
+                const existingBang = await db('bangs')
+                    .where({
+                        trigger: formattedTrigger,
+                        user_id: req.user.id,
+                    })
+                    .first();
 
-				if (existingBang) {
-					throw new ValidationError('This trigger already exists');
-				}
+                if (existingBang) {
+                    throw new ValidationError('This trigger already exists');
+                }
 
-				return true;
-			}),
-	]),
-	async (req: Request, res: Response) => {
-		const { trigger, url, actionType, name } = req.body;
+                return true;
+            }),
+    ]),
+    async (req: Request, res: Response) => {
+        const { trigger, url, actionType, name } = req.body;
 
-		const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
+        const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-		await actions.create({
-			name: name.trim(),
-			trigger: formattedTrigger.toLowerCase(),
-			url,
-			actionType,
-			user_id: (req.user as User).id,
-		});
+        await actions.create({
+            name: name.trim(),
+            trigger: formattedTrigger.toLowerCase(),
+            url,
+            actionType,
+            user_id: (req.user as User).id,
+        });
 
-		if (isApiRequest(req)) {
-			res.status(201).json({ message: `Action ${formattedTrigger} created successfully!` });
-			return;
-		}
+        if (isApiRequest(req)) {
+            res.status(201).json({ message: `Action ${formattedTrigger} created successfully!` });
+            return;
+        }
 
-		req.flash('success', `Action ${formattedTrigger} created successfully!`);
-		return res.redirect('/actions');
-	},
+        req.flash('success', `Action ${formattedTrigger} created successfully!`);
+        return res.redirect('/actions');
+    },
 ];
 
 // GET /actions/create
 export function getActionCreatePageHandler(_req: Request, res: Response) {
-	return res.render('actions-create.html', {
-		title: 'Actions / New',
-		path: '/actions/create',
-		layout: '../layouts/auth.html',
-		actionTypes,
-	});
+    return res.render('actions-create.html', {
+        title: 'Actions / New',
+        path: '/actions/create',
+        layout: '../layouts/auth.html',
+        actionTypes,
+    });
 }
 
 // POST /actions/:id/delete or DELETE /api/actions/:id
 export async function deleteActionHandler(req: Request, res: Response) {
-	const deleted = await actions.delete(req.params.id as unknown as number, (req.user as User).id);
+    const deleted = await actions.delete(req.params.id as unknown as number, (req.user as User).id);
 
-	if (!deleted) {
-		throw new NotFoundError();
-	}
+    if (!deleted) {
+        throw new NotFoundError();
+    }
 
-	if (isApiRequest(req)) {
-		res.status(200).json({ message: 'Action deleted successfully' });
-		return;
-	}
+    if (isApiRequest(req)) {
+        res.status(200).json({ message: 'Action deleted successfully' });
+        return;
+    }
 
-	req.flash('success', 'Action deleted successfully');
-	return res.redirect('/actions');
+    req.flash('success', 'Action deleted successfully');
+    return res.redirect('/actions');
 }
 
 // GET /actions/:id/edit
 export async function getEditActionPageHandler(req: Request, res: Response) {
-	const action = await db
-		.select('bangs.*', 'action_types.name as action_type')
-		.from('bangs')
-		.where({
-			'bangs.id': req.params.id,
-			'bangs.user_id': (req.user as User).id,
-		})
-		.join('action_types', 'bangs.action_type_id', 'action_types.id')
-		.first();
+    const action = await db
+        .select('bangs.*', 'action_types.name as action_type')
+        .from('bangs')
+        .where({
+            'bangs.id': req.params.id,
+            'bangs.user_id': (req.user as User).id,
+        })
+        .join('action_types', 'bangs.action_type_id', 'action_types.id')
+        .first();
 
-	if (!action) {
-		throw new NotFoundError();
-	}
+    if (!action) {
+        throw new NotFoundError();
+    }
 
-	return res.render('actions-edit.html', {
-		title: 'Actions / Edit',
-		path: '/actions/edit',
-		layout: '../layouts/auth.html',
-		action,
-	});
+    return res.render('actions-edit.html', {
+        title: 'Actions / Edit',
+        path: '/actions/edit',
+        layout: '../layouts/auth.html',
+        action,
+    });
 }
 
 // POST /actions/:id/update or PATCH /api/actions/:id
 export const updateActionHandler = [
-	validateRequestMiddleware([
-		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
-		body('name').notEmpty().withMessage('Name is required').trim(),
-		body('actionType')
-			.notEmpty()
-			.withMessage('Action type is required')
-			.isIn(actionTypes)
-			.withMessage('Invalid action type'),
-		body('trigger')
-			.notEmpty()
-			.withMessage('Trigger is required')
-			.custom(async (trigger, { req }) => {
-				const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
-				const existingBang = await db('bangs')
-					.where({
-						trigger: formattedTrigger,
-						user_id: req.user!.id,
-					})
-					.whereNot('id', req.params?.id)
-					.first();
+    validateRequestMiddleware([
+        body('url')
+            .notEmpty()
+            .withMessage('URL is required')
+            .isURL()
+            .withMessage('Invalid URL format'),
+        body('name').notEmpty().withMessage('Name is required').trim(),
+        body('actionType')
+            .notEmpty()
+            .withMessage('Action type is required')
+            .isIn(actionTypes)
+            .withMessage('Invalid action type'),
+        body('trigger')
+            .notEmpty()
+            .withMessage('Trigger is required')
+            .custom(async (trigger, { req }) => {
+                const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+                const existingBang = await db('bangs')
+                    .where({
+                        trigger: formattedTrigger,
+                        user_id: req.user!.id,
+                    })
+                    .whereNot('id', req.params?.id)
+                    .first();
 
-				if (existingBang) {
-					throw new ValidationError('This trigger already exists');
-				}
+                if (existingBang) {
+                    throw new ValidationError('This trigger already exists');
+                }
 
-				return true;
-			}),
-	]),
-	async (req: Request, res: Response) => {
-		const { trigger, url, actionType, name } = req.body;
-		const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+                return true;
+            }),
+    ]),
+    async (req: Request, res: Response) => {
+        const { trigger, url, actionType, name } = req.body;
+        const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-		const updatedAction = await actions.update(
-			req.params.id as unknown as number,
-			(req.user as User).id,
-			{
-				trigger: formattedTrigger,
-				name: name.trim(),
-				url,
-				actionType,
-			},
-		);
+        const updatedAction = await actions.update(
+            req.params.id as unknown as number,
+            (req.user as User).id,
+            {
+                trigger: formattedTrigger,
+                name: name.trim(),
+                url,
+                actionType,
+            },
+        );
 
-		if (isApiRequest(req)) {
-			res.status(200).json({ message: `Action ${updatedAction.trigger} updated successfully!` });
-			return;
-		}
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: `Action ${updatedAction.trigger} updated successfully!`,
+            });
+            return;
+        }
 
-		req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
-		return res.redirect('/actions');
-	},
+        req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
+        return res.redirect('/actions');
+    },
 ];
 
 // GET /bookmarks/create
 export function getBookmarkCreatePageHandler(_req: Request, res: Response) {
-	return res.render('bookmarks-create.html', {
-		title: 'Bookmarks / New',
-		path: '/bookmarks/create',
-		layout: '../layouts/auth.html',
-	});
+    return res.render('bookmarks-create.html', {
+        title: 'Bookmarks / New',
+        path: '/bookmarks/create',
+        layout: '../layouts/auth.html',
+    });
 }
 
 // GET /bookmarks or GET /api/bookmarks
 export async function getBookmarksHandler(req: Request, res: Response) {
-	const user = req.user as User;
-	const { perPage, page, search, sortKey, direction } = extractPagination(req, 'bookmarks');
+    const user = req.user as User;
+    const { perPage, page, search, sortKey, direction } = extractPagination(req, 'bookmarks');
 
-	const { data, pagination } = await bookmarks.all({
-		user,
-		perPage,
-		page,
-		search,
-		sortKey,
-		direction,
-	});
+    const { data, pagination } = await bookmarks.all({
+        user,
+        perPage,
+        page,
+        search,
+        sortKey,
+        direction,
+    });
 
-	if (isApiRequest(req)) {
-		res.json({ data, pagination, search, sortKey, direction });
-		return;
-	}
+    if (isApiRequest(req)) {
+        res.json({ data, pagination, search, sortKey, direction });
+        return;
+    }
 
-	return res.render('bookmarks', {
-		title: 'Bookmarks',
-		path: '/bookmarks',
-		layout: '../layouts/auth',
-		data,
-		search,
-		pagination,
-		sortKey,
-		direction,
-	});
+    return res.render('bookmarks', {
+        title: 'Bookmarks',
+        path: '/bookmarks',
+        layout: '../layouts/auth',
+        data,
+        search,
+        pagination,
+        sortKey,
+        direction,
+    });
 }
 
 // POST /bookmarks/:id/delete or DELETE /api/bookmarks/:id
 export async function deleteBookmarkHandler(req: Request, res: Response) {
-	const deleted = await bookmarks.delete(req.params.id as unknown as number, (req.user as User).id);
+    const deleted = await bookmarks.delete(
+        req.params.id as unknown as number,
+        (req.user as User).id,
+    );
 
-	if (!deleted) {
-		throw new NotFoundError();
-	}
+    if (!deleted) {
+        throw new NotFoundError();
+    }
 
-	if (isApiRequest(req)) {
-		res.status(200).json({ message: 'Bookmark deleted successfully' });
-		return;
-	}
+    if (isApiRequest(req)) {
+        res.status(200).json({ message: 'Bookmark deleted successfully' });
+        return;
+    }
 
-	req.flash('success', 'Bookmark deleted successfully');
-	return res.redirect('/bookmarks');
+    req.flash('success', 'Bookmark deleted successfully');
+    return res.redirect('/bookmarks');
 }
 
 // GET /bookmarks/:id/edit
 export async function getEditBookmarkPageHandler(req: Request, res: Response) {
-	const bookmark = await bookmarks.read(req.params.id as unknown as number, req.session.user!.id);
+    const bookmark = await bookmarks.read(req.params.id as unknown as number, req.session.user!.id);
 
-	return res.render('bookmarks-edit.html', {
-		title: 'Bookmark / Edit',
-		path: '/bookmark/edit',
-		layout: '../layouts/auth.html',
-		bookmark,
-	});
+    return res.render('bookmarks-edit.html', {
+        title: 'Bookmark / Edit',
+        path: '/bookmark/edit',
+        layout: '../layouts/auth.html',
+        bookmark,
+    });
 }
 
 // GET /bookmarks/:id/actions/create
 export async function getBookmarkActionCreatePageHandler(req: Request, res: Response) {
-	const bookmark = await db('bookmarks')
-		.where({
-			id: req.params.id,
-			user_id: req.session.user?.id,
-		})
-		.first();
+    const bookmark = await db('bookmarks')
+        .where({
+            id: req.params.id,
+            user_id: req.session.user?.id,
+        })
+        .first();
 
-	return res.render('bookmarks-id-actions-create.html', {
-		title: `Bookmarks / ${req.params.id} / Actions / Create`,
-		path: `/bookmarks/${req.params.id}/actions/create`,
-		layout: '../layouts/auth.html',
-		bookmark,
-	});
+    return res.render('bookmarks-id-actions-create.html', {
+        title: `Bookmarks / ${req.params.id} / Actions / Create`,
+        path: `/bookmarks/${req.params.id}/actions/create`,
+        layout: '../layouts/auth.html',
+        bookmark,
+    });
 }
 
 // POST /bookmarks/:id/update or PATCH /api/bookmarks/:id
 export const updateBookmarkHandler = [
-	validateRequestMiddleware([
-		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
-		body('title').notEmpty().withMessage('Title is required').trim(),
-	]),
-	async (req: Request, res: Response) => {
-		const { url, title } = req.body;
+    validateRequestMiddleware([
+        body('url')
+            .notEmpty()
+            .withMessage('URL is required')
+            .isURL()
+            .withMessage('Invalid URL format'),
+        body('title').notEmpty().withMessage('Title is required').trim(),
+    ]),
+    async (req: Request, res: Response) => {
+        const { url, title } = req.body;
 
-		const updatedBookmark = await bookmarks.update(
-			req.params.id as unknown as number,
-			(req.user as User).id,
-			{
-				url,
-				title,
-			},
-		);
+        const updatedBookmark = await bookmarks.update(
+            req.params.id as unknown as number,
+            (req.user as User).id,
+            {
+                url,
+                title,
+            },
+        );
 
-		req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
-		return res.redirect('/bookmarks');
-	},
+        req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
+        return res.redirect('/bookmarks');
+    },
 ];
 
 // POST /bookmarks or POST /api/bookmarks
 export const postBookmarkHandler = [
-	validateRequestMiddleware([
-		body('url').notEmpty().withMessage('URL is required').isURL().withMessage('Invalid URL format'),
-		body('title').optional().trim(),
-	]),
-	async (req: Request, res: Response) => {
-		const { url, title } = req.body;
+    validateRequestMiddleware([
+        body('url')
+            .notEmpty()
+            .withMessage('URL is required')
+            .isURL()
+            .withMessage('Invalid URL format'),
+        body('title').optional().trim(),
+    ]),
+    async (req: Request, res: Response) => {
+        const { url, title } = req.body;
 
-		void insertBookmarkQueue.push({ url, userId: (req.user as User).id, title });
+        void insertBookmarkQueue.push({ url, userId: (req.user as User).id, title });
 
-		if (isApiRequest(req)) {
-			res.status(201).json({ message: `Bookmark ${title} created successfully!` });
-			return;
-		}
+        if (isApiRequest(req)) {
+            res.status(201).json({ message: `Bookmark ${title} created successfully!` });
+            return;
+        }
 
-		req.flash('success', `Bookmark ${title} created successfully!`);
-		return res.redirect('/bookmarks');
-	},
+        req.flash('success', `Bookmark ${title} created successfully!`);
+        return res.redirect('/bookmarks');
+    },
 ];
 
 // GET /bookmarks/export
 export async function getExportBookmarksHandler(req: Request, res: Response) {
-	const bookmarks = (await db
-		.select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
-		.from('bookmarks')
-		.where({ user_id: req.session.user?.id })) as BookmarkToExport[];
+    const bookmarks = (await db
+        .select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
+        .from('bookmarks')
+        .where({ user_id: req.session.user?.id })) as BookmarkToExport[];
 
-	if (!bookmarks.length) {
-		req.flash('info', 'no bookmarks to export yet.');
-		return res.redirect('/bookmarks');
-	}
+    if (!bookmarks.length) {
+        req.flash('info', 'no bookmarks to export yet.');
+        return res.redirect('/bookmarks');
+    }
 
-	res
-		.setHeader(
-			'Content-Disposition',
-			`attachment; filename=bookmarks-${new Date().toISOString().split('T')[0]}.html`,
-		)
-		.setHeader('Content-Type', 'text/html; charset=UTF-8')
-		.send(bookmark.createDocument(bookmarks));
-	return;
+    res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=bookmarks-${new Date().toISOString().split('T')[0]}.html`,
+    )
+        .setHeader('Content-Type', 'text/html; charset=UTF-8')
+        .send(bookmark.createDocument(bookmarks));
+    return;
 }
 
 // GET /settings
 export async function getSettingsPageHandler(_req: Request, res: Response) {
-	return res.redirect('/settings/account');
+    return res.redirect('/settings/account');
 }
 
 // GET /settings/account
 export async function getSettingsAccountPageHandler(req: Request, res: Response) {
-	return res.render('settings-account.html', {
-		user: req.session?.user,
-		title: 'Settings Account',
-		path: '/settings/account',
-		layout: '../layouts/settings.html',
-		defaultSearchProviders: Object.keys(defaultSearchProviders),
-	});
+    return res.render('settings-account.html', {
+        user: req.session?.user,
+        title: 'Settings Account',
+        path: '/settings/account',
+        layout: '../layouts/settings.html',
+        defaultSearchProviders: Object.keys(defaultSearchProviders),
+    });
 }
 
 // POST /settings/create-api-key
 export async function postSettingsCreateApiKeyHandler(req: Request, res: Response) {
-	const user = await db('users').where({ id: req.session.user?.id }).first();
+    const user = await db('users').where({ id: req.session.user?.id }).first();
 
-	if (!user) {
-		throw new NotFoundError();
-	}
+    if (!user) {
+        throw new NotFoundError();
+    }
 
-	const newKeyVersion = (user.api_key_version || 0) + 1;
+    const newKeyVersion = (user.api_key_version || 0) + 1;
 
-	const payload: ApiKeyPayload = { userId: user.id, apiKeyVersion: newKeyVersion };
+    const payload: ApiKeyPayload = { userId: user.id, apiKeyVersion: newKeyVersion };
 
-	await db('users')
-		.where({ id: req.session?.user?.id })
-		.update({
-			api_key: await api.generate(payload),
-			api_key_version: newKeyVersion,
-			api_key_created_at: db.fn.now(),
-		});
+    await db('users')
+        .where({ id: req.session?.user?.id })
+        .update({
+            api_key: await api.generate(payload),
+            api_key_version: newKeyVersion,
+            api_key_created_at: db.fn.now(),
+        });
 
-	req.flash('success', '📱 api key created');
-	return res.redirect(`/settings/account`);
+    req.flash('success', '📱 api key created');
+    return res.redirect(`/settings/account`);
 }
 
 // POST /settings/account
 export const postSettingsAccountHandler = [
-	validateRequestMiddleware([
-		body('username')
-			.notEmpty()
-			.custom(async (username, { req }) => {
-				const existingUser = await db
-					.select('*')
-					.from('users')
-					.where('username', username)
-					.whereNot('id', req.session?.user?.id)
-					.first();
+    validateRequestMiddleware([
+        body('username')
+            .notEmpty()
+            .custom(async (username, { req }) => {
+                const existingUser = await db
+                    .select('*')
+                    .from('users')
+                    .where('username', username)
+                    .whereNot('id', req.session?.user?.id)
+                    .first();
 
-				if (existingUser) {
-					throw new ValidationError('Username is already taken');
-				}
+                if (existingUser) {
+                    throw new ValidationError('Username is already taken');
+                }
 
-				return true;
-			}),
-		body('email')
-			.notEmpty()
-			.isEmail()
-			.custom(async (email, { req }) => {
-				const existingUser = await db
-					.select('*')
-					.from('users')
-					.where('email', email)
-					.whereNot('id', req.session?.user?.id)
-					.first();
+                return true;
+            }),
+        body('email')
+            .notEmpty()
+            .isEmail()
+            .custom(async (email, { req }) => {
+                const existingUser = await db
+                    .select('*')
+                    .from('users')
+                    .where('email', email)
+                    .whereNot('id', req.session?.user?.id)
+                    .first();
 
-				if (existingUser) {
-					throw new ValidationError('Email is already in use');
-				}
+                if (existingUser) {
+                    throw new ValidationError('Email is already in use');
+                }
 
-				return true;
-			}),
-		body('default_search_provider')
-			.notEmpty()
-			.isIn(Object.keys(defaultSearchProviders))
-			.withMessage('Invalid search provider selected'),
-	]),
-	async (req: Request, res: Response) => {
-		const { email, username, default_search_provider } = req.body;
+                return true;
+            }),
+        body('default_search_provider')
+            .notEmpty()
+            .isIn(Object.keys(defaultSearchProviders))
+            .withMessage('Invalid search provider selected'),
+    ]),
+    async (req: Request, res: Response) => {
+        const { email, username, default_search_provider } = req.body;
 
-		await db('users')
-			.update({
-				email,
-				username,
-				default_search_provider,
-			})
-			.where({ id: (req.user as User).id });
+        await db('users')
+            .update({
+                email,
+                username,
+                default_search_provider,
+            })
+            .where({ id: (req.user as User).id });
 
-		req.flash('success', '🔄 updated!');
-		return res.redirect('/settings/account');
-	},
+        req.flash('success', '🔄 updated!');
+        return res.redirect('/settings/account');
+    },
 ];
 
 // GET /settings/data
 export async function getSettingsDataPageHandler(req: Request, res: Response) {
-	return res.render('settings-data.html', {
-		user: req.session?.user,
-		title: 'Settings Data',
-		path: '/settings/data',
-		layout: '../layouts/settings.html',
-	});
+    return res.render('settings-data.html', {
+        user: req.session?.user,
+        title: 'Settings Data',
+        path: '/settings/data',
+        layout: '../layouts/settings.html',
+    });
 }
 
 // POST /settings/data/export
 export const postExportDataHandler = [
-	validateRequestMiddleware([
-		body('options').custom((value) => {
-			if (value === undefined) {
-				throw new ValidationError('Please select at least one data type to export');
-			}
-			return true;
-		}),
-	]),
-	async (req: Request, res: Response) => {
-		const userId = (req.user as User).id;
-		const includeBookmarks = req.body.options.includes('bookmarks');
-		const includeActions = req.body.options.includes('actions');
-		const includeNotes = req.body.options.includes('notes');
-		const exportData: {
-			exported_at: string;
-			version: string;
-			bookmarks?: any[];
-			actions?: any[];
-			notes?: any[];
-		} = {
-			exported_at: new Date().toISOString(),
-			version: '1.0',
-		};
+    validateRequestMiddleware([
+        body('options').custom((value) => {
+            if (value === undefined) {
+                throw new ValidationError('Please select at least one data type to export');
+            }
+            return true;
+        }),
+    ]),
+    async (req: Request, res: Response) => {
+        const userId = (req.user as User).id;
+        const includeBookmarks = req.body.options.includes('bookmarks');
+        const includeActions = req.body.options.includes('actions');
+        const includeNotes = req.body.options.includes('notes');
+        const exportData: {
+            exported_at: string;
+            version: string;
+            bookmarks?: any[];
+            actions?: any[];
+            notes?: any[];
+        } = {
+            exported_at: new Date().toISOString(),
+            version: '1.0',
+        };
 
-		const fetchBookmarks = () =>
-			includeBookmarks
-				? db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at')
-				: Promise.resolve([]);
+        const fetchBookmarks = () =>
+            includeBookmarks
+                ? db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at')
+                : Promise.resolve([]);
 
-		const fetchActions = () =>
-			includeActions
-				? db
-						.select(
-							'bangs.trigger',
-							'bangs.name',
-							'bangs.url',
-							'action_types.name as action_type',
-							'bangs.created_at',
-						)
-						.from('bangs')
-						.join('action_types', 'bangs.action_type_id', 'action_types.id')
-						.where('bangs.user_id', userId)
-				: Promise.resolve([]);
+        const fetchActions = () =>
+            includeActions
+                ? db
+                      .select(
+                          'bangs.trigger',
+                          'bangs.name',
+                          'bangs.url',
+                          'action_types.name as action_type',
+                          'bangs.created_at',
+                      )
+                      .from('bangs')
+                      .join('action_types', 'bangs.action_type_id', 'action_types.id')
+                      .where('bangs.user_id', userId)
+                : Promise.resolve([]);
 
-		const fetchNotes = () =>
-			includeNotes
-				? db('notes').where('user_id', userId).select('title', 'content', 'created_at')
-				: Promise.resolve([]);
+        const fetchNotes = () =>
+            includeNotes
+                ? db('notes').where('user_id', userId).select('title', 'content', 'created_at')
+                : Promise.resolve([]);
 
-		const [bookmarks, actions, notes] = await Promise.all([
-			fetchBookmarks(),
-			fetchActions(),
-			fetchNotes(),
-		]);
+        const [bookmarks, actions, notes] = await Promise.all([
+            fetchBookmarks(),
+            fetchActions(),
+            fetchNotes(),
+        ]);
 
-		if (includeBookmarks) exportData.bookmarks = bookmarks;
-		if (includeActions) exportData.actions = actions;
-		if (includeNotes) exportData.notes = notes;
+        if (includeBookmarks) exportData.bookmarks = bookmarks;
+        if (includeActions) exportData.actions = actions;
+        if (includeNotes) exportData.notes = notes;
 
-		res
-			.setHeader(
-				'Content-Disposition',
-				`attachment; filename=bang-data-export-${exportData.exported_at}.json`,
-			)
-			.setHeader('Content-Type', 'application/json')
-			.send(JSON.stringify(exportData, null, 2));
-	},
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename=bang-data-export-${exportData.exported_at}.json`,
+        )
+            .setHeader('Content-Type', 'application/json')
+            .send(JSON.stringify(exportData, null, 2));
+    },
 ];
 
 // POST /settings/data/import
 export const postImportDataHandler = [
-	validateRequestMiddleware([
-		body('config')
-			.notEmpty()
-			.withMessage('config must not be empty')
-			.custom((value) => {
-				try {
-					const parsed = JSON.parse(value);
+    validateRequestMiddleware([
+        body('config')
+            .notEmpty()
+            .withMessage('config must not be empty')
+            .custom((value) => {
+                try {
+                    const parsed = JSON.parse(value);
 
-					if (!parsed.version || parsed.version !== '1.0') {
-						throw new ValidationError('Config version must be 1.0');
-					}
-				} catch (error) {
-					throw new ValidationError('Invalid JSON format');
-				}
+                    if (!parsed.version || parsed.version !== '1.0') {
+                        throw new ValidationError('Config version must be 1.0');
+                    }
+                } catch (error) {
+                    throw new ValidationError('Invalid JSON format');
+                }
 
-				return true;
-			}),
-	]),
-	async (req: Request, res: Response) => {
-		const userId = req.session.user?.id;
-		const importData = JSON.parse(req.body.config);
+                return true;
+            }),
+    ]),
+    async (req: Request, res: Response) => {
+        const userId = req.session.user?.id;
+        const importData = JSON.parse(req.body.config);
 
-		try {
-			await db.transaction(async (trx) => {
-				if (importData.bookmarks?.length > 0) {
-					const bookmarks = importData.bookmarks.map((bookmark: any) => ({
-						user_id: userId,
-						title: bookmark.title,
-						url: bookmark.url,
-						created_at: db.fn.now(),
-					}));
-					await trx('bookmarks').insert(bookmarks);
-				}
+        try {
+            await db.transaction(async (trx) => {
+                if (importData.bookmarks?.length > 0) {
+                    const bookmarks = importData.bookmarks.map((bookmark: any) => ({
+                        user_id: userId,
+                        title: bookmark.title,
+                        url: bookmark.url,
+                        created_at: db.fn.now(),
+                    }));
+                    await trx('bookmarks').insert(bookmarks);
+                }
 
-				if (importData.actions?.length > 0) {
-					for (const action of importData.actions) {
-						const actionType = await trx('action_types').where('name', action.action_type).first();
+                if (importData.actions?.length > 0) {
+                    for (const action of importData.actions) {
+                        const actionType = await trx('action_types')
+                            .where('name', action.action_type)
+                            .first();
 
-						if (actionType) {
-							await trx('bangs').insert({
-								user_id: userId,
-								trigger: action.trigger,
-								name: action.name,
-								url: action.url,
-								action_type_id: actionType.id,
-								created_at: db.fn.now(),
-							});
-						}
-					}
-				}
+                        if (actionType) {
+                            await trx('bangs').insert({
+                                user_id: userId,
+                                trigger: action.trigger,
+                                name: action.name,
+                                url: action.url,
+                                action_type_id: actionType.id,
+                                created_at: db.fn.now(),
+                            });
+                        }
+                    }
+                }
 
-				if (importData.notes?.length > 0) {
-					const notes = importData.notes.map((note: any) => ({
-						user_id: userId,
-						title: note.title,
-						content: note.content,
-						created_at: db.fn.now(),
-					}));
+                if (importData.notes?.length > 0) {
+                    const notes = importData.notes.map((note: any) => ({
+                        user_id: userId,
+                        title: note.title,
+                        content: note.content,
+                        created_at: db.fn.now(),
+                    }));
 
-					await trx('notes').insert(notes);
-				}
-			});
+                    await trx('notes').insert(notes);
+                }
+            });
 
-			req.flash('success', 'Data imported successfully!');
-		} catch (error) {
-			req.flash('error', 'Failed to import data. Please check the format and try again.');
-		}
+            req.flash('success', 'Data imported successfully!');
+        } catch (error) {
+            req.flash('error', 'Failed to import data. Please check the format and try again.');
+        }
 
-		return res.redirect('/settings/data');
-	},
+        return res.redirect('/settings/data');
+    },
 ];
 
 // GET /settings/danger-zone
 export async function getSettingsDangerZonePageHandler(req: Request, res: Response) {
-	return res.render('settings-danger-zone.html', {
-		title: 'Settings Danger Zone',
-		user: req.session?.user,
-		path: '/settings/danger-zone',
-		layout: '../layouts/settings.html',
-	});
+    return res.render('settings-danger-zone.html', {
+        title: 'Settings Danger Zone',
+        user: req.session?.user,
+        path: '/settings/danger-zone',
+        layout: '../layouts/settings.html',
+    });
 }
 
 // POST /settings/danger-zone/delete
 export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Response) {
-	await db('users').where({ id: req.session.user?.id }).delete();
+    await db('users').where({ id: req.session.user?.id }).delete();
 
-	if ((req.session && req.session.user) || req.user) {
-		req.session.user = null;
-		req.user = undefined;
-		req.session.destroy((error) => {
-			if (error) {
-				throw new HttpError(error);
-			}
-		});
-	}
+    if ((req.session && req.session.user) || req.user) {
+        req.session.user = null;
+        req.user = undefined;
+        req.session.destroy((error) => {
+            if (error) {
+                throw new HttpError(error);
+            }
+        });
+    }
 
-	return res.redirect('/?toast=🗑️ deleted');
+    return res.redirect('/?toast=🗑️ deleted');
 }
 
 // GET /settings/data/export
 export async function getExportAllDataHandler(req: Request, res: Response) {
-	const userId = (req.user as User).id;
+    const userId = (req.user as User).id;
 
-	const [user, bangs, bookmarks] = await Promise.all([
-		db('users')
-			.where('id', userId)
-			.select('username', 'email', 'default_search_provider', 'created_at')
-			.first(),
-		db('bangs')
-			.join('action_types', 'bangs.action_type_id', 'action_types.id')
-			.where('bangs.user_id', userId)
-			.select(
-				'bangs.trigger',
-				'bangs.name',
-				'bangs.url',
-				'action_types.name as action_type',
-				'bangs.created_at',
-			),
-		db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at'),
-	]);
+    const [user, bangs, bookmarks] = await Promise.all([
+        db('users')
+            .where('id', userId)
+            .select('username', 'email', 'default_search_provider', 'created_at')
+            .first(),
+        db('bangs')
+            .join('action_types', 'bangs.action_type_id', 'action_types.id')
+            .where('bangs.user_id', userId)
+            .select(
+                'bangs.trigger',
+                'bangs.name',
+                'bangs.url',
+                'action_types.name as action_type',
+                'bangs.created_at',
+            ),
+        db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at'),
+    ]);
 
-	const exportData = {
-		user,
-		bangs,
-		bookmarks,
-		exported_at: new Date().toISOString(),
-	};
+    const exportData = {
+        user,
+        bangs,
+        bookmarks,
+        exported_at: new Date().toISOString(),
+    };
 
-	const currentDate = new Date().toISOString().split('T')[0];
-	const filename = `bang-data-export-${currentDate}.json`;
+    const currentDate = new Date().toISOString().split('T')[0];
+    const filename = `bang-data-export-${currentDate}.json`;
 
-	return res
-		.setHeader('Content-Disposition', `attachment; filename=${filename}`)
-		.setHeader('Content-Type', 'application/json')
-		.send(JSON.stringify(exportData, null, 2));
+    return res
+        .setHeader('Content-Disposition', `attachment; filename=${filename}`)
+        .setHeader('Content-Type', 'application/json')
+        .send(JSON.stringify(exportData, null, 2));
 }
 
 // GET /api/collections
 export async function getCollectionsHandler(req: Request, res: Response) {
-	const user = req.user as User;
-	const actionsParams = extractPagination(req, 'actions');
-	const bookmarksParams = extractPagination(req, 'bookmarks');
-	const notesParams = extractPagination(req, 'notes');
+    const user = req.user as User;
+    const actionsParams = extractPagination(req, 'actions');
+    const bookmarksParams = extractPagination(req, 'bookmarks');
+    const notesParams = extractPagination(req, 'notes');
 
-	const [actionsResult, bookmarksResult, notesResult] = await Promise.all([
-		actions.all({
-			user,
-			perPage: actionsParams.perPage,
-			page: actionsParams.page,
-			search: actionsParams.search,
-			sortKey: actionsParams.sortKey,
-			direction: actionsParams.direction,
-		}),
-		bookmarks.all({
-			user,
-			perPage: bookmarksParams.perPage,
-			page: bookmarksParams.page,
-			search: bookmarksParams.search,
-			sortKey: bookmarksParams.sortKey,
-			direction: bookmarksParams.direction,
-		}),
-		notes.all({
-			user,
-			perPage: notesParams.perPage,
-			page: notesParams.page,
-			search: notesParams.search,
-			sortKey: notesParams.sortKey,
-			direction: notesParams.direction,
-		}),
-	]);
+    const [actionsResult, bookmarksResult, notesResult] = await Promise.all([
+        actions.all({
+            user,
+            perPage: actionsParams.perPage,
+            page: actionsParams.page,
+            search: actionsParams.search,
+            sortKey: actionsParams.sortKey,
+            direction: actionsParams.direction,
+        }),
+        bookmarks.all({
+            user,
+            perPage: bookmarksParams.perPage,
+            page: bookmarksParams.page,
+            search: bookmarksParams.search,
+            sortKey: bookmarksParams.sortKey,
+            direction: bookmarksParams.direction,
+        }),
+        notes.all({
+            user,
+            perPage: notesParams.perPage,
+            page: notesParams.page,
+            search: notesParams.search,
+            sortKey: notesParams.sortKey,
+            direction: notesParams.direction,
+        }),
+    ]);
 
-	res.json({
-		actions: actionsResult,
-		bookmarks: bookmarksResult,
-		notes: notesResult,
-		search: actionsParams.search, // or bookmarksParams.search, the same search for both
-		sortKey: actionsParams.sortKey, // or bookmarksParams.sortKey, the same sortKey for both
-		direction: actionsParams.direction, // or bookmarksParams.direction, the same direction for both
-	});
+    res.json({
+        actions: actionsResult,
+        bookmarks: bookmarksResult,
+        notes: notesResult,
+        search: actionsParams.search, // or bookmarksParams.search, the same search for both
+        sortKey: actionsParams.sortKey, // or bookmarksParams.sortKey, the same sortKey for both
+        direction: actionsParams.direction, // or bookmarksParams.direction, the same direction for both
+    });
 }
 
 // GET /settings/display
 export async function getSettingsDisplayPageHandler(req: Request, res: Response) {
-	return res.render('settings-display.html', {
-		user: req.session?.user,
-		title: 'Display Settings',
-		path: '/settings/display',
-		layout: '../layouts/settings.html',
-	});
+    return res.render('settings-display.html', {
+        user: req.session?.user,
+        title: 'Display Settings',
+        path: '/settings/display',
+        layout: '../layouts/settings.html',
+    });
 }
 
 // POST /settings/display
 export const postSettingsDisplayHandler = [
-	validateRequestMiddleware([
-		body('column_preferences').custom((value, { req }) => {
-			if (value === undefined) {
-				throw new ValidationError('Column preferences are required');
-			}
+    validateRequestMiddleware([
+        body('column_preferences').custom((value, { req }) => {
+            if (value === undefined) {
+                throw new ValidationError('Column preferences are required');
+            }
 
-			if (typeof value !== 'object') {
-				throw new ValidationError('Column preferences must be an object');
-			}
+            if (typeof value !== 'object') {
+                throw new ValidationError('Column preferences must be an object');
+            }
 
-			// bookmarks
-			if (typeof value.bookmarks !== 'object') {
-				throw new ValidationError('Bookmarks must be an object');
-			}
+            // bookmarks
+            if (typeof value.bookmarks !== 'object') {
+                throw new ValidationError('Bookmarks must be an object');
+            }
 
-			value.bookmarks.title = value.bookmarks.title === 'on';
-			value.bookmarks.url = value.bookmarks.url === 'on';
-			value.bookmarks.created_at = value.bookmarks.created_at === 'on';
+            value.bookmarks.title = value.bookmarks.title === 'on';
+            value.bookmarks.url = value.bookmarks.url === 'on';
+            value.bookmarks.created_at = value.bookmarks.created_at === 'on';
 
-			value.bookmarks.default_per_page = parseInt(value.bookmarks.default_per_page, 10);
+            value.bookmarks.default_per_page = parseInt(value.bookmarks.default_per_page, 10);
 
-			if (isNaN(value.bookmarks.default_per_page) || value.bookmarks.default_per_page < 1) {
-				throw new ValidationError('Bookmarks per page must be greater than 0');
-			}
+            if (isNaN(value.bookmarks.default_per_page) || value.bookmarks.default_per_page < 1) {
+                throw new ValidationError('Bookmarks per page must be greater than 0');
+            }
 
-			if (!value.bookmarks.title && !value.bookmarks.url && !value.bookmarks.created_at) {
-				throw new ValidationError('At least one bookmark column must be enabled');
-			}
+            if (!value.bookmarks.title && !value.bookmarks.url && !value.bookmarks.created_at) {
+                throw new ValidationError('At least one bookmark column must be enabled');
+            }
 
-			// actions
-			if (typeof value.actions !== 'object') {
-				throw new ValidationError('Actions must be an object');
-			}
+            // actions
+            if (typeof value.actions !== 'object') {
+                throw new ValidationError('Actions must be an object');
+            }
 
-			value.actions.name = value.actions.name === 'on';
-			value.actions.trigger = value.actions.trigger === 'on';
-			value.actions.url = value.actions.url === 'on';
-			value.actions.action_type = value.actions.action_type === 'on';
-			value.actions.created_at = value.actions.created_at === 'on';
+            value.actions.name = value.actions.name === 'on';
+            value.actions.trigger = value.actions.trigger === 'on';
+            value.actions.url = value.actions.url === 'on';
+            value.actions.action_type = value.actions.action_type === 'on';
+            value.actions.created_at = value.actions.created_at === 'on';
 
-			value.actions.default_per_page = parseInt(value.actions.default_per_page, 10);
+            value.actions.default_per_page = parseInt(value.actions.default_per_page, 10);
 
-			if (isNaN(value.actions.default_per_page) || value.actions.default_per_page < 1) {
-				throw new ValidationError('Actions per page must be greater than 0');
-			}
+            if (isNaN(value.actions.default_per_page) || value.actions.default_per_page < 1) {
+                throw new ValidationError('Actions per page must be greater than 0');
+            }
 
-			if (
-				!value.actions.name &&
-				!value.actions.trigger &&
-				!value.actions.url &&
-				!value.actions.action_type &&
-				!value.actions.created_at
-			) {
-				throw new ValidationError('At least one action column must be enabled');
-			}
+            if (
+                !value.actions.name &&
+                !value.actions.trigger &&
+                !value.actions.url &&
+                !value.actions.action_type &&
+                !value.actions.created_at
+            ) {
+                throw new ValidationError('At least one action column must be enabled');
+            }
 
-			// notes
-			if (typeof value.notes !== 'object') {
-				throw new ValidationError('Notes must be an object');
-			}
+            // notes
+            if (typeof value.notes !== 'object') {
+                throw new ValidationError('Notes must be an object');
+            }
 
-			value.notes.title = value.notes.title === 'on';
-			value.notes.content = value.notes.content === 'on';
-			value.notes.created_at = value.notes.created_at === 'on';
+            value.notes.title = value.notes.title === 'on';
+            value.notes.content = value.notes.content === 'on';
+            value.notes.created_at = value.notes.created_at === 'on';
 
-			// Handle view_type preference
-			if (value.notes.view_type && !['card', 'table'].includes(value.notes.view_type)) {
-				value.notes.view_type = 'table'; // Default to table if invalid
-			}
+            // Handle view_type preference
+            if (value.notes.view_type && !['card', 'table'].includes(value.notes.view_type)) {
+                value.notes.view_type = 'table'; // Default to table if invalid
+            }
 
-			if (!value.notes.title && !value.notes.content) {
-				throw new ValidationError('At least one note column must be enabled');
-			}
+            if (!value.notes.title && !value.notes.content) {
+                throw new ValidationError('At least one note column must be enabled');
+            }
 
-			value.notes.default_per_page = parseInt(value.notes.default_per_page, 10);
+            value.notes.default_per_page = parseInt(value.notes.default_per_page, 10);
 
-			if (isNaN(value.notes.default_per_page) || value.notes.default_per_page < 1) {
-				throw new ValidationError('Notes per page must be greater than 0');
-			}
+            if (isNaN(value.notes.default_per_page) || value.notes.default_per_page < 1) {
+                throw new ValidationError('Notes per page must be greater than 0');
+            }
 
-			// Preserve the view_type if it's not in the form submission
-			if (!value.notes.view_type && req.session?.user?.column_preferences?.notes?.view_type) {
-				value.notes.view_type = req.session.user.column_preferences.notes.view_type;
-			}
+            // Preserve the view_type if it's not in the form submission
+            if (!value.notes.view_type && req.session?.user?.column_preferences?.notes?.view_type) {
+                value.notes.view_type = req.session.user.column_preferences.notes.view_type;
+            }
 
-			return true;
-		}),
-	]),
-	async (req: Request, res: Response) => {
-		const user = req.user as User;
-		const { column_preferences } = req.body;
+            return true;
+        }),
+    ]),
+    async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const { column_preferences } = req.body;
 
-		await db('users')
-			.where('id', user.id)
-			.update({
-				column_preferences: JSON.stringify(column_preferences),
-			});
+        await db('users')
+            .where('id', user.id)
+            .update({
+                column_preferences: JSON.stringify(column_preferences),
+            });
 
-		req.session.user!.column_preferences = column_preferences;
+        req.session.user!.column_preferences = column_preferences;
 
-		req.flash('success', 'Display settings updated');
+        req.flash('success', 'Display settings updated');
 
-		return res.redirect('/settings/display');
-	},
+        return res.redirect('/settings/display');
+    },
 ];
 
 // GET /notes or /api/notes
 export async function getNotesHandler(req: Request, res: Response) {
-	const user = req.user as User;
-	const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
+    const user = req.user as User;
+    const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
 
-	const { data, pagination } = await notes.all({
-		user,
-		perPage,
-		page,
-		search,
-		sortKey,
-		direction,
-	});
+    const { data, pagination } = await notes.all({
+        user,
+        perPage,
+        page,
+        search,
+        sortKey,
+        direction,
+    });
 
-	if (isApiRequest(req)) {
-		res.json({ data, pagination, search, sortKey, direction });
-		return;
-	}
+    if (isApiRequest(req)) {
+        res.json({ data, pagination, search, sortKey, direction });
+        return;
+    }
 
-	return res.render('notes', {
-		title: 'Notes',
-		path: '/notes',
-		layout: '../layouts/auth',
-		data,
-		search,
-		pagination,
-		sortKey,
-		direction,
-	});
+    return res.render('notes', {
+        title: 'Notes',
+        path: '/notes',
+        layout: '../layouts/auth',
+        data,
+        search,
+        pagination,
+        sortKey,
+        direction,
+    });
 }
 
 // GET /notes/create
 export async function getNoteCreatePageHandler(req: Request, res: Response) {
-	return res.render('notes-create', {
-		title: 'Notes / Create',
-		path: '/notes/create',
-		layout: '../layouts/auth',
-	});
+    return res.render('notes-create', {
+        title: 'Notes / Create',
+        path: '/notes/create',
+        layout: '../layouts/auth',
+    });
 }
 
 // POST /notes or /api/notes
 export const postNoteHandler = [
-	validateRequestMiddleware([
-		body('title')
-			.trim()
-			.notEmpty()
-			.withMessage('Title is required')
-			.isLength({ max: 255 })
-			.withMessage('Title must be less than 255 characters'),
-		body('content').trim().notEmpty().withMessage('Content is required'),
-	]),
-	async (req: Request, res: Response) => {
-		const { title, content } = req.body;
-		const user = req.user as User;
+    validateRequestMiddleware([
+        body('title')
+            .trim()
+            .notEmpty()
+            .withMessage('Title is required')
+            .isLength({ max: 255 })
+            .withMessage('Title must be less than 255 characters'),
+        body('content').trim().notEmpty().withMessage('Content is required'),
+    ]),
+    async (req: Request, res: Response) => {
+        const { title, content } = req.body;
+        const user = req.user as User;
 
-		const note = await notes.create({
-			user_id: user.id,
-			title: title.trim(),
-			content: content.trim(),
-		});
+        const note = await notes.create({
+            user_id: user.id,
+            title: title.trim(),
+            content: content.trim(),
+        });
 
-		if (isApiRequest(req)) {
-			res.status(201).json({ message: `Note ${note.title} created successfully!` });
-			return;
-		}
+        if (isApiRequest(req)) {
+            res.status(201).json({ message: `Note ${note.title} created successfully!` });
+            return;
+        }
 
-		req.flash('success', 'Note created successfully');
-		return res.redirect('/notes');
-	},
+        req.flash('success', 'Note created successfully');
+        return res.redirect('/notes');
+    },
 ];
 
 // GET /notes/:id/edit
 export async function getEditNotePageHandler(req: Request, res: Response) {
-	const user = req.user as User;
-	const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
+    const user = req.user as User;
+    const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
 
-	if (!note) {
-		throw new NotFoundError();
-	}
+    if (!note) {
+        throw new NotFoundError();
+    }
 
-	return res.render('notes-edit', {
-		title: 'Notes / Edit',
-		path: '/notes/edit',
-		layout: '../layouts/auth',
-		note,
-	});
+    return res.render('notes-edit', {
+        title: 'Notes / Edit',
+        path: '/notes/edit',
+        layout: '../layouts/auth',
+        note,
+    });
 }
 
 // POST /notes/:id/update or PATCH /api/notes/:id
 export const updateNoteHandler = [
-	validateRequestMiddleware([
-		body('title')
-			.trim()
-			.notEmpty()
-			.withMessage('Title is required')
-			.isLength({ max: 255 })
-			.withMessage('Title must be less than 255 characters'),
-		body('content').trim().notEmpty().withMessage('Content is required'),
-	]),
-	async (req: Request, res: Response) => {
-		const { title, content } = req.body;
-		const user = req.user as User;
+    validateRequestMiddleware([
+        body('title')
+            .trim()
+            .notEmpty()
+            .withMessage('Title is required')
+            .isLength({ max: 255 })
+            .withMessage('Title must be less than 255 characters'),
+        body('content').trim().notEmpty().withMessage('Content is required'),
+    ]),
+    async (req: Request, res: Response) => {
+        const { title, content } = req.body;
+        const user = req.user as User;
 
-		const updatedNote = await notes.update(parseInt(req.params.id as unknown as string), user.id, {
-			title: title.trim(),
-			content: content.trim(),
-		});
+        const updatedNote = await notes.update(
+            parseInt(req.params.id as unknown as string),
+            user.id,
+            {
+                title: title.trim(),
+                content: content.trim(),
+            },
+        );
 
-		if (isApiRequest(req)) {
-			res.status(200).json({ message: 'note updated successfully' });
-			return;
-		}
+        if (isApiRequest(req)) {
+            res.status(200).json({ message: 'note updated successfully' });
+            return;
+        }
 
-		req.flash('success', `Note ${updatedNote.title} updated successfully`);
-		return res.redirect('/notes');
-	},
+        req.flash('success', `Note ${updatedNote.title} updated successfully`);
+        return res.redirect('/notes');
+    },
 ];
 
 // GET /notes/:id or GET /api/notes/:id
 export async function getNoteHandler(req: Request, res: Response) {
-	const user = req.user as User;
-	const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
+    const user = req.user as User;
+    const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
 
-	if (!note) {
-		throw new NotFoundError();
-	}
+    if (!note) {
+        throw new NotFoundError();
+    }
 
-	if (isApiRequest(req)) {
-		res.status(200).json({
-			message: 'note retrieved successfully',
-			data: note,
-		});
-		return;
-	}
+    if (isApiRequest(req)) {
+        res.status(200).json({
+            message: 'note retrieved successfully',
+            data: note,
+        });
+        return;
+    }
 
-	return res.render('notes-id-get', {
-		title: `Notes / ${note.title}`,
-		path: `/notes/${note.id}`,
-		layout: '../layouts/auth',
-		note,
-	});
+    return res.render('notes-id-get', {
+        title: `Notes / ${note.title}`,
+        path: `/notes/${note.id}`,
+        layout: '../layouts/auth',
+        note,
+    });
 }
 
 // POST /notes/:id/delete or DELETE /api/notes/:id
 export async function deleteNoteHandler(req: Request, res: Response) {
-	const user = req.user as User;
-	const deleted = await notes.delete(parseInt(req.params.id as unknown as string), user.id);
+    const user = req.user as User;
+    const deleted = await notes.delete(parseInt(req.params.id as unknown as string), user.id);
 
-	if (!deleted) {
-		throw new NotFoundError();
-	}
+    if (!deleted) {
+        throw new NotFoundError();
+    }
 
-	if (isApiRequest(req)) {
-		res.status(200).json({ message: 'note deleted successfully' });
-		return;
-	}
+    if (isApiRequest(req)) {
+        res.status(200).json({ message: 'note deleted successfully' });
+        return;
+    }
 
-	req.flash('success', 'Note deleted successfully');
-	return res.redirect('/notes');
+    req.flash('success', 'Note deleted successfully');
+    return res.redirect('/notes');
 }
 
 // GET /api/notes
 export async function getNotesByApiHandler(req: Request, res: Response) {
-	const user = req.user as User;
-	const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
+    const user = req.user as User;
+    const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
 
-	const { data, pagination } = await notes.all({
-		user,
-		perPage,
-		page,
-		search,
-		sortKey,
-		direction,
-	});
+    const { data, pagination } = await notes.all({
+        user,
+        perPage,
+        page,
+        search,
+        sortKey,
+        direction,
+    });
 
-	return res.json({ data, pagination });
+    return res.json({ data, pagination });
 }
 
 // POST /api/notes
 export const createNoteByApiHandler = [
-	validateRequestMiddleware([
-		body('title')
-			.trim()
-			.notEmpty()
-			.withMessage('Title is required')
-			.isLength({ max: 255 })
-			.withMessage('Title must be less than 255 characters'),
-		body('content').trim().notEmpty().withMessage('Content is required'),
-	]),
-	async (req: Request, res: Response) => {
-		const { title, content } = req.body;
-		const user = req.user as User;
+    validateRequestMiddleware([
+        body('title')
+            .trim()
+            .notEmpty()
+            .withMessage('Title is required')
+            .isLength({ max: 255 })
+            .withMessage('Title must be less than 255 characters'),
+        body('content').trim().notEmpty().withMessage('Content is required'),
+    ]),
+    async (req: Request, res: Response) => {
+        const { title, content } = req.body;
+        const user = req.user as User;
 
-		const note = await notes.create({
-			user_id: user.id,
-			title: title.trim(),
-			content: content.trim(),
-		});
+        const note = await notes.create({
+            user_id: user.id,
+            title: title.trim(),
+            content: content.trim(),
+        });
 
-		return res.status(201).json(note);
-	},
+        return res.status(201).json(note);
+    },
 ];
 
 // PUT /api/notes/:id
 export const updateNoteByApiHandler = [
-	validateRequestMiddleware([
-		body('title')
-			.trim()
-			.notEmpty()
-			.withMessage('Title is required')
-			.isLength({ max: 255 })
-			.withMessage('Title must be less than 255 characters'),
-		body('content').trim().notEmpty().withMessage('Content is required'),
-	]),
-	async (req: Request, res: Response) => {
-		const { title, content } = req.body;
-		const user = req.user as User;
+    validateRequestMiddleware([
+        body('title')
+            .trim()
+            .notEmpty()
+            .withMessage('Title is required')
+            .isLength({ max: 255 })
+            .withMessage('Title must be less than 255 characters'),
+        body('content').trim().notEmpty().withMessage('Content is required'),
+    ]),
+    async (req: Request, res: Response) => {
+        const { title, content } = req.body;
+        const user = req.user as User;
 
-		const updatedNote = await notes.update(parseInt(req.params.id as unknown as string), user.id, {
-			title: title.trim(),
-			content: content.trim(),
-		});
+        const updatedNote = await notes.update(
+            parseInt(req.params.id as unknown as string),
+            user.id,
+            {
+                title: title.trim(),
+                content: content.trim(),
+            },
+        );
 
-		return res.json(updatedNote);
-	},
+        return res.json(updatedNote);
+    },
 ];
 
 // DELETE /api/notes/:id
 export async function deleteNoteByApiHandler(req: Request, res: Response) {
-	const user = req.user as User;
-	const deletedNote = await notes.delete(parseInt(req.params.id as unknown as string), user.id);
+    const user = req.user as User;
+    const deletedNote = await notes.delete(parseInt(req.params.id as unknown as string), user.id);
 
-	return res.json(deletedNote);
+    return res.json(deletedNote);
 }
 
 // GET /admin/users
 export async function getAdminUsersHandler(req: Request, res: Response) {
-	const { perPage, page, search, sortKey, direction } = extractPagination(req, 'admin');
+    const { perPage, page, search, sortKey, direction } = extractPagination(req, 'admin');
 
-	const query = db.select('*').from('users');
+    const query = db.select('*').from('users');
 
-	if (search) {
-		query.where((q) =>
-			q
-				.whereRaw('LOWER(username) LIKE ?', [`%${search.toLowerCase()}%`])
-				.orWhereRaw('LOWER(email) LIKE ?', [`%${search.toLowerCase()}%`]),
-		);
-	}
+    if (search) {
+        query.where((q) =>
+            q
+                .whereRaw('LOWER(username) LIKE ?', [`%${search.toLowerCase()}%`])
+                .orWhereRaw('LOWER(email) LIKE ?', [`%${search.toLowerCase()}%`]),
+        );
+    }
 
-	const { data, pagination } = await query
-		.orderBy(sortKey || 'created_at', direction || 'desc')
-		.paginate({ perPage, currentPage: page, isLengthAware: true });
+    const { data, pagination } = await query
+        .orderBy(sortKey || 'created_at', direction || 'desc')
+        .paginate({ perPage, currentPage: page, isLengthAware: true });
 
-	return res.render('admin-users.html', {
-		title: 'Admin / Users',
-		path: '/admin/users',
-		layout: '../layouts/admin.html',
-		data,
-		pagination,
-		search,
-		sortKey,
-		direction,
-	});
+    return res.render('admin-users.html', {
+        title: 'Admin / Users',
+        path: '/admin/users',
+        layout: '../layouts/admin.html',
+        data,
+        pagination,
+        search,
+        sortKey,
+        direction,
+    });
 }

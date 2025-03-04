@@ -1,14 +1,14 @@
 services:
-  bang:
-    container_name: bang
-    restart: unless-stopped
-    build:
-      context: ./
-      dockerfile: ./Dockerfile.dev
-    ports:
-      - '${APP_PORT}:${APP_PORT}'
-    volumes:
-      - ./:/usr/src/app
-      - /usr/src/app/node_modules
-    environment:
-      CHOKIDAR_USEPOLLING: 'true'
+    bang:
+        container_name: bang
+        restart: unless-stopped
+        build:
+            context: ./
+            dockerfile: ./Dockerfile.dev
+        ports:
+            - '${APP_PORT}:${APP_PORT}'
+        volumes:
+            - ./:/usr/src/app
+            - /usr/src/app/node_modules
+        environment:
+            CHOKIDAR_USEPOLLING: 'true'

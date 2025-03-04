@@ -16,14 +16,14 @@ Before you can use the Bang command from your browser's search bar, you need to 
 
 1. In your browser settings, add a new search engine:
 
-   - **Name**: Whatever you prefer (e.g., "Bang")
-   - **Shortcut**: `bd` (or any keyword you prefer)
-   - **URL**: `http://bang.jaw.dev/?q=%s`
+    - **Name**: Whatever you prefer (e.g., "Bang")
+    - **Shortcut**: `bd` (or any keyword you prefer)
+    - **URL**: `http://bang.jaw.dev/?q=%s`
 
 2. Now you can use Bang directly from your browser's address bar:
-   ```
-   !bm https://bang.jaw.dev
-   ```
+    ```
+    !bm https://bang.jaw.dev
+    ```
 
 ### ⚙️ How to Add Custom Search Engine
 
@@ -44,18 +44,18 @@ Before you can use the Bang command from your browser's search bar, you need to 
 
 - `!bm [url]` - Add a bookmark
 - `!bm [title] [url]` - Add a bookmark
-  - `[title]` is optional, if not provided, we will auto fetch the title
-  - `[url]` is required
-  - eg: `!bm this title can be super long https://bang.jaw.dev`
+    - `[title]` is optional, if not provided, we will auto fetch the title
+    - `[url]` is required
+    - eg: `!bm this title can be super long https://bang.jaw.dev`
 - `!add [trigger] [url]` - Create a custom bang
-  - `[trigger]` is required
-  - `[url]` is required
-  - eg: `!add jaw https://bang.jaw.dev`
+    - `[trigger]` is required
+    - `[url]` is required
+    - eg: `!add jaw https://bang.jaw.dev`
 - `!note [title] | [content]` - Create a note
-  - `[title]` is optional, if not provided, we will use it as `Untitled`
-  - `[content]` is required
-  - eg: `!note some title | this is a note https://bang.jaw.dev`
-  - eg: `!note this is a content without any title`
+    - `[title]` is optional, if not provided, we will use it as `Untitled`
+    - `[content]` is required
+    - eg: `!note some title | this is a note https://bang.jaw.dev`
+    - eg: `!note this is a content without any title`
 
 ## 📑 Docs
 

@@ -1,8 +1,8 @@
 {
-	"recommendations": [
-		"streetsidesoftware.code-spell-checker",
-		"editorconfig.editorconfig",
-		"zignd.html-css-class-completion",
-		"christian-kohler.path-intellisense"
-	]
+    "recommendations": [
+        "streetsidesoftware.code-spell-checker",
+        "editorconfig.editorconfig",
+        "zignd.html-css-class-completion",
+        "christian-kohler.path-intellisense"
+    ]
 }
