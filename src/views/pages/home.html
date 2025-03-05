@@ -143,17 +143,17 @@
         html = matches.map(actionTemplate).join('');
       } else {
         // General search logic - now with sorting by relevance
-        const actionMatches = data.actions.filter(action =>
-          action.name.toLowerCase().includes(lowerValue)
-        ).map(action => ({...action, type: 'action', text: action.name}));
+        const actionMatches = data.actions
+            .filter(action => action.name.toLowerCase().includes(lowerValue))
+            .map(action => ({...action, type: 'action', text: action.name}));
 
-        const bookmarkMatches = data.bookmarks.filter(bookmark =>
-          bookmark.title.toLowerCase().includes(lowerValue)
-        ).map(bookmark => ({...bookmark, type: 'bookmark', text: bookmark.title}));
+        const bookmarkMatches = data.bookmarks
+            .filter(bookmark => bookmark.title.toLowerCase().includes(lowerValue))
+            .map(bookmark => ({...bookmark, type: 'bookmark', text: bookmark.title}));
 
-        const noteMatches = data.notes.filter(note =>
-          note.title.toLowerCase().includes(lowerValue)
-        ).map(note => ({...note, type: 'note', text: note.title}));
+        const noteMatches = data.notes
+            .filter(note => note.title.toLowerCase().includes(lowerValue))
+            .map(note => ({...note, type: 'note', text: note.title}));
 
         // Combine all matches and sort by relevance
         const allMatches = [...actionMatches, ...bookmarkMatches, ...noteMatches]

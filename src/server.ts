@@ -20,7 +20,6 @@ server.on('listening', async () => {
     logger.info(`Server is listening on ${bind}`);
 
     if (appConfig.env === 'production') {
-        // Check database connection before running migrations
         try {
             await db.raw('SELECT 1');
             logger.info('Database connection verified before migrations');
@@ -53,7 +52,6 @@ server.on('error', (error: NodeJS.ErrnoException) => {
     }
 });
 
-// Set up memory usage logging in non-test environments
 if (appConfig.env !== 'testing') {
     setInterval(
         () => {
