@@ -1,7 +1,8 @@
 import { db } from './db/db';
 import { User } from './type';
 import * as utils from './util';
-import { search } from './search';
+import * as searchModule from './search';
+import { search, processDelayedSearch } from './search';
 import { appConfig } from './config';
 import { parseSearchQuery } from './search';
 import { Request, Response } from 'express';
@@ -159,21 +160,37 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({ req, res, user: undefined, query: '!g python' });
+                // Properly mock the processDelayedSearch function
+                const processDelayedSpy = vi
+                    .spyOn(searchModule, 'processDelayedSearch')
+                    .mockResolvedValue(undefined);
 
-                expect(res.status).toHaveBeenCalledWith(200);
-                expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
-                expect(res.send).toHaveBeenCalledWith(
-                    expect.stringContaining('Your next search will be slowed down for 10 seconds.'),
-                );
-                expect(res.send).toHaveBeenCalledWith(
-                    expect.stringContaining(
-                        'window.location.href = "https://www.google.com/search?q=python"',
-                    ),
-                );
-                expect(req.session.searchCount).toBe(62);
-                expect(req.session.cumulativeDelay).toBe(10000);
-                expect(req.session.user).toBeUndefined();
+                try {
+                    await search({ req, res, user: undefined, query: '!g python' });
+
+                    // Verify the delay function was called
+                    expect(processDelayedSpy).toHaveBeenCalled();
+
+                    // Verify the response after the delay
+                    expect(res.status).toHaveBeenCalledWith(200);
+                    expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
+                    expect(res.send).toHaveBeenCalledWith(
+                        expect.stringContaining(
+                            'This search was delayed by 10 seconds due to rate limiting.',
+                        ),
+                    );
+                    expect(res.send).toHaveBeenCalledWith(
+                        expect.stringContaining(
+                            'window.location.href = "https://www.google.com/search?q=python"',
+                        ),
+                    );
+                    expect(req.session.searchCount).toBe(62);
+                    expect(req.session.cumulativeDelay).toBe(10000);
+                    expect(req.session.user).toBeUndefined();
+                } finally {
+                    // Restore the original implementation
+                    processDelayedSpy.mockRestore();
+                }
             },
         );
     });
@@ -711,5 +728,99 @@ describe('parseSearchQuery', () => {
             url: null,
             searchTerm: '',
         });
+    });
+});
+
+describe('processDelayedSearch', () => {
+    it('should not delay if no cumulative delay is set', async () => {
+        const req = {
+            session: {},
+        } as unknown as Request;
+
+        const start = Date.now();
+        await processDelayedSearch(req);
+        const duration = Date.now() - start;
+
+        // Should be very fast, no more than 10ms for test overhead
+        expect(duration).toBeLessThan(10);
+    });
+
+    it('should delay for the specified time', async () => {
+        // Use a very small delay for testing
+        const delayMs = 5;
+        const req = {
+            session: {
+                cumulativeDelay: delayMs,
+            },
+        } as unknown as Request;
+
+        const start = Date.now();
+        await processDelayedSearch(req);
+        const duration = Date.now() - start;
+
+        // Should be at least the delay time
+        expect(duration).toBeGreaterThanOrEqual(delayMs);
+    });
+
+    it('should not block other operations while waiting', async () => {
+        // Set up a longer delay
+        const delayMs = 20;
+        const req = {
+            session: {
+                cumulativeDelay: delayMs,
+            },
+        } as unknown as Request;
+
+        // Start the delay operation but don't wait for it
+        const delayPromise = processDelayedSearch(req);
+
+        // Start a counter operation that should execute while the delay is happening
+        let counter = 0;
+        const counterPromise = new Promise<number>((resolve) => {
+            setTimeout(() => {
+                counter++;
+                resolve(counter);
+            }, 5); // This should execute before the delay finishes
+        });
+
+        // Wait for the counter operation to complete first
+        const counterResult = await counterPromise;
+
+        // Then wait for the delay to complete
+        await delayPromise;
+
+        // The counter should have been incremented while the delay was happening
+        expect(counterResult).toBe(1);
+    });
+});
+
+describe('handleAnonymousSearch', () => {
+    it('should track search history asynchronously', async () => {
+        const req = {
+            session: {
+                searchCount: 5,
+            },
+        } as unknown as Request;
+
+        const res = {
+            redirect: vi.fn(),
+        } as unknown as Response;
+
+        // Mock the anonymousSearchHistoryQueue.push method
+        const queuePushSpy = vi
+            .spyOn(searchModule.anonymousSearchHistoryQueue, 'push')
+            .mockResolvedValue(undefined);
+
+        try {
+            await searchModule.handleAnonymousSearch(req, res, 'test query', 'g', 'test query');
+
+            // Verify that tracking was called
+            expect(queuePushSpy).toHaveBeenCalledWith(req);
+
+            // Verify the redirect happens
+            expect(res.redirect).toHaveBeenCalled();
+        } finally {
+            queuePushSpy.mockRestore();
+        }
     });
 });

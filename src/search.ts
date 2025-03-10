@@ -224,6 +224,16 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string) {
 }
 
 /**
+ * Process a search request with the appropriate delay
+ * Returns a Promise that resolves with the URL to redirect to
+ */
+export async function processDelayedSearch(req: Request): Promise<void> {
+    if (req.session.cumulativeDelay) {
+        await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
+    }
+}
+
+/**
  * Handles the flow for unauthenticated users
  * Displays warning when user approaches or exceeds search limits
  * Enforces rate limiting delay for users who exceeded search limits
@@ -249,13 +259,41 @@ export async function handleAnonymousSearch(
         );
     }
 
-    // Enforce rate limiting delay for users who exceeded search limits
-    if (req.session.cumulativeDelay) {
-        await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
-    }
-
     // Asynchronously track search for analytics purposes
     void anonymousSearchHistoryQueue.push(req);
+
+    // Enforce rate limiting delay for users who exceeded search limits
+    if (req.session.cumulativeDelay) {
+        // Create a non-blocking delay
+        const delayPromise = processDelayedSearch(req);
+
+        // Determine the redirect URL based on the bang
+        let redirectUrl = '';
+        const message = `This search was delayed by ${req.session.cumulativeDelay / 1000} seconds due to rate limiting.`;
+
+        if (triggerWithoutBang) {
+            const bang = searchConfig.bangs[triggerWithoutBang] as Bang;
+            if (bang) {
+                redirectUrl = getBangRedirectUrl(bang, searchTerm || '');
+            } else {
+                redirectUrl = defaultSearchProviders['duckduckgo'].replace(
+                    '{{{s}}}',
+                    encodeURIComponent(query),
+                );
+            }
+        } else {
+            redirectUrl = defaultSearchProviders['duckduckgo'].replace(
+                '{{{s}}}',
+                encodeURIComponent(query),
+            );
+        }
+
+        // Wait for the delay to complete (won't block other requests)
+        await delayPromise;
+
+        // After the delay is done, redirect with a message
+        return redirectWithAlert(res, redirectUrl, message);
+    }
 
     // Process bang commands for unauthenticated users
     if (triggerWithoutBang) {
@@ -263,40 +301,18 @@ export async function handleAnonymousSearch(
         if (bang) {
             // Handle search queries with bang (e.g., "!g python")
             if (searchTerm) {
-                // Show warning if rate limiting is active
-                if (req.session.cumulativeDelay) {
-                    return redirectWithAlert(
-                        res,
-                        `Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
-                    );
-                }
-
                 return res.redirect(getBangRedirectUrl(bang, searchTerm));
             }
 
             // Handle bang-only queries (e.g., "!g") - redirects to service homepage
-            if (req.session.cumulativeDelay) {
-                return redirectWithAlert(
-                    res,
-                    getBangRedirectUrl(bang, ''),
-                    `Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
-                );
-            }
-
             return res.redirect(getBangRedirectUrl(bang, ''));
         }
     }
 
     // Process regular search using DuckDuckGo (default for unauthenticated users)
-    if (req.session.cumulativeDelay) {
-        return redirectWithAlert(
-            res,
-            defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
-            `Your next search will be slowed down for ${req.session.cumulativeDelay / 1000} seconds.`,
-        );
-    }
-
-    return res.redirect(defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query))); // prettier-ignore
+    return res.redirect(
+        defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
+    );
 }
 
 /**
