@@ -153,7 +153,7 @@ export function sessionMiddleware() {
             knex: db,
             tableName: 'sessions',
             createTable: true, // create sessions table if does not exist already
-            cleanupInterval: 1000 * 60 * 60 * 24, // Clean up expired sessions every day
+            cleanupInterval: 60000, // 1 minute - clear expired sessions
         }),
         proxy: appConfig.env === 'production',
         cookie: {

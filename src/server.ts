@@ -9,9 +9,10 @@ import { sendNotificationQueue } from './util';
 
 const server: Server = app.listen(appConfig.port);
 
-// Set server timeouts to avoid hanging connections
 server.timeout = 120000; // 2 minutes
 server.keepAliveTimeout = 65000; // 65 seconds (slightly higher than typical load balancer timeouts)
+server.headersTimeout = 66000; // slightly higher than keepAliveTimeout
+server.requestTimeout = 120000; // same as timeout
 
 server.on('listening', async () => {
     const addr: string | AddressInfo | null = server.address();
