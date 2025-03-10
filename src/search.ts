@@ -32,6 +32,7 @@ const searchConfig = {
      */
     directCommands: {
         '@a': '/actions',
+        '@action': '/actions',
         '@actions': '/actions',
         '@admin': '/admin',
         '@am': '/admin',
@@ -40,6 +41,7 @@ const searchConfig = {
         '@bang': '/',
         '@bangs': '/',
         '@bm': '/bookmarks',
+        '@bookmark': '/bookmarks',
         '@bookmarks': '/bookmarks',
         '@data': '/settings/data',
         '@s': '/settings',
@@ -413,13 +415,13 @@ export async function search({
         const command = parts[0] as string;
         const searchTerm = parts.slice(1).join(' ');
 
-        if (Object.keys(searchConfig.directCommands).includes(command)) {
-            if (['@note', '@notes', '@n'].includes(command)) {
+        if (searchConfig.directCommands[command as keyof typeof searchConfig.directCommands]) {
+            if (['@n', '@note', '@notes'].includes(command)) {
                 directCommandCache.set(query, `/notes?search=${encodeURIComponent(searchTerm)}`);
                 return res.redirect(`/notes?search=${encodeURIComponent(searchTerm)}`);
             }
 
-            if (['@bm', '@bookmarks'].includes(command)) {
+            if (['@bm', '@bookmark', '@bookmarks'].includes(command)) {
                 directCommandCache.set(
                     query,
                     `/bookmarks?search=${encodeURIComponent(searchTerm)}`,
@@ -427,7 +429,7 @@ export async function search({
                 return res.redirect(`/bookmarks?search=${encodeURIComponent(searchTerm)}`);
             }
 
-            if (['@a', '@actions'].includes(command)) {
+            if (['@a', '@action', '@actions'].includes(command)) {
                 directCommandCache.set(query, `/actions?search=${encodeURIComponent(searchTerm)}`);
                 return res.redirect(`/actions?search=${encodeURIComponent(searchTerm)}`);
             }
@@ -442,6 +444,7 @@ export async function search({
         trigger &&
         searchConfig.systemBangs.includes(trigger as (typeof searchConfig.systemBangs)[number])
     ) {
+        // prettier-ignore
         // If user is not authenticated, redirect to login for all system commands
         if (!user) {
             return redirectWithAlert(res, '/login', 'Please log in to use this feature');
@@ -504,19 +507,19 @@ export async function search({
                 }
 
                 return res
-                  .setHeader('Content-Type', 'text/html')
-                  .status(422)
-                  .send(`
-                                                   <script>
-                                                           const newTrigger = prompt("${message}");
-                                                           if (newTrigger) {
-                                                                   const domain = window.location.origin;
-                                                                   window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
-                                                           } else {
-                                                                   window.history.back();
-                                                           }
-                                                   </script>
-                                           `); // prettier-ignore
+                    .setHeader('Content-Type', 'text/html')
+                    .status(422)
+                    .send(`
+                        <script>
+                            const newTrigger = prompt("${message}");
+                            if (newTrigger) {
+                                const domain = window.location.origin;
+                                window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
+                            } else {
+                                window.history.back();
+                            }
+                        </script>
+                    `); // prettier-ignore
             }
 
             // Create new bang command and queue title fetch
