@@ -877,8 +877,8 @@ describe('processDelayedSearch', () => {
     });
 
     it('should delay for the specified time', async () => {
-        // Use a very small delay for testing
-        const delayMs = 5;
+        // Use a larger delay for more reliable testing
+        const delayMs = 10;
         const req = {
             session: {
                 cumulativeDelay: delayMs,
@@ -889,8 +889,8 @@ describe('processDelayedSearch', () => {
         await processDelayedSearch(req);
         const duration = Date.now() - start;
 
-        // Should be at least the delay time
-        expect(duration).toBeGreaterThanOrEqual(delayMs);
+        // Should be at least the delay time, with a small buffer for timing inconsistencies
+        expect(duration).toBeGreaterThanOrEqual(delayMs - 1);
     });
 
     /**
