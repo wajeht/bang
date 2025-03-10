@@ -242,7 +242,7 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
                 warning: req.flash('warning'),
             },
             version: {
-                style: isProd ? '0.10' : randomNumber,
+                style: isProd ? '0.11' : randomNumber,
                 script: isProd ? '0.9' : randomNumber,
             },
         };
