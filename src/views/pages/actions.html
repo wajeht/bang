@@ -3,8 +3,19 @@
         function highlightSearchTerm(text, searchTerm) {
             if (!searchTerm || !text) return text;
 
-            const searchRegex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            return text.toString().replace(searchRegex, match => `<span class="search-highlight">${match}</span>`);
+            let result = text.toString();
+
+            const searchWords = searchTerm.trim().split(/\s+/);
+
+            for (const word of searchWords) {
+                if (word.length > 0) {
+                    const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const wordRegex = new RegExp(escapedWord, 'gi');
+                    result = result.replace(wordRegex, match => `<span class="search-highlight">${match}</span>`);
+                }
+            }
+
+            return result;
         }
     %>
 
