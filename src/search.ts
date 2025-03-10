@@ -399,12 +399,39 @@ export async function search({
     }
 
     // Then check in searchConfig
-    const directCommand =
-        searchConfig.directCommands[query as keyof typeof searchConfig.directCommands];
+    const directCommand = searchConfig.directCommands[query as keyof typeof searchConfig.directCommands]; // prettier-ignore
+
     if (directCommand) {
         // Cache for future use
         directCommandCache.set(query, directCommand);
         return res.redirect(directCommand);
+    }
+
+    // Handle direct commands with search terms
+    if (query.startsWith('@') && query.includes(' ')) {
+        const parts = query.split(' ');
+        const command = parts[0] as string;
+        const searchTerm = parts.slice(1).join(' ');
+
+        if (Object.keys(searchConfig.directCommands).includes(command)) {
+            if (['@note', '@notes', '@n'].includes(command)) {
+                directCommandCache.set(query, `/notes?search=${encodeURIComponent(searchTerm)}`);
+                return res.redirect(`/notes?search=${encodeURIComponent(searchTerm)}`);
+            }
+
+            if (['@bm', '@bookmarks'].includes(command)) {
+                directCommandCache.set(
+                    query,
+                    `/bookmarks?search=${encodeURIComponent(searchTerm)}`,
+                );
+                return res.redirect(`/bookmarks?search=${encodeURIComponent(searchTerm)}`);
+            }
+
+            if (['@a', '@actions'].includes(command)) {
+                directCommandCache.set(query, `/actions?search=${encodeURIComponent(searchTerm)}`);
+                return res.redirect(`/actions?search=${encodeURIComponent(searchTerm)}`);
+            }
+        }
     }
 
     // Fast path for system bang commands - check early since they're frequently used
@@ -415,90 +442,131 @@ export async function search({
         trigger &&
         searchConfig.systemBangs.includes(trigger as (typeof searchConfig.systemBangs)[number])
     ) {
-        // If we have a user and the trigger is a system command like !bm (bookmark)
-        if (user) {
-            // Process bookmark creation command (!bm)
-            if (trigger === '!bm') {
-                if (!url || !isValidUrl(url)) {
-                    return goBackWithAlert(res, 'Invalid or missing URL');
-                }
-
-                try {
-                    // Extract title from command by removing "!bm" and URL
-                    const urlIndex = query.indexOf(url!);
-                    const titleSection = query.slice(4, urlIndex).trim();
-
-                    void insertBookmarkQueue.push({
-                        url,
-                        title: titleSection || '',
-                        userId: user.id,
-                    });
-
-                    return res.redirect(url);
-                } catch (_error) {
-                    return redirectWithAlert(res, 'Error adding bookmark');
-                }
-            }
-
-            // Process custom bang creation command (!add)
-            if (trigger === '!add') {
-                const [, rawTrigger, url] = query.split(' ');
-                const trigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
-
-                // Validate command format
-                if (!trigger || !url?.length) {
-                    return goBackWithAlert(res, 'Invalid trigger or empty URL');
-                }
-
-                // Prevent duplicates and system command conflicts
-                const hasSystemBangCommands = searchConfig.systemBangs.includes(
-                    trigger as (typeof searchConfig.systemBangs)[number],
-                );
-                const hasExistingCustomBangCommand = await db('bangs')
-                    .where({ user_id: user.id, trigger })
-                    .first();
-
-                if (hasExistingCustomBangCommand || hasSystemBangCommands) {
-                    let message = 'Trigger ${trigger} already exists. Please enter a new trigger:';
-
-                    if (hasSystemBangCommands) {
-                        message = `${trigger} is a bang's systems command. Please enter a new trigger:`;
-                    }
-
-                    return res
-                      .setHeader('Content-Type', 'text/html')
-                      .status(422)
-                      .send(`
-							<script>
-								const newTrigger = prompt("${message}");
-								if (newTrigger) {
-									const domain = window.location.origin;
-									window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
-								} else {
-									window.history.back();
-								}
-							</script>
-						`); // prettier-ignore
-                }
-
-                // Create new bang command and queue title fetch
-                const bangs = await db('bangs')
-                    .insert({
-                        user_id: user.id,
-                        trigger,
-                        name: 'Fetching title...',
-                        action_type_id: 2, // redirect
-                        url,
-                    })
-                    .returning('*');
-
-                void insertPageTitleQueue.push({ actionId: bangs[0].id, url });
-
-                return goBack(res);
-            }
-        } else {
-            // Unauthenticated users get redirected to login if they try to use system commands
+        // If user is not authenticated, redirect to login for all system commands
+        if (!user) {
             return redirectWithAlert(res, '/login', 'Please log in to use this feature');
+        }
+
+        // Process bookmark creation command (!bm)
+        // Format supported:
+        // 1. !bm URL
+        // Example: !bm https://example.com
+        if (trigger === '!bm') {
+            if (!url || !isValidUrl(url)) {
+                return goBackWithAlert(res, 'Invalid or missing URL');
+            }
+
+            try {
+                // Extract title from command by removing "!bm" and URL
+                const urlIndex = query.indexOf(url!);
+                const titleSection = query.slice(4, urlIndex).trim();
+
+                void insertBookmarkQueue.push({
+                    url,
+                    title: titleSection || '',
+                    userId: user.id,
+                });
+
+                return res.redirect(url);
+            } catch (_error) {
+                return redirectWithAlert(res, 'Error adding bookmark');
+            }
+        }
+
+        // Process custom bang creation command (!add)
+        // Format supported:
+        // 1. !add !trigger URL
+        // 2. !add trigger URL
+        // Example: !add !custom https://custom-search.com
+        // Example: !add custom https://custom-search.com
+        if (trigger === '!add') {
+            const [, rawTrigger, url] = query.split(' ');
+            const trigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
+
+            // Validate command format
+            if (!trigger || !url?.length) {
+                return goBackWithAlert(res, 'Invalid trigger or empty URL');
+            }
+
+            // Prevent duplicates and system command conflicts
+            const hasSystemBangCommands = searchConfig.systemBangs.includes(
+                trigger as (typeof searchConfig.systemBangs)[number],
+            );
+            const hasExistingCustomBangCommand = await db('bangs')
+                .where({ user_id: user.id, trigger })
+                .first();
+
+            if (hasExistingCustomBangCommand || hasSystemBangCommands) {
+                let message = 'Trigger ${trigger} already exists. Please enter a new trigger:';
+
+                if (hasSystemBangCommands) {
+                    message = `${trigger} is a bang's systems command. Please enter a new trigger:`;
+                }
+
+                return res
+                  .setHeader('Content-Type', 'text/html')
+                  .status(422)
+                  .send(`
+                                                   <script>
+                                                           const newTrigger = prompt("${message}");
+                                                           if (newTrigger) {
+                                                                   const domain = window.location.origin;
+                                                                   window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
+                                                           } else {
+                                                                   window.history.back();
+                                                           }
+                                                   </script>
+                                           `); // prettier-ignore
+            }
+
+            // Create new bang command and queue title fetch
+            const bangs = await db('bangs')
+                .insert({
+                    user_id: user.id,
+                    trigger,
+                    name: 'Fetching title...',
+                    action_type_id: 2, // redirect
+                    url,
+                })
+                .returning('*');
+
+            void insertPageTitleQueue.push({ actionId: bangs[0].id, url });
+
+            return goBack(res);
+        }
+
+        // Process note creation command (!note)
+        // Formats supported:
+        // 1. !note this is the title | this is the content
+        // 2. !note this is the content without title
+        // Example: !note this is the title | this is the content
+        // Example: !note this is the content without title
+        if (trigger === '!note') {
+            const contentStartIndex = query.indexOf(' ');
+            const fullContent = query.slice(contentStartIndex + 1).trim();
+
+            // If content contains a pipe, split into title and content
+            const hasPipe = fullContent.includes('|');
+            let title = '';
+            let content = fullContent;
+
+            if (hasPipe) {
+                const parts = fullContent.split('|');
+                title = parts[0]?.trim() || '';
+                content = parts[1]?.trim() || '';
+            }
+
+            if (!content) {
+                return goBackWithAlert(res, 'Content is required');
+            }
+
+            await db('notes').insert({
+                user_id: user.id,
+                title: title || 'Untitled',
+                content,
+            });
+
+            return goBack(res);
         }
     }
 
@@ -511,66 +579,6 @@ export async function search({
             triggerWithoutExclamationMark ?? '',
             searchTerm ?? '',
         );
-    }
-
-    // Handle application navigation shortcuts (e.g., "@settings", "@bookmarks")
-    // This section moved up in our optimization
-
-    // Process bookmark creation command (!bm)
-    // Formats supported:
-    // 1. !bm https://example.com
-    // 2. !bm title https://example.com
-    // 3. !bm this is a long title https://example.com
-    if (trigger === '!bm') {
-        if (!url || !isValidUrl(url)) {
-            return goBackWithAlert(res, 'Invalid or missing URL');
-        }
-
-        try {
-            // Extract title from command by removing "!bm" and URL
-            const urlIndex = query.indexOf(url!);
-            const titleSection = query.slice(4, urlIndex).trim();
-
-            void insertBookmarkQueue.push({ url, title: titleSection || '', userId: user.id });
-
-            return res.redirect(url);
-        } catch (_error) {
-            return redirectWithAlert(res, 'Error adding bookmark');
-        }
-    }
-
-    // Process note creation command (!note)
-    // Formats supported:
-    // 1. !note this is the title | this is the content
-    // 2. !note this is the content without title
-    if (trigger === '!note') {
-        const parts = searchTerm?.split('|') || [];
-        let title, content;
-
-        if (parts.length > 1) {
-            // Format 1: title | content
-            title = parts[0]?.trim() || 'Untitled';
-            content = parts.slice(1).join('|').trim();
-        } else {
-            // Format 2: content only
-            title = 'Untitled';
-            content = parts[0]?.trim() || '';
-        }
-
-        if (content.length === 0) {
-            return goBackWithAlert(
-                res,
-                'Invalid note format. Use: !note content or !note title | content',
-            );
-        }
-
-        await db('notes').insert({
-            user_id: user.id,
-            title,
-            content,
-        });
-
-        return goBack(res);
     }
 
     // Process custom bang commands for authenticated users
@@ -586,16 +594,18 @@ export async function search({
             .first();
 
         if (customBang) {
-            // Handle redirect-type bangs (direct URL navigation)
+            if (customBang.action_type === 'search') {
+                return res.redirect(
+                    customBang.url.replace('{{{s}}}', encodeURIComponent(searchTerm ?? '')),
+                );
+            }
+
             if (customBang.action_type === 'redirect') {
                 return res.redirect(customBang.url);
             }
 
-            // Handle search-type bangs (URL with search parameter)
-            if (customBang.action_type === 'search') {
-                return res.redirect(
-                    customBang.url.replace('{{{s}}}', encodeURIComponent(searchTerm)),
-                );
+            if (customBang.action_type === 'bookmark') {
+                return res.redirect(`/bookmarks#${customBang.id}`);
             }
         }
     }
