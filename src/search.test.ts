@@ -269,6 +269,126 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/');
         });
 
+        it('should handle direct commands with search terms for @notes', async () => {
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+            } as unknown as Response;
+
+            // Clear cache before test
+            directCommandCache.clear();
+
+            // Test @notes with search term
+            await search({ req, res, user: testUser, query: '@notes search query' });
+            expect(res.redirect).toHaveBeenCalledWith('/notes?search=search%20query');
+
+            // Test @note alias
+            vi.mocked(res.redirect).mockClear();
+            await search({ req, res, user: testUser, query: '@note another query' });
+            expect(res.redirect).toHaveBeenCalledWith('/notes?search=another%20query');
+
+            // Test @n shorthand
+            vi.mocked(res.redirect).mockClear();
+            await search({ req, res, user: testUser, query: '@n shorthand' });
+            expect(res.redirect).toHaveBeenCalledWith('/notes?search=shorthand');
+        });
+
+        it('should handle direct commands with search terms for @bookmarks', async () => {
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+            } as unknown as Response;
+
+            // Clear cache before test
+            directCommandCache.clear();
+
+            // Test @bookmarks with search term
+            await search({ req, res, user: testUser, query: '@bookmarks search query' });
+            expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=search%20query');
+
+            // Test @bm alias
+            vi.mocked(res.redirect).mockClear();
+            await search({ req, res, user: testUser, query: '@bm bookmark query' });
+            expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=bookmark%20query');
+        });
+
+        it('should handle direct commands with search terms for @actions', async () => {
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+            } as unknown as Response;
+
+            // Clear cache before test
+            directCommandCache.clear();
+
+            // Test @actions with search term
+            await search({ req, res, user: testUser, query: '@actions search query' });
+            expect(res.redirect).toHaveBeenCalledWith('/actions?search=search%20query');
+
+            // Test @a alias
+            vi.mocked(res.redirect).mockClear();
+            await search({ req, res, user: testUser, query: '@a action query' });
+            expect(res.redirect).toHaveBeenCalledWith('/actions?search=action%20query');
+        });
+
+        it('should correctly cache direct commands with search terms', async () => {
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+            } as unknown as Response;
+
+            // Clear cache before test
+            directCommandCache.clear();
+
+            // Spy on cache operations
+            const setCacheSpy = vi.spyOn(directCommandCache, 'set');
+            const getCacheSpy = vi.spyOn(directCommandCache, 'get');
+
+            // First call should set cache
+            const testQuery = '@notes test caching';
+            await search({ req, res, user: testUser, query: testQuery });
+            expect(setCacheSpy).toHaveBeenCalledWith(testQuery, '/notes?search=test%20caching');
+            expect(res.redirect).toHaveBeenCalledWith('/notes?search=test%20caching');
+
+            // Reset mocks to check cache retrieval
+            setCacheSpy.mockClear();
+            vi.mocked(res.redirect).mockClear();
+
+            // Mock cache hit
+            getCacheSpy.mockReturnValueOnce('/notes?search=test%20caching');
+
+            // Second call should use cache
+            await search({ req, res, user: testUser, query: testQuery });
+            expect(getCacheSpy).toHaveBeenCalled();
+            expect(setCacheSpy).not.toHaveBeenCalled(); // Should not set cache again
+            expect(res.redirect).toHaveBeenCalledWith('/notes?search=test%20caching');
+
+            // Restore spies
+            setCacheSpy.mockRestore();
+            getCacheSpy.mockRestore();
+        });
+
+        it('should handle special characters in search terms', async () => {
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+            } as unknown as Response;
+
+            // Clear cache
+            directCommandCache.clear();
+
+            // Test with special characters
+            await search({
+                req,
+                res,
+                user: testUser,
+                query: '@notes test & special + characters?',
+            });
+            expect(res.redirect).toHaveBeenCalledWith(
+                '/notes?search=test%20%26%20special%20%2B%20characters%3F',
+            );
+        });
+
         it('should handle bookmark creation with title', async () => {
             const req = {} as Request;
             const res = {
