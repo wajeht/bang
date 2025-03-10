@@ -411,7 +411,10 @@ export async function search({
     const { trigger, triggerWithoutExclamationMark, url, searchTerm } = parseSearchQuery(query);
 
     // Process system-level bang commands (!bm, !add, !note)
-    if (trigger && searchConfig.systemBangs.includes(trigger as any)) {
+    if (
+        trigger &&
+        searchConfig.systemBangs.includes(trigger as (typeof searchConfig.systemBangs)[number])
+    ) {
         // If we have a user and the trigger is a system command like !bm (bookmark)
         if (user) {
             // Process bookmark creation command (!bm)
@@ -432,7 +435,7 @@ export async function search({
                     });
 
                     return res.redirect(url);
-                } catch (error) {
+                } catch (_error) {
                     return redirectWithAlert(res, 'Error adding bookmark');
                 }
             }
@@ -531,7 +534,7 @@ export async function search({
             void insertBookmarkQueue.push({ url, title: titleSection || '', userId: user.id });
 
             return res.redirect(url);
-        } catch (error) {
+        } catch (_error) {
             return redirectWithAlert(res, 'Error adding bookmark');
         }
     }

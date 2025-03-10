@@ -48,8 +48,23 @@ export async function seed(knex: Knex): Promise<void> {
             })
             .returning('*');
 
-        // Get action types
-        const actionTypes = await knex('action_types').select('*');
+        // Get or create action types
+        let actionTypes = await knex('action_types').select('*');
+
+        // If action types don't exist, create them
+        if (actionTypes.length === 0) {
+            console.log('No action types found. Creating them now...');
+
+            await knex('action_types').insert([
+                { name: 'search', description: 'Search action' },
+                { name: 'redirect', description: 'Redirect action' },
+                { name: 'bookmark', description: 'Bookmark action' },
+            ]);
+
+            // Fetch the newly created action types
+            actionTypes = await knex('action_types').select('*');
+        }
+
         const searchType = actionTypes.find((type) => type.name === 'search');
         const redirectType = actionTypes.find((type) => type.name === 'redirect');
         const bookmarkType = actionTypes.find((type) => type.name === 'bookmark');

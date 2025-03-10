@@ -28,7 +28,7 @@ export async function getHealthzHandler(req: Request, res: Response) {
         }
 
         res.setHeader('Content-Type', 'text/html').status(200).send('<p>ok</p>');
-    } catch (error) {
+    } catch (_error) {
         if (expectJson(req)) {
             res.status(503).json({
                 status: 'error',
@@ -670,9 +670,9 @@ export const postExportDataHandler = [
         const exportData: {
             exported_at: string;
             version: string;
-            bookmarks?: any[];
-            actions?: any[];
-            notes?: any[];
+            bookmarks?: Record<string, unknown>[];
+            actions?: Record<string, unknown>[];
+            notes?: Record<string, unknown>[];
         } = {
             exported_at: new Date().toISOString(),
             version: '1.0',
@@ -735,7 +735,7 @@ export const postImportDataHandler = [
                     if (!parsed.version || parsed.version !== '1.0') {
                         throw new ValidationError('Config version must be 1.0');
                     }
-                } catch (error) {
+                } catch (_error) {
                     throw new ValidationError('Invalid JSON format');
                 }
 
@@ -749,12 +749,14 @@ export const postImportDataHandler = [
         try {
             await db.transaction(async (trx) => {
                 if (importData.bookmarks?.length > 0) {
-                    const bookmarks = importData.bookmarks.map((bookmark: any) => ({
-                        user_id: userId,
-                        title: bookmark.title,
-                        url: bookmark.url,
-                        created_at: db.fn.now(),
-                    }));
+                    const bookmarks = importData.bookmarks.map(
+                        (bookmark: { title: string; url: string }) => ({
+                            user_id: userId,
+                            title: bookmark.title,
+                            url: bookmark.url,
+                            created_at: db.fn.now(),
+                        }),
+                    );
                     await trx('bookmarks').insert(bookmarks);
                 }
 
@@ -778,19 +780,21 @@ export const postImportDataHandler = [
                 }
 
                 if (importData.notes?.length > 0) {
-                    const notes = importData.notes.map((note: any) => ({
-                        user_id: userId,
-                        title: note.title,
-                        content: note.content,
-                        created_at: db.fn.now(),
-                    }));
+                    const notes = importData.notes.map(
+                        (note: { title: string; content: string }) => ({
+                            user_id: userId,
+                            title: note.title,
+                            content: note.content,
+                            created_at: db.fn.now(),
+                        }),
+                    );
 
                     await trx('notes').insert(notes);
                 }
             });
 
             req.flash('success', 'Data imported successfully!');
-        } catch (error) {
+        } catch (_error) {
             req.flash('error', 'Failed to import data. Please check the format and try again.');
         }
 

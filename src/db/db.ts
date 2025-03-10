@@ -38,7 +38,7 @@ export async function runMigrations(force: boolean = false) {
         }
 
         const migrationList = migrations
-            .map((migration: any) => migration.split('_')[1].split('.')[0])
+            .map((migration: string) => migration.split('_')[1]?.split('.')[0] ?? '')
             .join(', ');
 
         logger.info(`database upgrades completed for ${migrationList} schema`);
