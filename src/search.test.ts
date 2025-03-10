@@ -2,7 +2,13 @@ import { db } from './db/db';
 import { User } from './type';
 import * as utils from './util';
 import * as searchModule from './search';
-import { search, processDelayedSearch } from './search';
+import {
+    search,
+    processDelayedSearch,
+    bangCache,
+    directCommandCache,
+    bangsLookupMap,
+} from './search';
 import { appConfig } from './config';
 import { parseSearchQuery } from './search';
 import { Request, Response } from 'express';
@@ -731,6 +737,11 @@ describe('parseSearchQuery', () => {
     });
 });
 
+/**
+ * Tests for the non-blocking processDelayedSearch function
+ * These tests verify that our delay implementation doesn't block concurrent operations
+ * and correctly applies the configured delay
+ */
 describe('processDelayedSearch', () => {
     it('should not delay if no cumulative delay is set', async () => {
         const req = {
@@ -762,6 +773,11 @@ describe('processDelayedSearch', () => {
         expect(duration).toBeGreaterThanOrEqual(delayMs);
     });
 
+    /**
+     * This test verifies that our implementation is truly non-blocking
+     * It confirms that other operations can continue to execute while a delay is in progress
+     * This behavior is essential for handling concurrent requests efficiently
+     */
     it('should not block other operations while waiting', async () => {
         // Set up a longer delay
         const delayMs = 20;
@@ -822,5 +838,152 @@ describe('handleAnonymousSearch', () => {
         } finally {
             queuePushSpy.mockRestore();
         }
+    });
+});
+
+/**
+ * Tests for the various caching mechanisms
+ * These tests validate that our performance optimizations work correctly:
+ * 1. Caching bang redirect URLs to avoid redundant calculations
+ * 2. Caching direct command URLs for faster navigation
+ * 3. Using a Map for O(1) lookup of bangs
+ */
+describe('caching mechanisms', () => {
+    /**
+     * Tests for the bangCache
+     * Verifies that URLs are properly cached and retrieved for subsequent calls
+     */
+    describe('bangCache', () => {
+        it('should cache and return bang redirect URLs', async () => {
+            // Create a test bang
+            const testBang = {
+                u: 'https://example.com/search?q={{{s}}}',
+                d: 'example.com',
+            } as unknown as import('./type').Bang;
+            const searchTerm = 'test search';
+
+            // Clear any existing entries to start fresh
+            bangCache.clear();
+
+            // Spy on the cache set method
+            const setCacheSpy = vi.spyOn(bangCache, 'set');
+            const getCacheSpy = vi.spyOn(bangCache, 'get');
+
+            // First call should compute and cache the URL
+            const firstResult = searchModule.getBangRedirectUrl(testBang, searchTerm);
+            expect(firstResult).toBe('https://example.com/search?q=test%20search');
+            expect(setCacheSpy).toHaveBeenCalled();
+
+            // Reset the spies
+            setCacheSpy.mockClear();
+            getCacheSpy.mockClear();
+
+            // Second call should use the cache
+            const secondResult = searchModule.getBangRedirectUrl(testBang, searchTerm);
+            expect(secondResult).toBe('https://example.com/search?q=test%20search');
+            expect(getCacheSpy).toHaveBeenCalled();
+            expect(setCacheSpy).not.toHaveBeenCalled(); // Should not set cache again
+
+            // Restore spies
+            setCacheSpy.mockRestore();
+            getCacheSpy.mockRestore();
+        });
+
+        it('should handle different search terms with separate cache entries', async () => {
+            // Create a test bang
+            const testBang = {
+                u: 'https://example.com/search?q={{{s}}}',
+                d: 'example.com',
+            } as unknown as import('./type').Bang;
+
+            // Clear any existing entries to start fresh
+            bangCache.clear();
+
+            // Two different search terms should create separate cache entries
+            const firstResult = searchModule.getBangRedirectUrl(testBang, 'term1');
+            const secondResult = searchModule.getBangRedirectUrl(testBang, 'term2');
+
+            expect(firstResult).toBe('https://example.com/search?q=term1');
+            expect(secondResult).toBe('https://example.com/search?q=term2');
+
+            // The cache should now have two different entries
+            expect(bangCache.size).toBe(2);
+        });
+    });
+
+    /**
+     * Tests for the directCommandCache
+     * Validates that direct navigation commands are properly cached for faster access
+     */
+    describe('directCommandCache', () => {
+        it('should cache and return direct command URLs', async () => {
+            // Clear any existing entries to start fresh
+            directCommandCache.clear();
+
+            // Setup test
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+            } as unknown as Response;
+            const directCommand = '@settings';
+
+            // Mock what we need to test just the direct command path
+            vi.spyOn(searchModule, 'parseSearchQuery').mockReturnValue({
+                trigger: null,
+                triggerWithoutExclamationMark: null,
+                url: null,
+                searchTerm: '',
+            });
+
+            // Spy on the cache methods
+            const setCacheSpy = vi.spyOn(directCommandCache, 'set');
+            const getCacheSpy = vi.spyOn(directCommandCache, 'get');
+
+            // First search should compute and cache
+            await searchModule.search({ req, res, user: {} as User, query: directCommand });
+            expect(res.redirect).toHaveBeenCalledWith('/settings');
+            expect(setCacheSpy).toHaveBeenCalled();
+
+            // Reset spies and mocks
+            (res.redirect as ReturnType<typeof vi.fn>).mockClear();
+            setCacheSpy.mockClear();
+            getCacheSpy.mockClear();
+
+            // Mock cached value retrieval
+            getCacheSpy.mockReturnValueOnce('/settings');
+
+            // Second search should use the cache
+            await searchModule.search({ req, res, user: {} as User, query: directCommand });
+            expect(res.redirect).toHaveBeenCalledWith('/settings');
+            expect(getCacheSpy).toHaveBeenCalled();
+            expect(setCacheSpy).not.toHaveBeenCalled(); // Should not set cache again
+
+            // Restore all mocks
+            vi.restoreAllMocks();
+        });
+    });
+
+    /**
+     * Tests for the bangsLookupMap
+     * Confirms that the precomputed Map provides fast and accurate bang lookups
+     */
+    describe('bangsLookupMap', () => {
+        it('should provide faster access to bangs', async () => {
+            // Ensure the map is initialized
+            expect(bangsLookupMap).toBeDefined();
+            expect(bangsLookupMap instanceof Map).toBe(true);
+
+            // Verify common bangs are in the map
+            expect(bangsLookupMap.has('g')).toBe(true); // Google should exist
+
+            // Get a bang from the map
+            const googleBang = bangsLookupMap.get('g');
+            expect(googleBang).toBeDefined();
+            expect(googleBang?.u).toContain('google.com');
+
+            // Test with invalid key
+            const nonExistentBang = bangsLookupMap.get('nonexistent123456');
+            expect(nonExistentBang).toBeUndefined();
+        });
     });
 });

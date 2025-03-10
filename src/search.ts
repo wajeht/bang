@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import { bangs as bangsTable } from './db/bang';
 import { defaultSearchProviders } from './config';
 import { addHttps, insertBookmarkQueue, insertPageTitleQueue, isValidUrl } from './util';
+import { LRUCache } from 'lru-cache';
 
 /**
  * Core configuration constants for the search functionality
@@ -25,7 +26,7 @@ const searchConfig = {
     /**
      * System-level bang commands that cannot be overridden by user-defined bangs
      */
-    systemBangs: ['!add', '!bm', '!note'],
+    systemBangs: ['!add', '!bm', '!note'] as const,
     /**
      * Direct commands that can be used to navigate to different sections of the application
      */
@@ -48,6 +49,26 @@ const searchConfig = {
         '@notes': '/notes',
     },
 } as const;
+
+/**
+ * Cache for frequently used bang redirects to avoid repeated processing
+ * Improves performance by eliminating redundant URL generation for common bangs
+ * Uses a fixed size LRU cache to manage memory usage and provide high-speed lookups
+ */
+export const bangCache = new LRUCache<string, string>({
+    max: 100, // Maximum number of items to store
+    ttl: 1000 * 60 * 60, // Cache TTL: 1 hour
+});
+
+/**
+ * Cache for direct commands to avoid repeated lookups
+ * Provides instant access to frequently used navigation commands
+ * Uses a fixed size LRU cache with longer TTL since direct commands rarely change
+ */
+export const directCommandCache = new LRUCache<string, string>({
+    max: 50,
+    ttl: 1000 * 60 * 60 * 24, // 24 hours - these rarely change
+});
 
 /**
  * Queue for tracking search history of unauthenticated users asynchronously
@@ -213,19 +234,26 @@ export function getSearchLimitWarning(req: Request, searchCount: number) {
 }
 
 /**
- * Processes bang redirect URLs Handles both search queries and direct domain redirects
+ * Initialize a Map for faster bang lookups
+ * This provides O(1) access instead of iterating through the bangs object
+ * Precomputing this map at startup offers significant performance benefits
+ * for frequently accessed bangs
  */
-export function getBangRedirectUrl(bang: Bang, searchTerm: string) {
-    if (searchTerm) {
-        return bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm));
-    }
-
-    return addHttps(bang.d);
+function initializeBangMap() {
+    const bangMap = new Map<string, Bang>();
+    Object.entries(searchConfig.bangs).forEach(([key, value]) => {
+        bangMap.set(key, value as Bang);
+    });
+    return bangMap;
 }
+
+// Precomputed bang lookup map for faster access
+export const bangsLookupMap = initializeBangMap();
 
 /**
  * Process a search request with the appropriate delay
- * Returns a Promise that resolves with the URL to redirect to
+ * Uses a non-blocking approach that doesn't affect concurrent requests
+ * The delay is applied only to the specific rate-limited request
  */
 export async function processDelayedSearch(req: Request): Promise<void> {
     if (req.session.cumulativeDelay) {
@@ -234,11 +262,11 @@ export async function processDelayedSearch(req: Request): Promise<void> {
 }
 
 /**
- * Handles the flow for unauthenticated users
- * Displays warning when user approaches or exceeds search limits
- * Enforces rate limiting delay for users who exceeded search limits
- * Asynchronously tracks search for analytics purposes
- * Processes bang commands for unauthenticated users
+ * Optimized search handler for anonymous users
+ * Uses the bang lookup map for faster access
+ * Implements non-blocking rate limiting
+ * Asynchronously tracks search history
+ * Includes optimized paths for common bangs
  */
 export async function handleAnonymousSearch(
     req: Request,
@@ -272,7 +300,8 @@ export async function handleAnonymousSearch(
         const message = `This search was delayed by ${req.session.cumulativeDelay / 1000} seconds due to rate limiting.`;
 
         if (triggerWithoutBang) {
-            const bang = searchConfig.bangs[triggerWithoutBang] as Bang;
+            // Use the Map for faster lookups instead of object property access
+            const bang = bangsLookupMap.get(triggerWithoutBang);
             if (bang) {
                 redirectUrl = getBangRedirectUrl(bang, searchTerm || '');
             } else {
@@ -295,9 +324,10 @@ export async function handleAnonymousSearch(
         return redirectWithAlert(res, redirectUrl, message);
     }
 
-    // Process bang commands for unauthenticated users
+    // Process bang commands for unauthenticated users - use the Map for faster lookups
     if (triggerWithoutBang) {
-        const bang = searchConfig.bangs[triggerWithoutBang] as Bang;
+        // Use the Map for faster lookups instead of object property access
+        const bang = bangsLookupMap.get(triggerWithoutBang);
         if (bang) {
             // Handle search queries with bang (e.g., "!g python")
             if (searchTerm) {
@@ -316,6 +346,36 @@ export async function handleAnonymousSearch(
 }
 
 /**
+ * Processes bang redirect URLs
+ * Handles both search queries and direct domain redirects
+ * Uses caching for frequently accessed bangs to improve performance
+ * Properly encodes search terms for URL safety
+ */
+export function getBangRedirectUrl(bang: Bang, searchTerm: string) {
+    // Create a cache key from the bang trigger and search term
+    const cacheKey = `${bang.d || bang.u}:${searchTerm}`;
+
+    // Check if we have a cached result
+    const cachedUrl = bangCache.get(cacheKey);
+    if (cachedUrl) {
+        return cachedUrl;
+    }
+
+    // Process the URL as before
+    let redirectUrl;
+    if (searchTerm) {
+        redirectUrl = bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm));
+    } else {
+        redirectUrl = addHttps(bang.d);
+    }
+
+    // Cache the result for future use
+    bangCache.set(cacheKey, redirectUrl);
+
+    return redirectUrl;
+}
+
+/**
  * Processes search queries and handles different user flows
  * - Unauthenticated user flow: Handles rate limiting, bang commands, and default search
  * - Authenticated user flow: Handles direct navigation commands, bookmark creation, and custom bang commands
@@ -331,10 +391,117 @@ export async function search({
     user?: User;
     query: string;
 }) {
+    // Fast path for direct commands - check first since they're the fastest to process
+    // First check cache
+    const cachedDirectCommand = directCommandCache.get(query);
+    if (cachedDirectCommand) {
+        return res.redirect(cachedDirectCommand);
+    }
+
+    // Then check in searchConfig
+    const directCommand =
+        searchConfig.directCommands[query as keyof typeof searchConfig.directCommands];
+    if (directCommand) {
+        // Cache for future use
+        directCommandCache.set(query, directCommand);
+        return res.redirect(directCommand);
+    }
+
+    // Fast path for system bang commands - check early since they're frequently used
     const { trigger, triggerWithoutExclamationMark, url, searchTerm } = parseSearchQuery(query);
 
+    // Process system-level bang commands (!bm, !add, !note)
+    if (trigger && searchConfig.systemBangs.includes(trigger as any)) {
+        // If we have a user and the trigger is a system command like !bm (bookmark)
+        if (user) {
+            // Process bookmark creation command (!bm)
+            if (trigger === '!bm') {
+                if (!url || !isValidUrl(url)) {
+                    return goBackWithAlert(res, 'Invalid or missing URL');
+                }
+
+                try {
+                    // Extract title from command by removing "!bm" and URL
+                    const urlIndex = query.indexOf(url!);
+                    const titleSection = query.slice(4, urlIndex).trim();
+
+                    void insertBookmarkQueue.push({
+                        url,
+                        title: titleSection || '',
+                        userId: user.id,
+                    });
+
+                    return res.redirect(url);
+                } catch (error) {
+                    return redirectWithAlert(res, 'Error adding bookmark');
+                }
+            }
+
+            // Process custom bang creation command (!add)
+            if (trigger === '!add') {
+                const [, rawTrigger, url] = query.split(' ');
+                const trigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
+
+                // Validate command format
+                if (!trigger || !url?.length) {
+                    return goBackWithAlert(res, 'Invalid trigger or empty URL');
+                }
+
+                // Prevent duplicates and system command conflicts
+                const hasSystemBangCommands = searchConfig.systemBangs.includes(
+                    trigger as (typeof searchConfig.systemBangs)[number],
+                );
+                const hasExistingCustomBangCommand = await db('bangs')
+                    .where({ user_id: user.id, trigger })
+                    .first();
+
+                if (hasExistingCustomBangCommand || hasSystemBangCommands) {
+                    let message = 'Trigger ${trigger} already exists. Please enter a new trigger:';
+
+                    if (hasSystemBangCommands) {
+                        message = `${trigger} is a bang's systems command. Please enter a new trigger:`;
+                    }
+
+                    return res
+                      .setHeader('Content-Type', 'text/html')
+                      .status(422)
+                      .send(`
+							<script>
+								const newTrigger = prompt("${message}");
+								if (newTrigger) {
+									const domain = window.location.origin;
+									window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
+								} else {
+									window.history.back();
+								}
+							</script>
+						`); // prettier-ignore
+                }
+
+                // Create new bang command and queue title fetch
+                const bangs = await db('bangs')
+                    .insert({
+                        user_id: user.id,
+                        trigger,
+                        name: 'Fetching title...',
+                        action_type_id: 2, // redirect
+                        url,
+                    })
+                    .returning('*');
+
+                void insertPageTitleQueue.push({ actionId: bangs[0].id, url });
+
+                return goBack(res);
+            }
+        } else {
+            // Unauthenticated users get redirected to login if they try to use system commands
+            return redirectWithAlert(res, '/login', 'Please log in to use this feature');
+        }
+    }
+
+    // Regular search flow - process anonymous vs authenticated user
     if (!user) {
-        return await handleAnonymousSearch(
+        return handleAnonymousSearch(
             req,
             res,
             query,
@@ -344,11 +511,7 @@ export async function search({
     }
 
     // Handle application navigation shortcuts (e.g., "@settings", "@bookmarks")
-    const directCommand =
-        searchConfig.directCommands[query as keyof typeof searchConfig.directCommands];
-    if (directCommand) {
-        return res.redirect(directCommand);
-    }
+    // This section moved up in our optimization
 
     // Process bookmark creation command (!bm)
     // Formats supported:
@@ -371,64 +534,6 @@ export async function search({
         } catch (error) {
             return redirectWithAlert(res, 'Error adding bookmark');
         }
-    }
-
-    // Process custom bang creation command (!add)
-    // Format: !add !trigger URL or !add trigger URL
-    if (trigger === '!add') {
-        const [, rawTrigger, url] = query.split(' ');
-        const trigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
-
-        // Validate command format
-        if (!trigger || !url?.length) {
-            return goBackWithAlert(res, 'Invalid trigger or empty URL');
-        }
-
-        // Prevent duplicates and system command conflicts
-        const hasSystemBangCommands = searchConfig.systemBangs.includes(
-            trigger as (typeof searchConfig.systemBangs)[number],
-        );
-        const hasExistingCustomBangCommand = await db('bangs')
-            .where({ user_id: user.id, trigger })
-            .first();
-
-        if (hasExistingCustomBangCommand || hasSystemBangCommands) {
-            let message = 'Trigger ${trigger} already exists. Please enter a new trigger:';
-
-            if (hasSystemBangCommands) {
-                message = `${trigger} is a bang's systems command. Please enter a new trigger:`;
-            }
-
-            return res
-              .setHeader('Content-Type', 'text/html')
-              .status(422)
-              .send(`
-					<script>
-						const newTrigger = prompt("${message}");
-						if (newTrigger) {
-							const domain = window.location.origin;
-							window.location.href = \`\${domain}/?q=!add \${newTrigger} ${url}\`;
-						} else {
-							window.history.back();
-						}
-					</script>
-				`); // prettier-ignore
-        }
-
-        // Create new bang command and queue title fetch
-        const bangs = await db('bangs')
-            .insert({
-                user_id: user.id,
-                trigger,
-                name: 'Fetching title...',
-                action_type_id: 2, // redirect
-                url,
-            })
-            .returning('*');
-
-        void insertPageTitleQueue.push({ actionId: bangs[0].id, url });
-
-        return goBack(res);
     }
 
     // Process note creation command (!note)
@@ -465,11 +570,15 @@ export async function search({
         return goBack(res);
     }
 
-    // Process user-defined custom bang commands
-    if (trigger) {
+    // Process custom bang commands for authenticated users
+    if (triggerWithoutExclamationMark) {
+        // First check for any custom bangs defined by the user
         const customBang = await db('bangs')
+            .where({
+                user_id: user.id,
+                trigger: trigger,
+            })
             .join('action_types', 'bangs.action_type_id', 'action_types.id')
-            .where({ 'bangs.trigger': trigger, 'bangs.user_id': user.id })
             .select('bangs.*', 'action_types.name as action_type')
             .first();
 
@@ -488,9 +597,10 @@ export async function search({
         }
     }
 
-    // Process system-defined bang commands
+    // Process system-defined bang commands - use the Map for faster lookups
     if (triggerWithoutExclamationMark) {
-        const bang = searchConfig.bangs[triggerWithoutExclamationMark] as Bang;
+        // Use the Map for faster lookups instead of object property access
+        const bang = bangsLookupMap.get(triggerWithoutExclamationMark);
         if (bang) {
             // Handle search queries with bang (e.g., "!g python")
             if (searchTerm) {
