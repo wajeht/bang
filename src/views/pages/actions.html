@@ -1,4 +1,13 @@
 <div style="display: flex; flex-direction: column; gap: 30px;">
+    <%
+        function highlightSearchTerm(text, searchTerm) {
+            if (!searchTerm || !text) return text;
+
+            const searchRegex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            return text.toString().replace(searchRegex, match => `<span class="search-highlight">${match}</span>`);
+        }
+    %>
+
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h2>⚡ Actions</h2>
@@ -99,23 +108,23 @@
                     <% for (let i = 0; i < data.length; i++) { %>
                         <tr style="border-bottom: 1px dashed #ddd;">
                             <% if (state.user.column_preferences?.actions?.name !== false) { %>
-                                <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%= data[i].name %></td>
+                                <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%- highlightSearchTerm(data[i].name, search) %></td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.trigger !== false) { %>
                                 <td style="padding: 10px;">
-                                    <code> <%= data[i].trigger %> </code>
+                                    <code> <%- highlightSearchTerm(data[i].trigger, search) %> </code>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.url !== false) { %>
                                 <td style="padding: 10px;">
                                     <a href="<%= data[i].url %>" target="_blank" rel="noopener noreferrer">
-                                        <%= data[i].url %>
+                                        <%- highlightSearchTerm(data[i].url, search) %>
                                     </a>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.action_type !== false) { %>
                                 <td style="padding: 10px;">
-                                    <code> <%= data[i].action_type %> </code>
+                                    <code> <%- highlightSearchTerm(data[i].action_type, search) %> </code>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.created_at !== false) { %>
