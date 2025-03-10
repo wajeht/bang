@@ -1,14 +1,15 @@
 import {
+    api,
     bookmark,
-    isValidUrl,
     addHttps,
-    fetchPageTitle,
     getApiKey,
-    isApiRequest,
+    isValidUrl,
     expectJson,
     extractUser,
+    isApiRequest,
+    fetchPageTitle,
     extractPagination,
-    api,
+    highlightSearchTerm,
 } from './util';
 import { db } from './db/db';
 import jwt from 'jsonwebtoken';
@@ -428,5 +429,89 @@ describe.concurrent('api', () => {
             const verifiedPayload = await api.verify(apiKey);
             expect(verifiedPayload).toBeNull();
         });
+    });
+});
+
+describe.concurrent('highlightSearchTerm', () => {
+    it('should return original text when search term is null or undefined', () => {
+        const text = 'This is a test';
+        expect(highlightSearchTerm(text, null)).toBe(text);
+        expect(highlightSearchTerm(text, undefined)).toBe(text);
+    });
+
+    it('should return null or undefined when text is null or undefined', () => {
+        expect(highlightSearchTerm(null, 'test')).toBe(null);
+        expect(highlightSearchTerm(undefined, 'test')).toBe(undefined);
+    });
+
+    it('should return original text when search term is empty', () => {
+        const text = 'This is a test';
+        expect(highlightSearchTerm(text, '')).toBe(text);
+        expect(highlightSearchTerm(text, '   ')).toBe(text);
+    });
+
+    it('should highlight a single word in text', () => {
+        const text = 'This is a test';
+        const expected = 'This is a <span class="search-highlight">test</span>';
+        expect(highlightSearchTerm(text, 'test')).toBe(expected);
+    });
+
+    it('should highlight multiple occurrences of a word', () => {
+        const text = 'Test this test and test again';
+        const expected =
+            '<span class="search-highlight">Test</span> this <span class="search-highlight">test</span> and <span class="search-highlight">test</span> again';
+        expect(highlightSearchTerm(text, 'test')).toBe(expected);
+    });
+
+    it('should highlight multiple search words', () => {
+        const text = 'The quick brown fox jumps over the lazy dog';
+        const expected =
+            'The <span class="search-highlight">quick</span> brown <span class="search-highlight">fox</span> jumps over the lazy dog';
+        expect(highlightSearchTerm(text, 'quick fox')).toBe(expected);
+    });
+
+    it('should escape HTML in the original text', () => {
+        const text = '<p>This is a test</p>';
+        const expected = '&lt;p&gt;This is a <span class="search-highlight">test</span>&lt;/p&gt;';
+        expect(highlightSearchTerm(text, 'test')).toBe(expected);
+    });
+
+    it('should handle case insensitivity', () => {
+        const text = 'This TEST is different from this test';
+        const expected =
+            'This <span class="search-highlight">TEST</span> is different from this <span class="search-highlight">test</span>';
+        expect(highlightSearchTerm(text, 'test')).toBe(expected);
+    });
+
+    it('should handle special regex characters in search term', () => {
+        const text = 'Special characters like * and + need escaping';
+        const expected =
+            'Special characters like <span class="search-highlight">*</span> and <span class="search-highlight">+</span> need escaping';
+        expect(highlightSearchTerm(text, '* +')).toBe(expected);
+    });
+
+    it('should handle complex HTML with nested elements', () => {
+        const text = '<div><p>This is a <strong>test</strong> of HTML</p></div>';
+        const expected =
+            '&lt;div&gt;&lt;p&gt;This is a &lt;strong&gt;<span class="search-highlight">test</span>&lt;/strong&gt; of <span class="search-highlight">HTML</span>&lt;/p&gt;&lt;/div&gt;';
+        expect(highlightSearchTerm(text, 'test HTML')).toBe(expected);
+    });
+
+    it('should handle non-string inputs by converting them to strings', () => {
+        // @ts-ignore - Testing with number input
+        expect(highlightSearchTerm(123, '2')).toBe('1<span class="search-highlight">2</span>3');
+
+        // @ts-ignore - Testing with object input
+        const obj = { toString: () => 'test object' };
+        // @ts-ignore - Testing with object input
+        expect(highlightSearchTerm(obj, 'object')).toBe(
+            'test <span class="search-highlight">object</span>',
+        );
+    });
+
+    it('should return original text when no search words match', () => {
+        const text = 'This is a test';
+        const escaped = 'This is a test'; // No HTML entities to escape in this simple case
+        expect(highlightSearchTerm(text, 'xyz')).toBe(escaped);
     });
 });

@@ -10,7 +10,7 @@ import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { appConfig, CACHE_DURATION, sessionConfig } from './config';
 import { HttpError, UnauthorizedError, ValidationError } from './error';
-import { api, getApiKey, isApiRequest, sendNotificationQueue } from './util';
+import { api, getApiKey, isApiRequest, sendNotificationQueue, highlightSearchTerm } from './util';
 
 export function cacheMiddleware(value: number, unit: CacheDuration = 'second') {
     const seconds = value * CACHE_DURATION[unit];
@@ -242,9 +242,14 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
                 warning: req.flash('warning'),
             },
             version: {
-                style: isProd ? '0.11' : randomNumber,
+                style: isProd ? '0.12' : randomNumber,
                 script: isProd ? '0.9' : randomNumber,
             },
+        };
+
+        // utility functions for frontend
+        res.locals.utils = {
+            highlightSearchTerm,
         };
 
         // Clear session input and errors after setting locals
@@ -327,6 +332,6 @@ export function rateLimitMiddleware() {
 
             return res.status(429).send('Too many requests from this IP, please try again later.');
         },
-        skip: (_req: any, _res: any) => appConfig.env !== 'production',
+        skip: (_req: Request, _res: Response) => appConfig.env !== 'production',
     });
 }

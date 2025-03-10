@@ -299,12 +299,11 @@ dialog[open]::backdrop {
     opacity: 1;
 }
 
-/* Search highlight styling */
 .search-highlight {
-    background-color: rgba(255, 255, 0, 0.5); /* Light yellow with transparency for light mode */
+    color: #000000;
+    background-color: #ffff54;
 }
 
 [data-theme='dark'] .search-highlight {
-    background-color: rgba(255, 215, 0, 0.5); /* Golden yellow with transparency for dark mode */
-    color: var(--text-color); /* Maintain text color for readability */
+    background-color: #ffff54;
 }

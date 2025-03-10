@@ -1,24 +1,4 @@
 <div style="display: flex; flex-direction: column; gap: 30px;">
-    <%
-        function highlightSearchTerm(text, searchTerm) {
-            if (!searchTerm || !text) return text;
-
-            let result = text.toString();
-
-            const searchWords = searchTerm.trim().split(/\s+/);
-
-            for (const word of searchWords) {
-                if (word.length > 0) {
-                    const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const wordRegex = new RegExp(escapedWord, 'gi');
-                    result = result.replace(wordRegex, match => `<span class="search-highlight">${match}</span>`);
-                }
-            }
-
-            return result;
-        }
-    %>
-
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h2>📝 Notes</h2>
@@ -47,11 +27,11 @@
                 <% for (let i = 0; i < data.length; i++) { %>
                     <div style="border-style: dashed; border-radius: 5px; padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px;">
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
-                            <h3><a href="/notes/<%- data[i].id %>">📝 <%- highlightSearchTerm(data[i].title, search) %></a></h3>
+                            <h3><a href="/notes/<%- data[i].id %>">📝 <%- utils.highlightSearchTerm(data[i].title, search) %></a></h3>
                         <% } %>
                         <% if (state.user.column_preferences?.notes?.content !== false) { %>
                             <div style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;">
-                               📄 <%- highlightSearchTerm(data[i].content, search) %>
+                               📄 <%- utils.highlightSearchTerm(data[i].content, search) %>
                             </div>
                         <% } %>
                         <div style="display: flex; justify-content: space-between; gap: 10px;">
@@ -145,13 +125,13 @@
                                 <% if (state.user.column_preferences?.notes?.title !== false) { %>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <a href="/notes/<%= data[i].id %>">
-                                            <%- highlightSearchTerm(data[i].title, search) %>
+                                            <%- utils.highlightSearchTerm(data[i].title, search) %>
                                         </a>
                                     </td>
                                 <% } %>
                                 <% if (state.user.column_preferences?.notes?.content !== false) { %>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <%- highlightSearchTerm(data[i].content, search) %>
+                                        <%- utils.highlightSearchTerm(data[i].content, search) %>
                                     </td>
                                 <% } %>
                                 <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
