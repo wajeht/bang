@@ -10,7 +10,7 @@ import { sendNotificationQueue } from './util';
 const server: Server = app.listen(appConfig.port);
 
 server.timeout = 120000; // 2 minutes
-server.keepAliveTimeout = 65000; // 65 seconds (slightly higher than typical load balancer timeouts)
+server.keepAliveTimeout = 65000; // 65 seconds
 server.headersTimeout = 66000; // slightly higher than keepAliveTimeout
 server.requestTimeout = 120000; // same as timeout
 
@@ -53,32 +53,29 @@ server.on('error', (error: NodeJS.ErrnoException) => {
     }
 });
 
-if (appConfig.env !== 'testing') {
-    setInterval(
-        () => {
-            const memoryUsage = process.memoryUsage();
-            logger.info(
-                `Memory usage: RSS: ${Math.round(memoryUsage.rss / 1024 / 1024)}MB, Heap: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}/${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`,
-            );
-        },
-        5 * 60 * 1000,
-    ); // Log every 5 minutes
-}
+//if (appConfig.env !== 'testing') {
+//    setInterval(
+//        () => {
+//            const memoryUsage = process.memoryUsage();
+//            logger.info(
+//                `Memory usage: RSS: ${Math.round(memoryUsage.rss / 1024 / 1024)}MB, Heap: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}/${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`,
+//            );
+//        },
+//        5 * 60 * 1000,
+//    ); // Log every 5 minutes
+//}
 
 function gracefulShutdown(signal: string): void {
     logger.info(`Received ${signal}, shutting down gracefully.`);
 
-    // Track shutdown completion
     let shutdownComplete = false;
 
     server.close(async () => {
         logger.info('HTTP server closed.');
 
         try {
-            // First try to drain any pending notification queue
             if (sendNotificationQueue) {
                 logger.info('[gracefulShutdown]: Ensuring notification queue is processed...');
-                // If your queue has a drain method, you would call it here
                 await sendNotificationQueue.drain();
             }
 
@@ -149,6 +146,4 @@ process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknow
     } else {
         logger.error(`Unhandled Rejection: %o, Reason: %o`, promise, reason);
     }
-
-    // No need to exit for unhandled rejections - they are often recoverable
 });
