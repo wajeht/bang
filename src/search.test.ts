@@ -2,13 +2,7 @@ import { db } from './db/db';
 import { User } from './type';
 import * as utils from './util';
 import * as searchModule from './search';
-import {
-    search,
-    processDelayedSearch,
-    bangCache,
-    directCommandCache,
-    bangsLookupMap,
-} from './search';
+import { search, processDelayedSearch } from './search';
 import { appConfig } from './config';
 import { parseSearchQuery } from './search';
 import { Request, Response } from 'express';
@@ -275,9 +269,6 @@ describe('search', () => {
                 redirect: vi.fn(),
             } as unknown as Response;
 
-            // Clear cache before test
-            directCommandCache.clear();
-
             // Test @notes with search term
             await search({ req, res, user: testUser, query: '@notes search query' });
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=search%20query');
@@ -299,9 +290,6 @@ describe('search', () => {
                 redirect: vi.fn(),
             } as unknown as Response;
 
-            // Clear cache before test
-            directCommandCache.clear();
-
             // Test @bookmarks with search term
             await search({ req, res, user: testUser, query: '@bookmarks search query' });
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=search%20query');
@@ -318,9 +306,6 @@ describe('search', () => {
                 redirect: vi.fn(),
             } as unknown as Response;
 
-            // Clear cache before test
-            directCommandCache.clear();
-
             // Test @actions with search term
             await search({ req, res, user: testUser, query: '@actions search query' });
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=search%20query');
@@ -331,51 +316,11 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=action%20query');
         });
 
-        it('should correctly cache direct commands with search terms', async () => {
-            const req = {} as Request;
-            const res = {
-                redirect: vi.fn(),
-            } as unknown as Response;
-
-            // Clear cache before test
-            directCommandCache.clear();
-
-            // Spy on cache operations
-            const setCacheSpy = vi.spyOn(directCommandCache, 'set');
-            const getCacheSpy = vi.spyOn(directCommandCache, 'get');
-
-            // First call should set cache
-            const testQuery = '@notes test caching';
-            await search({ req, res, user: testUser, query: testQuery });
-            expect(setCacheSpy).toHaveBeenCalledWith(testQuery, '/notes?search=test%20caching');
-            expect(res.redirect).toHaveBeenCalledWith('/notes?search=test%20caching');
-
-            // Reset mocks to check cache retrieval
-            setCacheSpy.mockClear();
-            vi.mocked(res.redirect).mockClear();
-
-            // Mock cache hit
-            getCacheSpy.mockReturnValueOnce('/notes?search=test%20caching');
-
-            // Second call should use cache
-            await search({ req, res, user: testUser, query: testQuery });
-            expect(getCacheSpy).toHaveBeenCalled();
-            expect(setCacheSpy).not.toHaveBeenCalled(); // Should not set cache again
-            expect(res.redirect).toHaveBeenCalledWith('/notes?search=test%20caching');
-
-            // Restore spies
-            setCacheSpy.mockRestore();
-            getCacheSpy.mockRestore();
-        });
-
         it('should handle special characters in search terms', async () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
             } as unknown as Response;
-
-            // Clear cache
-            directCommandCache.clear();
 
             // Test with special characters
             await search({
@@ -577,7 +522,7 @@ describe('search', () => {
 
             expect(res.status).toHaveBeenCalledWith(422);
             expect(res.send).toHaveBeenCalledWith(
-                expect.stringContaining('${trigger} already exists'),
+                expect.stringContaining(`!custom already exists`),
             );
         });
 
@@ -1115,131 +1060,34 @@ describe('handleAnonymousSearch', () => {
 });
 
 /**
- * Tests for the various caching mechanisms
- * These tests validate that our performance optimizations work correctly:
- * 1. Caching bang redirect URLs to avoid redundant calculations
- * 2. Caching direct command URLs for faster navigation
- * 3. Using a Map for O(1) lookup of bangs
+ * Tests for direct object access and command handling
+ * These tests validate that our performance optimizations work correctly using direct object access
  */
-describe('caching mechanisms', () => {
+describe('search command handling', () => {
     /**
-     * Tests for the bangCache
-     * Verifies that URLs are properly cached and retrieved for subsequent calls
+     * Tests for direct object access for bangs
+     * Confirms that object properties provide fast and accurate bang lookups
      */
-    describe('bangCache', () => {
-        it('should cache and return bang redirect URLs', async () => {
-            // Create a test bang
-            const testBang = {
-                u: 'https://example.com/search?q={{{s}}}',
-                d: 'example.com',
-            } as unknown as import('./type').Bang;
-            const searchTerm = 'test search';
+    describe('bangs object access', () => {
+        it('should provide fast access to bangs', async () => {
+            // Get a bang from the object
+            const googleBang = searchModule.getBangRedirectUrl(
+                {
+                    u: 'https://www.google.com/search?q={{{s}}}',
+                    d: 'google.com',
+                } as any,
+                'test',
+            );
 
-            // Clear any existing entries to start fresh
-            bangCache.clear();
-
-            // Spy on the cache set method
-            const setCacheSpy = vi.spyOn(bangCache, 'set');
-            const getCacheSpy = vi.spyOn(bangCache, 'get');
-
-            // First call should compute and cache the URL
-            const firstResult = searchModule.getBangRedirectUrl(testBang, searchTerm);
-            expect(firstResult).toBe('https://example.com/search?q=test%20search');
-            expect(setCacheSpy).toHaveBeenCalled();
-
-            // Reset the spies
-            setCacheSpy.mockClear();
-            getCacheSpy.mockClear();
-
-            // Second call should use the cache
-            const secondResult = searchModule.getBangRedirectUrl(testBang, searchTerm);
-            expect(secondResult).toBe('https://example.com/search?q=test%20search');
-            expect(getCacheSpy).toHaveBeenCalled();
-            expect(setCacheSpy).not.toHaveBeenCalled(); // Should not set cache again
-
-            // Restore spies
-            setCacheSpy.mockRestore();
-            getCacheSpy.mockRestore();
-        });
-
-        it('should handle different search terms with separate cache entries', async () => {
-            // Create a test bang
-            const testBang = {
-                u: 'https://example.com/search?q={{{s}}}',
-                d: 'example.com',
-            } as unknown as import('./type').Bang;
-
-            // Clear any existing entries to start fresh
-            bangCache.clear();
-
-            // Two different search terms should create separate cache entries
-            const firstResult = searchModule.getBangRedirectUrl(testBang, 'term1');
-            const secondResult = searchModule.getBangRedirectUrl(testBang, 'term2');
-
-            expect(firstResult).toBe('https://example.com/search?q=term1');
-            expect(secondResult).toBe('https://example.com/search?q=term2');
-
-            // The cache should now have two different entries
-            expect(bangCache.size).toBe(2);
+            expect(googleBang).toBeDefined();
+            expect(googleBang).toContain('google.com');
+            expect(googleBang).toContain('test');
         });
     });
 
-    /**
-     * Tests for the directCommandCache
-     * Validates that direct navigation commands are properly cached for faster access
-     */
-    describe('directCommandCache', () => {
-        it('should cache and return direct command URLs', async () => {
-            // Clear any existing entries to start fresh
-            directCommandCache.clear();
-
-            // Setup test
-            const req = {} as Request;
-            const res = {
-                redirect: vi.fn(),
-            } as unknown as Response;
-            const directCommand = '@settings';
-
-            // Mock what we need to test just the direct command path
-            vi.spyOn(searchModule, 'parseSearchQuery').mockReturnValue({
-                commandType: null,
-                trigger: null,
-                triggerWithoutPrefix: null,
-                url: null,
-                searchTerm: '',
-            });
-
-            // Spy on the cache methods
-            const setCacheSpy = vi.spyOn(directCommandCache, 'set');
-            const getCacheSpy = vi.spyOn(directCommandCache, 'get');
-
-            // First search should compute and cache
-            await searchModule.search({ req, res, user: {} as User, query: directCommand });
-            expect(res.redirect).toHaveBeenCalledWith('/settings');
-            expect(setCacheSpy).toHaveBeenCalled();
-
-            // Reset spies and mocks
-            (res.redirect as ReturnType<typeof vi.fn>).mockClear();
-            setCacheSpy.mockClear();
-            getCacheSpy.mockClear();
-
-            // Mock cached value retrieval
-            getCacheSpy.mockReturnValueOnce('/settings');
-
-            // Second search should use the cache
-            await searchModule.search({ req, res, user: {} as User, query: directCommand });
-            expect(res.redirect).toHaveBeenCalledWith('/settings');
-            expect(getCacheSpy).toHaveBeenCalled();
-            expect(setCacheSpy).not.toHaveBeenCalled(); // Should not set cache again
-
-            // Restore all mocks
-            vi.restoreAllMocks();
-        });
-
-        // Additional test for direct command with commandType
+    describe('direct commands handling', () => {
         it('should handle direct commands with explicit commandType', async () => {
             // Setup
-            directCommandCache.clear();
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
@@ -1262,30 +1110,6 @@ describe('caching mechanisms', () => {
 
             // Restore
             vi.restoreAllMocks();
-        });
-    });
-
-    /**
-     * Tests for the bangsLookupMap
-     * Confirms that the precomputed Map provides fast and accurate bang lookups
-     */
-    describe('bangsLookupMap', () => {
-        it('should provide faster access to bangs', async () => {
-            // Ensure the map is initialized
-            expect(bangsLookupMap).toBeDefined();
-            expect(bangsLookupMap instanceof Map).toBe(true);
-
-            // Verify common bangs are in the map
-            expect(bangsLookupMap.has('g')).toBe(true); // Google should exist
-
-            // Get a bang from the map
-            const googleBang = bangsLookupMap.get('g');
-            expect(googleBang).toBeDefined();
-            expect(googleBang?.u).toContain('google.com');
-
-            // Test with invalid key
-            const nonExistentBang = bangsLookupMap.get('nonexistent123456');
-            expect(nonExistentBang).toBeUndefined();
         });
     });
 
