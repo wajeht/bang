@@ -6,6 +6,10 @@
         </div>
 
         <div style="display: flex; gap: 10px;">
+            <% if (search) { %>
+                <button class="no-style-btn" type="button" onclick="location.href='/notes'">❌ Clear</button>
+            <% } %>
+
             <form method="GET" action="/notes" style="display: flex; gap: 10px;">
                 <input
                     type="search"

@@ -21,28 +21,24 @@ export async function seed(knex: Knex): Promise<void> {
                 default_search_provider: 'duckduckgo',
                 column_preferences: JSON.stringify({
                     bookmarks: {
-                        id: true,
                         title: true,
                         url: true,
                         default_per_page: 10,
                         created_at: true,
-                        updated_at: true,
                     },
                     actions: {
-                        id: true,
                         name: true,
                         trigger: true,
                         url: true,
                         default_per_page: 10,
                         created_at: true,
-                        updated_at: true,
                     },
                     notes: {
-                        id: true,
                         title: true,
                         content: true,
                         default_per_page: 10,
                         created_at: true,
+                        view_type: 'table',
                     },
                 }),
             })
