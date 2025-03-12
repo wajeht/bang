@@ -10,6 +10,7 @@
         "dev": "export APP_ENV=development && npm run db:prepare:dev && tsx watch --no-warnings --clear-screen=false ./src/server.ts",
         "build:server": "tsc",
         "build": "npm run build:server",
+        "build:bang": "rm -rf ./src/db/bang.ts && tsx ./src/banger.mts https://duckduckgo.com/bang.js ./src/db/bang.ts",
         "update:deps": "npx npm-check -u",
         "check:deps": "npx depcheck",
         "test:unit": "echo 'not yet'",
