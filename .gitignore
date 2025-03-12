@@ -140,3 +140,4 @@ db.sqlite-shm
 db.sqlite-wal
 NetrwTreeListing
 .github/workflows/ci.yml
+.cursorrules

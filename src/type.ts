@@ -78,6 +78,7 @@ export type ColumnPreferences = {
         content: boolean;
         default_per_page: number;
         created_at: boolean;
+        view_type: 'table' | 'list';
     };
 };
 
