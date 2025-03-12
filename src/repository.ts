@@ -1,4 +1,5 @@
 import {
+    User,
     Note,
     Action,
     Bookmark,
@@ -328,5 +329,26 @@ export const notes = {
     delete: async (id: number, userId: number) => {
         const rowsAffected = await db('notes').where({ id, user_id: userId }).delete();
         return rowsAffected > 0;
+    },
+};
+
+export const users = {
+    read: async (id: number) => {
+        const user = await db('users').where({ id }).first();
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        return user;
+    },
+    readByEmail: async (email: string) => {
+        const user = await db('users').where({ email }).first();
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        return user;
     },
 };
