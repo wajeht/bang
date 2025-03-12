@@ -19,6 +19,7 @@ export async function up(knex: Knex): Promise<void> {
             table.string('username').unique().notNullable();
             table.string('email').unique().notNullable();
             table.boolean('is_admin').defaultTo(false);
+            table.boolean('autocomplete_search_on_homepage').defaultTo(false);
             table.string('default_search_provider').defaultTo('duckduckgo');
             table.string('api_key').unique().nullable();
             table.integer('api_key_version').defaultTo(0).notNullable();

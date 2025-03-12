@@ -68,6 +68,19 @@
         <% } %>
       </div>
 
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <label>
+          <input
+            type="checkbox"
+            name="autocomplete_search_on_homepage"
+            <%= user.autocomplete_search_on_homepage ? 'checked' : '' %>>
+          Autocomplete Search on Homepage
+        </label>
+        <% if (state.errors.autocomplete_search_on_homepage) { %>
+          <small style="color: red;"><%= state.errors.autocomplete_search_on_homepage %></small>
+        <% } %>
+      </div>
+
       <button type="submit" style="width: 100%;">💾 Save</button>
     </form>
   </div>
