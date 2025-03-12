@@ -33,12 +33,14 @@
 <section>
   <h2>Default Commands</h2>
   <ul>
-    <li><code>@a</code>, <code>@actions</code> - <a href="/actions">Quick access to your actions</a></li>
+    <li><code>@a</code>, <code>@action</code>, <code>@actions</code> - <a href="/actions">Quick access to your actions</a></li>
+    <li><code>@n</code>, <code>@note</code>, <code>@notes</code> - <a href="/notes">Quick access to your notes</a></li>
+    <li><code>@bm</code>, <code>@bookmark</code>, <code>@bookmarks</code> - <a href="/bookmarks">Quick access to your bookmarks</a></li>
     <li><code>@api</code> - <a href="/api-docs">Go to Swagger API docs</a></li>
     <li><code>@b</code>, <code>@bangs</code> - <a href="/">Go to home page</a></li>
-    <li><code>@bm</code>, <code>@bookmarks</code> - <a href="/bookmarks">View your bookmarks</a></li>
     <li><code>@s</code>, <code>@settings</code> - <a href="/settings">Access settings</a></li>
-    <li><code>@n</code>, <code>@notes</code> - <a href="/notes">Access notes</a></li>
+    <li><code>@data</code> - <a href="/settings/data">Access data</a></li>
+    <li><code>@admin</code> - <a href="/admin">Access admin</a></li>
   </ul>
 </section>
 <br>
@@ -47,6 +49,9 @@
   <h2>Special Commands</h2>
   <ul>
     <li>
+      <p><code>@bm [search term]</code> - Search your bookmarks</p>
+      <p><code>@a [search term]</code> - Search your actions</p>
+      <p><code>@n [search term]</code> - Search your notes</p>
       <p><code>!bm [url]</code> or <code>!bm [title] [url]</code> - Add a bookmark</p>
       <ul>
         <li><code>[title]</code> is optional - if not provided, we'll automatically fetch the page title</li>
