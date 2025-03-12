@@ -281,6 +281,7 @@ describe('extractUser', () => {
             email: 'testuser@example.com',
             is_admin: 0,
             default_search_provider: 'duckduckgo',
+            autocomplete_search_on_homepage: 0,
             api_key: null,
             api_key_created_at: null,
             api_key_version: 0,

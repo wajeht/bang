@@ -18,6 +18,7 @@ export async function seed(knex: Knex): Promise<void> {
                 username: env.parsed?.APP_ADMIN_EMAIL?.split('@')[0] || 'admin',
                 email: env.parsed?.APP_ADMIN_EMAIL || 'admin@example.com',
                 is_admin: true,
+                autocomplete_search_on_homepage: true,
                 default_search_provider: 'duckduckgo',
                 column_preferences: JSON.stringify({
                     bookmarks: {

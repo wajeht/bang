@@ -625,15 +625,28 @@ export const postSettingsAccountHandler = [
             .notEmpty()
             .isIn(Object.keys(defaultSearchProviders))
             .withMessage('Invalid search provider selected'),
+        body('autocomplete_search_on_homepage').custom((value) => {
+            if (value === undefined) {
+                value = false;
+            }
+
+            if (value === 'on') {
+                value = true;
+            }
+
+            return true;
+        }),
     ]),
     async (req: Request, res: Response) => {
         const { email, username, default_search_provider } = req.body;
+        const autocomplete_search_on_homepage = req.body.autocomplete_search_on_homepage === 'on';
 
         await db('users')
             .update({
                 email,
                 username,
                 default_search_provider,
+                autocomplete_search_on_homepage,
             })
             .where({ id: (req.user as User).id });
 

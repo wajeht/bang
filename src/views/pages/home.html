@@ -1,4 +1,4 @@
-<% if (typeof state?.user !== 'undefined') { %>
+<% if (typeof state?.user !== 'undefined' && state?.user.autocomplete_search_on_homepage) { %>
   <script>
     const actionTemplate = (action) => `
       <li data-type="action" data-trigger="${action.trigger}" style="padding: 5px 10px; cursor: pointer;">
