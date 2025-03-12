@@ -33,15 +33,20 @@ Before you can use the Bang command from your browser's search bar, you need to 
 
 ### 🎯 Default Commands
 
-- `@a`, `@actions` - Quick access to your actions
-- `@api`, `@actions` - Go to Swagger API docs
+- `@data` - Access data
+- `@admin` - Access admin
+- `@api` - Access API docs
 - `@b`, `@bangs` - Go to home page
-- `@bm`, `@bookmarks` - View your bookmarks
 - `@s`, `@settings` - Access settings
-- `@n`, `@notes` - Access notes
+- `@n`, `@note`, `@notes` - Access your notes
+- `@a`, `@action`, `@actions` - Access your actions
+- `@bm`, `@bookmark`, `@bookmarks` - Access your bookmarks
 
 ### 🎨 Special Commands
 
+- `@bm [search term]` - Search your bookmarks
+- `@a [search term]` - Search your actions
+- `@n [search term]` - Search your notes
 - `!bm [url]` - Add a bookmark
 - `!bm [title] [url]` - Add a bookmark
     - `[title]` is optional, if not provided, we will auto fetch the title
