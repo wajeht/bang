@@ -12,7 +12,7 @@ import { search } from './search';
 import { body } from 'express-validator';
 import { Request, Response } from 'express';
 import { validateRequestMiddleware } from './middleware';
-import { actions, bookmarks, notes } from './repository';
+import { actions, bookmarks, notes, users } from './repository';
 import { ApiKeyPayload, BookmarkToExport, User } from './type';
 import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './config';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
@@ -138,7 +138,7 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 
     const email = emails.filter((email) => email.primary && email.verified)[0]?.email;
 
-    let foundUser = await db.select('*').from('users').where({ email }).first();
+    let foundUser = await users.readByEmail(email as string);
 
     if (!foundUser) {
         [foundUser] = await db('users')
