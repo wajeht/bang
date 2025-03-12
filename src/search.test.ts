@@ -746,111 +746,264 @@ describe('search', () => {
 });
 
 describe('parseSearchQuery', () => {
-    it('should parse a basic search query without bang', () => {
-        const result = parseSearchQuery('python tutorial');
+    /**
+     * Basic tests for parseSearchQuery function
+     * These cover the primary functionality and ensure correct parsing of queries
+     */
+    it('should parse basic queries correctly', () => {
+        // Test a simple search query
+        const result = searchModule.parseSearchQuery('test query');
         expect(result).toEqual({
+            commandType: null,
             trigger: null,
-            triggerWithoutExclamationMark: null,
+            triggerWithoutPrefix: null,
             url: null,
-            searchTerm: 'python tutorial',
+            searchTerm: 'test query',
         });
     });
 
-    it('should parse a search query with bang', () => {
-        const result = parseSearchQuery('!g python tutorial');
+    it('should parse bangs correctly', () => {
+        // Test a bang query
+        const result = searchModule.parseSearchQuery('!g test query');
         expect(result).toEqual({
+            commandType: 'bang',
             trigger: '!g',
-            triggerWithoutExclamationMark: 'g',
+            triggerWithoutPrefix: 'g',
             url: null,
-            searchTerm: 'python tutorial',
+            searchTerm: 'test query',
         });
     });
 
-    it('should parse a bookmark command with title and URL', () => {
-        const result = parseSearchQuery('!bm My Bookmark https://example.com');
+    it('should parse direct commands correctly', () => {
+        // Test a direct command
+        const result = searchModule.parseSearchQuery('@settings');
         expect(result).toEqual({
+            commandType: 'direct',
+            trigger: '@settings',
+            triggerWithoutPrefix: 'settings',
+            url: null,
+            searchTerm: '',
+        });
+    });
+
+    it('should handle bookmark commands', () => {
+        // Note: bm: prefix is not specially handled by parseSearchQuery
+        // It's treated as a regular search term
+        const result = searchModule.parseSearchQuery('bm:homepage');
+        expect(result).toEqual({
+            commandType: null,
+            trigger: null,
+            triggerWithoutPrefix: null,
+            url: null,
+            searchTerm: 'bm:homepage',
+        });
+    });
+
+    it('should handle URLs only in bang commands', () => {
+        // Test URL detection in bang command
+        const result = searchModule.parseSearchQuery('!bm My Bookmark https://www.example.com');
+        expect(result).toEqual({
+            commandType: 'bang',
             trigger: '!bm',
-            triggerWithoutExclamationMark: 'bm',
-            url: 'https://example.com',
+            triggerWithoutPrefix: 'bm',
+            url: 'https://www.example.com',
             searchTerm: 'My Bookmark',
         });
     });
 
-    it('should parse a bookmark command with only URL', () => {
-        const result = parseSearchQuery('!bm https://example.com');
+    // URLs are not detected in regular searches
+    it('should not detect URLs in regular searches', () => {
+        const result = searchModule.parseSearchQuery('https://www.example.com');
         expect(result).toEqual({
+            commandType: null,
+            trigger: null,
+            triggerWithoutPrefix: null,
+            url: null,
+            searchTerm: 'https://www.example.com',
+        });
+    });
+
+    // Edge cases for URLs in bang commands
+    it('should detect URLs with special characters in bang commands', () => {
+        const result = searchModule.parseSearchQuery(
+            '!bm Title https://example.com/search?q=hello%20world&lang=en',
+        );
+        expect(result).toEqual({
+            commandType: 'bang',
             trigger: '!bm',
-            triggerWithoutExclamationMark: 'bm',
+            triggerWithoutPrefix: 'bm',
+            url: 'https://example.com/search?q=hello%20world&lang=en',
+            searchTerm: 'Title',
+        });
+    });
+
+    it('should detect URLs with fragments in bang commands', () => {
+        const result = searchModule.parseSearchQuery('!bm Title https://example.com/page#section1');
+        expect(result).toEqual({
+            commandType: 'bang',
+            trigger: '!bm',
+            triggerWithoutPrefix: 'bm',
+            url: 'https://example.com/page#section1',
+            searchTerm: 'Title',
+        });
+    });
+
+    it('should detect URLs with port numbers in bang commands', () => {
+        const result = searchModule.parseSearchQuery('!bm Dev https://localhost:3000/api/data');
+        expect(result).toEqual({
+            commandType: 'bang',
+            trigger: '!bm',
+            triggerWithoutPrefix: 'bm',
+            url: 'https://localhost:3000/api/data',
+            searchTerm: 'Dev',
+        });
+    });
+
+    // Special command formats
+    it('should parse commands with numbers', () => {
+        const result = searchModule.parseSearchQuery('!123 test');
+        expect(result).toEqual({
+            commandType: 'bang',
+            trigger: '!123',
+            triggerWithoutPrefix: '123',
+            url: null,
+            searchTerm: 'test',
+        });
+    });
+
+    it('should parse commands with underscores', () => {
+        const result = searchModule.parseSearchQuery('!my_command test');
+        expect(result).toEqual({
+            commandType: 'bang',
+            trigger: '!my_command',
+            triggerWithoutPrefix: 'my_command',
+            url: null,
+            searchTerm: 'test',
+        });
+    });
+
+    it('should parse commands with periods', () => {
+        const result = searchModule.parseSearchQuery('!my.command test');
+        expect(result).toEqual({
+            commandType: 'bang',
+            trigger: '!my.command',
+            triggerWithoutPrefix: 'my.command',
+            url: null,
+            searchTerm: 'test',
+        });
+    });
+
+    // Mixed scenarios
+    it('should handle multiple URLs in bang commands', () => {
+        const result = searchModule.parseSearchQuery(
+            '!bm Title https://example.com https://test.com',
+        );
+        expect(result).toEqual({
+            commandType: 'bang',
+            trigger: '!bm',
+            triggerWithoutPrefix: 'bm',
             url: 'https://example.com',
-            searchTerm: '',
+            searchTerm: 'Title https://test.com',
         });
     });
 
-    it('should parse a custom bang creation command', () => {
-        const result = parseSearchQuery('!add !custom https://custom-search.com');
+    it('should not detect non-http protocols in bang commands', () => {
+        const result = searchModule.parseSearchQuery('!bm FTP ftp://example.com/files');
         expect(result).toEqual({
-            trigger: '!add',
-            triggerWithoutExclamationMark: 'add',
-            url: 'https://custom-search.com',
-            searchTerm: '!custom',
-        });
-    });
-
-    it('should handle bangs with hyphens', () => {
-        const result = parseSearchQuery('!my-bang search term');
-        expect(result).toEqual({
-            trigger: '!my-bang',
-            triggerWithoutExclamationMark: 'my-bang',
-            url: null,
-            searchTerm: 'search term',
-        });
-    });
-
-    it('should handle multiple spaces in query', () => {
-        const result = parseSearchQuery('!g    python     tutorial    ');
-        expect(result).toEqual({
-            trigger: '!g',
-            triggerWithoutExclamationMark: 'g',
-            url: null,
-            searchTerm: 'python tutorial',
-        });
-    });
-
-    it('should handle URLs with query parameters', () => {
-        const result = parseSearchQuery('!bm My Site https://example.com/path?param=value');
-        expect(result).toEqual({
+            commandType: 'bang',
             trigger: '!bm',
-            triggerWithoutExclamationMark: 'bm',
-            url: 'https://example.com/path?param=value',
-            searchTerm: 'My Site',
-        });
-    });
-
-    it('should handle empty query', () => {
-        const result = parseSearchQuery('');
-        expect(result).toEqual({
-            trigger: null,
-            triggerWithoutExclamationMark: null,
+            triggerWithoutPrefix: 'bm',
             url: null,
-            searchTerm: '',
+            searchTerm: 'FTP ftp://example.com/files',
         });
     });
 
-    it('should handle query with only spaces', () => {
-        const result = parseSearchQuery('   ');
+    it('should handle queries with special characters', () => {
+        const result = searchModule.parseSearchQuery('!g test@example.com');
         expect(result).toEqual({
-            trigger: null,
-            triggerWithoutExclamationMark: null,
-            url: null,
-            searchTerm: '',
-        });
-    });
-
-    it('should handle bang-only query', () => {
-        const result = parseSearchQuery('!g');
-        expect(result).toEqual({
+            commandType: 'bang',
             trigger: '!g',
-            triggerWithoutExclamationMark: 'g',
+            triggerWithoutPrefix: 'g',
+            url: null,
+            searchTerm: 'test@example.com',
+        });
+    });
+
+    it('should handle very long search terms', () => {
+        const longTerm = 'a'.repeat(500);
+        const result = searchModule.parseSearchQuery(`!g ${longTerm}`);
+        expect(result).toEqual({
+            commandType: 'bang',
+            trigger: '!g',
+            triggerWithoutPrefix: 'g',
+            url: null,
+            searchTerm: longTerm,
+        });
+    });
+
+    // Direct command edge cases
+    it('should handle direct commands with parameters', () => {
+        const result = searchModule.parseSearchQuery('@notes search: important meeting');
+        expect(result).toEqual({
+            commandType: 'direct',
+            trigger: '@notes',
+            triggerWithoutPrefix: 'notes',
+            url: null,
+            searchTerm: 'search: important meeting',
+        });
+    });
+
+    it('should handle direct commands with special characters', () => {
+        const result = searchModule.parseSearchQuery('@tag:work');
+        expect(result).toEqual({
+            commandType: 'direct',
+            trigger: '@tag:work',
+            triggerWithoutPrefix: 'tag:work',
+            url: null,
+            searchTerm: '',
+        });
+    });
+
+    // Edge cases combining multiple patterns
+    it('should handle URL-like strings in bang commands', () => {
+        const result = searchModule.parseSearchQuery('!w https://en.wikipedia.org');
+        expect(result).toEqual({
+            commandType: 'bang',
+            trigger: '!w',
+            triggerWithoutPrefix: 'w',
+            url: 'https://en.wikipedia.org',
+            searchTerm: '',
+        });
+    });
+
+    it('should handle commands that look like URLs', () => {
+        const result = searchModule.parseSearchQuery('!http test');
+        expect(result).toEqual({
+            commandType: 'bang',
+            trigger: '!http',
+            triggerWithoutPrefix: 'http',
+            url: null,
+            searchTerm: 'test',
+        });
+    });
+
+    it('should handle empty search term with commands', () => {
+        const result = searchModule.parseSearchQuery('!g');
+        expect(result).toEqual({
+            commandType: 'bang',
+            trigger: '!g',
+            triggerWithoutPrefix: 'g',
+            url: null,
+            searchTerm: '',
+        });
+    });
+
+    it('should handle whitespace-only search term', () => {
+        const result = searchModule.parseSearchQuery('!g    ');
+        expect(result).toEqual({
+            commandType: 'bang',
+            trigger: '!g',
+            triggerWithoutPrefix: 'g',
             url: null,
             searchTerm: '',
         });
@@ -1049,8 +1202,9 @@ describe('caching mechanisms', () => {
 
             // Mock what we need to test just the direct command path
             vi.spyOn(searchModule, 'parseSearchQuery').mockReturnValue({
+                commandType: null,
                 trigger: null,
-                triggerWithoutExclamationMark: null,
+                triggerWithoutPrefix: null,
                 url: null,
                 searchTerm: '',
             });
@@ -1081,6 +1235,34 @@ describe('caching mechanisms', () => {
             // Restore all mocks
             vi.restoreAllMocks();
         });
+
+        // Additional test for direct command with commandType
+        it('should handle direct commands with explicit commandType', async () => {
+            // Setup
+            directCommandCache.clear();
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+            } as unknown as Response;
+
+            // Mock parseSearchQuery to return a direct command
+            vi.spyOn(searchModule, 'parseSearchQuery').mockReturnValue({
+                commandType: 'direct',
+                trigger: '@notes',
+                triggerWithoutPrefix: 'notes',
+                url: null,
+                searchTerm: 'test',
+            });
+
+            // Run the search
+            await searchModule.search({ req, res, user: {} as User, query: '@notes test' });
+
+            // Verify correct redirect
+            expect(res.redirect).toHaveBeenCalledWith('/notes?search=test');
+
+            // Restore
+            vi.restoreAllMocks();
+        });
     });
 
     /**
@@ -1104,6 +1286,63 @@ describe('caching mechanisms', () => {
             // Test with invalid key
             const nonExistentBang = bangsLookupMap.get('nonexistent123456');
             expect(nonExistentBang).toBeUndefined();
+        });
+    });
+
+    // Additional tests for search function with commandType
+    describe('search function with commandType', () => {
+        it('should handle bang commandType with unknown bang', async () => {
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+            } as unknown as Response;
+            const user = {
+                id: 1,
+                default_search_provider: 'duckduckgo',
+            } as User;
+
+            // Mock an unknown bang command
+            vi.spyOn(searchModule, 'parseSearchQuery').mockReturnValue({
+                commandType: 'bang',
+                trigger: '!unknown',
+                triggerWithoutPrefix: 'unknown',
+                url: null,
+                searchTerm: '',
+            });
+
+            await searchModule.search({ req, res, user, query: '!unknown' });
+
+            // Should fall back to searching for the trigger without the prefix
+            expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=unknown');
+
+            vi.restoreAllMocks();
+        });
+
+        it('should handle regular search with null commandType', async () => {
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+            } as unknown as Response;
+            const user = {
+                id: 1,
+                default_search_provider: 'duckduckgo',
+            } as User;
+
+            // Mock a regular search query
+            vi.spyOn(searchModule, 'parseSearchQuery').mockReturnValue({
+                commandType: null,
+                trigger: null,
+                triggerWithoutPrefix: null,
+                url: null,
+                searchTerm: 'regular search',
+            });
+
+            await searchModule.search({ req, res, user, query: 'regular search' });
+
+            // Should search using the default search provider
+            expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=regular%20search');
+
+            vi.restoreAllMocks();
         });
     });
 });

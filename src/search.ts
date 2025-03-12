@@ -140,64 +140,165 @@ export function goBack(res: Response) {
  *
  * @example Basic search
  * parseSearchQuery("!g python")
- * → { trigger: "!g", triggerWithoutBang: "g", url: null, searchTerm: "python" }
+ * → { commandType: "bang", trigger: "!g", triggerWithoutPrefix: "g", url: null, searchTerm: "python" }
+ *
+ * @example Direct command
+ * parseSearchQuery("@notes search query")
+ * → { commandType: "direct", trigger: "@notes", triggerWithoutPrefix: "notes", url: null, searchTerm: "search query" }
  *
  * @example Bookmark with title
  * parseSearchQuery("!bm My Bookmark https://example.com")
- * → { trigger: "!bm", triggerWithoutBang: "bm", url: "https://example.com", searchTerm: "My Bookmark" }
+ * → { commandType: "bang", trigger: "!bm", triggerWithoutPrefix: "bm", url: "https://example.com", searchTerm: "My Bookmark" }
  *
  * @example Custom bang creation
  * parseSearchQuery("!add !custom https://custom-search.com")
- * → { trigger: "!add", triggerWithoutBang: "add", url: "https://custom-search.com", searchTerm: "!custom" }
+ * → { commandType: "bang", trigger: "!add", triggerWithoutPrefix: "add", url: "https://custom-search.com", searchTerm: "!custom" }
  */
 export function parseSearchQuery(query: string) {
-    // Sanitize input
-    const sanitizedQuery = query.trim().replace(/\s+/g, ' ');
-
-    // Enhanced regex patterns
-    const triggerPattern = /^(![\w-]+)/; // Supports hyphens in triggers
-    const urlPattern = /\s+((?:https?:\/\/)[^\s]+)/i; // Case-insensitive, more permissive URL matching
-
-    // Extract components
-    const triggerMatch = sanitizedQuery.match(triggerPattern);
-    const urlMatch = sanitizedQuery.match(urlPattern);
-
-    const trigger = triggerMatch?.[1]?.toString() ?? null;
-    const triggerWithoutExclamationMark = trigger?.slice(1) ?? null;
-    const url = urlMatch?.[1] ?? null;
-
-    // Process search term with URL removal
-    let searchTerm = trigger ? sanitizedQuery.slice(trigger.length) : sanitizedQuery;
-
-    if (url) {
-        searchTerm = searchTerm.replace(url, '');
+    if (!query) {
+        return {
+            commandType: null,
+            trigger: null,
+            triggerWithoutPrefix: null,
+            url: null,
+            searchTerm: '',
+        };
     }
 
-    // Clean up search term
-    searchTerm = searchTerm.trim().replace(/\s+/g, ' ');
+    // Use a single pass approach to extract components
+    const trimmedQuery = query.trim();
+    const firstSpaceIndex = trimmedQuery.indexOf(' ');
+
+    // Determine command type from the first character (faster than startsWith)
+    const firstChar = trimmedQuery.charAt(0);
+    const isBang = firstChar === '!';
+    const isDirect = firstChar === '@';
+    const commandType = isBang ? 'bang' : isDirect ? 'direct' : null;
+    const isCommand = isBang || isDirect;
+
+    // No spaces means it's either just a command or a single word search
+    if (firstSpaceIndex === -1) {
+        // If it starts with ! or @, it's a command-only query
+        if (isCommand) {
+            return {
+                commandType,
+                trigger: trimmedQuery,
+                triggerWithoutPrefix: trimmedQuery.slice(1),
+                url: null,
+                searchTerm: '',
+            };
+        }
+
+        // Otherwise it's just a single word search
+        return {
+            commandType: null,
+            trigger: null,
+            triggerWithoutPrefix: null,
+            url: null,
+            searchTerm: trimmedQuery,
+        };
+    }
+
+    // Extract potential trigger (if query starts with ! or @)
+    let trigger = null;
+    let triggerWithoutPrefix = null;
+    let remainingQuery = trimmedQuery;
+
+    if (isCommand) {
+        trigger = trimmedQuery.substring(0, firstSpaceIndex);
+        triggerWithoutPrefix = trigger.slice(1);
+        remainingQuery = trimmedQuery.substring(firstSpaceIndex + 1);
+    }
+
+    // Find URL using fast string search instead of regex
+    // URLs will start with http:// or https://
+    let url = null;
+    let searchTerm = remainingQuery;
+
+    // Only look for URLs in bang commands - direct commands don't use URLs
+    if (commandType === 'bang') {
+        // Common URL prefixes to check for
+        const httpIndex = remainingQuery.indexOf('http://');
+        const httpsIndex = remainingQuery.indexOf('https://');
+
+        if (httpIndex !== -1 || httpsIndex !== -1) {
+            // Find the earlier occurring URL protocol
+            const urlStartIndex =
+                httpIndex !== -1 && httpsIndex !== -1
+                    ? Math.min(httpIndex, httpsIndex)
+                    : Math.max(httpIndex, httpsIndex);
+
+            // Extract the URL - find the end by locating the next space
+            const urlEndIndex = remainingQuery.indexOf(' ', urlStartIndex);
+
+            // If no space after URL, it goes to the end of the string
+            if (urlEndIndex === -1) {
+                url = remainingQuery.substring(urlStartIndex);
+
+                // If URL is at the beginning, there's no search term
+                if (urlStartIndex === 0) {
+                    searchTerm = '';
+                } else {
+                    // Otherwise search term is everything before the URL
+                    searchTerm = remainingQuery.substring(0, urlStartIndex).trim();
+                }
+            } else {
+                // URL is in the middle, extract it and the search term
+                url = remainingQuery.substring(urlStartIndex, urlEndIndex);
+
+                // Combine parts before and after URL for the search term
+                const beforeUrl = remainingQuery.substring(0, urlStartIndex).trim();
+                const afterUrl = remainingQuery.substring(urlEndIndex).trim();
+
+                if (beforeUrl && afterUrl) {
+                    searchTerm = beforeUrl + ' ' + afterUrl;
+                } else {
+                    searchTerm = beforeUrl || afterUrl;
+                }
+            }
+        }
+    }
+
+    // Normalize spaces in search term (required for test compatibility)
+    if (searchTerm) {
+        searchTerm = searchTerm.trim().replace(/\s+/g, ' ');
+    }
 
     return {
         /**
-         * The full bang trigger including "!" prefix
+         * The type of command (bang or direct)
+         * Used to determine how to process the query
+         * @example "bang" for !g, !bm, etc.
+         * @example "direct" for @notes, @bookmarks, etc.
+         * @example null for regular searches without a command
+         */
+        commandType,
+
+        /**
+         * The full command trigger including prefix ("!" or "@")
          * Used for command identification and routing
          * @example "!g" for Google search
          * @example "!bm" for bookmark command
-         * @example "!add" for adding custom bangs
+         * @example "@notes" for notes navigation
+         * @example null for regular searches
          */
         trigger,
 
         /**
-         * Bang trigger with "!" prefix removed
-         * Used for looking up commands in bangs table
+         * Command trigger with prefix removed
+         * Used for looking up commands in bangs table or direct commands mapping
          * @example "g" for Google search
          * @example "bm" for bookmark command
+         * @example "notes" for notes navigation
+         * @example null for regular searches
          */
-        triggerWithoutExclamationMark,
+        triggerWithoutPrefix,
 
         /**
          * First valid URL found in the query string
          * Used for bookmark creation and custom bang definition
          * Supports both http and https protocols
+         * Only relevant for bang commands, not direct commands
          * @example "https://example.com" from "!bm title https://example.com"
          * @example null when no URL is present
          */
@@ -209,8 +310,10 @@ export function parseSearchQuery(query: string) {
          * - Search query for search bangs
          * - Title for bookmarks
          * - Trigger for custom bang creation
+         * - Search term for direct commands with search like @notes search
          * @example "python" from "!g python"
          * @example "My Bookmark" from "!bm My Bookmark https://example.com"
+         * @example "search term" from "@notes search term"
          */
         searchTerm,
     };
@@ -393,59 +496,52 @@ export async function search({
     user?: User;
     query: string;
 }) {
-    // Fast path for direct commands - check first since they're the fastest to process
-    // First check cache
-    const cachedDirectCommand = directCommandCache.get(query);
-    if (cachedDirectCommand) {
-        return res.redirect(cachedDirectCommand);
-    }
+    const { commandType, trigger, triggerWithoutPrefix, url, searchTerm } = parseSearchQuery(query);
 
-    // Then check in searchConfig
-    const directCommand = searchConfig.directCommands[query as keyof typeof searchConfig.directCommands]; // prettier-ignore
+    // Handle direct commands (@) - process these first since they're fast and common
+    if (commandType === 'direct') {
+        const cachedDirectCommand = directCommandCache.get(query);
+        if (cachedDirectCommand) {
+            return res.redirect(cachedDirectCommand);
+        }
 
-    if (directCommand) {
-        // Cache for future use
-        directCommandCache.set(query, directCommand);
-        return res.redirect(directCommand);
-    }
+        // For command-only queries like @notes, @bookmarks with no search term
+        if (!searchTerm) {
+            const directPath = searchConfig.directCommands[trigger as keyof typeof searchConfig.directCommands]; // prettier-ignore
+            if (directPath) {
+                directCommandCache.set(query, directPath);
+                return res.redirect(directPath);
+            }
+        }
 
-    // Handle direct commands with search terms
-    if (query.startsWith('@') && query.includes(' ')) {
-        const parts = query.split(' ');
-        const command = parts[0] as string;
-        const searchTerm = parts.slice(1).join(' ');
-
-        if (searchConfig.directCommands[command as keyof typeof searchConfig.directCommands]) {
-            if (['@n', '@note', '@notes'].includes(command)) {
-                directCommandCache.set(query, `/notes?search=${encodeURIComponent(searchTerm)}`);
-                return res.redirect(`/notes?search=${encodeURIComponent(searchTerm)}`);
+        // For commands with search terms like @notes search query
+        if (searchTerm && trigger) {
+            if (['@n', '@note', '@notes'].includes(trigger)) {
+                const redirectPath = `/notes?search=${encodeURIComponent(searchTerm)}`;
+                directCommandCache.set(query, redirectPath);
+                return res.redirect(redirectPath);
             }
 
-            if (['@bm', '@bookmark', '@bookmarks'].includes(command)) {
-                directCommandCache.set(
-                    query,
-                    `/bookmarks?search=${encodeURIComponent(searchTerm)}`,
-                );
-                return res.redirect(`/bookmarks?search=${encodeURIComponent(searchTerm)}`);
+            if (['@bm', '@bookmark', '@bookmarks'].includes(trigger)) {
+                const redirectPath = `/bookmarks?search=${encodeURIComponent(searchTerm)}`;
+                directCommandCache.set(query, redirectPath);
+                return res.redirect(redirectPath);
             }
 
-            if (['@a', '@action', '@actions'].includes(command)) {
-                directCommandCache.set(query, `/actions?search=${encodeURIComponent(searchTerm)}`);
-                return res.redirect(`/actions?search=${encodeURIComponent(searchTerm)}`);
+            if (['@a', '@action', '@actions'].includes(trigger)) {
+                const redirectPath = `/actions?search=${encodeURIComponent(searchTerm)}`;
+                directCommandCache.set(query, redirectPath);
+                return res.redirect(redirectPath);
             }
         }
     }
 
-    // Fast path for system bang commands - check early since they're frequently used
-    const { trigger, triggerWithoutExclamationMark, url, searchTerm } = parseSearchQuery(query);
-
     // Process system-level bang commands (!bm, !add, !note)
     if (
         trigger &&
+        commandType === 'bang' &&
         searchConfig.systemBangs.includes(trigger as (typeof searchConfig.systemBangs)[number])
     ) {
-        // prettier-ignore
-        // If user is not authenticated, redirect to login for all system commands
         if (!user) {
             return redirectWithAlert(res, '/login', 'Please log in to use this feature');
         }
@@ -573,20 +669,11 @@ export async function search({
         }
     }
 
-    // Regular search flow - process anonymous vs authenticated user
     if (!user) {
-        return handleAnonymousSearch(
-            req,
-            res,
-            query,
-            triggerWithoutExclamationMark ?? '',
-            searchTerm ?? '',
-        );
+        return handleAnonymousSearch(req, res, query, triggerWithoutPrefix ?? '', searchTerm ?? '');
     }
 
-    // Process custom bang commands for authenticated users
-    if (triggerWithoutExclamationMark) {
-        // First check for any custom bangs defined by the user
+    if (commandType === 'bang' && triggerWithoutPrefix) {
         const customBang = await db('bangs')
             .where({
                 user_id: user.id,
@@ -613,10 +700,9 @@ export async function search({
         }
     }
 
-    // Process system-defined bang commands - use the Map for faster lookups
-    if (triggerWithoutExclamationMark) {
-        // Use the Map for faster lookups instead of object property access
-        const bang = bangsLookupMap.get(triggerWithoutExclamationMark);
+    // Process system-defined bang commands
+    if (commandType === 'bang' && triggerWithoutPrefix) {
+        const bang = bangsLookupMap.get(triggerWithoutPrefix);
         if (bang) {
             // Handle search queries with bang (e.g., "!g python")
             if (searchTerm) {
@@ -638,11 +724,11 @@ export async function search({
     const defaultProvider = user.default_search_provider || 'duckduckgo';
 
     // Handle regular search queries or fallback for unknown bangs
-    let searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(searchTerm)); // prettier-ignore
+    let searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(searchTerm || query)); // prettier-ignore
 
     // Handle unknown bang commands by searching for them without the "!"
-    if (!searchTerm) {
-        searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(triggerWithoutExclamationMark ?? '')); // prettier-ignore
+    if (commandType === 'bang' && !searchTerm && triggerWithoutPrefix) {
+        searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(triggerWithoutPrefix)); // prettier-ignore
     }
 
     return res.redirect(searchUrl);
