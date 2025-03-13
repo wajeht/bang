@@ -138,7 +138,7 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
 
     const email = emails.filter((email) => email.primary && email.verified)[0]?.email;
 
-    let foundUser = await users.readByEmail(email as string);
+    let foundUser = await db.select('*').from('users').where({ email }).first();
 
     if (!foundUser) {
         [foundUser] = await db('users')
