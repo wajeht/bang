@@ -137,7 +137,11 @@ export async function fetchPageTitle(url: string): Promise<string> {
             url,
             {
                 timeout: 5000, // 5 sec
-                headers: { Accept: 'text/html' },
+                headers: {
+                    Accept: 'text/html',
+                    'User-Agent':
+                        'Mozilla/5.0 (compatible; Bang/1.0; +https://github.com/wajeht/bang)',
+                },
             },
             (res) => {
                 if (res.statusCode !== 200) {
@@ -146,11 +150,12 @@ export async function fetchPageTitle(url: string): Promise<string> {
                 }
 
                 let isTitleFound = false;
+                const titleRegex = /<title[^>]*>([^<]+)/i;
 
                 res.setEncoding('utf8');
                 res.on('data', (chunk) => {
                     if (!isTitleFound) {
-                        const match = /<title[^>]*>([^<]+)/i.exec(chunk);
+                        const match = titleRegex.exec(chunk);
                         if (match && match[1]) {
                             isTitleFound = true;
                             resolve(match[1].slice(0, 100).trim());
@@ -366,20 +371,17 @@ export function highlightSearchTerm(
 ) {
     if (!searchTerm || !text) return text;
 
-    // First, convert the text to a string and ensure it's not null
     const original = String(text || '');
 
-    // Skip highlighting if there's no search term
     if (!searchTerm.trim()) return original;
 
-    // Get search words
     const searchWords = searchTerm
         .trim()
         .split(/\s+/)
         .filter((word) => word.length > 0);
+
     if (searchWords.length === 0) return original;
 
-    // Escape HTML in the original text
     let result = original
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -387,17 +389,9 @@ export function highlightSearchTerm(
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 
-    // Create a single regex to match any of the search words
-    const searchRegex = new RegExp(
-        searchWords.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
-        'gi',
-    );
+    const searchRegex = new RegExp(searchWords.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'gi'); // prettier-ignore
 
-    // Perform the replacement once
-    result = result.replace(
-        searchRegex,
-        (match) => `<span class="search-highlight">${match}</span>`,
-    );
+    result = result.replace(searchRegex, (match) => `<span class="search-highlight">${match}</span>`); // prettier-ignore
 
     return result;
 }

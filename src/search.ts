@@ -33,8 +33,8 @@ const searchConfig = {
         '@a': '/actions',
         '@action': '/actions',
         '@actions': '/actions',
-        '@admin': '/admin',
         '@am': '/admin',
+        '@admin': '/admin',
         '@api': '/api-docs',
         '@b': '/',
         '@bang': '/',
@@ -42,6 +42,7 @@ const searchConfig = {
         '@bm': '/bookmarks',
         '@bookmark': '/bookmarks',
         '@bookmarks': '/bookmarks',
+        '@d': '/settings/data',
         '@data': '/settings/data',
         '@s': '/settings',
         '@settings': '/settings',
@@ -502,6 +503,7 @@ export async function search({
             try {
                 // Extract title from command by removing "!bm" and URL - optimized to avoid redundant operations
                 let titleSection: string | null = null;
+
                 if (searchTerm) {
                     const urlIndex = searchTerm.indexOf(url);
                     titleSection =
@@ -535,9 +537,7 @@ export async function search({
             }
 
             // Prevent duplicates and system command conflicts
-            const hasSystemBangCommands = searchConfig.systemBangs.includes(
-                bangTrigger as (typeof searchConfig.systemBangs)[number],
-            );
+            const hasSystemBangCommands = searchConfig.systemBangs.includes(bangTrigger as (typeof searchConfig.systemBangs)[number]); // prettier-ignore
 
             const existingBang = await db('bangs')
                 .where({ user_id: user.id, trigger: bangTrigger })
@@ -591,12 +591,14 @@ export async function search({
         // Example: !note this is the content without title
         if (trigger === '!note') {
             const contentStartIndex = query.indexOf(' ');
+
             // Only process content if the command has a space
             if (contentStartIndex === -1) {
                 return goBackWithAlert(res, 'Content is required');
             }
 
             const fullContent = query.slice(contentStartIndex + 1).trim();
+
             if (!fullContent) {
                 return goBackWithAlert(res, 'Content is required');
             }
@@ -628,10 +630,7 @@ export async function search({
 
     if (commandType === 'bang' && triggerWithoutPrefix) {
         const customBang = await db('bangs')
-            .where({
-                user_id: user.id,
-                trigger: trigger,
-            })
+            .where({ user_id: user.id, trigger: trigger })
             .join('action_types', 'bangs.action_type_id', 'action_types.id')
             .select('bangs.*', 'action_types.name as action_type')
             .first();
