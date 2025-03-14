@@ -39,6 +39,7 @@ const searchConfig = {
         '@b': '/',
         '@bang': '/',
         '@bangs': '/',
+        '@bgh': 'https://github.com/wajeht',
         '@bm': '/bookmarks',
         '@bookmark': '/bookmarks',
         '@bookmarks': '/bookmarks',
