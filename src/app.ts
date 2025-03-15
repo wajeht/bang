@@ -39,6 +39,7 @@ const app = express()
 if (appConfig.env === 'development') {
     reload({
         app,
+        options: { quiet: false },
         watch: [
             { path: './public/style.css' },
             { path: './public/script.js' },
