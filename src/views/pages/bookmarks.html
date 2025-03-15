@@ -16,7 +16,7 @@
                     name="search"
                     placeholder="Search..."
                     value="<%= search %>"
-                    style="padding: 8px; border-radius: 5px; border: 1px dashed; flex: 1;"
+                    style="padding: 8px; border-radius: 5px; border: 1px solid; flex: 1;"
                 >
                 <button type="submit">🔍 Search</button>
             </form>
@@ -38,7 +38,7 @@
                                     <% if (sortKey === 'title') { %>
                                         <%= direction === 'asc' ? '🔼' : '🔽' %>
                                     <% } else { %>
-                                        <span>⏺️</span>
+                                        <span class="sort-icon">⏺️</span>
                                     <% } %>
                                 </a>
                             </th>
@@ -51,7 +51,7 @@
                                     <% if (sortKey === 'url') { %>
                                         <%= direction === 'asc' ? '🔼' : '🔽' %>
                                     <% } else { %>
-                                        <span>⏺️</span>
+                                        <span class="sort-icon">⏺️</span>
                                     <% } %>
                                 </a>
                             </th>
@@ -64,7 +64,7 @@
                                     <% if (sortKey === 'created_at') { %>
                                         <%= direction === 'asc' ? '🔼' : '🔽' %>
                                     <% } else { %>
-                                        <span>⏺️</span>
+                                        <span class="sort-icon">⏺️</span>
                                     <% } %>
                                 </a>
                             </th>
@@ -147,3 +147,14 @@
         search
     }) %>
 </div>
+
+<style>
+    .sort-icon {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    a:hover .sort-icon {
+        opacity: 1;
+    }
+</style>

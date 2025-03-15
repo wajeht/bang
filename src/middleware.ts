@@ -305,7 +305,9 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 
         const parsedUser = {
             ...user,
-            column_preferences: JSON.parse(user?.column_preferences as unknown as string),
+            column_preferences: user?.column_preferences
+                ? JSON.parse(user.column_preferences as unknown as string)
+                : {},
         } as User;
 
         req.user = parsedUser;
