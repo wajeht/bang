@@ -244,7 +244,7 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
             },
             version: {
                 style: isProd ? '0.13' : randomNumber,
-                script: isProd ? '0.9' : randomNumber,
+                script: isProd ? '0.10' : randomNumber,
             },
         };
 
