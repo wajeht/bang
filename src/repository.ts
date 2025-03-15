@@ -333,21 +333,17 @@ export const notes = {
 
 export const users = {
     read: async (id: number) => {
-        const user = await db('users').where({ id }).first();
-
-        if (!user) {
-            throw new Error('User not found');
+        try {
+            return await db('users').where({ id }).first();
+        } catch {
+            return null;
         }
-
-        return user;
     },
     readByEmail: async (email: string) => {
-        const user = await db('users').where({ email }).first();
-
-        if (!user) {
-            throw new Error('User not found');
+        try {
+            return await db('users').where({ email }).first();
+        } catch {
+            return null;
         }
-
-        return user;
     },
 };

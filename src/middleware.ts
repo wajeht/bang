@@ -1,8 +1,9 @@
 import helmet from 'helmet';
 import { db } from './db/db';
 import { logger } from './logger';
-import session from 'express-session';
+import { users } from './repository';
 import { csrfSync } from 'csrf-sync';
+import session from 'express-session';
 import rateLimit from 'express-rate-limit';
 import { CACHE_DURATION } from './constant';
 import { CacheDuration, User } from './type';
@@ -273,7 +274,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
         let user: User | null = null;
 
         if (req.session?.user) {
-            user = await db.select('*').from('users').where({ id: req.session.user.id }).first();
+            user = await users.read(req.session.user.id);
             // If user exists in session but not in DB, clear the session
             if (!user) {
                 req.session.destroy((err) => {
@@ -291,7 +292,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
                 throw new UnauthorizedError('Invalid API key or Bearer token');
             }
 
-            user = await db.select('*').from('users').where({ id: apiKeyPayload.userId }).first();
+            user = await users.read(apiKeyPayload.userId);
         }
 
         if (!user) {

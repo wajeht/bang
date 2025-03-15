@@ -131,21 +131,25 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
     const code = req.query.code as string;
 
     if (!code) {
-        throw new UnauthorizedError('Something went wrong while authenticating with github');
+        throw new UnauthorizedError('Something went wrong while authenticating with GitHub');
     }
 
     const { access_token } = await github.getOauthToken(code);
 
     const emails = await github.getUserEmails(access_token);
+    const email = emails.find((email) => email.primary && email.verified)?.email;
 
-    const email = emails.filter((email) => email.primary && email.verified)[0]?.email;
+    if (!email) {
+        throw new UnauthorizedError('No verified primary email found on GitHub account');
+    }
 
-    let foundUser = await db.select('*').from('users').where({ email }).first();
+    let user = await db.select('*').from('users').where({ email }).first();
+    const isNewUser = !user;
 
-    if (!foundUser) {
-        [foundUser] = await db('users')
+    if (isNewUser) {
+        [user] = await db('users')
             .insert({
-                username: email?.split('@')[0],
+                username: email.split('@')[0],
                 email,
                 is_admin: appConfig.adminEmail === email,
             })
@@ -153,28 +157,22 @@ export async function getGithubRedirectHandler(req: Request, res: Response) {
     }
 
     const parsedUser = {
-        ...foundUser,
-        column_preferences: JSON.parse(foundUser.column_preferences),
+        ...user,
+        column_preferences: JSON.parse(user.column_preferences),
     };
 
     req.user = parsedUser;
     req.session.user = parsedUser;
 
-    const redirectTo = req.session.redirectTo;
+    const redirectTo = req.session.redirectTo || '/actions';
     delete req.session.redirectTo;
     req.session.save();
 
-    if (redirectTo) {
-        return res.redirect(redirectTo);
-    }
+    // Set flash message and redirect
+    const flashMessage = isNewUser ? '✌️ Enjoy bang!' : `🙏 Welcome back, ${user.username}!`;
 
-    if (!foundUser) {
-        req.flash('success', '✌️ enjoy bang!');
-        return res.redirect('/actions');
-    }
-
-    req.flash('success', `🙏 welcome back, ${foundUser.username}!`);
-    return res.redirect('/actions');
+    req.flash('success', flashMessage);
+    return res.redirect(redirectTo);
 }
 
 // POST /search

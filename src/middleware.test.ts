@@ -1,12 +1,13 @@
-import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
-import { authenticationMiddleware } from './middleware';
 import { db } from './db/db';
-import { api, getApiKey, isApiRequest } from './util';
-import { logger } from './logger';
-import { UnauthorizedError } from './error';
-import { Request, Response, NextFunction } from 'express';
 import { User } from './type';
+import { logger } from './logger';
+import { users } from './repository';
 import { Session } from 'express-session';
+import { UnauthorizedError } from './error';
+import { authenticationMiddleware } from './middleware';
+import { api, getApiKey, isApiRequest } from './util';
+import { Request, Response, NextFunction } from 'express';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 
 vi.mock('./util', () => ({
     getApiKey: vi.fn(),
@@ -21,6 +22,18 @@ vi.mock('./logger', () => ({
         error: vi.fn(),
     },
 }));
+
+vi.mock('./repository', async () => {
+    const actual = await vi.importActual('./repository');
+    return {
+        ...(actual as any),
+        users: {
+            ...(actual as any).users,
+            read: vi.fn(),
+            readByEmail: vi.fn(),
+        },
+    };
+});
 
 describe('authenticationMiddleware', () => {
     let req: Partial<Request>;
@@ -52,6 +65,35 @@ describe('authenticationMiddleware', () => {
 
     beforeEach(() => {
         vi.resetAllMocks();
+
+        vi.mocked(users.read).mockImplementation(async (id) => {
+            if (id === testUser.id) {
+                return {
+                    id: testUser.id,
+                    username: testUser.username,
+                    email: testUser.email,
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                    column_preferences: JSON.stringify({
+                        bookmarks: {
+                            title: true,
+                        },
+                    }),
+                };
+            }
+            if (id === 11) {
+                // Null prefs user (added dynamically in the related test)
+                return {
+                    id: 11,
+                    username: 'nullprefs',
+                    email: 'null@example.com',
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                    column_preferences: null,
+                };
+            }
+            return null;
+        });
 
         req = {
             session: {
@@ -208,6 +250,20 @@ describe('authenticationMiddleware', () => {
             .returning('*')
             .then((users) => users[0]);
 
+        vi.mocked(users.read).mockImplementation(async (id) => {
+            if (id === nullPrefUser.id) {
+                return {
+                    id: nullPrefUser.id,
+                    username: nullPrefUser.username,
+                    email: nullPrefUser.email,
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                    column_preferences: null,
+                };
+            }
+            return null;
+        });
+
         const sessionUser = {
             id: nullPrefUser.id,
             username: nullPrefUser.username,
@@ -233,9 +289,10 @@ describe('authenticationMiddleware', () => {
     });
 
     it('should handle general error during authentication', async () => {
-        const mockDbSelect = vi.spyOn(db, 'select').mockImplementation(() => {
-            throw new Error('Test database error');
-        });
+        vi.clearAllMocks();
+
+        const testError = new Error('Test database error');
+        vi.mocked(users.read).mockRejectedValue(testError);
 
         const sessionUser = {
             id: testUser.id,
@@ -249,7 +306,5 @@ describe('authenticationMiddleware', () => {
 
         expect(logger.error).toHaveBeenCalled();
         expect(next).toHaveBeenCalledWith(expect.any(Error));
-
-        mockDbSelect.mockRestore();
     });
 });
