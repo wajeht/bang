@@ -240,6 +240,12 @@ td {
     overflow: auto;
 }
 
+/* actions column */
+td:last-child {
+    overflow: visible !important;
+    position: relative;
+}
+
 .no-style-btn:hover {
     text-decoration: underline;
 }
@@ -306,4 +312,13 @@ dialog[open]::backdrop {
 
 [data-theme='dark'] .search-highlight {
     background-color: #ffff54;
+}
+
+.sort-icon {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+a:hover .sort-icon {
+    opacity: 1;
 }
