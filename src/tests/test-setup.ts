@@ -4,7 +4,6 @@ process.env.APP_ENV = 'testing';
 import { beforeAll, afterAll } from 'vitest';
 import { db } from '../db/db';
 
-// Run migrations before tests to set up the in-memory database schema
 beforeAll(async () => {
     try {
         await db.migrate.latest();
