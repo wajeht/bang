@@ -267,7 +267,7 @@ describe('extractUser', () => {
 
     it('should return user from apiKeyPayload if isApiRequest is true', async () => {
         const req = {
-            path: '/api',
+            path: '/api/test',
             apiKeyPayload: { userId: 1 },
             session: {},
             header: vi.fn().mockReturnValue(undefined),

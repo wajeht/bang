@@ -301,7 +301,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 
             req.session.redirectTo = req.originalUrl || req.url;
             req.session.save();
-            res.redirect('/login')
+            res.redirect('/login');
             return;
         }
 
