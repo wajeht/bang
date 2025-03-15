@@ -330,7 +330,7 @@ export function rateLimitMiddleware() {
         standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers
         handler: (req, res) => {
-            if (req.path.startsWith('/api')) {
+            if (req.path.startsWith('/api/')) {
                 return res.status(429).json({
                     message: 'Too many requests from this IP, please try again later.',
                 });
