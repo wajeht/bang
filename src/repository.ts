@@ -1,5 +1,4 @@
 import {
-    User,
     Note,
     Action,
     Bookmark,

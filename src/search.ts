@@ -3,7 +3,7 @@ import { db } from './db/db';
 import { User, Bang } from './type';
 import { Request, Response } from 'express';
 import { bangs as bangsTable } from './db/bang';
-import { defaultSearchProviders } from './config';
+import { defaultSearchProviders } from './constant';
 import { addHttps, insertBookmarkQueue, insertPageTitleQueue, isValidUrl } from './util';
 
 /**
@@ -679,11 +679,11 @@ export async function search({
     const defaultProvider = user.default_search_provider || 'duckduckgo';
 
     // Handle regular search queries or fallback for unknown bangs
-    let searchUrl: string = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(searchTerm || query)); // prettier-ignore
+    let searchUrl: string = defaultSearchProviders[defaultProvider as keyof typeof defaultSearchProviders].replace('{{{s}}}', encodeURIComponent(searchTerm || query)); // prettier-ignore
 
     // Handle unknown bang commands by searching for them without the "!"
     if (commandType === 'bang' && !searchTerm && triggerWithoutPrefix) {
-        searchUrl = defaultSearchProviders[defaultProvider].replace('{{{s}}}', encodeURIComponent(triggerWithoutPrefix)); // prettier-ignore
+        searchUrl = defaultSearchProviders[defaultProvider as keyof typeof defaultSearchProviders].replace('{{{s}}}', encodeURIComponent(triggerWithoutPrefix)); // prettier-ignore
     }
 
     return res.redirect(searchUrl);

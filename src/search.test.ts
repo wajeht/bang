@@ -1,11 +1,10 @@
 import { db } from './db/db';
 import { User } from './type';
 import * as utils from './util';
-import * as searchModule from './search';
-import { search, processDelayedSearch } from './search';
 import { appConfig } from './config';
-import { parseSearchQuery } from './search';
+import * as searchModule from './search';
 import { Request, Response } from 'express';
+import { search, processDelayedSearch } from './search';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 describe('search', () => {

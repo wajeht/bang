@@ -21,7 +21,7 @@ declare global {
     }
 }
 
-import { CACHE_DURATION, defaultSearchProviders } from './config';
+import { CACHE_DURATION, defaultSearchProviders } from './constant';
 
 export type PageType = 'actions' | 'bookmarks' | 'notes';
 

@@ -4,11 +4,12 @@ import { logger } from './logger';
 import session from 'express-session';
 import { csrfSync } from 'csrf-sync';
 import rateLimit from 'express-rate-limit';
+import { CACHE_DURATION } from './constant';
 import { CacheDuration, User } from './type';
+import { appConfig, sessionConfig } from './config';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
-import { appConfig, CACHE_DURATION, sessionConfig } from './config';
 import { HttpError, UnauthorizedError, ValidationError } from './error';
 import { api, getApiKey, isApiRequest, sendNotificationQueue, highlightSearchTerm } from './util';
 

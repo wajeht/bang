@@ -11,10 +11,12 @@ import { db } from './db/db';
 import { search } from './search';
 import { body } from 'express-validator';
 import { Request, Response } from 'express';
+import { appConfig, oauthConfig } from './config';
 import { validateRequestMiddleware } from './middleware';
-import { actions, bookmarks, notes, users } from './repository';
+import { actions, bookmarks, notes } from './repository';
 import { ApiKeyPayload, BookmarkToExport, User } from './type';
-import { actionTypes, appConfig, defaultSearchProviders, oauthConfig } from './config';
+import { actionTypes, defaultSearchProviders } from './constant';
+
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
 
 // GET /healthz
