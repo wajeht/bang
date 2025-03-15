@@ -47,13 +47,16 @@ db-seed:
 pull-prod-db:
 	@./scripts/pull-db.sh
 
+push-prod-db:
+	@./scripts/push-db.sh
+
 db-reset:
 	make db-rollback
 	make db-migrate
 	make db-seed
 
 up:
-	rm -rf ./src/db/sqlite/*sqlite*
+	@rm -rf ./src/db/sqlite/*sqlite*
 	@docker compose -f docker-compose.dev.yml up
 
 up-d:
