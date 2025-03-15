@@ -299,7 +299,16 @@ export async function authenticationMiddleware(req: Request, res: Response, next
                 throw new UnauthorizedError('Unauthorized');
             }
 
-            return res.redirect('/login');
+            // Save the original URL to the session before redirecting
+            // This is used to redirect the user back to the original page after login
+            // check handler.ts getGithubRedirectHandler for more details
+            req.session.redirectTo = req.originalUrl || req.url;
+            return req.session.save((err) => {
+                if (err) {
+                    logger.error('Failed to save redirect URL to session: %o', err);
+                }
+                return res.redirect('/login');
+            });
         }
 
         const parsedUser = {
