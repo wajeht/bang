@@ -5,13 +5,13 @@ To add the Bang bookmarklet to your browser, follow these steps:
 1. Create a new bookmark in your browser.
 2. For the bookmark's name, you can use something like "Bang Bookmarklet".
 3. In the URL field, copy and paste the following code:
-   ```javascript
-   javascript: (function () {
-   	const link = encodeURIComponent(window.location.href).trim();
-   	if (!link) return;
-   	window.location.href = `http://bang.jaw.dev/?q=!bm ${link}`;
-   })();
-   ```
+    ```javascript
+    javascript: (function () {
+        const link = encodeURIComponent(window.location.href).trim();
+        if (!link) return;
+        window.location.href = `http://bang.jaw.dev/?q=!bm ${link}`;
+    })();
+    ```
 4. Save the bookmark.
 
 Now, whenever you want to add a bookmark using Bang, simply click on this bookmarklet.
@@ -22,9 +22,9 @@ Now, whenever you want to add a bookmark using Bang, simply click on this bookma
 
 ```javascript
 javascript: (function () {
-	const link = encodeURIComponent(window.location.href).trim();
-	if (!link) return;
-	window.location.href = `http://bang.jaw.dev/?q=!bm ${link}`;
+    const link = encodeURIComponent(window.location.href).trim();
+    if (!link) return;
+    window.location.href = `http://bang.jaw.dev/?q=!bm ${link}`;
 })();
 ```
 
@@ -32,11 +32,11 @@ javascript: (function () {
 
 ```javascript
 javascript: (function () {
-	const trigger = prompt('please enter a trigger').trim();
-	if (!trigger) return;
-	const link = encodeURIComponent(window.location.href).trim();
-	if (!link) return;
-	window.location.href = `http://bang.jaw.dev/?q=!add !${trigger} ${link}`;
+    const trigger = prompt('please enter a trigger').trim();
+    if (!trigger) return;
+    const link = encodeURIComponent(window.location.href).trim();
+    if (!link) return;
+    window.location.href = `http://bang.jaw.dev/?q=!add !${trigger} ${link}`;
 })();
 ```
 
@@ -44,10 +44,10 @@ javascript: (function () {
 
 ```javascript
 javascript: (function () {
-	const title = prompt('please enter a title').trim();
-	if (!title) return;
-	const content = prompt('please enter the content').trim();
-	if (!content) return;
-	window.location.href = `http://bang.jaw.dev/?q=!note ${title} | ${content}`;
+    const title = prompt('please enter a title').trim();
+    if (!title) return;
+    const content = prompt('please enter the content').trim();
+    if (!content) return;
+    window.location.href = `http://bang.jaw.dev/?q=!note ${title} | ${content}`;
 })();
 ```
