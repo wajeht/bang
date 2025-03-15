@@ -9,19 +9,19 @@
     const searchTemplate = {
       action: (action) => `
         <li data-type="action" data-trigger="${action.trigger}" style="padding: 5px 10px; cursor: pointer; display: flex;">
-          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚡ ${action.name}</span>
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">⚡ ${action.name} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${action.url}</span></span>
           <code>action</code>
         </li>
       `,
       bookmark: (bookmark) => `
         <li data-type="bookmark" data-url="${bookmark.url}" style="padding: 5px 10px; cursor: pointer; display: flex;">
-          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🔖 ${bookmark.title}</span>
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">🔖 ${bookmark.title} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${bookmark.url}</span></span>
           <code>bookmark</code>
         </li>
       `,
       note: (note) => `
         <li data-type="note" data-id="${note.id}" style="padding: 5px 10px; cursor: pointer; display: flex;">
-          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📝 ${note.title}</span>
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">📝 ${note.title} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${note.content}</span></span>
           <code>note</code>
         </li>
       `
