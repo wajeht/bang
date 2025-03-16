@@ -21,6 +21,7 @@ declare global {
     }
 }
 
+import { Request, Response } from 'express';
 import { CACHE_DURATION, defaultSearchProviders } from './constant';
 
 export type PageType = 'actions' | 'bookmarks' | 'notes';
@@ -171,3 +172,15 @@ export type NotesQueryParams = {
     sortKey: string | 'created_at';
     direction: string | 'asc' | 'desc';
 };
+
+export type Search = (options: {
+    res: Response;
+    user: User;
+    query: string;
+    req: Request;
+}) => Promise<void | Response>;
+
+export interface GitHub {
+    getOauthToken: (code: string) => Promise<GitHubOauthToken>;
+    getUserEmails: (access_token: string) => Promise<GithubUserEmail[]>;
+}
