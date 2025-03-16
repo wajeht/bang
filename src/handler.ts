@@ -8,14 +8,23 @@ import {
 } from './util';
 import { Knex } from 'knex';
 import { db } from './db/db';
-import { search } from './search';
 import { body } from 'express-validator';
 import { Request, Response } from 'express';
 import { appConfig, oauthConfig } from './config';
 import { validateRequestMiddleware } from './middleware';
 import { actions, bookmarks, notes } from './repository';
 import { actionTypes, defaultSearchProviders } from './constant';
-import { Api, ApiKeyPayload, BookmarkToExport, GitHub, Search, User } from './type';
+import {
+    Actions,
+    Api,
+    ApiKeyPayload,
+    Bookmarks,
+    BookmarkToExport,
+    GitHub,
+    Notes,
+    Search,
+    User,
+} from './type';
 
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
 
@@ -204,34 +213,36 @@ export function postSearchHandler(search: Search) {
 }
 
 // GET /actions or /api/actions
-export async function getActionsHandler(req: Request, res: Response) {
-    const user = req.user as User;
-    const { perPage, page, search, sortKey, direction } = extractPagination(req, 'actions');
+export function getActionsHandler(actions: Actions) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const { perPage, page, search, sortKey, direction } = extractPagination(req, 'actions');
 
-    const { data, pagination } = await actions.all({
-        user,
-        perPage,
-        page,
-        search,
-        sortKey,
-        direction,
-    });
+        const { data, pagination } = await actions.all({
+            user,
+            perPage,
+            page,
+            search,
+            sortKey,
+            direction,
+        });
 
-    if (isApiRequest(req)) {
-        res.json({ data, pagination, search, sortKey, direction });
-        return;
-    }
+        if (isApiRequest(req)) {
+            res.json({ data, pagination, search, sortKey, direction });
+            return;
+        }
 
-    return res.render('actions.html', {
-        path: '/actions',
-        title: 'Actions',
-        layout: '../layouts/auth.html',
-        data,
-        pagination,
-        search,
-        sortKey,
-        direction,
-    });
+        return res.render('actions.html', {
+            path: '/actions',
+            title: 'Actions',
+            layout: '../layouts/auth.html',
+            data,
+            pagination,
+            search,
+            sortKey,
+            direction,
+        });
+    };
 }
 
 // POST /actions or POST /api/actions
@@ -292,54 +303,63 @@ export const postActionHandler = [
 ];
 
 // GET /actions/create
-export function getActionCreatePageHandler(_req: Request, res: Response) {
-    return res.render('actions-create.html', {
-        title: 'Actions / New',
-        path: '/actions/create',
-        layout: '../layouts/auth.html',
-        actionTypes,
-    });
+export function getActionCreatePageHandler() {
+    return (req: Request, res: Response) => {
+        return res.render('actions-create.html', {
+            title: 'Actions / New',
+            path: '/actions/create',
+            layout: '../layouts/auth.html',
+            actionTypes,
+        });
+    };
 }
 
 // POST /actions/:id/delete or DELETE /api/actions/:id
-export async function deleteActionHandler(req: Request, res: Response) {
-    const deleted = await actions.delete(req.params.id as unknown as number, (req.user as User).id);
+export function deleteActionHandler(actions: Actions) {
+    return async (req: Request, res: Response) => {
+        const deleted = await actions.delete(
+            req.params.id as unknown as number,
+            (req.user as User).id,
+        );
 
-    if (!deleted) {
-        throw new NotFoundError();
-    }
+        if (!deleted) {
+            throw new NotFoundError();
+        }
 
-    if (isApiRequest(req)) {
-        res.status(200).json({ message: 'Action deleted successfully' });
-        return;
-    }
+        if (isApiRequest(req)) {
+            res.status(200).json({ message: 'Action deleted successfully' });
+            return;
+        }
 
-    req.flash('success', 'Action deleted successfully');
-    return res.redirect('/actions');
+        req.flash('success', 'Action deleted successfully');
+        return res.redirect('/actions');
+    };
 }
 
 // GET /actions/:id/edit
-export async function getEditActionPageHandler(req: Request, res: Response) {
-    const action = await db
-        .select('bangs.*', 'action_types.name as action_type')
-        .from('bangs')
-        .where({
-            'bangs.id': req.params.id,
-            'bangs.user_id': (req.user as User).id,
-        })
-        .join('action_types', 'bangs.action_type_id', 'action_types.id')
-        .first();
+export function getEditActionPageHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const action = await db
+            .select('bangs.*', 'action_types.name as action_type')
+            .from('bangs')
+            .where({
+                'bangs.id': req.params.id,
+                'bangs.user_id': (req.user as User).id,
+            })
+            .join('action_types', 'bangs.action_type_id', 'action_types.id')
+            .first();
 
-    if (!action) {
-        throw new NotFoundError();
-    }
+        if (!action) {
+            throw new NotFoundError();
+        }
 
-    return res.render('actions-edit.html', {
-        title: 'Actions / Edit',
-        path: '/actions/edit',
-        layout: '../layouts/auth.html',
-        action,
-    });
+        return res.render('actions-edit.html', {
+            title: 'Actions / Edit',
+            path: '/actions/edit',
+            layout: '../layouts/auth.html',
+            action,
+        });
+    };
 }
 
 // POST /actions/:id/update or PATCH /api/actions/:id
@@ -404,92 +424,105 @@ export const updateActionHandler = [
 ];
 
 // GET /bookmarks/create
-export function getBookmarkCreatePageHandler(_req: Request, res: Response) {
-    return res.render('bookmarks-create.html', {
-        title: 'Bookmarks / New',
-        path: '/bookmarks/create',
-        layout: '../layouts/auth.html',
-    });
+export function getBookmarkCreatePageHandler() {
+    return (req: Request, res: Response) => {
+        return res.render('bookmarks-create.html', {
+            title: 'Bookmarks / New',
+            path: '/bookmarks/create',
+            layout: '../layouts/auth.html',
+        });
+    };
 }
 
 // GET /bookmarks or GET /api/bookmarks
-export async function getBookmarksHandler(req: Request, res: Response) {
-    const user = req.user as User;
-    const { perPage, page, search, sortKey, direction } = extractPagination(req, 'bookmarks');
+export function getBookmarksHandler(bookmarks: Bookmarks) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const { perPage, page, search, sortKey, direction } = extractPagination(req, 'bookmarks');
 
-    const { data, pagination } = await bookmarks.all({
-        user,
-        perPage,
-        page,
-        search,
-        sortKey,
-        direction,
-    });
+        const { data, pagination } = await bookmarks.all({
+            user,
+            perPage,
+            page,
+            search,
+            sortKey,
+            direction,
+        });
 
-    if (isApiRequest(req)) {
-        res.json({ data, pagination, search, sortKey, direction });
-        return;
-    }
+        if (isApiRequest(req)) {
+            res.json({ data, pagination, search, sortKey, direction });
+            return;
+        }
 
-    return res.render('bookmarks', {
-        title: 'Bookmarks',
-        path: '/bookmarks',
-        layout: '../layouts/auth',
-        data,
-        search,
-        pagination,
-        sortKey,
-        direction,
-    });
+        return res.render('bookmarks', {
+            title: 'Bookmarks',
+            path: '/bookmarks',
+            layout: '../layouts/auth',
+            data,
+            search,
+            pagination,
+            sortKey,
+            direction,
+        });
+    };
 }
 
 // POST /bookmarks/:id/delete or DELETE /api/bookmarks/:id
-export async function deleteBookmarkHandler(req: Request, res: Response) {
-    const deleted = await bookmarks.delete(
-        req.params.id as unknown as number,
-        (req.user as User).id,
-    );
+export function deleteBookmarkHandler(bookmarks: Bookmarks) {
+    return async (req: Request, res: Response) => {
+        const deleted = await bookmarks.delete(
+            req.params.id as unknown as number,
+            (req.user as User).id,
+        );
 
-    if (!deleted) {
-        throw new NotFoundError();
-    }
+        if (!deleted) {
+            throw new NotFoundError();
+        }
 
-    if (isApiRequest(req)) {
-        res.status(200).json({ message: 'Bookmark deleted successfully' });
-        return;
-    }
+        if (isApiRequest(req)) {
+            res.status(200).json({ message: 'Bookmark deleted successfully' });
+            return;
+        }
 
-    req.flash('success', 'Bookmark deleted successfully');
-    return res.redirect('/bookmarks');
+        req.flash('success', 'Bookmark deleted successfully');
+        return res.redirect('/bookmarks');
+    };
 }
 
 // GET /bookmarks/:id/edit
-export async function getEditBookmarkPageHandler(req: Request, res: Response) {
-    const bookmark = await bookmarks.read(req.params.id as unknown as number, req.session.user!.id);
+export function getEditBookmarkPageHandler(bookmarks: Bookmarks) {
+    return async (req: Request, res: Response) => {
+        const bookmark = await bookmarks.read(
+            req.params.id as unknown as number,
+            req.session.user!.id,
+        );
 
-    return res.render('bookmarks-edit.html', {
-        title: 'Bookmark / Edit',
-        path: '/bookmark/edit',
-        layout: '../layouts/auth.html',
-        bookmark,
-    });
+        return res.render('bookmarks-edit.html', {
+            title: 'Bookmark / Edit',
+            path: '/bookmark/edit',
+            layout: '../layouts/auth.html',
+            bookmark,
+        });
+    };
 }
 
 // GET /bookmarks/:id/actions/create
-export async function getBookmarkActionCreatePageHandler(req: Request, res: Response) {
-    const bookmark = await db('bookmarks')
-        .where({
-            id: req.params.id,
-            user_id: req.session.user?.id,
-        })
-        .first();
+export function getBookmarkActionCreatePageHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const bookmark = await db('bookmarks')
+            .where({
+                id: req.params.id,
+                user_id: req.session.user?.id,
+            })
+            .first();
 
-    return res.render('bookmarks-id-actions-create.html', {
-        title: `Bookmarks / ${req.params.id} / Actions / Create`,
-        path: `/bookmarks/${req.params.id}/actions/create`,
-        layout: '../layouts/auth.html',
-        bookmark,
-    });
+        return res.render('bookmarks-id-actions-create.html', {
+            title: `Bookmarks / ${req.params.id} / Actions / Create`,
+            path: `/bookmarks/${req.params.id}/actions/create`,
+            layout: '../layouts/auth.html',
+            bookmark,
+        });
+    };
 }
 
 // POST /bookmarks/:id/update or PATCH /api/bookmarks/:id
@@ -545,24 +578,25 @@ export const postBookmarkHandler = [
 ];
 
 // GET /bookmarks/export
-export async function getExportBookmarksHandler(req: Request, res: Response) {
-    const bookmarks = (await db
-        .select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
-        .from('bookmarks')
-        .where({ user_id: req.session.user?.id })) as BookmarkToExport[];
+export function getExportBookmarksHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const bookmarks = (await db
+            .select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
+            .from('bookmarks')
+            .where({ user_id: req.session.user?.id })) as BookmarkToExport[];
 
-    if (!bookmarks.length) {
-        req.flash('info', 'no bookmarks to export yet.');
-        return res.redirect('/bookmarks');
-    }
+        if (!bookmarks.length) {
+            req.flash('info', 'no bookmarks to export yet.');
+            return res.redirect('/bookmarks');
+        }
 
-    res.setHeader(
-        'Content-Disposition',
-        `attachment; filename=bookmarks-${new Date().toISOString().split('T')[0]}.html`,
-    )
-        .setHeader('Content-Type', 'text/html; charset=UTF-8')
-        .send(bookmark.createDocument(bookmarks));
-    return;
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename=bookmarks-${new Date().toISOString().split('T')[0]}.html`,
+        )
+            .setHeader('Content-Type', 'text/html; charset=UTF-8')
+            .send(bookmark.createDocument(bookmarks));
+    };
 }
 
 // GET /settings
@@ -590,21 +624,21 @@ export function postSettingsCreateApiKeyHandler(db: Knex, api: Api) {
     return async (req: Request, res: Response) => {
         const user = await db('users').where({ id: req.session.user?.id }).first();
 
-    if (!user) {
-        throw new NotFoundError();
-    }
+        if (!user) {
+            throw new NotFoundError();
+        }
 
-    const newKeyVersion = (user.api_key_version || 0) + 1;
+        const newKeyVersion = (user.api_key_version || 0) + 1;
 
-    const payload: ApiKeyPayload = { userId: user.id, apiKeyVersion: newKeyVersion };
+        const payload: ApiKeyPayload = { userId: user.id, apiKeyVersion: newKeyVersion };
 
-    await db('users')
-        .where({ id: req.session?.user?.id })
-        .update({
-            api_key: await api.generate(payload),
-            api_key_version: newKeyVersion,
-            api_key_created_at: db.fn.now(),
-        });
+        await db('users')
+            .where({ id: req.session?.user?.id })
+            .update({
+                api_key: await api.generate(payload),
+                api_key_version: newKeyVersion,
+                api_key_created_at: db.fn.now(),
+            });
 
         req.flash('success', '📱 api key created');
         return res.redirect(`/settings/account`);
@@ -682,13 +716,15 @@ export const postSettingsAccountHandler = [
 ];
 
 // GET /settings/data
-export async function getSettingsDataPageHandler(req: Request, res: Response) {
-    return res.render('settings-data.html', {
-        user: req.session?.user,
-        title: 'Settings Data',
-        path: '/settings/data',
-        layout: '../layouts/settings.html',
-    });
+export function getSettingsDataPageHandler() {
+    return (req: Request, res: Response) => {
+        return res.render('settings-data.html', {
+            user: req.session?.user,
+            title: 'Settings Data',
+            path: '/settings/data',
+            layout: '../layouts/settings.html',
+        });
+    };
 }
 
 // POST /settings/data/export
@@ -842,30 +878,34 @@ export const postImportDataHandler = [
 ];
 
 // GET /settings/danger-zone
-export async function getSettingsDangerZonePageHandler(req: Request, res: Response) {
-    return res.render('settings-danger-zone.html', {
-        title: 'Settings Danger Zone',
-        user: req.session?.user,
-        path: '/settings/danger-zone',
-        layout: '../layouts/settings.html',
-    });
+export function getSettingsDangerZonePageHandler() {
+    return (req: Request, res: Response) => {
+        return res.render('settings-danger-zone.html', {
+            title: 'Settings Danger Zone',
+            user: req.session?.user,
+            path: '/settings/danger-zone',
+            layout: '../layouts/settings.html',
+        });
+    };
 }
 
 // POST /settings/danger-zone/delete
-export async function postDeleteSettingsDangerZoneHandler(req: Request, res: Response) {
-    await db('users').where({ id: req.session.user?.id }).delete();
+export function postDeleteSettingsDangerZoneHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        await db('users').where({ id: req.session.user?.id }).delete();
 
-    if ((req.session && req.session.user) || req.user) {
-        req.session.user = null;
-        req.user = undefined;
-        req.session.destroy((error) => {
-            if (error) {
-                throw new HttpError(error);
-            }
-        });
-    }
+        if ((req.session && req.session.user) || req.user) {
+            req.session.user = null;
+            req.user = undefined;
+            req.session.destroy((error) => {
+                if (error) {
+                    throw new HttpError(error);
+                }
+            });
+        }
 
-    return res.redirect('/?toast=🗑️ deleted');
+        return res.redirect('/?toast=🗑️ deleted');
+    };
 }
 
 // GET /settings/data/export
@@ -951,13 +991,15 @@ export async function getCollectionsHandler(req: Request, res: Response) {
 }
 
 // GET /settings/display
-export async function getSettingsDisplayPageHandler(req: Request, res: Response) {
-    return res.render('settings-display.html', {
-        user: req.session?.user,
-        title: 'Display Settings',
-        path: '/settings/display',
-        layout: '../layouts/settings.html',
-    });
+export function getSettingsDisplayPageHandler() {
+    return (req: Request, res: Response) => {
+        return res.render('settings-display.html', {
+            user: req.session?.user,
+            title: 'Display Settings',
+            path: '/settings/display',
+            layout: '../layouts/settings.html',
+        });
+    };
 }
 
 // POST /settings/display
@@ -1069,43 +1111,47 @@ export const postSettingsDisplayHandler = [
 ];
 
 // GET /notes or /api/notes
-export async function getNotesHandler(req: Request, res: Response) {
-    const user = req.user as User;
-    const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
+export function getNotesHandler(notes: Notes) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
 
-    const { data, pagination } = await notes.all({
-        user,
-        perPage,
-        page,
-        search,
-        sortKey,
-        direction,
-    });
+        const { data, pagination } = await notes.all({
+            user,
+            perPage,
+            page,
+            search,
+            sortKey,
+            direction,
+        });
 
-    if (isApiRequest(req)) {
-        res.json({ data, pagination, search, sortKey, direction });
-        return;
-    }
+        if (isApiRequest(req)) {
+            res.json({ data, pagination, search, sortKey, direction });
+            return;
+        }
 
-    return res.render('notes', {
-        title: 'Notes',
-        path: '/notes',
-        layout: '../layouts/auth',
-        data,
-        search,
-        pagination,
-        sortKey,
-        direction,
-    });
+        return res.render('notes', {
+            title: 'Notes',
+            path: '/notes',
+            layout: '../layouts/auth',
+            data,
+            search,
+            pagination,
+            sortKey,
+            direction,
+        });
+    };
 }
 
 // GET /notes/create
-export async function getNoteCreatePageHandler(req: Request, res: Response) {
-    return res.render('notes-create', {
-        title: 'Notes / Create',
-        path: '/notes/create',
-        layout: '../layouts/auth',
-    });
+export function getNoteCreatePageHandler() {
+    return (req: Request, res: Response) => {
+        return res.render('notes-create', {
+            title: 'Notes / Create',
+            path: '/notes/create',
+            layout: '../layouts/auth',
+        });
+    };
 }
 
 // POST /notes or /api/notes
@@ -1140,20 +1186,22 @@ export const postNoteHandler = [
 ];
 
 // GET /notes/:id/edit
-export async function getEditNotePageHandler(req: Request, res: Response) {
-    const user = req.user as User;
-    const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
+export function getEditNotePageHandler(notes: Notes) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
 
-    if (!note) {
-        throw new NotFoundError();
-    }
+        if (!note) {
+            throw new NotFoundError();
+        }
 
-    return res.render('notes-edit', {
-        title: 'Notes / Edit',
-        path: '/notes/edit',
-        layout: '../layouts/auth',
-        note,
-    });
+        return res.render('notes-edit', {
+            title: 'Notes / Edit',
+            path: '/notes/edit',
+            layout: '../layouts/auth',
+            note,
+        });
+    };
 }
 
 // POST /notes/:id/update or PATCH /api/notes/:id
@@ -1191,63 +1239,69 @@ export const updateNoteHandler = [
 ];
 
 // GET /notes/:id or GET /api/notes/:id
-export async function getNoteHandler(req: Request, res: Response) {
-    const user = req.user as User;
-    const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
+export function getNoteHandler(notes: Notes) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
 
-    if (!note) {
-        throw new NotFoundError();
-    }
+        if (!note) {
+            throw new NotFoundError();
+        }
 
-    if (isApiRequest(req)) {
-        res.status(200).json({
-            message: 'note retrieved successfully',
-            data: note,
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: 'note retrieved successfully',
+                data: note,
+            });
+            return;
+        }
+
+        return res.render('notes-id-get', {
+            title: `Notes / ${note.title}`,
+            path: `/notes/${note.id}`,
+            layout: '../layouts/auth',
+            note,
         });
-        return;
-    }
-
-    return res.render('notes-id-get', {
-        title: `Notes / ${note.title}`,
-        path: `/notes/${note.id}`,
-        layout: '../layouts/auth',
-        note,
-    });
+    };
 }
 
 // POST /notes/:id/delete or DELETE /api/notes/:id
-export async function deleteNoteHandler(req: Request, res: Response) {
-    const user = req.user as User;
-    const deleted = await notes.delete(parseInt(req.params.id as unknown as string), user.id);
+export function deleteNoteHandler(notes: Notes) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const deleted = await notes.delete(parseInt(req.params.id as unknown as string), user.id);
 
-    if (!deleted) {
-        throw new NotFoundError();
-    }
+        if (!deleted) {
+            throw new NotFoundError();
+        }
 
-    if (isApiRequest(req)) {
-        res.status(200).json({ message: 'note deleted successfully' });
-        return;
-    }
+        if (isApiRequest(req)) {
+            res.status(200).json({ message: 'note deleted successfully' });
+            return;
+        }
 
-    req.flash('success', 'Note deleted successfully');
-    return res.redirect('/notes');
+        req.flash('success', 'Note deleted successfully');
+        return res.redirect('/notes');
+    };
 }
 
 // GET /api/notes
-export async function getNotesByApiHandler(req: Request, res: Response) {
-    const user = req.user as User;
-    const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
+export async function getNotesByApiHandler(notes: Notes) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
 
-    const { data, pagination } = await notes.all({
-        user,
-        perPage,
-        page,
-        search,
-        sortKey,
-        direction,
-    });
+        const { data, pagination } = await notes.all({
+            user,
+            perPage,
+            page,
+            search,
+            sortKey,
+            direction,
+        });
 
-    return res.json({ data, pagination });
+        return res.json({ data, pagination });
+    };
 }
 
 // POST /api/notes
@@ -1304,11 +1358,16 @@ export const updateNoteByApiHandler = [
 ];
 
 // DELETE /api/notes/:id
-export async function deleteNoteByApiHandler(req: Request, res: Response) {
-    const user = req.user as User;
-    const deletedNote = await notes.delete(parseInt(req.params.id as unknown as string), user.id);
+export async function deleteNoteByApiHandler(notes: Notes) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const deletedNote = await notes.delete(
+            parseInt(req.params.id as unknown as string),
+            user.id,
+        );
 
-    return res.json(deletedNote);
+        return res.json(deletedNote);
+    };
 }
 
 // GET /admin/users

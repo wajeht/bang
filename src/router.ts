@@ -49,15 +49,17 @@ import {
 
 import {
     csrfMiddleware,
-    authenticationMiddleware,
     cacheMiddleware,
     adminOnlyMiddleware,
+    authenticationMiddleware,
 } from './middleware';
 
-const router = express.Router();
 import { db } from './db/db';
 import { search } from './search';
 import { api, github } from './util';
+import { actions, bookmarks, notes } from './repository';
+
+const router = express.Router();
 
 router.get('/healthz', getHealthzHandler(db));
 router.get('/privacy-policy', getPrivacyPolicyPageHandler());
@@ -75,40 +77,45 @@ router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, csrfMiddlewa
 router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
 
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler());
-router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler);
-router.get('/settings/display', authenticationMiddleware, csrfMiddleware, getSettingsDisplayPageHandler); // prettier-ignore
+router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler()); // prettier-ignore
 router.post('/settings/display', authenticationMiddleware, csrfMiddleware, postSettingsDisplayHandler); // prettier-ignore
 router.post('/settings/data/export', authenticationMiddleware, csrfMiddleware, postExportDataHandler); // prettier-ignore
 router.post('/settings/data/import', authenticationMiddleware, csrfMiddleware, postImportDataHandler); // prettier-ignore
 router.post('/settings/account', authenticationMiddleware, csrfMiddleware, postSettingsAccountHandler); // prettier-ignore
+router.get('/settings/display', authenticationMiddleware, csrfMiddleware, getSettingsDisplayPageHandler()); // prettier-ignore
 router.get('/settings/account', authenticationMiddleware, csrfMiddleware, getSettingsAccountPageHandler()); // prettier-ignore
-router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler); // prettier-ignore
+router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler()); // prettier-ignore
 router.post('/settings/create-api-key', authenticationMiddleware, csrfMiddleware, postSettingsCreateApiKeyHandler(db, api)); // prettier-ignore
-router.post('/settings/danger-zone/delete', authenticationMiddleware, csrfMiddleware, postDeleteSettingsDangerZoneHandler); // prettier-ignore
+router.post('/settings/danger-zone/delete', authenticationMiddleware, csrfMiddleware, postDeleteSettingsDangerZoneHandler(db)); // prettier-ignore
 
-router.get('/actions', authenticationMiddleware, csrfMiddleware, getActionsHandler);
 router.post('/actions', authenticationMiddleware, csrfMiddleware, postActionHandler);
+router.get('/actions', authenticationMiddleware, csrfMiddleware, getActionsHandler(actions));
 router.post('/actions/:id/update', authenticationMiddleware, csrfMiddleware, updateActionHandler);
-router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, deleteActionHandler);
-router.get('/actions/create', authenticationMiddleware, csrfMiddleware, getActionCreatePageHandler);
-router.get('/actions/:id/edit', authenticationMiddleware, csrfMiddleware, getEditActionPageHandler);
+router.get('/actions/create', authenticationMiddleware, csrfMiddleware, getActionCreatePageHandler()); // prettier-ignore
+router.get('/actions/:id/edit', authenticationMiddleware, csrfMiddleware, getEditActionPageHandler(db)); // prettier-ignore
+router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, deleteActionHandler(actions)); // prettier-ignore
 
-router.get('/bookmarks/export', authenticationMiddleware, getExportBookmarksHandler);
-router.get('/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksHandler);
+router.get('/bookmarks/export', authenticationMiddleware, getExportBookmarksHandler(db));
 router.post('/bookmarks', authenticationMiddleware, csrfMiddleware, postBookmarkHandler);
-router.post('/bookmarks/:id/delete', authenticationMiddleware, csrfMiddleware, deleteBookmarkHandler); // prettier-ignore
+router.get('/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksHandler(bookmarks));
 router.post('/bookmarks/:id/update', authenticationMiddleware, csrfMiddleware, updateBookmarkHandler); // prettier-ignore
-router.get('/bookmarks/:id/edit', authenticationMiddleware, csrfMiddleware,  getEditBookmarkPageHandler); // prettier-ignore
-router.get('/bookmarks/create', authenticationMiddleware, csrfMiddleware, getBookmarkCreatePageHandler); // prettier-ignore
-router.get('/bookmarks/:id/actions/create', authenticationMiddleware, csrfMiddleware, getBookmarkActionCreatePageHandler); // prettier-ignore
+router.get('/bookmarks/create', authenticationMiddleware, csrfMiddleware, getBookmarkCreatePageHandler()); // prettier-ignore
+router.post('/bookmarks/:id/delete', authenticationMiddleware, csrfMiddleware, deleteBookmarkHandler(bookmarks)); // prettier-ignore
+router.get('/bookmarks/:id/edit', authenticationMiddleware, csrfMiddleware,  getEditBookmarkPageHandler(bookmarks)); // prettier-ignore
+router.get('/bookmarks/:id/actions/create', authenticationMiddleware, csrfMiddleware, getBookmarkActionCreatePageHandler(db)); // prettier-ignore
 
-router.get('/notes', authenticationMiddleware, csrfMiddleware, getNotesHandler);
 router.post('/notes', authenticationMiddleware, csrfMiddleware, postNoteHandler);
+router.get('/notes', authenticationMiddleware, csrfMiddleware, getNotesHandler(notes));
+router.get('/notes/:id', authenticationMiddleware, csrfMiddleware, getNoteHandler(notes));
 router.post('/notes/:id/update', authenticationMiddleware, csrfMiddleware, updateNoteHandler);
-router.post('/notes/:id/delete', authenticationMiddleware, csrfMiddleware, deleteNoteHandler);
-router.get('/notes/create', authenticationMiddleware, csrfMiddleware, getNoteCreatePageHandler);
-router.get('/notes/:id/edit', authenticationMiddleware, csrfMiddleware, getEditNotePageHandler);
-router.get('/notes/:id', authenticationMiddleware, csrfMiddleware, getNoteHandler);
+router.get('/notes/create', authenticationMiddleware, csrfMiddleware, getNoteCreatePageHandler());
+router.post('/notes/:id/delete', authenticationMiddleware, csrfMiddleware, deleteNoteHandler(notes)); // prettier-ignore
+router.get(
+    '/notes/:id/edit',
+    authenticationMiddleware,
+    csrfMiddleware,
+    getEditNotePageHandler(notes),
+);
 
 /**
  * A action
@@ -132,7 +139,7 @@ router.get('/notes/:id', authenticationMiddleware, csrfMiddleware, getNoteHandle
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.get('/api/actions', authenticationMiddleware, getActionsHandler);
+router.get('/api/actions', authenticationMiddleware, getActionsHandler(actions));
 
 /**
  *
@@ -184,7 +191,7 @@ router.patch('/api/actions/:id', authenticationMiddleware, updateActionHandler);
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler);
+router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler(actions));
 
 /**
  * A bookmark
@@ -206,7 +213,7 @@ router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler)
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.get('/api/bookmarks', authenticationMiddleware, getBookmarksHandler);
+router.get('/api/bookmarks', authenticationMiddleware, getBookmarksHandler(bookmarks));
 
 /**
  *
@@ -258,7 +265,7 @@ router.patch('/api/bookmarks/:id', authenticationMiddleware, updateBookmarkHandl
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHandler);
+router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHandler(bookmarks));
 
 /**
  * GET /api/collections
@@ -288,7 +295,7 @@ router.get('/api/collections', authenticationMiddleware, cacheMiddleware(1, 'day
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  */
-router.get('/api/notes', authenticationMiddleware, getNotesHandler);
+router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
 
 /**
  * GET /api/notes/{id}
@@ -298,7 +305,7 @@ router.get('/api/notes', authenticationMiddleware, getNotesHandler);
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  */
-router.get('/api/notes/:id', authenticationMiddleware, getNoteHandler);
+router.get('/api/notes/:id', authenticationMiddleware, getNoteHandler(notes));
 
 /**
  * POST /api/notes
@@ -333,6 +340,6 @@ router.put('/api/notes/:id', authenticationMiddleware, updateNoteHandler);
  * @return {object} 200 - success response - application/json
  * @return {object} 404 - Not found response - application/json
  */
-router.delete('/api/notes/:id', authenticationMiddleware, deleteNoteHandler);
+router.delete('/api/notes/:id', authenticationMiddleware, deleteNoteHandler(notes));
 
 export { router };
