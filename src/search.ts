@@ -341,7 +341,7 @@ export async function handleAnonymousSearch(
     query: string,
     triggerWithoutBang: string,
     searchTerm: string,
-): Promise<Response> {
+): Promise<Response | void> {
     const warningMessage = getSearchLimitWarning(req, req.session.searchCount ?? 0);
 
     // Display warning when user approaches or exceeds search limits
