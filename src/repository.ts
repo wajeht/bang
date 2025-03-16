@@ -7,8 +7,9 @@ import {
     BookmarksQueryParams,
 } from './type';
 import { db } from './db/db';
+import { Actions, Bookmarks, Notes } from './type';
 
-export const actions = {
+export const actions: Actions = {
     all: async ({
         user,
         perPage = 10,
@@ -149,7 +150,7 @@ export const actions = {
     },
 };
 
-export const bookmarks = {
+export const bookmarks: Bookmarks = {
     all: async ({
         user,
         perPage = 10,
@@ -242,7 +243,7 @@ export const bookmarks = {
     },
 };
 
-export const notes = {
+export const notes: Notes = {
     all: async ({
         user,
         perPage = 10,

@@ -184,3 +184,34 @@ export interface GitHub {
     getOauthToken: (code: string) => Promise<GitHubOauthToken>;
     getUserEmails: (access_token: string) => Promise<GithubUserEmail[]>;
 }
+
+export type Pagination = {
+    total: number;
+    perPage: number;
+    page: number;
+    totalPages: number;
+};
+
+export interface Actions {
+    all: (params: ActionsQueryParams) => Promise<any>;
+    create: (action: Action & { actionType: string }) => Promise<Action>;
+    read: (id: number, userId: number) => Promise<Action & { action_type: string }>;
+    update: (id: number, userId: number, updates: Partial<Action> & { actionType: string }) => Promise<Action>; // prettier-ignore
+    delete: (id: number, userId: number) => Promise<boolean>;
+}
+
+export interface Bookmarks {
+    all: (params: BookmarksQueryParams) => Promise<any>;
+    create: (bookmark: Bookmark) => Promise<Bookmark>;
+    read: (id: number, userId: number) => Promise<Bookmark>;
+    update: (id: number, userId: number, updates: Partial<Bookmark>) => Promise<Bookmark>;
+    delete: (id: number, userId: number) => Promise<boolean>;
+}
+
+export interface Notes {
+    all: (params: NotesQueryParams) => Promise<any>;
+    create: (note: Note) => Promise<Note>;
+    read: (id: number, userId: number) => Promise<Note>;
+    update: (id: number, userId: number, updates: Partial<Note>) => Promise<Note>;
+    delete: (id: number, userId: number) => Promise<boolean>;
+}
