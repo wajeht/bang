@@ -58,6 +58,10 @@ function gracefulShutdown(signal: string): void {
 
     let shutdownComplete = false;
 
+    server.keepAliveTimeout = 0;
+    server.headersTimeout = 0;
+    server.timeout = 1;
+
     server.close(async () => {
         logger.info('HTTP server closed.');
 
