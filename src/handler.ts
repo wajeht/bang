@@ -1,12 +1,12 @@
 import {
     api,
-    github,
     bookmark,
     expectJson,
     isApiRequest,
     extractPagination,
     insertBookmarkQueue,
 } from './util';
+import { Knex } from 'knex';
 import { db } from './db/db';
 import { search } from './search';
 import { body } from 'express-validator';
@@ -14,173 +14,193 @@ import { Request, Response } from 'express';
 import { appConfig, oauthConfig } from './config';
 import { validateRequestMiddleware } from './middleware';
 import { actions, bookmarks, notes } from './repository';
-import { ApiKeyPayload, BookmarkToExport, User } from './type';
 import { actionTypes, defaultSearchProviders } from './constant';
+import { Api, ApiKeyPayload, BookmarkToExport, GitHub, Search, User } from './type';
 
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
 
 // GET /healthz
-export async function getHealthzHandler(req: Request, res: Response) {
-    try {
-        await db.raw('SELECT 1');
+export function getHealthzHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        try {
+            await db.raw('SELECT 1');
 
-        if (expectJson(req)) {
-            res.status(200).json({ status: 'ok', database: 'connected' });
-            return;
+            if (expectJson(req)) {
+                res.status(200).json({ status: 'ok', database: 'connected' });
+                return;
+            }
+
+            res.setHeader('Content-Type', 'text/html').status(200).send('<p>ok</p>');
+        } catch (_error) {
+            if (expectJson(req)) {
+                res.status(503).json({
+                    status: 'error',
+                    database: 'disconnected',
+                    message: 'Database connection failed',
+                });
+                return;
+            }
+
+            res.setHeader('Content-Type', 'text/html')
+                .status(503)
+                .send('<p>error: database connection failed</p>');
         }
-
-        res.setHeader('Content-Type', 'text/html').status(200).send('<p>ok</p>');
-    } catch (_error) {
-        if (expectJson(req)) {
-            res.status(503).json({
-                status: 'error',
-                database: 'disconnected',
-                message: 'Database connection failed',
-            });
-            return;
-        }
-
-        res.setHeader('Content-Type', 'text/html')
-            .status(503)
-            .send('<p>error: database connection failed</p>');
-    }
+    };
 }
 
 // GET /terms-of-service
-export function getTermsOfServicePageHandler(_req: Request, res: Response) {
-    return res.render('terms-of-service.html', {
-        path: '/terms-of-service',
-        title: 'Terms of Service',
-    });
+export function getTermsOfServicePageHandler() {
+    return (_req: Request, res: Response) => {
+        return res.render('terms-of-service.html', {
+            path: '/terms-of-service',
+            title: 'Terms of Service',
+        });
+    };
 }
 
 // GET /privacy-policy
-export function getPrivacyPolicyPageHandler(_req: Request, res: Response) {
-    return res.render('privacy-policy', {
-        path: '/privacy-policy',
-        title: 'Privacy Policy',
-    });
+export function getPrivacyPolicyPageHandler() {
+    return (_req: Request, res: Response) => {
+        return res.render('privacy-policy', {
+            path: '/privacy-policy',
+            title: 'Privacy Policy',
+        });
+    };
 }
 
 // GET /how-to
-export function getHowToPageHandler(_req: Request, res: Response) {
-    return res.render('how-to', {
-        path: '/how-to',
-        title: 'How To',
-    });
+export function getHowToPageHandler() {
+    return (_req: Request, res: Response) => {
+        return res.render('how-to', {
+            path: '/how-to',
+            title: 'How To',
+        });
+    };
 }
 
 // GET /
-export async function getHomePageAndSearchHandler(req: Request, res: Response) {
-    const query = req.query.q?.toString().trim() || '';
-    const user = req.session.user!;
+export function getHomePageAndSearchHandler(search: Search) {
+    return async (req: Request, res: Response) => {
+        const query = req.query.q?.toString().trim() || '';
+        const user = req.session.user as User;
 
-    if (!query) {
-        return res.render('home.html', {
-            path: '/',
-            title: 'Search',
-        });
-    }
+        if (!query) {
+            return res.render('home.html', {
+                path: '/',
+                title: 'Search',
+            });
+        }
 
-    await search({ res, user, query, req });
+        await search({ res, user, query, req });
+    };
 }
 
 // GET /logout
-export function getLogoutHandler(req: Request, res: Response) {
-    if ((req.session && req.session.user) || req.user) {
-        req.session.user = null;
-        req.user = undefined;
-        req.session.destroy((error) => {
-            if (error) {
-                throw new HttpError(error);
-            }
-        });
-    }
+export function getLogoutHandler() {
+    return (req: Request, res: Response) => {
+        if ((req.session && req.session.user) || req.user) {
+            req.session.user = null;
+            req.user = undefined;
+            req.session.destroy((error) => {
+                if (error) {
+                    throw new HttpError(error);
+                }
+            });
+        }
 
-    return res.redirect(`/?toast=${encodeURIComponent('✌️ see ya!')}`);
+        return res.redirect(`/?toast=${encodeURIComponent('✌️ see ya!')}`);
+    };
 }
 
 // GET /login
-export function getLoginHandler(req: Request, res: Response) {
-    if (req.session.user) {
-        req.flash('info', "you've already been logged in!");
-        return res.redirect('/');
-    }
+export function getLoginHandler() {
+    return (req: Request, res: Response) => {
+        if (req.session.user) {
+            req.flash('info', "you've already been logged in!");
+            return res.redirect('/');
+        }
 
-    return res.redirect('/oauth/github');
+        return res.redirect('/oauth/github');
+    };
 }
 
 // GET /oauth/github
-export async function getGithubHandler(req: Request, res: Response) {
-    if (req.user) {
-        req.flash('info', "you've already been logged in!");
-        return res.redirect('/');
-    }
+export function getGithubHandler() {
+    return (req: Request, res: Response) => {
+        if (req.user) {
+            req.flash('info', "you've already been logged in!");
+            return res.redirect('/');
+        }
 
-    const qs = new URLSearchParams({
-        redirect_uri: oauthConfig.github.redirect_uri,
-        client_id: oauthConfig.github.client_id,
-        scope: 'user:email',
-    });
+        const qs = new URLSearchParams({
+            redirect_uri: oauthConfig.github.redirect_uri,
+            client_id: oauthConfig.github.client_id,
+            scope: 'user:email',
+        });
 
-    return res.redirect(`${oauthConfig.github.root_url}?${qs.toString()}`);
+        return res.redirect(`${oauthConfig.github.root_url}?${qs.toString()}`);
+    };
 }
 
 // GET /oauth/github/redirect
-export async function getGithubRedirectHandler(req: Request, res: Response) {
-    const code = req.query.code as string;
+export function getGithubRedirectHandler(db: Knex, github: GitHub) {
+    return async (req: Request, res: Response) => {
+        const code = req.query.code as string;
 
-    if (!code) {
-        throw new UnauthorizedError('Something went wrong while authenticating with GitHub');
-    }
+        if (!code) {
+            throw new UnauthorizedError('Something went wrong while authenticating with GitHub');
+        }
 
-    const { access_token } = await github.getOauthToken(code);
+        const { access_token } = await github.getOauthToken(code);
 
-    const emails = await github.getUserEmails(access_token);
-    const email = emails.find((email) => email.primary && email.verified)?.email;
+        const emails = await github.getUserEmails(access_token);
+        const email = emails.find((email: any) => email.primary && email.verified)?.email;
 
-    if (!email) {
-        throw new UnauthorizedError('No verified primary email found on GitHub account');
-    }
+        if (!email) {
+            throw new UnauthorizedError('No verified primary email found on GitHub account');
+        }
 
-    let user = await db.select('*').from('users').where({ email }).first();
-    const isNewUser = !user;
+        let user = await db.select('*').from('users').where({ email }).first();
+        const isNewUser = !user;
 
-    if (isNewUser) {
-        [user] = await db('users')
-            .insert({
-                username: email.split('@')[0],
-                email,
-                is_admin: appConfig.adminEmail === email,
-            })
-            .returning('*');
-    }
+        if (isNewUser) {
+            [user] = await db('users')
+                .insert({
+                    username: email.split('@')[0],
+                    email,
+                    is_admin: appConfig.adminEmail === email,
+                })
+                .returning('*');
+        }
 
-    const parsedUser = {
-        ...user,
-        column_preferences: JSON.parse(user.column_preferences),
+        const parsedUser = {
+            ...user,
+            column_preferences: JSON.parse(user.column_preferences),
+        };
+
+        req.user = parsedUser;
+        req.session.user = parsedUser;
+
+        const redirectTo = req.session.redirectTo || '/actions';
+        delete req.session.redirectTo;
+        req.session.save();
+
+        // Set flash message and redirect
+        const flashMessage = isNewUser ? '✌️ Enjoy bang!' : `🙏 Welcome back, ${user.username}!`;
+
+        req.flash('success', flashMessage);
+        return res.redirect(redirectTo);
     };
-
-    req.user = parsedUser;
-    req.session.user = parsedUser;
-
-    const redirectTo = req.session.redirectTo || '/actions';
-    delete req.session.redirectTo;
-    req.session.save();
-
-    // Set flash message and redirect
-    const flashMessage = isNewUser ? '✌️ Enjoy bang!' : `🙏 Welcome back, ${user.username}!`;
-
-    req.flash('success', flashMessage);
-    return res.redirect(redirectTo);
 }
 
 // POST /search
-export async function postSearchHandler(req: Request, res: Response) {
-    const query = req.body.q?.toString().trim() || '';
-    const user = req.session.user || undefined;
+export function postSearchHandler(search: Search) {
+    return async (req: Request, res: Response) => {
+        const query = req.body.q?.toString().trim() || '';
+        const user = req.session.user as User;
 
-    await search({ res, user, query, req });
+        await search({ res, user, query, req });
+    };
 }
 
 // GET /actions or /api/actions
@@ -546,24 +566,29 @@ export async function getExportBookmarksHandler(req: Request, res: Response) {
 }
 
 // GET /settings
-export async function getSettingsPageHandler(_req: Request, res: Response) {
-    return res.redirect('/settings/account');
+export function getSettingsPageHandler() {
+    return (_req: Request, res: Response) => {
+        return res.redirect('/settings/account');
+    };
 }
 
 // GET /settings/account
-export async function getSettingsAccountPageHandler(req: Request, res: Response) {
-    return res.render('settings-account.html', {
-        user: req.session?.user,
-        title: 'Settings Account',
-        path: '/settings/account',
-        layout: '../layouts/settings.html',
-        defaultSearchProviders: Object.keys(defaultSearchProviders),
-    });
+export function getSettingsAccountPageHandler() {
+    return (req: Request, res: Response) => {
+        return res.render('settings-account.html', {
+            user: req.session?.user,
+            title: 'Settings Account',
+            path: '/settings/account',
+            layout: '../layouts/settings.html',
+            defaultSearchProviders: Object.keys(defaultSearchProviders),
+        });
+    };
 }
 
 // POST /settings/create-api-key
-export async function postSettingsCreateApiKeyHandler(req: Request, res: Response) {
-    const user = await db('users').where({ id: req.session.user?.id }).first();
+export function postSettingsCreateApiKeyHandler(db: Knex, api: Api) {
+    return async (req: Request, res: Response) => {
+        const user = await db('users').where({ id: req.session.user?.id }).first();
 
     if (!user) {
         throw new NotFoundError();
@@ -581,8 +606,9 @@ export async function postSettingsCreateApiKeyHandler(req: Request, res: Respons
             api_key_created_at: db.fn.now(),
         });
 
-    req.flash('success', '📱 api key created');
-    return res.redirect(`/settings/account`);
+        req.flash('success', '📱 api key created');
+        return res.redirect(`/settings/account`);
+    };
 }
 
 // POST /settings/account
@@ -1286,31 +1312,33 @@ export async function deleteNoteByApiHandler(req: Request, res: Response) {
 }
 
 // GET /admin/users
-export async function getAdminUsersHandler(req: Request, res: Response) {
-    const { perPage, page, search, sortKey, direction } = extractPagination(req, 'admin');
+export function getAdminUsersHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const { perPage, page, search, sortKey, direction } = extractPagination(req, 'admin');
 
-    const query = db.select('*').from('users');
+        const query = db.select('*').from('users');
 
-    if (search) {
-        query.where((q) =>
-            q
-                .whereRaw('LOWER(username) LIKE ?', [`%${search.toLowerCase()}%`])
-                .orWhereRaw('LOWER(email) LIKE ?', [`%${search.toLowerCase()}%`]),
-        );
-    }
+        if (search) {
+            query.where((q) =>
+                q
+                    .whereRaw('LOWER(username) LIKE ?', [`%${search.toLowerCase()}%`])
+                    .orWhereRaw('LOWER(email) LIKE ?', [`%${search.toLowerCase()}%`]),
+            );
+        }
 
-    const { data, pagination } = await query
-        .orderBy(sortKey || 'created_at', direction || 'desc')
-        .paginate({ perPage, currentPage: page, isLengthAware: true });
+        const { data, pagination } = await query
+            .orderBy(sortKey || 'created_at', direction || 'desc')
+            .paginate({ perPage, currentPage: page, isLengthAware: true });
 
-    return res.render('admin-users.html', {
-        title: 'Admin / Users',
-        path: '/admin/users',
-        layout: '../layouts/admin.html',
-        data,
-        pagination,
-        search,
-        sortKey,
-        direction,
-    });
+        return res.render('admin-users.html', {
+            title: 'Admin / Users',
+            path: '/admin/users',
+            layout: '../layouts/admin.html',
+            data,
+            pagination,
+            search,
+            sortKey,
+            direction,
+        });
+    };
 }

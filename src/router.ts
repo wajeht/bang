@@ -55,32 +55,35 @@ import {
 } from './middleware';
 
 const router = express.Router();
+import { db } from './db/db';
+import { search } from './search';
+import { api, github } from './util';
 
-router.get('/healthz', getHealthzHandler);
-router.get('/privacy-policy', getPrivacyPolicyPageHandler);
-router.get('/', csrfMiddleware, getHomePageAndSearchHandler);
-router.get('/terms-of-service', getTermsOfServicePageHandler);
-router.get('/how-to', cacheMiddleware(1, 'day'), getHowToPageHandler);
+router.get('/healthz', getHealthzHandler(db));
+router.get('/privacy-policy', getPrivacyPolicyPageHandler());
+router.get('/', csrfMiddleware, getHomePageAndSearchHandler(search));
+router.get('/terms-of-service', getTermsOfServicePageHandler());
+router.get('/how-to', cacheMiddleware(1, 'day'), getHowToPageHandler());
 
-router.get('/login', getLoginHandler);
-router.get('/logout', getLogoutHandler);
-router.get('/oauth/github', getGithubHandler);
-router.post('/search', csrfMiddleware, postSearchHandler);
-router.get('/oauth/github/redirect', getGithubRedirectHandler);
+router.get('/login', getLoginHandler());
+router.get('/logout', getLogoutHandler());
+router.get('/oauth/github', getGithubHandler());
+router.post('/search', csrfMiddleware, postSearchHandler(search));
+router.get('/oauth/github/redirect', getGithubRedirectHandler(db, github));
 
-router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler); // prettier-ignore
-router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler); // prettier-ignore
+router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
+router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
 
-router.get('/settings', authenticationMiddleware, getSettingsPageHandler);
+router.get('/settings', authenticationMiddleware, getSettingsPageHandler());
 router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler);
 router.get('/settings/display', authenticationMiddleware, csrfMiddleware, getSettingsDisplayPageHandler); // prettier-ignore
 router.post('/settings/display', authenticationMiddleware, csrfMiddleware, postSettingsDisplayHandler); // prettier-ignore
 router.post('/settings/data/export', authenticationMiddleware, csrfMiddleware, postExportDataHandler); // prettier-ignore
 router.post('/settings/data/import', authenticationMiddleware, csrfMiddleware, postImportDataHandler); // prettier-ignore
 router.post('/settings/account', authenticationMiddleware, csrfMiddleware, postSettingsAccountHandler); // prettier-ignore
-router.get('/settings/account', authenticationMiddleware, csrfMiddleware, getSettingsAccountPageHandler); // prettier-ignore
+router.get('/settings/account', authenticationMiddleware, csrfMiddleware, getSettingsAccountPageHandler()); // prettier-ignore
 router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler); // prettier-ignore
-router.post('/settings/create-api-key', authenticationMiddleware, csrfMiddleware, postSettingsCreateApiKeyHandler); // prettier-ignore
+router.post('/settings/create-api-key', authenticationMiddleware, csrfMiddleware, postSettingsCreateApiKeyHandler(db, api)); // prettier-ignore
 router.post('/settings/danger-zone/delete', authenticationMiddleware, csrfMiddleware, postDeleteSettingsDangerZoneHandler); // prettier-ignore
 
 router.get('/actions', authenticationMiddleware, csrfMiddleware, getActionsHandler);

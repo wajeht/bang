@@ -1,6 +1,6 @@
 import fastq from 'fastq';
 import { db } from './db/db';
-import { User, Bang } from './type';
+import { Bang, Search } from './type';
 import { Request, Response } from 'express';
 import { bangs as bangsTable } from './db/bang';
 import { defaultSearchProviders } from './constant';
@@ -304,7 +304,7 @@ export function parseSearchQuery(query: string) {
  * Handles rate limiting for unauthenticated users
  * Returns warning message when search count reaches multiples of 10
  */
-export function getSearchLimitWarning(req: Request, searchCount: number) {
+export function getSearchLimitWarning(_req: Request, searchCount: number) {
     const searchesLeft = searchConfig.searchLimit - searchCount;
     const showWarning = searchCount % 10 === 0 && searchCount !== 0;
 
@@ -427,21 +427,10 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string) {
 }
 
 /**
- * Processes search queries and handles different user flows
- * - Unauthenticated user flow: Handles rate limiting, bang commands, and default search
- * - Authenticated user flow: Handles direct navigation commands, bookmark creation, and custom bang commands
+ * Main search function handling all types of search queries
  */
-export async function search({
-    res,
-    req,
-    user,
-    query,
-}: {
-    res: Response;
-    req: Request;
-    user?: User;
-    query: string;
-}) {
+export async function search({ res, req, user, query }: Parameters<Search>[0]): ReturnType<Search> {
+    // prettier-ignore
     const { commandType, trigger, triggerWithoutPrefix, url, searchTerm } = parseSearchQuery(query);
 
     if (!user) {

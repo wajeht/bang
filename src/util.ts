@@ -6,6 +6,7 @@ import {
     GithubUserEmail,
     BookmarkToExport,
     GitHubOauthToken,
+    GitHub,
 } from './type';
 import qs from 'qs';
 import fastq from 'fastq';
@@ -23,7 +24,7 @@ export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
 export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
 export const sendNotificationQueue = fastq.promise(sendNotification, 10);
 
-export const github = {
+export const github: GitHub = {
     getOauthToken: async function (code: string): Promise<GitHubOauthToken> {
         const rootUrl = 'https://github.com/login/oauth/access_token';
 
