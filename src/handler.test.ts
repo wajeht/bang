@@ -57,7 +57,8 @@ describe('Health Check Endpoint', () => {
             }),
         };
 
-        await getHealthzHandler(req as Request, res as Response);
+        const handler = getHealthzHandler(db);
+        await handler(req as Request, res as Response);
 
         expect(db.raw).toHaveBeenCalledWith('SELECT 1');
         expect(res.status).toHaveBeenCalledWith(200);
@@ -67,7 +68,8 @@ describe('Health Check Endpoint', () => {
     it('should return 200 status when database is connected (HTML response)', async () => {
         (db.raw as any).mockResolvedValueOnce([{ '1': 1 }]);
 
-        await getHealthzHandler(req as Request, res as Response);
+        const handler = getHealthzHandler(db);
+        await handler(req as Request, res as Response);
 
         expect(db.raw).toHaveBeenCalledWith('SELECT 1');
         expect(res.status).toHaveBeenCalledWith(200);
@@ -91,7 +93,8 @@ describe('Health Check Endpoint', () => {
             }),
         };
 
-        await getHealthzHandler(req as Request, res as Response);
+        const handler = getHealthzHandler(db);
+        await handler(req as Request, res as Response);
 
         expect(db.raw).toHaveBeenCalledWith('SELECT 1');
         expect(res.status).toHaveBeenCalledWith(503);
@@ -105,7 +108,8 @@ describe('Health Check Endpoint', () => {
     it('should return 503 status when database connection fails (HTML response)', async () => {
         (db.raw as any).mockRejectedValueOnce(new Error('Database connection error'));
 
-        await getHealthzHandler(req as Request, res as Response);
+        const handler = getHealthzHandler(db);
+        await handler(req as Request, res as Response);
 
         expect(db.raw).toHaveBeenCalledWith('SELECT 1');
         expect(res.status).toHaveBeenCalledWith(503);
