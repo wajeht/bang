@@ -88,6 +88,7 @@
         "@wajeht/express-templates-reload": "^1.0.4",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-prettier": "^5.2.3",
+        "eslint-plugin-security": "^3.0.1",
         "prettier": "^3.5.3",
         "tsx": "^4.19.2",
         "typescript": "^5.8.2",
