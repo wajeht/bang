@@ -1,3 +1,11 @@
+import {
+    api,
+    nl2br,
+    getApiKey,
+    isApiRequest,
+    highlightSearchTerm,
+    sendNotificationQueue,
+} from './util';
 import helmet from 'helmet';
 import { db } from './db/db';
 import { logger } from './logger';
@@ -12,7 +20,6 @@ import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { HttpError, UnauthorizedError, ValidationError } from './error';
-import { api, getApiKey, isApiRequest, sendNotificationQueue, highlightSearchTerm } from './util';
 
 export function cacheMiddleware(value: number, unit: CacheDuration = 'second') {
     const seconds = value * CACHE_DURATION[unit];
@@ -252,6 +259,7 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
         // utility functions for frontend
         res.locals.utils = {
             highlightSearchTerm,
+            nl2br,
         };
 
         // Clear session input and errors after setting locals

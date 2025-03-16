@@ -1,5 +1,6 @@
 import {
     api,
+    nl2br,
     bookmark,
     addHttps,
     getApiKey,
@@ -514,5 +515,52 @@ describe.concurrent('highlightSearchTerm', () => {
         const text = 'This is a test';
         const escaped = 'This is a test'; // No HTML entities to escape in this simple case
         expect(highlightSearchTerm(text, 'xyz')).toBe(escaped);
+    });
+});
+
+describe.concurrent('nl2br', () => {
+    it('should return empty string for null or undefined input', () => {
+        // @ts-ignore - Testing with null input
+        expect(nl2br(null)).toBe('');
+        // @ts-ignore - Testing with undefined input
+        expect(nl2br(undefined)).toBe('');
+    });
+
+    it('should convert newlines to <br> tags', () => {
+        expect(nl2br('line1\nline2')).toBe('line1<br>line2');
+        expect(nl2br('line1\r\nline2')).toBe('line1<br>line2');
+        expect(nl2br('line1\rline2')).toBe('line1<br>line2');
+    });
+
+    it('should convert tabs to four non-breaking spaces', () => {
+        expect(nl2br('text\tmore')).toBe('text&nbsp;&nbsp;&nbsp;&nbsp;more');
+    });
+
+    it('should convert spaces to non-breaking spaces', () => {
+        expect(nl2br('text more')).toBe('text&nbsp;more');
+    });
+
+    it('should handle multiple and mixed line breaks, tabs, and spaces', () => {
+        expect(nl2br('line1\n\nline3')).toBe('line1<br><br>line3');
+        expect(nl2br('line1\r\n\r\nline3')).toBe('line1<br><br>line3');
+        expect(nl2br('text\t\tmore')).toBe(
+            'text&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;more',
+        );
+        expect(nl2br('text  more')).toBe('text&nbsp;&nbsp;more');
+        expect(nl2br('line1\n\tline2')).toBe('line1<br>&nbsp;&nbsp;&nbsp;&nbsp;line2');
+    });
+
+    it('should handle non-string inputs by converting them to strings', () => {
+        // @ts-ignore - Testing with number input
+        expect(nl2br(123)).toBe('123');
+
+        // @ts-ignore - Testing with object input
+        const obj = { toString: () => 'test object' };
+        // @ts-ignore - Testing with object input
+        expect(nl2br(obj)).toBe('test&nbsp;object');
+    });
+
+    it('should preserve other characters', () => {
+        expect(nl2br('line1\nline2!@#$%^&*()')).toBe('line1<br>line2!@#$%^&*()');
     });
 });

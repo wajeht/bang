@@ -395,3 +395,26 @@ export function highlightSearchTerm(
 
     return result;
 }
+
+export function nl2br(str: string): string {
+    if (str === null || str === undefined || str === '') {
+        return '';
+    }
+
+    const safeStr = String(str);
+
+    return safeStr.replace(/(?:\r\n|\r|\n|\t| )/g, (match: string) => {
+        switch (match) {
+            case '\r\n':
+            case '\r':
+            case '\n':
+                return '<br>';
+            case '\t':
+                return '&nbsp;&nbsp;&nbsp;&nbsp;'; // 4 spaces for a tab
+            case ' ':
+                return '&nbsp;'; // Non-breaking space
+            default:
+                return match; // Handle any other characters matched
+        }
+    });
+}
