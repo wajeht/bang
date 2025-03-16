@@ -4,7 +4,7 @@ import {
     expectJson,
     isApiRequest,
     extractPagination,
-    insertBookmarkQueue,
+    insertBookmarkQueue as InsertBookmarkQueue,
 } from './util';
 import { Knex } from 'knex';
 import { db } from './db/db';
@@ -246,8 +246,8 @@ export function getActionsHandler(actions: Actions) {
 }
 
 // POST /actions or POST /api/actions
-export const postActionHandler = [
-    validateRequestMiddleware([
+export const postActionHandler = {
+    validator: validateRequestMiddleware([
         body('url')
             .notEmpty()
             .withMessage('URL is required')
@@ -279,28 +279,32 @@ export const postActionHandler = [
                 return true;
             }),
     ]),
-    async (req: Request, res: Response) => {
-        const { trigger, url, actionType, name } = req.body;
+    handler: function (actions: Actions) {
+        return async (req: Request, res: Response) => {
+            const { trigger, url, actionType, name } = req.body;
 
-        const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
+            const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-        await actions.create({
-            name: name.trim(),
-            trigger: formattedTrigger.toLowerCase(),
-            url,
-            actionType,
-            user_id: (req.user as User).id,
-        });
+            await actions.create({
+                name: name.trim(),
+                trigger: formattedTrigger.toLowerCase(),
+                url,
+                actionType,
+                user_id: (req.user as User).id,
+            });
 
-        if (isApiRequest(req)) {
-            res.status(201).json({ message: `Action ${formattedTrigger} created successfully!` });
-            return;
-        }
+            if (isApiRequest(req)) {
+                res.status(201).json({
+                    message: `Action ${formattedTrigger} created successfully!`,
+                });
+                return;
+            }
 
-        req.flash('success', `Action ${formattedTrigger} created successfully!`);
-        return res.redirect('/actions');
+            req.flash('success', `Action ${formattedTrigger} created successfully!`);
+            return res.redirect('/actions');
+        };
     },
-];
+};
 
 // GET /actions/create
 export function getActionCreatePageHandler() {
@@ -363,8 +367,8 @@ export function getEditActionPageHandler(db: Knex) {
 }
 
 // POST /actions/:id/update or PATCH /api/actions/:id
-export const updateActionHandler = [
-    validateRequestMiddleware([
+export const updateActionHandler = {
+    validator: validateRequestMiddleware([
         body('url')
             .notEmpty()
             .withMessage('URL is required')
@@ -396,32 +400,34 @@ export const updateActionHandler = [
                 return true;
             }),
     ]),
-    async (req: Request, res: Response) => {
-        const { trigger, url, actionType, name } = req.body;
-        const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+    handler: function (actions: Actions) {
+        return async (req: Request, res: Response) => {
+            const { trigger, url, actionType, name } = req.body;
+            const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-        const updatedAction = await actions.update(
-            req.params.id as unknown as number,
-            (req.user as User).id,
-            {
-                trigger: formattedTrigger,
-                name: name.trim(),
-                url,
-                actionType,
-            },
-        );
+            const updatedAction = await actions.update(
+                req.params.id as unknown as number,
+                (req.user as User).id,
+                {
+                    trigger: formattedTrigger,
+                    name: name.trim(),
+                    url,
+                    actionType,
+                },
+            );
 
-        if (isApiRequest(req)) {
-            res.status(200).json({
-                message: `Action ${updatedAction.trigger} updated successfully!`,
-            });
-            return;
-        }
+            if (isApiRequest(req)) {
+                res.status(200).json({
+                    message: `Action ${updatedAction.trigger} updated successfully!`,
+                });
+                return;
+            }
 
-        req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
-        return res.redirect('/actions');
+            req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
+            return res.redirect('/actions');
+        };
     },
-];
+};
 
 // GET /bookmarks/create
 export function getBookmarkCreatePageHandler() {
@@ -526,8 +532,8 @@ export function getBookmarkActionCreatePageHandler(db: Knex) {
 }
 
 // POST /bookmarks/:id/update or PATCH /api/bookmarks/:id
-export const updateBookmarkHandler = [
-    validateRequestMiddleware([
+export const updateBookmarkHandler = {
+    validator: validateRequestMiddleware([
         body('url')
             .notEmpty()
             .withMessage('URL is required')
@@ -535,26 +541,28 @@ export const updateBookmarkHandler = [
             .withMessage('Invalid URL format'),
         body('title').notEmpty().withMessage('Title is required').trim(),
     ]),
-    async (req: Request, res: Response) => {
-        const { url, title } = req.body;
+    handler: function (bookmarks: Bookmarks) {
+        return async (req: Request, res: Response) => {
+            const { url, title } = req.body;
 
-        const updatedBookmark = await bookmarks.update(
-            req.params.id as unknown as number,
-            (req.user as User).id,
-            {
-                url,
-                title,
-            },
-        );
+            const updatedBookmark = await bookmarks.update(
+                req.params.id as unknown as number,
+                (req.user as User).id,
+                {
+                    url,
+                    title,
+                },
+            );
 
-        req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
-        return res.redirect('/bookmarks');
+            req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
+            return res.redirect('/bookmarks');
+        };
     },
-];
+};
 
 // POST /bookmarks or POST /api/bookmarks
-export const postBookmarkHandler = [
-    validateRequestMiddleware([
+export const postBookmarkHandler = {
+    validator: validateRequestMiddleware([
         body('url')
             .notEmpty()
             .withMessage('URL is required')
@@ -562,20 +570,22 @@ export const postBookmarkHandler = [
             .withMessage('Invalid URL format'),
         body('title').optional().trim(),
     ]),
-    async (req: Request, res: Response) => {
-        const { url, title } = req.body;
+    handler: function (insertBookmarkQueue: typeof InsertBookmarkQueue) {
+        return async (req: Request, res: Response) => {
+            const { url, title } = req.body;
 
-        void insertBookmarkQueue.push({ url, userId: (req.user as User).id, title });
+            void insertBookmarkQueue.push({ url, userId: (req.user as User).id, title });
 
-        if (isApiRequest(req)) {
-            res.status(201).json({ message: `Bookmark ${title} created successfully!` });
-            return;
-        }
+            if (isApiRequest(req)) {
+                res.status(201).json({ message: `Bookmark ${title} created successfully!` });
+                return;
+            }
 
-        req.flash('success', `Bookmark ${title} created successfully!`);
-        return res.redirect('/bookmarks');
+            req.flash('success', `Bookmark ${title} created successfully!`);
+            return res.redirect('/bookmarks');
+        };
     },
-];
+};
 
 // GET /bookmarks/export
 export function getExportBookmarksHandler(db: Knex) {
@@ -646,8 +656,8 @@ export function postSettingsCreateApiKeyHandler(db: Knex, api: Api) {
 }
 
 // POST /settings/account
-export const postSettingsAccountHandler = [
-    validateRequestMiddleware([
+export const postSettingsAccountHandler = {
+    validator: validateRequestMiddleware([
         body('username')
             .notEmpty()
             .custom(async (username, { req }) => {
@@ -697,23 +707,26 @@ export const postSettingsAccountHandler = [
             return true;
         }),
     ]),
-    async (req: Request, res: Response) => {
-        const { email, username, default_search_provider } = req.body;
-        const autocomplete_search_on_homepage = req.body.autocomplete_search_on_homepage === 'on';
+    handler: function (db: Knex) {
+        return async (req: Request, res: Response) => {
+            const { email, username, default_search_provider } = req.body;
+            const autocomplete_search_on_homepage =
+                req.body.autocomplete_search_on_homepage === 'on';
 
-        await db('users')
-            .update({
-                email,
-                username,
-                default_search_provider,
-                autocomplete_search_on_homepage,
-            })
-            .where({ id: (req.user as User).id });
+            await db('users')
+                .update({
+                    email,
+                    username,
+                    default_search_provider,
+                    autocomplete_search_on_homepage,
+                })
+                .where({ id: (req.user as User).id });
 
-        req.flash('success', '🔄 updated!');
-        return res.redirect('/settings/account');
+            req.flash('success', '🔄 updated!');
+            return res.redirect('/settings/account');
+        };
     },
-];
+};
 
 // GET /settings/data
 export function getSettingsDataPageHandler() {
@@ -728,8 +741,8 @@ export function getSettingsDataPageHandler() {
 }
 
 // POST /settings/data/export
-export const postExportDataHandler = [
-    validateRequestMiddleware([
+export const postExportDataHandler = {
+    validator: validateRequestMiddleware([
         body('options').custom((value) => {
             if (value === undefined) {
                 throw new ValidationError('Please select at least one data type to export');
@@ -737,69 +750,71 @@ export const postExportDataHandler = [
             return true;
         }),
     ]),
-    async (req: Request, res: Response) => {
-        const userId = (req.user as User).id;
-        const includeBookmarks = req.body.options.includes('bookmarks');
-        const includeActions = req.body.options.includes('actions');
-        const includeNotes = req.body.options.includes('notes');
-        const exportData: {
-            exported_at: string;
-            version: string;
-            bookmarks?: Record<string, unknown>[];
-            actions?: Record<string, unknown>[];
-            notes?: Record<string, unknown>[];
-        } = {
-            exported_at: new Date().toISOString(),
-            version: '1.0',
+    handler: function (db: Knex) {
+        return async (req: Request, res: Response) => {
+            const userId = (req.user as User).id;
+            const includeBookmarks = req.body.options.includes('bookmarks');
+            const includeActions = req.body.options.includes('actions');
+            const includeNotes = req.body.options.includes('notes');
+            const exportData: {
+                exported_at: string;
+                version: string;
+                bookmarks?: Record<string, unknown>[];
+                actions?: Record<string, unknown>[];
+                notes?: Record<string, unknown>[];
+            } = {
+                exported_at: new Date().toISOString(),
+                version: '1.0',
+            };
+
+            const fetchBookmarks = () =>
+                includeBookmarks
+                    ? db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at')
+                    : Promise.resolve([]);
+
+            const fetchActions = () =>
+                includeActions
+                    ? db
+                          .select(
+                              'bangs.trigger',
+                              'bangs.name',
+                              'bangs.url',
+                              'action_types.name as action_type',
+                              'bangs.created_at',
+                          )
+                          .from('bangs')
+                          .join('action_types', 'bangs.action_type_id', 'action_types.id')
+                          .where('bangs.user_id', userId)
+                    : Promise.resolve([]);
+
+            const fetchNotes = () =>
+                includeNotes
+                    ? db('notes').where('user_id', userId).select('title', 'content', 'created_at')
+                    : Promise.resolve([]);
+
+            const [bookmarks, actions, notes] = await Promise.all([
+                fetchBookmarks(),
+                fetchActions(),
+                fetchNotes(),
+            ]);
+
+            if (includeBookmarks) exportData.bookmarks = bookmarks;
+            if (includeActions) exportData.actions = actions;
+            if (includeNotes) exportData.notes = notes;
+
+            res.setHeader(
+                'Content-Disposition',
+                `attachment; filename=bang-data-export-${exportData.exported_at}.json`,
+            )
+                .setHeader('Content-Type', 'application/json')
+                .send(JSON.stringify(exportData, null, 2));
         };
-
-        const fetchBookmarks = () =>
-            includeBookmarks
-                ? db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at')
-                : Promise.resolve([]);
-
-        const fetchActions = () =>
-            includeActions
-                ? db
-                      .select(
-                          'bangs.trigger',
-                          'bangs.name',
-                          'bangs.url',
-                          'action_types.name as action_type',
-                          'bangs.created_at',
-                      )
-                      .from('bangs')
-                      .join('action_types', 'bangs.action_type_id', 'action_types.id')
-                      .where('bangs.user_id', userId)
-                : Promise.resolve([]);
-
-        const fetchNotes = () =>
-            includeNotes
-                ? db('notes').where('user_id', userId).select('title', 'content', 'created_at')
-                : Promise.resolve([]);
-
-        const [bookmarks, actions, notes] = await Promise.all([
-            fetchBookmarks(),
-            fetchActions(),
-            fetchNotes(),
-        ]);
-
-        if (includeBookmarks) exportData.bookmarks = bookmarks;
-        if (includeActions) exportData.actions = actions;
-        if (includeNotes) exportData.notes = notes;
-
-        res.setHeader(
-            'Content-Disposition',
-            `attachment; filename=bang-data-export-${exportData.exported_at}.json`,
-        )
-            .setHeader('Content-Type', 'application/json')
-            .send(JSON.stringify(exportData, null, 2));
     },
-];
+};
 
 // POST /settings/data/import
-export const postImportDataHandler = [
-    validateRequestMiddleware([
+export const postImportDataHandler = {
+    validator: validateRequestMiddleware([
         body('config')
             .notEmpty()
             .withMessage('config must not be empty')
@@ -817,65 +832,67 @@ export const postImportDataHandler = [
                 return true;
             }),
     ]),
-    async (req: Request, res: Response) => {
-        const userId = req.session.user?.id;
-        const importData = JSON.parse(req.body.config);
+    handler: function (db: Knex) {
+        return async (req: Request, res: Response) => {
+            const userId = req.session.user?.id;
+            const importData = JSON.parse(req.body.config);
 
-        try {
-            await db.transaction(async (trx) => {
-                if (importData.bookmarks?.length > 0) {
-                    const bookmarks = importData.bookmarks.map(
-                        (bookmark: { title: string; url: string }) => ({
-                            user_id: userId,
-                            title: bookmark.title,
-                            url: bookmark.url,
-                            created_at: db.fn.now(),
-                        }),
-                    );
-                    await trx('bookmarks').insert(bookmarks);
-                }
-
-                if (importData.actions?.length > 0) {
-                    for (const action of importData.actions) {
-                        const actionType = await trx('action_types')
-                            .where('name', action.action_type)
-                            .first();
-
-                        if (actionType) {
-                            await trx('bangs').insert({
+            try {
+                await db.transaction(async (trx) => {
+                    if (importData.bookmarks?.length > 0) {
+                        const bookmarks = importData.bookmarks.map(
+                            (bookmark: { title: string; url: string }) => ({
                                 user_id: userId,
-                                trigger: action.trigger,
-                                name: action.name,
-                                url: action.url,
-                                action_type_id: actionType.id,
+                                title: bookmark.title,
+                                url: bookmark.url,
                                 created_at: db.fn.now(),
-                            });
+                            }),
+                        );
+                        await trx('bookmarks').insert(bookmarks);
+                    }
+
+                    if (importData.actions?.length > 0) {
+                        for (const action of importData.actions) {
+                            const actionType = await trx('action_types')
+                                .where('name', action.action_type)
+                                .first();
+
+                            if (actionType) {
+                                await trx('bangs').insert({
+                                    user_id: userId,
+                                    trigger: action.trigger,
+                                    name: action.name,
+                                    url: action.url,
+                                    action_type_id: actionType.id,
+                                    created_at: db.fn.now(),
+                                });
+                            }
                         }
                     }
-                }
 
-                if (importData.notes?.length > 0) {
-                    const notes = importData.notes.map(
-                        (note: { title: string; content: string }) => ({
-                            user_id: userId,
-                            title: note.title,
-                            content: note.content,
-                            created_at: db.fn.now(),
-                        }),
-                    );
+                    if (importData.notes?.length > 0) {
+                        const notes = importData.notes.map(
+                            (note: { title: string; content: string }) => ({
+                                user_id: userId,
+                                title: note.title,
+                                content: note.content,
+                                created_at: db.fn.now(),
+                            }),
+                        );
 
-                    await trx('notes').insert(notes);
-                }
-            });
+                        await trx('notes').insert(notes);
+                    }
+                });
 
-            req.flash('success', 'Data imported successfully!');
-        } catch (_error) {
-            req.flash('error', 'Failed to import data. Please check the format and try again.');
-        }
+                req.flash('success', 'Data imported successfully!');
+            } catch (_error) {
+                req.flash('error', 'Failed to import data. Please check the format and try again.');
+            }
 
-        return res.redirect('/settings/data');
+            return res.redirect('/settings/data');
+        };
     },
-];
+};
 
 // GET /settings/danger-zone
 export function getSettingsDangerZonePageHandler() {
@@ -1003,8 +1020,8 @@ export function getSettingsDisplayPageHandler() {
 }
 
 // POST /settings/display
-export const postSettingsDisplayHandler = [
-    validateRequestMiddleware([
+export const postSettingsDisplayHandler = {
+    validator: validateRequestMiddleware([
         body('column_preferences').custom((value, { req }) => {
             if (value === undefined) {
                 throw new ValidationError('Column preferences are required');
@@ -1092,23 +1109,25 @@ export const postSettingsDisplayHandler = [
             return true;
         }),
     ]),
-    async (req: Request, res: Response) => {
-        const user = req.user as User;
-        const { column_preferences } = req.body;
+    handler: function (db: Knex) {
+        return async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const { column_preferences } = req.body;
 
-        await db('users')
-            .where('id', user.id)
-            .update({
-                column_preferences: JSON.stringify(column_preferences),
-            });
+            await db('users')
+                .where('id', user.id)
+                .update({
+                    column_preferences: JSON.stringify(column_preferences),
+                });
 
-        req.session.user!.column_preferences = column_preferences;
+            req.session.user!.column_preferences = column_preferences;
 
-        req.flash('success', 'Display settings updated');
+            req.flash('success', 'Display settings updated');
 
-        return res.redirect('/settings/display');
+            return res.redirect('/settings/display');
+        };
     },
-];
+};
 
 // GET /notes or /api/notes
 export function getNotesHandler(notes: Notes) {
@@ -1155,8 +1174,8 @@ export function getNoteCreatePageHandler() {
 }
 
 // POST /notes or /api/notes
-export const postNoteHandler = [
-    validateRequestMiddleware([
+export const postNoteHandler = {
+    validator: validateRequestMiddleware([
         body('title')
             .trim()
             .notEmpty()
@@ -1165,25 +1184,27 @@ export const postNoteHandler = [
             .withMessage('Title must be less than 255 characters'),
         body('content').trim().notEmpty().withMessage('Content is required'),
     ]),
-    async (req: Request, res: Response) => {
-        const { title, content } = req.body;
-        const user = req.user as User;
+    handler: function (notes: Notes) {
+        return async (req: Request, res: Response) => {
+            const { title, content } = req.body;
+            const user = req.user as User;
 
-        const note = await notes.create({
-            user_id: user.id,
-            title: title.trim(),
-            content: content.trim(),
-        });
+            const note = await notes.create({
+                user_id: user.id,
+                title: title.trim(),
+                content: content.trim(),
+            });
 
-        if (isApiRequest(req)) {
-            res.status(201).json({ message: `Note ${note.title} created successfully!` });
-            return;
-        }
+            if (isApiRequest(req)) {
+                res.status(201).json({ message: `Note ${note.title} created successfully!` });
+                return;
+            }
 
-        req.flash('success', 'Note created successfully');
-        return res.redirect('/notes');
+            req.flash('success', 'Note created successfully');
+            return res.redirect('/notes');
+        };
     },
-];
+};
 
 // GET /notes/:id/edit
 export function getEditNotePageHandler(notes: Notes) {
@@ -1205,8 +1226,8 @@ export function getEditNotePageHandler(notes: Notes) {
 }
 
 // POST /notes/:id/update or PATCH /api/notes/:id
-export const updateNoteHandler = [
-    validateRequestMiddleware([
+export const updateNoteHandler = {
+    validator: validateRequestMiddleware([
         body('title')
             .trim()
             .notEmpty()
@@ -1215,28 +1236,30 @@ export const updateNoteHandler = [
             .withMessage('Title must be less than 255 characters'),
         body('content').trim().notEmpty().withMessage('Content is required'),
     ]),
-    async (req: Request, res: Response) => {
-        const { title, content } = req.body;
-        const user = req.user as User;
+    handler: function (notes: Notes) {
+        return async (req: Request, res: Response) => {
+            const { title, content } = req.body;
+            const user = req.user as User;
 
-        const updatedNote = await notes.update(
-            parseInt(req.params.id as unknown as string),
-            user.id,
-            {
-                title: title.trim(),
-                content: content.trim(),
-            },
-        );
+            const updatedNote = await notes.update(
+                parseInt(req.params.id as unknown as string),
+                user.id,
+                {
+                    title: title.trim(),
+                    content: content.trim(),
+                },
+            );
 
-        if (isApiRequest(req)) {
-            res.status(200).json({ message: 'note updated successfully' });
-            return;
-        }
+            if (isApiRequest(req)) {
+                res.status(200).json({ message: 'note updated successfully' });
+                return;
+            }
 
-        req.flash('success', `Note ${updatedNote.title} updated successfully`);
-        return res.redirect('/notes');
+            req.flash('success', `Note ${updatedNote.title} updated successfully`);
+            return res.redirect('/notes');
+        };
     },
-];
+};
 
 // GET /notes/:id or GET /api/notes/:id
 export function getNoteHandler(notes: Notes) {
