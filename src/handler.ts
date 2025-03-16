@@ -1,5 +1,15 @@
 import {
-    api,
+    Api,
+    User,
+    Notes,
+    Search,
+    GitHub,
+    Actions,
+    Bookmarks,
+    ApiKeyPayload,
+    BookmarkToExport,
+} from './type';
+import {
     bookmark,
     expectJson,
     isApiRequest,
@@ -14,18 +24,6 @@ import { appConfig, oauthConfig } from './config';
 import { validateRequestMiddleware } from './middleware';
 import { actions, bookmarks, notes } from './repository';
 import { actionTypes, defaultSearchProviders } from './constant';
-import {
-    Actions,
-    Api,
-    ApiKeyPayload,
-    Bookmarks,
-    BookmarkToExport,
-    GitHub,
-    Notes,
-    Search,
-    User,
-} from './type';
-
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
 
 // GET /healthz
