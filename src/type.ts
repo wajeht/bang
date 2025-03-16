@@ -175,7 +175,7 @@ export type NotesQueryParams = {
 
 export type Search = (options: {
     res: Response;
-    user: User;
+    user: User | undefined;
     query: string;
     req: Request;
 }) => Promise<void | Response>;
