@@ -63,8 +63,8 @@ const router = express.Router();
 
 router.get('/healthz', getHealthzHandler(db));
 router.get('/privacy-policy', getPrivacyPolicyPageHandler());
-router.get('/', csrfMiddleware, getHomePageAndSearchHandler(search));
 router.get('/terms-of-service', getTermsOfServicePageHandler());
+router.get('/', csrfMiddleware, getHomePageAndSearchHandler(search));
 router.get('/how-to', cacheMiddleware(1, 'day'), getHowToPageHandler());
 
 router.get('/login', getLoginHandler());
@@ -104,25 +104,13 @@ router.get('/bookmarks/:id/actions/create', authenticationMiddleware, csrfMiddle
 router.post('/bookmarks', authenticationMiddleware, csrfMiddleware, postBookmarkHandler.validator, postBookmarkHandler.handler(insertBookmarkQueue)); // prettier-ignore
 router.post('/bookmarks/:id/update', authenticationMiddleware, csrfMiddleware, updateBookmarkHandler.validator, updateBookmarkHandler.handler(bookmarks)); // prettier-ignore
 
-router.post(
-    '/notes',
-    authenticationMiddleware,
-    csrfMiddleware,
-    postNoteHandler.validator,
-    postNoteHandler.handler(notes),
-);
 router.get('/notes', authenticationMiddleware, csrfMiddleware, getNotesHandler(notes));
 router.get('/notes/:id', authenticationMiddleware, csrfMiddleware, getNoteHandler(notes));
-router.post(
-    '/notes/:id/update',
-    authenticationMiddleware,
-    csrfMiddleware,
-    updateNoteHandler.validator,
-    updateNoteHandler.handler(notes),
-);
 router.get('/notes/create', authenticationMiddleware, csrfMiddleware, getNoteCreatePageHandler());
 router.post('/notes/:id/delete', authenticationMiddleware, csrfMiddleware, deleteNoteHandler(notes)); // prettier-ignore
 router.get('/notes/:id/edit', authenticationMiddleware, csrfMiddleware, getEditNotePageHandler(notes)); // prettier-ignore
+router.post('/notes', authenticationMiddleware, csrfMiddleware, postNoteHandler.validator, postNoteHandler.handler(notes)); // prettier-ignore
+router.post('/notes/:id/update', authenticationMiddleware, csrfMiddleware, updateNoteHandler.validator, updateNoteHandler.handler(notes)); // prettier-ignore
 
 /**
  * A action
