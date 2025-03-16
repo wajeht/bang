@@ -24,7 +24,7 @@ describe('search', () => {
                 redirect: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: undefined, query: '!g python' });
+            await search({ req, res, user: undefined as unknown as User, query: '!g python' });
 
             expect(res.status).toBe(200);
             expect(res.redirect).toHaveBeenCalledWith('https://www.google.com/search?q=python');
@@ -44,7 +44,7 @@ describe('search', () => {
                 redirect: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: undefined, query: '!g' });
+            await search({ req, res, user: undefined as unknown as User, query: '!g' });
 
             expect(res.status).toBe(200);
             expect(res.redirect).toHaveBeenCalledWith('https://www.google.com');
@@ -64,7 +64,12 @@ describe('search', () => {
                 redirect: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: undefined, query: '!doesnotexistanywhere' });
+            await search({
+                req,
+                res,
+                user: undefined as unknown as User,
+                query: '!doesnotexistanywhere',
+            });
 
             expect(res.status).toBe(200);
             expect(res.redirect).toHaveBeenCalledWith(
@@ -89,7 +94,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: undefined, query: '!g python' });
+            await search({ req, res, user: undefined as unknown as User, query: '!g python' });
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
@@ -123,7 +128,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: undefined, query: '!g python' });
+            await search({ req, res, user: undefined as unknown as User, query: '!g python' });
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
@@ -165,7 +170,12 @@ describe('search', () => {
                     .mockResolvedValue(undefined);
 
                 try {
-                    await search({ req, res, user: undefined, query: '!g python' });
+                    await search({
+                        req,
+                        res,
+                        user: undefined as unknown as User,
+                        query: '!g python',
+                    });
 
                     // Verify the delay function was called
                     expect(processDelayedSpy).toHaveBeenCalled();
