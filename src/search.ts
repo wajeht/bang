@@ -430,7 +430,6 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string) {
  * Main search function handling all types of search queries
  */
 export async function search({ res, req, user, query }: Parameters<Search>[0]): ReturnType<Search> {
-    // prettier-ignore
     const { commandType, trigger, triggerWithoutPrefix, url, searchTerm } = parseSearchQuery(query);
 
     if (!user) {
