@@ -110,12 +110,7 @@ router.get('/notes/:id', authenticationMiddleware, csrfMiddleware, getNoteHandle
 router.post('/notes/:id/update', authenticationMiddleware, csrfMiddleware, updateNoteHandler);
 router.get('/notes/create', authenticationMiddleware, csrfMiddleware, getNoteCreatePageHandler());
 router.post('/notes/:id/delete', authenticationMiddleware, csrfMiddleware, deleteNoteHandler(notes)); // prettier-ignore
-router.get(
-    '/notes/:id/edit',
-    authenticationMiddleware,
-    csrfMiddleware,
-    getEditNotePageHandler(notes),
-);
+router.get('/notes/:id/edit', authenticationMiddleware, csrfMiddleware, getEditNotePageHandler(notes)); // prettier-ignore
 
 /**
  * A action
