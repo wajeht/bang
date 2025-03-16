@@ -304,7 +304,7 @@ export function parseSearchQuery(query: string) {
  * Handles rate limiting for unauthenticated users
  * Returns warning message when search count reaches multiples of 10
  */
-export function getSearchLimitWarning(_req: Request, searchCount: number) {
+export function getSearchLimitWarning(_req: Request, searchCount: number): string | null {
     const searchesLeft = searchConfig.searchLimit - searchCount;
     const showWarning = searchCount % 10 === 0 && searchCount !== 0;
 
@@ -341,7 +341,7 @@ export async function handleAnonymousSearch(
     query: string,
     triggerWithoutBang: string,
     searchTerm: string,
-) {
+): Promise<Response> {
     const warningMessage = getSearchLimitWarning(req, req.session.searchCount ?? 0);
 
     // Display warning when user approaches or exceeds search limits
@@ -415,7 +415,7 @@ export async function handleAnonymousSearch(
  * Handles both search queries and direct domain redirects
  * Properly encodes search terms for URL safety
  */
-export function getBangRedirectUrl(bang: Bang, searchTerm: string) {
+export function getBangRedirectUrl(bang: Bang, searchTerm: string): string {
     let redirectUrl;
     if (searchTerm) {
         redirectUrl = bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm));
