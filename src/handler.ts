@@ -306,7 +306,7 @@ export const postActionHandler = {
 
 // GET /actions/create
 export function getActionCreatePageHandler() {
-    return (req: Request, res: Response) => {
+    return (_req: Request, res: Response) => {
         return res.render('actions-create.html', {
             title: 'Actions / New',
             path: '/actions/create',
@@ -429,7 +429,7 @@ export const updateActionHandler = {
 
 // GET /bookmarks/create
 export function getBookmarkCreatePageHandler() {
-    return (req: Request, res: Response) => {
+    return (_req: Request, res: Response) => {
         return res.render('bookmarks-create.html', {
             title: 'Bookmarks / New',
             path: '/bookmarks/create',
@@ -1162,7 +1162,7 @@ export function getNotesHandler(notes: Notes) {
 
 // GET /notes/create
 export function getNoteCreatePageHandler() {
-    return (req: Request, res: Response) => {
+    return (_req: Request, res: Response) => {
         return res.render('notes-create', {
             title: 'Notes / Create',
             path: '/notes/create',
