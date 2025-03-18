@@ -1163,7 +1163,7 @@ export function getNotesHandler(notes: Notes) {
 // GET /notes/create
 export function getNoteCreatePageHandler() {
     return (_req: Request, res: Response) => {
-        return res.render('notes-create.html', {hli
+        return res.render('notes-create.html', {
             title: 'Notes / Create',
             path: '/notes/create',
             layout: '../layouts/auth',
