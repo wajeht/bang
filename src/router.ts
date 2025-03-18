@@ -105,8 +105,8 @@ router.post('/bookmarks', authenticationMiddleware, csrfMiddleware, postBookmark
 router.post('/bookmarks/:id/update', authenticationMiddleware, csrfMiddleware, updateBookmarkHandler.validator, updateBookmarkHandler.handler(bookmarks)); // prettier-ignore
 
 router.get('/notes', authenticationMiddleware, csrfMiddleware, getNotesHandler(notes));
-router.get('/notes/:id', authenticationMiddleware, csrfMiddleware, getNoteHandler(notes));
 router.get('/notes/create', authenticationMiddleware, csrfMiddleware, getNoteCreatePageHandler());
+router.get('/notes/:id', authenticationMiddleware, csrfMiddleware, getNoteHandler(notes));
 router.post('/notes/:id/delete', authenticationMiddleware, csrfMiddleware, deleteNoteHandler(notes)); // prettier-ignore
 router.get('/notes/:id/edit', authenticationMiddleware, csrfMiddleware, getEditNotePageHandler(notes)); // prettier-ignore
 router.post('/notes', authenticationMiddleware, csrfMiddleware, postNoteHandler.validator, postNoteHandler.handler(notes)); // prettier-ignore

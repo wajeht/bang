@@ -1147,7 +1147,7 @@ export function getNotesHandler(notes: Notes) {
             return;
         }
 
-        return res.render('notes', {
+        return res.render('notes.html', {
             title: 'Notes',
             path: '/notes',
             layout: '../layouts/auth',
