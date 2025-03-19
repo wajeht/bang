@@ -68,7 +68,7 @@ export function getTermsOfServicePageHandler() {
 // GET /privacy-policy
 export function getPrivacyPolicyPageHandler() {
     return (_req: Request, res: Response) => {
-        return res.render('privacy-policy', {
+        return res.render('privacy-policy.html', {
             path: '/privacy-policy',
             title: 'Privacy Policy',
         });
@@ -78,7 +78,7 @@ export function getPrivacyPolicyPageHandler() {
 // GET /how-to
 export function getHowToPageHandler() {
     return (_req: Request, res: Response) => {
-        return res.render('how-to', {
+        return res.render('how-to.html', {
             path: '/how-to',
             title: 'How To',
         });
@@ -458,7 +458,7 @@ export function getBookmarksHandler(bookmarks: Bookmarks) {
             return;
         }
 
-        return res.render('bookmarks', {
+        return res.render('bookmarks.html', {
             title: 'Bookmarks',
             path: '/bookmarks',
             layout: '../layouts/auth',
@@ -1214,7 +1214,7 @@ export function getEditNotePageHandler(notes: Notes) {
             throw new NotFoundError();
         }
 
-        return res.render('notes-edit', {
+        return res.render('notes-edit.html', {
             title: 'Notes / Edit',
             path: '/notes/edit',
             layout: '../layouts/auth',
@@ -1277,7 +1277,7 @@ export function getNoteHandler(notes: Notes) {
             return;
         }
 
-        return res.render('notes-id-get', {
+        return res.render('notes-id-get.html', {
             title: `Notes / ${note.title}`,
             path: `/notes/${note.id}`,
             layout: '../layouts/auth',
