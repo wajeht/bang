@@ -48,6 +48,8 @@ if (appConfig.env === 'development') {
     });
 }
 
+console.log('hi');
+
 app.use(router);
 
 expressJSDocSwaggerHandler(app, swagger);
