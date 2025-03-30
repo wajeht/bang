@@ -192,7 +192,6 @@ export function getGithubRedirectHandler(db: Knex, github: GitHub) {
         delete req.session.redirectTo;
         req.session.save();
 
-        // Set flash message and redirect
         const flashMessage = isNewUser ? '✌️ Enjoy bang!' : `🙏 Welcome back, ${user.username}!`;
 
         req.flash('success', flashMessage);
