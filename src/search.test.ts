@@ -4,7 +4,7 @@ import * as utils from './util';
 import { appConfig } from './config';
 import * as searchModule from './search';
 import { Request, Response } from 'express';
-import { search, processDelayedSearch } from './search';
+import { search, processDelayedSearch, redirectWithCache } from './search';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 describe('search', () => {
@@ -22,11 +22,17 @@ describe('search', () => {
             const res = {
                 status: 200,
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             await search({ req, res, user: undefined as unknown as User, query: '!g python' });
 
             expect(res.status).toBe(200);
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('https://www.google.com/search?q=python');
             expect(req.session.searchCount).toBe(1);
             expect(req.session.user).toBeUndefined();
@@ -42,11 +48,17 @@ describe('search', () => {
             const res = {
                 status: 200,
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             await search({ req, res, user: undefined as unknown as User, query: '!g' });
 
             expect(res.status).toBe(200);
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('https://www.google.com');
             expect(req.session.searchCount).toBe(1);
             expect(req.session.user).toBeUndefined();
@@ -62,11 +74,17 @@ describe('search', () => {
             const res = {
                 status: 200,
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             await search({ req, res, user: undefined, query: '!doesnotexistanywhere' });
 
             expect(res.status).toBe(200);
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith(
                 'https://duckduckgo.com/?q=!doesnotexistanywhere',
             );
@@ -85,14 +103,14 @@ describe('search', () => {
             const res = {
                 status: vi.fn().mockReturnThis(),
                 redirect: vi.fn(),
-                setHeader: vi.fn().mockReturnThis(),
+                set: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
 
             await search({ req, res, user: undefined, query: '!g python' });
 
             expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
+            expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
             expect(res.send).toHaveBeenCalledWith(
                 expect.stringContaining(
                     'You have used 10 out of 60 searches. Log in for unlimited searches!',
@@ -119,14 +137,14 @@ describe('search', () => {
             const res = {
                 status: vi.fn().mockReturnThis(),
                 redirect: vi.fn(),
-                setHeader: vi.fn().mockReturnThis(),
+                set: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
 
             await search({ req, res, user: undefined, query: '!g python' });
 
             expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
+            expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
             expect(res.send).toHaveBeenCalledWith(
                 expect.stringContaining(
                     "You've exceeded the search limit for unauthenticated users. Please log in for unlimited searches without delays.",
@@ -155,6 +173,7 @@ describe('search', () => {
                 const res = {
                     status: vi.fn().mockReturnThis(),
                     redirect: vi.fn(),
+                    set: vi.fn(),
                     setHeader: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
@@ -253,12 +272,23 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             await search({ req, res, user: testUser, query: '@settings' });
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('/settings');
 
             await search({ req, res, user: testUser, query: '@b' });
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('/');
         });
 
@@ -266,10 +296,16 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             // Test @notes with search term
             await search({ req, res, user: testUser, query: '@notes search query' });
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=search%20query');
 
             // Test @note alias
@@ -287,10 +323,16 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             // Test @bookmarks with search term
             await search({ req, res, user: testUser, query: '@bookmarks search query' });
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=search%20query');
 
             // Test @bm alias
@@ -303,10 +345,16 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             // Test @actions with search term
             await search({ req, res, user: testUser, query: '@actions search query' });
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=search%20query');
 
             // Test @a alias
@@ -319,6 +367,7 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             // Test with special characters
@@ -328,6 +377,11 @@ describe('search', () => {
                 user: testUser,
                 query: '@notes test & special + characters?',
             });
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith(
                 '/notes?search=test%20%26%20special%20%2B%20characters%3F',
             );
@@ -337,6 +391,7 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
                 setHeader: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
@@ -364,6 +419,11 @@ describe('search', () => {
                 userId: testUser.id,
             });
 
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('https://example.com');
 
             vi.restoreAllMocks();
@@ -373,6 +433,7 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
                 setHeader: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
@@ -394,6 +455,11 @@ describe('search', () => {
                 query,
             });
 
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('https://example.com');
 
             vi.restoreAllMocks();
@@ -402,7 +468,7 @@ describe('search', () => {
         it('should handle invalid bookmark URLs', async () => {
             const req = {} as Request;
             const res = {
-                setHeader: vi.fn().mockReturnThis(),
+                set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
@@ -423,7 +489,7 @@ describe('search', () => {
         it('should handle custom bang creation', async () => {
             const req = {} as Request;
             const res = {
-                setHeader: vi.fn().mockReturnThis(),
+                set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
@@ -443,6 +509,7 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             await search({
@@ -452,6 +519,11 @@ describe('search', () => {
                 query: '!custom test search',
             });
 
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('https://example.com/search?q=test%20search');
         });
 
@@ -459,6 +531,7 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             await search({
@@ -468,6 +541,11 @@ describe('search', () => {
                 query: '!mysite',
             });
 
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('https://mysite.com');
         });
 
@@ -475,6 +553,7 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             await search({
@@ -484,6 +563,11 @@ describe('search', () => {
                 query: 'test search',
             });
 
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=test%20search');
         });
 
@@ -491,6 +575,7 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             await search({
@@ -500,6 +585,11 @@ describe('search', () => {
                 query: '!nonexistent',
             });
 
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=nonexistent');
         });
 
@@ -507,7 +597,7 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
-                setHeader: vi.fn().mockReturnThis(),
+                set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
@@ -528,7 +618,7 @@ describe('search', () => {
         it('should prevent creation of system bang commands', async () => {
             const req = {} as Request;
             const res = {
-                setHeader: vi.fn().mockReturnThis(),
+                set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
@@ -549,7 +639,7 @@ describe('search', () => {
         it('should handle malformed !add command', async () => {
             const req = {} as Request;
             const res = {
-                setHeader: vi.fn().mockReturnThis(),
+                set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
@@ -571,6 +661,7 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
                 setHeader: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
@@ -590,6 +681,11 @@ describe('search', () => {
                 query: '!bm This is a very long title https://example.com',
             });
 
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith('https://example.com');
 
             vi.restoreAllMocks();
@@ -598,7 +694,7 @@ describe('search', () => {
         it('should handle !add with implicit bang prefix', async () => {
             const req = {} as Request;
             const res = {
-                setHeader: vi.fn().mockReturnThis(),
+                set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
@@ -623,6 +719,7 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             await search({
@@ -632,6 +729,11 @@ describe('search', () => {
                 query: 'test search',
             });
 
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
             expect(res.redirect).toHaveBeenCalledWith(
                 'https://www.google.com/search?q=test%20search',
             );
@@ -640,7 +742,7 @@ describe('search', () => {
         it('should handle bookmark creation errors', async () => {
             const req = {} as Request;
             const res = {
-                setHeader: vi.fn().mockReturnThis(),
+                set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
@@ -666,6 +768,7 @@ describe('search', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
             const commands = {
@@ -683,6 +786,11 @@ describe('search', () => {
 
             for (const [command, path] of Object.entries(commands)) {
                 await search({ req, res, user: testUser, query: command });
+                expect(res.set).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        'Cache-Control': 'public, max-age=3600',
+                    }),
+                );
                 expect(res.redirect).toHaveBeenCalledWith(path);
             }
         });
@@ -1037,6 +1145,7 @@ describe('handleAnonymousSearch', () => {
 
         const res = {
             redirect: vi.fn(),
+            set: vi.fn(),
         } as unknown as Response;
 
         // Mock the anonymousSearchHistoryQueue.push method
@@ -1058,18 +1167,9 @@ describe('handleAnonymousSearch', () => {
     });
 });
 
-/**
- * Tests for direct object access and command handling
- * These tests validate that our performance optimizations work correctly using direct object access
- */
 describe('search command handling', () => {
-    /**
-     * Tests for direct object access for bangs
-     * Confirms that object properties provide fast and accurate bang lookups
-     */
     describe('bangs object access', () => {
         it('should provide fast access to bangs', async () => {
-            // Get a bang from the object
             const googleBang = searchModule.getBangRedirectUrl(
                 {
                     u: 'https://www.google.com/search?q={{{s}}}',
@@ -1086,13 +1186,12 @@ describe('search command handling', () => {
 
     describe('direct commands handling', () => {
         it('should handle direct commands with explicit commandType', async () => {
-            // Setup
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
 
-            // Mock parseSearchQuery to return a direct command
             vi.spyOn(searchModule, 'parseSearchQuery').mockReturnValue({
                 commandType: 'direct',
                 trigger: '@notes',
@@ -1101,30 +1200,26 @@ describe('search command handling', () => {
                 searchTerm: 'test',
             });
 
-            // Run the search
             await searchModule.search({ req, res, user: {} as User, query: '@notes test' });
 
-            // Verify correct redirect
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=test');
 
-            // Restore
             vi.restoreAllMocks();
         });
     });
 
-    // Additional tests for search function with commandType
     describe('search function with commandType', () => {
         it('should handle bang commandType with unknown bang', async () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
             const user = {
                 id: 1,
                 default_search_provider: 'duckduckgo',
             } as User;
 
-            // Mock an unknown bang command
             vi.spyOn(searchModule, 'parseSearchQuery').mockReturnValue({
                 commandType: 'bang',
                 trigger: '!unknown',
@@ -1135,7 +1230,6 @@ describe('search command handling', () => {
 
             await searchModule.search({ req, res, user, query: '!unknown' });
 
-            // Should fall back to searching for the trigger without the prefix
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=unknown');
 
             vi.restoreAllMocks();
@@ -1145,13 +1239,13 @@ describe('search command handling', () => {
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
+                set: vi.fn(),
             } as unknown as Response;
             const user = {
                 id: 1,
                 default_search_provider: 'duckduckgo',
             } as User;
 
-            // Mock a regular search query
             vi.spyOn(searchModule, 'parseSearchQuery').mockReturnValue({
                 commandType: null,
                 trigger: null,
@@ -1162,10 +1256,97 @@ describe('search command handling', () => {
 
             await searchModule.search({ req, res, user, query: 'regular search' });
 
-            // Should search using the default search provider
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=regular%20search');
 
             vi.restoreAllMocks();
         });
+    });
+});
+
+describe('redirectWithCache', () => {
+    it('should set correct cache headers with default duration', () => {
+        const res = {
+            set: vi.fn(),
+            redirect: vi.fn(),
+        } as unknown as Response;
+
+        redirectWithCache(res, 'https://example.com');
+
+        expect(res.set).toHaveBeenCalledWith({
+            'Cache-Control': 'public, max-age=3600',
+            Expires: expect.any(String),
+        });
+
+        expect(res.redirect).toHaveBeenCalledWith('https://example.com');
+    });
+
+    it('should set cache headers with custom duration', () => {
+        const res = {
+            set: vi.fn(),
+            redirect: vi.fn(),
+        } as unknown as Response;
+
+        const customDuration = 7200; // 2 hours
+        redirectWithCache(res, 'https://example.com', customDuration);
+
+        expect(res.set).toHaveBeenCalledWith({
+            'Cache-Control': 'public, max-age=7200',
+            Expires: expect.any(String),
+        });
+    });
+
+    it('should set Expires header correctly based on duration', () => {
+        const res = {
+            set: vi.fn(),
+            redirect: vi.fn(),
+        } as unknown as Response;
+
+        const nowMock = vi.spyOn(Date, 'now').mockImplementation(() => 1609459200000); // 2021-01-01
+
+        const cacheDuration = 3600;
+        redirectWithCache(res, 'https://example.com', cacheDuration);
+
+        const expectedDate = new Date(1609459200000 + cacheDuration * 1000).toUTCString();
+
+        expect(res.set).toHaveBeenCalledWith(
+            expect.objectContaining({
+                Expires: expectedDate,
+            }),
+        );
+
+        nowMock.mockRestore();
+    });
+});
+
+describe('Integration: Cache headers in search redirects', () => {
+    it('should use cache headers in all redirect cases', () => {
+        const redirectWithCacheSpy = vi.spyOn(searchModule, 'redirectWithCache');
+
+        const res = {
+            set: vi.fn(),
+            redirect: vi.fn(),
+        } as unknown as Response;
+
+        searchModule.redirectWithCache(res, 'https://example.com');
+
+        expect(redirectWithCacheSpy).toHaveBeenCalledWith(res, 'https://example.com');
+
+        redirectWithCacheSpy.mockRestore();
+    });
+
+    it('should apply different cache durations when specified', () => {
+        const res = {
+            set: vi.fn(),
+            redirect: vi.fn(),
+        } as unknown as Response;
+
+        const customDuration = 1800; // 30 minutes
+        redirectWithCache(res, 'https://example.com', customDuration);
+
+        expect(res.set).toHaveBeenCalledWith(
+            expect.objectContaining({
+                'Cache-Control': `public, max-age=${customDuration}`,
+            }),
+        );
     });
 });

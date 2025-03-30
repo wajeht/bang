@@ -79,7 +79,7 @@ export async function trackAnonymousUserSearch(req: Request) {
  * Sends an HTML response that redirects the user with an optional alert message
  */
 export function redirectWithAlert(res: Response, url: string, message?: string) {
-    return res.setHeader('Content-Type', 'text/html')
+    return res.set({'Content-Type': 'text/html'})
 		.status(200)
 		.send(`
 			<script>
@@ -93,7 +93,7 @@ export function redirectWithAlert(res: Response, url: string, message?: string) 
  * Sends an HTML error response with an alert message and browser history navigation
  */
 export function goBackWithAlert(res: Response, message: string) {
-    return res.setHeader('Content-Type', 'text/html')
+    return res.set({'Content-Type': 'text/html'})
 		.status(422)
 		.send(`
 			<script>
@@ -104,7 +104,7 @@ export function goBackWithAlert(res: Response, message: string) {
 }
 
 export function goBack(res: Response) {
-    return res.setHeader('Content-Type', 'text/html')
+    return res.set({'Content-Type': 'text/html'})
 		.status(200)
 		.send(`
 			<script>
@@ -331,6 +331,20 @@ export async function processDelayedSearch(req: Request): Promise<void> {
 }
 
 /**
+ * Redirects with appropriate cache headers to improve performance for repeated searches
+ * @param res Express response object
+ * @param url URL to redirect to
+ * @param cacheDuration Cache duration in seconds (default: 3600 = 1 hour)
+ */
+export function redirectWithCache(res: Response, url: string, cacheDuration: number = 3600): void {
+    res.set({
+        'Cache-Control': `public, max-age=${cacheDuration}`,
+        Expires: new Date(Date.now() + cacheDuration * 1000).toUTCString(),
+    });
+    res.redirect(url);
+}
+
+/**
  * Optimized search handler for anonymous users
  * Implements non-blocking rate limiting
  * Asynchronously tracks search history
@@ -396,16 +410,17 @@ export async function handleAnonymousSearch(
         if (bang) {
             // Handle search queries with bang (e.g., "!g python")
             if (searchTerm) {
-                return res.redirect(getBangRedirectUrl(bang, searchTerm));
+                return redirectWithCache(res, getBangRedirectUrl(bang, searchTerm));
             }
 
             // Handle bang-only queries (e.g., "!g") - redirects to service homepage
-            return res.redirect(getBangRedirectUrl(bang, ''));
+            return redirectWithCache(res, getBangRedirectUrl(bang, ''));
         }
     }
 
     // Process regular search using DuckDuckGo (default for unauthenticated users)
-    return res.redirect(
+    return redirectWithCache(
+        res,
         defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
     );
 }
@@ -442,7 +457,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         if (!searchTerm) {
             const directPath = searchConfig.directCommands[trigger as keyof typeof searchConfig.directCommands]; // prettier-ignore
             if (directPath) {
-                return res.redirect(directPath);
+                return redirectWithCache(res, directPath);
             }
         }
 
@@ -469,7 +484,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             }
 
             if (redirectPath) {
-                return res.redirect(redirectPath);
+                return redirectWithCache(res, redirectPath);
             }
         }
     }
@@ -505,7 +520,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     userId: user.id,
                 });
 
-                return res.redirect(url);
+                return redirectWithCache(res, url);
             } catch (_error) {
                 return redirectWithAlert(res, 'Error adding bookmark');
             }
@@ -542,7 +557,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 }
 
                 return res
-                    .setHeader('Content-Type', 'text/html')
+                    .set({'Content-Type': 'text/html'})
                     .status(422)
                     .send(`
                         <script>
@@ -626,17 +641,18 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
         if (customBang) {
             if (customBang.action_type === 'search') {
-                return res.redirect(
+                return redirectWithCache(
+                    res,
                     customBang.url.replace('{{{s}}}', encodeURIComponent(searchTerm ?? '')),
                 );
             }
 
             if (customBang.action_type === 'redirect') {
-                return res.redirect(customBang.url);
+                return redirectWithCache(res, customBang.url);
             }
 
             if (customBang.action_type === 'bookmark') {
-                return res.redirect(`/bookmarks#${customBang.id}`);
+                return redirectWithCache(res, `/bookmarks#${customBang.id}`);
             }
         }
     }
@@ -659,7 +675,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 redirectUrl = getBangRedirectUrl(bang, '');
             }
 
-            return res.redirect(redirectUrl);
+            return redirectWithCache(res, redirectUrl);
         }
     }
 
@@ -674,5 +690,5 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         searchUrl = defaultSearchProviders[defaultProvider as keyof typeof defaultSearchProviders].replace('{{{s}}}', encodeURIComponent(triggerWithoutPrefix)); // prettier-ignore
     }
 
-    return res.redirect(searchUrl);
+    return redirectWithCache(res, searchUrl);
 }
