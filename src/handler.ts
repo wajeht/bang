@@ -1306,7 +1306,7 @@ export function deleteNoteHandler(notes: Notes) {
 }
 
 // GET /api/notes
-export async function getNotesByApiHandler(notes: Notes) {
+export function getNotesByApiHandler(notes: Notes) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
@@ -1378,7 +1378,7 @@ export const updateNoteByApiHandler = [
 ];
 
 // DELETE /api/notes/:id
-export async function deleteNoteByApiHandler(notes: Notes) {
+export function deleteNoteByApiHandler(notes: Notes) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const deletedNote = await notes.delete(
@@ -1387,6 +1387,27 @@ export async function deleteNoteByApiHandler(notes: Notes) {
         );
 
         return res.json(deletedNote);
+    };
+}
+
+// POST /admin/users/:id/delete
+export function postDeleteAdminUserHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const userId = parseInt(req.params.id as unknown as string);
+
+        if (req.user?.is_admin && req.user?.id === userId) {
+            req.flash('info', 'you cannot delete yourself');
+            return res.redirect('/admin/users');
+        }
+
+        const user = await db('users').where({ id: userId }).delete();
+
+        if (!user) {
+            throw new NotFoundError();
+        }
+
+        req.flash('success', 'deleted');
+        return res.redirect('/admin/users');
     };
 }
 

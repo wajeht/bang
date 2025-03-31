@@ -35,6 +35,7 @@ import {
     getSettingsDataPageHandler,
     postSettingsAccountHandler,
     postSettingsDisplayHandler,
+    postDeleteAdminUserHandler,
     getPrivacyPolicyPageHandler,
     getHomePageAndSearchHandler,
     getBookmarkCreatePageHandler,
@@ -75,6 +76,7 @@ router.get('/oauth/github/redirect', getGithubRedirectHandler(db, github));
 
 router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
 router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
+router.post('/admin/users/:id/delete', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, postDeleteAdminUserHandler(db)); // prettier-ignore
 
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler());
 router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler()); // prettier-ignore
