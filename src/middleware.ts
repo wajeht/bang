@@ -176,7 +176,7 @@ export function sessionMiddleware() {
     });
 }
 
-export const validateRequestMiddleware = (schemas: any) => {
+export function validateRequestMiddleware(schemas: any) {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
             for (const schema of schemas) {
@@ -217,7 +217,7 @@ export const validateRequestMiddleware = (schemas: any) => {
             next(error);
         }
     };
-};
+}
 
 export const csrfMiddleware = (() => {
     const { csrfSynchronisedProtection } = csrfSync({
