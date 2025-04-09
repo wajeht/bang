@@ -15,34 +15,34 @@ test:
 	@make test-unit
 
 test-unit:
-	@docker compose -f docker-compose.dev.yml exec bang npm run test
+	@docker compose -f docker-compose.dev.yml exec search npm run test
 
 test-coverage:
-	@docker compose -f docker-compose.dev.yml exec bang npm run test:coverage
+	@docker compose -f docker-compose.dev.yml exec search npm run test:coverage
 
 test-browser:
-	@docker compose -f docker-compose.dev.yml exec bang npm run test:browser:headless
+	@docker compose -f docker-compose.dev.yml exec search npm run test:browser:headless
 
 format:
-	@docker compose -f docker-compose.dev.yml exec bang npm run format
+	@docker compose -f docker-compose.dev.yml exec search npm run format
 
 lint:
-	@docker compose -f docker-compose.dev.yml exec bang npm run lint
+	@docker compose -f docker-compose.dev.yml exec search npm run lint
 
 deploy:
 	@./deploy.sh
 
 shell:
-	@docker compose -f docker-compose.dev.yml exec bang sh
+	@docker compose -f docker-compose.dev.yml exec search sh
 
 db-migrate:
-	@docker compose -f docker-compose.dev.yml exec bang npm run db:migrate:latest
+	@docker compose -f docker-compose.dev.yml exec search npm run db:migrate:latest
 
 db-rollback:
-	@docker compose -f docker-compose.dev.yml exec bang npm run db:migrate:rollback
+	@docker compose -f docker-compose.dev.yml exec search npm run db:migrate:rollback
 
 db-seed:
-	@docker compose -f docker-compose.dev.yml exec bang npm run db:seed:run
+	@docker compose -f docker-compose.dev.yml exec search npm run db:seed:run
 
 pull-prod-db:
 	@./scripts/pull-db.sh

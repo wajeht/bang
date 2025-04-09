@@ -1,3 +1,3 @@
-module github.com/wajeth/bang
+module github.com/wajeth/search
 
 go 1.24.0

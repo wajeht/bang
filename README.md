@@ -1,28 +1,28 @@
 https://github.com/user-attachments/assets/5f033de3-afa1-44a7-b55b-dc45fc203d10
 
-# ❗️Bang
+# ❗️Search
 
-[![Node.js CI](https://github.com/wajeht/bang/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wajeht/bang/actions/workflows/ci.yml)
+[![Node.js CI](https://github.com/wajeht/search/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wajeht/search/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Open Source Love svg1](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/wajeht/bang)
+[![Open Source Love svg1](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/wajeht/search)
 
-DuckDuckGo's !Bangs, but on steroids.
+DuckDuckGo's !searchs, but on steroids.
 
 ## 📖 Usage
 
 ### 🔍 Setup Custom Search Engine in Your Browser
 
-Before you can use the Bang command from your browser's search bar, you need to add the Bang URL as a custom search engine. Follow these steps:
+Before you can use the search command from your browser's search bar, you need to add the search URL as a custom search engine. Follow these steps:
 
 1. In your browser settings, add a new search engine:
 
-    - **Name**: Whatever you prefer (e.g., "Bang")
+    - **Name**: Whatever you prefer (e.g., "search")
     - **Shortcut**: `bd` (or any keyword you prefer)
-    - **URL**: `http://bang.jaw.dev/?q=%s`
+    - **URL**: `http://search.jaw.dev/?q=%s`
 
-2. Now you can use Bang directly from your browser's address bar:
+2. Now you can use search directly from your browser's address bar:
     ```
-    !bm https://bang.jaw.dev
+    !bm https://search.jaw.dev
     ```
 
 ### ⚙️ How to Add Custom Search Engine
@@ -36,7 +36,7 @@ Before you can use the Bang command from your browser's search bar, you need to 
 - `@data` - Access data
 - `@admin` - Access admin
 - `@api` - Access API docs
-- `@b`, `@bangs` - Go to home page
+- `@b`, `@searchs` - Go to home page
 - `@s`, `@settings` - Access settings
 - `@n`, `@note`, `@notes` - Access your notes
 - `@a`, `@action`, `@actions` - Access your actions
@@ -51,15 +51,15 @@ Before you can use the Bang command from your browser's search bar, you need to 
 - `!bm [title] [url]` - Add a bookmark
     - `[title]` is optional, if not provided, we will auto fetch the title
     - `[url]` is required
-    - eg: `!bm this title can be super long https://bang.jaw.dev`
-- `!add [trigger] [url]` - Create a custom bang
+    - eg: `!bm this title can be super long https://search.jaw.dev`
+- `!add [trigger] [url]` - Create a custom search
     - `[trigger]` is required
     - `[url]` is required
-    - eg: `!add jaw https://bang.jaw.dev`
+    - eg: `!add jaw https://search.jaw.dev`
 - `!note [title] | [content]` - Create a note
     - `[title]` is optional, if not provided, we will use it as `Untitled`
     - `[content]` is required
-    - eg: `!note some title | this is a note https://bang.jaw.dev`
+    - eg: `!note some title | this is a note https://search.jaw.dev`
     - eg: `!note this is a content without any title`
 
 ## 📑 Docs
