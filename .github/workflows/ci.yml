@@ -27,12 +27,11 @@ env:
     # notify
     NOTIFY_URL: 'https://deeznutz.co'
     NOTIFY_X_API_KEY: 'your mom'
-    
-  
+
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-  
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     unit-test:
         name: Unit tests
