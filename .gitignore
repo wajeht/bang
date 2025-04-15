@@ -141,3 +141,4 @@ db.sqlite-wal
 NetrwTreeListing
 .github/workflows/ci.yml
 .cursorrules
+.vscode
