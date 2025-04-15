@@ -54,9 +54,9 @@
         "connect-session-knex": "^5.0.0",
         "cors": "^2.8.5",
         "csrf-sync": "^4.1.0",
-        "dotenv": "^16.4.7",
+        "dotenv": "^16.5.0",
         "ejs": "^3.1.10",
-        "express": "^5.0.1",
+        "express": "^5.1.0",
         "express-ejs-layouts": "^2.5.1",
         "express-jsdoc-swagger": "^1.8.0",
         "express-rate-limit": "^7.5.0",
@@ -71,7 +71,7 @@
         "pino-pretty": "^13.0.0"
     },
     "devDependencies": {
-        "@faker-js/faker": "^9.6.0",
+        "@faker-js/faker": "^9.7.0",
         "@playwright/test": "^1.51.1",
         "@types/compression": "^1.7.5",
         "@types/connect-flash": "^0.0.40",
@@ -81,17 +81,17 @@
         "@types/express-ejs-layouts": "^2.5.4",
         "@types/express-session": "^1.18.1",
         "@types/jsonwebtoken": "^9.0.9",
-        "@types/node": "^22.13.14",
+        "@types/node": "^22.14.1",
         "@typescript-eslint/eslint-plugin": "^7.16.1",
         "@typescript-eslint/parser": "^7.18.0",
-        "@vitest/coverage-v8": "^3.0.9",
+        "@vitest/coverage-v8": "^3.1.1",
         "@wajeht/express-templates-reload": "^1.0.4",
         "eslint-config-prettier": "^9.1.0",
-        "eslint-plugin-prettier": "^5.2.5",
+        "eslint-plugin-prettier": "^5.2.6",
         "eslint-plugin-security": "^3.0.1",
         "prettier": "^3.5.3",
         "tsx": "^4.19.2",
-        "typescript": "^5.8.2",
-        "vitest": "^3.0.9"
+        "typescript": "^5.8.3",
+        "vitest": "^3.1.1"
     }
 }
