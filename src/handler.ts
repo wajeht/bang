@@ -14,6 +14,7 @@ import {
     expectJson,
     isApiRequest,
     extractPagination,
+    isOnlyLettersAndNumbers,
     insertBookmarkQueue as InsertBookmarkQueue,
 } from './util';
 import { Knex } from 'knex';
@@ -262,6 +263,10 @@ export const postActionHandler = {
             .custom(async (trigger, { req }) => {
                 const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
+                if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
+                    throw new ValidationError('Trigger can only contain letters and numbers');
+                }
+
                 const existingBang = await db('bangs')
                     .where({
                         trigger: formattedTrigger,
@@ -382,6 +387,11 @@ export const updateActionHandler = {
             .withMessage('Trigger is required')
             .custom(async (trigger, { req }) => {
                 const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+
+                if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
+                    throw new ValidationError('Trigger can only contain letters and numbers');
+                }
+
                 const existingBang = await db('bangs')
                     .where({
                         trigger: formattedTrigger,

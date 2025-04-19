@@ -419,3 +419,7 @@ export function nl2br(str: string): string {
         }
     });
 }
+
+export function isOnlyLettersAndNumbers(str: string): boolean {
+    return /^[a-zA-Z0-9]+$/.test(str);
+}
