@@ -7,7 +7,9 @@
         "start": "export APP_ENV=production && node --no-warnings ./dist/src/server.js",
         "dev:inspect": "npm run build && npm run db:prepare:prod && export APP_ENV=development && node --inspect ./dist/src/server.js",
         "dev:only": "export APP_ENV=development && tsx watch --no-warnings --clear-screen=false ./src/server.ts",
-        "dev": "export APP_ENV=development && npm run db:prepare:dev && tsx watch --no-warnings --clear-screen=false ./src/server.ts",
+        "dev:tailwind": "npx @tailwindcss/cli -i ./public/tailwind.css -o ./public/style.css --watch",
+        "dev:server": "export APP_ENV=development && npm run db:prepare:dev && tsx watch --no-warnings --clear-screen=false ./src/server.ts",
+        "dev": "concurrently --kill-others --names \"EXPRESS,TAILWIND\" -c \"bgGreen.black,bgCyan.black\" \"npm run dev:server\" \"npm run dev:tailwind\"",
         "build:server": "tsc",
         "build": "npm run build:server",
         "build:bang": "rm -rf ./src/db/bang.ts && tsx ./src/banger.mts https://duckduckgo.com/bang.js ./src/db/bang.ts",
@@ -48,6 +50,7 @@
         "node": ">=22.3.0"
     },
     "dependencies": {
+        "@tailwindcss/cli": "^4.1.4",
         "better-sqlite3": "^11.9.1",
         "compression": "^1.8.0",
         "connect-flash": "^0.1.1",
@@ -68,7 +71,8 @@
         "knex": "^3.1.0",
         "knex-paginate": "^3.2.0",
         "pino": "^9.6.0",
-        "pino-pretty": "^13.0.0"
+        "pino-pretty": "^13.0.0",
+        "tailwindcss": "^4.1.4"
     },
     "devDependencies": {
         "@faker-js/faker": "^9.7.0",
@@ -86,6 +90,7 @@
         "@typescript-eslint/parser": "^7.18.0",
         "@vitest/coverage-v8": "^3.1.1",
         "@wajeht/express-templates-reload": "^1.0.4",
+        "concurrently": "^9.1.2",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-prettier": "^5.2.6",
         "eslint-plugin-security": "^3.0.1",
