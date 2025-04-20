@@ -4,7 +4,13 @@ import { Bang, Search } from './type';
 import { Request, Response } from 'express';
 import { bangs as bangsTable } from './db/bang';
 import { defaultSearchProviders } from './constant';
-import { addHttps, insertBookmarkQueue, insertPageTitleQueue, isValidUrl } from './util';
+import {
+    addHttps,
+    insertBookmarkQueue,
+    insertPageTitleQueue,
+    isOnlyLettersAndNumbers,
+    isValidUrl,
+} from './util';
 
 /**
  * Core configuration constants for the search functionality
@@ -556,11 +562,16 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     message = `${bangTrigger} is a bang's systems command. Please enter a new trigger:`;
                 }
 
+                if (isOnlyLettersAndNumbers(bangTrigger.slice(1)) === false) {
+                    message = `${bangTrigger} trigger can only contain letters and numbers. Please enter a new tigger:`;
+                }
+
                 return res
                     .set({'Content-Type': 'text/html'})
                     .status(422)
                     .send(`
                         <script>
+                            const bangUrl = "${bangUrl}";
                             const newTrigger = prompt("${message}");
                             if (newTrigger) {
                                 const domain = window.location.origin;
