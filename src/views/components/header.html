@@ -1,21 +1,21 @@
-<header style="flex: 0; display: flex; flex-direction: column; gap: 20px; border: dashed; padding: 30px; border-radius: 10px">
-  <nav style="display: flex; justify-content: space-between; align-items: center;">
-      <div style="display: flex; align-items: center; gap: 20px; justify-items: center;">
-          <h1 style="padding-right: 18px;"><a href="/">❗️Bang</a></h1>
-          <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/actions' ? 'bold' : 'normal' %>; <%= path === '/actions' ? 'text-decoration: underline;' : null %>" href="/actions">⚡ Actions</a>
-          <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/bookmarks' ? 'bold' : 'normal' %>; <%= path === '/bookmarks' ? 'text-decoration: underline;' : null %>" href="/bookmarks">🔖 Bookmarks</a>
-          <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/notes' ? 'bold' : 'normal' %>; <%= path === '/notes' ? 'text-decoration: underline;' : null %>" href="/notes">📝 Notes</a>
+<header>
+  <nav>
+      <div>
+          <h1><a href="/">❗️Bang</a></h1>
+          <a href="/actions">⚡ Actions</a>
+          <a href="/bookmarks">🔖 Bookmarks</a>
+          <a href="/notes">📝 Notes</a>
       </div>
 
-      <details style="position: relative;">
+      <details>
           <summary><%= state.user.username %> 👤</summary>
-          <div style="position: absolute; top: 100%; right: 0; z-index: 1; border: dashed; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;">
+          <div class="flex flex-col">
               <% if (state.user.is_admin) { %>
-                <a href="/admin" style="font-weight: <%= path === '/admin' ? 'bold' : 'normal' %>; <%= path === '/admin' ? 'text-decoration: underline;' : null %>">️👑 Admin</a>
+                <a href="/admin">👑 Admin</a>
               <% } %>
-              <a href="/settings" style="font-weight: <%= path.match(/^\/settings/) ? 'bold' : 'normal' %>; <%= path.match(/^\/settings/) ? 'text-decoration: underline;' : null %>">⚙️ Settings</a>
-              <a href="/api-docs" style="font-weight: <%= path.match(/^\/api-docs/) ? 'bold' : 'normal' %>; <%= path.match(/^\/api-docs/) ? 'text-decoration: underline;' : null %>">📃 API Docs</a>
-              <hr style="border: none; border-top: dashed 1px; margin: 5px 0;">
+              <a href="/settings">⚙️ Settings</a>
+              <a href="/api-docs">📃 API Docs</a>
+              <hr>
               <a href="/logout">🚪 Logout</a>
           </div>
       </details>
