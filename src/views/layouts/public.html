@@ -6,6 +6,14 @@
   <body style="display: flex; flex-direction: column; min-height: 100vh; gap: 30px; position: relative;">
 
     <div>
+      <!-- top left -->
+      <div style="position: absolute; left: 0; margin-left: 3rem; display: flex; gap: 20px;">
+        <a href="/" style="font-weight: <%= path === '/' ? 'bold' : 'normal' %>; <%= path === '/' ? 'text-decoration: underline;' : null %>">🔎 Search</a>
+        <span>|</span>
+        <a href="/how-to" style="font-weight: <%= path === '/how-to' ? 'bold' : 'normal' %>; <%= path === '/how-to' ? 'text-decoration: underline;' : null %>">❓ How To</a>
+      </div>
+
+      <!-- top right -->
       <% if (typeof state?.user !== 'undefined') { %>
         <details style="position: absolute; right: 0; margin-right: 3rem;">
           <summary><%= state.user.username %> 👤</summary>
@@ -24,14 +32,6 @@
           </div>
         </details>
       <% } else { %>
-        <!-- top left -->
-        <div style="position: absolute; left: 0; margin-left: 3rem; display: flex; gap: 20px;">
-          <a href="/" style="font-weight: <%= path === '/' ? 'bold' : 'normal' %>; <%= path === '/' ? 'text-decoration: underline;' : null %>">🔎 Search</a>
-          <span>|</span>
-          <a href="/how-to" style="font-weight: <%= path === '/how-to' ? 'bold' : 'normal' %>; <%= path === '/how-to' ? 'text-decoration: underline;' : null %>">❓ How To</a>
-        </div>
-
-        <!-- top right -->
         <div style="position: absolute; right: 0; margin-right: 3rem;">
           <a href="/login">🔑 Login</a>
         </div>
@@ -44,7 +44,7 @@
       </div>
     </main>
 
-		<%- include('../components/footer.html') %>
+    <%- include('../components/footer.html') %>
 
 	</body>
 
