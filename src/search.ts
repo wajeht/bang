@@ -12,9 +12,6 @@ import {
     isValidUrl,
 } from './util';
 
-/**
- * Core configuration constants for the search functionality
- */
 const searchConfig = {
     /**
      * List of bangs that are available to use from the bangs table
@@ -59,15 +56,8 @@ const searchConfig = {
     },
 } as const;
 
-/**
- * Queue for tracking search history of unauthenticated users asynchronously
- */
 export const anonymousSearchHistoryQueue = fastq.promise(trackAnonymousUserSearch, 10);
 
-/**
- * Tracks search history for unauthenticated users and manages rate limiting
- * Increments search count and applies cumulative delay if limit is exceeded
- */
 export async function trackAnonymousUserSearch(req: Request) {
     req.session.searchCount = req.session.searchCount || 0;
     req.session.cumulativeDelay = req.session.cumulativeDelay || 0;
@@ -80,9 +70,6 @@ export async function trackAnonymousUserSearch(req: Request) {
     }
 }
 
-/**
- * Sends an HTML response that redirects the user with an optional alert message
- */
 export function redirectWithAlert(res: Response, url: string, message?: string) {
     return res.set({'Content-Type': 'text/html'})
 		.status(200)
@@ -94,9 +81,6 @@ export function redirectWithAlert(res: Response, url: string, message?: string) 
 		`); // prettier-ignore
 }
 
-/**
- * Sends an HTML error response with an alert message and browser history navigation
- */
 export function goBackWithAlert(res: Response, message: string) {
     return res.set({'Content-Type': 'text/html'})
 		.status(422)
@@ -305,10 +289,6 @@ export function parseSearchQuery(query: string) {
     };
 }
 
-/**
- * Handles rate limiting for unauthenticated users
- * Returns warning message when search count reaches multiples of 10
- */
 export function getSearchLimitWarning(_req: Request, searchCount: number): string | null {
     const searchesLeft = searchConfig.searchLimit - searchCount;
     const showWarning = searchCount % 10 === 0 && searchCount !== 0;
@@ -324,21 +304,12 @@ export function getSearchLimitWarning(_req: Request, searchCount: number): strin
     return null;
 }
 
-/**
- * Process a search request with the appropriate delay
- */
 export async function processDelayedSearch(req: Request): Promise<void> {
     if (req.session.cumulativeDelay) {
         await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
     }
 }
 
-/**
- * Redirects with appropriate cache headers to improve performance for repeated searches
- * @param res Express response object
- * @param url URL to redirect to
- * @param cacheDuration Cache duration in seconds (default: 3600 = 1 hour)
- */
 export function redirectWithCache(res: Response, url: string, cacheDuration: number = 3600): void {
     res.set({
         'Cache-Control': `public, max-age=${cacheDuration}`,
@@ -347,11 +318,6 @@ export function redirectWithCache(res: Response, url: string, cacheDuration: num
     res.redirect(url);
 }
 
-/**
- * Optimized search handler for anonymous users
- * Implements non-blocking rate limiting
- * Asynchronously tracks search history
- */
 export async function handleAnonymousSearch(
     req: Request,
     res: Response,
@@ -419,11 +385,6 @@ export async function handleAnonymousSearch(
     );
 }
 
-/**
- * Processes bang redirect URLs
- * Handles both search queries and direct domain redirects
- * Properly encodes search terms for URL safety
- */
 export function getBangRedirectUrl(bang: Bang, searchTerm: string): string {
     let redirectUrl;
     if (searchTerm) {
@@ -435,9 +396,6 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string): string {
     return redirectUrl;
 }
 
-/**
- * Main search function handling all types of search queries
- */
 export async function search({ res, req, user, query }: Parameters<Search>[0]): ReturnType<Search> {
     const { commandType, trigger, triggerWithoutPrefix, url, searchTerm } = parseSearchQuery(query);
 
