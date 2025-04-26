@@ -69,7 +69,6 @@ export const anonymousSearchHistoryQueue = fastq.promise(trackAnonymousUserSearc
  * Increments search count and applies cumulative delay if limit is exceeded
  */
 export async function trackAnonymousUserSearch(req: Request) {
-    // Initialize or get existing session counters
     req.session.searchCount = req.session.searchCount || 0;
     req.session.cumulativeDelay = req.session.cumulativeDelay || 0;
 
@@ -327,8 +326,6 @@ export function getSearchLimitWarning(_req: Request, searchCount: number): strin
 
 /**
  * Process a search request with the appropriate delay
- * Uses a non-blocking approach that doesn't affect concurrent requests
- * The delay is applied only to the specific rate-limited request
  */
 export async function processDelayedSearch(req: Request): Promise<void> {
     if (req.session.cumulativeDelay) {
@@ -364,7 +361,6 @@ export async function handleAnonymousSearch(
 ): Promise<Response | void> {
     const warningMessage = getSearchLimitWarning(req, req.session.searchCount ?? 0);
 
-    // Display warning when user approaches or exceeds search limits
     if (warningMessage) {
         void anonymousSearchHistoryQueue.push(req);
         return redirectWithAlert(
@@ -374,15 +370,11 @@ export async function handleAnonymousSearch(
         );
     }
 
-    // Asynchronously track search for analytics purposes
     void anonymousSearchHistoryQueue.push(req);
 
-    // Enforce rate limiting delay for users who exceeded search limits
     if (req.session.cumulativeDelay) {
-        // Create a non-blocking delay
         const delayPromise = processDelayedSearch(req);
 
-        // Determine the redirect URL based on the bang
         let redirectUrl = '';
         const message = `This search was delayed by ${req.session.cumulativeDelay / 1000} seconds due to rate limiting.`;
 
@@ -403,14 +395,11 @@ export async function handleAnonymousSearch(
             );
         }
 
-        // Wait for the delay to complete (won't block other requests)
         await delayPromise;
 
-        // After the delay is done, redirect with a message
         return redirectWithAlert(res, redirectUrl, message);
     }
 
-    // Process bang commands for unauthenticated users
     if (triggerWithoutBang) {
         const bang = searchConfig.bangs[triggerWithoutBang] as Bang;
         if (bang) {
@@ -424,7 +413,6 @@ export async function handleAnonymousSearch(
         }
     }
 
-    // Process regular search using DuckDuckGo (default for unauthenticated users)
     return redirectWithCache(
         res,
         defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
@@ -546,7 +534,6 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 return goBackWithAlert(res, 'Invalid trigger or empty URL');
             }
 
-            // Prevent duplicates and system command conflicts
             const hasSystemBangCommands = searchConfig.systemBangs.includes(bangTrigger as (typeof searchConfig.systemBangs)[number]); // prettier-ignore
 
             const existingBang = await db('bangs')
@@ -682,7 +669,6 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             ) {
                 redirectUrl = getBangRedirectUrl(bang, searchTerm || '');
             } else {
-                // Handle bang-only queries - redirect to service homepage
                 redirectUrl = getBangRedirectUrl(bang, '');
             }
 
@@ -690,10 +676,8 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         }
     }
 
-    // Process default search using user's preferred search engine
     const defaultProvider = user.default_search_provider || 'duckduckgo';
 
-    // Handle regular search queries or fallback for unknown bangs
     let searchUrl: string = defaultSearchProviders[defaultProvider as keyof typeof defaultSearchProviders].replace('{{{s}}}', encodeURIComponent(searchTerm || query)); // prettier-ignore
 
     // Handle unknown bang commands by searching for them without the "!"
