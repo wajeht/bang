@@ -120,7 +120,7 @@ export async function adminOnlyMiddleware(req: Request, _res: Response, next: Ne
         }
 
         if (!(req.user as User).is_admin) {
-            throw new UnauthorizedError('User is not an admin');
+            throw new UnauthorizedError('Unauthorized');
         }
 
         next();
