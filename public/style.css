@@ -322,3 +322,17 @@ dialog[open]::backdrop {
 a:hover .sort-icon {
     opacity: 1;
 }
+
+.question-mark-btn {
+    border: 0.5px solid;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.question-mark-btn:hover {
+    background-color: #efefef;
+}
