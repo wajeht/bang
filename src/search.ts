@@ -64,7 +64,7 @@ export async function trackAnonymousUserSearch(req: Request) {
 
     req.session.searchCount += 1;
 
-    // Apply delay penalty if search limit is exceeded
+    // delay penalty if search limit is exceeded
     if (req.session.searchCount > searchConfig.searchLimit) {
         req.session.cumulativeDelay += searchConfig.delayIncrement;
     }
@@ -109,23 +109,20 @@ export function goBack(res: Response) {
  * @returns Parsed components of the search query
  *
  * @example Basic search
- * parseSearchQuery("!g python")
- * → { commandType: "bang", trigger: "!g", triggerWithoutPrefix: "g", url: null, searchTerm: "python" }
+ * parseSearchQuery("!g python") → { commandType: "bang", trigger: "!g", triggerWithoutPrefix: "g", url: null, searchTerm: "python" }
  *
  * @example Direct command
- * parseSearchQuery("@notes search query")
- * → { commandType: "direct", trigger: "@notes", triggerWithoutPrefix: "notes", url: null, searchTerm: "search query" }
+ * parseSearchQuery("@notes search query") → { commandType: "direct", trigger: "@notes", triggerWithoutPrefix: "notes", url: null, searchTerm: "search query" }
  *
  * @example Bookmark with title
- * parseSearchQuery("!bm My Bookmark https://example.com")
- * → { commandType: "bang", trigger: "!bm", triggerWithoutPrefix: "bm", url: "https://example.com", searchTerm: "My Bookmark" }
+ * parseSearchQuery("!bm My Bookmark https://example.com") → { commandType: "bang", trigger: "!bm", triggerWithoutPrefix: "bm", url: "https://example.com", searchTerm: "My Bookmark" }
  *
  * @example Custom bang creation
- * parseSearchQuery("!add !custom https://custom-search.com")
- * → { commandType: "bang", trigger: "!add", triggerWithoutPrefix: "add", url: "https://custom-search.com", searchTerm: "!custom" }
+ * parseSearchQuery("!add !custom https://custom-search.com") → { commandType: "bang", trigger: "!add", triggerWithoutPrefix: "add", url: "https://custom-search.com", searchTerm: "!custom" }
  */
 export function parseSearchQuery(query: string) {
-    if (!query) {
+    const trimmed = (query || '').trim();
+    if (!trimmed)
         return {
             commandType: null,
             trigger: null,
@@ -133,105 +130,31 @@ export function parseSearchQuery(query: string) {
             url: null,
             searchTerm: '',
         };
-    }
 
-    // Use a single pass approach to extract components
-    const trimmedQuery = query.trim();
-    const firstSpaceIndex = trimmedQuery.indexOf(' ');
-
-    // Determine command type from the first character (faster than startsWith)
-    const firstChar = trimmedQuery.charAt(0);
-    const isBang = firstChar === '!';
-    const isDirect = firstChar === '@';
-    const commandType = isBang ? 'bang' : isDirect ? 'direct' : null;
-    const isCommand = isBang || isDirect;
-
-    // No spaces means it's either just a command or a single word search
-    if (firstSpaceIndex === -1) {
-        // If it starts with ! or @, it's a command-only query
-        if (isCommand) {
-            return {
-                commandType,
-                trigger: trimmedQuery,
-                triggerWithoutPrefix: trimmedQuery.slice(1),
-                url: null,
-                searchTerm: '',
-            };
-        }
-
-        // Otherwise it's just a single word search
+    // Extract command trigger
+    const triggerMatch = trimmed.match(/^([!@]\S+)/);
+    if (!triggerMatch)
         return {
             commandType: null,
             trigger: null,
             triggerWithoutPrefix: null,
             url: null,
-            searchTerm: trimmedQuery,
+            searchTerm: trimmed.replace(/\s+/g, ' ').trim(),
         };
-    }
 
-    // Extract potential trigger (if query starts with ! or @)
-    let trigger = null;
-    let triggerWithoutPrefix = null;
-    let remainingQuery = trimmedQuery;
+    const trigger = triggerMatch[0];
+    const commandType = trigger.startsWith('!') ? 'bang' : 'direct';
+    const remaining = trimmed.slice(trigger.length).trim();
 
-    if (isCommand) {
-        trigger = trimmedQuery.substring(0, firstSpaceIndex);
-        triggerWithoutPrefix = trigger.slice(1);
-        remainingQuery = trimmedQuery.substring(firstSpaceIndex + 1);
-    }
-
-    // Find URL using fast string search instead of regex
-    // URLs will start with http:// or https://
+    // URL extraction for bang commands only
     let url = null;
-    let searchTerm = remainingQuery;
-
-    // Only look for URLs in bang commands - direct commands don't use URLs
+    let searchTerm = remaining;
     if (commandType === 'bang') {
-        // Common URL prefixes to check for
-        const httpIndex = remainingQuery.indexOf('http://');
-        const httpsIndex = remainingQuery.indexOf('https://');
-
-        if (httpIndex !== -1 || httpsIndex !== -1) {
-            // Find the earlier occurring URL protocol
-            const urlStartIndex =
-                httpIndex !== -1 && httpsIndex !== -1
-                    ? Math.min(httpIndex, httpsIndex)
-                    : Math.max(httpIndex, httpsIndex);
-
-            // Extract the URL - find the end by locating the next space
-            const urlEndIndex = remainingQuery.indexOf(' ', urlStartIndex);
-
-            // If no space after URL, it goes to the end of the string
-            if (urlEndIndex === -1) {
-                url = remainingQuery.substring(urlStartIndex);
-
-                // If URL is at the beginning, there's no search term
-                if (urlStartIndex === 0) {
-                    searchTerm = '';
-                } else {
-                    // Otherwise search term is everything before the URL
-                    searchTerm = remainingQuery.substring(0, urlStartIndex).trim();
-                }
-            } else {
-                // URL is in the middle, extract it and the search term
-                url = remainingQuery.substring(urlStartIndex, urlEndIndex);
-
-                // Combine parts before and after URL for the search term
-                const beforeUrl = remainingQuery.substring(0, urlStartIndex).trim();
-                const afterUrl = remainingQuery.substring(urlEndIndex).trim();
-
-                if (beforeUrl && afterUrl) {
-                    searchTerm = beforeUrl + ' ' + afterUrl;
-                } else {
-                    searchTerm = beforeUrl || afterUrl;
-                }
-            }
+        const urlMatch = remaining.match(/(?:^| )(https?:\/\/\S*)/);
+        if (urlMatch) {
+            url = urlMatch[1];
+            searchTerm = remaining.replace(urlMatch[0], '').trim();
         }
-    }
-
-    // Normalize spaces in search term (required for test compatibility)
-    if (searchTerm) {
-        searchTerm = searchTerm.trim().replace(/\s+/g, ' ');
     }
 
     return {
@@ -262,7 +185,7 @@ export function parseSearchQuery(query: string) {
          * @example "notes" for notes navigation
          * @example null for regular searches
          */
-        triggerWithoutPrefix,
+        triggerWithoutPrefix: trigger.slice(1),
 
         /**
          * First valid URL found in the query string
@@ -285,7 +208,7 @@ export function parseSearchQuery(query: string) {
          * @example "My Bookmark" from "!bm My Bookmark https://example.com"
          * @example "search term" from "@notes search term"
          */
-        searchTerm,
+        searchTerm: searchTerm.replace(/\s+/g, ' ').trim(),
     };
 }
 
@@ -313,7 +236,7 @@ export async function processDelayedSearch(req: Request): Promise<void> {
 export function redirectWithCache(res: Response, url: string, cacheDuration: number = 3600): void {
     res.set({
         'Cache-Control': `public, max-age=${cacheDuration}`,
-        Expires: new Date(Date.now() + cacheDuration * 1000).toUTCString(),
+        Expires: new Date(Date.now() + cacheDuration * 1000).toUTCString(), // 1 hour
     });
     res.redirect(url);
 }
@@ -508,7 +431,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 }
 
                 if (isOnlyLettersAndNumbers(bangTrigger.slice(1)) === false) {
-                    message = `${bangTrigger} trigger can only contain letters and numbers. Please enter a new tigger:`;
+                    message = `${bangTrigger} trigger can only contain letters and numbers. Please enter a new trigger:`;
                 }
 
                 return res
