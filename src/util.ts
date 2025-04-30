@@ -270,6 +270,7 @@ export async function sendNotification({
                             stack: error?.stack,
                             cause: error?.cause,
                         },
+                        user: req.session?.user ?? req?.user,
                     },
                     null,
                     2,
