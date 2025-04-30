@@ -31,9 +31,7 @@ export class HttpError extends Error {
                     error: this,
                 });
 
-                logger.info(
-                    `Pushed ${this.constructor.name} to notification queue: ${req.method} ${req.path} - ${this.message}`,
-                );
+                logger.info(`Pushed ${this.constructor.name} to notification queue`);
             } catch (queueError) {
                 logger.error('Failed to push error to notification queue: %o', queueError);
             }
