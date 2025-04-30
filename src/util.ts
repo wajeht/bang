@@ -25,7 +25,7 @@ export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
 export const sendNotificationQueue = fastq.promise(sendNotification, 10);
 
 export const github: GitHub = {
-    getOauthToken: async function (code: string): Promise<GitHubOauthToken> {
+    getOauthToken: async function (code: string, req?: Request): Promise<GitHubOauthToken> {
         const rootUrl = 'https://github.com/login/oauth/access_token';
 
         const options = {
@@ -45,14 +45,17 @@ export const github: GitHub = {
 
         if (!response.ok) {
             logger.error('[getUserEmails]: Failed to fetch GitHub OAuth tokens');
-            throw new HttpError(500, 'Failed to fetch GitHub OAuth tokens');
+            throw new HttpError(500, 'Failed to fetch GitHub OAuth tokens', req);
         }
 
         const data = await response.text();
         return qs.parse(data) as GitHubOauthToken;
     },
 
-    getUserEmails: async function (access_token: string): Promise<GithubUserEmail[]> {
+    getUserEmails: async function (
+        access_token: string,
+        req?: Request,
+    ): Promise<GithubUserEmail[]> {
         const response = await fetch('https://api.github.com/user/emails', {
             headers: {
                 Authorization: `Bearer ${access_token}`,
@@ -61,7 +64,7 @@ export const github: GitHub = {
 
         if (!response.ok) {
             logger.error('[getUserEmails]: Failed to fetch GitHub user emails');
-            throw new HttpError(500, 'Failed to fetch GitHub user emails');
+            throw new HttpError(500, 'Failed to fetch GitHub user emails', req);
         }
 
         return (await response.json()) as GithubUserEmail[];
@@ -72,10 +75,12 @@ export async function insertBookmark({
     url,
     userId,
     title,
+    req,
 }: {
     url: string;
     userId: number;
     title?: string;
+    req?: Request;
 }) {
     const bookmark = await bookmarks.create({
         user_id: userId,
@@ -84,7 +89,7 @@ export async function insertBookmark({
     });
 
     if (!title) {
-        void insertPageTitleQueue.push({ bookmarkId: bookmark.id, url });
+        void insertPageTitleQueue.push({ bookmarkId: bookmark.id, url, req });
     }
 }
 
@@ -92,13 +97,19 @@ export async function insertPageTitle({
     bookmarkId,
     actionId,
     url,
+    req,
 }: {
     bookmarkId?: number;
     actionId?: number;
     url: string;
+    req?: Request;
 }) {
     if ((bookmarkId && actionId) || (!bookmarkId && !actionId)) {
-        throw new HttpError(500, 'You must pass in exactly one id: either bookmarkId or actionId');
+        throw new HttpError(
+            500,
+            'You must pass in exactly one id: either bookmarkId or actionId',
+            req,
+        );
     }
 
     const title = await fetchPageTitle(url);
@@ -334,7 +345,7 @@ export async function extractUser(req: Request): Promise<User> {
         return req.session.user;
     }
 
-    throw new HttpError(500, 'User not found from request!');
+    throw new HttpError(500, 'User not found from request!', req);
 }
 
 export function extractPagination(req: Request, pageType: PageType | 'admin') {
