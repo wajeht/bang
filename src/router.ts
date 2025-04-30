@@ -80,7 +80,6 @@ router.post('/admin/users/:id/delete', authenticationMiddleware, adminOnlyMiddle
 
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler());
 router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler()); // prettier-ignore
-router.get('/settings/display', authenticationMiddleware, csrfMiddleware, getSettingsDisplayPageHandler()); // prettier-ignore
 router.get('/settings/account', authenticationMiddleware, csrfMiddleware, getSettingsAccountPageHandler()); // prettier-ignore
 router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler()); // prettier-ignore
 router.post('/settings/create-api-key', authenticationMiddleware, csrfMiddleware, postSettingsCreateApiKeyHandler(db, api)); // prettier-ignore
