@@ -461,7 +461,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 })
                 .returning('*');
 
-            void insertPageTitleQueue.push({ actionId: bangs[0].id, url: bangUrl });
+            void insertPageTitleQueue.push({ actionId: bangs[0].id, url: bangUrl, req });
 
             return goBack(res);
         }
