@@ -1,11 +1,3 @@
-import {
-    api,
-    nl2br,
-    getApiKey,
-    isApiRequest,
-    highlightSearchTerm,
-    sendNotificationQueue,
-} from './util';
 import helmet from 'helmet';
 import { db } from './db/db';
 import { logger } from './logger';
@@ -20,6 +12,7 @@ import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { HttpError, UnauthorizedError, ValidationError } from './error';
+import { api, nl2br, getApiKey, isApiRequest, highlightSearchTerm } from './util';
 
 export function cacheMiddleware(value: number, unit: CacheDuration = 'second') {
     const seconds = value * CACHE_DURATION[unit];

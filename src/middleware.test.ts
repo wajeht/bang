@@ -3,9 +3,9 @@ import { User } from './type';
 import { logger } from './logger';
 import { users } from './repository';
 import { Session } from 'express-session';
-import { authenticationMiddleware, errorMiddleware } from './middleware';
 import { api, getApiKey, isApiRequest } from './util';
 import { Request, Response, NextFunction } from 'express';
+import { authenticationMiddleware, errorMiddleware } from './middleware';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from './error';
 

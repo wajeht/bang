@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
     HttpError,
     ForbiddenError,
@@ -7,10 +6,11 @@ import {
     ValidationError,
     UnimplementedFunctionError,
 } from './error';
+import { logger } from './logger';
 import { Request } from 'express';
 import { appConfig } from './config';
 import { sendNotificationQueue } from './util';
-import { logger } from './logger';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('./util', () => ({
     sendNotificationQueue: {

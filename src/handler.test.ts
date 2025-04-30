@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getHealthzHandler } from './handler';
 import { db } from './db/db';
 import { Request, Response } from 'express';
+import { getHealthzHandler } from './handler';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('./db/db', () => ({
     db: {
