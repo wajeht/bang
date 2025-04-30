@@ -40,7 +40,6 @@ import {
     getHomePageAndSearchHandler,
     getBookmarkCreatePageHandler,
     getTermsOfServicePageHandler,
-    getSettingsDisplayPageHandler,
     getSettingsAccountPageHandler,
     postSettingsCreateApiKeyHandler,
     getSettingsDangerZonePageHandler,
