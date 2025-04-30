@@ -1016,18 +1016,6 @@ export async function getCollectionsHandler(req: Request, res: Response) {
     });
 }
 
-// GET /settings/display
-export function getSettingsDisplayPageHandler() {
-    return (req: Request, res: Response) => {
-        return res.render('settings-display.html', {
-            user: req.session?.user,
-            title: 'Display Settings',
-            path: '/settings/display',
-            layout: '../layouts/settings.html',
-        });
-    };
-}
-
 // POST /settings/display
 export const postSettingsDisplayHandler = {
     validator: validateRequestMiddleware([
@@ -1121,7 +1109,7 @@ export const postSettingsDisplayHandler = {
     handler: function (db: Knex) {
         return async (req: Request, res: Response) => {
             const user = req.user as User;
-            const { column_preferences } = req.body;
+            const { column_preferences, path } = req.body;
 
             await db('users')
                 .where('id', user.id)
@@ -1131,9 +1119,11 @@ export const postSettingsDisplayHandler = {
 
             req.session.user!.column_preferences = column_preferences;
 
-            req.flash('success', 'Display settings updated');
+            console.log(req.headers);
 
-            return res.redirect('/settings/display');
+            req.flash('success', 'Column settings updated');
+
+            res.redirect(path);
         };
     },
 };
