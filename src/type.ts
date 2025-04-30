@@ -181,8 +181,8 @@ export type Search = (options: {
 }) => Promise<void | Response>;
 
 export interface GitHub {
-    getOauthToken: (code: string) => Promise<GitHubOauthToken>;
-    getUserEmails: (access_token: string) => Promise<GithubUserEmail[]>;
+    getOauthToken: (code: string, req?: Request) => Promise<GitHubOauthToken>;
+    getUserEmails: (access_token: string, req?: Request) => Promise<GithubUserEmail[]>;
 }
 
 export type Pagination = {
