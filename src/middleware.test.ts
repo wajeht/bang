@@ -3,11 +3,11 @@ import { User } from './type';
 import { logger } from './logger';
 import { users } from './repository';
 import { Session } from 'express-session';
-import { UnauthorizedError } from './error';
-import { authenticationMiddleware } from './middleware';
+import { authenticationMiddleware, errorMiddleware } from './middleware';
 import { api, getApiKey, isApiRequest } from './util';
 import { Request, Response, NextFunction } from 'express';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
+import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from './error';
 
 vi.mock('./util', () => ({
     getApiKey: vi.fn(),
@@ -15,11 +15,21 @@ vi.mock('./util', () => ({
     api: {
         verify: vi.fn(),
     },
+    sendNotificationQueue: {
+        push: vi.fn(),
+    },
 }));
 
 vi.mock('./logger', () => ({
     logger: {
         error: vi.fn(),
+        info: vi.fn(),
+    },
+}));
+
+vi.mock('./config', () => ({
+    appConfig: {
+        env: 'testing',
     },
 }));
 
@@ -306,5 +316,185 @@ describe('authenticationMiddleware', () => {
 
         expect(logger.error).toHaveBeenCalled();
         expect(next).toHaveBeenCalledWith(expect.any(Error));
+    });
+});
+
+describe('errorMiddleware', () => {
+    let req: Partial<Request>;
+    let res: Partial<Response>;
+    let next: NextFunction;
+
+    beforeEach(() => {
+        vi.resetAllMocks();
+        vi.mocked(isApiRequest).mockReturnValue(false);
+
+        req = {
+            method: 'GET',
+            path: '/test',
+            url: '/test',
+            headers: {},
+            body: {},
+            query: {},
+        };
+        res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn().mockReturnThis(),
+            render: vi.fn().mockReturnThis(),
+        };
+        next = vi.fn();
+    });
+
+    it('should preserve the correct status code for different error types', async () => {
+        const errorMiddlewareInstance = errorMiddleware();
+
+        const notFoundError = new NotFoundError('Resource not found');
+        await errorMiddlewareInstance(
+            notFoundError,
+            req as unknown as Request,
+            res as unknown as Response,
+            next,
+        );
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.render).toHaveBeenCalledWith(
+            'error.html',
+            expect.objectContaining({
+                statusCode: 404,
+                message: expect.stringContaining('Resource not found'),
+            }),
+        );
+
+        vi.resetAllMocks();
+        res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn().mockReturnThis(),
+            render: vi.fn().mockReturnThis(),
+        };
+
+        const validationError = new ValidationError('Invalid input');
+        await errorMiddlewareInstance(
+            validationError,
+            req as unknown as Request,
+            res as unknown as Response,
+            next,
+        );
+        expect(res.status).toHaveBeenCalledWith(422);
+        expect(res.render).toHaveBeenCalledWith(
+            'error.html',
+            expect.objectContaining({
+                statusCode: 422,
+                message: expect.stringContaining('Invalid input'),
+            }),
+        );
+
+        vi.resetAllMocks();
+        res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn().mockReturnThis(),
+            render: vi.fn().mockReturnThis(),
+        };
+
+        const unauthorizedError = new UnauthorizedError('Unauthorized access');
+        await errorMiddlewareInstance(
+            unauthorizedError,
+            req as unknown as Request,
+            res as unknown as Response,
+            next,
+        );
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.render).toHaveBeenCalledWith(
+            'error.html',
+            expect.objectContaining({
+                statusCode: 401,
+                message: expect.stringContaining('Unauthorized access'),
+            }),
+        );
+
+        vi.resetAllMocks();
+        res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn().mockReturnThis(),
+            render: vi.fn().mockReturnThis(),
+        };
+
+        const forbiddenError = new ForbiddenError('Forbidden access');
+        await errorMiddlewareInstance(
+            forbiddenError,
+            req as unknown as Request,
+            res as unknown as Response,
+            next,
+        );
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.render).toHaveBeenCalledWith(
+            'error.html',
+            expect.objectContaining({
+                statusCode: 403,
+                message: expect.stringContaining('Forbidden access'),
+            }),
+        );
+
+        vi.resetAllMocks();
+        res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn().mockReturnThis(),
+            render: vi.fn().mockReturnThis(),
+        };
+
+        const regularError = new Error('Something went wrong');
+        await errorMiddlewareInstance(
+            regularError,
+            req as unknown as Request,
+            res as unknown as Response,
+            next,
+        );
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.render).toHaveBeenCalledWith(
+            'error.html',
+            expect.objectContaining({
+                statusCode: 500,
+                message: expect.stringContaining('Something went wrong'),
+            }),
+        );
+    });
+
+    it('should handle API requests with different error types', async () => {
+        vi.mocked(isApiRequest).mockReturnValue(true);
+        const errorMiddlewareInstance = errorMiddleware();
+
+        const notFoundError = new NotFoundError('API resource not found');
+        await errorMiddlewareInstance(
+            notFoundError,
+            req as unknown as Request,
+            res as unknown as Response,
+            next,
+        );
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith(
+            expect.objectContaining({
+                message: 'API resource not found',
+            }),
+        );
+
+        vi.resetAllMocks();
+        vi.mocked(isApiRequest).mockReturnValue(true);
+        res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn().mockReturnThis(),
+            render: vi.fn().mockReturnThis(),
+        };
+
+        const validationError = new ValidationError('{"fields":{"name":"Required"}}');
+        await errorMiddlewareInstance(
+            validationError,
+            req as unknown as Request,
+            res as unknown as Response,
+            next,
+        );
+        expect(res.status).toHaveBeenCalledWith(422);
+        expect(res.json).toHaveBeenCalledWith(
+            expect.objectContaining({
+                message: 'Validation errors',
+                details: expect.anything(),
+            }),
+        );
     });
 });
