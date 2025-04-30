@@ -75,14 +75,11 @@ export function errorMiddleware() {
             error.request = req;
         }
 
-        let statusCode = 500;
-        let message =
+        const httpError = error as HttpError;
+        const statusCode = httpError.statusCode || 500;
+        const message =
+            httpError.message ||
             'The server encountered an internal error or misconfiguration and was unable to complete your request';
-
-        if (error instanceof HttpError) {
-            statusCode = error.statusCode;
-            message = error.message;
-        }
 
         if (isApiRequest(req)) {
             const responsePayload: any = {
