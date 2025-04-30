@@ -1121,7 +1121,7 @@ export const postSettingsDisplayHandler = {
 
             req.flash('success', 'Column settings updated');
 
-            res.redirect(path);
+            return res.redirect(path);
         };
     },
 };
