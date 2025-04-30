@@ -69,12 +69,10 @@ export function errorMiddleware() {
     return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
         logger.error(`${req.method} ${req.path} - ${error.message}`, error);
 
-        if (appConfig.env === 'production') {
-            try {
-                void sendNotificationQueue.push({ req, error });
-            } catch (queueError) {
-                logger.error('Failed to push error to notification queue: %o', queueError);
-            }
+        if (!(error instanceof HttpError)) {
+            error = new HttpError(500, error.message, req);
+        } else if (error instanceof HttpError && !error.request) {
+            error.request = req;
         }
 
         let statusCode = 500;
@@ -116,11 +114,11 @@ export function errorMiddleware() {
 export async function adminOnlyMiddleware(req: Request, _res: Response, next: NextFunction) {
     try {
         if (!req.user) {
-            throw new UnauthorizedError('Unauthorized');
+            throw new UnauthorizedError('Unauthorized', req);
         }
 
         if (!(req.user as User).is_admin) {
-            throw new UnauthorizedError('Unauthorized');
+            throw new UnauthorizedError('Unauthorized', req);
         }
 
         next();
@@ -209,6 +207,7 @@ export function validateRequestMiddleware(schemas: any) {
                     JSON.stringify({
                         fields: reshapedErrors,
                     }),
+                    req,
                 );
             }
 
@@ -297,7 +296,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
             const apiKeyPayload = await api.verify(apiKey);
 
             if (!apiKeyPayload) {
-                throw new UnauthorizedError('Invalid API key or Bearer token');
+                throw new UnauthorizedError('Invalid API key or Bearer token', req);
             }
 
             user = await users.read(apiKeyPayload.userId);
@@ -305,7 +304,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 
         if (!user) {
             if (isApiRequest(req)) {
-                throw new UnauthorizedError('Unauthorized');
+                throw new UnauthorizedError('Unauthorized', req);
             }
 
             req.session.redirectTo = req.originalUrl || req.url;
