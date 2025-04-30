@@ -111,7 +111,7 @@ export function getLogoutHandler() {
             req.user = undefined;
             req.session.destroy((error) => {
                 if (error) {
-                    throw new HttpError(error);
+                    throw new HttpError(500, error.message, req);
                 }
             });
         }
@@ -156,16 +156,19 @@ export function getGithubRedirectHandler(db: Knex, github: GitHub) {
         const code = req.query.code as string;
 
         if (!code) {
-            throw new UnauthorizedError('Something went wrong while authenticating with GitHub');
+            throw new UnauthorizedError(
+                'Something went wrong while authenticating with GitHub',
+                req,
+            );
         }
 
-        const { access_token } = await github.getOauthToken(code);
+        const { access_token } = await github.getOauthToken(code, req);
 
-        const emails = await github.getUserEmails(access_token);
+        const emails = await github.getUserEmails(access_token, req);
         const email = emails.find((email: any) => email.primary && email.verified)?.email;
 
         if (!email) {
-            throw new UnauthorizedError('No verified primary email found on GitHub account');
+            throw new UnauthorizedError('No verified primary email found on GitHub account', req);
         }
 
         let user = await db.select('*').from('users').where({ email }).first();
@@ -265,7 +268,10 @@ export const postActionHandler = {
                 const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
                 if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
-                    throw new ValidationError('Trigger can only contain letters and numbers');
+                    throw new ValidationError(
+                        'Trigger can only contain letters and numbers',
+                        req as Request,
+                    );
                 }
 
                 const existingBang = await db('bangs')
@@ -276,7 +282,7 @@ export const postActionHandler = {
                     .first();
 
                 if (existingBang) {
-                    throw new ValidationError('This trigger already exists');
+                    throw new ValidationError('This trigger already exists', req as Request);
                 }
 
                 return true;
@@ -330,7 +336,7 @@ export function deleteActionHandler(actions: Actions) {
         );
 
         if (!deleted) {
-            throw new NotFoundError();
+            throw new NotFoundError('Action not found', req);
         }
 
         if (isApiRequest(req)) {
@@ -357,7 +363,7 @@ export function getEditActionPageHandler(db: Knex) {
             .first();
 
         if (!action) {
-            throw new NotFoundError();
+            throw new NotFoundError('Action not found', req);
         }
 
         return res.render('actions-edit.html', {
@@ -390,7 +396,10 @@ export const updateActionHandler = {
                 const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
                 if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
-                    throw new ValidationError('Trigger can only contain letters and numbers');
+                    throw new ValidationError(
+                        'Trigger can only contain letters and numbers',
+                        req as Request,
+                    );
                 }
 
                 const existingBang = await db('bangs')
@@ -402,7 +411,7 @@ export const updateActionHandler = {
                     .first();
 
                 if (existingBang) {
-                    throw new ValidationError('This trigger already exists');
+                    throw new ValidationError('This trigger already exists', req as Request);
                 }
 
                 return true;
@@ -491,7 +500,7 @@ export function deleteBookmarkHandler(bookmarks: Bookmarks) {
         );
 
         if (!deleted) {
-            throw new NotFoundError();
+            throw new NotFoundError('Bookmark not found', req);
         }
 
         if (isApiRequest(req)) {
@@ -509,12 +518,16 @@ export function getEditBookmarkPageHandler(bookmarks: Bookmarks) {
     return async (req: Request, res: Response) => {
         const bookmark = await bookmarks.read(
             req.params.id as unknown as number,
-            req.session.user!.id,
+            (req.user as User).id,
         );
 
+        if (!bookmark) {
+            throw new NotFoundError('Bookmark not found', req);
+        }
+
         return res.render('bookmarks-edit.html', {
-            title: 'Bookmark / Edit',
-            path: '/bookmark/edit',
+            title: 'Bookmarks / Edit',
+            path: '/bookmarks/edit',
             layout: '../layouts/auth.html',
             bookmark,
         });
@@ -583,7 +596,7 @@ export const postBookmarkHandler = {
         return async (req: Request, res: Response) => {
             const { url, title } = req.body;
 
-            void insertBookmarkQueue.push({ url, userId: (req.user as User).id, title });
+            void insertBookmarkQueue.push({ url, userId: (req.user as User).id, title, req });
 
             if (isApiRequest(req)) {
                 res.status(201).json({ message: `Bookmark ${title} created successfully!` });
@@ -644,7 +657,7 @@ export function postSettingsCreateApiKeyHandler(db: Knex, api: Api) {
         const user = await db('users').where({ id: req.session.user?.id }).first();
 
         if (!user) {
-            throw new NotFoundError();
+            throw new NotFoundError('User not found', req);
         }
 
         const newKeyVersion = (user.api_key_version || 0) + 1;
@@ -678,7 +691,7 @@ export const postSettingsAccountHandler = {
                     .first();
 
                 if (existingUser) {
-                    throw new ValidationError('Username is already taken');
+                    throw new ValidationError('Username is already taken', req as Request);
                 }
 
                 return true;
@@ -695,7 +708,7 @@ export const postSettingsAccountHandler = {
                     .first();
 
                 if (existingUser) {
-                    throw new ValidationError('Email is already in use');
+                    throw new ValidationError('Email is already in use', req as Request);
                 }
 
                 return true;
@@ -752,9 +765,12 @@ export function getSettingsDataPageHandler() {
 // POST /settings/data/export
 export const postExportDataHandler = {
     validator: validateRequestMiddleware([
-        body('options').custom((value) => {
+        body('options').custom((value, { req }) => {
             if (value === undefined) {
-                throw new ValidationError('Please select at least one data type to export');
+                throw new ValidationError(
+                    'Please select at least one data type to export',
+                    req as Request,
+                );
             }
             return true;
         }),
@@ -827,15 +843,15 @@ export const postImportDataHandler = {
         body('config')
             .notEmpty()
             .withMessage('config must not be empty')
-            .custom((value) => {
+            .custom((value, { req }) => {
                 try {
                     const parsed = JSON.parse(value);
 
                     if (!parsed.version || parsed.version !== '1.0') {
-                        throw new ValidationError('Config version must be 1.0');
+                        throw new ValidationError('Config version must be 1.0', req as Request);
                     }
                 } catch (_error) {
-                    throw new ValidationError('Invalid JSON format');
+                    throw new ValidationError('Invalid JSON format', req as Request);
                 }
 
                 return true;
@@ -1021,16 +1037,16 @@ export const postSettingsDisplayHandler = {
     validator: validateRequestMiddleware([
         body('column_preferences').custom((value, { req }) => {
             if (value === undefined) {
-                throw new ValidationError('Column preferences are required');
+                throw new ValidationError('Column preferences are required', req as Request);
             }
 
             if (typeof value !== 'object') {
-                throw new ValidationError('Column preferences must be an object');
+                throw new ValidationError('Column preferences must be an object', req as Request);
             }
 
             // bookmarks
             if (typeof value.bookmarks !== 'object') {
-                throw new ValidationError('Bookmarks must be an object');
+                throw new ValidationError('Bookmarks must be an object', req as Request);
             }
 
             value.bookmarks.title = value.bookmarks.title === 'on';
@@ -1040,16 +1056,22 @@ export const postSettingsDisplayHandler = {
             value.bookmarks.default_per_page = parseInt(value.bookmarks.default_per_page, 10);
 
             if (isNaN(value.bookmarks.default_per_page) || value.bookmarks.default_per_page < 1) {
-                throw new ValidationError('Bookmarks per page must be greater than 0');
+                throw new ValidationError(
+                    'Bookmarks per page must be greater than 0',
+                    req as Request,
+                );
             }
 
             if (!value.bookmarks.title && !value.bookmarks.url && !value.bookmarks.created_at) {
-                throw new ValidationError('At least one bookmark column must be enabled');
+                throw new ValidationError(
+                    'At least one bookmark column must be enabled',
+                    req as Request,
+                );
             }
 
             // actions
             if (typeof value.actions !== 'object') {
-                throw new ValidationError('Actions must be an object');
+                throw new ValidationError('Actions must be an object', req as Request);
             }
 
             value.actions.name = value.actions.name === 'on';
@@ -1061,7 +1083,10 @@ export const postSettingsDisplayHandler = {
             value.actions.default_per_page = parseInt(value.actions.default_per_page, 10);
 
             if (isNaN(value.actions.default_per_page) || value.actions.default_per_page < 1) {
-                throw new ValidationError('Actions per page must be greater than 0');
+                throw new ValidationError(
+                    'Actions per page must be greater than 0',
+                    req as Request,
+                );
             }
 
             if (
@@ -1071,12 +1096,15 @@ export const postSettingsDisplayHandler = {
                 !value.actions.action_type &&
                 !value.actions.created_at
             ) {
-                throw new ValidationError('At least one action column must be enabled');
+                throw new ValidationError(
+                    'At least one action column must be enabled',
+                    req as Request,
+                );
             }
 
             // notes
             if (typeof value.notes !== 'object') {
-                throw new ValidationError('Notes must be an object');
+                throw new ValidationError('Notes must be an object', req as Request);
             }
 
             value.notes.title = value.notes.title === 'on';
@@ -1089,13 +1117,16 @@ export const postSettingsDisplayHandler = {
             }
 
             if (!value.notes.title && !value.notes.content) {
-                throw new ValidationError('At least one note column must be enabled');
+                throw new ValidationError(
+                    'At least one note column must be enabled',
+                    req as Request,
+                );
             }
 
             value.notes.default_per_page = parseInt(value.notes.default_per_page, 10);
 
             if (isNaN(value.notes.default_per_page) || value.notes.default_per_page < 1) {
-                throw new ValidationError('Notes per page must be greater than 0');
+                throw new ValidationError('Notes per page must be greater than 0', req as Request);
             }
 
             // Preserve the view_type if it's not in the form submission
@@ -1211,7 +1242,7 @@ export function getEditNotePageHandler(notes: Notes) {
         const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
 
         if (!note) {
-            throw new NotFoundError();
+            throw new NotFoundError('Note not found', req);
         }
 
         return res.render('notes-edit.html', {
@@ -1266,7 +1297,7 @@ export function getNoteHandler(notes: Notes) {
         const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
 
         if (!note) {
-            throw new NotFoundError();
+            throw new NotFoundError('Note not found', req);
         }
 
         if (isApiRequest(req)) {
@@ -1293,7 +1324,7 @@ export function deleteNoteHandler(notes: Notes) {
         const deleted = await notes.delete(parseInt(req.params.id as unknown as string), user.id);
 
         if (!deleted) {
-            throw new NotFoundError();
+            throw new NotFoundError('Not not found', req);
         }
 
         if (isApiRequest(req)) {
@@ -1404,7 +1435,7 @@ export function postDeleteAdminUserHandler(db: Knex) {
         const user = await db('users').where({ id: userId }).delete();
 
         if (!user) {
-            throw new NotFoundError();
+            throw new NotFoundError('User not found', req);
         }
 
         req.flash('success', 'deleted');
