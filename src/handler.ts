@@ -231,6 +231,7 @@ export function getActionsHandler(actions: Actions) {
         }
 
         return res.render('actions.html', {
+            user: req.session?.user,
             path: '/actions',
             title: 'Actions',
             layout: '../layouts/auth.html',
@@ -468,6 +469,7 @@ export function getBookmarksHandler(bookmarks: Bookmarks) {
         }
 
         return res.render('bookmarks.html', {
+            user: req.session?.user,
             title: 'Bookmarks',
             path: '/bookmarks',
             layout: '../layouts/auth',
@@ -1157,6 +1159,7 @@ export function getNotesHandler(notes: Notes) {
         }
 
         return res.render('notes.html', {
+            user: req.session?.user,
             title: 'Notes',
             path: '/notes',
             layout: '../layouts/auth',
