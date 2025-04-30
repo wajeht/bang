@@ -1119,8 +1119,6 @@ export const postSettingsDisplayHandler = {
 
             req.session.user!.column_preferences = column_preferences;
 
-            console.log(req.headers);
-
             req.flash('success', 'Column settings updated');
 
             res.redirect(path);
