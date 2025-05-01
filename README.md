@@ -65,7 +65,6 @@ Before you can use the Bang command from your browser's search bar, you need to 
 ## 📑 Docs
 
 - See [RECIPE](./docs/recipe.md) for `recipe` guide.
-- See [ROADMAP](./docs/roadmap.md) for `roadmap` guide.
 - See [DEVELOPMENT](./docs/development.md) for `development` guide.
 - See [CONTRIBUTION](./docs/contribution.md) for `contribution` guide.
 
