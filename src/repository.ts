@@ -100,7 +100,7 @@ export const actions: Actions = {
             .first();
 
         if (!action) {
-            throw new Error('Action not found');
+            return null;
         }
 
         return action;
@@ -138,7 +138,7 @@ export const actions: Actions = {
             .returning('*');
 
         if (!updatedAction) {
-            throw new Error('Action not found');
+            return null;
         }
 
         return updatedAction;
@@ -208,7 +208,7 @@ export const bookmarks: Bookmarks = {
             .first();
 
         if (!bookmark) {
-            throw new Error('Bookmark not found');
+            return null;
         }
 
         return bookmark;
@@ -231,7 +231,7 @@ export const bookmarks: Bookmarks = {
             .returning('*');
 
         if (!updatedBookmark) {
-            throw new Error('Bookmark not found');
+            return null;
         }
 
         return updatedBookmark;
@@ -297,7 +297,7 @@ export const notes: Notes = {
         const note = await db.select('*').from('notes').where({ id, user_id: userId }).first();
 
         if (!note) {
-            throw new Error('Note not found');
+            return null;
         }
 
         return note;
@@ -320,7 +320,7 @@ export const notes: Notes = {
             .returning('*');
 
         if (!updatedNote) {
-            throw new Error('Note not found');
+            return null;
         }
 
         return updatedNote;
