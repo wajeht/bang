@@ -1,16 +1,16 @@
+import {
+    addHttps,
+    isValidUrl,
+    insertBookmarkQueue,
+    insertPageTitleQueue,
+    isOnlyLettersAndNumbers,
+} from './util';
 import fastq from 'fastq';
 import { db } from './db/db';
 import { Bang, Search } from './type';
 import { Request, Response } from 'express';
 import { bangs as bangsTable } from './db/bang';
 import { defaultSearchProviders } from './constant';
-import {
-    addHttps,
-    insertBookmarkQueue,
-    insertPageTitleQueue,
-    isOnlyLettersAndNumbers,
-    isValidUrl,
-} from './util';
 
 const searchConfig = {
     /**
