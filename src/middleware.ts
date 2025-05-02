@@ -11,7 +11,7 @@ import { appConfig, sessionConfig } from './config';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
-import { HttpError, UnauthorizedError, ValidationError } from './error';
+import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
 import { api, nl2br, getApiKey, isApiRequest, highlightSearchTerm } from './util';
 
 export function cacheMiddleware(value: number, unit: CacheDuration = 'second') {
@@ -39,22 +39,10 @@ export function cacheMiddleware(value: number, unit: CacheDuration = 'second') {
 }
 
 export function notFoundMiddleware() {
-    return (req: Request, res: Response, _next: NextFunction) => {
-        if (isApiRequest(req)) {
-            res.status(404).json({
-                title: 'Not Found',
-                statusCode: 404,
-                message: 'Sorry, the resource you are looking for could not be found.',
-            });
-            return;
-        }
-
-        return res.status(404).render('error.html', {
-            path: req.path,
-            title: 'Not Found',
-            statusCode: 404,
-            message: 'Sorry, the page you are looking for could not be found.',
-        });
+    return (req: Request, _res: Response, _next: NextFunction) => {
+        throw new NotFoundError(
+            `Sorry, the ${isApiRequest(req) ? 'resource' : 'page'} you are looking for could not be found.`,
+        );
     };
 }
 
