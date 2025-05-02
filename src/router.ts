@@ -17,6 +17,7 @@ import {
     getHowToPageHandler,
     updateActionHandler,
     deleteActionHandler,
+    getBookmarkHandler,
     getBookmarksHandler,
     postBookmarkHandler,
     getAdminUsersHandler,
@@ -227,6 +228,23 @@ router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler(
  *
  */
 router.get('/api/bookmarks', authenticationMiddleware, getBookmarksHandler(bookmarks));
+
+/**
+ *
+ * GET /api/bookmarks/{id}
+ *
+ * @tags Bookmarks
+ * @summary get a specific bookmark
+ *
+ * @security BearerAuth
+ *
+ * @param {number} id.path.required - bookmark id
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ *
+ */
+router.get('/api/bookmarks/:id', authenticationMiddleware, getBookmarkHandler(bookmarks)); // prettier-ignore
 
 /**
  *

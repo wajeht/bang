@@ -217,16 +217,16 @@ export function postSearchHandler(search: Search) {
 export function getActionHandler(actions: Actions) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
-        const note = await actions.read(parseInt(req.params.id as unknown as string), user.id);
+        const action = await actions.read(parseInt(req.params.id as unknown as string), user.id);
 
-        if (!note) {
+        if (!action) {
             throw new NotFoundError('Action not found', req);
         }
 
         if (isApiRequest(req)) {
             res.status(200).json({
                 message: 'action retrieved successfully',
-                data: note,
+                data: action,
             });
             return;
         }
@@ -476,6 +476,31 @@ export function getBookmarkCreatePageHandler() {
             path: '/bookmarks/create',
             layout: '../layouts/auth.html',
         });
+    };
+}
+
+// GET /bookmarks/:id or GET /api/bookmarks/:id
+export function getBookmarkHandler(bookmarks: Bookmarks) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const bookmark = await bookmarks.read(
+            parseInt(req.params.id as unknown as string),
+            user.id,
+        );
+
+        if (!bookmark) {
+            throw new NotFoundError('Bookmark not found', req);
+        }
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: 'Bookmark retrieved successfully',
+                data: bookmark,
+            });
+            return;
+        }
+
+        throw new NotFoundError('Bookmark page does not exist');
     };
 }
 
