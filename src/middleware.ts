@@ -11,8 +11,8 @@ import { appConfig, sessionConfig } from './config';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
-import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
 import { api, nl2br, getApiKey, isApiRequest, highlightSearchTerm } from './util';
+import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
 
 export function cacheMiddleware(value: number, unit: CacheDuration = 'second') {
     const seconds = value * CACHE_DURATION[unit];
