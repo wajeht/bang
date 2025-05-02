@@ -213,6 +213,28 @@ export function postSearchHandler(search: Search) {
     };
 }
 
+// GET /actions/:id or GET /api/actions/:id
+export function getActionHandler(actions: Actions) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const note = await actions.read(parseInt(req.params.id as unknown as string), user.id);
+
+        if (!note) {
+            throw new NotFoundError('Action not found', req);
+        }
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: 'action retrieved successfully',
+                data: note,
+            });
+            return;
+        }
+
+        throw new NotFoundError('Action page does not exist');
+    };
+}
+
 // GET /actions or /api/actions
 export function getActionsHandler(actions: Actions) {
     return async (req: Request, res: Response) => {
