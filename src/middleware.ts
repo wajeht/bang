@@ -91,11 +91,7 @@ export function errorMiddleware() {
 
 export async function adminOnlyMiddleware(req: Request, _res: Response, next: NextFunction) {
     try {
-        if (!req.user) {
-            throw new UnauthorizedError('Unauthorized', req);
-        }
-
-        if (!(req.user as User).is_admin) {
+        if (!req.user || (req.user as User).is_admin === false) {
             throw new UnauthorizedError('Unauthorized', req);
         }
 
