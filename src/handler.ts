@@ -123,8 +123,8 @@ export function getLogoutHandler() {
 // GET /login
 export function getLoginHandler() {
     return (req: Request, res: Response) => {
-        if (req.session.user) {
-            req.flash('info', "you've already been logged in!");
+        if (req.session?.user) {
+            req.flash('info', "you're already logged in!");
             return res.redirect('/');
         }
 
@@ -194,12 +194,16 @@ export function getGithubRedirectHandler(db: Knex, github: GitHub) {
 
         const redirectTo = req.session.redirectTo || '/actions';
         delete req.session.redirectTo;
-        req.session.save();
 
         const flashMessage = isNewUser ? '✌️ Enjoy bang!' : `🙏 Welcome back, ${user.username}!`;
-
         req.flash('success', flashMessage);
-        return res.redirect(redirectTo);
+
+        req.session.save((err) => {
+            if (err) {
+                throw new HttpError(500, 'Something went wrong while authenticating with github.', req)
+            }
+            res.redirect(redirectTo);
+        });
     };
 }
 

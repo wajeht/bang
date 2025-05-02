@@ -297,9 +297,18 @@ export async function authenticationMiddleware(req: Request, res: Response, next
                 throw new UnauthorizedError('Unauthorized', req);
             }
 
-            req.session.redirectTo = req.originalUrl || req.url;
-            req.session.save();
-            res.redirect('/login');
+            if (req.session) {
+                req.session.redirectTo = req.originalUrl || req.url;
+                req.session.save((err) => {
+                    if (err) {
+                        logger.error('Session save error: %o', err);
+                    }
+                    res.redirect('/login');
+                });
+            } else {
+                const redirectUrl = `/login?redirect=${encodeURIComponent(req.originalUrl || req.url)}`;
+                res.redirect(redirectUrl);
+            }
             return;
         }
 
@@ -311,10 +320,17 @@ export async function authenticationMiddleware(req: Request, res: Response, next
         } as User;
 
         req.user = parsedUser;
-        req.session.user = parsedUser;
-        req.session.save();
-
-        next();
+        if (req.session) {
+            req.session.user = parsedUser;
+            req.session.save((err) => {
+                if (err) {
+                    logger.error('Session save error: %o', err);
+                }
+                next();
+            });
+        } else {
+            next();
+        }
     } catch (error) {
         logger.error('Authentication error: %o', error);
         next(error);
