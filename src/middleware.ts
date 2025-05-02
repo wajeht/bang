@@ -217,6 +217,7 @@ export async function appLocalStateMiddleware(req: Request, res: Response, next:
         const randomNumber = Math.random();
 
         res.locals.state = {
+            env: appConfig.env,
             user: req.user ?? req.session.user,
             copyRightYear: new Date().getFullYear(),
             input: req.session?.input || {},
