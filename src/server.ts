@@ -7,6 +7,8 @@ import { AddressInfo } from 'node:net';
 import { db, runMigrations } from './db/db';
 import { sendNotificationQueue } from './util';
 
+process.title = 'bang';
+
 const server: Server = app.listen(appConfig.port);
 
 server.timeout = 120000; // 2 minutes
