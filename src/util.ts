@@ -404,7 +404,7 @@ export function highlightSearchTerm(
 
     const searchRegex = new RegExp(searchWords.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'gi'); // prettier-ignore
 
-    result = result.replace(searchRegex, (match) => `<span class="search-highlight">${match}</span>`); // prettier-ignore
+    result = result.replace(searchRegex, (match) => `<mark>${match}</mark>`); // prettier-ignore
 
     return result;
 }

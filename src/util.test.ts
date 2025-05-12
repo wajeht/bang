@@ -454,61 +454,55 @@ describe.concurrent('highlightSearchTerm', () => {
 
     it('should highlight a single word in text', () => {
         const text = 'This is a test';
-        const expected = 'This is a <span class="search-highlight">test</span>';
+        const expected = 'This is a <mark>test</mark>';
         expect(highlightSearchTerm(text, 'test')).toBe(expected);
     });
 
     it('should highlight multiple occurrences of a word', () => {
         const text = 'Test this test and test again';
-        const expected =
-            '<span class="search-highlight">Test</span> this <span class="search-highlight">test</span> and <span class="search-highlight">test</span> again';
+        const expected = '<mark>Test</mark> this <mark>test</mark> and <mark>test</mark> again';
         expect(highlightSearchTerm(text, 'test')).toBe(expected);
     });
 
     it('should highlight multiple search words', () => {
         const text = 'The quick brown fox jumps over the lazy dog';
-        const expected =
-            'The <span class="search-highlight">quick</span> brown <span class="search-highlight">fox</span> jumps over the lazy dog';
+        const expected = 'The <mark>quick</mark> brown <mark>fox</mark> jumps over the lazy dog';
         expect(highlightSearchTerm(text, 'quick fox')).toBe(expected);
     });
 
     it('should escape HTML in the original text', () => {
         const text = '<p>This is a test</p>';
-        const expected = '&lt;p&gt;This is a <span class="search-highlight">test</span>&lt;/p&gt;';
+        const expected = '&lt;p&gt;This is a <mark>test</mark>&lt;/p&gt;';
         expect(highlightSearchTerm(text, 'test')).toBe(expected);
     });
 
     it('should handle case insensitivity', () => {
         const text = 'This TEST is different from this test';
-        const expected =
-            'This <span class="search-highlight">TEST</span> is different from this <span class="search-highlight">test</span>';
+        const expected = 'This <mark>TEST</mark> is different from this <mark>test</mark>';
         expect(highlightSearchTerm(text, 'test')).toBe(expected);
     });
 
     it('should handle special regex characters in search term', () => {
         const text = 'Special characters like * and + need escaping';
-        const expected =
-            'Special characters like <span class="search-highlight">*</span> and <span class="search-highlight">+</span> need escaping';
+        const expected = 'Special characters like <mark>*</mark> and <mark>+</mark> need escaping';
         expect(highlightSearchTerm(text, '* +')).toBe(expected);
     });
 
     it('should handle complex HTML with nested elements', () => {
         const text = '<div><p>This is a <strong>test</strong> of HTML</p></div>';
         const expected =
-            '&lt;div&gt;&lt;p&gt;This is a &lt;strong&gt;<span class="search-highlight">test</span>&lt;/strong&gt; of <span class="search-highlight">HTML</span>&lt;/p&gt;&lt;/div&gt;';
+            '&lt;div&gt;&lt;p&gt;This is a &lt;strong&gt;<mark>test</mark>&lt;/strong&gt; of <mark>HTML</mark>&lt;/p&gt;&lt;/div&gt;';
         expect(highlightSearchTerm(text, 'test HTML')).toBe(expected);
     });
 
     it('should handle non-string inputs by converting them to strings', () => {
         // @ts-ignore - Testing with number input
-        expect(highlightSearchTerm(123, '2')).toBe('1<span class="search-highlight">2</span>3');
+        expect(highlightSearchTerm(123, '2')).toBe('1<mark>2</mark>3');
 
         // @ts-ignore - Testing with object input
         const obj = { toString: () => 'test object' };
         // @ts-ignore - Testing with object input
-        expect(highlightSearchTerm(obj, 'object')).toBe(
-            'test <span class="search-highlight">object</span>',
-        );
+        expect(highlightSearchTerm(obj, 'object')).toBe('test <mark>object</mark>');
     });
 
     it('should return original text when no search words match', () => {

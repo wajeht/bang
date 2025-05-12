@@ -305,15 +305,6 @@ dialog[open]::backdrop {
     opacity: 1;
 }
 
-.search-highlight {
-    color: #000000;
-    background-color: #ffff54;
-}
-
-[data-theme='dark'] .search-highlight {
-    background-color: #ffff54;
-}
-
 .sort-icon {
     opacity: 0;
     transition: opacity 0.2s;
