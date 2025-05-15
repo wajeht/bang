@@ -9,6 +9,8 @@ import { sendNotificationQueue } from './util';
 
 const server: Server = app.listen(appConfig.port);
 
+process.title = 'bang';
+
 server.timeout = 120000; // 2 minutes
 server.keepAliveTimeout = 65000; // 65 seconds
 server.headersTimeout = 66000; // slightly higher than keepAliveTimeout
@@ -17,8 +19,6 @@ server.requestTimeout = 120000; // same as timeout
 server.on('listening', async () => {
     const addr: string | AddressInfo | null = server.address();
     const bind: string = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port; // prettier-ignore
-
-    process.title = 'bang';
 
     logger.info(`Server is listening on ${bind}`);
 
