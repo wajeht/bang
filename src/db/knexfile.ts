@@ -14,7 +14,7 @@ function _getFormattedTimestamp() {
     return `[${formattedDate} ${formattedTime}]`;
 }
 
-// const _developmentEnvironmentOnly = appConfig.env === 'development';
+const _developmentEnvironmentOnly = appConfig.env === 'development';
 
 const knexConfig: Knex.Config = {
     client: 'better-sqlite3',
@@ -27,7 +27,7 @@ const knexConfig: Knex.Config = {
         directory: path.resolve(__dirname, './migrations'),
     },
     seeds: { directory: path.resolve(__dirname, './seeds') },
-    // debug: _developmentEnvironmentOnly,
+    debug: _developmentEnvironmentOnly,
     pool: {
         min: 2,
         max: 20, // Increased max connections to handle higher concurrency

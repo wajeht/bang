@@ -6,13 +6,11 @@ const env = dotenv.config({ path: path.resolve(path.join(process.cwd(), '..', '.
 
 export async function seed(knex: Knex): Promise<void> {
     try {
-        // Clean existing data
         await knex('bangs').del();
         await knex('bookmarks').del();
         await knex('users').del();
         await knex('sessions').del();
 
-        // Create admin user
         const [user] = await knex('users')
             .insert({
                 username: env.parsed?.APP_ADMIN_EMAIL?.split('@')[0] || 'admin',
@@ -45,10 +43,8 @@ export async function seed(knex: Knex): Promise<void> {
             })
             .returning('*');
 
-        // Get or create action types
         let actionTypes = await knex('action_types').select('*');
 
-        // If action types don't exist, create them
         if (actionTypes.length === 0) {
             console.log('No action types found. Creating them now...');
 
@@ -58,7 +54,6 @@ export async function seed(knex: Knex): Promise<void> {
                 { name: 'bookmark', description: 'Bookmark action' },
             ]);
 
-            // Fetch the newly created action types
             actionTypes = await knex('action_types').select('*');
         }
 
@@ -70,7 +65,6 @@ export async function seed(knex: Knex): Promise<void> {
             throw new Error('Required action types not found');
         }
 
-        // Default bangs
         const bangs = [
             {
                 user_id: user.id,
@@ -118,7 +112,6 @@ export async function seed(knex: Knex): Promise<void> {
 
         await knex('bangs').insert(bangs);
 
-        // Default bookmarks
         const bookmarks = [
             {
                 user_id: user.id,
@@ -149,7 +142,6 @@ export async function seed(knex: Knex): Promise<void> {
 
         await knex('bookmarks').insert(bookmarks);
 
-        // Default notes
         const notes = [
             {
                 user_id: user.id,
