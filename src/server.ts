@@ -7,8 +7,6 @@ import { AddressInfo } from 'node:net';
 import { db, runMigrations } from './db/db';
 import { sendNotificationQueue } from './util';
 
-process.title = 'bang';
-
 const server: Server = app.listen(appConfig.port);
 
 server.timeout = 120000; // 2 minutes
@@ -19,6 +17,8 @@ server.requestTimeout = 120000; // same as timeout
 server.on('listening', async () => {
     const addr: string | AddressInfo | null = server.address();
     const bind: string = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port; // prettier-ignore
+
+    process.title = 'bang';
 
     logger.info(`Server is listening on ${bind}`);
 
