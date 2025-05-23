@@ -322,7 +322,7 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string): string {
 export async function search({ res, req, user, query }: Parameters<Search>[0]): ReturnType<Search> {
     const { commandType, trigger, triggerWithoutPrefix, url, searchTerm } = parseSearchQuery(query);
 
-    if (!user) {
+    if (!user || !user.id) {
         return handleAnonymousSearch(req, res, query, triggerWithoutPrefix ?? '', searchTerm ?? '');
     }
 

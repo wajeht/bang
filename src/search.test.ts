@@ -883,11 +883,12 @@ describe('search', () => {
             });
 
             it('should return error when user is not authenticated', async () => {
-                const req = {} as Request;
+                const req = {
+                    session: {} as any,
+                } as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
-                    status: vi.fn().mockReturnThis(),
-                    send: vi.fn(),
+                    redirect: vi.fn(),
                 } as unknown as Response;
 
                 const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
@@ -899,9 +900,13 @@ describe('search', () => {
                     query: '!del !test',
                 });
 
-                expect(res.status).toHaveBeenCalledWith(422);
-                expect(res.send).toHaveBeenCalledWith(
-                    expect.stringContaining('You must be logged in to delete bangs'),
+                expect(res.set).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        'Cache-Control': 'public, max-age=3600',
+                    }),
+                );
+                expect(res.redirect).toHaveBeenCalledWith(
+                    expect.stringContaining('duckduckgo.com'),
                 );
             });
         });
@@ -1177,11 +1182,12 @@ describe('search', () => {
             });
 
             it('should return error when user is not authenticated', async () => {
-                const req = {} as Request;
+                const req = {
+                    session: {} as any,
+                } as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
-                    status: vi.fn().mockReturnThis(),
-                    send: vi.fn(),
+                    redirect: vi.fn(),
                 } as unknown as Response;
 
                 const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
@@ -1193,9 +1199,13 @@ describe('search', () => {
                     query: '!edit !test !newtrigger',
                 });
 
-                expect(res.status).toHaveBeenCalledWith(422);
-                expect(res.send).toHaveBeenCalledWith(
-                    expect.stringContaining('You must be logged in to edit bangs'),
+                expect(res.set).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        'Cache-Control': 'public, max-age=3600',
+                    }),
+                );
+                expect(res.redirect).toHaveBeenCalledWith(
+                    expect.stringContaining('duckduckgo.com'),
                 );
             });
 
@@ -1667,7 +1677,9 @@ describe('search command handling', () => {
                 searchTerm: 'test',
             });
 
-            await searchModule.search({ req, res, user: {} as User, query: '@notes test' });
+            const user = { id: 1 } as User;
+
+            await searchModule.search({ req, res, user, query: '@notes test' });
 
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=test');
 
