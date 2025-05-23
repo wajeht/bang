@@ -28,7 +28,7 @@ const searchConfig = {
     /**
      * System-level bang commands that cannot be overridden by user-defined bangs
      */
-    systemBangs: ['!add', '!bm', '!note'] as const,
+    systemBangs: ['!add', '!bm', '!note', '!del', '!edit'] as const,
     /**
      * Direct commands that can be used to navigate to different sections of the application
      */
@@ -464,6 +464,144 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             void insertPageTitleQueue.push({ actionId: bangs[0].id, url: bangUrl, req });
 
             return goBack(res);
+        }
+
+        // Process delete bang command (!del)
+        // Format supported:
+        // 1. !del !trigger
+        // Example: !del !custom
+        if (trigger === '!del') {
+            const bangToDelete =
+                searchTerm && searchTerm.length > 0
+                    ? searchTerm.startsWith('!')
+                        ? searchTerm
+                        : `!${searchTerm}`
+                    : '';
+
+            if (!bangToDelete || bangToDelete.length === 0) {
+                return goBackWithAlert(res, 'Please specify a trigger to delete');
+            }
+
+            const deletedCount = await db('bangs')
+                .where({
+                    user_id: user.id,
+                    trigger: bangToDelete,
+                })
+                .delete();
+
+            if (deletedCount === 0) {
+                return goBackWithAlert(
+                    res,
+                    `Bang "${bangToDelete}" not found or you don't have permission to delete it`,
+                );
+            }
+
+            return goBackWithAlert(res, `Bang "${bangToDelete}" successfully deleted`);
+        }
+
+        // Process edit bang command (!edit)
+        // Format supported:
+        // 1. !edit !oldTrigger !newTrigger (change trigger only)
+        // 2. !edit !oldTrigger url (change URL only)
+        // 3. !edit !oldTrigger !newTrigger url (change both)
+        // Example: !edit !old !new https://example.com
+        if (trigger === '!edit') {
+            const parts = query.split(' ').slice(1); // Remove the !edit part
+
+            if (parts.length < 2) {
+                return goBackWithAlert(
+                    res,
+                    'Invalid format. Use: !edit !trigger !newTrigger or !edit !trigger newUrl',
+                );
+            }
+
+            // Extract the old trigger, making sure it has the ! prefix
+            const oldTrigger = parts[0]?.startsWith('!') ? parts[0] : `!${parts[0]}`;
+
+            const existingBang = await db('bangs')
+                .where({
+                    user_id: user.id,
+                    trigger: oldTrigger,
+                })
+                .first();
+
+            if (!existingBang || typeof existingBang.id === 'undefined') {
+                return goBackWithAlert(
+                    res,
+                    `Bang "${oldTrigger}" not found or you don't have permission to edit it`,
+                );
+            }
+
+            const updates: Record<string, any> = {};
+
+            // Handle new trigger (if provided and starts with !)
+            if (parts.length >= 2 && parts[1] && parts[1].startsWith('!')) {
+                const newTrigger = parts[1];
+
+                if (
+                    searchConfig.systemBangs.includes(
+                        newTrigger as (typeof searchConfig.systemBangs)[number],
+                    )
+                ) {
+                    return goBackWithAlert(
+                        res,
+                        `${newTrigger} is a system command and cannot be used as a trigger`,
+                    );
+                }
+
+                const conflictingBang = await db('bangs')
+                    .where({
+                        user_id: user.id,
+                        trigger: newTrigger,
+                    })
+                    .whereNot({ id: existingBang.id }) // Exclude the current bang
+                    .first();
+
+                if (conflictingBang) {
+                    return goBackWithAlert(
+                        res,
+                        `${newTrigger} already exists. Please choose a different trigger`,
+                    );
+                }
+
+                if (isOnlyLettersAndNumbers(newTrigger.slice(1)) === false) {
+                    return goBackWithAlert(
+                        res,
+                        `${newTrigger} trigger can only contain letters and numbers`,
+                    );
+                }
+
+                updates.trigger = newTrigger;
+
+                // URL is the third part if it exists
+                if (parts.length >= 3) {
+                    const newUrl = parts[2];
+                    if (newUrl && isValidUrl(newUrl)) {
+                        updates.url = newUrl;
+                    } else {
+                        return goBackWithAlert(res, 'Invalid URL format');
+                    }
+                }
+            } else {
+                const newUrl = parts[1];
+                if (newUrl && isValidUrl(newUrl)) {
+                    updates.url = newUrl;
+                } else {
+                    return goBackWithAlert(res, 'Invalid URL format');
+                }
+            }
+
+            await db('bangs').where({ id: existingBang.id }).update(updates);
+
+            if (updates.url) {
+                void insertPageTitleQueue.push({
+                    actionId: existingBang.id,
+                    url: updates.url,
+                    req,
+                });
+            }
+
+            return goBackWithAlert(res, `Bang "${oldTrigger}" successfully updated`);
         }
 
         // Process note creation command (!note)
