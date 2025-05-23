@@ -81,7 +81,7 @@ export function redirectWithAlert(res: Response, url: string, message?: string) 
 		`); // prettier-ignore
 }
 
-export function goBackWithAlert(res: Response, message: string) {
+export function goBackWithValidationAlert(res: Response, message: string) {
     return res.set({'Content-Type': 'text/html'})
 		.status(422)
 		.send(`
@@ -376,7 +376,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         // Example: !bm https://example.com
         if (trigger === '!bm') {
             if (!url || !isValidUrl(url)) {
-                return goBackWithAlert(res, 'Invalid or missing URL');
+                return goBackWithValidationAlert(res, 'Invalid or missing URL');
             }
 
             try {
@@ -412,7 +412,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             const bangTrigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
 
             if (!bangTrigger || !bangUrl?.length) {
-                return goBackWithAlert(res, 'Invalid trigger or empty URL');
+                return goBackWithValidationAlert(res, 'Invalid trigger or empty URL');
             }
 
             const hasSystemBangCommands = searchConfig.systemBangs.includes(bangTrigger as (typeof searchConfig.systemBangs)[number]); // prettier-ignore
@@ -479,7 +479,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     : '';
 
             if (!bangToDelete || bangToDelete.length === 0) {
-                return goBackWithAlert(res, 'Please specify a trigger to delete');
+                return goBackWithValidationAlert(res, 'Please specify a trigger to delete');
             }
 
             const deletedCount = await db('bangs')
@@ -490,7 +490,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 .delete();
 
             if (deletedCount === 0) {
-                return goBackWithAlert(
+                return goBackWithValidationAlert(
                     res,
                     `Bang "${bangToDelete}" not found or you don't have permission to delete it`,
                 );
@@ -509,7 +509,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             const parts = query.split(' ').slice(1); // Remove the !edit part
 
             if (parts.length < 2) {
-                return goBackWithAlert(
+                return goBackWithValidationAlert(
                     res,
                     'Invalid format. Use: !edit !trigger !newTrigger or !edit !trigger newUrl',
                 );
@@ -526,7 +526,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 .first();
 
             if (!existingBang || typeof existingBang.id === 'undefined') {
-                return goBackWithAlert(
+                return goBackWithValidationAlert(
                     res,
                     `Bang "${oldTrigger}" not found or you don't have permission to edit it`,
                 );
@@ -543,7 +543,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                         newTrigger as (typeof searchConfig.systemBangs)[number],
                     )
                 ) {
-                    return goBackWithAlert(
+                    return goBackWithValidationAlert(
                         res,
                         `${newTrigger} is a system command and cannot be used as a trigger`,
                     );
@@ -558,14 +558,14 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     .first();
 
                 if (conflictingBang) {
-                    return goBackWithAlert(
+                    return goBackWithValidationAlert(
                         res,
                         `${newTrigger} already exists. Please choose a different trigger`,
                     );
                 }
 
                 if (isOnlyLettersAndNumbers(newTrigger.slice(1)) === false) {
-                    return goBackWithAlert(
+                    return goBackWithValidationAlert(
                         res,
                         `${newTrigger} trigger can only contain letters and numbers`,
                     );
@@ -579,7 +579,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     if (newUrl && isValidUrl(newUrl)) {
                         updates.url = newUrl;
                     } else {
-                        return goBackWithAlert(res, 'Invalid URL format');
+                        return goBackWithValidationAlert(res, 'Invalid URL format');
                     }
                 }
             } else {
@@ -587,7 +587,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 if (newUrl && isValidUrl(newUrl)) {
                     updates.url = newUrl;
                 } else {
-                    return goBackWithAlert(res, 'Invalid URL format');
+                    return goBackWithValidationAlert(res, 'Invalid URL format');
                 }
             }
 
@@ -615,13 +615,13 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
             // Only process content if the command has a space
             if (contentStartIndex === -1) {
-                return goBackWithAlert(res, 'Content is required');
+                return goBackWithValidationAlert(res, 'Content is required');
             }
 
             const fullContent = query.slice(contentStartIndex + 1).trim();
 
             if (!fullContent) {
-                return goBackWithAlert(res, 'Content is required');
+                return goBackWithValidationAlert(res, 'Content is required');
             }
 
             // If content contains a pipe, split into title and content
@@ -635,7 +635,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 content = fullContent.slice(pipeIndex + 1).trim();
 
                 if (!content) {
-                    return goBackWithAlert(res, 'Content is required');
+                    return goBackWithValidationAlert(res, 'Content is required');
                 }
             }
 
