@@ -5,7 +5,7 @@ import { appConfig } from './config';
 import * as searchModule from './search';
 import { Request, Response } from 'express';
 import { search, processDelayedSearch, redirectWithCache } from './search';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('search', () => {
     describe('unauthenticated', () => {
@@ -795,9 +795,9 @@ describe('search', () => {
                     query: '!del !deleteme',
                 });
 
-                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
-                    expect.stringContaining('Bang "!deleteme" successfully deleted'),
+                    expect.stringContaining('window.history.back()'),
                 );
 
                 const deletedBang = await db('bangs')
@@ -830,9 +830,9 @@ describe('search', () => {
                     query: '!del deleteme2', // No ! prefix
                 });
 
-                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
-                    expect.stringContaining('Bang "!deleteme2" successfully deleted'),
+                    expect.stringContaining('window.history.back()'),
                 );
 
                 await db('bangs').where({ id: 1000 }).delete();
@@ -933,6 +933,13 @@ describe('search', () => {
                 ]);
             });
 
+            beforeEach(async () => {
+                await db('bangs').where({ id: 1001 }).update({
+                    trigger: '!editme',
+                    url: 'https://edit-test.com',
+                });
+            });
+
             afterAll(async () => {
                 await db('bangs').whereIn('id', [1001, 1002]).delete();
             });
@@ -952,9 +959,9 @@ describe('search', () => {
                     query: '!edit !editme !newname',
                 });
 
-                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
-                    expect.stringContaining('Bang "!editme" successfully updated'),
+                    expect.stringContaining('window.history.back()'),
                 );
 
                 const updatedBang = await db('bangs')
@@ -962,8 +969,6 @@ describe('search', () => {
                     .first();
                 expect(updatedBang).toBeDefined();
                 expect(updatedBang.url).toBe('https://edit-test.com');
-
-                await db('bangs').where({ id: 1001 }).update({ trigger: '!editme' });
             });
 
             it('should successfully edit bang URL only', async () => {
@@ -986,9 +991,9 @@ describe('search', () => {
                     query: '!edit !editme https://new-url.com',
                 });
 
-                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
-                    expect.stringContaining('Bang "!editme" successfully updated'),
+                    expect.stringContaining('window.history.back()'),
                 );
 
                 expect(mockPush).toHaveBeenCalledWith({
@@ -1026,21 +1031,16 @@ describe('search', () => {
                     query: '!edit !editme !newboth https://both-new.com',
                 });
 
-                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
-                    expect.stringContaining('Bang "!editme" successfully updated'),
+                    expect.stringContaining('window.history.back()'),
                 );
 
-                // Verify the bang was actually updated
                 const updatedBang = await db('bangs')
                     .where({ user_id: 1, trigger: '!newboth' })
                     .first();
                 expect(updatedBang).toBeDefined();
                 expect(updatedBang.url).toBe('https://both-new.com');
-
-                await db('bangs')
-                    .where({ id: 1001 })
-                    .update({ trigger: '!editme', url: 'https://edit-test.com' });
 
                 vi.restoreAllMocks();
             });
@@ -1224,9 +1224,9 @@ describe('search', () => {
                     query: '!edit editme https://new-without-prefix.com', // No ! prefix on editme
                 });
 
-                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
-                    expect.stringContaining('Bang "!editme" successfully updated'),
+                    expect.stringContaining('window.history.back()'),
                 );
 
                 // Verify the bang was actually updated
@@ -1235,9 +1235,6 @@ describe('search', () => {
                     .first();
                 expect(updatedBang).toBeDefined();
                 expect(updatedBang.url).toBe('https://new-without-prefix.com');
-
-                // Restore original state
-                await db('bangs').where({ id: 1001 }).update({ url: 'https://edit-test.com' });
             });
         });
 

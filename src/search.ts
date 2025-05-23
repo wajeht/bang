@@ -496,7 +496,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 );
             }
 
-            return goBackWithAlert(res, `Bang "${bangToDelete}" successfully deleted`);
+            return goBack(res);
         }
 
         // Process edit bang command (!edit)
@@ -601,7 +601,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 });
             }
 
-            return goBackWithAlert(res, `Bang "${oldTrigger}" successfully updated`);
+            return goBack(res);
         }
 
         // Process note creation command (!note)
