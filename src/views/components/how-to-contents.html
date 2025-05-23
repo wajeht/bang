@@ -62,6 +62,38 @@
             </ul>
         </li>
         <li>
+            <p><code>!del [trigger]</code> - Delete a custom bang</p>
+            <ul>
+                <li><code>[trigger]</code> is required (the bang trigger to delete)</li>
+                <li>Example: <code>!del jaw</code> or <code>!del !jaw</code></li>
+            </ul>
+        </li>
+        <li>
+            <p><code>!edit [trigger] [new-trigger]</code> - Change a bang's trigger</p>
+            <ul>
+                <li><code>[trigger]</code> is required (the current bang trigger)</li>
+                <li><code>[new-trigger]</code> is required (the new trigger name)</li>
+                <li>Example: <code>!edit jaw !newjaw</code></li>
+            </ul>
+        </li>
+        <li>
+            <p><code>!edit [trigger] [url]</code> - Change a bang's URL</p>
+            <ul>
+                <li><code>[trigger]</code> is required (the bang trigger to edit)</li>
+                <li><code>[url]</code> is required (the new URL)</li>
+                <li>Example: <code>!edit jaw https://new-url.com</code></li>
+            </ul>
+        </li>
+        <li>
+            <p><code>!edit [trigger] [new-trigger] [url]</code> - Change both trigger and URL</p>
+            <ul>
+                <li><code>[trigger]</code> is required (the current bang trigger)</li>
+                <li><code>[new-trigger]</code> is required (the new trigger name)</li>
+                <li><code>[url]</code> is required (the new URL)</li>
+                <li>Example: <code>!edit jaw !newjaw https://new-url.com</code></li>
+            </ul>
+        </li>
+        <li>
             <p><code>!note [title] | [content]</code> - Create a note</p>
             <ul>
                 <li><code>[title]</code> is optional - if not provided, we'll use "Untitled"</li>
