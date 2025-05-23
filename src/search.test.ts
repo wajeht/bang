@@ -764,6 +764,473 @@ describe('search', () => {
             vi.resetModules();
         });
 
+        describe('!del command', () => {
+            beforeAll(async () => {
+                await db('bangs').insert({
+                    id: 999,
+                    user_id: 1,
+                    trigger: '!deleteme',
+                    name: 'Delete Test',
+                    action_type_id: 2,
+                    url: 'https://delete-test.com',
+                });
+            });
+
+            afterAll(async () => {
+                await db('bangs').where({ id: 999 }).delete();
+            });
+
+            it('should successfully delete an existing bang', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!del !deleteme',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Bang "!deleteme" successfully deleted'),
+                );
+
+                const deletedBang = await db('bangs')
+                    .where({ user_id: 1, trigger: '!deleteme' })
+                    .first();
+                expect(deletedBang).toBeUndefined();
+            });
+
+            it('should handle deletion with trigger without ! prefix', async () => {
+                await db('bangs').insert({
+                    id: 1000,
+                    user_id: 1,
+                    trigger: '!deleteme2',
+                    name: 'Delete Test 2',
+                    action_type_id: 2,
+                    url: 'https://delete-test2.com',
+                });
+
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!del deleteme2', // No ! prefix
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Bang "!deleteme2" successfully deleted'),
+                );
+
+                await db('bangs').where({ id: 1000 }).delete();
+            });
+
+            it('should return error when trying to delete non-existent bang', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!del !nonexistent',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'Bang "!nonexistent" not found or you don\'t have permission to delete it',
+                    ),
+                );
+            });
+
+            it('should return error when no trigger is provided', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!del',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Please specify a trigger to delete'),
+                );
+            });
+
+            it('should return error when user is not authenticated', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
+
+                await search({
+                    req,
+                    res,
+                    user: unauthenticatedUser,
+                    query: '!del !test',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('You must be logged in to delete bangs'),
+                );
+            });
+        });
+
+        describe('!edit command', () => {
+            beforeAll(async () => {
+                await db('bangs').insert([
+                    {
+                        id: 1001,
+                        user_id: 1,
+                        trigger: '!editme',
+                        name: 'Edit Test',
+                        action_type_id: 2,
+                        url: 'https://edit-test.com',
+                    },
+                    {
+                        id: 1002,
+                        user_id: 1,
+                        trigger: '!existing',
+                        name: 'Existing Bang',
+                        action_type_id: 2,
+                        url: 'https://existing.com',
+                    },
+                ]);
+            });
+
+            afterAll(async () => {
+                await db('bangs').whereIn('id', [1001, 1002]).delete();
+            });
+
+            it('should successfully edit bang trigger only', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit !editme !newname',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Bang "!editme" successfully updated'),
+                );
+
+                const updatedBang = await db('bangs')
+                    .where({ user_id: 1, trigger: '!newname' })
+                    .first();
+                expect(updatedBang).toBeDefined();
+                expect(updatedBang.url).toBe('https://edit-test.com');
+
+                await db('bangs').where({ id: 1001 }).update({ trigger: '!editme' });
+            });
+
+            it('should successfully edit bang URL only', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                const mockPush = vi.fn().mockResolvedValue(undefined);
+                vi.spyOn(utils, 'insertPageTitleQueue', 'get').mockReturnValue({
+                    push: mockPush,
+                } as any);
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit !editme https://new-url.com',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Bang "!editme" successfully updated'),
+                );
+
+                expect(mockPush).toHaveBeenCalledWith({
+                    actionId: 1001,
+                    url: 'https://new-url.com',
+                    req,
+                });
+
+                const updatedBang = await db('bangs')
+                    .where({ user_id: 1, trigger: '!editme' })
+                    .first();
+                expect(updatedBang).toBeDefined();
+                expect(updatedBang.url).toBe('https://new-url.com');
+
+                vi.restoreAllMocks();
+            });
+
+            it('should successfully edit both trigger and URL', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                const mockPush = vi.fn().mockResolvedValue(undefined);
+                vi.spyOn(utils, 'insertPageTitleQueue', 'get').mockReturnValue({
+                    push: mockPush,
+                } as any);
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit !editme !newboth https://both-new.com',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Bang "!editme" successfully updated'),
+                );
+
+                // Verify the bang was actually updated
+                const updatedBang = await db('bangs')
+                    .where({ user_id: 1, trigger: '!newboth' })
+                    .first();
+                expect(updatedBang).toBeDefined();
+                expect(updatedBang.url).toBe('https://both-new.com');
+
+                await db('bangs')
+                    .where({ id: 1001 })
+                    .update({ trigger: '!editme', url: 'https://edit-test.com' });
+
+                vi.restoreAllMocks();
+            });
+
+            it('should return error when trying to edit non-existent bang', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit !nonexistent !newtrigger',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'Bang "!nonexistent" not found or you don\'t have permission to edit it',
+                    ),
+                );
+            });
+
+            it('should return error with invalid format', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit !editme', // Missing second parameter
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'Invalid format. Use: !edit !trigger !newTrigger or !edit !trigger newUrl',
+                    ),
+                );
+            });
+
+            it('should return error when trying to use system command as new trigger', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit !editme !add', // !add is a system command
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        '!add is a system command and cannot be used as a trigger',
+                    ),
+                );
+            });
+
+            it('should return error when new trigger already exists', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit !editme !existing', // !existing already exists
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        '!existing already exists. Please choose a different trigger',
+                    ),
+                );
+            });
+
+            it('should return error with invalid URL format', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit !editme invalid-url',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Invalid URL format'),
+                );
+            });
+
+            it('should return error when trigger contains invalid characters', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit !editme !invalid@trigger',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        '!invalid@trigger trigger can only contain letters and numbers',
+                    ),
+                );
+            });
+
+            it('should return error when user is not authenticated', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
+
+                await search({
+                    req,
+                    res,
+                    user: unauthenticatedUser,
+                    query: '!edit !test !newtrigger',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('You must be logged in to edit bangs'),
+                );
+            });
+
+            it('should handle editing with trigger without ! prefix', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit editme https://new-without-prefix.com', // No ! prefix on editme
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Bang "!editme" successfully updated'),
+                );
+
+                // Verify the bang was actually updated
+                const updatedBang = await db('bangs')
+                    .where({ user_id: 1, trigger: '!editme' })
+                    .first();
+                expect(updatedBang).toBeDefined();
+                expect(updatedBang.url).toBe('https://new-without-prefix.com');
+
+                // Restore original state
+                await db('bangs').where({ id: 1001 }).update({ url: 'https://edit-test.com' });
+            });
+        });
+
         it('should handle all direct navigation commands', async () => {
             const req = {} as Request;
             const res = {
