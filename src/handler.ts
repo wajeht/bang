@@ -9,6 +9,7 @@ import {
     ApiKeyPayload,
     BookmarkToExport,
 } from './type';
+import { marked } from 'marked';
 import {
     bookmark,
     expectJson,
@@ -1338,14 +1339,19 @@ export const updateNoteHandler = {
 };
 
 // GET /notes/:id or GET /api/notes/:id
-export function getNoteHandler(notes: Notes) {
+export function getNoteHandler(notes: Notes, markdownParser: typeof marked) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
-        const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
+        let note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
 
         if (!note) {
             throw new NotFoundError('Note not found', req);
         }
+
+        note = {
+            ...note,
+            content: markdownParser(note.content) as string,
+        };
 
         if (isApiRequest(req)) {
             res.status(200).json({
