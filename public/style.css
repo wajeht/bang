@@ -314,6 +314,13 @@ a:hover .sort-icon {
     opacity: 1;
 }
 
+[data-theme='dark'] .question-mark-btn {
+    background-color: var(--button-background);
+    color: var(--button-text);
+    border: 1px solid var(--input-border);
+    border-radius: 50%;
+}
+
 .question-mark-btn {
     border: 0.5px solid;
     border-radius: 50%;

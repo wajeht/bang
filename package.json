@@ -71,7 +71,6 @@
         "pino-pretty": "^13.0.0"
     },
     "devDependencies": {
-        "@faker-js/faker": "^9.8.0",
         "@playwright/test": "^1.52.0",
         "@types/compression": "^1.8.0",
         "@types/connect-flash": "^0.0.40",
