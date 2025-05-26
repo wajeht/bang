@@ -1,8 +1,13 @@
 <div style="display: flex; flex-direction: column; gap: 30px;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h2>📝 Note Details</h2>
-            <p>Viewing your note</p>
+            <h2>📝 <%= note.title %></h2>
+            <div style="display: flex; gap: 15px;">
+                <div>📅 Created: <%= new Date(note.created_at).toLocaleDateString() %></div>
+                <% if (note.updated_at && note.updated_at !== note.created_at) { %>
+                    <div>🔄 Updated: <%= new Date(note.updated_at).toLocaleDateString() %></div>
+                <% } %>
+            </div>
         </div>
 
         <div style="display: flex; gap: 10px;">
@@ -13,15 +18,6 @@
     </div>
 
     <div style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
-        <h1 style="margin: 0;"><%= note.title %></h1>
-
-        <div style="display: flex; gap: 15px; color: #666;">
-            <div>📅 Created: <%= new Date(note.created_at).toLocaleDateString() %></div>
-            <% if (note.updated_at && note.updated_at !== note.created_at) { %>
-                <div>🔄 Updated: <%= new Date(note.updated_at).toLocaleDateString() %></div>
-            <% } %>
-        </div>
-
         <div><%- utils.nl2br(note.content) %></div>
     </div>
 </div>
