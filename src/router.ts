@@ -61,6 +61,16 @@ import { search } from './search';
 import { api, github, insertBookmarkQueue } from './util';
 import { actions, bookmarks, notes } from './repository';
 
+/**
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     BearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */
+
 const router = express.Router();
 
 router.get('/healthz', getHealthzHandler(db));
@@ -117,10 +127,13 @@ router.post('/notes/:id/update', authenticationMiddleware, csrfMiddleware, updat
 /**
  * A action
  * @typedef {object} Action
- * @property {string} url.required - url
- * @property {string} name.required - name
- * @property {string} actionType.required - actionType
- * @property {string} trigger.required - trigger
+ * @property {string} id - action id
+ * @property {string} url.required - action url
+ * @property {string} name.required - action name
+ * @property {string} actionType.required - action type (e.g., webhook, email)
+ * @property {string} trigger.required - trigger condition
+ * @property {string} createdAt - creation timestamp
+ * @property {string} updatedAt - last update timestamp
  */
 
 /**
@@ -132,9 +145,20 @@ router.post('/notes/:id/update', authenticationMiddleware, csrfMiddleware, updat
  *
  * @security BearerAuth
  *
- * @return {object} 200 - success response - application/json
+ * @return {array<Action>} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
- *
+ * @example response - 200 - success response example
+ * [
+ *   {
+ *     "id": "1",
+ *     "url": "https://webhook.example.com",
+ *     "name": "Webhook Action",
+ *     "actionType": "webhook",
+ *     "trigger": "bookmark_created",
+ *     "createdAt": "2023-01-01T00:00:00Z",
+ *     "updatedAt": "2023-01-01T00:00:00Z"
+ *   }
+ * ]
  */
 router.get('/api/actions', authenticationMiddleware, getActionsHandler(actions));
 
@@ -149,8 +173,9 @@ router.get('/api/actions', authenticationMiddleware, getActionsHandler(actions))
  *
  * @param {string} id.path.required - action id
  *
- * @return {object} 200 - success response - application/json
+ * @return {Action} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
  *
  */
 router.get('/api/actions/:id', authenticationMiddleware, getActionHandler(actions));
@@ -160,13 +185,13 @@ router.get('/api/actions/:id', authenticationMiddleware, getActionHandler(action
  * POST /api/actions
  *
  * @tags Actions
- * @summary create a action
+ * @summary create an action
  *
  * @security BearerAuth
  *
  * @param {Action} request.body.required - action info
  *
- * @return {object} 200 - success response - application/json
+ * @return {object} 201 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  *
  */
@@ -177,7 +202,7 @@ router.post('/api/actions', authenticationMiddleware, postActionHandler.validato
  * PATCH /api/actions/{id}
  *
  * @tags Actions
- * @summary update a action
+ * @summary update an action
  *
  * @security BearerAuth
  *
@@ -186,6 +211,7 @@ router.post('/api/actions', authenticationMiddleware, postActionHandler.validato
  *
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
  *
  */
 router.patch('/api/actions/:id', authenticationMiddleware, updateActionHandler.validator, updateActionHandler.handler(actions)); // prettier-ignore
@@ -195,7 +221,7 @@ router.patch('/api/actions/:id', authenticationMiddleware, updateActionHandler.v
  * DELETE /api/actions/{id}
  *
  * @tags Actions
- * @summary delete a action
+ * @summary delete an action
  *
  * @security BearerAuth
  *
@@ -203,6 +229,7 @@ router.patch('/api/actions/:id', authenticationMiddleware, updateActionHandler.v
  *
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
  *
  */
 router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler(actions));
@@ -210,8 +237,13 @@ router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler(
 /**
  * A bookmark
  * @typedef {object} Bookmark
- * @property {string} url.required - url
- * @property {string} title.required - title
+ * @property {number} id - bookmark id
+ * @property {string} url.required - bookmark url
+ * @property {string} title.required - bookmark title
+ * @property {string} description - bookmark description
+ * @property {array<string>} tags - bookmark tags
+ * @property {string} createdAt - creation timestamp
+ * @property {string} updatedAt - last update timestamp
  */
 
 /**
@@ -223,9 +255,20 @@ router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler(
  *
  * @security BearerAuth
  *
- * @return {object} 200 - success response - application/json
+ * @return {array<Bookmark>} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
- *
+ * @example response - 200 - success response example
+ * [
+ *   {
+ *     "id": 1,
+ *     "url": "https://example.com",
+ *     "title": "Example Website",
+ *     "description": "A sample bookmark",
+ *     "tags": ["web", "example"],
+ *     "createdAt": "2023-01-01T00:00:00Z",
+ *     "updatedAt": "2023-01-01T00:00:00Z"
+ *   }
+ * ]
  */
 router.get('/api/bookmarks', authenticationMiddleware, getBookmarksHandler(bookmarks));
 
@@ -240,8 +283,9 @@ router.get('/api/bookmarks', authenticationMiddleware, getBookmarksHandler(bookm
  *
  * @param {number} id.path.required - bookmark id
  *
- * @return {object} 200 - success response - application/json
+ * @return {Bookmark} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
  *
  */
 router.get('/api/bookmarks/:id', authenticationMiddleware, getBookmarkHandler(bookmarks)); // prettier-ignore
@@ -251,13 +295,13 @@ router.get('/api/bookmarks/:id', authenticationMiddleware, getBookmarkHandler(bo
  * POST /api/bookmarks
  *
  * @tags Bookmarks
- * @summary create a bookmarks
+ * @summary create a bookmark
  *
  * @security BearerAuth
  *
  * @param {Bookmark} request.body.required - bookmark info
  *
- * @return {object} 200 - success response - application/json
+ * @return {object} 201 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  *
  */
@@ -268,7 +312,7 @@ router.post('/api/bookmarks', authenticationMiddleware, postBookmarkHandler.vali
  * PATCH /api/bookmarks/{id}
  *
  * @tags Bookmarks
- * @summary update a bookmarks
+ * @summary update a bookmark
  *
  * @security BearerAuth
  *
@@ -277,6 +321,7 @@ router.post('/api/bookmarks', authenticationMiddleware, postBookmarkHandler.vali
  *
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
  *
  */
 router.patch('/api/bookmarks/:id', authenticationMiddleware, updateBookmarkHandler.validator, updateBookmarkHandler.handler(bookmarks)); // prettier-ignore
@@ -290,10 +335,11 @@ router.patch('/api/bookmarks/:id', authenticationMiddleware, updateBookmarkHandl
  *
  * @security BearerAuth
  *
- * @param {string} id.path.required - bookmark id
+ * @param {number} id.path.required - bookmark id
  *
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
  *
  */
 router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHandler(bookmarks));
@@ -314,8 +360,12 @@ router.get('/api/collections', authenticationMiddleware, cacheMiddleware(1, 'day
 /**
  * A note
  * @typedef {object} Note
- * @property {string} title.required - title
- * @property {string} content.required - content
+ * @property {string} id - note id
+ * @property {string} title.required - note title
+ * @property {string} content.required - note content
+ * @property {array<string>} tags - note tags
+ * @property {string} createdAt - creation timestamp
+ * @property {string} updatedAt - last update timestamp
  */
 
 /**
@@ -326,9 +376,19 @@ router.get('/api/collections', authenticationMiddleware, cacheMiddleware(1, 'day
  *
  * @security BearerAuth
  *
- * @return {object} 200 - success response - application/json
+ * @return {array<Note>} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
- *
+ * @example response - 200 - success response example
+ * [
+ *   {
+ *     "id": "1",
+ *     "title": "My First Note",
+ *     "content": "This is the content of my first note",
+ *     "tags": ["personal", "important"],
+ *     "createdAt": "2023-01-01T00:00:00Z",
+ *     "updatedAt": "2023-01-01T00:00:00Z"
+ *   }
+ * ]
  */
 router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
 
@@ -340,8 +400,11 @@ router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
  *
  * @security BearerAuth
  *
- * @return {object} 200 - success response - application/json
+ * @param {string} id.path.required - note id
+ *
+ * @return {Note} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
  *
  */
 router.get('/api/notes/:id', authenticationMiddleware, getNoteHandler(notes));
@@ -354,7 +417,7 @@ router.get('/api/notes/:id', authenticationMiddleware, getNoteHandler(notes));
  *
  * @security BearerAuth
  *
- * @param {object} request.body.required - note info
+ * @param {Note} request.body.required - note info
  *
  * @return {object} 201 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
@@ -371,7 +434,7 @@ router.post('/api/notes', authenticationMiddleware, postNoteHandler.validator, p
  * @security BearerAuth
  *
  * @param {string} id.path.required - note id
- * @param {object} request.body.required - note info
+ * @param {Note} request.body.required - note info
  *
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
