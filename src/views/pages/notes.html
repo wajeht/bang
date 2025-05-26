@@ -36,7 +36,7 @@
                 <% for (let i = 0; i < data.length; i++) { %>
                     <div style="border-style: dashed; border-radius: 5px; padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px;">
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
-                            <h3><a href="/notes/<%- data[i].id %>">📝 <%- utils.highlightSearchTerm(data[i].title, search) %></a></h3>
+                            <h3><a href="/notes/<%- data[i].id %>" title="<%= data[i].title %>">📝 <%- utils.highlightSearchTerm(data[i].title, search) %></a></h3>
                         <% } %>
                         <% if (state.user.column_preferences?.notes?.content !== false) { %>
                             <div style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;">
@@ -133,7 +133,7 @@
                             <tr style="border-bottom: 1px dashed #ddd;">
                                 <% if (state.user.column_preferences?.notes?.title !== false) { %>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <a href="/notes/<%= data[i].id %>">
+                                        <a href="/notes/<%= data[i].id %>" title="<%= data[i].title %>">
                                             <%- utils.highlightSearchTerm(data[i].title, search) %>
                                         </a>
                                     </td>
