@@ -1332,7 +1332,7 @@ export const updateNoteHandler = {
             }
 
             req.flash('success', `Note ${updatedNote.title} updated successfully`);
-            return res.redirect('/notes');
+            return res.redirect(`/notes/${updatedNote.id}`);
         };
     },
 };
