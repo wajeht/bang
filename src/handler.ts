@@ -17,6 +17,7 @@ import {
     extractPagination,
     isOnlyLettersAndNumbers,
     insertBookmarkQueue as InsertBookmarkQueue,
+    getConvertedReadmeMDToHTML,
 } from './util';
 import { Knex } from 'knex';
 import { db } from './db/db';
@@ -79,10 +80,11 @@ export function getPrivacyPolicyPageHandler() {
 
 // GET /how-to
 export function getHowToPageHandler() {
-    return (_req: Request, res: Response) => {
+    return async (_req: Request, res: Response) => {
         return res.render('how-to.html', {
             path: '/how-to',
             title: 'How To',
+            content: await getConvertedReadmeMDToHTML(),
         });
     };
 }
