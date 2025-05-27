@@ -13,6 +13,7 @@ import fastq from 'fastq';
 import { db } from './db/db';
 import http from 'node:http';
 import path from 'node:path';
+import { marked } from 'marked';
 import https from 'node:https';
 import jwt from 'jsonwebtoken';
 import fs from 'node:fs/promises';
@@ -459,4 +460,8 @@ export function extractReadmeUsage(readmeFileContent: string): string {
     }
 
     return readmeFileContent.slice(startIndex + start.length, endIndex).trim();
+}
+
+export async function getConvertedReadmeMDToHTML(): Promise<string> {
+    return marked(extractReadmeUsage(await getReadmeFileContent()));
 }

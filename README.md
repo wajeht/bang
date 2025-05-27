@@ -23,9 +23,7 @@ Before you can use the Bang command from your browser's search bar, you need to 
     - **URL**: `http://bang.jaw.dev/?q=%s`
 
 2. Now you can use Bang directly from your browser's address bar:
-    ```
-    !bm https://bang.jaw.dev
-    ```
+   `!bm https://bang.jaw.dev`
 
 ### ⚙️ How to Add Custom Search Engine
 
