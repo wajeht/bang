@@ -62,16 +62,6 @@ import { search } from './search';
 import { api, github, insertBookmarkQueue } from './util';
 import { actions, bookmarks, notes } from './repository';
 
-/**
- * @swagger
- * components:
- *   securitySchemes:
- *     BearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
- */
-
 const router = express.Router();
 
 router.get('/healthz', getHealthzHandler(db));
@@ -124,6 +114,16 @@ router.post('/notes/:id/delete', authenticationMiddleware, csrfMiddleware, delet
 router.get('/notes/:id/edit', authenticationMiddleware, csrfMiddleware, getEditNotePageHandler(notes)); // prettier-ignore
 router.post('/notes', authenticationMiddleware, csrfMiddleware, postNoteHandler.validator, postNoteHandler.handler(notes)); // prettier-ignore
 router.post('/notes/:id/update', authenticationMiddleware, csrfMiddleware, updateNoteHandler.validator, updateNoteHandler.handler(notes)); // prettier-ignore
+
+/**
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     BearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */
 
 /**
  * A action
