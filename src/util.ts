@@ -462,6 +462,12 @@ export function extractReadmeUsage(readmeFileContent: string): string {
     return readmeFileContent.slice(startIndex + start.length, endIndex).trim();
 }
 
+let cachedReadMeMdHTML: Promise<string> | undefined;
 export async function getConvertedReadmeMDToHTML(): Promise<string> {
-    return marked(extractReadmeUsage(await getReadmeFileContent()));
+    if (!cachedReadMeMdHTML) {
+        const content = await getReadmeFileContent();
+        const usage = extractReadmeUsage(content);
+        cachedReadMeMdHTML = Promise.resolve(marked(usage));
+    }
+    return cachedReadMeMdHTML;
 }
