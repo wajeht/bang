@@ -147,6 +147,72 @@ pre {
     overflow-wrap: break-word;
 }
 
+/* Only add spacing for content areas, not interfering with existing layouts */
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.content h1:first-child,
+.content h2:first-child,
+.content h3:first-child,
+.content h4:first-child,
+.content h5:first-child,
+.content h6:first-child {
+    margin-top: 0;
+}
+
+.content p {
+    margin-bottom: 1em;
+}
+
+.content p:last-child {
+    margin-bottom: 0;
+}
+
+.content ul,
+.content ol {
+    margin-bottom: 1em;
+    padding-left: 2em;
+}
+
+.content ul:last-child,
+.content ol:last-child {
+    margin-bottom: 0;
+}
+
+.content li {
+    margin-bottom: 0.25em;
+}
+
+.content li:last-child {
+    margin-bottom: 0;
+}
+
+.content blockquote {
+    margin: 1em 0;
+    padding: 0.5em 1em;
+    border-left: 4px solid var(--border-color);
+    background-color: var(--pre-background);
+    font-style: italic;
+}
+
+.content blockquote:last-child {
+    margin-bottom: 0;
+}
+
+.content hr {
+    margin: 2em 0;
+    border: none;
+    border-top: 1px solid var(--border-color);
+}
+/* Only add spacing for content areas, not interfering with existing layouts */
+
 details {
     cursor: pointer;
 }
