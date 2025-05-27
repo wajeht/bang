@@ -447,17 +447,16 @@ export async function getReadmeFileContent(): Promise<string> {
     }
 }
 
-export async function extractReadmeUsage() {
-    try {
-        const content = await getReadmeFileContent();
-        const start = '<!-- starts -->';
-        const end = '<!-- ends -->';
-        return content
-            .slice(content.indexOf(start), content.indexOf(end))
-            .replace(start, '')
-            .replace(end, '')
-            .trim();
-    } catch (_error: any) {
+export function extractReadmeUsage(readmeFileContent: string): string {
+    const start = '<!-- starts -->';
+    const end = '<!-- ends -->';
+
+    const startIndex = readmeFileContent.indexOf(start);
+    const endIndex = readmeFileContent.indexOf(end);
+
+    if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
         return '';
     }
+
+    return readmeFileContent.slice(startIndex + start.length, endIndex).trim();
 }
