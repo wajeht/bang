@@ -11,15 +11,16 @@ import {
     fetchPageTitle,
     insertBookmark,
     extractPagination,
-    sendNotification,
     extractReadmeUsage,
     highlightSearchTerm,
     getReadmeFileContent,
     isOnlyLettersAndNumbers,
     getConvertedReadmeMDToHTML,
 } from './util';
+import path from 'node:path';
 import { db } from './db/db';
 import jwt from 'jsonwebtoken';
+import fs from 'node:fs/promises';
 import { Request } from 'express';
 import { appConfig } from './config';
 import { ApiKeyPayload, BookmarkToExport } from './type';
@@ -721,5 +722,12 @@ describe('insertBookmark', () => {
         expect(bookmark.title).toBe('Fetching title...');
         expect(bookmark.url).toBe('https://example2.com');
         expect(bookmark.user_id).toBe(1);
+    });
+});
+
+describe.concurrent('.dockerignore', () => {
+    it('cannot have README.md', async () => {
+        const result = await fs.readFile(path.resolve(path.join(process.cwd(), '.dockerignore')), 'utf8');
+        expect(result).not.toContain('README.md');
     });
 });
