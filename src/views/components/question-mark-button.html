@@ -2,7 +2,7 @@
 <button class="question-mark-btn" onclick="document.getElementById('question-mark-btn-dialog').showModal()">?</button>
 
 <dialog id="question-mark-btn-dialog">
-    <%- include('../components/how-to-contents.html') %>
+    <%- howToContent %>
     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
         <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
     </div>
