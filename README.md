@@ -8,6 +8,8 @@ https://github.com/user-attachments/assets/5f033de3-afa1-44a7-b55b-dc45fc203d10
 
 DuckDuckGo's !Bangs, but on steroids.
 
+<!-- starts -->
+
 ## 📖 Usage
 
 ### 🔍 Setup Custom Search Engine in Your Browser
@@ -83,6 +85,8 @@ Before you can use the Bang command from your browser's search bar, you need to 
 - See [RECIPE](./docs/recipe.md) for `recipe` guide.
 - See [DEVELOPMENT](./docs/development.md) for `development` guide.
 - See [CONTRIBUTION](./docs/contribution.md) for `contribution` guide.
+
+<!-- ends -->
 
 ## 📜 License
 
