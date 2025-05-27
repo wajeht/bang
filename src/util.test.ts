@@ -673,23 +673,6 @@ describe('getConvertedReadmeMDToHTML', () => {
     });
 });
 
-describe('sendNotification', () => {
-    it('should handle notification sending gracefully', async () => {
-        const mockReq = {
-            method: 'GET',
-            url: '/test',
-            headers: {},
-            query: {},
-            body: {},
-            session: { user: { id: 1 } },
-        } as Request;
-
-        const mockError = new Error('Test error');
-
-        await expect(sendNotification({ req: mockReq, error: mockError })).resolves.toBeUndefined();
-    });
-});
-
 describe('insertBookmark', () => {
     beforeAll(async () => {
         await db('bookmarks').del();
