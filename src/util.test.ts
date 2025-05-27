@@ -734,3 +734,14 @@ describe.concurrent('.dockerignore', () => {
         expect(result).not.toContain('README.md');
     });
 });
+
+describe.concurrent('README.md', () => {
+    it('should have starts and ends', async () => {
+        const result = await fs.readFile(
+            path.resolve(path.join(process.cwd(), 'README.md')),
+            'utf8',
+        );
+        expect(result).toContain('<!-- starts -->');
+        expect(result).toContain('<!-- ends -->');
+    });
+});
