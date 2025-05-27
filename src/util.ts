@@ -12,8 +12,10 @@ import qs from 'qs';
 import fastq from 'fastq';
 import { db } from './db/db';
 import http from 'node:http';
+import path from 'node:path';
 import https from 'node:https';
 import jwt from 'jsonwebtoken';
+import fs from 'node:fs/promises';
 import { Request } from 'express';
 import { logger } from './logger';
 import { HttpError } from './error';
@@ -434,4 +436,28 @@ export function nl2br(str: string): string {
 
 export function isOnlyLettersAndNumbers(str: string): boolean {
     return /^[a-zA-Z0-9]+$/.test(str);
+}
+
+export async function getReadmeFileContent(): Promise<string> {
+    try {
+        const readmeFilepath = path.resolve(path.join(process.cwd(), 'README.md'));
+        return await fs.readFile(readmeFilepath, { encoding: 'utf8' });
+    } catch (_error: any) {
+        return '';
+    }
+}
+
+export async function extractReadmeUsage() {
+    try {
+        const content = await getReadmeFileContent();
+        const start = '<!-- starts -->';
+        const end = '<!-- ends -->';
+        return content
+            .slice(content.indexOf(start), content.indexOf(end))
+            .replace(start, '')
+            .replace(end, '')
+            .trim();
+    } catch (_error: any) {
+        return '';
+    }
 }
