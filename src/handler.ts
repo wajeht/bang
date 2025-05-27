@@ -16,8 +16,8 @@ import {
     isApiRequest,
     extractPagination,
     isOnlyLettersAndNumbers,
-    insertBookmarkQueue as InsertBookmarkQueue,
     getConvertedReadmeMDToHTML,
+    insertBookmarkQueue as InsertBookmarkQueue,
 } from './util';
 import { Knex } from 'knex';
 import { db } from './db/db';
