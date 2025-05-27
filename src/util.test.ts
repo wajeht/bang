@@ -727,7 +727,10 @@ describe('insertBookmark', () => {
 
 describe.concurrent('.dockerignore', () => {
     it('cannot have README.md', async () => {
-        const result = await fs.readFile(path.resolve(path.join(process.cwd(), '.dockerignore')), 'utf8');
+        const result = await fs.readFile(
+            path.resolve(path.join(process.cwd(), '.dockerignore')),
+            'utf8',
+        );
         expect(result).not.toContain('README.md');
     });
 });
