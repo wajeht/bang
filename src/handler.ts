@@ -84,7 +84,7 @@ export function getHowToPageHandler() {
         return res.render('how-to.html', {
             path: '/how-to',
             title: 'How To',
-            content: await getConvertedReadmeMDToHTML(),
+            howToContent: await getConvertedReadmeMDToHTML(),
         });
     };
 }
