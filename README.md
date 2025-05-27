@@ -78,13 +78,14 @@ Before you can use the Bang command from your browser's search bar, you need to 
     - eg: `!note some title | this is a note https://bang.jaw.dev`
     - eg: `!note this is a content without any title`
 
+<!-- ends -->
+
 ## 📑 Docs
 
 - See [RECIPE](./docs/recipe.md) for `recipe` guide.
 - See [DEVELOPMENT](./docs/development.md) for `development` guide.
 - See [CONTRIBUTION](./docs/contribution.md) for `contribution` guide.
 
-<!-- ends -->
 
 ## 📜 License
 
