@@ -1,12 +1,12 @@
 import {
     Api,
     User,
+    GitHub,
     PageType,
     ApiKeyPayload,
     GithubUserEmail,
     BookmarkToExport,
     GitHubOauthToken,
-    GitHub,
 } from './type';
 import qs from 'qs';
 import fastq from 'fastq';
