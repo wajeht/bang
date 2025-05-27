@@ -8,9 +8,9 @@ https://github.com/user-attachments/assets/5f033de3-afa1-44a7-b55b-dc45fc203d10
 
 DuckDuckGo's !Bangs, but on steroids.
 
-<!-- starts -->
 
 ## 📖 Usage
+<!-- starts -->
 
 ### 🔍 Setup Custom Search Engine in Your Browser
 
