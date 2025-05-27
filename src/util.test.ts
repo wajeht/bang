@@ -9,8 +9,14 @@ import {
     extractUser,
     isApiRequest,
     fetchPageTitle,
+    insertBookmark,
     extractPagination,
+    sendNotification,
+    extractReadmeUsage,
     highlightSearchTerm,
+    getReadmeFileContent,
+    isOnlyLettersAndNumbers,
+    getConvertedReadmeMDToHTML,
 } from './util';
 import { db } from './db/db';
 import jwt from 'jsonwebtoken';
@@ -556,5 +562,181 @@ describe.concurrent('nl2br', () => {
 
     it('should preserve other characters', () => {
         expect(nl2br('line1\nline2!@#$%^&*()')).toBe('line1<br>line2!@#$%^&*()');
+    });
+});
+
+describe.concurrent('extractReadmeUsage', () => {
+    it('should extract content between start and end markers', () => {
+        const readmeContent = `
+# README
+
+Some intro text
+
+<!-- starts -->
+This is the usage content
+that should be extracted
+<!-- ends -->
+
+Some other content
+        `;
+
+        const result = extractReadmeUsage(readmeContent);
+        expect(result).toBe('This is the usage content\nthat should be extracted');
+    });
+
+    it('should return empty string if start marker is not found', () => {
+        const readmeContent = `
+# README
+Some content without start marker
+<!-- ends -->
+        `;
+
+        const result = extractReadmeUsage(readmeContent);
+        expect(result).toBe('');
+    });
+
+    it('should return empty string if end marker is not found', () => {
+        const readmeContent = `
+# README
+<!-- starts -->
+Some content without end marker
+        `;
+
+        const result = extractReadmeUsage(readmeContent);
+        expect(result).toBe('');
+    });
+
+    it('should return empty string if end marker comes before start marker', () => {
+        const readmeContent = `
+# README
+<!-- ends -->
+Some content
+<!-- starts -->
+        `;
+
+        const result = extractReadmeUsage(readmeContent);
+        expect(result).toBe('');
+    });
+
+    it('should handle empty content between markers', () => {
+        const readmeContent = `
+# README
+<!-- starts --><!-- ends -->
+        `;
+
+        const result = extractReadmeUsage(readmeContent);
+        expect(result).toBe('');
+    });
+});
+
+describe.concurrent('isOnlyLettersAndNumbers', () => {
+    it('should return true for strings with only letters and numbers', () => {
+        expect(isOnlyLettersAndNumbers('abc123')).toBe(true);
+        expect(isOnlyLettersAndNumbers('ABC123')).toBe(true);
+        expect(isOnlyLettersAndNumbers('abcDEF123')).toBe(true);
+        expect(isOnlyLettersAndNumbers('123')).toBe(true);
+        expect(isOnlyLettersAndNumbers('abc')).toBe(true);
+    });
+
+    it('should return false for strings with special characters', () => {
+        expect(isOnlyLettersAndNumbers('abc-123')).toBe(false);
+        expect(isOnlyLettersAndNumbers('abc_123')).toBe(false);
+        expect(isOnlyLettersAndNumbers('abc 123')).toBe(false);
+        expect(isOnlyLettersAndNumbers('abc@123')).toBe(false);
+        expect(isOnlyLettersAndNumbers('abc.123')).toBe(false);
+    });
+
+    it('should return false for empty string', () => {
+        expect(isOnlyLettersAndNumbers('')).toBe(false);
+    });
+
+    it('should return false for strings with unicode characters', () => {
+        expect(isOnlyLettersAndNumbers('abc123ñ')).toBe(false);
+        expect(isOnlyLettersAndNumbers('abc123é')).toBe(false);
+    });
+});
+
+describe('getReadmeFileContent', () => {
+    it('should return empty string if README.md does not exist', async () => {
+        const result = await getReadmeFileContent();
+        expect(typeof result).toBe('string');
+    });
+});
+
+describe('getConvertedReadmeMDToHTML', () => {
+    it('should return cached HTML on subsequent calls', async () => {
+        const result1 = await getConvertedReadmeMDToHTML();
+        const result2 = await getConvertedReadmeMDToHTML();
+
+        expect(typeof result1).toBe('string');
+        expect(result1).toBe(result2);
+    });
+});
+
+describe('sendNotification', () => {
+    it('should handle notification sending gracefully', async () => {
+        const mockReq = {
+            method: 'GET',
+            url: '/test',
+            headers: {},
+            query: {},
+            body: {},
+            session: { user: { id: 1 } },
+        } as Request;
+
+        const mockError = new Error('Test error');
+
+        await expect(sendNotification({ req: mockReq, error: mockError })).resolves.toBeUndefined();
+    });
+});
+
+describe('insertBookmark', () => {
+    beforeAll(async () => {
+        await db('bookmarks').del();
+        await db('users').del();
+        await db('users').insert({
+            id: 1,
+            username: 'Test User',
+            email: 'testuser@example.com',
+            is_admin: false,
+            default_search_provider: 'duckduckgo',
+            column_preferences: JSON.stringify({
+                bookmarks: { default_per_page: 10 },
+                actions: { default_per_page: 10 },
+                notes: { default_per_page: 10 },
+            }),
+        });
+    });
+
+    afterAll(async () => {
+        await db('bookmarks').del();
+        await db('users').where({ id: 1 }).delete();
+    });
+
+    it('should insert bookmark with provided title', async () => {
+        await insertBookmark({
+            url: 'https://example.com',
+            userId: 1,
+            title: 'Example Site',
+        });
+
+        const bookmark = await db('bookmarks').where({ url: 'https://example.com' }).first();
+        expect(bookmark).toBeDefined();
+        expect(bookmark.title).toBe('Example Site');
+        expect(bookmark.url).toBe('https://example.com');
+        expect(bookmark.user_id).toBe(1);
+    });
+
+    it('should insert bookmark with default title when title is not provided', async () => {
+        await insertBookmark({
+            url: 'https://example2.com',
+            userId: 1,
+        });
+
+        const bookmark = await db('bookmarks').where({ url: 'https://example2.com' }).first();
+        expect(bookmark).toBeDefined();
+        expect(bookmark.title).toBe('Fetching title...');
+        expect(bookmark.url).toBe('https://example2.com');
+        expect(bookmark.user_id).toBe(1);
     });
 });
