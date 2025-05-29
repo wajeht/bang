@@ -92,6 +92,42 @@ describe('search', () => {
             expect(req.session.user).toBeUndefined();
         });
 
+        it('should not redirect to bang service homepage when bang has invalid URL for bang-only queries', async () => {
+            const req = {
+                session: {
+                    searchCount: 0,
+                },
+            } as unknown as Request;
+
+            const res = {
+                status: 200,
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
+
+            // Test with the real google bang but mock isValidUrl to return false
+            // This simulates a scenario where a bang exists but has an invalid URL format
+            const isValidUrlSpy = vi.spyOn(utils, 'isValidUrl').mockReturnValue(false);
+
+            try {
+                await search({ req, res, user: undefined, query: '!g' });
+
+                expect(res.status).toBe(200);
+                expect(res.set).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        'Cache-Control': 'public, max-age=3600',
+                    }),
+                );
+                // When isValidUrl returns false, it should fall through to DuckDuckGo search
+                // instead of redirecting to the bang's homepage
+                expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=!g');
+                expect(req.session.searchCount).toBe(1);
+                expect(req.session.user).toBeUndefined();
+            } finally {
+                isValidUrlSpy.mockRestore();
+            }
+        });
+
         it('should redirect back with a warning when a user has reached to its 10th search', async () => {
             const req = {
                 session: {
@@ -1266,6 +1302,29 @@ describe('search', () => {
                     }),
                 );
                 expect(res.redirect).toHaveBeenCalledWith(path);
+            }
+        });
+
+        it('should not redirect to bang service homepage when bang has invalid URL for authenticated bang-only queries', async () => {
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
+
+            const isValidUrlSpy = vi.spyOn(utils, 'isValidUrl').mockReturnValue(false);
+
+            try {
+                await search({ req, res, user: testUser, query: '!g' });
+
+                expect(res.set).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        'Cache-Control': 'public, max-age=3600',
+                    }),
+                );
+                expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=g');
+            } finally {
+                isValidUrlSpy.mockRestore();
             }
         });
     });

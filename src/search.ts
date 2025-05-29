@@ -298,7 +298,9 @@ export async function handleAnonymousSearch(
             }
 
             // Handle bang-only queries (e.g., "!g") - redirects to service homepage
-            return redirectWithCache(res, getBangRedirectUrl(bang, ''));
+            if (isValidUrl(bang.u)) {
+                return redirectWithCache(res, getBangRedirectUrl(bang, ''));
+            }
         }
     }
 
@@ -677,21 +679,16 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
     // Process system-defined bang commands
     if (commandType === 'bang' && triggerWithoutPrefix) {
         const bang = searchConfig.bangs[triggerWithoutPrefix] as Bang;
-
         if (bang) {
-            let redirectUrl: string;
-
             // Handle search queries with bang (e.g., "!g python")
-            if (
-                searchTerm ||
-                (bang.u && typeof bang.u === 'string' && bang.u.includes('{{{s}}}'))
-            ) {
-                redirectUrl = getBangRedirectUrl(bang, searchTerm || '');
-            } else {
-                redirectUrl = getBangRedirectUrl(bang, '');
+            if (searchTerm) {
+                return redirectWithCache(res, getBangRedirectUrl(bang, searchTerm));
             }
 
-            return redirectWithCache(res, redirectUrl);
+            // Handle bang-only queries (e.g., "!g") - redirects to service homepage
+            if (isValidUrl(bang.u)) {
+                return redirectWithCache(res, getBangRedirectUrl(bang, ''));
+            }
         }
     }
 
