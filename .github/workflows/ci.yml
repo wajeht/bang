@@ -122,8 +122,7 @@ jobs:
     update-bangs:
         name: Update DuckDuckGo bangs
         runs-on: ubuntu-latest
-        # Only run on main branch pushes and scheduled runs, not on PRs
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'schedule'
+        if: github.event_name == 'schedule'
 
         permissions:
             contents: write
