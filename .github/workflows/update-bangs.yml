@@ -1,0 +1,41 @@
+name: Update Bangs
+
+on:
+    schedule:
+        # Run every day at 12 PM UTC to update bangs
+        - cron: '0 12 * * *'
+    workflow_dispatch: # Allow manual triggering
+
+jobs:
+    update-bangs:
+        name: Update DuckDuckGo bangs
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: write
+
+        strategy:
+            matrix:
+                node-version: [22.x]
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm i
+
+            - name: Update DuckDuckGo bangs
+              run: npm run build:bang
+
+            - name: Commit updated bangs
+              uses: stefanzweifel/git-auto-commit-action@v4
+              with:
+                  commit_message: 'feat: update DuckDuckGo bangs data'
+                  file_pattern: 'src/db/bang.ts'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
