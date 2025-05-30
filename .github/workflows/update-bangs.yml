@@ -32,6 +32,9 @@ jobs:
             - name: Update DuckDuckGo bangs
               run: npm run build:bang
 
+            - name: Format updated bangs
+              run: npm run format
+
             - name: Commit updated bangs
               uses: stefanzweifel/git-auto-commit-action@v4
               with:
