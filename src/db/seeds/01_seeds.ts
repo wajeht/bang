@@ -146,12 +146,50 @@ export async function seed(knex: Knex): Promise<void> {
             {
                 user_id: user.id,
                 title: 'Note 1',
-                content: 'This is the content of note 1',
+                content: `## 📝 Note 1
+
+This is the **content** of _note 1_.
+
+### List:
+- ✅ Task 1
+- ❌ Task 2
+
+### Link:
+[Visit Example](https://example.com)
+
+### Inline Code:
+Here is some \`inline code\`.
+
+### Code Block:
+\`\`\`js
+console.log('Hello, Note 1');
+\`\`\`
+`,
             },
             {
                 user_id: user.id,
                 title: 'Note 2',
-                content: 'This is the content of note 2',
+                content: `## 🔖 Note 2
+
+Here is the \`content\` of **note 2**.
+
+> 💬 This is a blockquote.
+
+### Ordered Steps:
+1. Install package
+2. Run command
+3. Done ✅
+
+### Table:
+
+| Item       | Status |
+|------------|--------|
+| Feature A  | ✅     |
+| Feature B  | ❌     |
+
+### Image:
+![Alt Text](https://via.placeholder.com/100)
+`,
             },
         ];
 
