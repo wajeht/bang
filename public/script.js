@@ -123,20 +123,19 @@ function initializeToast() {
  */
 function getAppLocalState() {
     try {
-        const scriptTag = /** @type {HTMLScriptElement} */ (
-            document.querySelector('script[data-state]')
-        );
+        const scriptTag = /** @type {HTMLScriptElement} */ (document.getElementById('app-state'));
         if (!scriptTag) {
-            throw new Error('State script tag not found');
+            throw new Error('App state script tag not found');
         }
 
-        const state = scriptTag.getAttribute('data-state');
-        if (!state) {
-            throw new Error('State attribute is missing or empty');
+        const jsonText = scriptTag.textContent || scriptTag.innerText;
+        if (!jsonText) {
+            throw new Error('App state JSON is missing or empty');
         }
 
-        return JSON.parse(state);
+        return JSON.parse(jsonText);
     } catch (error) {
+        console.error('Failed to parse app state:', error);
         // @ts-ignore
         return {};
     }
