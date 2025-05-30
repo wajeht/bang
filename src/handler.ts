@@ -1006,7 +1006,7 @@ export function postDeleteSettingsDangerZoneHandler(db: Knex) {
 export async function getExportAllDataHandler(req: Request, res: Response) {
     const userId = (req.user as User).id;
 
-    const [user, bangs, bookmarks] = await Promise.all([
+    const [user, bangs, bookmarks, notes] = await Promise.all([
         db('users')
             .where('id', userId)
             .select('username', 'email', 'default_search_provider', 'created_at')
@@ -1022,12 +1022,14 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
                 'bangs.created_at',
             ),
         db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at'),
+        db('notes').where('user_id', userId).select('title', 'content', 'created_at'),
     ]);
 
     const exportData = {
         user,
         bangs,
         bookmarks,
+        notes,
         exported_at: new Date().toISOString(),
     };
 
