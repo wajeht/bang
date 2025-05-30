@@ -660,10 +660,14 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
         if (customBang) {
             if (customBang.action_type === 'search') {
-                return redirectWithCache(
-                    res,
-                    customBang.url.replace('{{{s}}}', encodeURIComponent(searchTerm ?? '')),
-                );
+                let url = customBang.url;
+                if (url.includes('{query}')) {
+                    url = url.replace('{query}', encodeURIComponent(searchTerm ?? ''));
+                } else if (url.includes('{{{s}}}')) {
+                    url = url.replace('{{{s}}}', encodeURIComponent(searchTerm ?? ''));
+                }
+
+                return redirectWithCache(res, url);
             }
 
             if (customBang.action_type === 'redirect') {

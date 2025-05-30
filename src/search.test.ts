@@ -559,6 +559,74 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('https://example.com/search?q=test%20search');
         });
 
+        it('should handle custom search bang with {query} placeholder', async () => {
+            await db('bangs').insert({
+                user_id: 1,
+                trigger: '!querytest',
+                name: 'Query Test Search',
+                action_type_id: 1,
+                url: 'https://query-example.com/search?q={query}',
+            });
+
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
+
+            await search({
+                req,
+                res,
+                user: testUser,
+                query: '!querytest test search',
+            });
+
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
+            expect(res.redirect).toHaveBeenCalledWith(
+                'https://query-example.com/search?q=test%20search',
+            );
+
+            await db('bangs').where({ trigger: '!querytest', user_id: 1 }).delete();
+        });
+
+        it('should handle custom search bang with {{{s}}} placeholder', async () => {
+            await db('bangs').insert({
+                user_id: 1,
+                trigger: '!stest',
+                name: 'S Test Search',
+                action_type_id: 1,
+                url: 'https://s-example.com/search?q={{{s}}}',
+            });
+
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
+
+            await search({
+                req,
+                res,
+                user: testUser,
+                query: '!stest test search',
+            });
+
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'public, max-age=3600',
+                }),
+            );
+            expect(res.redirect).toHaveBeenCalledWith(
+                'https://s-example.com/search?q=test%20search',
+            );
+
+            await db('bangs').where({ trigger: '!stest', user_id: 1 }).delete();
+        });
+
         it('should handle custom redirect bang', async () => {
             const req = {} as Request;
             const res = {
