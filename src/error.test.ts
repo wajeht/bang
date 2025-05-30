@@ -1,9 +1,9 @@
 import {
     HttpError,
-    ForbiddenError,
-    UnauthorizedError,
     NotFoundError,
+    ForbiddenError,
     ValidationError,
+    UnauthorizedError,
     UnimplementedFunctionError,
 } from './error';
 import { logger } from './logger';

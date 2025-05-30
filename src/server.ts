@@ -117,10 +117,7 @@ process.on('uncaughtException', async (error: Error, origin: string) => {
         }
     }
 
-    // Give a small delay to allow notification to be sent before exiting
-    setTimeout(() => {
-        gracefulShutdown('UNCAUGHT_EXCEPTION');
-    }, 500);
+    setTimeout(() => gracefulShutdown('UNCAUGHT_EXCEPTION'), 500);
 });
 
 process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknown>) => {

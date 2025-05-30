@@ -105,8 +105,6 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            // Test with the real google bang but mock isValidUrl to return false
-            // This simulates a scenario where a bang exists but has an invalid URL format
             const isValidUrlSpy = vi.spyOn(utils, 'isValidUrl').mockReturnValue(false);
 
             try {
@@ -118,8 +116,6 @@ describe('search', () => {
                         'Cache-Control': 'public, max-age=3600',
                     }),
                 );
-                // When isValidUrl returns false, it should fall through to DuckDuckGo search
-                // instead of redirecting to the bang's homepage
                 expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=!g');
                 expect(req.session.searchCount).toBe(1);
                 expect(req.session.user).toBeUndefined();
@@ -1331,12 +1327,7 @@ describe('search', () => {
 });
 
 describe('parseSearchQuery', () => {
-    /**
-     * Basic tests for parseSearchQuery function
-     * These cover the primary functionality and ensure correct parsing of queries
-     */
     it('should parse basic queries correctly', () => {
-        // Test a simple search query
         const result = searchModule.parseSearchQuery('test query');
         expect(result).toEqual({
             commandType: null,
@@ -1348,7 +1339,6 @@ describe('parseSearchQuery', () => {
     });
 
     it('should parse bangs correctly', () => {
-        // Test a bang query
         const result = searchModule.parseSearchQuery('!g test query');
         expect(result).toEqual({
             commandType: 'bang',
@@ -1360,7 +1350,6 @@ describe('parseSearchQuery', () => {
     });
 
     it('should parse direct commands correctly', () => {
-        // Test a direct command
         const result = searchModule.parseSearchQuery('@settings');
         expect(result).toEqual({
             commandType: 'direct',
@@ -1372,8 +1361,6 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle bookmark commands', () => {
-        // Note: bm: prefix is not specially handled by parseSearchQuery
-        // It's treated as a regular search term
         const result = searchModule.parseSearchQuery('bm:homepage');
         expect(result).toEqual({
             commandType: null,
@@ -1385,7 +1372,6 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle URLs only in bang commands', () => {
-        // Test URL detection in bang command
         const result = searchModule.parseSearchQuery('!bm My Bookmark https://www.example.com');
         expect(result).toEqual({
             commandType: 'bang',
@@ -1396,7 +1382,6 @@ describe('parseSearchQuery', () => {
         });
     });
 
-    // URLs are not detected in regular searches
     it('should not detect URLs in regular searches', () => {
         const result = searchModule.parseSearchQuery('https://www.example.com');
         expect(result).toEqual({
@@ -1408,7 +1393,6 @@ describe('parseSearchQuery', () => {
         });
     });
 
-    // Edge cases for URLs in bang commands
     it('should detect URLs with special characters in bang commands', () => {
         const result = searchModule.parseSearchQuery(
             '!bm Title https://example.com/search?q=hello%20world&lang=en',
@@ -1444,7 +1428,6 @@ describe('parseSearchQuery', () => {
         });
     });
 
-    // Special command formats
     it('should parse commands with numbers', () => {
         const result = searchModule.parseSearchQuery('!123 test');
         expect(result).toEqual({
@@ -1478,7 +1461,6 @@ describe('parseSearchQuery', () => {
         });
     });
 
-    // Mixed scenarios
     it('should handle multiple URLs in bang commands', () => {
         const result = searchModule.parseSearchQuery(
             '!bm Title https://example.com https://test.com',
@@ -1526,7 +1508,6 @@ describe('parseSearchQuery', () => {
         });
     });
 
-    // Direct command edge cases
     it('should handle direct commands with parameters', () => {
         const result = searchModule.parseSearchQuery('@notes search: important meeting');
         expect(result).toEqual({
@@ -1549,7 +1530,6 @@ describe('parseSearchQuery', () => {
         });
     });
 
-    // Edge cases combining multiple patterns
     it('should handle URL-like strings in bang commands', () => {
         const result = searchModule.parseSearchQuery('!w https://en.wikipedia.org');
         expect(result).toEqual({
@@ -1595,11 +1575,6 @@ describe('parseSearchQuery', () => {
     });
 });
 
-/**
- * Tests for the non-blocking processDelayedSearch function
- * These tests verify that our delay implementation doesn't block concurrent operations
- * and correctly applies the configured delay
- */
 describe('processDelayedSearch', () => {
     it('should not delay if no cumulative delay is set', async () => {
         const req = {
@@ -1610,12 +1585,10 @@ describe('processDelayedSearch', () => {
         await processDelayedSearch(req);
         const duration = Date.now() - start;
 
-        // Should be very fast, no more than 10ms for test overhead
         expect(duration).toBeLessThan(10);
     });
 
     it('should delay for the specified time', async () => {
-        // Use a larger delay for more reliable testing
         const delayMs = 10;
         const req = {
             session: {
@@ -1627,17 +1600,10 @@ describe('processDelayedSearch', () => {
         await processDelayedSearch(req);
         const duration = Date.now() - start;
 
-        // Should be at least the delay time, with a small buffer for timing inconsistencies
         expect(duration).toBeGreaterThanOrEqual(delayMs - 1);
     });
 
-    /**
-     * This test verifies that our implementation is truly non-blocking
-     * It confirms that other operations can continue to execute while a delay is in progress
-     * This behavior is essential for handling concurrent requests efficiently
-     */
     it('should not block other operations while waiting', async () => {
-        // Set up a longer delay
         const delayMs = 20;
         const req = {
             session: {
@@ -1645,25 +1611,20 @@ describe('processDelayedSearch', () => {
             },
         } as unknown as Request;
 
-        // Start the delay operation but don't wait for it
         const delayPromise = processDelayedSearch(req);
 
-        // Start a counter operation that should execute while the delay is happening
         let counter = 0;
         const counterPromise = new Promise<number>((resolve) => {
             setTimeout(() => {
                 counter++;
                 resolve(counter);
-            }, 5); // This should execute before the delay finishes
+            }, 5);
         });
 
-        // Wait for the counter operation to complete first
         const counterResult = await counterPromise;
 
-        // Then wait for the delay to complete
         await delayPromise;
 
-        // The counter should have been incremented while the delay was happening
         expect(counterResult).toBe(1);
     });
 });
@@ -1681,7 +1642,6 @@ describe('handleAnonymousSearch', () => {
             set: vi.fn(),
         } as unknown as Response;
 
-        // Mock the anonymousSearchHistoryQueue.push method
         const queuePushSpy = vi
             .spyOn(searchModule.anonymousSearchHistoryQueue, 'push')
             .mockResolvedValue(undefined);
@@ -1689,10 +1649,8 @@ describe('handleAnonymousSearch', () => {
         try {
             await searchModule.handleAnonymousSearch(req, res, 'test query', 'g', 'test query');
 
-            // Verify that tracking was called
             expect(queuePushSpy).toHaveBeenCalledWith(req);
 
-            // Verify the redirect happens
             expect(res.redirect).toHaveBeenCalled();
         } finally {
             queuePushSpy.mockRestore();
