@@ -55,5 +55,6 @@
 	<!-- Styles and Scripts -->
   <link rel="stylesheet" href="/style.css?v=<%- state.version.style %>">
 	<script defer data-domain="bang.jaw.dev" src="https://plausible.jaw.dev/js/script.js"></script>
-	<script defer data-state='<%- JSON.stringify(state) %>' src="/script.js?v=<%- state.version.script %>"></script>
+	<script type="application/json" id="app-state"><%- JSON.stringify(state) %></script>
+	<script defer src="/script.js?v=<%- state.version.script %>"></script>
 </head>
