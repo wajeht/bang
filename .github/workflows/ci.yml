@@ -90,6 +90,7 @@ jobs:
 
         permissions:
             contents: write
+            workflows: write
 
         strategy:
             matrix:
