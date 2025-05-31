@@ -90,7 +90,7 @@ jobs:
 
         permissions:
             contents: write
-            workflows: write
+            actions: write
 
         strategy:
             matrix:
@@ -114,6 +114,7 @@ jobs:
               uses: stefanzweifel/git-auto-commit-action@v4
               with:
                   commit_message: 'style: format codes'
+                  file_pattern: '!.github/workflows/*.yml !.github/workflows/*.yaml'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
