@@ -35,7 +35,22 @@ jobs:
             - name: Format updated bangs
               run: npm run format
 
+            - name: Check for changes
+              id: verify-changed-files
+              run: |
+                if [ -n "$(git status --porcelain)" ]; then
+                  echo "changed=true" >> $GITHUB_OUTPUT
+                  echo "Files have been modified:"
+                  git diff --name-only
+                  echo "Diff summary:"
+                  git diff --stat
+                else
+                  echo "changed=false" >> $GITHUB_OUTPUT
+                  echo "No files were modified."
+                fi
+
             - name: Commit updated bangs
+              if: steps.verify-changed-files.outputs.changed == 'true'
               uses: stefanzweifel/git-auto-commit-action@v4
               with:
                   commit_message: 'feat: update DuckDuckGo bangs data'
