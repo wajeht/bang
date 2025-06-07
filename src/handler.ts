@@ -8,6 +8,7 @@ import {
     Bookmarks,
     ApiKeyPayload,
     BookmarkToExport,
+    ColumnPreferences,
 } from './type';
 import { marked } from 'marked';
 import {
@@ -187,9 +188,18 @@ export function getGithubRedirectHandler(db: Knex, github: GitHub) {
                 .returning('*');
         }
 
+        let columnPreferences = {} as ColumnPreferences;
+        if (user.column_preferences) {
+            try {
+                columnPreferences = JSON.parse(user.column_preferences);
+            } catch {
+                columnPreferences = {} as ColumnPreferences;
+            }
+        }
+
         const parsedUser = {
             ...user,
-            column_preferences: JSON.parse(user.column_preferences),
+            column_preferences: columnPreferences,
         };
 
         req.user = parsedUser;
