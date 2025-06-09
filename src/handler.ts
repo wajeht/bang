@@ -10,8 +10,6 @@ import {
     BookmarkToExport,
     ColumnPreferences,
 } from './type';
-import { marked } from 'marked';
-import { logger } from './logger';
 import {
     bookmark,
     expectJson,
@@ -23,6 +21,8 @@ import {
 } from './util';
 import { Knex } from 'knex';
 import { db } from './db/db';
+import { marked } from 'marked';
+import { logger } from './logger';
 import { body } from 'express-validator';
 import { Request, Response } from 'express';
 import { appConfig, oauthConfig } from './config';
