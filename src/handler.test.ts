@@ -84,12 +84,12 @@ describe('Export Data Handler', () => {
             ]);
         }
 
-        await db('users').where('email', 'test@example.com').delete();
+        await db('users').where('email', 'handler-test@example.com').delete();
 
         const [user] = await db('users')
             .insert({
                 username: 'testuser',
-                email: 'test@example.com',
+                email: 'handler-test@example.com',
                 is_admin: false,
                 default_search_provider: 'duckduckgo',
             })
@@ -101,7 +101,7 @@ describe('Export Data Handler', () => {
             user: {
                 id: testUserId,
                 username: 'testuser',
-                email: 'test@example.com',
+                email: 'handler-test@example.com',
                 is_admin: false,
                 default_search_provider: 'duckduckgo',
                 bookmarks_per_page: 10,
