@@ -45,10 +45,10 @@ db-seed:
 	@docker compose -f docker-compose.dev.yml exec bang npm run db:seed:run
 
 pull-prod-db:
-	@./scripts/pull-db.sh
+	@./scripts/db.sh pull
 
 push-prod-db:
-	@./scripts/push-db.sh
+	@./scripts/db.sh push
 
 db-reset:
 	make db-rollback
