@@ -1,5 +1,6 @@
 import express from 'express';
 import { marked } from 'marked';
+import { logger } from './logger';
 
 import {
     getNoteHandler,
@@ -109,7 +110,12 @@ router.post('/bookmarks/:id/update', authenticationMiddleware, csrfMiddleware, u
 
 router.get('/notes', authenticationMiddleware, csrfMiddleware, getNotesHandler(notes));
 router.get('/notes/create', authenticationMiddleware, csrfMiddleware, getNoteCreatePageHandler());
-router.get('/notes/:id', authenticationMiddleware, csrfMiddleware, getNoteHandler(notes, marked));
+router.get(
+    '/notes/:id',
+    authenticationMiddleware,
+    csrfMiddleware,
+    getNoteHandler(notes, marked, logger),
+);
 router.post('/notes/:id/delete', authenticationMiddleware, csrfMiddleware, deleteNoteHandler(notes)); // prettier-ignore
 router.get('/notes/:id/edit', authenticationMiddleware, csrfMiddleware, getEditNotePageHandler(notes)); // prettier-ignore
 router.post('/notes', authenticationMiddleware, csrfMiddleware, postNoteHandler.validator, postNoteHandler.handler(notes)); // prettier-ignore
@@ -408,7 +414,7 @@ router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
  * @return {object} 404 - Not found response - application/json
  *
  */
-router.get('/api/notes/:id', authenticationMiddleware, getNoteHandler(notes, marked));
+router.get('/api/notes/:id', authenticationMiddleware, getNoteHandler(notes, marked, logger));
 
 /**
  * POST /api/notes

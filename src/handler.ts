@@ -11,6 +11,7 @@ import {
     ColumnPreferences,
 } from './type';
 import { marked } from 'marked';
+import { logger } from './logger';
 import {
     bookmark,
     expectJson,
@@ -1356,7 +1357,7 @@ export const updateNoteHandler = {
 };
 
 // GET /notes/:id or GET /api/notes/:id
-export function getNoteHandler(notes: Notes, markdownParser: typeof marked) {
+export function getNoteHandler(notes: Notes, markdownParser: typeof marked, log: typeof logger) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         let note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
@@ -1365,9 +1366,18 @@ export function getNoteHandler(notes: Notes, markdownParser: typeof marked) {
             throw new NotFoundError('Note not found', req);
         }
 
+        let content: string = '';
+
+        try {
+            content = markdownParser(note.content) as string;
+        } catch (_error) {
+            content = '';
+            log.error('cannot parse content into markdown');
+        }
+
         note = {
             ...note,
-            content: markdownParser(note.content) as string,
+            content,
         };
 
         if (isApiRequest(req)) {
