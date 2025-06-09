@@ -641,6 +641,10 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 }
             }
 
+            if (title.length > 255) {
+                return goBackWithValidationAlert(res, 'Title must be shorter than 255 characters');
+            }
+
             await db('notes').insert({
                 user_id: user.id,
                 title: title || 'Untitled',
