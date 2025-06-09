@@ -24,7 +24,7 @@ import fs from 'node:fs/promises';
 import { Request } from 'express';
 import { appConfig } from './config';
 import { ApiKeyPayload, BookmarkToExport } from './type';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 describe.concurrent('isValidUrl', () => {
     it('should return true for valid URLs', () => {
@@ -386,7 +386,7 @@ describe.concurrent('extractPagination', () => {
     });
 });
 
-describe.concurrent('api', () => {
+describe('api', () => {
     beforeAll(async () => {
         await db('users').del();
         await db('users').insert({
@@ -402,6 +402,13 @@ describe.concurrent('api', () => {
         await db('users').where({ id: 1 }).delete();
     });
 
+    afterEach(async () => {
+        await db('users').where({ id: 1 }).update({
+            api_key: 'test-api-key',
+            api_key_version: 1,
+        });
+    });
+
     describe('generate', () => {
         it('should generate a valid API key', async () => {
             const payload = { userId: 1, apiKeyVersion: 1 };
@@ -414,12 +421,17 @@ describe.concurrent('api', () => {
     });
 
     describe('verify', () => {
-        it.skip('should return payload for a valid API key', async () => {
+        it('should return payload for a valid API key', async () => {
             const payload = { userId: 1, apiKeyVersion: 1 };
             const apiKey = await api.generate(payload);
 
+            await db('users').where({ id: 1 }).update({
+                api_key: apiKey,
+                api_key_version: payload.apiKeyVersion,
+            });
+
             const verifiedPayload = await api.verify(apiKey);
-            expect(verifiedPayload).toEqual(payload);
+            expect(verifiedPayload).toEqual(expect.objectContaining(payload));
         });
 
         it('should return null for an invalid API key', async () => {
@@ -432,11 +444,15 @@ describe.concurrent('api', () => {
             const payload = { userId: 1, apiKeyVersion: 1 };
             const apiKey = await api.generate(payload);
 
-            // Update the user to have a different API key
             await db('users').where({ id: 1 }).update({ api_key: 'different-api-key' });
 
             const verifiedPayload = await api.verify(apiKey);
             expect(verifiedPayload).toBeNull();
+
+            await db('users').where({ id: 1 }).update({
+                api_key: 'test-api-key',
+                api_key_version: 1,
+            });
         });
     });
 });
