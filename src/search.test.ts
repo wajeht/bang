@@ -518,6 +518,30 @@ describe('search', () => {
             );
         });
 
+        it('should reject bookmark creation with title longer than 255 characters', async () => {
+            const req = {} as Request;
+            const res = {
+                set: vi.fn().mockReturnThis(),
+                status: vi.fn().mockReturnThis(),
+                send: vi.fn(),
+            } as unknown as Response;
+
+            const longTitle = 'A'.repeat(256);
+            const query = `!bm ${longTitle} https://example.com`;
+
+            await search({
+                req,
+                res,
+                user: testUser,
+                query,
+            });
+
+            expect(res.status).toHaveBeenCalledWith(422);
+            expect(res.send).toHaveBeenCalledWith(
+                expect.stringContaining('Title must be shorter than 255 characters'),
+            );
+        });
+
         it('should handle custom bang creation', async () => {
             const req = {} as Request;
             const res = {

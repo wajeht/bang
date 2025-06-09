@@ -391,6 +391,10 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                         urlIndex > -1 ? searchTerm.slice(0, urlIndex).trim() : searchTerm;
                 }
 
+                if (titleSection && titleSection.length > 255) {
+                    return goBackWithValidationAlert(res, 'Title must be shorter than 255 characters');
+                }
+
                 void insertBookmarkQueue.push({
                     url,
                     title: titleSection || '',
