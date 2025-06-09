@@ -5,7 +5,7 @@ import { appConfig } from './config';
 import * as searchModule from './search';
 import { Request, Response } from 'express';
 import { search, processDelayedSearch, redirectWithCache } from './search';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('search', () => {
     describe('unauthenticated', () => {
@@ -886,6 +886,225 @@ describe('search', () => {
             expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Error adding bookmark'));
 
             vi.resetModules();
+        });
+
+        describe('!note command', () => {
+            afterEach(async () => {
+                await db('notes').where({ user_id: testUser.id }).delete();
+            });
+
+            it('should create note with title and content using pipe format', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!note My Note Title | This is the content of the note',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('window.history.back()'),
+                );
+
+                const createdNote = await db('notes')
+                    .where({ user_id: testUser.id, title: 'My Note Title' })
+                    .first();
+                expect(createdNote).toBeDefined();
+                expect(createdNote.content).toBe('This is the content of the note');
+            });
+
+            it('should create note with just content (no title)', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!note This is just content without a title',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('window.history.back()'),
+                );
+
+                const createdNote = await db('notes')
+                    .where({ user_id: testUser.id, title: 'Untitled' })
+                    .first();
+                expect(createdNote).toBeDefined();
+                expect(createdNote.content).toBe('This is just content without a title');
+            });
+
+            it('should reject note creation with title longer than 255 characters', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                const longTitle = 'A'.repeat(256);
+                const query = `!note ${longTitle} | This is the content`;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query,
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Title must be shorter than 255 characters'),
+                );
+
+                const createdNote = await db('notes').where({ user_id: testUser.id }).first();
+                expect(createdNote).toBeUndefined();
+            });
+
+            it('should handle note creation with empty content after pipe', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!note My Title |',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Content is required'),
+                );
+            });
+
+            it('should handle note creation with empty content after pipe (whitespace only)', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!note My Title |   ',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Content is required'),
+                );
+            });
+
+            it('should reject note creation with no content', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!note',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Content is required'),
+                );
+            });
+
+            it('should reject note creation with only whitespace content', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!note   ',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Content is required'),
+                );
+            });
+
+            it('should handle note creation with special characters in title and content', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!note Special @#$% Title | Content with special chars: !@#$%^&*()',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+
+                const createdNote = await db('notes')
+                    .where({ user_id: testUser.id, title: 'Special @#$% Title' })
+                    .first();
+                expect(createdNote).toBeDefined();
+                expect(createdNote.content).toBe('Content with special chars: !@#$%^&*()');
+            });
+
+            it('should handle note creation with multiple pipes (only first pipe is used as separator)', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!note Title with | pipe | Content also has | more pipes',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+
+                const createdNote = await db('notes')
+                    .where({ user_id: testUser.id, title: 'Title with' })
+                    .first();
+                expect(createdNote).toBeDefined();
+                expect(createdNote.content).toBe('pipe | Content also has | more pipes');
+            });
         });
 
         describe('!del command', () => {
