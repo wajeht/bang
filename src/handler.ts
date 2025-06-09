@@ -838,7 +838,7 @@ export const postExportDataHandler = {
             return true;
         }),
     ]),
-    handler: function (db: Knex) {
+    handler: function (db: Knex, log: typeof logger) {
         return async (req: Request, res: Response) => {
             const userId = (req.user as User).id;
             const includeBookmarks = req.body.options.includes('bookmarks');
@@ -880,15 +880,37 @@ export const postExportDataHandler = {
                     ? db('notes').where('user_id', userId).select('title', 'content', 'created_at')
                     : Promise.resolve([]);
 
-            const [bookmarks, actions, notes] = await Promise.all([
+            const results = await Promise.allSettled([
                 fetchBookmarks(),
                 fetchActions(),
                 fetchNotes(),
             ]);
 
-            if (includeBookmarks) exportData.bookmarks = bookmarks;
-            if (includeActions) exportData.actions = actions;
-            if (includeNotes) exportData.notes = notes;
+            const [bookmarksResult, actionsResult, notesResult] = results;
+
+            if (includeBookmarks) {
+                if (bookmarksResult.status === 'fulfilled') {
+                    exportData.bookmarks = bookmarksResult.value;
+                } else {
+                    log.error('Failed to fetch bookmarks: %o', bookmarksResult.reason);
+                }
+            }
+
+            if (includeActions) {
+                if (actionsResult.status === 'fulfilled') {
+                    exportData.actions = actionsResult.value;
+                } else {
+                    log.error('Failed to fetch actions: %o', actionsResult.reason);
+                }
+            }
+
+            if (includeNotes) {
+                if (notesResult.status === 'fulfilled') {
+                    exportData.notes = notesResult.value;
+                } else {
+                    log.error('Failed to fetch notes: %o', notesResult.reason);
+                }
+            }
 
             res.setHeader(
                 'Content-Disposition',

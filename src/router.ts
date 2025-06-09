@@ -87,7 +87,7 @@ router.get('/settings/account', authenticationMiddleware, csrfMiddleware, getSet
 router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler()); // prettier-ignore
 router.post('/settings/create-api-key', authenticationMiddleware, csrfMiddleware, postSettingsCreateApiKeyHandler(db, api)); // prettier-ignore
 router.post('/settings/danger-zone/delete', authenticationMiddleware, csrfMiddleware, postDeleteSettingsDangerZoneHandler(db)); // prettier-ignore
-router.post('/settings/data/export', authenticationMiddleware, csrfMiddleware, postExportDataHandler.validator, postExportDataHandler.handler(db)); // prettier-ignore
+router.post('/settings/data/export', authenticationMiddleware, csrfMiddleware, postExportDataHandler.validator, postExportDataHandler.handler(db, logger)); // prettier-ignore
 router.post('/settings/data/import', authenticationMiddleware, csrfMiddleware, postImportDataHandler.validator, postImportDataHandler.handler(db)); // prettier-ignore
 router.post('/settings/account', authenticationMiddleware, csrfMiddleware, postSettingsAccountHandler.validator, postSettingsAccountHandler.handler(db)); // prettier-ignore
 router.post('/settings/display', authenticationMiddleware, csrfMiddleware, postSettingsDisplayHandler.validator, postSettingsDisplayHandler.handler(db)); // prettier-ignore
