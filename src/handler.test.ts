@@ -75,14 +75,12 @@ describe('Export Data Handler', () => {
     beforeEach(async () => {
         vi.resetAllMocks();
 
-        const existingActionTypes = await db('action_types').select('*');
-        if (existingActionTypes.length === 0) {
-            await db('action_types').insert([
-                { name: 'search' },
-                { name: 'redirect' },
-                { name: 'bookmark' },
-            ]);
-        }
+        await db.raw(`
+            INSERT OR IGNORE INTO action_types (name) VALUES
+            ('search'),
+            ('redirect'),
+            ('bookmark')
+        `);
 
         await db('users').where('email', 'handler-test@example.com').delete();
 
