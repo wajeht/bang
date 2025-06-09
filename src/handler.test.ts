@@ -4,8 +4,6 @@ import { Request, Response } from 'express';
 import { getHealthzHandler, postExportDataHandler } from './handler';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-
-
 describe('Health Check Endpoint', () => {
     let req: Partial<Request>;
     let res: Partial<Response>;
@@ -67,8 +65,6 @@ describe('Health Check Endpoint', () => {
         expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
         expect(res.send).toHaveBeenCalledWith('<p>ok</p>');
     });
-
-
 });
 
 describe('Export Data Handler', () => {
@@ -76,7 +72,7 @@ describe('Export Data Handler', () => {
     let res: Partial<Response>;
     let testUserId: number;
 
-        beforeEach(async () => {
+    beforeEach(async () => {
         vi.resetAllMocks();
 
         const existingActionTypes = await db('action_types').select('*');
@@ -88,12 +84,16 @@ describe('Export Data Handler', () => {
             ]);
         }
 
-        const [user] = await db('users').insert({
-            username: 'testuser',
-            email: 'test@example.com',
-            is_admin: false,
-            default_search_provider: 'duckduckgo',
-        }).returning('*');
+        await db('users').where('email', 'test@example.com').delete();
+
+        const [user] = await db('users')
+            .insert({
+                username: 'testuser',
+                email: 'test@example.com',
+                is_admin: false,
+                default_search_provider: 'duckduckgo',
+            })
+            .returning('*');
 
         testUserId = user.id;
 
@@ -141,10 +141,12 @@ describe('Export Data Handler', () => {
     });
 
     afterEach(async () => {
-        await db('notes').where({ user_id: testUserId }).delete();
-        await db('bookmarks').where({ user_id: testUserId }).delete();
-        await db('bangs').where({ user_id: testUserId }).delete();
-        await db('users').where({ id: testUserId }).delete();
+        if (testUserId) {
+            await db('notes').where({ user_id: testUserId }).delete();
+            await db('bookmarks').where({ user_id: testUserId }).delete();
+            await db('bangs').where({ user_id: testUserId }).delete();
+            await db('users').where({ id: testUserId }).delete();
+        }
         vi.clearAllMocks();
     });
 
@@ -155,7 +157,7 @@ describe('Export Data Handler', () => {
             url: 'https://test.com',
         });
 
-                const actionType = await db('action_types').select('id').first();
+        const actionType = await db('action_types').select('id').first();
         await db('bangs').insert({
             user_id: testUserId,
             trigger: '!test',
@@ -278,8 +280,20 @@ describe('Export Data Handler', () => {
 
         const actionType = await db('action_types').select('id').first();
         await db('bangs').insert([
-            { user_id: testUserId, trigger: '!test1', name: 'Action 1', url: 'https://action1.com', action_type_id: actionType.id },
-            { user_id: testUserId, trigger: '!test2', name: 'Action 2', url: 'https://action2.com', action_type_id: actionType.id },
+            {
+                user_id: testUserId,
+                trigger: '!test1',
+                name: 'Action 1',
+                url: 'https://action1.com',
+                action_type_id: actionType.id,
+            },
+            {
+                user_id: testUserId,
+                trigger: '!test2',
+                name: 'Action 2',
+                url: 'https://action2.com',
+                action_type_id: actionType.id,
+            },
         ]);
 
         await db('notes').insert([
