@@ -47,11 +47,7 @@ export async function fetchBangsFromSource(url: string, fetcher = fetch): Promis
 
 export function generateBangFile(bangs: Map<string, Bang>): string {
     const plainObject = Object.fromEntries(bangs);
-    return `export const bangs: Record<string, Record<string, string|number>> = ${JSON.stringify(
-        plainObject,
-        null,
-        2,
-    )};`;
+    return `export const bangs: Record<string, any> = ${JSON.stringify(plainObject, null, 2)};`;
 }
 
 export function getDefaultSources(): BangSource[] {

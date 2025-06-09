@@ -8,7 +8,7 @@ on:
 
 jobs:
     update-bangs:
-        name: Update DuckDuckGo bangs
+        name: Update bangs from Kagi and DuckDuckGo
         runs-on: ubuntu-latest
         outputs:
             changed: ${{ steps.verify-changed-files.outputs.changed }}
@@ -31,7 +31,7 @@ jobs:
             - name: Install dependencies
               run: npm i
 
-            - name: Update DuckDuckGo bangs
+            - name: Update bangs from multiple sources
               run: npm run build:bang
 
             - name: Format updated bangs
@@ -55,7 +55,7 @@ jobs:
               if: steps.verify-changed-files.outputs.changed == 'true'
               uses: stefanzweifel/git-auto-commit-action@v4
               with:
-                  commit_message: 'feat: update DuckDuckGo bangs data'
+                  commit_message: 'feat: update bangs data from Kagi and DuckDuckGo'
                   file_pattern: 'src/db/bang.ts'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
