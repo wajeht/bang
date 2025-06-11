@@ -880,13 +880,11 @@ export const postExportDataHandler = {
                     ? db('notes').where('user_id', userId).select('title', 'content', 'created_at')
                     : Promise.resolve([]);
 
-            const results = await Promise.allSettled([
+            const [bookmarksResult, actionsResult, notesResult] = await Promise.allSettled([
                 fetchBookmarks(),
                 fetchActions(),
                 fetchNotes(),
             ]);
-
-            const [bookmarksResult, actionsResult, notesResult] = results;
 
             if (includeBookmarks) {
                 if (bookmarksResult.status === 'fulfilled') {
