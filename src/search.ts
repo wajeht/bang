@@ -268,7 +268,7 @@ export async function handleAnonymousSearch(
         const message = `This search was delayed by ${req.session.cumulativeDelay / 1000} seconds due to rate limiting.`;
 
         if (triggerWithoutBang) {
-            const bang = searchConfig.bangs[triggerWithoutBang] as Bang;
+            const bang = searchConfig.bangs.get(triggerWithoutBang);
             if (bang) {
                 redirectUrl = getBangRedirectUrl(bang, searchTerm || '');
             } else {
@@ -290,7 +290,7 @@ export async function handleAnonymousSearch(
     }
 
     if (triggerWithoutBang) {
-        const bang = searchConfig.bangs[triggerWithoutBang] as Bang;
+        const bang = searchConfig.bangs.get(triggerWithoutBang);
         if (bang) {
             // Handle search queries with bang (e.g., "!g python")
             if (searchTerm) {
@@ -693,7 +693,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
     // Process system-defined bang commands
     if (commandType === 'bang' && triggerWithoutPrefix) {
-        const bang = searchConfig.bangs[triggerWithoutPrefix] as Bang;
+        const bang = searchConfig.bangs.get(triggerWithoutPrefix);
         if (bang) {
             // Handle search queries with bang (e.g., "!g python")
             if (searchTerm) {
