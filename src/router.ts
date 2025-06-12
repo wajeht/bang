@@ -7,6 +7,7 @@ import {
     getLogoutHandler,
     getNotesHandler,
     postNoteHandler,
+    postLoginHandler,
     getActionHandler,
     getActionsHandler,
     getHealthzHandler,
@@ -14,10 +15,11 @@ import {
     postActionHandler,
     deleteNoteHandler,
     updateNoteHandler,
+    getBookmarkHandler,
+    getMagicLinkHandler,
     getHowToPageHandler,
     updateActionHandler,
     deleteActionHandler,
-    getBookmarkHandler,
     getBookmarksHandler,
     postBookmarkHandler,
     getAdminUsersHandler,
@@ -46,8 +48,6 @@ import {
     getSettingsDangerZonePageHandler,
     getBookmarkActionCreatePageHandler,
     postDeleteSettingsDangerZoneHandler,
-    postLoginHandler,
-    getMagicLinkHandler,
 } from './handler';
 
 import {
@@ -70,10 +70,10 @@ router.get('/terms-of-service', getTermsOfServicePageHandler());
 router.get('/', csrfMiddleware, getHomePageAndSearchHandler(search));
 router.get('/how-to', cacheMiddleware(1, 'day'), getHowToPageHandler());
 
-router.post('/login', csrfMiddleware, postLoginHandler.validator, postLoginHandler.handler());
-router.get('/auth/magic/:token', getMagicLinkHandler());
 router.get('/logout', getLogoutHandler());
+router.get('/auth/magic/:token', getMagicLinkHandler());
 router.post('/search', csrfMiddleware, postSearchHandler(search));
+router.post('/login', csrfMiddleware, postLoginHandler.validator, postLoginHandler.handler());
 
 router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
 router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
