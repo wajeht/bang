@@ -17,6 +17,7 @@ import { Api, User, PageType, ApiKeyPayload, BookmarkToExport, MagicLinkPayload 
 export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
 export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
 export const sendNotificationQueue = fastq.promise(sendNotification, 10);
+export const sendMagicLinkEmailQueue = fastq.promise(sendMagicLinkEmail, 10);
 
 export async function insertBookmark({
     url,
@@ -443,7 +444,15 @@ const emailTransporter = nodemailer.createTransport({
             : undefined,
 });
 
-export async function sendMagicLinkEmail(email: string, token: string, req: Request) {
+export async function sendMagicLinkEmail({
+    email,
+    token,
+    req,
+}: {
+    email: string;
+    token: string;
+    req: Request;
+}) {
     const magicLink = `${req.protocol}://${req.get('host')}/auth/magic/${token}`;
 
     const mailOptions = {
@@ -467,6 +476,5 @@ https://github.com/wajeht/bang`,
         logger.info(`Magic link sent to ${email}`);
     } catch (error) {
         logger.error('Failed to send magic link email:', error);
-        throw new HttpError(500, 'Failed to send magic link email', req);
     }
 }

@@ -14,7 +14,7 @@ import {
     expectJson,
     isApiRequest,
     extractPagination,
-    sendMagicLinkEmail,
+    sendMagicLinkEmailQueue,
     isOnlyLettersAndNumbers,
     getConvertedReadmeMDToHTML,
     insertBookmarkQueue as InsertBookmarkQueue,
@@ -1530,7 +1530,7 @@ export const postLoginHandler = {
 
             const token = magicLink.generate({ email });
 
-            await sendMagicLinkEmail(email, token, req);
+            void sendMagicLinkEmailQueue.push({ email, token, req });
 
             req.flash(
                 'success',
