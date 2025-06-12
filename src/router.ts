@@ -64,22 +64,22 @@ import { actions, bookmarks, notes } from './repository';
 
 const router = express.Router();
 
-router.get('/healthz', getHealthzHandler(db));
-router.get('/privacy-policy', getPrivacyPolicyPageHandler());
-router.get('/terms-of-service', getTermsOfServicePageHandler());
+router.get('/healthz', csrfMiddleware, getHealthzHandler(db));
 router.get('/', csrfMiddleware, getHomePageAndSearchHandler(search));
-router.get('/how-to', cacheMiddleware(1, 'day'), getHowToPageHandler());
+router.get('/privacy-policy', csrfMiddleware, getPrivacyPolicyPageHandler());
+router.get('/terms-of-service', csrfMiddleware, getTermsOfServicePageHandler());
+router.get('/how-to', cacheMiddleware(1, 'day'), csrfMiddleware, getHowToPageHandler());
 
-router.get('/logout', getLogoutHandler());
-router.get('/auth/magic/:token', getMagicLinkHandler());
+router.get('/logout', csrfMiddleware, getLogoutHandler());
 router.post('/search', csrfMiddleware, postSearchHandler(search));
+router.get('/auth/magic/:token', csrfMiddleware, getMagicLinkHandler());
 router.post('/login', csrfMiddleware, postLoginHandler.validator, postLoginHandler.handler());
 
 router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
 router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
 router.post('/admin/users/:id/delete', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, postDeleteAdminUserHandler(db)); // prettier-ignore
 
-router.get('/settings', authenticationMiddleware, getSettingsPageHandler());
+router.get('/settings', authenticationMiddleware, csrfMiddleware, getSettingsPageHandler());
 router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler()); // prettier-ignore
 router.get('/settings/account', authenticationMiddleware, csrfMiddleware, getSettingsAccountPageHandler()); // prettier-ignore
 router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler()); // prettier-ignore
