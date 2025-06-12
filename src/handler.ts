@@ -24,10 +24,10 @@ import { db } from './db/db';
 import { marked } from 'marked';
 import { logger } from './logger';
 import { appConfig } from './config';
-import { body } from 'express-validator';
-import { Request, Response } from 'express';
 import { validateRequestMiddleware } from './middleware';
 import { actions, bookmarks, notes } from './repository';
+import { body, validationResult } from 'express-validator';
+import { Request, Response, NextFunction } from 'express';
 import { actionTypes, defaultSearchProviders } from './constant';
 import { HttpError, NotFoundError, ValidationError } from './error';
 
@@ -1485,9 +1485,32 @@ export function getAdminUsersHandler(db: Knex) {
 
 // POST /login - Send magic link
 export const postLoginHandler = {
-    validator: validateRequestMiddleware([
-        body('email').isEmail().withMessage('Please enter a valid email address').normalizeEmail(),
-    ]),
+    validator: async (req: Request, res: Response, next: NextFunction) => {
+        await body('email')
+            .isEmail()
+            .withMessage('Please enter a valid email address')
+            .normalizeEmail()
+            .run(req);
+
+        const result = validationResult(req) as any;
+
+        req.session.input = req.body;
+
+        if (result.isEmpty()) {
+            delete req.session.errors;
+            return next();
+        }
+
+        const { errors } = result;
+        const reshapedErrors: { [key: string]: string } = {};
+        for (const error of errors) {
+            reshapedErrors[error.path] = error.msg;
+        }
+
+        req.session.errors = reshapedErrors;
+
+        return res.redirect('/?login=true');
+    },
     handler: function () {
         return async (req: Request, res: Response) => {
             const { email } = req.body;
