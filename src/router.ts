@@ -50,12 +50,7 @@ import {
     postDeleteSettingsDangerZoneHandler,
 } from './handler';
 
-import {
-    csrfMiddleware,
-    cacheMiddleware,
-    adminOnlyMiddleware,
-    authenticationMiddleware,
-} from './middleware';
+import { cacheMiddleware, adminOnlyMiddleware, authenticationMiddleware } from './middleware';
 
 import { db } from './db/db';
 import { search } from './search';
@@ -64,55 +59,55 @@ import { actions, bookmarks, notes } from './repository';
 
 const router = express.Router();
 
-router.get('/healthz', csrfMiddleware, getHealthzHandler(db));
-router.get('/', csrfMiddleware, getHomePageAndSearchHandler(search));
-router.get('/privacy-policy', csrfMiddleware, getPrivacyPolicyPageHandler());
-router.get('/terms-of-service', csrfMiddleware, getTermsOfServicePageHandler());
-router.get('/how-to', cacheMiddleware(1, 'day'), csrfMiddleware, getHowToPageHandler());
+router.get('/healthz', getHealthzHandler(db));
+router.get('/', getHomePageAndSearchHandler(search));
+router.get('/privacy-policy', getPrivacyPolicyPageHandler());
+router.get('/terms-of-service', getTermsOfServicePageHandler());
+router.get('/how-to', cacheMiddleware(1, 'day'), getHowToPageHandler());
 
-router.get('/logout', csrfMiddleware, getLogoutHandler());
-router.post('/search', csrfMiddleware, postSearchHandler(search));
-router.get('/auth/magic/:token', csrfMiddleware, getMagicLinkHandler());
-router.post('/login', csrfMiddleware, postLoginHandler.validator, postLoginHandler.handler());
+router.get('/logout', getLogoutHandler());
+router.post('/search', postSearchHandler(search));
+router.get('/auth/magic/:token', getMagicLinkHandler());
+router.post('/login', postLoginHandler.validator, postLoginHandler.handler());
 
-router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
-router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
-router.post('/admin/users/:id/delete', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, postDeleteAdminUserHandler(db)); // prettier-ignore
+router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, getAdminUsersHandler(db));
+router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, getAdminUsersHandler(db)); // prettier-ignore
+router.post('/admin/users/:id/delete', authenticationMiddleware, adminOnlyMiddleware, postDeleteAdminUserHandler(db)); // prettier-ignore
 
-router.get('/settings', authenticationMiddleware, csrfMiddleware, getSettingsPageHandler());
-router.get('/settings/data', authenticationMiddleware, csrfMiddleware, getSettingsDataPageHandler()); // prettier-ignore
-router.get('/settings/account', authenticationMiddleware, csrfMiddleware, getSettingsAccountPageHandler()); // prettier-ignore
-router.get('/settings/danger-zone', authenticationMiddleware, csrfMiddleware, getSettingsDangerZonePageHandler()); // prettier-ignore
-router.post('/settings/create-api-key', authenticationMiddleware, csrfMiddleware, postSettingsCreateApiKeyHandler(db, api)); // prettier-ignore
-router.post('/settings/danger-zone/delete', authenticationMiddleware, csrfMiddleware, postDeleteSettingsDangerZoneHandler(db)); // prettier-ignore
-router.post('/settings/data/export', authenticationMiddleware, csrfMiddleware, postExportDataHandler.validator, postExportDataHandler.handler(db, logger)); // prettier-ignore
-router.post('/settings/data/import', authenticationMiddleware, csrfMiddleware, postImportDataHandler.validator, postImportDataHandler.handler(db)); // prettier-ignore
-router.post('/settings/account', authenticationMiddleware, csrfMiddleware, postSettingsAccountHandler.validator, postSettingsAccountHandler.handler(db)); // prettier-ignore
-router.post('/settings/display', authenticationMiddleware, csrfMiddleware, postSettingsDisplayHandler.validator, postSettingsDisplayHandler.handler(db)); // prettier-ignore
+router.get('/settings', authenticationMiddleware, getSettingsPageHandler());
+router.get('/settings/data', authenticationMiddleware, getSettingsDataPageHandler());
+router.get('/settings/account', authenticationMiddleware, getSettingsAccountPageHandler());
+router.get('/settings/danger-zone', authenticationMiddleware, getSettingsDangerZonePageHandler());
+router.post('/settings/create-api-key', authenticationMiddleware, postSettingsCreateApiKeyHandler(db, api)); // prettier-ignore
+router.post('/settings/danger-zone/delete', authenticationMiddleware, postDeleteSettingsDangerZoneHandler(db)); // prettier-ignore
+router.post('/settings/data/export', authenticationMiddleware, postExportDataHandler.validator, postExportDataHandler.handler(db, logger)); // prettier-ignore
+router.post('/settings/data/import', authenticationMiddleware, postImportDataHandler.validator, postImportDataHandler.handler(db)); // prettier-ignore
+router.post('/settings/account', authenticationMiddleware, postSettingsAccountHandler.validator, postSettingsAccountHandler.handler(db)); // prettier-ignore
+router.post('/settings/display', authenticationMiddleware, postSettingsDisplayHandler.validator, postSettingsDisplayHandler.handler(db)); // prettier-ignore
 
-router.get('/actions', authenticationMiddleware, csrfMiddleware, getActionsHandler(actions));
-router.get('/actions/create', authenticationMiddleware, csrfMiddleware, getActionCreatePageHandler()); // prettier-ignore
-router.get('/actions/:id/edit', authenticationMiddleware, csrfMiddleware, getEditActionPageHandler(db)); // prettier-ignore
-router.post('/actions/:id/delete', authenticationMiddleware, csrfMiddleware, deleteActionHandler(actions)); // prettier-ignore
-router.post('/actions', authenticationMiddleware, csrfMiddleware, postActionHandler.validator, postActionHandler.handler(actions)); // prettier-ignore
-router.post('/actions/:id/update', authenticationMiddleware, csrfMiddleware, updateActionHandler.validator, updateActionHandler.handler(actions)); // prettier-ignore
+router.get('/actions', authenticationMiddleware, getActionsHandler(actions));
+router.get('/actions/create', authenticationMiddleware, getActionCreatePageHandler());
+router.get('/actions/:id/edit', authenticationMiddleware, getEditActionPageHandler(db));
+router.post('/actions/:id/delete', authenticationMiddleware, deleteActionHandler(actions));
+router.post('/actions', authenticationMiddleware, postActionHandler.validator, postActionHandler.handler(actions)); // prettier-ignore
+router.post('/actions/:id/update', authenticationMiddleware, updateActionHandler.validator, updateActionHandler.handler(actions)); // prettier-ignore
 
 router.get('/bookmarks/export', authenticationMiddleware, getExportBookmarksHandler(db));
-router.get('/bookmarks', authenticationMiddleware, csrfMiddleware, getBookmarksHandler(bookmarks));
-router.get('/bookmarks/create', authenticationMiddleware, csrfMiddleware, getBookmarkCreatePageHandler()); // prettier-ignore
-router.post('/bookmarks/:id/delete', authenticationMiddleware, csrfMiddleware, deleteBookmarkHandler(bookmarks)); // prettier-ignore
-router.get('/bookmarks/:id/edit', authenticationMiddleware, csrfMiddleware,  getEditBookmarkPageHandler(bookmarks)); // prettier-ignore
-router.get('/bookmarks/:id/actions/create', authenticationMiddleware, csrfMiddleware, getBookmarkActionCreatePageHandler(db)); // prettier-ignore
-router.post('/bookmarks', authenticationMiddleware, csrfMiddleware, postBookmarkHandler.validator, postBookmarkHandler.handler(insertBookmarkQueue)); // prettier-ignore
-router.post('/bookmarks/:id/update', authenticationMiddleware, csrfMiddleware, updateBookmarkHandler.validator, updateBookmarkHandler.handler(bookmarks)); // prettier-ignore
+router.get('/bookmarks', authenticationMiddleware, getBookmarksHandler(bookmarks));
+router.get('/bookmarks/create', authenticationMiddleware, getBookmarkCreatePageHandler());
+router.post('/bookmarks/:id/delete', authenticationMiddleware, deleteBookmarkHandler(bookmarks));
+router.get('/bookmarks/:id/edit', authenticationMiddleware, getEditBookmarkPageHandler(bookmarks));
+router.get('/bookmarks/:id/actions/create', authenticationMiddleware, getBookmarkActionCreatePageHandler(db)); // prettier-ignore
+router.post('/bookmarks', authenticationMiddleware, postBookmarkHandler.validator, postBookmarkHandler.handler(insertBookmarkQueue)); // prettier-ignore
+router.post('/bookmarks/:id/update', authenticationMiddleware, updateBookmarkHandler.validator, updateBookmarkHandler.handler(bookmarks)); // prettier-ignore
 
-router.get('/notes', authenticationMiddleware, csrfMiddleware, getNotesHandler(notes));
-router.get('/notes/create', authenticationMiddleware, csrfMiddleware, getNoteCreatePageHandler());
-router.post('/notes/:id/delete', authenticationMiddleware, csrfMiddleware, deleteNoteHandler(notes)); // prettier-ignore
-router.get('/notes/:id/edit', authenticationMiddleware, csrfMiddleware, getEditNotePageHandler(notes)); // prettier-ignore
-router.get('/notes/:id', authenticationMiddleware, csrfMiddleware, getNoteHandler(notes, marked, logger)); // prettier-ignore
-router.post('/notes', authenticationMiddleware, csrfMiddleware, postNoteHandler.validator, postNoteHandler.handler(notes)); // prettier-ignore
-router.post('/notes/:id/update', authenticationMiddleware, csrfMiddleware, updateNoteHandler.validator, updateNoteHandler.handler(notes)); // prettier-ignore
+router.get('/notes', authenticationMiddleware, getNotesHandler(notes));
+router.get('/notes/create', authenticationMiddleware, getNoteCreatePageHandler());
+router.post('/notes/:id/delete', authenticationMiddleware, deleteNoteHandler(notes));
+router.get('/notes/:id/edit', authenticationMiddleware, getEditNotePageHandler(notes));
+router.get('/notes/:id', authenticationMiddleware, getNoteHandler(notes, marked, logger));
+router.post('/notes', authenticationMiddleware, postNoteHandler.validator, postNoteHandler.handler(notes)); // prettier-ignore
+router.post('/notes/:id/update', authenticationMiddleware, updateNoteHandler.validator, updateNoteHandler.handler(notes)); // prettier-ignore
 
 /**
  * @swagger

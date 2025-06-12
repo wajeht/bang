@@ -80,6 +80,11 @@ export function errorMiddleware() {
             return;
         }
 
+        // Ensure locals are set up for error pages
+        if (!res.locals.state) {
+            setupAppLocals(req, res);
+        }
+
         return res.status(statusCode).render('error.html', {
             path: req.path,
             title: 'Error',
@@ -192,6 +197,34 @@ export function validateRequestMiddleware(schemas: any) {
     };
 }
 
+export function setupAppLocals(req: Request, res: Response) {
+    const isProd = appConfig.env === 'production';
+    const randomNumber = Math.random();
+
+    res.locals.state = {
+        env: appConfig.env,
+        user: req.user ?? req.session?.user,
+        copyRightYear: new Date().getFullYear(),
+        input: req.session?.input || {},
+        errors: req.session?.errors || {},
+        flash: {
+            success: req.flash ? req.flash('success') : [],
+            error: req.flash ? req.flash('error') : [],
+            info: req.flash ? req.flash('info') : [],
+            warning: req.flash ? req.flash('warning') : [],
+        },
+        version: {
+            style: isProd ? '0.18' : randomNumber,
+            script: isProd ? '0.11' : randomNumber,
+        },
+    };
+
+    res.locals.utils = {
+        highlightSearchTerm,
+        nl2br,
+    };
+}
+
 export const csrfMiddleware = (() => {
     const { csrfSynchronisedProtection } = csrfSync({
         getTokenFromRequest: (req: Request) => req.body.csrfToken || req.query.csrfToken,
@@ -209,32 +242,7 @@ export const csrfMiddleware = (() => {
 
 export async function appLocalStateMiddleware(req: Request, res: Response, next: NextFunction) {
     try {
-        const isProd = appConfig.env === 'production';
-        const randomNumber = Math.random();
-
-        res.locals.state = {
-            env: appConfig.env,
-            user: req.user ?? req.session.user,
-            copyRightYear: new Date().getFullYear(),
-            input: req.session?.input || {},
-            errors: req.session?.errors || {},
-            flash: {
-                success: req.flash('success'),
-                error: req.flash('error'),
-                info: req.flash('info'),
-                warning: req.flash('warning'),
-            },
-            version: {
-                style: isProd ? '0.18' : randomNumber,
-                script: isProd ? '0.11' : randomNumber,
-            },
-        };
-
-        // utility functions for frontend
-        res.locals.utils = {
-            highlightSearchTerm,
-            nl2br,
-        };
+        setupAppLocals(req, res);
 
         // Clear session input and errors after setting locals
         // This ensures they're available for the current request only

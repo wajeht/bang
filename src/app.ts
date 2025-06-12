@@ -1,4 +1,5 @@
 import {
+    csrfMiddleware,
     errorMiddleware,
     helmetMiddleware,
     sessionMiddleware,
@@ -34,6 +35,7 @@ const app = express()
     .set('views', './src/views/pages')
     .set('layout', '../layouts/public.html')
     .use(expressLayouts)
+    .use(...csrfMiddleware)
     .use(appLocalStateMiddleware);
 
 if (appConfig.env === 'development') {

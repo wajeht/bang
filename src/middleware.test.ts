@@ -18,6 +18,8 @@ vi.mock('./util', () => ({
     sendNotificationQueue: {
         push: vi.fn(),
     },
+    highlightSearchTerm: vi.fn((text, term) => text),
+    nl2br: vi.fn((text) => text),
 }));
 
 vi.mock('./logger', () => ({
@@ -335,11 +337,22 @@ describe('errorMiddleware', () => {
             headers: {},
             body: {},
             query: {},
+            session: {
+                destroy: vi.fn((callback) => callback(null)),
+                save: vi.fn(),
+                regenerate: vi.fn(),
+                reload: vi.fn(),
+                touch: vi.fn(),
+                id: 'test-session-id',
+                cookie: { maxAge: 30000 },
+            } as unknown as Session,
+            flash: vi.fn().mockReturnValue([]),
         };
         res = {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
+            locals: {},
         };
         next = vi.fn();
     });
@@ -368,6 +381,7 @@ describe('errorMiddleware', () => {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
+            locals: {},
         };
 
         const validationError = new ValidationError('Invalid input');
@@ -391,6 +405,7 @@ describe('errorMiddleware', () => {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
+            locals: {},
         };
 
         const unauthorizedError = new UnauthorizedError('Unauthorized access');
@@ -414,6 +429,7 @@ describe('errorMiddleware', () => {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
+            locals: {},
         };
 
         const forbiddenError = new ForbiddenError('Forbidden access');
@@ -437,6 +453,7 @@ describe('errorMiddleware', () => {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
+            locals: {},
         };
 
         const regularError = new Error('Something went wrong');
@@ -480,6 +497,7 @@ describe('errorMiddleware', () => {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
+            locals: {},
         };
 
         const validationError = new ValidationError('{"fields":{"name":"Required"}}');
