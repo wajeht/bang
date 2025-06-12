@@ -47,9 +47,9 @@
     <%- include('../components/footer.html') %>
 
     <% if (!state.user) { %>
-      <dialog id="login-dialog">
-        <h2>🪄 Magic Link Login</h2>
-        <p>Enter your email address and we'll send you a magic link to log in. No passwords needed!</p>
+      <dialog id="login-dialog" style="width: 450px;">
+        <h2>🔑 Login</h2>
+        <p>Enter your email address and we'll send you a magic link to log in.</p>
 
         <form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
@@ -61,15 +61,19 @@
               id="email-input"
               name="email"
               placeholder="your@email.com"
+              value="<%= state.input.email || '' %>"
               required
               autofocus
               style="padding: 10px; border: 1px solid var(--border-color); border-radius: 5px;"
             />
+            <% if (state.errors.email) { %>
+              <small style="color: red;"><%= state.errors.email %></small>
+            <% } %>
           </div>
 
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
             <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-            <button type="submit">📧 Send Magic Link</button>
+            <button type="submit">🚀 Send</button>
           </div>
         </form>
       </dialog>
