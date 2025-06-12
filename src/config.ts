@@ -13,13 +13,13 @@ export const appConfig = {
     apiKeySecret: process.env.APP_API_KEY_SECRET || 'bang',
 } as const;
 
-export const oauthConfig = {
-    github: {
-        redirect_uri: process.env.GITHUB_REDIRECT_URI || 'http://localhost/oauth/github/redirect',
-        client_id: process.env.GITHUB_CLIENT_ID || '',
-        client_secret: process.env.GITHUB_CLIENT_SECRET || '',
-        root_url: 'https://github.com/login/oauth/authorize',
-    },
+export const emailConfig = {
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT || '587', 10),
+    secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
+    user: process.env.EMAIL_USER || '',
+    password: process.env.EMAIL_PASSWORD || '',
+    from: process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@localhost',
 } as const;
 
 export const sessionConfig = {

@@ -1,78 +1,22 @@
-import {
-    Api,
-    User,
-    GitHub,
-    PageType,
-    ApiKeyPayload,
-    GithubUserEmail,
-    BookmarkToExport,
-    GitHubOauthToken,
-} from './type';
-import qs from 'qs';
 import fastq from 'fastq';
 import { db } from './db/db';
 import http from 'node:http';
 import path from 'node:path';
-import { marked } from 'marked';
 import https from 'node:https';
 import jwt from 'jsonwebtoken';
+import { marked } from 'marked';
+import { logger } from './logger';
 import fs from 'node:fs/promises';
 import { Request } from 'express';
-import { logger } from './logger';
+import nodemailer from 'nodemailer';
 import { HttpError } from './error';
 import { bookmarks } from './repository';
-import { appConfig, notifyConfig, oauthConfig } from './config';
+import { appConfig, notifyConfig, emailConfig } from './config';
+import { Api, User, PageType, ApiKeyPayload, BookmarkToExport, MagicLinkPayload } from './type';
 
 export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
 export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
 export const sendNotificationQueue = fastq.promise(sendNotification, 10);
-
-export const github: GitHub = {
-    getOauthToken: async function (code: string, req?: Request): Promise<GitHubOauthToken> {
-        const rootUrl = 'https://github.com/login/oauth/access_token';
-
-        const options = {
-            client_id: oauthConfig.github.client_id,
-            client_secret: oauthConfig.github.client_secret,
-            code,
-        };
-
-        const queryString = qs.stringify(options);
-
-        const response = await fetch(`${rootUrl}?${queryString}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        });
-
-        if (!response.ok) {
-            logger.error('[getUserEmails]: Failed to fetch GitHub OAuth tokens');
-            throw new HttpError(500, 'Failed to fetch GitHub OAuth tokens', req);
-        }
-
-        const data = await response.text();
-        return qs.parse(data) as GitHubOauthToken;
-    },
-
-    getUserEmails: async function (
-        access_token: string,
-        req?: Request,
-    ): Promise<GithubUserEmail[]> {
-        const response = await fetch('https://api.github.com/user/emails', {
-            headers: {
-                Authorization: `Bearer ${access_token}`,
-            },
-        });
-
-        if (!response.ok) {
-            logger.error('[getUserEmails]: Failed to fetch GitHub user emails');
-            throw new HttpError(500, 'Failed to fetch GitHub user emails', req);
-        }
-
-        return (await response.json()) as GithubUserEmail[];
-    },
-};
 
 export async function insertBookmark({
     url,
@@ -321,6 +265,20 @@ export const api: Api = {
     },
 };
 
+export const magicLink = {
+    generate: function (payload: MagicLinkPayload): string {
+        return jwt.sign(payload, appConfig.secretSalt, { expiresIn: '15m' });
+    },
+    verify: function (token: string): MagicLinkPayload | null {
+        try {
+            return jwt.verify(token, appConfig.secretSalt) as MagicLinkPayload;
+        } catch (error) {
+            logger.error(`[MagicLink#verify]: failed to verify magic link token: %o`, error);
+            return null;
+        }
+    },
+};
+
 export function getApiKey(req: Request): string | undefined {
     const apiKey = req.header('X-API-KEY');
     const authHeader = req.header('Authorization');
@@ -470,4 +428,61 @@ export async function getConvertedReadmeMDToHTML(): Promise<string> {
         cachedReadMeMdHTML = Promise.resolve(marked(usage));
     }
     return cachedReadMeMdHTML;
+}
+
+const emailTransporter = nodemailer.createTransport({
+    host: emailConfig.host,
+    port: emailConfig.port,
+    secure: emailConfig.secure,
+    auth:
+        emailConfig.user && emailConfig.password
+            ? {
+                  user: emailConfig.user,
+                  pass: emailConfig.password,
+              }
+            : undefined,
+});
+
+export async function sendMagicLinkEmail(email: string, token: string, req: Request) {
+    const magicLink = `${req.protocol}://${req.get('host')}/auth/magic/${token}`;
+
+    const mailOptions = {
+        from: emailConfig.from,
+        to: email,
+        subject: '🔗 Your Bang Magic Link',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h1 style="color: #333;">🔗 Your Bang Magic Link</h1>
+                <p>Click the link below to log in to your Bang account:</p>
+                <div style="margin: 30px 0;">
+                    <a href="${magicLink}"
+                       style="background: #007cba; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                        🚀 Log In to Bang
+                    </a>
+                </div>
+                <p style="color: #666; font-size: 14px;">
+                    This link will expire in 15 minutes. If you didn't request this, you can safely ignore this email.
+                </p>
+                <p style="color: #666; font-size: 12px;">
+                    Or copy and paste this URL: <br>
+                    <code style="background: #f5f5f5; padding: 4px; border-radius: 3px;">${magicLink}</code>
+                </p>
+            </div>
+        `,
+        text: `
+Your Bang Magic Link
+
+Click this link to log in: ${magicLink}
+
+This link will expire in 15 minutes. If you didn't request this, you can safely ignore this email.
+        `.trim(),
+    };
+
+    try {
+        await emailTransporter.sendMail(mailOptions);
+        logger.info(`Magic link sent to ${email}`);
+    } catch (error) {
+        logger.error('Failed to send magic link email:', error);
+        throw new HttpError(500, 'Failed to send magic link email', req);
+    }
 }

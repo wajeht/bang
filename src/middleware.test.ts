@@ -171,7 +171,7 @@ describe('authenticationMiddleware', () => {
 
         expect(req.session!.destroy).toHaveBeenCalled();
 
-        expect(res.redirect).toHaveBeenCalledWith('/login');
+        expect(res.redirect).toHaveBeenCalledWith('/?login=true');
 
         expect(next).not.toHaveBeenCalled();
     });
@@ -227,7 +227,7 @@ describe('authenticationMiddleware', () => {
 
         await authenticationMiddleware(req as Request, res as Response, next);
 
-        expect(res.redirect).toHaveBeenCalledWith('/login');
+        expect(res.redirect).toHaveBeenCalledWith('/?login=true');
 
         expect(req.session!.redirectTo).toBe('/dashboard');
         expect(req.session!.save).toHaveBeenCalled();

@@ -4,8 +4,6 @@ import { logger } from './logger';
 
 import {
     getNoteHandler,
-    getLoginHandler,
-    getGithubHandler,
     getLogoutHandler,
     getNotesHandler,
     postNoteHandler,
@@ -30,7 +28,6 @@ import {
     getCollectionsHandler,
     getSettingsPageHandler,
     getEditNotePageHandler,
-    getGithubRedirectHandler,
     getNoteCreatePageHandler,
     getEditActionPageHandler,
     getExportBookmarksHandler,
@@ -49,6 +46,8 @@ import {
     getSettingsDangerZonePageHandler,
     getBookmarkActionCreatePageHandler,
     postDeleteSettingsDangerZoneHandler,
+    postLoginHandler,
+    getMagicLinkHandler,
 } from './handler';
 
 import {
@@ -60,7 +59,7 @@ import {
 
 import { db } from './db/db';
 import { search } from './search';
-import { api, github, insertBookmarkQueue } from './util';
+import { api, insertBookmarkQueue } from './util';
 import { actions, bookmarks, notes } from './repository';
 
 const router = express.Router();
@@ -71,11 +70,10 @@ router.get('/terms-of-service', getTermsOfServicePageHandler());
 router.get('/', csrfMiddleware, getHomePageAndSearchHandler(search));
 router.get('/how-to', cacheMiddleware(1, 'day'), getHowToPageHandler());
 
-router.get('/login', getLoginHandler());
+router.post('/login', csrfMiddleware, postLoginHandler.validator, postLoginHandler.handler());
+router.get('/auth/magic/:token', getMagicLinkHandler());
 router.get('/logout', getLogoutHandler());
-router.get('/oauth/github', getGithubHandler());
 router.post('/search', csrfMiddleware, postSearchHandler(search));
-router.get('/oauth/github/redirect', getGithubRedirectHandler(db, github));
 
 router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
 router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, csrfMiddleware, getAdminUsersHandler(db)); // prettier-ignore
