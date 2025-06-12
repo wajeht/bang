@@ -48,7 +48,7 @@ export function notFoundMiddleware() {
 
 export function errorMiddleware() {
     return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
-        logger.error(`${req.method} ${req.path} - ${error.message}`, error);
+        logger.error(`${req.method} ${req.path} - ${error.message}`, { error });
 
         if (!(error instanceof HttpError)) {
             error = new HttpError(500, error.message, req);
@@ -71,7 +71,7 @@ export function errorMiddleware() {
                 try {
                     responsePayload.details = JSON.parse(message);
                 } catch (parseError) {
-                    logger.error('Failed to parse error message as JSON: %o', parseError);
+                    logger.error(`Failed to parse error message as JSON: %o`, parseError);
                     responsePayload.details = message;
                 }
             }
@@ -269,7 +269,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
             if (!user) {
                 req.session.destroy((err) => {
                     if (err) {
-                        logger.error('Session destruction error: %o', err);
+                        logger.error(`Session destruction error: %o`, { err });
                     }
                 });
             }
@@ -309,7 +309,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 
         next();
     } catch (error) {
-        logger.error('Authentication error: %o', error);
+        logger.error(`Authentication error: %o`, error);
         next(error);
     }
 }
