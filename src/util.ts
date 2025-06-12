@@ -475,6 +475,6 @@ https://github.com/wajeht/bang`,
         await emailTransporter.sendMail(mailOptions);
         logger.info(`Magic link sent to ${email}`);
     } catch (error) {
-        logger.error('Failed to send magic link email:', error);
+        logger.error(`Failed to send magic link email: %o`, error);
     }
 }
