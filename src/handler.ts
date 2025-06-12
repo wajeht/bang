@@ -1483,7 +1483,7 @@ export function getAdminUsersHandler(db: Knex) {
     };
 }
 
-// POST /login - Send magic link
+// POST /login
 export const postLoginHandler = {
     validator: async (req: Request, res: Response, next: NextFunction) => {
         await body('email')
@@ -1541,7 +1541,7 @@ export const postLoginHandler = {
     },
 };
 
-// GET /auth/magic/:token - Verify magic link and log in
+// GET /auth/magic/:token
 export function getMagicLinkHandler() {
     return async (req: Request, res: Response) => {
         const { token } = req.params;
@@ -1550,7 +1550,7 @@ export function getMagicLinkHandler() {
 
         if (!decoded || !decoded.email) {
             req.flash('error', 'Magic link has expired or is invalid. Please request a new one.');
-            return res.redirect('/');
+            return res.redirect('/?login=true');
         }
 
         const user = await db('users').where({ email: decoded.email }).first();
