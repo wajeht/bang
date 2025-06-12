@@ -68,7 +68,7 @@ export async function insertPageTitle({
                 .where({ id: bookmarkId })
                 .update({ title, updated_at: db.fn.now() });
         } catch (error) {
-            logger.error(`[insertPageTitle]: error updating bookmark title, %o`, error);
+            logger.error(`[insertPageTitle]: error updating bookmark title, %o`, { error });
         }
     }
 
@@ -78,7 +78,7 @@ export async function insertPageTitle({
                 .where({ id: actionId })
                 .update({ name: title, updated_at: db.fn.now() });
         } catch (error) {
-            logger.error(`[insertPageTitle]: error updating bangs name, %o`, error);
+            logger.error(`[insertPageTitle]: error updating bangs name, %o`, { error });
         }
     }
 }
@@ -162,7 +162,7 @@ export function isValidUrl(url: string): boolean {
         new URL(url);
         return true;
     } catch (error) {
-        logger.error(`[isValidUrl]: Not a valid url, %o`, error);
+        logger.error(`[isValidUrl]: Not a valid url, %o`, { error });
         return false;
     }
 }
@@ -233,7 +233,7 @@ export async function sendNotification({
             );
         }
     } catch (error) {
-        logger.error(`[sendNotification]: failed to send error notification: %o`, error);
+        logger.error(`[sendNotification]: failed to send error notification: %o`, { error });
     }
 }
 
@@ -260,7 +260,7 @@ export const api: Api = {
 
             return decodedApiKeyPayload;
         } catch (error) {
-            logger.error(`[Api#verify]: failed to verify api key: %o`, error);
+            logger.error(`[Api#verify]: failed to verify api key: %o`, { error });
             return null;
         }
     },
@@ -274,7 +274,7 @@ export const magicLink = {
         try {
             return jwt.verify(token, appConfig.secretSalt) as MagicLinkPayload;
         } catch (error) {
-            logger.error(`[MagicLink#verify]: failed to verify magic link token: %o`, error);
+            logger.error(`[MagicLink#verify]: failed to verify magic link token: %o`, { error });
             return null;
         }
     },
@@ -475,6 +475,6 @@ https://github.com/wajeht/bang`,
         await emailTransporter.sendMail(mailOptions);
         logger.info(`Magic link sent to ${email}`);
     } catch (error) {
-        logger.error(`Failed to send magic link email: %o`, error);
+        logger.error(`Failed to send magic link email: %o`, { error });
     }
 }
