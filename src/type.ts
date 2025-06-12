@@ -34,9 +34,9 @@ export type ActionTypes = 'bookmark' | 'redirect' | 'search';
 
 export type ApiKeyPayload = { userId: number; apiKeyVersion: number };
 
-export type Env = 'production' | 'development' | 'testing';
+export type MagicLinkPayload = { email: string; exp?: number };
 
-export type GitHubOauthToken = { access_token: string };
+export type Env = 'production' | 'development' | 'testing';
 
 export interface Api {
     generate: (payload: ApiKeyPayload) => Promise<string>;
@@ -97,20 +97,6 @@ export type User = {
     created_at: string;
     updated_at: string;
     column_preferences: ColumnPreferences;
-};
-
-export interface GitHubUser {
-    login: string;
-    avatar_url: string;
-    name: string;
-    email: string;
-}
-
-export type GithubUserEmail = {
-    email: string;
-    primary: boolean;
-    verified: boolean;
-    visibility: string | null;
 };
 
 export type BookmarkToExport = {
@@ -179,11 +165,6 @@ export type Search = (options: {
     query: string;
     req: Request;
 }) => Promise<void | Response>;
-
-export interface GitHub {
-    getOauthToken: (code: string, req?: Request) => Promise<GitHubOauthToken>;
-    getUserEmails: (access_token: string, req?: Request) => Promise<GithubUserEmail[]>;
-}
 
 export type Pagination = {
     total: number;

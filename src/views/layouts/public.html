@@ -33,7 +33,7 @@
         </details>
       <% } else { %>
         <div style="position: absolute; right: 0; margin-right: 3rem;">
-          <a href="/login">🔑 Login</a>
+          <a href="#" onclick="document.getElementById('login-dialog').showModal(); return false;">🔑 Login</a>
         </div>
       <% } %>
     </div>
@@ -45,6 +45,48 @@
     </main>
 
     <%- include('../components/footer.html') %>
+
+    <% if (!state.user) { %>
+      <dialog id="login-dialog">
+        <h2>🪄 Magic Link Login</h2>
+        <p>Enter your email address and we'll send you a magic link to log in. No passwords needed!</p>
+
+        <form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+          <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label for="email-input">📧 Email Address</label>
+            <input
+              type="email"
+              id="email-input"
+              name="email"
+              placeholder="your@email.com"
+              required
+              autofocus
+              style="padding: 10px; border: 1px solid var(--border-color); border-radius: 5px;"
+            />
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+            <button type="submit">📧 Send Magic Link</button>
+          </div>
+        </form>
+      </dialog>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('login') === 'true') {
+            document.getElementById('login-dialog').showModal()
+            // Clean up URL
+            urlParams.delete('login');
+            const newUrl = `${window.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
+            history.replaceState({}, document.title, newUrl);
+          }
+        });
+      </script>
+    <% } %>
 
 	</body>
 

@@ -3,18 +3,18 @@ import {
     User,
     Notes,
     Search,
-    GitHub,
     Actions,
     Bookmarks,
     ApiKeyPayload,
     BookmarkToExport,
-    ColumnPreferences,
 } from './type';
 import {
     bookmark,
+    magicLink,
     expectJson,
     isApiRequest,
     extractPagination,
+    sendMagicLinkEmail,
     isOnlyLettersAndNumbers,
     getConvertedReadmeMDToHTML,
     insertBookmarkQueue as InsertBookmarkQueue,
@@ -23,13 +23,13 @@ import { Knex } from 'knex';
 import { db } from './db/db';
 import { marked } from 'marked';
 import { logger } from './logger';
+import { appConfig } from './config';
 import { body } from 'express-validator';
 import { Request, Response } from 'express';
-import { appConfig, oauthConfig } from './config';
 import { validateRequestMiddleware } from './middleware';
 import { actions, bookmarks, notes } from './repository';
 import { actionTypes, defaultSearchProviders } from './constant';
-import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
+import { HttpError, NotFoundError, ValidationError } from './error';
 
 // GET /healthz
 export function getHealthzHandler(db: Knex) {
@@ -122,98 +122,6 @@ export function getLogoutHandler() {
         }
 
         return res.redirect(`/?toast=${encodeURIComponent('✌️ see ya!')}`);
-    };
-}
-
-// GET /login
-export function getLoginHandler() {
-    return (req: Request, res: Response) => {
-        if (req.session.user) {
-            req.flash('info', "you've already been logged in!");
-            return res.redirect('/');
-        }
-
-        return res.redirect('/oauth/github');
-    };
-}
-
-// GET /oauth/github
-export function getGithubHandler() {
-    return (req: Request, res: Response) => {
-        if (req.user) {
-            req.flash('info', "you've already been logged in!");
-            return res.redirect('/');
-        }
-
-        const qs = new URLSearchParams({
-            redirect_uri: oauthConfig.github.redirect_uri,
-            client_id: oauthConfig.github.client_id,
-            scope: 'user:email',
-        });
-
-        return res.redirect(`${oauthConfig.github.root_url}?${qs.toString()}`);
-    };
-}
-
-// GET /oauth/github/redirect
-export function getGithubRedirectHandler(db: Knex, github: GitHub) {
-    return async (req: Request, res: Response) => {
-        const code = req.query.code as string;
-
-        if (!code) {
-            throw new UnauthorizedError(
-                'Something went wrong while authenticating with GitHub',
-                req,
-            );
-        }
-
-        const { access_token } = await github.getOauthToken(code, req);
-
-        const emails = await github.getUserEmails(access_token, req);
-        const email = emails.find((email: any) => email.primary && email.verified)?.email;
-
-        if (!email) {
-            throw new UnauthorizedError('No verified primary email found on GitHub account', req);
-        }
-
-        let user = await db.select('*').from('users').where({ email }).first();
-        const isNewUser = !user;
-
-        if (isNewUser) {
-            [user] = await db('users')
-                .insert({
-                    username: email.split('@')[0],
-                    email,
-                    is_admin: appConfig.adminEmail === email,
-                })
-                .returning('*');
-        }
-
-        let columnPreferences = {} as ColumnPreferences;
-        if (user.column_preferences) {
-            try {
-                columnPreferences = JSON.parse(user.column_preferences);
-            } catch {
-                columnPreferences = {} as ColumnPreferences;
-            }
-        }
-
-        const parsedUser = {
-            ...user,
-            column_preferences: columnPreferences,
-        };
-
-        req.user = parsedUser;
-        req.session.user = parsedUser;
-
-        const redirectTo = req.session.redirectTo || '/actions';
-        delete req.session.redirectTo;
-        req.session.save();
-
-        const flashMessage = isNewUser ? '✌️ Enjoy bang!' : `🙏 Welcome back, ${user.username}!`;
-
-        req.flash('success', flashMessage);
-        return res.redirect(redirectTo);
     };
 }
 
@@ -1572,5 +1480,84 @@ export function getAdminUsersHandler(db: Knex) {
             sortKey,
             direction,
         });
+    };
+}
+
+// POST /login - Send magic link
+export const postLoginHandler = {
+    validator: validateRequestMiddleware([
+        body('email').isEmail().withMessage('Please enter a valid email address').normalizeEmail(),
+    ]),
+    handler: function () {
+        return async (req: Request, res: Response) => {
+            const { email } = req.body;
+
+            let user = await db('users').where({ email }).first();
+
+            if (!user) {
+                const username = email.split('@')[0];
+                [user] = await db('users')
+                    .insert({
+                        username,
+                        email,
+                        is_admin: appConfig.adminEmail === email,
+                    })
+                    .returning('*');
+            }
+
+            const token = magicLink.generate({ email });
+
+            await sendMagicLinkEmail(email, token, req);
+
+            req.flash(
+                'success',
+                `📧 Magic link sent to ${email}! Check your email and click the link to log in.`,
+            );
+            return res.redirect('/');
+        };
+    },
+};
+
+// GET /auth/magic/:token - Verify magic link and log in
+export function getMagicLinkHandler() {
+    return async (req: Request, res: Response) => {
+        const { token } = req.params;
+
+        const decoded = magicLink.verify(token!);
+
+        if (!decoded || !decoded.email) {
+            req.flash('error', 'Magic link has expired or is invalid. Please request a new one.');
+            return res.redirect('/');
+        }
+
+        const user = await db('users').where({ email: decoded.email }).first();
+
+        if (!user) {
+            throw new NotFoundError('User not found', req);
+        }
+
+        let columnPreferences = {};
+        if (user.column_preferences) {
+            try {
+                columnPreferences = JSON.parse(user.column_preferences);
+            } catch {
+                columnPreferences = {};
+            }
+        }
+
+        const parsedUser = {
+            ...user,
+            column_preferences: columnPreferences,
+        };
+
+        req.user = parsedUser;
+        req.session.user = parsedUser;
+
+        const redirectTo = req.session.redirectTo || '/actions';
+        delete req.session.redirectTo;
+        req.session.save();
+
+        req.flash('success', `🎉 Welcome ${user.username}! You're now logged in.`);
+        return res.redirect(redirectTo);
     };
 }

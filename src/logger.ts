@@ -13,11 +13,7 @@ export const logger = pino(
         },
         timestamp: pino.stdTimeFunctions.isoTime,
         serializers: {
-            error: (error: Error) => ({
-                name: error.name,
-                message: error.message,
-                stack: error.stack,
-            }),
+            error: pino.stdSerializers.err,
         },
         base: {
             pid: process.pid,
@@ -39,6 +35,7 @@ export const logger = pino(
                 colorize: true,
                 sync: false,
                 ignore: 'hostname,pid,env',
+                messageFormat: '{msg}',
             }),
         },
     ]),

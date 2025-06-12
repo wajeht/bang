@@ -279,12 +279,12 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 
         if (!user) {
             if (isApiRequest(req)) {
-                throw new UnauthorizedError('Unauthorized', req);
+                throw new UnauthorizedError('Unauthorized - API key required', req);
             }
 
             req.session.redirectTo = req.originalUrl || req.url;
             req.session.save();
-            res.redirect('/login');
+            res.redirect('/?login=true');
             return;
         }
 
@@ -323,4 +323,42 @@ export function rateLimitMiddleware() {
         },
         skip: (_req: Request, _res: Response) => appConfig.env !== 'production',
     });
+}
+
+export async function anonymousAuthMiddleware(req: Request, res: Response, next: NextFunction) {
+    try {
+        const apiKey = getApiKey(req);
+        let user: User | null = null;
+
+        if (apiKey) {
+            const apiKeyPayload = await api.verify(apiKey);
+            if (apiKeyPayload) {
+                user = await users.read(apiKeyPayload.userId);
+            }
+        }
+
+        // If no valid API key, create anonymous user
+        if (!user) {
+            const anonymousId = `anon-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+            const [newUser] = await db('users')
+                .insert({
+                    username: anonymousId,
+                    email: `${anonymousId}@anonymous.local`,
+                    is_admin: false,
+                })
+                .returning('*');
+
+            user = {
+                ...newUser,
+                column_preferences: {},
+            } as User;
+        }
+
+        req.user = user;
+        next();
+    } catch (error) {
+        logger.error('Anonymous auth error: %o', error);
+        next(error);
+    }
 }
