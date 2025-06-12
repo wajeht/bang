@@ -450,25 +450,6 @@ export async function sendMagicLinkEmail(email: string, token: string, req: Requ
         from: emailConfig.from,
         to: email,
         subject: '🔗 Your Bang Magic Link',
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #333;">🔗 Your Bang Magic Link</h1>
-                <p>Click the link below to log in to your Bang account:</p>
-                <div style="margin: 30px 0;">
-                    <a href="${magicLink}"
-                       style="background: #007cba; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                        🚀 Log In to Bang
-                    </a>
-                </div>
-                <p style="color: #666; font-size: 14px;">
-                    This link will expire in 15 minutes. If you didn't request this, you can safely ignore this email.
-                </p>
-                <p style="color: #666; font-size: 12px;">
-                    Or copy and paste this URL: <br>
-                    <code style="background: #f5f5f5; padding: 4px; border-radius: 3px;">${magicLink}</code>
-                </p>
-            </div>
-        `,
         text: `
 Your Bang Magic Link
 
