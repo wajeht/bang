@@ -450,13 +450,16 @@ export async function sendMagicLinkEmail(email: string, token: string, req: Requ
         from: emailConfig.from,
         to: email,
         subject: '🔗 Your Bang Magic Link',
-        text: `
-Your Bang Magic Link
+        text: `Your Bang Magic Link
 
-Click this link to log in: ${magicLink}
+Click this link to log in:
+${magicLink}
 
 This link will expire in 15 minutes. If you didn't request this, you can safely ignore this email.
-        `.trim(),
+
+--
+Bang Team
+https://github.com/wajeht/bang`,
     };
 
     try {
