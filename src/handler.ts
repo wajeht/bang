@@ -1300,7 +1300,7 @@ export function getNoteHandler(notes: Notes, markdownParser: typeof marked, log:
             content = markdownParser(note.content) as string;
         } catch (_error) {
             content = '';
-            log.error('cannot parse content into markdown');
+            log.error(`cannot parse content into markdown`, { error: _error });
         }
 
         note = {
