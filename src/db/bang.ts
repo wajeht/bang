@@ -109530,6 +109530,14 @@ export const bangs: Record<string, any> = {
         c: 'News',
         sc: 'Online',
     },
+    adsb: {
+        s: 'ADS-B Exchange',
+        d: 'www.adsbexchange.com',
+        t: 'adsb',
+        u: 'https://www.adsbexchange.com/?icao={{{s}}}',
+        c: 'Research',
+        sc: 'Travel',
+    },
     androidcs: {
         s: 'Android Code Search',
         d: 'cs.android.com',
@@ -110261,6 +110269,14 @@ export const bangs: Record<string, any> = {
         u: 'https://jax.readthedocs.io/en/latest/search.html?q={{{s}}}',
         c: 'Tech',
         sc: 'Languages (python)',
+    },
+    jetphoto: {
+        s: 'JetPhotos',
+        d: 'www.jetphotos.com',
+        t: 'jetphoto',
+        u: 'https://www.jetphotos.com/photo/keyword/{{{s}}}',
+        c: 'Research',
+        sc: 'Travel',
     },
     kdebugs: {
         s: 'KDE Bugtracking System',
