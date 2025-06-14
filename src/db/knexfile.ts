@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
-import { appConfig } from '../config';
+import { config } from '../config';
 
 function _getFormattedTimestamp() {
     const now = new Date();
@@ -80,7 +80,7 @@ const knexConfig: Knex.Config = {
     },
 };
 
-if (appConfig.env === 'testing') {
+if (config.app.env === 'testing') {
     knexConfig.connection = {
         filename: ':memory:',
     };

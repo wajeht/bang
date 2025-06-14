@@ -30,8 +30,10 @@ vi.mock('./logger', () => ({
 }));
 
 vi.mock('./config', () => ({
-    appConfig: {
-        env: 'testing',
+    config: {
+        app: {
+            env: 'testing',
+        },
     },
 }));
 

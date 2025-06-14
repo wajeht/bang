@@ -11,7 +11,7 @@ import { Request } from 'express';
 import nodemailer from 'nodemailer';
 import { HttpError } from './error';
 import { bookmarks } from './repository';
-import { appConfig, notifyConfig, emailConfig } from './config';
+import { config } from './config';
 import { Api, User, PageType, ApiKeyPayload, BookmarkToExport, MagicLinkPayload } from './type';
 
 export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
@@ -239,13 +239,13 @@ export async function sendNotification({
 
 export const api: Api = {
     generate: async function (payload: ApiKeyPayload): Promise<string> {
-        return jwt.sign(payload, appConfig.apiKeySecret);
+        return jwt.sign(payload, config.app.apiKeySecret);
     },
     verify: async function (apiKey: string): Promise<ApiKeyPayload | null> {
         try {
             const decodedApiKeyPayload = jwt.verify(
                 apiKey,
-                appConfig.apiKeySecret,
+                config.app.apiKeySecret,
             ) as ApiKeyPayload;
 
             const app = await db('users')
@@ -268,11 +268,11 @@ export const api: Api = {
 
 export const magicLink = {
     generate: function (payload: MagicLinkPayload): string {
-        return jwt.sign(payload, appConfig.secretSalt, { expiresIn: '15m' });
+        return jwt.sign(payload, config.app.secretSalt, { expiresIn: '15m' });
     },
     verify: function (token: string): MagicLinkPayload | null {
         try {
-            return jwt.verify(token, appConfig.secretSalt) as MagicLinkPayload;
+            return jwt.verify(token, config.app.secretSalt) as MagicLinkPayload;
         } catch (error) {
             logger.error(`[MagicLink#verify]: failed to verify magic link token: %o`, { error });
             return null;
@@ -432,14 +432,14 @@ export async function getConvertedReadmeMDToHTML(): Promise<string> {
 }
 
 const emailTransporter = nodemailer.createTransport({
-    host: emailConfig.host,
-    port: emailConfig.port,
-    secure: emailConfig.secure,
+    host: config.email.host,
+    port: config.email.port,
+    secure: config.email.secure,
     auth:
-        emailConfig.user && emailConfig.password
+        config.email.user && config.email.password
             ? {
-                  user: emailConfig.user,
-                  pass: emailConfig.password,
+                  user: config.email.user,
+                  pass: config.email.password,
               }
             : undefined,
 });
@@ -456,7 +456,7 @@ export async function sendMagicLinkEmail({
     const magicLink = `${req.protocol}://${req.get('host')}/auth/magic/${token}`;
 
     const mailOptions = {
-        from: emailConfig.from,
+        from: config.email.from,
         to: email,
         subject: '🔗 Your Bang Magic Link',
         text: `Your Bang Magic Link
