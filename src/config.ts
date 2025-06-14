@@ -4,7 +4,7 @@ import { Env } from './type';
 
 dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')) });
 
-export const appConfig = {
+export const app = {
     port: parseInt(process.env.APP_PORT || '80', 10),
     env: (process.env.APP_ENV as Env) || 'development',
     appUrl: process.env.APP_URL || 'localhost',
@@ -13,7 +13,7 @@ export const appConfig = {
     apiKeySecret: process.env.APP_API_KEY_SECRET || 'bang',
 } as const;
 
-export const emailConfig = {
+export const email = {
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.EMAIL_PORT || '587', 10),
     secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
@@ -22,12 +22,14 @@ export const emailConfig = {
     from: process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@localhost',
 } as const;
 
-export const sessionConfig = {
+export const session = {
     secret: process.env.SESSION_SECRET || 'bang',
     domain: process.env.SESSION_DOMAIN || 'localhost',
 } as const;
 
-export const notifyConfig = {
+export const notify = {
     url: process.env.NOTIFY_URL || 'https://notify.jaw.dev/',
     apiKey: process.env.NOTIFY_X_API_KEY || '',
 } as const;
+
+export const config = { app, email, session, notify } as const;
