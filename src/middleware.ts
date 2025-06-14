@@ -7,7 +7,7 @@ import session from 'express-session';
 import rateLimit from 'express-rate-limit';
 import { CACHE_DURATION } from './constant';
 import { CacheDuration, User } from './type';
-import { appConfig, sessionConfig } from './config';
+import { config } from './config';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
@@ -89,7 +89,7 @@ export function errorMiddleware() {
             path: req.path,
             title: 'Error',
             statusCode,
-            message: appConfig.env !== 'production' ? error.stack : message,
+            message: config.app.env !== 'production' ? error.stack : message,
         });
     };
 }
@@ -132,7 +132,7 @@ export function helmetMiddleware() {
 
 export function sessionMiddleware() {
     return session({
-        secret: sessionConfig.secret,
+        secret: config.session.secret,
         resave: false,
         saveUninitialized: false,
         store: new ConnectSessionKnexStore({
@@ -141,14 +141,14 @@ export function sessionMiddleware() {
             createTable: true, // create sessions table if does not exist already
             cleanupInterval: 60000, // 1 minute - clear expired sessions
         }),
-        proxy: appConfig.env === 'production',
+        proxy: config.app.env === 'production',
         cookie: {
             path: '/',
-            domain: `.${sessionConfig.domain}`,
+            domain: `.${config.session.domain}`,
             maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-            httpOnly: appConfig.env === 'production',
+            httpOnly: config.app.env === 'production',
             sameSite: 'lax',
-            secure: appConfig.env === 'production',
+            secure: config.app.env === 'production',
         },
     });
 }
@@ -198,11 +198,11 @@ export function validateRequestMiddleware(schemas: any) {
 }
 
 export function setupAppLocals(req: Request, res: Response) {
-    const isProd = appConfig.env === 'production';
+    const isProd = config.app.env === 'production';
     const randomNumber = Math.random();
 
     res.locals.state = {
-        env: appConfig.env,
+        env: config.app.env,
         user: req.user ?? req.session?.user,
         copyRightYear: new Date().getFullYear(),
         input: req.session?.input || {},
@@ -329,6 +329,6 @@ export function rateLimitMiddleware() {
 
             return res.status(429).send('Too many requests from this IP, please try again later.');
         },
-        skip: (_req: Request, _res: Response) => appConfig.env !== 'production',
+        skip: (_req: Request, _res: Response) => config.app.env !== 'production',
     });
 }

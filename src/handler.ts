@@ -23,7 +23,7 @@ import { Knex } from 'knex';
 import { db } from './db/db';
 import { marked } from 'marked';
 import { logger } from './logger';
-import { appConfig } from './config';
+import { config } from './config';
 import { validateRequestMiddleware } from './middleware';
 import { actions, bookmarks, notes } from './repository';
 import { body, validationResult } from 'express-validator';
@@ -1523,7 +1523,7 @@ export const postLoginHandler = {
                     .insert({
                         username,
                         email,
-                        is_admin: appConfig.adminEmail === email,
+                        is_admin: config.app.adminEmail === email,
                     })
                     .returning('*');
             }

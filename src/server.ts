@@ -1,13 +1,14 @@
-import { app } from './app';
+import { createApp } from './app';
 import { logger } from './logger';
 import { Request } from 'express';
 import { Server } from 'node:http';
-import { appConfig } from './config';
+import { config } from './config';
 import { AddressInfo } from 'node:net';
 import { db, runMigrations } from './db/db';
 import { sendNotificationQueue } from './util';
 
-const server: Server = app.listen(appConfig.port);
+const app = createApp(config);
+const server: Server = app.listen(config.app.port);
 
 process.title = 'bang';
 
@@ -22,7 +23,7 @@ server.on('listening', async () => {
 
     logger.info(`Server is listening on ${bind}`);
 
-    if (appConfig.env === 'production') {
+    if (config.app.env === 'production') {
         try {
             await db.raw('SELECT 1');
             logger.info('Database connection verified before migrations');
@@ -39,7 +40,7 @@ server.on('error', (error: NodeJS.ErrnoException) => {
         throw error;
     }
 
-    const bind: string = typeof appConfig.port === 'string' ? 'Pipe ' + appConfig.port : 'Port ' + appConfig.port; // prettier-ignore
+    const bind: string = typeof config.app.port === 'string' ? 'Pipe ' + config.app.port : 'Port ' + config.app.port; // prettier-ignore
 
     switch (error.code) {
         case 'EACCES':
@@ -106,7 +107,7 @@ process.on('warning', (warning: Error) => {
 process.on('uncaughtException', async (error: Error, origin: string) => {
     logger.error(`Uncaught Exception: %o, Origin: %s`, error, origin);
 
-    if (appConfig.env === 'production') {
+    if (config.app.env === 'production') {
         try {
             void sendNotificationQueue.push({
                 req: {} as Request,
@@ -124,7 +125,7 @@ process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknow
     if (reason instanceof Error) {
         logger.error('Unhandled Rejection: %o, Promise: %o', reason, promise);
 
-        if (appConfig.env === 'production') {
+        if (config.app.env === 'production') {
             try {
                 void sendNotificationQueue.push({
                     req: {} as Request,

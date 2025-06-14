@@ -8,7 +8,7 @@ import {
 } from './error';
 import { logger } from './logger';
 import { Request } from 'express';
-import { appConfig } from './config';
+import { config } from './config';
 import { sendNotificationQueue } from './util';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -19,8 +19,10 @@ vi.mock('./util', () => ({
 }));
 
 vi.mock('./config', () => ({
-    appConfig: {
-        env: 'production',
+    config: {
+        app: {
+            env: 'production',
+        },
         apiKeySecret: 'test-secret',
     },
 }));
@@ -75,23 +77,23 @@ describe('Error classes', () => {
         });
 
         it('should not send a notification when not in production', () => {
-            const originalEnv = appConfig.env;
-            Object.defineProperty(appConfig, 'env', { value: 'development' });
+            const originalEnv = config.app.env;
+            Object.defineProperty(config.app, 'env', { value: 'development' });
 
             new HttpError(500, 'Test error', mockRequest as Request);
             expect(sendNotificationQueue.push).not.toHaveBeenCalled();
 
-            Object.defineProperty(appConfig, 'env', { value: originalEnv });
+            Object.defineProperty(config.app, 'env', { value: originalEnv });
         });
 
         it('should not send a notification when in development mode', () => {
-            const originalEnv = appConfig.env;
-            Object.defineProperty(appConfig, 'env', { value: 'development' });
+            const originalEnv = config.app.env;
+            Object.defineProperty(config.app, 'env', { value: 'development' });
 
             new HttpError(500, 'Test error without request');
             expect(sendNotificationQueue.push).not.toHaveBeenCalled();
 
-            Object.defineProperty(appConfig, 'env', { value: originalEnv });
+            Object.defineProperty(config.app, 'env', { value: originalEnv });
         });
 
         it('should now send a notification even when request is not provided in production', () => {

@@ -32,7 +32,7 @@ export function createApp(conf: typeof config) {
         .use(express.static('./public', { maxAge: '30d', etag: true, lastModified: true }))
         .engine('html', ejs.renderFile)
         .set('view engine', 'html')
-        .set('view cache', conf.app.env === 'production')
+        .set('view cache', conf.app.env === 'production' || conf.app.env === 'testing')
         .set('views', './src/views/pages')
         .set('layout', '../layouts/public.html')
         .use(expressLayouts)
@@ -57,4 +57,6 @@ export function createApp(conf: typeof config) {
 
     app.use(notFoundMiddleware());
     app.use(errorMiddleware());
+
+    return app;
 }
