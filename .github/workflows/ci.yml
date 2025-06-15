@@ -7,7 +7,7 @@ on:
 
 env:
     # app
-    APP_PORT: 80
+    APP_PORT: 3000
     APP_ENV: 'development'
     APP_URL: 'localhost'
     APP_ADMIN_EMAIL: 'deeznutz@gmail.com'
@@ -91,37 +91,6 @@ jobs:
 
             - name: Migrate dev database
               run: npm run db:prepare:dev
-
-            - name: Debug server startup
-              run: |
-                echo "Starting server in background..."
-                npm run dev &
-                SERVER_PID=$!
-                echo "Server PID: $SERVER_PID"
-
-                echo "Waiting for server to start..."
-                for i in {1..30}; do
-                  if curl -f http://localhost:80 >/dev/null 2>&1; then
-                    echo "Server is running!"
-                    break
-                  fi
-                  echo "Attempt $i: Server not ready yet..."
-                  sleep 2
-                done
-
-                echo "Checking if server process is still running..."
-                if ps -p $SERVER_PID > /dev/null; then
-                  echo "Server process is running"
-                else
-                  echo "Server process has died"
-                  exit 1
-                fi
-
-                echo "Testing server response..."
-                curl -v http://localhost:80 || echo "Server not responding"
-
-                echo "Killing server..."
-                kill $SERVER_PID
 
             - name: Run browser tests
               run: npm run test:browser:headless
