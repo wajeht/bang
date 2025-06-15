@@ -21,6 +21,9 @@ server.on('listening', async () => {
     const bind: string = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port; // prettier-ignore
 
     logger.info(`Server is listening on ${bind}`);
+    if (appConfig.env === 'development') {
+        logger.info('mailpit is running on http://localhost:8025');
+    }
 
     if (appConfig.env === 'production') {
         try {
