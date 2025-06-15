@@ -398,6 +398,19 @@ export function isOnlyLettersAndNumbers(str: string): boolean {
     return /^[a-zA-Z0-9]+$/.test(str);
 }
 
+export function checkMailpit(): Promise<boolean> {
+    return new Promise((resolve) => {
+        const req = http.get('http://localhost:8025', () => {
+            resolve(true);
+        });
+        req.on('error', () => resolve(false));
+        req.setTimeout(1000, () => {
+            req.destroy();
+            resolve(false);
+        });
+    });
+}
+
 export async function getReadmeFileContent(): Promise<string> {
     try {
         const readmeFilepath = path.resolve(path.join(process.cwd(), 'README.md'));

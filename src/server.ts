@@ -5,7 +5,7 @@ import { Server } from 'node:http';
 import { appConfig } from './config';
 import { AddressInfo } from 'node:net';
 import { db, runMigrations } from './db/db';
-import { sendNotificationQueue } from './util';
+import { sendNotificationQueue, checkMailpit } from './util';
 
 const server: Server = app.listen(appConfig.port);
 
@@ -22,7 +22,10 @@ server.on('listening', async () => {
 
     logger.info(`Server is listening on ${bind}`);
     if (appConfig.env === 'development') {
-        logger.info('mailpit is running on http://localhost:8025');
+        const isMailpitRunning = await checkMailpit();
+        if (isMailpitRunning) {
+            logger.info('mailpit is running on http://localhost:8025');
+        }
     }
 
     if (appConfig.env === 'production') {
