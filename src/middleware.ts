@@ -144,7 +144,8 @@ export function sessionMiddleware() {
         proxy: appConfig.env === 'production',
         cookie: {
             path: '/',
-            domain: `.${sessionConfig.domain}`,
+            // Don't set domain for localhost/127.0.0.1 to avoid cookie issues in tests
+            domain: appConfig.env === 'production' ? `.${sessionConfig.domain}` : undefined,
             maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
             httpOnly: appConfig.env === 'production',
             sameSite: 'lax',
