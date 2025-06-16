@@ -13,6 +13,7 @@ fix-git:
 
 test:
 	@make test-unit
+	@make test-browser
 
 test-unit:
 	@docker compose -f docker-compose.dev.yml exec bang npm run test

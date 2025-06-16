@@ -38,7 +38,24 @@ export default defineConfig({
     projects: [
         {
             name: 'chromium',
-            use: { ...devices['Desktop Chrome'] },
+            use: {
+                ...devices['Desktop Chrome'],
+                // Use system Chromium in Docker/Alpine environment
+                ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH && {
+                    launchOptions: {
+                        executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+                        args: [
+                            '--no-sandbox',
+                            '--disable-setuid-sandbox',
+                            '--disable-dev-shm-usage',
+                            '--disable-accelerated-2d-canvas',
+                            '--no-first-run',
+                            '--no-zygote',
+                            '--disable-gpu',
+                        ],
+                    },
+                }),
+            },
         },
 
         // {
