@@ -491,3 +491,13 @@ https://github.com/wajeht/bang`,
         logger.error(`Failed to send magic link email: %o`, { error });
     }
 }
+
+export async function convertMarkdownToPlainText(markdownInput: string) {
+    const htmlOutput = await marked(markdownInput);
+    let plainText = htmlOutput.replace(/<[^>]*>/g, '');
+
+    plainText = plainText.replace(/\n\s*\n/g, '\n');
+    plainText = plainText.trim();
+
+    return plainText;
+}

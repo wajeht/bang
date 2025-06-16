@@ -17,6 +17,7 @@ import {
     sendMagicLinkEmailQueue,
     isOnlyLettersAndNumbers,
     getConvertedReadmeMDToHTML,
+    convertMarkdownToPlainText,
     insertBookmarkQueue as InsertBookmarkQueue,
 } from './util';
 import { Knex } from 'knex';
@@ -1170,13 +1171,22 @@ export function getNotesHandler(notes: Notes) {
             return;
         }
 
+        const markdownRemovedData = await Promise.all(
+            data.map(async (d: any) => {
+                return {
+                    ...d,
+                    content: await convertMarkdownToPlainText(d.content),
+                };
+            }),
+        );
+
         return res.render('notes.html', {
             user: req.session?.user,
             title: 'Notes',
             path: '/notes',
             layout: '../layouts/auth',
             howToContent: await getConvertedReadmeMDToHTML(),
-            data,
+            data: markdownRemovedData,
             search,
             pagination,
             sortKey,
