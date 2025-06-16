@@ -17,3 +17,7 @@ node_modules
 db.sqlite
 db.sqlite-shm
 db.sqlite-wal
+**.test.ts
+**.test.mts
+src/db/bang.ts
+src/tests
