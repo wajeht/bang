@@ -1,6 +1,6 @@
-import { Page, expect } from '@playwright/test';
-import { magicLink } from '../../util';
 import { db } from '../../db/db';
+import { magicLink } from '../../util';
+import { Page, expect } from '@playwright/test';
 
 export async function ensureTestUserExists(email: string = 'test@example.com') {
     let user = await db('users').where({ email }).first();

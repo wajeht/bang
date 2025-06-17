@@ -1,5 +1,5 @@
-process.env.NODE_ENV = 'testing';
 process.env.APP_ENV = 'testing';
+process.env.NODE_ENV = 'testing';
 
 import { beforeAll, afterAll } from 'vitest';
 import { db } from '../db/db';

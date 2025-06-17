@@ -22,7 +22,7 @@ import { db } from './db/db';
 import jwt from 'jsonwebtoken';
 import fs from 'node:fs/promises';
 import { Request } from 'express';
-import { appConfig } from './config';
+import { config } from './config';
 import { ApiKeyPayload, BookmarkToExport } from './type';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -414,7 +414,7 @@ describe('api', () => {
             const payload = { userId: 1, apiKeyVersion: 1 };
             const apiKey = await api.generate(payload);
 
-            const decoded = jwt.verify(apiKey, appConfig.apiKeySecret) as ApiKeyPayload;
+            const decoded = jwt.verify(apiKey, config.app.apiKeySecret) as ApiKeyPayload;
             expect(decoded.userId).toBe(payload.userId);
             expect(decoded.apiKeyVersion).toBe(payload.apiKeyVersion);
         });

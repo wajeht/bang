@@ -12,7 +12,7 @@ import cors from 'cors';
 import express from 'express';
 import { router } from './router';
 import flash from 'connect-flash';
-import { appConfig } from './config';
+import { config } from './config';
 import compression from 'compression';
 import expressLayouts from 'express-ejs-layouts';
 import { expressJSDocSwaggerHandler, swagger } from './swagger';
@@ -31,14 +31,14 @@ const app = express()
     .use(express.static('./public', { maxAge: '30d', etag: true, lastModified: true }))
     .engine('html', ejs.renderFile)
     .set('view engine', 'html')
-    .set('view cache', appConfig.env === 'production')
+    .set('view cache', config.app.env === 'production')
     .set('views', './src/views/pages')
     .set('layout', '../layouts/public.html')
     .use(expressLayouts)
     .use(...csrfMiddleware)
     .use(appLocalStateMiddleware);
 
-if (appConfig.env === 'development') {
+if (config.app.env === 'development') {
     reload({
         app,
         options: { quiet: false },

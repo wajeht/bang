@@ -1,15 +1,14 @@
-import { test, expect } from '@playwright/test';
-import { magicLink } from '../../util';
 import {
-    authenticateUser,
-    openLoginDialog,
-    submitEmailForMagicLink,
     loginUser,
+    logoutUser,
+    openLoginDialog,
+    cleanupTestData,
+    authenticateUser,
     expectUserLoggedIn,
     expectUserLoggedOut,
-    logoutUser,
-    cleanupTestData,
+    submitEmailForMagicLink,
 } from './test-utils';
+import { test, expect } from '@playwright/test';
 
 test.afterEach(async () => {
     await cleanupTestData();

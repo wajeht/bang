@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { logger } from './logger';
-import { appConfig } from './config';
+import { config } from './config';
 import { sendNotificationQueue } from './util';
 
 export class HttpError extends Error {
@@ -13,7 +13,7 @@ export class HttpError extends Error {
         this.request = request;
         Object.setPrototypeOf(this, new.target.prototype);
 
-        if (appConfig.env === 'production') {
+        if (config.app.env === 'production') {
             try {
                 const req =
                     this.request ||

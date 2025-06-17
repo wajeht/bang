@@ -1,7 +1,7 @@
 import { db } from './db/db';
 import { User } from './type';
 import * as utils from './util';
-import { appConfig } from './config';
+import { config } from './config';
 import * as searchModule from './search';
 import { Request, Response } from 'express';
 import { search, processDelayedSearch, redirectWithCache } from './search';
@@ -192,7 +192,7 @@ describe('search', () => {
             expect(req.session.user).toBeUndefined();
         });
 
-        it.skipIf(appConfig.env === 'development')(
+        it.skipIf(config.app.env === 'development')(
             'should have slow down the search when a user has reached more than 60 searches',
             async () => {
                 const req = {

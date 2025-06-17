@@ -1,14 +1,14 @@
+import {
+    buildBangs,
+    parseCliArgs,
+    generateBangFile,
+    mergeBangSources,
+    getDefaultSources,
+    fetchBangsFromSource,
+} from './banger.mjs';
 import fs from 'node:fs';
 import type { Bang } from './type.js';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-    fetchBangsFromSource,
-    mergeBangSources,
-    generateBangFile,
-    buildBangs,
-    parseCliArgs,
-    getDefaultSources,
-} from './banger.mjs';
 
 vi.mock('node:fs', () => ({
     default: {

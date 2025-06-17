@@ -1,8 +1,8 @@
 import knex from 'knex';
 import path from 'node:path';
 import { logger } from '../logger';
+import { config } from '../config';
 import knexConfig from './knexfile';
-import { appConfig } from '../config';
 import { attachPaginate } from 'knex-paginate';
 
 attachPaginate();
@@ -11,17 +11,17 @@ export const db = knex(knexConfig);
 
 export async function runMigrations(force: boolean = false) {
     try {
-        if (appConfig.env !== 'production' && force !== true) {
+        if (config.app.env !== 'production' && force !== true) {
             logger.info('cannot run auto database migration on non production');
             return;
         }
 
-        const config = {
+        const dbConfig = {
             directory: path.resolve(path.join(process.cwd(), 'dist', 'src', 'db', 'migrations')),
         };
 
-        if (appConfig.env !== 'production') {
-            config.directory = path.resolve(path.join(process.cwd(), 'src', 'db', 'migrations'));
+        if (config.app.env !== 'production') {
+            dbConfig.directory = path.resolve(path.join(process.cwd(), 'src', 'db', 'migrations'));
         }
 
         const version = await db.migrate.currentVersion();
@@ -30,7 +30,7 @@ export async function runMigrations(force: boolean = false) {
 
         logger.info(`checking for database upgrades`);
 
-        const [batchNo, migrations] = await db.migrate.latest(config);
+        const [batchNo, migrations] = await db.migrate.latest(dbConfig);
 
         if (migrations.length === 0) {
             logger.info('database upgrade not required');

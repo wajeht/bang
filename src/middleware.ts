@@ -1,13 +1,13 @@
 import helmet from 'helmet';
 import { db } from './db/db';
 import { logger } from './logger';
+import { config } from './config';
 import { users } from './repository';
 import { csrfSync } from 'csrf-sync';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
 import { CACHE_DURATION } from './constant';
 import { CacheDuration, User } from './type';
-import { appConfig, sessionConfig } from './config';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
@@ -89,7 +89,7 @@ export function errorMiddleware() {
             path: req.path,
             title: 'Error',
             statusCode,
-            message: appConfig.env !== 'production' ? error.stack : message,
+            message: config.app.env !== 'production' ? error.stack : message,
         });
     };
 }
@@ -132,7 +132,7 @@ export function helmetMiddleware() {
 
 export function sessionMiddleware() {
     return session({
-        secret: sessionConfig.secret,
+        secret: config.session.secret,
         resave: false,
         saveUninitialized: false,
         store: new ConnectSessionKnexStore({
@@ -141,15 +141,16 @@ export function sessionMiddleware() {
             createTable: true, // create sessions table if does not exist already
             cleanupInterval: 60000, // 1 minute - clear expired sessions
         }),
-        proxy: appConfig.env === 'production',
+        proxy: config.app.env === 'production',
         cookie: {
             path: '/',
             // Don't set domain for localhost/127.0.0.1 to avoid cookie issues in tests
-            domain: appConfig.env === 'production' ? `.${sessionConfig.domain}` : undefined,
+            domain:
+                config.session.domain === 'production' ? `.${config.session.domain}` : undefined,
             maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-            httpOnly: appConfig.env === 'production',
+            httpOnly: config.session.domain === 'production',
             sameSite: 'lax',
-            secure: appConfig.env === 'production',
+            secure: config.session.domain === 'production',
         },
     });
 }
@@ -199,11 +200,11 @@ export function validateRequestMiddleware(schemas: any) {
 }
 
 export function setupAppLocals(req: Request, res: Response) {
-    const isProd = appConfig.env === 'production';
+    const isProd = config.app.env === 'production';
     const randomNumber = Math.random();
 
     res.locals.state = {
-        env: appConfig.env,
+        env: config.app.env,
         user: req.user ?? req.session?.user,
         copyRightYear: new Date().getFullYear(),
         input: req.session?.input || {},
@@ -330,6 +331,6 @@ export function rateLimitMiddleware() {
 
             return res.status(429).send('Too many requests from this IP, please try again later.');
         },
-        skip: (_req: Request, _res: Response) => appConfig.env !== 'production',
+        skip: (_req: Request, _res: Response) => config.app.env !== 'production',
     });
 }

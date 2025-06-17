@@ -30,8 +30,24 @@ vi.mock('./logger', () => ({
 }));
 
 vi.mock('./config', () => ({
-    appConfig: {
-        env: 'testing',
+    config: {
+        app: {
+            env: 'testing',
+        },
+        session: {
+            domain: 'testing',
+        },
+        email: {
+            host: 'testing',
+            port: 1234,
+            secure: false,
+            user: 'testing',
+            password: 'testing',
+        },
+        notify: {
+            url: 'https://testing',
+            apiKey: 'testing',
+        },
     },
 }));
 
