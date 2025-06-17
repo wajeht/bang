@@ -222,7 +222,7 @@ export function setupAppLocals(req: Request, res: Response) {
         },
         version: {
             style: isProd ? '0.18' : randomNumber,
-            script: isProd ? '0.14' : randomNumber,
+            script: isProd ? '0.15' : randomNumber,
         },
     };
 
