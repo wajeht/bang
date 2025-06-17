@@ -29,7 +29,7 @@ import { validateRequestMiddleware } from './middleware';
 import { actions, bookmarks, notes } from './repository';
 import { Request, Response, NextFunction } from 'express';
 import { body, validationResult } from 'express-validator';
-import { actionTypes, defaultSearchProviders } from './constant';
+import { actionTypes, defaultSearchProviders } from './util';
 import { HttpError, NotFoundError, ValidationError } from './error';
 
 // GET /healthz

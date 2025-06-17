@@ -21,14 +21,11 @@ declare global {
     }
 }
 
-import { Request, Response } from 'express';
-import { CACHE_DURATION, defaultSearchProviders } from './constant';
+export type DefaultSearchProviders = 'duckduckgo' | 'google' | 'yahoo' | 'bing';
+
+import type { Request, Response } from 'express';
 
 export type PageType = 'actions' | 'bookmarks' | 'notes';
-
-export type CacheDuration = keyof typeof CACHE_DURATION;
-
-export type DefaultSearchProviders = keyof typeof defaultSearchProviders;
 
 export type ActionTypes = 'bookmark' | 'redirect' | 'search';
 

@@ -13,6 +13,15 @@ import { HttpError } from './error';
 import { bookmarks } from './repository';
 import { Api, User, PageType, ApiKeyPayload, BookmarkToExport, MagicLinkPayload } from './type';
 
+export const actionTypes = ['search', 'redirect'] as const;
+
+export const defaultSearchProviders = {
+    duckduckgo: `https://duckduckgo.com/?q={{{s}}}`,
+    google: `https://www.google.com/search?q={{{s}}}`,
+    yahoo: `https://search.yahoo.com/search?p={{{s}}}`,
+    bing: `https://www.bing.com/search?q={{{s}}}`,
+} as const;
+
 export async function updateUserBangLastReadAt({
     userId,
     bangId,

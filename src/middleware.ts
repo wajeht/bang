@@ -2,19 +2,28 @@ import helmet from 'helmet';
 import { db } from './db/db';
 import { logger } from './logger';
 import { config } from './config';
+import type { User } from './type';
 import { users } from './repository';
 import { csrfSync } from 'csrf-sync';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
-import { CACHE_DURATION } from './constant';
-import { CacheDuration, User } from './type';
 import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { api, nl2br, getApiKey, isApiRequest, highlightSearchTerm } from './util';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
 
-export function cacheMiddleware(value: number, unit: CacheDuration = 'second') {
+export const CACHE_DURATION = {
+    second: 1,
+    minute: 60,
+    hour: 60 * 60,
+    day: 24 * 60 * 60,
+    week: 7 * 24 * 60 * 60,
+    month: 30 * 24 * 60 * 60,
+    year: 365 * 24 * 60 * 60,
+} as const;
+
+export function cacheMiddleware(value: number, unit: keyof typeof CACHE_DURATION = 'second') {
     const seconds = value * CACHE_DURATION[unit];
 
     return (req: Request, res: Response, next: NextFunction) => {
