@@ -235,6 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const { user } = getAppLocalState();
 
     if (user) {
+        // save this to local storage so we can pre-fill the email input on login page
         setLocalStorageData({ user: { email: user.email } });
         initializeKeyboardShortcuts();
     }
