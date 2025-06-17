@@ -4,7 +4,6 @@ import {
     insertBookmarkQueue,
     insertPageTitleQueue,
     isOnlyLettersAndNumbers,
-    updateUserLastReadAtQueue,
     updateUserBangLastReadAtQueue,
 } from './util';
 import fastq from 'fastq';
