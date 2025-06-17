@@ -110562,6 +110562,14 @@ export const bangs: Record<string, any> = {
         c: 'Tech',
         sc: 'Sysadmin',
     },
+    nlwc: {
+        s: 'Llyfrgell Genedlaethol Cymru = The National Library of Wales',
+        d: 'discover.library.wales',
+        t: 'nlwc',
+        u: 'https://discover.library.wales/discovery/search?query=any,contains,{{{s}}}&tab=In_The_Library&search_scope=In_The_Library&vid=44WHELF_NLW:44WHELF_NLW_NUI&offset=0',
+        c: 'Research',
+        sc: 'Academic',
+    },
     njt: {
         s: 'npm jump to',
         d: 'njt.vercel.app',
