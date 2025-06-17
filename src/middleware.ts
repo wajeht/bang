@@ -85,6 +85,11 @@ export function errorMiddleware() {
             setupAppLocals(req, res);
         }
 
+        // Ensure csrfToken is available for error page rendering
+        if (typeof res.locals.csrfToken === 'undefined') {
+            res.locals.csrfToken = '';
+        }
+
         return res.status(statusCode).render('error.html', {
             path: req.path,
             title: 'Error',
@@ -230,13 +235,24 @@ export function setupAppLocals(req: Request, res: Response) {
 export const csrfMiddleware = (() => {
     const { csrfSynchronisedProtection, generateToken } = csrfSync({
         getTokenFromRequest: (req: Request) => req.body.csrfToken || req.query.csrfToken,
+        errorConfig: {
+            statusCode: 403,
+            message: 'Invalid or missing CSRF token. Please refresh the page and try again.',
+            code: 'EBADCSRFTOKEN',
+        },
     });
 
     return [
         csrfSynchronisedProtection,
         (req: Request, res: Response, next: NextFunction) => {
-            res.locals.csrfToken = generateToken(req);
-            next();
+            try {
+                res.locals.csrfToken = generateToken(req);
+                next();
+            } catch (error) {
+                logger.error('CSRF token generation failed', { error });
+                res.locals.csrfToken = '';
+                next();
+            }
         },
     ];
 })();
