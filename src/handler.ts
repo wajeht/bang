@@ -13,12 +13,12 @@ import {
     magicLink,
     expectJson,
     isApiRequest,
+    insertBookmark,
     extractPagination,
     sendMagicLinkEmail,
     isOnlyLettersAndNumbers,
     getConvertedReadmeMDToHTML,
     convertMarkdownToPlainText,
-    insertBookmark,
 } from './util';
 import { Knex } from 'knex';
 import { db } from './db/db';

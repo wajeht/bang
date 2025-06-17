@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import { logger } from './logger';
 import { config } from './config';
-import { sendNotificationQueue } from './util';
+import { sendNotification } from './util';
 
 export class HttpError extends Error {
     statusCode: number;
@@ -26,12 +26,16 @@ export class HttpError extends Error {
                         body: {},
                     } as unknown as Request);
 
-                void sendNotificationQueue.push({
-                    req,
-                    error: this,
-                });
+                setTimeout(
+                    () =>
+                        sendNotification({
+                            req,
+                            error: this,
+                        }),
+                    0,
+                );
 
-                logger.info(`Pushed ${this.constructor.name} to notification queue`);
+                logger.info(`Scheduled ${this.constructor.name} notification`);
             } catch (queueError) {
                 logger.error('Failed to push error to notification queue: %o', queueError);
             }
