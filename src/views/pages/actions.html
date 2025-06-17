@@ -105,6 +105,11 @@
                                 <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=last_read_at&direction=<%= (sortKey === 'last_read_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
                                     🔄 Last Read
+                                    <% if (sortKey === 'last_read_at') { %>
+                                        <%= direction === 'asc' ? '🔼' : '🔽' %>
+                                    <% } else { %>
+                                        <span class="sort-icon">⏺️</span>
+                                    <% } %>
                                 </a>
                             </th>
                         <% } %>
