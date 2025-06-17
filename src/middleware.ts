@@ -228,15 +228,14 @@ export function setupAppLocals(req: Request, res: Response) {
 }
 
 export const csrfMiddleware = (() => {
-    const { csrfSynchronisedProtection } = csrfSync({
+    const { csrfSynchronisedProtection, generateToken } = csrfSync({
         getTokenFromRequest: (req: Request) => req.body.csrfToken || req.query.csrfToken,
     });
 
     return [
         csrfSynchronisedProtection,
         (req: Request, res: Response, next: NextFunction) => {
-            // @ts-expect-error - trust be bro
-            res.locals.csrfToken = req.csrfToken();
+            res.locals.csrfToken = generateToken(req);
             next();
         },
     ];
