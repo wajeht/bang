@@ -49,6 +49,7 @@ export async function up(knex: Knex): Promise<void> {
                     },
                 }),
             );
+            table.timestamp('email_verified_at').nullable();
             table.timestamps(true, true);
 
             table.index('api_key');

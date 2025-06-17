@@ -311,6 +311,7 @@ describe('extractUser', () => {
                     default_per_page: 10,
                 },
             }),
+            email_verified_at: null,
             created_at: expect.any(String),
             updated_at: expect.any(String),
         });

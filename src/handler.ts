@@ -1571,6 +1571,8 @@ export function getMagicLinkHandler() {
             throw new NotFoundError('User not found', req);
         }
 
+        await db('users').where({ id: user.id }).update({ email_verified_at: db.fn.now() });
+
         let columnPreferences = {};
         if (user.column_preferences) {
             try {

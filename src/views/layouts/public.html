@@ -61,6 +61,7 @@
               id="email-input"
               name="email"
               placeholder="your@email.com"
+              autocomplete="email"
               value="<%= state.input.email || '' %>"
               required
               autofocus
@@ -90,9 +91,9 @@
           }
 
           const state = `<%- JSON.stringify(state) %>`;
-          // auto pre-fill the email if the user is logged in beforeand the email is in local storage
+          // auto pre-fill the email if the user is logged in before and the email is in local storage
           const localStorageData = getLocalStorageData();
-          if (!state.errors?.email && localStorageData.user) {
+          if (!state.errors?.email && localStorageData.user?.email) {
               document.getElementById('email-input').value = localStorageData.user.email;
           }
         });

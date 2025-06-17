@@ -17,7 +17,7 @@ function toggleTheme() {
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
 
     document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
+    setLocalStorageData({ theme: newTheme });
     updateButtonText(newTheme);
 }
 
@@ -25,9 +25,9 @@ function toggleTheme() {
  * Initializes the theme based on the saved preference.
  */
 function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateButtonText(savedTheme);
+    const { theme = 'light' } = getLocalStorageData();
+    document.documentElement.setAttribute('data-theme', theme);
+    updateButtonText(theme);
 }
 
 /**
@@ -202,34 +202,26 @@ function initializeDetailsElements() {
     }
 }
 
-/** @type {string} */
-const BANG_APP_DATA_KEY = 'bang-app-data';
+// Note: getLocalStorageData and setLocalStorageData are now defined globally in head.html
+// This ensures theme can be set early to prevent FOUC, and functions can be reused
 
-function getLocalStorageData() {
-    const data = localStorage.getItem(BANG_APP_DATA_KEY);
-    if (!data) return {};
-    try {
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Failed to parse app state:', error);
-        return {};
-    }
-}
+// TypeScript declarations for global functions
+/**
+ * @returns {Object} The parsed local storage data object.
+ */
+// @ts-ignore - defined globally in head.html
+const getLocalStorageData = window.getLocalStorageData;
 
 /**
- * @param {Object} data - The data to set in local storage.
+ * @param {Object} data - The data to merge with existing local storage data.
  */
-function setLocalStorageData(data) {
-    try {
-        localStorage.setItem(BANG_APP_DATA_KEY, JSON.stringify(data));
-    } catch (error) {
-        console.error('Failed to set app state:', error);
-    }
-}
+// @ts-ignore - defined globally in head.html
+const setLocalStorageData = window.setLocalStorageData;
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeToast();
-    updateButtonText(localStorage.getItem('theme') || 'light');
+    const { theme = 'light' } = getLocalStorageData();
+    updateButtonText(theme);
     initializeDetailsElements();
 
     const { user } = getAppLocalState();

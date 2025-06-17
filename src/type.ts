@@ -98,6 +98,7 @@ export type User = {
     created_at: string;
     updated_at: string;
     column_preferences: ColumnPreferences;
+    email_verified_at: string | null;
 };
 
 export type BookmarkToExport = {

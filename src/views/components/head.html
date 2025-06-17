@@ -40,15 +40,33 @@
 	<link rel="canonical" href="https://bang.jaw.dev/">
 
 	<script>
+		// Global localStorage functions for bang-app-data (used by both head.html and script.js)
+		window.getLocalStorageData = function() {
+			try {
+				const data = localStorage.getItem('bang-app-data');
+				return data ? JSON.parse(data) : {};
+			} catch {
+				return {};
+			}
+		};
+
+		window.setLocalStorageData = function(newData) {
+			try {
+				const currentData = window.getLocalStorageData();
+				localStorage.setItem('bang-app-data', JSON.stringify({ ...currentData, ...newData }));
+			} catch {}
+		};
+
+		const { theme } = window.getLocalStorageData();
 		if (
-			localStorage.getItem('theme') === 'dark' ||
-			(!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)
+			theme === 'dark' ||
+			(!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)
 		) {
 			document.documentElement.setAttribute('data-theme', 'dark');
-			localStorage.setItem('theme', 'dark');
+			window.setLocalStorageData({ theme: 'dark' });
 		} else {
 			document.documentElement.setAttribute('data-theme', 'light');
-			localStorage.setItem('theme', 'light');
+			window.setLocalStorageData({ theme: 'light' });
 		}
 	</script>
 

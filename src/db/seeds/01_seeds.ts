@@ -41,6 +41,7 @@ export async function seed(knex: Knex): Promise<void> {
                         view_type: 'table',
                     },
                 }),
+                email_verified_at: knex.fn.now(),
             })
             .returning('*');
 
