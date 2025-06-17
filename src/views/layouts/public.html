@@ -3,6 +3,18 @@
 
   <%- include('../components/head.html') %>
 
+  <script>
+    // auto pre-fill the email if the user is logged in beforeand the email is in local storage
+    document.addEventListener('DOMContentLoaded', () => {
+      const localStorageData = getLocalStorageData();
+      const sessionData = getAppLocalState();
+
+      if (!sessionData.user && !sessionData.errors?.email && localStorageData.user) {
+        document.getElementById('email-input').value = localStorageData.user.email;
+      }
+    });
+  </script>
+
   <body style="display: flex; flex-direction: column; min-height: 100vh; gap: 30px; position: relative;">
 
     <div>

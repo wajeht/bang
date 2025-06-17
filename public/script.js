@@ -202,12 +202,40 @@ function initializeDetailsElements() {
     }
 }
 
+/** @type {string} */
+const BANG_APP_DATA_KEY = 'bang-app-data';
+
+function getLocalStorageData() {
+    const data = localStorage.getItem(BANG_APP_DATA_KEY);
+    if (!data) return {};
+    try {
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Failed to parse app state:', error);
+        return {};
+    }
+}
+
+/**
+ * @param {Object} data - The data to set in local storage.
+ */
+function setLocalStorageData(data) {
+    try {
+        localStorage.setItem(BANG_APP_DATA_KEY, JSON.stringify(data));
+    } catch (error) {
+        console.error('Failed to set app state:', error);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeToast();
     updateButtonText(localStorage.getItem('theme') || 'light');
     initializeDetailsElements();
 
     const { user } = getAppLocalState();
+
+    // save this to local storage so we can pre-fill the email input on login page
+    if (user) setLocalStorageData({ user: { email: user.email } });
 
     if (user) initializeKeyboardShortcuts();
 });
