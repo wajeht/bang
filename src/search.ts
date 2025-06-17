@@ -1,12 +1,11 @@
 import {
     addHttps,
     isValidUrl,
-    insertBookmarkQueue,
-    insertPageTitleQueue,
+    insertBookmark,
+    insertPageTitle,
     isOnlyLettersAndNumbers,
-    updateUserBangLastReadAtQueue,
+    updateUserBangLastReadAt,
 } from './util';
-import fastq from 'fastq';
 import { db } from './db/db';
 import { Bang, Search } from './type';
 import { Request, Response } from 'express';
@@ -57,9 +56,7 @@ const searchConfig = {
     },
 } as const;
 
-export const anonymousSearchHistoryQueue = fastq.promise(trackAnonymousUserSearch, 10);
-
-export async function trackAnonymousUserSearch(req: Request) {
+export function trackAnonymousUserSearch(req: Request) {
     req.session.searchCount = req.session.searchCount || 0;
     req.session.cumulativeDelay = req.session.cumulativeDelay || 0;
 
@@ -252,7 +249,7 @@ export async function handleAnonymousSearch(
     const warningMessage = getSearchLimitWarning(req, req.session.searchCount ?? 0);
 
     if (warningMessage) {
-        void anonymousSearchHistoryQueue.push(req);
+        trackAnonymousUserSearch(req);
         return redirectWithAlert(
             res,
             defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)),
@@ -260,7 +257,7 @@ export async function handleAnonymousSearch(
         );
     }
 
-    void anonymousSearchHistoryQueue.push(req);
+    trackAnonymousUserSearch(req);
 
     if (req.session.cumulativeDelay) {
         const delayPromise = processDelayedSearch(req);
@@ -399,11 +396,15 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     );
                 }
 
-                void insertBookmarkQueue.push({
-                    url,
-                    title: titleSection || '',
-                    userId: user.id,
-                });
+                setTimeout(
+                    () =>
+                        insertBookmark({
+                            url,
+                            title: titleSection || '',
+                            userId: user.id,
+                        }),
+                    0,
+                );
 
                 return redirectWithCache(res, url);
             } catch (_error) {
@@ -471,7 +472,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 })
                 .returning('*');
 
-            void insertPageTitleQueue.push({ actionId: bangs[0].id, url: bangUrl, req });
+            setTimeout(() => insertPageTitle({ actionId: bangs[0].id, url: bangUrl, req }), 0);
 
             return goBack(res);
         }
@@ -604,11 +605,15 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             await db('bangs').where({ id: existingBang.id }).update(updates);
 
             if (updates.url) {
-                void insertPageTitleQueue.push({
-                    actionId: existingBang.id,
-                    url: updates.url,
-                    req,
-                });
+                setTimeout(
+                    () =>
+                        insertPageTitle({
+                            actionId: existingBang.id,
+                            url: updates.url,
+                            req,
+                        }),
+                    0,
+                );
             }
 
             return goBack(res);
@@ -672,7 +677,10 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             .first();
 
         if (customBang) {
-            void updateUserBangLastReadAtQueue.push({ userId: user.id, bangId: customBang.id });
+            setTimeout(
+                () => updateUserBangLastReadAt({ userId: user.id, bangId: customBang.id }),
+                0,
+            );
 
             if (customBang.action_type === 'search') {
                 let url = customBang.url;

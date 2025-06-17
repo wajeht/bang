@@ -429,12 +429,10 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            const mockPush = vi.fn().mockResolvedValue(undefined);
+            const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
 
             vi.spyOn(utils, 'isValidUrl').mockReturnValue(true);
-            vi.spyOn(utils, 'insertBookmarkQueue', 'get').mockReturnValue({
-                push: mockPush,
-            } as any);
+            vi.spyOn(utils, 'insertBookmark').mockImplementation(mockInsertBookmark);
 
             const query = '!bm My Bookmark https://example.com';
 
@@ -445,7 +443,9 @@ describe('search', () => {
                 query,
             });
 
-            expect(mockPush).toHaveBeenCalledWith({
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(mockInsertBookmark).toHaveBeenCalledWith({
                 url: 'https://example.com',
                 title: 'My Bookmark',
                 userId: testUser.id,
@@ -471,12 +471,10 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            const mockPush = vi.fn().mockResolvedValue(undefined);
+            const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
 
             vi.spyOn(utils, 'isValidUrl').mockReturnValue(true);
-            vi.spyOn(utils, 'insertBookmarkQueue', 'get').mockReturnValue({
-                push: mockPush,
-            } as any);
+            vi.spyOn(utils, 'insertBookmark').mockImplementation(mockInsertBookmark);
 
             const query = '!bm https://example.com';
 
@@ -791,12 +789,10 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            const mockPush = vi.fn().mockResolvedValue(undefined);
+            const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
 
             vi.spyOn(utils, 'isValidUrl').mockReturnValue(true);
-            vi.spyOn(utils, 'insertBookmarkQueue', 'get').mockReturnValue({
-                push: mockPush,
-            } as any);
+            vi.spyOn(utils, 'insertBookmark').mockImplementation(mockInsertBookmark);
 
             await search({
                 req,
@@ -872,9 +868,7 @@ describe('search', () => {
             } as unknown as Response;
 
             vi.spyOn(utils, 'isValidUrl').mockReturnValue(true);
-            vi.spyOn(utils, 'insertBookmarkQueue', 'get').mockReturnValue({
-                push: vi.fn().mockRejectedValue(new Error('Database error')),
-            } as any);
+            vi.spyOn(utils, 'insertBookmark').mockRejectedValue(new Error('Database error'));
 
             await search({
                 req,
@@ -1322,10 +1316,8 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                const mockPush = vi.fn().mockResolvedValue(undefined);
-                vi.spyOn(utils, 'insertPageTitleQueue', 'get').mockReturnValue({
-                    push: mockPush,
-                } as any);
+                const mockInsertPageTitle = vi.fn().mockResolvedValue(undefined);
+                vi.spyOn(utils, 'insertPageTitle').mockImplementation(mockInsertPageTitle);
 
                 await search({
                     req,
@@ -1339,7 +1331,9 @@ describe('search', () => {
                     expect.stringContaining('window.history.back()'),
                 );
 
-                expect(mockPush).toHaveBeenCalledWith({
+                await new Promise((resolve) => setTimeout(resolve, 0));
+
+                expect(mockInsertPageTitle).toHaveBeenCalledWith({
                     actionId: 1001,
                     url: 'https://new-url.com',
                     req,
@@ -1362,10 +1356,8 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                const mockPush = vi.fn().mockResolvedValue(undefined);
-                vi.spyOn(utils, 'insertPageTitleQueue', 'get').mockReturnValue({
-                    push: mockPush,
-                } as any);
+                const mockInsertPageTitle = vi.fn().mockResolvedValue(undefined);
+                vi.spyOn(utils, 'insertPageTitle').mockImplementation(mockInsertPageTitle);
 
                 await search({
                     req,
@@ -1941,10 +1933,10 @@ describe('processDelayedSearch', () => {
 });
 
 describe('handleAnonymousSearch', () => {
-    it('should track search history asynchronously', async () => {
+    it('should track search history synchronously', async () => {
         const req = {
             session: {
-                searchCount: 5,
+                searchCount: 1,
             },
         } as unknown as Request;
 
@@ -1953,19 +1945,12 @@ describe('handleAnonymousSearch', () => {
             set: vi.fn(),
         } as unknown as Response;
 
-        const queuePushSpy = vi
-            .spyOn(searchModule.anonymousSearchHistoryQueue, 'push')
-            .mockResolvedValue(undefined);
+        const initialSearchCount = req.session.searchCount || 0;
 
-        try {
-            await searchModule.handleAnonymousSearch(req, res, 'test query', 'g', 'test query');
+        await searchModule.handleAnonymousSearch(req, res, 'test query', 'g', 'test query');
 
-            expect(queuePushSpy).toHaveBeenCalledWith(req);
-
-            expect(res.redirect).toHaveBeenCalled();
-        } finally {
-            queuePushSpy.mockRestore();
-        }
+        expect(req.session.searchCount).toBe(initialSearchCount + 1);
+        expect(res.redirect).toHaveBeenCalled();
     });
 });
 

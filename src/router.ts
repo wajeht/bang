@@ -53,8 +53,8 @@ import {
 import { cacheMiddleware, adminOnlyMiddleware, authenticationMiddleware } from './middleware';
 
 import { db } from './db/db';
+import { api } from './util';
 import { search } from './search';
-import { api, insertBookmarkQueue } from './util';
 import { actions, bookmarks, notes } from './repository';
 
 const router = express.Router();
@@ -98,7 +98,7 @@ router.get('/bookmarks/create', authenticationMiddleware, getBookmarkCreatePageH
 router.post('/bookmarks/:id/delete', authenticationMiddleware, deleteBookmarkHandler(bookmarks));
 router.get('/bookmarks/:id/edit', authenticationMiddleware, getEditBookmarkPageHandler(bookmarks));
 router.get('/bookmarks/:id/actions/create', authenticationMiddleware, getBookmarkActionCreatePageHandler(db)); // prettier-ignore
-router.post('/bookmarks', authenticationMiddleware, postBookmarkHandler.validator, postBookmarkHandler.handler(insertBookmarkQueue)); // prettier-ignore
+router.post('/bookmarks', authenticationMiddleware, postBookmarkHandler.validator, postBookmarkHandler.handler()); // prettier-ignore
 router.post('/bookmarks/:id/update', authenticationMiddleware, updateBookmarkHandler.validator, updateBookmarkHandler.handler(bookmarks)); // prettier-ignore
 
 router.get('/notes', authenticationMiddleware, getNotesHandler(notes));
@@ -300,7 +300,7 @@ router.get('/api/bookmarks/:id', authenticationMiddleware, getBookmarkHandler(bo
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.post('/api/bookmarks', authenticationMiddleware, postBookmarkHandler.validator, postBookmarkHandler.handler(insertBookmarkQueue)); // prettier-ignore
+router.post('/api/bookmarks', authenticationMiddleware, postBookmarkHandler.validator, postBookmarkHandler.handler()); // prettier-ignore
 
 /**
  *

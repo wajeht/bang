@@ -14,11 +14,11 @@ import {
     expectJson,
     isApiRequest,
     extractPagination,
-    sendMagicLinkEmailQueue,
+    sendMagicLinkEmail,
     isOnlyLettersAndNumbers,
     getConvertedReadmeMDToHTML,
     convertMarkdownToPlainText,
-    insertBookmarkQueue as InsertBookmarkQueue,
+    insertBookmark,
 } from './util';
 import { Knex } from 'knex';
 import { db } from './db/db';
@@ -564,11 +564,11 @@ export const postBookmarkHandler = {
             .withMessage('Invalid URL format'),
         body('title').optional().trim(),
     ]),
-    handler: function (insertBookmarkQueue: typeof InsertBookmarkQueue) {
+    handler: function () {
         return async (req: Request, res: Response) => {
             const { url, title } = req.body;
 
-            void insertBookmarkQueue.push({ url, userId: (req.user as User).id, title, req });
+            setTimeout(() => insertBookmark({ url, userId: (req.user as User).id, title, req }), 0);
 
             if (isApiRequest(req)) {
                 res.status(201).json({ message: `Bookmark ${title} created successfully!` });
@@ -1542,7 +1542,7 @@ export const postLoginHandler = {
 
             const token = magicLink.generate({ email });
 
-            void sendMagicLinkEmailQueue.push({ email, token, req });
+            setTimeout(() => sendMagicLinkEmail({ email, token, req }), 0);
 
             req.flash(
                 'success',

@@ -83,6 +83,7 @@ describe('Export Data Handler', () => {
         `);
 
         await db('users').where('email', 'handler-test@example.com').delete();
+        await db('users').where('username', 'testuser').delete();
 
         const [user] = await db('users')
             .insert({

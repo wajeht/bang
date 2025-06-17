@@ -1,4 +1,3 @@
-import fastq from 'fastq';
 import { db } from './db/db';
 import http from 'node:http';
 import path from 'node:path';
@@ -13,12 +12,6 @@ import nodemailer from 'nodemailer';
 import { HttpError } from './error';
 import { bookmarks } from './repository';
 import { Api, User, PageType, ApiKeyPayload, BookmarkToExport, MagicLinkPayload } from './type';
-
-export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
-export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
-export const sendNotificationQueue = fastq.promise(sendNotification, 10);
-export const sendMagicLinkEmailQueue = fastq.promise(sendMagicLinkEmail, 10);
-export const updateUserBangLastReadAtQueue = fastq.promise(updateUserBangLastReadAt, 10);
 
 export async function updateUserBangLastReadAt({
     userId,
@@ -48,7 +41,7 @@ export async function insertBookmark({
     });
 
     if (!title) {
-        void insertPageTitleQueue.push({ bookmarkId: bookmark.id, url, req });
+        setTimeout(() => insertPageTitle({ bookmarkId: bookmark.id, url, req }), 0);
     }
 }
 
