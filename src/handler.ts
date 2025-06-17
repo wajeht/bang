@@ -1073,6 +1073,7 @@ export const postSettingsDisplayHandler = {
             value.actions.url = value.actions.url === 'on';
             value.actions.action_type = value.actions.action_type === 'on';
             value.actions.created_at = value.actions.created_at === 'on';
+            value.actions.last_read_at = value.actions.last_read_at === 'on';
 
             value.actions.default_per_page = parseInt(value.actions.default_per_page, 10);
 
@@ -1088,6 +1089,7 @@ export const postSettingsDisplayHandler = {
                 !value.actions.trigger &&
                 !value.actions.url &&
                 !value.actions.action_type &&
+                !value.actions.last_read_at &&
                 !value.actions.created_at
             ) {
                 throw new ValidationError(

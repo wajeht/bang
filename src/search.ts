@@ -4,6 +4,8 @@ import {
     insertBookmarkQueue,
     insertPageTitleQueue,
     isOnlyLettersAndNumbers,
+    updateUserLastReadAtQueue,
+    updateUserBangLastReadAtQueue,
 } from './util';
 import fastq from 'fastq';
 import { db } from './db/db';
@@ -662,6 +664,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         }
     }
 
+    // Process user-defined bang commands
     if (commandType === 'bang' && triggerWithoutPrefix) {
         const customBang = await db('bangs')
             .where({ user_id: user.id, trigger: trigger })
@@ -670,6 +673,8 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             .first();
 
         if (customBang) {
+            void updateUserBangLastReadAtQueue.push({ userId: user.id, bangId: customBang.id });
+
             if (customBang.action_type === 'search') {
                 let url = customBang.url;
                 if (url.includes('{query}')) {

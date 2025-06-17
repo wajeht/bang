@@ -65,6 +65,14 @@
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
+              name="column_preferences[actions][last_read_at]"
+              <%= user.column_preferences?.actions?.last_read_at !== false ? 'checked' : '' %>
+            >
+            🔄 Last Read
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
               name="column_preferences[actions][created_at]"
               <%= user.column_preferences?.actions?.created_at !== false ? 'checked' : '' %>
             >

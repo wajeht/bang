@@ -44,7 +44,11 @@ export const actions: Actions = {
             });
         }
 
-        if (['name', 'trigger', 'url', 'created_at', 'action_type'].includes(sortKey)) {
+        if (
+            ['name', 'trigger', 'url', 'created_at', 'action_type', 'last_read_at'].includes(
+                sortKey,
+            )
+        ) {
             if (sortKey === 'action_type') {
                 query.orderBy('action_types.name', direction);
             } else {
@@ -93,6 +97,7 @@ export const actions: Actions = {
                 'bangs.url',
                 'action_types.name as action_type',
                 'bangs.created_at',
+                'bangs.last_read_at',
             )
             .from('bangs')
             .join('action_types', 'bangs.action_type_id', 'action_types.id')

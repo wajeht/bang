@@ -37,6 +37,7 @@ export async function up(knex: Knex): Promise<void> {
                         trigger: true,
                         url: true,
                         default_per_page: 10,
+                        last_read_at: true,
                         created_at: true,
                     },
                     notes: {
@@ -98,7 +99,9 @@ export async function up(knex: Knex): Promise<void> {
             table.integer('action_type_id').unsigned().references('id').inTable('action_types');
             table.text('url').notNullable();
             table.timestamps(true, true);
+            table.timestamp('last_read_at').nullable();
 
+            table.index(['user_id', 'last_read_at']);
             table.unique(['user_id', 'trigger']);
             table.index(['user_id', 'trigger']);
         });

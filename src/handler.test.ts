@@ -114,6 +114,7 @@ describe('Export Data Handler', () => {
                         trigger: true,
                         url: true,
                         created_at: true,
+                        last_read_at: true,
                         default_per_page: 10,
                     },
                     notes: {

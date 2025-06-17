@@ -27,6 +27,7 @@ export async function ensureTestUserExists(email: string = 'test@example.com') {
                             trigger: true,
                             url: true,
                             default_per_page: 10,
+                            last_read_at: true,
                             created_at: true,
                         },
                         notes: {

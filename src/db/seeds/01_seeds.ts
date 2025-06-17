@@ -30,6 +30,7 @@ export async function seed(knex: Knex): Promise<void> {
                         trigger: true,
                         url: true,
                         default_per_page: 10,
+                        last_read_at: true,
                         created_at: true,
                     },
                     notes: {
@@ -71,6 +72,7 @@ export async function seed(knex: Knex): Promise<void> {
                 trigger: '!g',
                 name: 'Google Search',
                 action_type_id: searchType.id,
+                last_read_at: null,
                 url: 'https://www.google.com/search?q={query}',
             },
             {
@@ -78,6 +80,7 @@ export async function seed(knex: Knex): Promise<void> {
                 trigger: '!ddg',
                 name: 'DuckDuckGo Search',
                 action_type_id: searchType.id,
+                last_read_at: null,
                 url: 'https://duckduckgo.com/?q={query}',
             },
             {
@@ -85,6 +88,7 @@ export async function seed(knex: Knex): Promise<void> {
                 trigger: '!gh',
                 name: 'GitHub',
                 action_type_id: redirectType.id,
+                last_read_at: null,
                 url: 'https://github.com',
             },
             {
@@ -92,6 +96,7 @@ export async function seed(knex: Knex): Promise<void> {
                 trigger: '!yt',
                 name: 'YouTube Search',
                 action_type_id: searchType.id,
+                last_read_at: null,
                 url: 'https://www.youtube.com/results?search_query={query}',
             },
             {
@@ -99,6 +104,7 @@ export async function seed(knex: Knex): Promise<void> {
                 trigger: '!maps',
                 name: 'Google Maps',
                 action_type_id: searchType.id,
+                last_read_at: null,
                 url: 'https://www.google.com/maps/search/{query}',
             },
             {

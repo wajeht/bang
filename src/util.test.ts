@@ -139,13 +139,13 @@ describe.concurrent('addHttps', () => {
 
 describe.concurrent('fetchPageTitle', () => {
     it('should return the title of a valid page', async () => {
-        const url = 'https://example.com'; // Replace with a valid URL for testing
+        const url = 'https://example.com';
         const title = await fetchPageTitle(url);
-        expect(title).toBeDefined(); // Check that a title is returned
+        expect(title).toBeDefined();
     });
 
     it('should return "Untitled" for a non-200 response', async () => {
-        const url = 'https://httpstat.us/404'; // A URL that returns a 404
+        const url = 'http://localhost/404';
         const title = await fetchPageTitle(url);
         expect(title).toBe('Untitled');
     });
@@ -263,6 +263,7 @@ describe('extractUser', () => {
                     url: true,
                     action_type: true,
                     created_at: true,
+                    last_read_at: true,
                     default_per_page: 10,
                 },
             }),
@@ -306,6 +307,7 @@ describe('extractUser', () => {
                     url: true,
                     action_type: true,
                     created_at: true,
+                    last_read_at: true,
                     default_per_page: 10,
                 },
             }),

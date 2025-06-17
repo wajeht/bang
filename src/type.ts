@@ -73,6 +73,7 @@ export type ColumnPreferences = {
         url: boolean;
         default_per_page: number;
         created_at: boolean;
+        last_read_at: boolean;
     };
     notes: {
         title: boolean;

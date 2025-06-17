@@ -18,6 +18,17 @@ export const insertBookmarkQueue = fastq.promise(insertBookmark, 10);
 export const insertPageTitleQueue = fastq.promise(insertPageTitle, 10);
 export const sendNotificationQueue = fastq.promise(sendNotification, 10);
 export const sendMagicLinkEmailQueue = fastq.promise(sendMagicLinkEmail, 10);
+export const updateUserBangLastReadAtQueue = fastq.promise(updateUserBangLastReadAt, 10);
+
+export async function updateUserBangLastReadAt({
+    userId,
+    bangId,
+}: {
+    userId: number;
+    bangId: number;
+}) {
+    await db('bangs').where({ user_id: userId, id: bangId }).update({ last_read_at: db.fn.now() });
+}
 
 export async function insertBookmark({
     url,

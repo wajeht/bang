@@ -100,6 +100,14 @@
                                 </a>
                             </th>
                         <% } %>
+                        <% if (state.user.column_preferences?.actions?.last_read_at !== false) { %>
+                            <th style="text-align: left; padding: 10px;">
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=last_read_at&direction=<%= (sortKey === 'last_read_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                    🔄 Last Read
+                                </a>
+                            </th>
+                        <% } %>
                         <th style="text-align: left; padding: 10px;">⚡ Actions</th>
                     </tr>
                 </thead>
@@ -129,6 +137,9 @@
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.created_at !== false) { %>
                                 <td style="padding: 10px;"><%= new Date(data[i].created_at).toLocaleDateString() %></td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.actions?.last_read_at !== false) { %>
+                                <td style="padding: 10px;"><%= data[i].last_read_at ? new Date(data[i].last_read_at).toLocaleDateString() : '-' %></td>
                             <% } %>
                             <td style="padding: 10px;">
                                 <details style="position: relative;">
