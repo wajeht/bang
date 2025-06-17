@@ -5,7 +5,7 @@ import { Server } from 'node:http';
 import { config } from './config';
 import { AddressInfo } from 'node:net';
 import { db, runMigrations } from './db/db';
-import { sendNotificationQueue, checkMailpit } from './util';
+import { sendNotification, checkMailpit } from './util';
 
 const server: Server = app.listen(config.app.port);
 
@@ -74,11 +74,6 @@ function gracefulShutdown(signal: string): void {
         logger.info('HTTP server closed.');
 
         try {
-            if (sendNotificationQueue) {
-                logger.info('[gracefulShutdown]: Ensuring notification queue is processed...');
-                await sendNotificationQueue.drain();
-            }
-
             await db.destroy();
             logger.info('[gracefulShutdown]: Database connection closed.');
 
@@ -114,10 +109,14 @@ process.on('uncaughtException', async (error: Error, origin: string) => {
 
     if (config.app.env === 'production') {
         try {
-            void sendNotificationQueue.push({
-                req: {} as Request,
-                error,
-            });
+            setTimeout(
+                () =>
+                    sendNotification({
+                        req: {} as Request,
+                        error,
+                    }),
+                0,
+            );
         } catch (error) {
             logger.error(`Failed to send uncaught exception notification: %o`, error);
         }
@@ -132,10 +131,14 @@ process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknow
 
         if (config.app.env === 'production') {
             try {
-                void sendNotificationQueue.push({
-                    req: {} as Request,
-                    error: reason,
-                });
+                setTimeout(
+                    () =>
+                        sendNotification({
+                            req: {} as Request,
+                            error: reason,
+                        }),
+                    0,
+                );
             } catch (error) {
                 logger.error(`Failed to send unhandled rejection notification: %o`, error);
             }
