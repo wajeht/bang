@@ -89,6 +89,7 @@
             history.replaceState({}, document.title, newUrl);
           }
 
+          const state = `<%- JSON.stringify(state) %>`;
           // auto pre-fill the email if the user is logged in beforeand the email is in local storage
           const localStorageData = getLocalStorageData();
           if (!state.errors?.email && localStorageData.user) {
