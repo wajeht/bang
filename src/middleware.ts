@@ -217,7 +217,7 @@ export function setupAppLocals(req: Request, res: Response) {
         },
         version: {
             style: isProd ? '0.18' : randomNumber,
-            script: isProd ? '0.12' : randomNumber,
+            script: isProd ? '0.13' : randomNumber,
         },
     };
 
