@@ -126,6 +126,7 @@ describe('Export Data Handler', () => {
                         view_type: 'table',
                     },
                 },
+                email_verified_at: null,
                 created_at: '2023-01-01',
                 updated_at: '2023-01-01',
             },
