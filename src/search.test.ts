@@ -1,11 +1,27 @@
+import {
+    search,
+    parseSearchQuery,
+    redirectWithCache,
+    getBangRedirectUrl,
+    processDelayedSearch,
+    handleAnonymousSearch,
+} from './search';
 import { db } from './db/db';
 import { User } from './type';
-import * as utils from './util';
 import { config } from './config';
-import * as searchModule from './search';
 import { Request, Response } from 'express';
-import { search, processDelayedSearch, redirectWithCache } from './search';
+import { isValidUrl, insertBookmark, insertPageTitle } from './util';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('./util', async () => {
+    const actual = await vi.importActual('./util');
+    return {
+        ...actual,
+        isValidUrl: vi.fn(),
+        insertBookmark: vi.fn(),
+        insertPageTitle: vi.fn(),
+    };
+});
 
 describe('search', () => {
     describe('unauthenticated', () => {
@@ -51,6 +67,8 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
+            vi.mocked(isValidUrl).mockReturnValue(true);
+
             await search({ req, res, user: undefined as unknown as User, query: '!g' });
 
             expect(res.status).toBe(200);
@@ -62,6 +80,8 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('https://google.com');
             expect(req.session.searchCount).toBe(1);
             expect(req.session.user).toBeUndefined();
+
+            vi.mocked(isValidUrl).mockReset();
         });
 
         it('should redirect ddg without a exclamation mark when !doesnotexistanywhere is used', async () => {
@@ -105,8 +125,6 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            const isValidUrlSpy = vi.spyOn(utils, 'isValidUrl').mockReturnValue(false);
-
             try {
                 await search({ req, res, user: undefined, query: '!g' });
 
@@ -120,7 +138,7 @@ describe('search', () => {
                 expect(req.session.searchCount).toBe(1);
                 expect(req.session.user).toBeUndefined();
             } finally {
-                isValidUrlSpy.mockRestore();
+                vi.mocked(isValidUrl).mockReset();
             }
         });
 
@@ -210,18 +228,14 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                // Properly mock the processDelayedSearch function
-                const processDelayedSpy = vi
-                    .spyOn(searchModule, 'processDelayedSearch')
-                    .mockResolvedValue(undefined);
+                const processDelayedSpy = vi.mocked(processDelayedSearch);
+                processDelayedSpy.mockResolvedValue(undefined);
 
                 try {
                     await search({ req, res, user: undefined, query: '!g python' });
 
-                    // Verify the delay function was called
                     expect(processDelayedSpy).toHaveBeenCalled();
 
-                    // Verify the response after the delay
                     expect(res.status).toHaveBeenCalledWith(200);
                     expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
                     expect(res.send).toHaveBeenCalledWith(
@@ -238,7 +252,6 @@ describe('search', () => {
                     expect(req.session.cumulativeDelay).toBe(10000);
                     expect(req.session.user).toBeUndefined();
                 } finally {
-                    // Restore the original implementation
                     processDelayedSpy.mockRestore();
                 }
             },
@@ -252,7 +265,6 @@ describe('search', () => {
             await db('action_types').del();
             await db('users').del();
 
-            // Insert test data
             await db('users').insert({
                 id: 1,
                 username: 'Test User',
@@ -266,7 +278,6 @@ describe('search', () => {
                 { id: 2, name: 'redirect' },
             ]);
 
-            // Insert both search and redirect bangs for testing
             await db('bangs').insert([
                 {
                     user_id: 1,
@@ -331,7 +342,6 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            // Test @notes with search term
             await search({ req, res, user: testUser, query: '@notes search query' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -340,12 +350,10 @@ describe('search', () => {
             );
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=search%20query');
 
-            // Test @note alias
             vi.mocked(res.redirect).mockClear();
             await search({ req, res, user: testUser, query: '@note another query' });
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=another%20query');
 
-            // Test @n shorthand
             vi.mocked(res.redirect).mockClear();
             await search({ req, res, user: testUser, query: '@n shorthand' });
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=shorthand');
@@ -358,7 +366,6 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            // Test @bookmarks with search term
             await search({ req, res, user: testUser, query: '@bookmarks search query' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -367,7 +374,6 @@ describe('search', () => {
             );
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=search%20query');
 
-            // Test @bm alias
             vi.mocked(res.redirect).mockClear();
             await search({ req, res, user: testUser, query: '@bm bookmark query' });
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=bookmark%20query');
@@ -380,7 +386,6 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            // Test @actions with search term
             await search({ req, res, user: testUser, query: '@actions search query' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -389,7 +394,6 @@ describe('search', () => {
             );
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=search%20query');
 
-            // Test @a alias
             vi.mocked(res.redirect).mockClear();
             await search({ req, res, user: testUser, query: '@a action query' });
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=action%20query');
@@ -402,7 +406,6 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            // Test with special characters
             await search({
                 req,
                 res,
@@ -431,8 +434,8 @@ describe('search', () => {
 
             const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
 
-            vi.spyOn(utils, 'isValidUrl').mockReturnValue(true);
-            vi.spyOn(utils, 'insertBookmark').mockImplementation(mockInsertBookmark);
+            vi.mocked(isValidUrl).mockReturnValue(true);
+            vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
 
             const query = '!bm My Bookmark https://example.com';
 
@@ -473,8 +476,8 @@ describe('search', () => {
 
             const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
 
-            vi.spyOn(utils, 'isValidUrl').mockReturnValue(true);
-            vi.spyOn(utils, 'insertBookmark').mockImplementation(mockInsertBookmark);
+            vi.mocked(isValidUrl).mockReturnValue(true);
+            vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
 
             const query = '!bm https://example.com';
 
@@ -524,6 +527,8 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
+            vi.mocked(isValidUrl).mockReturnValue(true);
+
             const longTitle = 'A'.repeat(256);
             const query = `!bm ${longTitle} https://example.com`;
 
@@ -538,6 +543,8 @@ describe('search', () => {
             expect(res.send).toHaveBeenCalledWith(
                 expect.stringContaining('Title must be shorter than 255 characters'),
             );
+
+            vi.mocked(isValidUrl).mockReset();
         });
 
         it('should handle custom bang creation', async () => {
@@ -791,8 +798,8 @@ describe('search', () => {
 
             const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
 
-            vi.spyOn(utils, 'isValidUrl').mockReturnValue(true);
-            vi.spyOn(utils, 'insertBookmark').mockImplementation(mockInsertBookmark);
+            vi.mocked(isValidUrl).mockReturnValue(true);
+            vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
 
             await search({
                 req,
@@ -867,8 +874,8 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            vi.spyOn(utils, 'isValidUrl').mockReturnValue(true);
-            vi.spyOn(utils, 'insertBookmark').mockRejectedValue(new Error('Database error'));
+            vi.mocked(isValidUrl).mockReturnValue(true);
+            vi.mocked(insertBookmark).mockRejectedValue(new Error('Database error'));
 
             await search({
                 req,
@@ -1317,7 +1324,7 @@ describe('search', () => {
                 } as unknown as Response;
 
                 const mockInsertPageTitle = vi.fn().mockResolvedValue(undefined);
-                vi.spyOn(utils, 'insertPageTitle').mockImplementation(mockInsertPageTitle);
+                vi.mocked(insertPageTitle).mockImplementation(mockInsertPageTitle);
 
                 await search({
                     req,
@@ -1356,8 +1363,10 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
+                vi.mocked(isValidUrl).mockReturnValue(true);
+
                 const mockInsertPageTitle = vi.fn().mockResolvedValue(undefined);
-                vi.spyOn(utils, 'insertPageTitle').mockImplementation(mockInsertPageTitle);
+                vi.mocked(insertPageTitle).mockImplementation(mockInsertPageTitle);
 
                 await search({
                     req,
@@ -1552,6 +1561,8 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
+                vi.mocked(isValidUrl).mockReturnValue(true);
+
                 await search({
                     req,
                     res,
@@ -1564,12 +1575,13 @@ describe('search', () => {
                     expect.stringContaining('window.history.back()'),
                 );
 
-                // Verify the bang was actually updated
                 const updatedBang = await db('bangs')
                     .where({ user_id: 1, trigger: '!editme' })
                     .first();
                 expect(updatedBang).toBeDefined();
                 expect(updatedBang.url).toBe('https://new-without-prefix.com');
+
+                vi.mocked(isValidUrl).mockReset();
             });
         });
 
@@ -1611,7 +1623,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            const isValidUrlSpy = vi.spyOn(utils, 'isValidUrl').mockReturnValue(false);
+            vi.mocked(isValidUrl).mockReturnValue(false);
 
             try {
                 await search({ req, res, user: testUser, query: '!g' });
@@ -1623,7 +1635,7 @@ describe('search', () => {
                 );
                 expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=g');
             } finally {
-                isValidUrlSpy.mockRestore();
+                vi.restoreAllMocks();
             }
         });
     });
@@ -1631,7 +1643,7 @@ describe('search', () => {
 
 describe('parseSearchQuery', () => {
     it('should parse basic queries correctly', () => {
-        const result = searchModule.parseSearchQuery('test query');
+        const result = parseSearchQuery('test query');
         expect(result).toEqual({
             commandType: null,
             trigger: null,
@@ -1642,7 +1654,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should parse bangs correctly', () => {
-        const result = searchModule.parseSearchQuery('!g test query');
+        const result = parseSearchQuery('!g test query');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!g',
@@ -1653,7 +1665,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should parse direct commands correctly', () => {
-        const result = searchModule.parseSearchQuery('@settings');
+        const result = parseSearchQuery('@settings');
         expect(result).toEqual({
             commandType: 'direct',
             trigger: '@settings',
@@ -1664,7 +1676,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle bookmark commands', () => {
-        const result = searchModule.parseSearchQuery('bm:homepage');
+        const result = parseSearchQuery('bm:homepage');
         expect(result).toEqual({
             commandType: null,
             trigger: null,
@@ -1675,7 +1687,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle URLs only in bang commands', () => {
-        const result = searchModule.parseSearchQuery('!bm My Bookmark https://www.example.com');
+        const result = parseSearchQuery('!bm My Bookmark https://www.example.com');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!bm',
@@ -1686,7 +1698,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should not detect URLs in regular searches', () => {
-        const result = searchModule.parseSearchQuery('https://www.example.com');
+        const result = parseSearchQuery('https://www.example.com');
         expect(result).toEqual({
             commandType: null,
             trigger: null,
@@ -1697,7 +1709,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should detect URLs with special characters in bang commands', () => {
-        const result = searchModule.parseSearchQuery(
+        const result = parseSearchQuery(
             '!bm Title https://example.com/search?q=hello%20world&lang=en',
         );
         expect(result).toEqual({
@@ -1710,7 +1722,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should detect URLs with fragments in bang commands', () => {
-        const result = searchModule.parseSearchQuery('!bm Title https://example.com/page#section1');
+        const result = parseSearchQuery('!bm Title https://example.com/page#section1');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!bm',
@@ -1721,7 +1733,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should detect URLs with port numbers in bang commands', () => {
-        const result = searchModule.parseSearchQuery('!bm Dev https://localhost:3000/api/data');
+        const result = parseSearchQuery('!bm Dev https://localhost:3000/api/data');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!bm',
@@ -1732,7 +1744,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should parse commands with numbers', () => {
-        const result = searchModule.parseSearchQuery('!123 test');
+        const result = parseSearchQuery('!123 test');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!123',
@@ -1743,7 +1755,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should parse commands with underscores', () => {
-        const result = searchModule.parseSearchQuery('!my_command test');
+        const result = parseSearchQuery('!my_command test');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!my_command',
@@ -1754,7 +1766,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should parse commands with periods', () => {
-        const result = searchModule.parseSearchQuery('!my.command test');
+        const result = parseSearchQuery('!my.command test');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!my.command',
@@ -1765,9 +1777,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle multiple URLs in bang commands', () => {
-        const result = searchModule.parseSearchQuery(
-            '!bm Title https://example.com https://test.com',
-        );
+        const result = parseSearchQuery('!bm Title https://example.com https://test.com');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!bm',
@@ -1778,7 +1788,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should not detect non-http protocols in bang commands', () => {
-        const result = searchModule.parseSearchQuery('!bm FTP ftp://example.com/files');
+        const result = parseSearchQuery('!bm FTP ftp://example.com/files');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!bm',
@@ -1789,7 +1799,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle queries with special characters', () => {
-        const result = searchModule.parseSearchQuery('!g test@example.com');
+        const result = parseSearchQuery('!g test@example.com');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!g',
@@ -1801,7 +1811,7 @@ describe('parseSearchQuery', () => {
 
     it('should handle very long search terms', () => {
         const longTerm = 'a'.repeat(500);
-        const result = searchModule.parseSearchQuery(`!g ${longTerm}`);
+        const result = parseSearchQuery(`!g ${longTerm}`);
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!g',
@@ -1812,7 +1822,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle direct commands with parameters', () => {
-        const result = searchModule.parseSearchQuery('@notes search: important meeting');
+        const result = parseSearchQuery('@notes search: important meeting');
         expect(result).toEqual({
             commandType: 'direct',
             trigger: '@notes',
@@ -1823,7 +1833,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle direct commands with special characters', () => {
-        const result = searchModule.parseSearchQuery('@tag:work');
+        const result = parseSearchQuery('@tag:work');
         expect(result).toEqual({
             commandType: 'direct',
             trigger: '@tag:work',
@@ -1834,7 +1844,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle URL-like strings in bang commands', () => {
-        const result = searchModule.parseSearchQuery('!w https://en.wikipedia.org');
+        const result = parseSearchQuery('!w https://en.wikipedia.org');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!w',
@@ -1845,7 +1855,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle commands that look like URLs', () => {
-        const result = searchModule.parseSearchQuery('!http test');
+        const result = parseSearchQuery('!http test');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!http',
@@ -1856,7 +1866,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle empty search term with commands', () => {
-        const result = searchModule.parseSearchQuery('!g');
+        const result = parseSearchQuery('!g');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!g',
@@ -1867,7 +1877,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle whitespace-only search term', () => {
-        const result = searchModule.parseSearchQuery('!g    ');
+        const result = parseSearchQuery('!g    ');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!g',
@@ -1947,7 +1957,7 @@ describe('handleAnonymousSearch', () => {
 
         const initialSearchCount = req.session.searchCount || 0;
 
-        await searchModule.handleAnonymousSearch(req, res, 'test query', 'g', 'test query');
+        await handleAnonymousSearch(req, res, 'test query', 'g', 'test query');
 
         expect(req.session.searchCount).toBe(initialSearchCount + 1);
         expect(res.redirect).toHaveBeenCalled();
@@ -1957,7 +1967,7 @@ describe('handleAnonymousSearch', () => {
 describe('search command handling', () => {
     describe('bangs object access', () => {
         it('should provide fast access to bangs', async () => {
-            const googleBang = searchModule.getBangRedirectUrl(
+            const googleBang = getBangRedirectUrl(
                 {
                     u: 'https://www.google.com/search?q={{{s}}}',
                     d: 'google.com',
@@ -1979,21 +1989,23 @@ describe('search command handling', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            vi.spyOn(searchModule, 'parseSearchQuery').mockReturnValue({
-                commandType: 'direct',
-                trigger: '@notes',
-                triggerWithoutPrefix: 'notes',
-                url: null,
-                searchTerm: 'test',
-            });
+            const parseSearchQuerySpy = vi
+                .spyOn({ parseSearchQuery }, 'parseSearchQuery')
+                .mockReturnValue({
+                    commandType: 'direct',
+                    trigger: '@notes',
+                    triggerWithoutPrefix: 'notes',
+                    url: null,
+                    searchTerm: 'test',
+                });
 
             const user = { id: 1 } as User;
 
-            await searchModule.search({ req, res, user, query: '@notes test' });
+            await search({ req, res, user, query: '@notes test' });
 
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=test');
 
-            vi.restoreAllMocks();
+            parseSearchQuerySpy.mockRestore();
         });
     });
 
@@ -2009,19 +2021,21 @@ describe('search command handling', () => {
                 default_search_provider: 'duckduckgo',
             } as User;
 
-            vi.spyOn(searchModule, 'parseSearchQuery').mockReturnValue({
-                commandType: 'bang',
-                trigger: '!unknown',
-                triggerWithoutPrefix: 'unknown',
-                url: null,
-                searchTerm: '',
-            });
+            const parseSearchQuerySpy = vi
+                .spyOn({ parseSearchQuery }, 'parseSearchQuery')
+                .mockReturnValue({
+                    commandType: 'bang',
+                    trigger: '!unknown',
+                    triggerWithoutPrefix: 'unknown',
+                    url: null,
+                    searchTerm: '',
+                });
 
-            await searchModule.search({ req, res, user, query: '!unknown' });
+            await search({ req, res, user, query: '!unknown' });
 
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=unknown');
 
-            vi.restoreAllMocks();
+            parseSearchQuerySpy.mockRestore();
         });
 
         it('should handle regular search with null commandType', async () => {
@@ -2035,19 +2049,21 @@ describe('search command handling', () => {
                 default_search_provider: 'duckduckgo',
             } as User;
 
-            vi.spyOn(searchModule, 'parseSearchQuery').mockReturnValue({
-                commandType: null,
-                trigger: null,
-                triggerWithoutPrefix: null,
-                url: null,
-                searchTerm: 'regular search',
-            });
+            const parseSearchQuerySpy = vi
+                .spyOn({ parseSearchQuery }, 'parseSearchQuery')
+                .mockReturnValue({
+                    commandType: null,
+                    trigger: null,
+                    triggerWithoutPrefix: null,
+                    url: null,
+                    searchTerm: 'regular search',
+                });
 
-            await searchModule.search({ req, res, user, query: 'regular search' });
+            await search({ req, res, user, query: 'regular search' });
 
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=regular%20search');
 
-            vi.restoreAllMocks();
+            parseSearchQuerySpy.mockRestore();
         });
     });
 });
@@ -2109,18 +2125,19 @@ describe('redirectWithCache', () => {
 
 describe('Integration: Cache headers in search redirects', () => {
     it('should use cache headers in all redirect cases', () => {
-        const redirectWithCacheSpy = vi.spyOn(searchModule, 'redirectWithCache');
-
         const res = {
             set: vi.fn(),
             redirect: vi.fn(),
         } as unknown as Response;
 
-        searchModule.redirectWithCache(res, 'https://example.com');
+        redirectWithCache(res, 'https://example.com');
 
-        expect(redirectWithCacheSpy).toHaveBeenCalledWith(res, 'https://example.com');
-
-        redirectWithCacheSpy.mockRestore();
+        expect(res.set).toHaveBeenCalledWith(
+            expect.objectContaining({
+                'Cache-Control': 'public, max-age=3600',
+            }),
+        );
+        expect(res.redirect).toHaveBeenCalledWith('https://example.com');
     });
 
     it('should apply different cache durations when specified', () => {
