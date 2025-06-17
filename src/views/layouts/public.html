@@ -88,22 +88,15 @@
             const newUrl = `${window.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
             history.replaceState({}, document.title, newUrl);
           }
-        });
-      </script>
-    <% } %>
 
-    <% if (state.user) { %>
-      <script>
-        document.addEventListener('DOMContentLoaded', () => {
           // auto pre-fill the email if the user is logged in beforeand the email is in local storage
           const localStorageData = getLocalStorageData();
-          if (!state.user && !state.errors?.email && localStorageData.user) {
+          if (!state.errors?.email && localStorageData.user) {
               document.getElementById('email-input').value = localStorageData.user.email;
           }
         });
       </script>
     <% } %>
-
 	</body>
 
 </html>
