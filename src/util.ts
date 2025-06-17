@@ -10,7 +10,10 @@ import fs from 'node:fs/promises';
 import { Request } from 'express';
 import nodemailer from 'nodemailer';
 import { HttpError } from './error';
+import { Application } from 'express';
 import { bookmarks } from './repository';
+import expressJSDocSwagger from 'express-jsdoc-swagger';
+import { authenticationMiddleware, cacheMiddleware } from './middleware';
 import { Api, User, PageType, ApiKeyPayload, BookmarkToExport, MagicLinkPayload } from './type';
 
 export const actionTypes = ['search', 'redirect'] as const;
@@ -513,4 +516,42 @@ export async function convertMarkdownToPlainText(markdownInput: string) {
     plainText = plainText.trim();
 
     return plainText;
+}
+
+export const swagger = {
+    info: {
+        title: 'bang',
+        description: `DuckDuckGo's !Bangs, but on steroids`,
+        termsOfService: `/terms-of-service`,
+        contact: {
+            name: 'Support',
+            url: `https://github.com/wajeht/bang/issues`,
+        },
+        license: {
+            name: 'MIT',
+            url: 'https://github.com/wajeht/bang/blob/main/LICENSE',
+        },
+        version: '0.0.1',
+    },
+    baseDir: './src',
+    filesPattern: ['./**/router.ts'],
+    swaggerUIPath: '/api-docs',
+    exposeSwaggerUI: true,
+    notRequiredAsNullable: false,
+    swaggerUiOptions: {
+        customSiteTitle: `DuckDuckGo's !Bangs, but on steroids`,
+        customfavIcon: '/favicon.ico',
+    },
+    security: {
+        BearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+        },
+    },
+    multiple: {},
+};
+
+export function expressJSDocSwaggerHandler(app: Application, swaggerConfig: typeof swagger) {
+    app.use('/api-docs', authenticationMiddleware, cacheMiddleware(1, 'day'));
+    expressJSDocSwagger(app)(swaggerConfig);
 }

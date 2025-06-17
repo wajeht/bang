@@ -15,7 +15,7 @@ import flash from 'connect-flash';
 import { config } from './config';
 import compression from 'compression';
 import expressLayouts from 'express-ejs-layouts';
-import { expressJSDocSwaggerHandler, swagger } from './swagger';
+import { expressJSDocSwaggerHandler, swagger } from './util';
 import { expressTemplatesReload as reload } from '@wajeht/express-templates-reload';
 
 const app = express()
