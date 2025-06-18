@@ -15,6 +15,7 @@ import { bookmarks } from './repository';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
 import { authenticationMiddleware, cacheMiddleware } from './middleware';
 import { Api, User, PageType, ApiKeyPayload, BookmarkToExport, MagicLinkPayload } from './type';
+import type { Options } from 'express-jsdoc-swagger';
 
 export const actionTypes = ['search', 'redirect'] as const;
 
@@ -31,7 +32,7 @@ export async function updateUserBangLastReadAt({
 }: {
     userId: number;
     bangId: number;
-}) {
+}): Promise<void> {
     try {
         await db('bangs')
             .where({ user_id: userId, id: bangId })
@@ -51,15 +52,19 @@ export async function insertBookmark({
     userId: number;
     title?: string;
     req?: Request;
-}) {
-    const bookmark = await bookmarks.create({
-        user_id: userId,
-        url: url,
-        title: title || 'Fetching title...',
-    });
+}): Promise<void> {
+    try {
+        const bookmark = await bookmarks.create({
+            user_id: userId,
+            url: url,
+            title: title || 'Fetching title...',
+        });
 
-    if (!title) {
-        setTimeout(() => insertPageTitle({ bookmarkId: bookmark.id, url, req }), 0);
+        if (!title) {
+            setTimeout(() => insertPageTitle({ bookmarkId: bookmark.id, url, req }), 0);
+        }
+    } catch (error) {
+        logger.error(`[insertBookmark]: error inserting bookmark, %o`, { error });
     }
 }
 
@@ -73,7 +78,7 @@ export async function insertPageTitle({
     actionId?: number;
     url: string;
     req?: Request;
-}) {
+}): Promise<void> {
     if ((bookmarkId && actionId) || (!bookmarkId && !actionId)) {
         throw new HttpError(
             500,
@@ -323,7 +328,16 @@ export function expectJson(req: Request): boolean {
 
 export async function extractUser(req: Request): Promise<User> {
     if (isApiRequest(req) && req.apiKeyPayload) {
-        return await db.select('*').from('users').where({ id: req.apiKeyPayload.userId }).first();
+        try {
+            return await db
+                .select('*')
+                .from('users')
+                .where({ id: req.apiKeyPayload.userId })
+                .first();
+        } catch (error) {
+            logger.error(`Failed to extract user: %o`, { error });
+            throw new HttpError(500, 'Failed to extract user!', req);
+        }
     }
 
     if (req.session?.user) {
@@ -437,12 +451,15 @@ export async function getReadmeFileContent(): Promise<string> {
     try {
         const readmeFilepath = path.resolve(path.join(process.cwd(), 'README.md'));
         return await fs.readFile(readmeFilepath, { encoding: 'utf8' });
-    } catch (_error: any) {
+    } catch (error: any) {
+        logger.error(`Failed to get readme file content: %o`, { error });
         return '';
     }
 }
 
 export function extractReadmeUsage(readmeFileContent: string): string {
+    if (!readmeFileContent) return '';
+
     const start = '<!-- starts -->';
     const end = '<!-- ends -->';
 
@@ -458,12 +475,17 @@ export function extractReadmeUsage(readmeFileContent: string): string {
 
 let cachedReadMeMdHTML: Promise<string> | undefined;
 export async function getConvertedReadmeMDToHTML(): Promise<string> {
-    if (!cachedReadMeMdHTML) {
-        const content = await getReadmeFileContent();
-        const usage = extractReadmeUsage(content);
-        cachedReadMeMdHTML = Promise.resolve(marked(usage));
+    try {
+        if (!cachedReadMeMdHTML) {
+            const content = await getReadmeFileContent();
+            const usage = extractReadmeUsage(content);
+            cachedReadMeMdHTML = Promise.resolve(marked(usage));
+        }
+        return cachedReadMeMdHTML;
+    } catch (error) {
+        logger.error(`Failed to get converted readme md to html: %o`, { error });
+        return '';
     }
-    return cachedReadMeMdHTML;
 }
 
 const emailTransporter = nodemailer.createTransport({
@@ -487,7 +509,7 @@ export async function sendMagicLinkEmail({
     email: string;
     token: string;
     req: Request;
-}) {
+}): Promise<void> {
     const magicLink = `${req.protocol}://${req.get('host')}/auth/magic/${token}`;
 
     const mailOptions = {
@@ -514,14 +536,19 @@ https://github.com/wajeht/bang`,
     }
 }
 
-export async function convertMarkdownToPlainText(markdownInput: string) {
-    const htmlOutput = await marked(markdownInput);
-    let plainText = htmlOutput.replace(/<[^>]*>/g, '');
+export async function convertMarkdownToPlainText(markdownInput: string): Promise<string> {
+    try {
+        const htmlOutput = await marked(markdownInput);
+        let plainText = htmlOutput.replace(/<[^>]*>/g, '');
 
-    plainText = plainText.replace(/\n\s*\n/g, '\n');
-    plainText = plainText.trim();
+        plainText = plainText.replace(/\n\s*\n/g, '\n');
+        plainText = plainText.trim();
 
-    return plainText;
+        return plainText;
+    } catch (error) {
+        logger.error(`Failed to convert markdown to plain text: %o`, { error });
+        return '';
+    }
 }
 
 export const swagger = {
@@ -555,7 +582,7 @@ export const swagger = {
         },
     },
     multiple: {},
-};
+} as unknown as Options;
 
 export function expressJSDocSwaggerHandler(app: Application, swaggerConfig: typeof swagger) {
     app.use('/api-docs', authenticationMiddleware, cacheMiddleware(1, 'day'));
