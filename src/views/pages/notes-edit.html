@@ -12,12 +12,6 @@
         return data.content;
     };
 
-    async function previewContent() {
-        const content = document.getElementById('content').value;
-        const markdown = await renderMarkdown(content);
-        document.getElementById('content-preview').innerHTML = markdown;
-    };
-
     async function toggleContent() {
         const content = document.getElementById('content');
         const preview = document.getElementById('content-preview');
@@ -35,9 +29,29 @@
             preview.style.borderColor = '#767676';
             preview.style.borderWidth = '1px';
             document.getElementById('toggle-content-btn').innerHTML = 'Edit';
-            await previewContent();
         }
     }
+
+    window.addEventListener('load', () => {
+        const toggleContentBtn = document.getElementById('toggle-content-btn');
+        const content = document.getElementById('content');
+        const preview = document.getElementById('content-preview');
+        let fetchedContent = '';
+        let lastFetchedContentValue = '';
+
+        if (toggleContentBtn) {
+            toggleContentBtn.addEventListener('mouseenter', async () => {
+                if (toggleContentBtn.innerHTML === 'Preview' && content.value !== '' && content.value !== lastFetchedContentValue) {
+                    fetchedContent = await renderMarkdown(content.value);
+                    lastFetchedContentValue = content.value;
+                }
+            });
+
+            toggleContentBtn.addEventListener('click', async () => {
+                preview.innerHTML = fetchedContent;
+            });
+        }
+    });
 </script>
 
 <div style="display: flex; flex-direction: column; gap: 20px;">
@@ -72,7 +86,7 @@
         <div style="display: flex; flex-direction: column; gap: 5px;">
             <div style="display: flex; gap: 10px; align-items: center;">
                 <label for="content">📄 Content<span style="color: red;">*</span></label>
-                <button type="button" id="toggle-content-btn" class="no-style-btn" onclick="toggleContent()">Toggle</button>
+                <button type="button" id="toggle-content-btn" class="no-style-btn" onclick="toggleContent()">Preview</button>
             </div>
             <div class="content" id="content-preview" style="display: none;"></div>
             <textarea
