@@ -1,31 +1,53 @@
 <% if (typeof state?.user !== 'undefined' && state?.user.autocomplete_search_on_homepage) { %>
   <script>
-    const actionTemplate = (action) => `
+    const actionTemplate = (action, query) => {
+      const highlightedTrigger = highlight(action.trigger, query);
+      const highlightedName = highlight(action.name, query);
+      return `
       <li data-type="action" data-trigger="${action.trigger}" style="padding: 5px 10px; cursor: pointer;">
-        <span style="font-weight: bold;">${action.trigger}</span> - ⚡ ${action.name}
+        <span style="font-weight: bold;">${highlightedTrigger}</span> - ⚡ ${highlightedName}
       </li>
     `;
+    };
 
     const searchTemplate = {
-      action: (action) => `
+      action: (action, query) => {
+        const highlightedName = highlight(action.name, query);
+        const highlightedUrl = highlight(action.url, query);
+        return `
         <li data-type="action" data-trigger="${action.trigger}" style="padding: 5px 10px; cursor: pointer; display: flex;">
-          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">⚡ ${action.name} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${action.url}</span></span>
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">⚡ ${highlightedName} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${highlightedUrl}</span></span>
           <code>action</code>
         </li>
-      `,
-      bookmark: (bookmark) => `
+      `;
+      },
+      bookmark: (bookmark, query) => {
+        const highlightedTitle = highlight(bookmark.title, query);
+        const highlightedUrl = highlight(bookmark.url, query);
+        return `
         <li data-type="bookmark" data-url="${bookmark.url}" style="padding: 5px 10px; cursor: pointer; display: flex;">
-          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">🔖 ${bookmark.title} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${bookmark.url}</span></span>
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">🔖 ${highlightedTitle} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${highlightedUrl}</span></span>
           <code>bookmark</code>
         </li>
-      `,
-      note: (note) => `
+      `;
+      },
+      note: (note, query) => {
+        const highlightedTitle = highlight(note.title, query);
+        const highlightedContent = highlight(note.content, query);
+        return `
         <li data-type="note" data-id="${note.id}" style="padding: 5px 10px; cursor: pointer; display: flex;">
-          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">📝 ${note.title} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${note.content}</span></span>
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">📝 ${highlightedTitle} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${highlightedContent}</span></span>
           <code>note</code>
         </li>
-      `
+      `;
+      }
     };
+
+    function highlight(text, query) {
+      if (!query) return text;
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<mark>$1</mark>');
+    }
 
     async function getActionsAndBookmarks() {
       try {
@@ -140,7 +162,7 @@
           return -1;
         }
 
-        html = matches.map(actionTemplate).join('');
+        html = matches.map(action => actionTemplate(action, lowerValue)).join('');
       } else {
         // General search logic - now with sorting by relevance
         const actionMatches = data.actions
@@ -152,7 +174,7 @@
             .map(bookmark => ({...bookmark, type: 'bookmark', text: bookmark.title}));
 
         const noteMatches = data.notes
-            .filter(note => note.title.toLowerCase().includes(lowerValue))
+            .filter(note => note.title.toLowerCase().includes(lowerValue) || note.content.toLowerCase().includes(lowerValue))
             .map(note => ({...note, type: 'note', text: note.title}));
 
         // Combine all matches and sort by relevance
@@ -175,9 +197,9 @@
         // Generate HTML using appropriate template for each type
         html = allMatches.map(match => {
           switch (match.type) {
-            case 'action': return searchTemplate.action(match);
-            case 'bookmark': return searchTemplate.bookmark(match);
-            case 'note': return searchTemplate.note(match);
+            case 'action': return searchTemplate.action(match, lowerValue);
+            case 'bookmark': return searchTemplate.bookmark(match, lowerValue);
+            case 'note': return searchTemplate.note(match, lowerValue);
           }
         }).join('');
       }
