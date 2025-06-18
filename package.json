@@ -82,19 +82,19 @@
         "@types/express": "^5.0.3",
         "@types/express-ejs-layouts": "^2.5.4",
         "@types/express-session": "^1.18.2",
-        "@types/jsonwebtoken": "^9.0.9",
-        "@types/node": "^24.0.1",
+        "@types/jsonwebtoken": "^9.0.10",
+        "@types/node": "^24.0.3",
         "@types/nodemailer": "^6.4.17",
-        "@typescript-eslint/eslint-plugin": "^8.34.0",
-        "@typescript-eslint/parser": "^8.34.0",
-        "@vitest/coverage-v8": "^3.2.3",
+        "@typescript-eslint/eslint-plugin": "^8.34.1",
+        "@typescript-eslint/parser": "^8.34.1",
+        "@vitest/coverage-v8": "^3.2.4",
         "@wajeht/express-templates-reload": "^1.0.4",
         "eslint-config-prettier": "^10.1.5",
-        "eslint-plugin-prettier": "^5.4.1",
+        "eslint-plugin-prettier": "^5.5.0",
         "eslint-plugin-security": "^3.0.1",
         "prettier": "^3.5.3",
         "tsx": "^4.20.3",
         "typescript": "^5.8.3",
-        "vitest": "^3.2.3"
+        "vitest": "^3.2.4"
     }
 }
