@@ -236,7 +236,10 @@
     document.addEventListener('DOMContentLoaded', async () => {
       const input = document.getElementById('q');
       const dropdown = document.getElementById('bangsDropdown');
-      const data = await getActionsAndBookmarks();
+      let data = {};
+
+      setTimeout(async () => data = await getActionsAndBookmarks(), 0);
+
       let selectedIndex = -1;
 
       input.addEventListener('keydown', (e) =>
