@@ -243,7 +243,18 @@ export function setupAppLocals(req: Request, res: Response) {
 
 export const csrfMiddleware = (() => {
     const { csrfSynchronisedProtection, generateToken } = csrfSync({
-        getTokenFromRequest: (req: Request) => req.body.csrfToken || req.query.csrfToken,
+        getTokenFromRequest: (req: Request) => {
+            // For form submissions, check body first
+            if (req.body && req.body.csrfToken) {
+                return req.body.csrfToken;
+            }
+            // For AJAX requests, check headers
+            if (req.headers['x-csrf-token']) {
+                return req.headers['x-csrf-token'] as string;
+            }
+            // Fallback to query parameter
+            return req.query.csrfToken as string;
+        },
         errorConfig: {
             statusCode: 403,
             message: 'Invalid or missing CSRF token. Please refresh the page and try again.',
@@ -252,7 +263,19 @@ export const csrfMiddleware = (() => {
     });
 
     return [
-        csrfSynchronisedProtection,
+        (req: Request, res: Response, next: NextFunction) => {
+            // Skip CSRF protection for API requests (they use API keys)
+            if (isApiRequest(req)) {
+                return next();
+            }
+
+            // Skip CSRF protection for safe HTTP methods that don't modify data
+            if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+                return next();
+            }
+
+            csrfSynchronisedProtection(req, res, next);
+        },
         (req: Request, res: Response, next: NextFunction) => {
             try {
                 res.locals.csrfToken = generateToken(req);
