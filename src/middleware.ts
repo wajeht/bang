@@ -59,7 +59,10 @@ export function errorMiddleware() {
     return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
         logger.error(`${req.method} ${req.path} - ${error.message}`, { error });
 
-        if (!(error instanceof HttpError)) {
+        // Handle CSRF errors specifically - they have a code property
+        if ((error as any).code === 'EBADCSRFTOKEN') {
+            error = new HttpError(403, error.message, req);
+        } else if (!(error instanceof HttpError)) {
             error = new HttpError(500, error.message, req);
         } else if (error instanceof HttpError && !error.request) {
             error.request = req;
