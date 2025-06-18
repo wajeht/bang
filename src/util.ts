@@ -32,7 +32,13 @@ export async function updateUserBangLastReadAt({
     userId: number;
     bangId: number;
 }) {
-    await db('bangs').where({ user_id: userId, id: bangId }).update({ last_read_at: db.fn.now() });
+    try {
+        await db('bangs')
+            .where({ user_id: userId, id: bangId })
+            .update({ last_read_at: db.fn.now() });
+    } catch (error) {
+        logger.error(`[updateUserBangLastReadAt]: error updating bang last read at, %o`, { error });
+    }
 }
 
 export async function insertBookmark({
@@ -317,7 +323,7 @@ export function expectJson(req: Request): boolean {
 
 export async function extractUser(req: Request): Promise<User> {
     if (isApiRequest(req) && req.apiKeyPayload) {
-        return db.select('*').from('users').where({ id: req.apiKeyPayload.userId }).first();
+        return await db.select('*').from('users').where({ id: req.apiKeyPayload.userId }).first();
     }
 
     if (req.session?.user) {
