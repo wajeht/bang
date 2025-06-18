@@ -1,3 +1,5 @@
+<%- include('../components/markdown-preview.html') %>
+
 <div style="display: flex; flex-direction: column; gap: 20px;">
     <div>
         <h2>📝 Notes / New</h2>
@@ -29,7 +31,11 @@
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="content">📄 Content<span style="color: red;">*</span></label>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <label for="content">📄 Content<span style="color: red;">*</span></label>
+                <button type="button" id="toggle-content-btn" class="no-style-btn" onclick="toggleContent()">Preview</button>
+            </div>
+            <div class="content" id="content-preview" style="display: none;"></div>
             <textarea
                 name="content"
                 id="content"

@@ -1,0 +1,53 @@
+<script>
+    async function renderMarkdown(content) {
+        const response = await fetch('/api/notes/render-markdown', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: content }),
+        });
+
+        const data = await response.json();
+        return data.content;
+    };
+
+    async function toggleContent() {
+        const content = document.getElementById('content');
+        const preview = document.getElementById('content-preview');
+
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            preview.style.display = 'none';
+            document.getElementById('toggle-content-btn').innerHTML = 'Preview';
+        } else {
+            content.style.display = 'none';
+            preview.style.display = 'block';
+            preview.style.padding = '5px 10px';
+            preview.style.borderRadius = '3px';
+            preview.style.borderStyle = 'solid';
+            preview.style.borderColor = '#767676';
+            preview.style.borderWidth = '1px';
+            document.getElementById('toggle-content-btn').innerHTML = 'Edit';
+        }
+    }
+
+    window.addEventListener('load', () => {
+        const toggleContentBtn = document.getElementById('toggle-content-btn');
+        const content = document.getElementById('content');
+        const preview = document.getElementById('content-preview');
+        let fetchedContent = '';
+        let lastFetchedContentValue = '';
+
+        if (toggleContentBtn) {
+            toggleContentBtn.addEventListener('mouseenter', async () => {
+                if (toggleContentBtn.innerHTML === 'Preview' && content.value !== '' && content.value !== lastFetchedContentValue) {
+                    fetchedContent = await renderMarkdown(content.value);
+                    lastFetchedContentValue = content.value;
+                }
+            });
+
+            toggleContentBtn.addEventListener('click', async () => {
+                preview.innerHTML = fetchedContent;
+            });
+        }
+    });
+</script>
