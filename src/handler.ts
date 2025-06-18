@@ -1153,6 +1153,18 @@ export const postSettingsDisplayHandler = {
     },
 };
 
+// POST /api/notes/render-markdown
+export function postNotesRenderMarkdownHandler(markdownParser: typeof marked) {
+    return async (req: Request, res: Response) => {
+        const content = req.body.content;
+
+        const markdown = markdownParser(content) as string;
+
+        res.json({ content: markdown });
+        return;
+    };
+}
+
 // GET /notes or /api/notes
 export function getNotesHandler(notes: Notes) {
     return async (req: Request, res: Response) => {

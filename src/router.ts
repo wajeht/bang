@@ -44,6 +44,7 @@ import {
     getBookmarkCreatePageHandler,
     getTermsOfServicePageHandler,
     getSettingsAccountPageHandler,
+    postNotesRenderMarkdownHandler,
     postSettingsCreateApiKeyHandler,
     getSettingsDangerZonePageHandler,
     getBookmarkActionCreatePageHandler,
@@ -386,6 +387,20 @@ router.get('/api/collections', authenticationMiddleware, cacheMiddleware(1, 'day
  * ]
  */
 router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
+
+/**
+ * GET /api/notes/render-markdown
+ *
+ * @tags Notes
+ * @summary Render markdown
+ *
+ * @security BearerAuth
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
+ */
+router.post('/api/notes/render-markdown', authenticationMiddleware, postNotesRenderMarkdownHandler(marked)); // prettier-ignore
 
 /**
  * GET /api/notes/{id}
