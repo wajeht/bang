@@ -38,6 +38,7 @@
         let lastFetchedContentValue = '';
 
         if (toggleContentBtn) {
+            // fetch when user mouse is hover on top
             toggleContentBtn.addEventListener('mouseenter', async () => {
                 if (toggleContentBtn.innerHTML === 'Preview' && content.value !== '' && content.value !== lastFetchedContentValue) {
                     fetchedContent = await renderMarkdown(content.value);
@@ -46,8 +47,16 @@
             });
 
             toggleContentBtn.addEventListener('click', async () => {
+                if (!fetchedContent) fetchedContent = await renderMarkdown(content.value);
                 preview.innerHTML = fetchedContent;
             });
+
+            // fetch when user navigates with keyboard and lands on it
+            toggleContentBtn.addEventListener('focus', async () => {
+                if (!fetchedContent) fetchedContent = await renderMarkdown(content.value);
+                preview.innerHTML = fetchedContent;
+            });
+
         }
     });
 </script>
