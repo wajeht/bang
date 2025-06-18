@@ -389,7 +389,7 @@ router.get('/api/collections', authenticationMiddleware, cacheMiddleware(1, 'day
 router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
 
 /**
- * GET /api/notes/render-markdown
+ * POST /api/notes/render-markdown
  *
  * @tags Notes
  * @summary Render markdown
