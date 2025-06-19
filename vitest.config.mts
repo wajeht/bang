@@ -30,14 +30,11 @@ export default defineConfig({
                 '*.config.*',
                 '**/*.d.ts',
                 'src/db/knexfile.ts',
-                'src/type.ts'
+                'src/type.ts',
             ],
-            include: [
-                'src/**/*.ts',
-                'src/**/*.mts'
-            ],
+            include: ['src/**/*.ts', 'src/**/*.mts'],
             reporter: ['text', 'html', 'json'],
-            reportsDirectory: './coverage'
-        }
+            reportsDirectory: './coverage',
+        },
     },
 });

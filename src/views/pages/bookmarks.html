@@ -35,10 +35,6 @@
     <section style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
         <% if (data && data.length > 0) { %>
             <table style="width: 100%; border-collapse: collapse;">
-                <caption style="text-align: left; font-weight: bold; margin-bottom: 10px;">
-                    <%= data.length %> bookmark<%= data.length === 1 ? '' : 's' %> found
-                    <% if (search) { %> for "<%= search %>"<% } %>
-                </caption>
                 <thead>
                     <tr style="border-bottom: 1px dashed #ddd;">
                         <% if (state.user.column_preferences?.bookmarks?.title !== false) { %>
