@@ -31,7 +31,7 @@
   <form action="/settings/account" method="POST" >
     <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
-    <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 15px;">
+    <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 15px;">
       <legend>Account Information</legend>
 
       <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -86,18 +86,18 @@
     </fieldset>
   </form>
 
-  <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
+  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
     <legend>🔑 API Key <% if (user.api_key_version > 0) { %>(v<%= user.api_key_version %>)<% } %></legend>
 
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-      <% if (user.api_key) { %>
-        <button type="button" onclick="viewApiKey()" class="no-style-btn" id="view-or-hide-button" aria-describedby="api-key-display">👁️ View</button>
-        <button type="button" onclick="copyApiKey()" class="no-style-btn">📋 Copy</button>
-        <a href="/api-docs" target="_blank" rel="noopener noreferrer">📃 Docs</a>
-      <% } %>
-    </div>
+    <% if (user.api_key) { %>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; min-width: 0; flex-wrap: wrap;">
+          <button type="button" onclick="viewApiKey()" class="no-style-btn" id="view-or-hide-button" aria-describedby="api-key-display" style="flex-shrink: 0;">👁️ View</button>
+          <button type="button" onclick="copyApiKey()" class="no-style-btn" style="flex-shrink: 0;">📋 Copy</button>
+          <a href="/api-docs" target="_blank" rel="noopener noreferrer" style="flex-shrink: 0;">📃 Docs</a>
+      </div>
+    <% } %>
 
-    <pre id="apiKeyPre" aria-live="polite" aria-label="API Key display" style="white-space: nowrap; overflow-x: auto; padding: 8px;"><% if (!user.api_key) { %>click to generate api key<% } else { %>••••••••••••••••••••••••••••••••••••••••••••••••<% } %></pre>
+    <pre id="apiKeyPre" aria-live="polite" aria-label="API Key display" style="white-space: nowrap; overflow-x: auto; padding: 8px; max-width: 100%; box-sizing: border-box;"><% if (!user.api_key) { %>click to generate api key<% } else { %>••••••••••••••••••••••••••••••••••••••••••••••••<% } %></pre>
 
     <% if (user.api_key_version > 0) {  %>
       <button type="button" onclick="document.getElementById('regenerate-modal').showModal()">🔄 Regenerate</button>
