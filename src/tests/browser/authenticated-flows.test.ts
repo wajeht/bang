@@ -81,9 +81,9 @@ test.describe('Authenticated User Flows', () => {
         await expect(page.getByRole('link', { name: '📝 Notes' })).toBeVisible();
         await expect(page.getByRole('link', { name: '⚡ Actions' })).toBeVisible();
         await expect(page.getByRole('link', { name: '🔖 Bookmarks' })).toBeVisible();
-        await expect(page.getByRole('link', { name: '📄 API Docs' })).toBeVisible();
-        await expect(page.getByRole('link', { name: '⚙️ Settings' })).toBeVisible();
-        await expect(page.getByRole('link', { name: '🚪 Logout' })).toBeVisible();
+        await expect(page.locator('a[href="/api-docs"]')).toBeVisible();
+        await expect(page.locator('a[href="/settings"]')).toBeVisible();
+        await expect(page.locator('a[href="/logout"]')).toBeVisible();
 
         await page.getByRole('link', { name: '⚡ Actions' }).click();
         await expect(page).toHaveURL('/actions');
@@ -97,7 +97,7 @@ test.describe('Authenticated User Flows', () => {
         await expect(page).toHaveURL('/notes');
 
         await page.locator('summary').click();
-        await page.getByRole('link', { name: '⚙️ Settings' }).click();
+        await page.locator('a[href="/settings"]').click();
         await expect(page).toHaveURL('/settings/account');
     });
 
@@ -134,7 +134,7 @@ test.describe('Authenticated User Flows', () => {
         await page.goto('/');
 
         await page.getByRole('searchbox').fill('!testsearch hello world');
-        await page.getByRole('button', { name: '🔎' }).click();
+        await page.getByRole('button', { name: 'Submit search' }).click();
 
         await expect(page).toHaveURL('https://example.com/search?q=hello%20world');
     });

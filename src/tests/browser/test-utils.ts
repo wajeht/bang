@@ -86,7 +86,7 @@ export async function expectUserLoggedOut(page: Page) {
 
 export async function logoutUser(page: Page) {
     await page.locator('summary').click();
-    await page.getByRole('link', { name: '🚪 Logout' }).click();
+    await page.locator('a[href="/logout"]').click();
     await expect(page).toHaveURL('/');
 }
 
