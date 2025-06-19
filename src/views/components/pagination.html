@@ -1,29 +1,29 @@
 <% if (pagination.perPage === pagination.total) { %>
-    <div style="display: flex; justify-content: center; gap: 10px; align-items: center;">
+    <nav aria-label="Return to paginated view" style="display: flex; justify-content: center; gap: 10px; align-items: center;">
         <a href="<%= path %>?page=1&per_page=<%= perPageDefault %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Back to Paginated View">Back to Paginated View</a>
-    </div>
+    </nav>
 <% } %>
 
 <% if (pagination.total > pagination.perPage) { %>
-    <div style="display: flex; justify-content: center; gap: 10px; align-items: center;">
+    <nav aria-label="Pagination navigation" style="display: flex; justify-content: center; gap: 10px; align-items: center;">
         <!-- View All -->
-        <a href="<%= path %>?page=1&per_page=<%= pagination.total %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="View All">View All </a>
+        <a href="<%= path %>?page=1&per_page=<%= pagination.total %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="View All Items">View All</a>
 
         <!-- Previous and First -->
         <% if (pagination.currentPage > 1) { %>
-            <a href="<%= path %>?page=1&per_page=<%= pagination.perPage %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="First Page">⏮️ First</a>
-            <a href="<%= path %>?page=<%= pagination.currentPage - 1 %>&per_page=<%= pagination.perPage %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Previous Page">⬅️ Previous</a>
+            <a href="<%= path %>?page=1&per_page=<%= pagination.perPage %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Go to First Page">⏮️ First</a>
+            <a href="<%= path %>?page=<%= pagination.currentPage - 1 %>&per_page=<%= pagination.perPage %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Go to Previous Page">⬅️ Previous</a>
         <% } %>
 
         <!-- Current Page and Jump to Pages -->
         <details style="position: relative;">
-            <summary>📄 Page <%= pagination.currentPage %></summary>
-            <div style="bottom: 30px; right: 0px; position: absolute; padding: 10px; width: max-content; display: flex; flex-direction: column; background-color: var(--background-color); border: dashed; border-radius: 5px;">
+            <summary aria-label="Current page: <%= pagination.currentPage %>. Click to view all pages">📄 Page <%= pagination.currentPage %></summary>
+            <div style="bottom: 30px; right: 0px; position: absolute; padding: 10px; width: max-content; display: flex; flex-direction: column; background-color: var(--background-color); border: dashed; border-radius: 5px;" role="menu">
                 <% for (let i = 1; i <= pagination.lastPage; i++) { %>
                     <% if (i === pagination.currentPage) { %>
-                        <span style="font-weight: bold; text-decoration: underline;">Page <%= i %></span>
+                        <span aria-current="page" style="font-weight: bold; text-decoration: underline;">Page <%= i %></span>
                     <% } else { %>
-                        <a href="<%= path %>?page=<%= i %>&per_page=<%= pagination.perPage %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>">Page <%= i %></a>
+                        <a href="<%= path %>?page=<%= i %>&per_page=<%= pagination.perPage %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" role="menuitem" aria-label="Go to page <%= i %>">Page <%= i %></a>
                     <% } %>
                 <% } %>
             </div>
@@ -31,8 +31,8 @@
 
         <!-- Next and Last -->
         <% if (pagination.currentPage < pagination.lastPage) { %>
-            <a href="<%= path %>?page=<%= pagination.currentPage + 1 %>&per_page=<%= pagination.perPage %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Next Page">Next ➡️</a>
-            <a href="<%= path %>?page=<%= pagination.lastPage %>&per_page=<%= pagination.perPage %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Last Page">Last ⏭️</a>
+            <a href="<%= path %>?page=<%= pagination.currentPage + 1 %>&per_page=<%= pagination.perPage %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Go to Next Page">Next ➡️</a>
+            <a href="<%= path %>?page=<%= pagination.lastPage %>&per_page=<%= pagination.perPage %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Go to Last Page">Last ⏭️</a>
         <% } %>
-    </div>
+    </nav>
 <% } %>

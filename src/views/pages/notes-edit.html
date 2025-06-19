@@ -1,55 +1,63 @@
 <%- include('../components/markdown-preview.html') %>
 
-<div style="display: flex; flex-direction: column; gap: 20px;">
-    <div>
+<section style="display: flex; flex-direction: column; gap: 20px;">
+    <header>
         <h2>📝 Notes / <%= note.id %> / Edit</h2>
         <p>Edit your note</p>
-    </div>
+    </header>
 
     <form
         method="POST"
         action="/notes/<%= note.id %>/update"
         style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;"
+        novalidate
     >
         <%- include('../components/input-csrf.html') %>
 
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="title">📝 Title<span style="color: red;">*</span></label>
-            <input
-                type="text"
-                name="title"
-                id="title"
-                placeholder="My Note Title"
-                value="<%= state.input.title ?? note.title %>"
-                style="width: 100%;"
-                required
-            >
-            <% if (state.errors.title) { %>
-                <small style="color: red;"><%= state.errors.title %></small>
-            <% } %>
-        </div>
+        <fieldset style="border: none; padding: 0; margin: 0;">
+            <legend style="font-weight: bold; margin-bottom: 15px;">Note Details</legend>
 
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <label for="content">📄 Content<span style="color: red;">*</span></label>
-                <button type="button" id="toggle-content-btn" class="no-style-btn" onclick="toggleContent()">Preview</button>
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                <label for="title">📝 Title <abbr title="Required">*</abbr></label>
+                <input
+                    type="text"
+                    name="title"
+                    id="title"
+                    placeholder="My Note Title"
+                    value="<%= state.input.title ?? note.title %>"
+                    required
+                    aria-describedby="title-help <%= state.errors.title ? 'title-error' : '' %>"
+                >
+                <small id="title-help">A descriptive title for your note</small>
+                <% if (state.errors.title) { %>
+                    <small id="title-error" style="color: red;" role="alert"><%= state.errors.title %></small>
+                <% } %>
             </div>
-            <div class="content" id="content-preview" style="display: none;"></div>
-            <textarea
-                name="content"
-                id="content"
-                placeholder="Note content..."
-                style="width: 100%; min-height: 200px; resize: vertical;"
-                required
-            ><%= state.input.content ?? note.content %></textarea>
-            <% if (state.errors.content) { %>
-                <small style="color: red;"><%= state.errors.content %></small>
-            <% } %>
-        </div>
+
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label for="content">📄 Content <abbr title="Required">*</abbr></label>
+                    <button type="button" id="toggle-content-btn" onclick="toggleContent()" style="background: none; border: none; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; color: inherit;">Preview</button>
+                </div>
+                <div class="content" id="content-preview" style="display: none;"></div>
+                <textarea
+                    name="content"
+                    id="content"
+                    placeholder="Note content..."
+                    style="min-height: 200px; resize: vertical;"
+                    required
+                    aria-describedby="content-help <%= state.errors.content ? 'content-error' : '' %>"
+                ><%= state.input.content ?? note.content %></textarea>
+                <small id="content-help">The content of your note (supports Markdown)</small>
+                <% if (state.errors.content) { %>
+                    <small id="content-error" style="color: red;" role="alert"><%= state.errors.content %></small>
+                <% } %>
+            </div>
+        </fieldset>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
             <button type="button" onclick="location.href='/notes'">❌ Cancel</button>
             <button type="submit">💾 Save</button>
         </div>
     </form>
-</div>
+</section>

@@ -9,14 +9,14 @@
 
     <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between;">
       <!-- Actions -->
-      <div style="display: flex; flex-direction: column; gap: 15px; <%- path === '/actions' ? null : 'display: none;' %>">
+      <div style="display: flex; flex-direction: column; gap: 15px; <%= path === '/actions' ? '' : 'display: none;' %>">
         <% if (path === "/actions") { %>
             <input type="hidden" name="path" value="<%= path %>" />
         <% } %>
 
         <!-- Items Per Page -->
         <div style="display: flex; flex-direction: column; gap: 5px;">
-          <label for="actions_per_page">🔢 Items Per Page<span style="color: red;">*</span></label>
+          <label for="actions_per_page">🔢 Items Per Page <abbr title="Required">*</abbr></label>
           <input
             type="number"
             id="actions_per_page"
@@ -28,8 +28,8 @@
         </div>
 
         <!-- Visible Columns -->
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <h4 style="margin: 0; font-weight: normal;">Columns<span style="color: red;">*</span></h4>
+        <fieldset style="border: none; padding: 0; margin: 0;">
+          <legend style="font-weight: normal;">Columns <abbr title="Required">*</abbr></legend>
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
@@ -78,18 +78,18 @@
             >
             📅 Created At
           </label>
-        </div>
+        </fieldset>
       </div>
 
       <!-- Bookmarks -->
-      <div style="display: flex; flex-direction: column; gap: 15px; <%- path === '/bookmarks' ? null : 'display: none;' %>">
+      <div style="display: flex; flex-direction: column; gap: 15px; <%= path === '/bookmarks' ? '' : 'display: none;' %>">
         <% if (path === "/bookmarks") { %>
             <input type="hidden" name="path" value="<%= path %>" />
         <% } %>
 
         <!-- Items Per Page -->
         <div style="display: flex; flex-direction: column; gap: 5px;">
-          <label for="bookmarks_per_page">🔢 Items Per Page<span style="color: red;">*</span></label>
+          <label for="bookmarks_per_page">🔢 Items Per Page <abbr title="Required">*</abbr></label>
           <input
             type="number"
             id="bookmarks_per_page"
@@ -101,8 +101,8 @@
         </div>
 
         <!-- Visible Columns -->
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <h4 style="margin: 0; font-weight: normal;">Columns<span style="color: red;">*</span></h4>
+        <fieldset style="border: none; padding: 0; margin: 0;">
+          <legend style="font-weight: normal;">Columns <abbr title="Required">*</abbr></legend>
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
@@ -127,11 +127,11 @@
             >
             📅 Created At
           </label>
-        </div>
+        </fieldset>
       </div>
 
       <!-- Notes -->
-      <div style="<%- path === '/notes' ? null : 'display: none;' %>">
+      <div style="<%= path === '/notes' ? '' : 'display: none;' %>">
         <% if (path === "/notes") { %>
             <input type="hidden" name="path" value="<%= path %>" />
         <% } %>
@@ -139,7 +139,7 @@
         <div style="display: flex; flex-direction: column; gap: 15px;">
           <!-- Items Per Page -->
           <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="notes_per_page">🔢 Items Per Page<span style="color: red;">*</span></label>
+            <label for="notes_per_page">🔢 Items Per Page <abbr title="Required">*</abbr></label>
             <input
               type="number"
               id="notes_per_page"
@@ -151,8 +151,8 @@
           </div>
 
           <!-- Visible Columns -->
-          <div style="flex-direction: column; gap: 8px; <%= (user.column_preferences?.notes?.view_type === 'table') ? 'display:flex' : 'display: none;' %>">
-            <h4 style="margin: 0; font-weight: normal;">Columns<span style="color: red;">*</span></h4>
+          <fieldset style="border: none; padding: 0; margin: 0; <%= (user.column_preferences?.notes?.view_type === 'table') ? 'display:block' : 'display: none;' %>">
+            <legend style="font-weight: normal;">Columns <abbr title="Required">*</abbr></legend>
             <label style="display: flex; align-items: center; gap: 10px;">
               <input
                 type="checkbox"
@@ -177,12 +177,12 @@
               >
               📅 Created At
             </label>
-          </div>
+          </fieldset>
         </div>
 
         <!-- Default View -->
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
-          <h4 style="margin: 0; font-weight: normal;">Default View<span style="color: red;">*</span></h4>
+        <fieldset style="border: none; padding: 0; margin: 0; margin-top: 10px;">
+          <legend style="font-weight: normal;">Default View <abbr title="Required">*</abbr></legend>
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="radio"
@@ -201,12 +201,12 @@
             >
             🗂️ Card View
           </label>
-        </div>
+        </fieldset>
       </div>
     </div>
 
     <% if (state.errors.column_preferences) { %>
-      <small style="color: red;"><%= state.errors.column_preferences %></small>
+      <small style="color: red;" role="alert"><%= state.errors.column_preferences %></small>
     <% } %>
 
     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">

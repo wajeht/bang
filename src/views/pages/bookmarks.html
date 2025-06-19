@@ -1,5 +1,5 @@
-<div style="display: flex; flex-direction: column; gap: 30px;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+<section style="display: flex; flex-direction: column; gap: 30px;">
+    <header style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <div style="display: flex; align-items: center; gap: 5px;">
                 <h2>🔖 Bookmarks</h2>
@@ -8,16 +8,18 @@
             <p>Manage your saved bookmarks</p>
         </div>
 
-        <div style="display: flex; gap: 10px;">
+        <nav style="display: flex; gap: 10px;" aria-label="Bookmark management controls">
             <% if (search) { %>
-                <button class="no-style-btn" type="button" onclick="location.href='/bookmarks'">❌ Clear</button>
+                <button type="button" onclick="location.href='/bookmarks'">❌ Clear</button>
             <% } %>
 
-            <form method="GET" action="/bookmarks" style="display: flex; gap: 10px;">
+            <form method="GET" action="/bookmarks" style="display: flex; gap: 10px;" role="search">
+                <label for="search-input" style="position: absolute; left: -10000px;">Search bookmarks</label>
                 <input
                     type="search"
+                    id="search-input"
                     name="search"
-                    placeholder="Search..."
+                    placeholder="Search bookmarks..."
                     value="<%= search %>"
                     style="padding: 8px; border-radius: 5px; border: 1px solid; flex: 1;"
                 >
@@ -27,54 +29,61 @@
             <button type="button" onclick="location.href='/bookmarks/create'">➕ New Bookmark</button>
 
 		    <%- include('../components/column-settings.html') %>
-        </div>
-    </div>
+        </nav>
+    </header>
 
-    <div style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+    <section style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
         <% if (data && data.length > 0) { %>
             <table style="width: 100%; border-collapse: collapse;">
+                <caption style="text-align: left; font-weight: bold; margin-bottom: 10px;">
+                    <%= data.length %> bookmark<%= data.length === 1 ? '' : 's' %> found
+                    <% if (search) { %> for "<%= search %>"<% } %>
+                </caption>
                 <thead>
                     <tr style="border-bottom: 1px dashed #ddd;">
                         <% if (state.user.column_preferences?.bookmarks?.title !== false) { %>
-                            <th style="text-align: left; padding: 10px;">
+                            <th scope="col" style="text-align: left; padding: 10px;">
                                 <a href="/bookmarks?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=title&direction=<%= (sortKey === 'title' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                    aria-label="Sort by title <%= (sortKey === 'title' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                     🔖 Title
                                     <% if (sortKey === 'title') { %>
-                                        <%= direction === 'asc' ? '🔼' : '🔽' %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
                                     <% } else { %>
-                                        <span class="sort-icon">⏺️</span>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
                                     <% } %>
                                 </a>
                             </th>
                         <% } %>
                         <% if (state.user.column_preferences?.bookmarks?.url !== false) { %>
-                            <th style="text-align: left; padding: 10px;">
+                            <th scope="col" style="text-align: left; padding: 10px;">
                                 <a href="/bookmarks?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=url&direction=<%= (sortKey === 'url' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                    aria-label="Sort by URL <%= (sortKey === 'url' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                     🌐 URL
                                     <% if (sortKey === 'url') { %>
-                                        <%= direction === 'asc' ? '🔼' : '🔽' %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
                                     <% } else { %>
-                                        <span class="sort-icon">⏺️</span>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
                                     <% } %>
                                 </a>
                             </th>
                         <% } %>
                         <% if (state.user.column_preferences?.bookmarks?.created_at !== false) { %>
-                            <th style="text-align: left; padding: 10px;">
+                            <th scope="col" style="text-align: left; padding: 10px;">
                                 <a href="/bookmarks?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                   aria-label="Sort by created date <%= (sortKey === 'created_at' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                     📅 Created
                                     <% if (sortKey === 'created_at') { %>
-                                        <%= direction === 'asc' ? '🔼' : '🔽' %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
                                     <% } else { %>
-                                        <span class="sort-icon">⏺️</span>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
                                     <% } %>
                                 </a>
                             </th>
                         <% } %>
-                        <th style="text-align: left; padding: 10px;">⚡ Actions</th>
+                        <th scope="col" style="text-align: left; padding: 10px;">⚡ Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -91,18 +100,18 @@
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.bookmarks?.created_at !== false) { %>
-                                <td style="padding: 10px;"><%= new Date(data[i].created_at).toLocaleDateString() %></td>
+                                <td style="padding: 10px;"><time datetime="<%= data[i].created_at %>"><%= new Date(data[i].created_at).toLocaleDateString() %></time></td>
                             <% } %>
                             <td style="padding: 10px;">
                                 <details style="position: relative;">
-                                    <summary>Actions</summary>
-                                    <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: dashed; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;">
-                                        <a href="/bookmarks/<%= data[i].id %>/actions/create" style="display: inline-flex; align-items: center;"> ❗️Bang</a>
-                                        <a href="/bookmarks/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;">✏️ Edit</a>
-                                        <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-bookmark-<%= data[i].id %>-modal').showModal()">🗑️ Delete</button>
-                                        <dialog id="delete-bookmark-<%= data[i].id %>-modal">
-                                            <h2>Confirm</h2>
-                                            <p>Are you sure you want to delete <span style="font-weight: bold;"><%= data[i].title %></span>?</p>
+                                    <summary aria-label="Actions for <%= data[i].title || 'Untitled' %>">Actions</summary>
+                                    <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: dashed; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                        <a href="/bookmarks/<%= data[i].id %>/actions/create" style="display: inline-flex; align-items: center;" role="menuitem"> ❗️Bang</a>
+                                        <a href="/bookmarks/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
+                                        <button type="button" style="background: none; border: none; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; color: inherit; text-align: left;" onclick="document.getElementById('delete-bookmark-<%= data[i].id %>-modal').showModal()" role="menuitem">🗑️ Delete</button>
+                                        <dialog id="delete-bookmark-<%= data[i].id %>-modal" aria-labelledby="delete-bookmark-<%= data[i].id %>-title">
+                                            <h2 id="delete-bookmark-<%= data[i].id %>-title">Confirm</h2>
+                                            <p>Are you sure you want to delete <strong><%= data[i].title %></strong>?</p>
                                             <form action="/bookmarks/<%= data[i].id %>/delete" method="POST">
                                                 <%- include('../components/input-csrf.html') %>
                                                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
@@ -129,7 +138,7 @@
                 <% } %>
             </div>
         <% } %>
-    </div>
+    </section>
 
     <%- include('../components/pagination.html', {
         pagination,
@@ -139,4 +148,4 @@
         direction,
         search
     }) %>
-</div>
+</section>

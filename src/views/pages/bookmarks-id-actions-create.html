@@ -1,51 +1,64 @@
-<div style="display: flex; flex-direction: column; gap: 20px;">
-    <div>
+<section style="display: flex; flex-direction: column; gap: 20px;">
+    <header>
         <h2>⚡ Bookmarks / <%= bookmark.id %> / Actions / Create</h2>
         <p>Create a new redirect action for bookmark <%= bookmark.id %></p>
-    </div>
+    </header>
 
     <form
         method="POST"
         action="/actions"
         style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+        novalidate
     >
-        <input type="text" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" hidden />
-        <input type="text" id="name" name="name" value="<%= bookmark.title %>" hidden />
-        <select id="actionType" name="actionType" hidden> <option value="redirect" selected /> </select>
+        <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+        <input type="hidden" id="name" name="name" value="<%= bookmark.title %>" />
+        <select id="actionType" name="actionType" style="display: none;">
+            <option value="redirect" selected>Redirect</option>
+        </select>
 
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="trigger">⚡ Trigger<span style="color: red;">*</span></label>
-            <div style="display: flex; align-items: center; gap: 5px;">
-                <span style="font-size: 1.2em;">!</span>
+        <fieldset style="border: none; padding: 0; margin: 0;">
+            <legend style="font-weight: bold; margin-bottom: 15px;">Action Details</legend>
+
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                <label for="trigger">⚡ Trigger <abbr title="Required">*</abbr></label>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 1.2em;" aria-hidden="true">!</span>
+                    <input
+                        type="text"
+                        name="trigger"
+                        id="trigger"
+                        placeholder="g"
+                        value="<%= state.input.trigger ?? state.input.trigger %>"
+                        style="width: 100%;"
+                        required
+                        aria-describedby="trigger-help <%= state.errors.trigger ? 'trigger-error' : '' %>"
+                    >
+                </div>
+                <small id="trigger-help">The command to trigger this action (e.g., 'g' for Google)</small>
+                <% if (state.errors.trigger) { %>
+                    <small id="trigger-error" style="color: red;" role="alert"><%= state.errors.trigger %></small>
+                <% } %>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                <label for="url">🌐 URL <abbr title="Required">*</abbr></label>
                 <input
-                    type="text"
-                    name="trigger"
-                    id="trigger"
-                    placeholder="g"
-                    value="<%= state.input.trigger ?? state.input.trigger %>"
+                    type="url"
+                    name="url"
+                    id="url"
+                    value="<%= bookmark.url %>"
                     style="width: 100%;"
                     required
+                    readonly
+                    aria-describedby="url-help"
                 >
+                <small id="url-help">This URL will be used for the redirect action</small>
             </div>
-            <small>The command to trigger this action (e.g., 'g' for Google)</small>
-            <% if (state.errors.trigger) { %>
-                <small style="color: red;"><%= state.errors.trigger %></small>
-            <% } %>
-        </div>
+        </fieldset>
 
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="url">🌐 URL<span style="color: red;">*</span></label>
-            <input
-                type="url"
-                name="url"
-                id="url"
-                value="<%= bookmark.url %>"
-                style="width: 100%;"
-                required
-                readonly
-            >
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+            <button type="button" onclick="location.href='/bookmarks'">❌ Cancel</button>
+            <button type="submit">💾 Save</button>
         </div>
-
-        <button type="submit" style="width: 100%;">💾 Save</button>
     </form>
-</div>
+</section>

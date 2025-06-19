@@ -5,28 +5,28 @@
 
   <body style="display: flex; flex-direction: column; min-height: 100vh; gap: 30px; position: relative;">
 
-    <div>
+    <header>
       <!-- top left -->
-      <div style="position: absolute; left: 0; margin-left: 3rem; display: flex; gap: 20px;">
-        <a href="/" style="font-weight: <%= path === '/' ? 'bold' : 'normal' %>; <%= path === '/' ? 'text-decoration: underline;' : null %>">🔎 Search</a>
-        <span>|</span>
-        <a href="/how-to" style="font-weight: <%= path === '/how-to' ? 'bold' : 'normal' %>; <%= path === '/how-to' ? 'text-decoration: underline;' : null %>">❓ How To</a>
-      </div>
+      <nav style="position: absolute; left: 0; margin-left: 3rem; display: flex; gap: 20px;" aria-label="Main navigation">
+        <a href="/" style="font-weight: <%= path === '/' ? 'bold' : 'normal' %>; <%= path === '/' ? 'text-decoration: underline;' : '' %>">🔎 Search</a>
+        <span aria-hidden="true">|</span>
+        <a href="/how-to" style="font-weight: <%= path === '/how-to' ? 'bold' : 'normal' %>; <%= path === '/how-to' ? 'text-decoration: underline;' : '' %>">❓ How To</a>
+      </nav>
 
       <!-- top right -->
       <% if (typeof state?.user !== 'undefined') { %>
         <details style="position: absolute; right: 0; margin-right: 3rem;">
           <summary><%= state.user.username %> 👤</summary>
           <div style="position: absolute; top: 100%; right: 0; z-index: 1; border: dashed; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;">
-              <a href="/notes" style="font-weight: <%= path === '/notes' ? 'bold' : 'normal' %>; <%= path === '/notes' ? 'text-decoration: underline;' : null %>">📝 Notes</a>
-              <a href="/actions" style="font-weight: <%= path === '/actions' ? 'bold' : 'normal' %>; <%= path === '/actions' ? 'text-decoration: underline;' : null %>">⚡ Actions</a>
-              <a href="/bookmarks" style="font-weight: <%= path === '/bookmarks' ? 'bold' : 'normal' %>; <%= path === '/bookmarks' ? 'text-decoration: underline;' : null %>">🔖 Bookmarks</a>
+              <a href="/notes" style="font-weight: <%= path === '/notes' ? 'bold' : 'normal' %>; <%= path === '/notes' ? 'text-decoration: underline;' : '' %>">📝 Notes</a>
+              <a href="/actions" style="font-weight: <%= path === '/actions' ? 'bold' : 'normal' %>; <%= path === '/actions' ? 'text-decoration: underline;' : '' %>">⚡ Actions</a>
+              <a href="/bookmarks" style="font-weight: <%= path === '/bookmarks' ? 'bold' : 'normal' %>; <%= path === '/bookmarks' ? 'text-decoration: underline;' : '' %>">🔖 Bookmarks</a>
               <hr style="border: none; border-top: dashed 1px; margin: 5px 0;">
               <% if (state.user.is_admin) { %>
-                <a href="/admin" style="font-weight: <%= path === '/admin' ? 'bold' : 'normal' %>; <%= path === '/admin' ? 'text-decoration: underline;' : null %>">️👑 Admin</a>
+                <a href="/admin" style="font-weight: <%= path === '/admin' ? 'bold' : 'normal' %>; <%= path === '/admin' ? 'text-decoration: underline;' : '' %>">️👑 Admin</a>
               <% } %>
-              <a href="/api-docs" style="font-weight: <%= path === '/api-docs' ? 'bold' : 'normal' %>; <%= path === '/api-docs' ? 'text-decoration: underline;' : null %>">📄 API Docs</a>
-              <a href="/settings" style="font-weight: <%= path.match(/^\/settings/) ? 'bold' : 'normal' %>; <%= path.match(/^\/settings/) ? 'text-decoration: underline;' : null %>">⚙️ Settings</a>
+              <a href="/api-docs" style="font-weight: <%= path === '/api-docs' ? 'bold' : 'normal' %>; <%= path === '/api-docs' ? 'text-decoration: underline;' : '' %>">📄 API Docs</a>
+              <a href="/settings" style="font-weight: <%= path.match(/^\/settings/) ? 'bold' : 'normal' %>; <%= path.match(/^\/settings/) ? 'text-decoration: underline;' : '' %>">⚙️ Settings</a>
               <hr style="border: none; border-top: dashed 1px; margin: 5px 0;">
               <a href="/logout">🚪 Logout</a>
           </div>
@@ -36,7 +36,7 @@
           <a href="#" onclick="document.getElementById('login-dialog').showModal(); return false;">🔑 Login</a>
         </div>
       <% } %>
-    </div>
+    </header>
 
     <main style="display: flex; justify-content: center; flex: 1">
       <div style="max-width: 1280px; width: 100%; padding: 20px;">
@@ -68,7 +68,7 @@
               style="padding: 10px; border: 1px solid var(--border-color); border-radius: 5px;"
             />
             <% if (state.errors.email) { %>
-              <small style="color: red;"><%= state.errors.email %></small>
+              <small style="color: red;" role="alert"><%= state.errors.email %></small>
             <% } %>
           </div>
 

@@ -1,30 +1,28 @@
-<div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
+<section style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
 
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+  <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
     <div style="display: flex; flex-direction: column; gap: 5px;">
       <h2 style="margin: 0;">⚠️ Danger Zone</h2>
       <p>The following actions are destructive and cannot be reversed.</p>
     </div>
-  </div>
+  </header>
 
-  <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
-    <div
-      style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
-      >
+  <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
+    <legend>⚠️ Destructive Actions</legend>
 
-      <button type="button" style="width: 100%;" onclick="document.getElementById('delete-users-<%= user.id %>-modal').showModal()">🗑️ Delete my account</button>
-      <dialog id="delete-users-<%= user.id %>-modal">
-        <h2>Confirm</h2>
-        <p>Are you sure you want to delete your account?</p>
-        <form method="POST" action="/settings/danger-zone/delete">
-          <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
-          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-            <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-            <button type="submit">🗑️ Delete</button>
-          </div>
-        </form>
-      </dialog>
-    </div>
-  </div>
+    <button type="button" onclick="document.getElementById('delete-users-<%= user.id %>-modal').showModal()" aria-label="Delete your account">🗑️ Delete my account</button>
 
-</div>
+    <dialog id="delete-users-<%= user.id %>-modal" aria-labelledby="delete-user-<%= user.id %>-title">
+      <h2 id="delete-user-<%= user.id %>-title">Confirm</h2>
+      <p>Are you sure you want to delete your account?</p>
+      <form method="POST" action="/settings/danger-zone/delete">
+        <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+          <button type="submit">🗑️ Delete</button>
+        </div>
+      </form>
+    </dialog>
+  </fieldset>
+
+</section>

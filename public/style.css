@@ -102,6 +102,18 @@ select {
     padding: 5px 10px;
 }
 
+fieldset {
+    margin-bottom: 1em;
+    padding: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+legend {
+    font-weight: bold;
+    padding: 0 0.5em;
+}
+
 [data-theme='dark'] input,
 [data-theme='dark'] textarea,
 [data-theme='dark'] select {

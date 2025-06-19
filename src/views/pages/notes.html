@@ -1,5 +1,5 @@
-<div style="display: flex; flex-direction: column; gap: 30px;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+<section style="display: flex; flex-direction: column; gap: 30px;">
+    <header style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <div style="display: flex; align-items: center; gap: 5px;">
                 <h2>📝 Notes</h2>
@@ -8,14 +8,16 @@
             <p>Manage your quick notes</p>
         </div>
 
-        <div style="display: flex; gap: 10px;">
+        <nav style="display: flex; gap: 10px;" aria-label="Note management controls">
             <% if (search) { %>
-                <button class="no-style-btn" type="button" onclick="location.href='/notes'">❌ Clear</button>
+                <button type="button" onclick="location.href='/notes'">❌ Clear</button>
             <% } %>
 
-            <form method="GET" action="/notes" style="display: flex; gap: 10px;">
+            <form method="GET" action="/notes" style="display: flex; gap: 10px;" role="search">
+                <label for="search-input" style="position: absolute; left: -10000px;">Search notes</label>
                 <input
                     type="search"
+                    id="search-input"
                     name="search"
                     placeholder="Search..."
                     value="<%= search %>"
@@ -27,14 +29,14 @@
             <button type="button" onclick="location.href='/notes/create'">➕ New Note</button>
 
 		    <%- include('../components/column-settings.html') %>
-        </div>
-    </div>
+        </nav>
+    </header>
 
     <% if (state.user.column_preferences?.notes?.view_type === 'card') { %>
-        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+        <section style="display: flex; flex-wrap: wrap; gap: 20px;">
             <% if (data && data.length > 0) { %>
                 <% for (let i = 0; i < data.length; i++) { %>
-                    <div style="border-style: dashed; border-radius: 5px; padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <article style="border-style: dashed; border-radius: 5px; padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px;">
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
                             <h3><a href="/notes/<%- data[i].id %>" title="<%= data[i].title %>">📝 <%- utils.highlightSearchTerm(data[i].title, search) %></a></h3>
                         <% } %>
@@ -43,17 +45,17 @@
                                📄 <%- utils.highlightSearchTerm(data[i].content, search) %>
                             </div>
                         <% } %>
-                        <div style="display: flex; justify-content: space-between; gap: 10px;">
+                        <footer style="display: flex; justify-content: space-between; gap: 10px;">
                             <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
-                                <p>📅 Created: <%= new Date(data[i].created_at).toLocaleDateString() %></p>
+                                <p>📅 Created: <time datetime="<%= data[i].created_at %>"><%= new Date(data[i].created_at).toLocaleDateString() %></time></p>
                             <% } %>
-                            <div style="display: flex; gap: 10px; align-items: center;">
+                            <nav style="display: flex; gap: 10px; align-items: center;">
                                 <a href="/notes/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;">✏️ Edit</a>
-                                <button type="button" class="no-style-btn" onclick="document.getElementById('delete-note-<%= data[i].id %>-modal').showModal()">🗑️ Delete</button>
+                                <button type="button" style="background: none; border: none; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; color: inherit; text-align: left;" onclick="document.getElementById('delete-note-<%= data[i].id %>-modal').showModal()" aria-label="Delete note <%= data[i].title %>">🗑️ Delete</button>
 
-                                <dialog id="delete-note-<%= data[i].id %>-modal">
-                                    <h2>Confirm</h2>
-                                    <p>Are you sure you want to delete <span style="font-weight: bold;"><%= data[i].title %></span>?</p>
+                                <dialog id="delete-note-<%= data[i].id %>-modal" aria-labelledby="delete-note-<%= data[i].id %>-title">
+                                    <h2 id="delete-note-<%= data[i].id %>-title">Confirm</h2>
+                                    <p>Are you sure you want to delete <strong><%= data[i].title %></strong>?</p>
                                     <form action="/notes/<%= data[i].id %>/delete" method="POST">
                                         <%- include('../components/input-csrf.html') %>
                                         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
@@ -62,9 +64,9 @@
                                         </div>
                                     </form>
                                 </dialog>
-                            </div>
-                        </div>
-                    </div>
+                            </nav>
+                        </footer>
+                    </article>
                 <% } %>
             <% } else { %>
                 <div style="text-align: center; padding: 20px; width: 100%;">
@@ -77,55 +79,62 @@
                     <% } %>
                 </div>
             <% } %>
-        </div>
+        </section>
     <% } %>
 
     <% if (state.user.column_preferences?.notes?.view_type === 'table') { %>
-        <div style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+        <section style="border-style: dashed; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
             <% if (data && data.length > 0) { %>
                 <table style="width: 100%; border-collapse: collapse;">
+                    <caption style="text-align: left; font-weight: bold; margin-bottom: 10px;">
+                        <%= data.length %> note<%= data.length === 1 ? '' : 's' %> found
+                        <% if (search) { %> for "<%= search %>"<% } %>
+                    </caption>
                     <thead>
                         <tr style="border-bottom: 1px dashed #ddd;">
                             <% if (state.user.column_preferences?.notes?.title !== false) { %>
-                                <th style="text-align: left; padding: 10px;">
+                                <th scope="col" style="text-align: left; padding: 10px;">
                                     <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=title&direction=<%= (sortKey === 'title' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                       style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                       aria-label="Sort by title <%= (sortKey === 'title' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                         📝 Title
                                         <% if (sortKey === 'title') { %>
-                                            <%= direction === 'asc' ? '🔼' : '🔽' %>
+                                            <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
                                         <% } else { %>
-                                            <span class="sort-icon">⏺️</span>
+                                            <span class="sort-icon" aria-label="Not sorted">⏺️</span>
                                         <% } %>
                                     </a>
                                 </th>
                             <% } %>
                             <% if (state.user.column_preferences?.notes?.content !== false) { %>
-                                <th style="text-align: left; padding: 10px;">
+                                <th scope="col" style="text-align: left; padding: 10px;">
                                     <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=content&direction=<%= (sortKey === 'content' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                       style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                       aria-label="Sort by content <%= (sortKey === 'content' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                         📄 Content
                                         <% if (sortKey === 'content') { %>
-                                            <%= direction === 'asc' ? '🔼' : '🔽' %>
+                                            <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
                                         <% } else { %>
-                                            <span class="sort-icon">⏺️</span>
+                                            <span class="sort-icon" aria-label="Not sorted">⏺️</span>
                                         <% } %>
                                     </a>
                                 </th>
                             <% } %>
                             <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
-                                <th style="text-align: left; padding: 10px;">
+                                <th scope="col" style="text-align: left; padding: 10px;">
                                     <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                       style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                       aria-label="Sort by created date <%= (sortKey === 'created_at' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                         📅 Created
                                         <% if (sortKey === 'created_at') { %>
-                                            <%= direction === 'asc' ? '🔼' : '🔽' %>
+                                            <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
                                         <% } else { %>
-                                            <span class="sort-icon">⏺️</span>
+                                            <span class="sort-icon" aria-label="Not sorted">⏺️</span>
                                         <% } %>
                                     </a>
                                 </th>
                             <% } %>
-                            <th style="text-align: left; padding: 10px;">⚡ Actions</th>
+                            <th scope="col" style="text-align: left; padding: 10px;">⚡ Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -144,17 +153,17 @@
                                     </td>
                                 <% } %>
                                 <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
-                                    <td style="padding: 10px;"><%= new Date(data[i].created_at).toLocaleDateString() %></td>
+                                    <td style="padding: 10px;"><time datetime="<%= data[i].created_at %>"><%= new Date(data[i].created_at).toLocaleDateString() %></time></td>
                                 <% } %>
                                 <td style="padding: 10px;">
                                     <details style="position: relative;">
-                                        <summary>Actions</summary>
-                                        <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: dashed; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;">
-                                            <a href="/notes/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;"> ✏️ Edit</a>
-                                            <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-note-<%= data[i].id %>-modal').showModal()">🗑️ Delete</button>
-                                            <dialog id="delete-note-<%= data[i].id %>-modal">
-                                                <h2>Confirm</h2>
-                                                <p>Are you sure you want to delete <span style="font-weight: bold;"><%= data[i].title %></span>?</p>
+                                        <summary aria-label="Actions for note <%= data[i].title %>">Actions</summary>
+                                        <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: dashed; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                            <a href="/notes/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
+                                            <button type="button" style="background: none; border: none; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; color: inherit; text-align: left;" onclick="document.getElementById('delete-note-<%= data[i].id %>-modal').showModal()" role="menuitem" aria-label="Delete note <%= data[i].title %>">🗑️ Delete</button>
+                                            <dialog id="delete-note-<%= data[i].id %>-modal" aria-labelledby="delete-note-<%= data[i].id %>-title">
+                                                <h2 id="delete-note-<%= data[i].id %>-title">Confirm</h2>
+                                                <p>Are you sure you want to delete <strong><%= data[i].title %></strong>?</p>
                                                 <form action="/notes/<%= data[i].id %>/delete" method="POST">
                                                     <%- include('../components/input-csrf.html') %>
                                                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
@@ -181,7 +190,7 @@
                     <% } %>
                 </div>
             <% } %>
-        </div>
+        </section>
     <% } %>
 
     <%- include('../components/pagination.html', {
@@ -192,4 +201,4 @@
         direction,
         search
     }) %>
-</div>
+</section>

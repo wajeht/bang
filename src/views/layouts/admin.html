@@ -15,10 +15,16 @@
 
       <div style="display: grid; grid-template-columns: 15% 85%; flex: 1;">
         <aside style="display: inline-block; height: 100%; padding-right: 40px">
-          <div style="display: flex; flex-direction: column; gap: 10px">
-            <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/admin/users' ? 'bold' : 'normal' %>; <%= path === '/admin/users' ? 'text-decoration: underline' : null %>" href="/admin/users">👥 Users</a>
-            <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: normal;" href="/settings">⚙️ Settings</a>
-          </div>
+          <nav>
+            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+              <li>
+                <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/admin/users' ? 'bold' : 'normal' %>; <%= path === '/admin/users' ? 'text-decoration: underline' : '' %>; display: block;" href="/admin/users">👥 Users</a>
+              </li>
+              <li>
+                <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: normal; display: block;" href="/settings">⚙️ Settings</a>
+              </li>
+            </ul>
+          </nav>
         </aside>
 
         <div style="display: inline-block; border-left: dashed; padding-left: 30px">

@@ -1,11 +1,13 @@
-<% if (state.env === 'production') { %>
-    <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
-        <h2 style="margin: 0; padding-right: 40px; border-right: dashed;"><%= statusCode %></h2>
-        <p style="margin: 0; padding-left: 20px;"><%= message %></p>
-    </div>
-<% } else { %>
-    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; gap: 20px;">
-        <h2 style="margin: 0; border-bottom: dashed;"><%= statusCode %></h2>
-        <pre style="margin: 0;"><%= message %></pre>
-    </div>
-<% } %>
+<section>
+  <% if (state.env === 'production') { %>
+      <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+          <h2 style="margin: 0; padding-right: 40px; border-right: dashed;"><%= statusCode %></h2>
+          <p style="margin: 0; padding-left: 20px;"><%= message %></p>
+      </div>
+  <% } else { %>
+      <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; gap: 20px;">
+          <h2 style="margin: 0; border-bottom: dashed;"><%= statusCode %></h2>
+          <pre style="margin: 0;"><%= message %></pre>
+      </div>
+  <% } %>
+</section>

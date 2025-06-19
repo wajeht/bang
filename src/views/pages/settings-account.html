@@ -19,52 +19,51 @@
   }
 </script>
 
-<div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
+<section style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
 
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+  <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
       <div style="display: flex; flex-direction: column; gap: 5px;">
         <h2 style="margin: 0;">👤 Account</h2>
         <p>Manage your account details.</p>
       </div>
-  </div>
+  </header>
 
-  <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
-    <form
-      style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
-      action="/settings/account" method="POST">
+  <form action="/settings/account" method="POST" novalidate>
+    <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
-      <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+    <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 15px;">
+      <legend>Account Information</legend>
 
       <div style="display: flex; flex-direction: column; gap: 5px;">
-        <label for="username">👤 Username<span style="color: red;">*</span></label>
-        <input type="text" id="username" name="username" value="<%= state.input.username ?? user.username %>" required>
-
+        <label for="username">👤 Username <abbr title="Required">*</abbr></label>
+        <input type="text" id="username" name="username" value="<%= state.input.username ?? user.username %>" required aria-describedby="username-help <%= state.errors.username ? 'username-error' : '' %>">
+        <small id="username-help">Your unique username</small>
         <% if (state.errors.username) { %>
-          <small style="color: red;"><%= state.errors.username %></small>
+          <small id="username-error" style="color: red;" role="alert"><%= state.errors.username %></small>
         <% } %>
       </div>
 
-
       <div style="display: flex; flex-direction: column; gap: 5px;">
-        <label for="email">📧 Email<span style="color: red;">*</span></label>
-        <input type="email" id="email" name="email" value="<%= state.input.email ?? user.email %>" required>
-
+        <label for="email">📧 Email <abbr title="Required">*</abbr></label>
+        <input type="email" id="email" name="email" value="<%= state.input.email ?? user.email %>" required aria-describedby="email-help <%= state.errors.email ? 'email-error' : '' %>">
+        <small id="email-help">Your email address for login and notifications</small>
         <% if (state.errors.email) { %>
-          <small style="color: red;"><%= state.errors.email %></small>
+          <small id="email-error" style="color: red;" role="alert"><%= state.errors.email %></small>
         <% } %>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 5px;">
-        <label for="default_search_provider">🔎 Default Search Provider<span style="color: red;">*</span></label>
-        <select id="default_search_provider" name="default_search_provider" required>
+        <label for="default_search_provider">🔎 Default Search Provider <abbr title="Required">*</abbr></label>
+        <select id="default_search_provider" name="default_search_provider" required aria-describedby="search-provider-help <%= state.errors.default_search_provider ? 'search-provider-error' : '' %>">
             <% defaultSearchProviders.forEach(provider => { %>
                 <option value="<%= provider %>" <%= (state.input.default_search_provider ?? user.default_search_provider) === provider ? 'selected' : '' %> >
                     <%= provider.charAt(0).toUpperCase() + provider.slice(1) %>
                 </option>
             <% }); %>
         </select>
+        <small id="search-provider-help">Your preferred search engine for queries</small>
         <% if (state.errors.default_search_provider) { %>
-          <small style="color: red;"><%= state.errors.default_search_provider %></small>
+          <small id="search-provider-error" style="color: red;" role="alert"><%= state.errors.default_search_provider %></small>
         <% } %>
       </div>
 
@@ -73,68 +72,56 @@
           <input
             type="checkbox"
             name="autocomplete_search_on_homepage"
-            <%= user.autocomplete_search_on_homepage ? 'checked' : '' %>>
+            <%= user.autocomplete_search_on_homepage ? 'checked' : '' %>
+            aria-describedby="autocomplete-help <%= state.errors.autocomplete_search_on_homepage ? 'autocomplete-error' : '' %>">
           Autocomplete Search on Homepage
         </label>
+        <small id="autocomplete-help">Enable search suggestions on the homepage</small>
         <% if (state.errors.autocomplete_search_on_homepage) { %>
-          <small style="color: red;"><%= state.errors.autocomplete_search_on_homepage %></small>
+          <small id="autocomplete-error" style="color: red;" role="alert"><%= state.errors.autocomplete_search_on_homepage %></small>
         <% } %>
       </div>
 
-      <button type="submit" style="width: 100%;">💾 Save</button>
-    </form>
-  </div>
+      <button type="submit">💾 Save</button>
+    </fieldset>
+  </form>
 
-  <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
+  <fieldset style="width: 32%; display: flex; flex-direction: column; gap: 10px;">
+    <legend>🔑 API Key <% if (user.api_key_version > 0) { %>(v<%= user.api_key_version %>)<% } %></legend>
 
-    <div style="flex: 1; border: dashed; padding: 20px; border-radius: 5px; display: flex; flex-direction: column; gap: 10px; width: 32%;">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <div style="display: flex; align-items: center; gap: 5px;">
-            <strong>🔑 API Key</strong>
-            <% if (user.api_key_version > 0) { %>
-              <small style="color: #bbb;">(v<%= user.api_key_version %>)</small>
-            <% } %>
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+      <% if (user.api_key) { %>
+        <button type="button" onclick="viewApiKey()" class="no-style-btn" id="view-or-hide-button" aria-describedby="api-key-display">👁️ View</button>
+        <button type="button" onclick="copyApiKey()" class="no-style-btn">📋 Copy</button>
+        <a href="/api-docs" target="_blank" rel="noopener noreferrer">📃 Docs</a>
+      <% } %>
+    </div>
+
+    <pre id="apiKeyPre" aria-live="polite" aria-label="API Key display" style="white-space: nowrap; overflow-x: auto; padding: 8px;"><% if (!user.api_key) { %>click to generate api key<% } else { %>••••••••••••••••••••••••••••••••••••••••••••••••<% } %></pre>
+
+    <% if (user.api_key_version > 0) {  %>
+      <button type="button" onclick="document.getElementById('regenerate-modal').showModal()">🔄 Regenerate</button>
+      <dialog id="regenerate-modal" aria-labelledby="regenerate-title">
+        <h2 id="regenerate-title">🔄 Regenerate</h2>
+        <p>This action will invalidate the current key. Are you sure you want to generate a new API key?</p>
+        <form action="/settings/create-api-key" method="post">
+          <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+            <button type="submit">🔄 Regenerate</button>
           </div>
+        </form>
+      </dialog>
+    <% } else { %>
+      <form action="/settings/create-api-key" method="post">
+        <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+        <button type="submit">➕ Generate</button>
+      </form>
+    <% } %>
 
-          <div style="display: flex; align-items: center; gap: 10px;">
+    <% if (user.api_key_created_at) { %>
+      <small style="color: #bbb;">Created: <time datetime="<%= user.api_key_created_at %>"><%= new Date(user.api_key_created_at).toLocaleString() %></time></small>
+    <% } %>
+  </fieldset>
 
-
-            <% if (user.api_key) { %>
-              <button onclick="viewApiKey()" class="no-style-btn" id="view-or-hide-button">👁️ View</button>
-              <button onclick="copyApiKey()" class="no-style-btn">📋 Copy</button>
-              <a href="/api-docs" target="_blank">📃 Docs</a>
-            <% } %>
-          </div>
-        </div>
-
-        <pre id="apiKeyPre" style="white-space: nowrap; overflow-x: auto; padding-right: 150px;"><% if (!user.api_key) { %>click to generate api key<% } else { %>••••••••••••••••••••••••••••••••••••••••••••••••<% } %></pre>
-
-        <% if (user.api_key_version > 0) {  %>
-          <button onclick="document.getElementById('regenerate-modal').showModal()">🔄 Regenerate</button>
-          <dialog id="regenerate-modal" style="width: 400px;">
-            <h2>🔄 Regenerate</h2>
-            <p>This action will invalidate the current key. Are you sure you want to generate a new API key?</p>
-            <form action="/settings/create-api-key" method="post">
-              <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
-
-              <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-                <button type="submit">🔄 Regenerate</button>
-              </div>
-            </form>
-          </dialog>
-        <% } else { %>
-          <form action="/settings/create-api-key" method="post">
-            <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
-            <button type="submit" style="width: 100%;">➕ Generate</button>
-          </form>
-        <% } %>
-
-        <% if (user.api_key_created_at) { %>
-          <small style="color: #bbb;">Created: <%= new Date(user.api_key_created_at).toLocaleString() %></small>
-        <% } %>
-      </div>
-
-  </div>
-
-</div>
+</section>

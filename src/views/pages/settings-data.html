@@ -16,79 +16,86 @@
   }
 </script>
 
-<div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
+<section style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
 
-  <div style="display: flex; flex-direction: column; gap: 5px;">
+  <header style="display: flex; flex-direction: column; gap: 5px;">
     <h2 style="margin: 0;">📊 Data</h2>
     <p>Import and Export your data</p>
-  </div>
+  </header>
 
   <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
-    <div style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
-      <div style="display: flex; gap: 5px;">
-        <button id="json-button" style="width: 100%; font-weight: bold;"; onclick="showExportDataTab('json', event)">📄 JSON</button>
-        <button id="html-button" style="width: 100%;"; onclick="showExportDataTab('html', event)">📝 HTML</button>
+    <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
+      <legend>📤 Export Data</legend>
+
+      <div style="display: flex; gap: 5px;" role="tablist" aria-label="Export format">
+        <button id="json-button" style="width: 100%; font-weight: bold;" onclick="showExportDataTab('json', event)" role="tab" aria-selected="true" aria-controls="json">📄 JSON</button>
+        <button id="html-button" style="width: 100%;" onclick="showExportDataTab('html', event)" role="tab" aria-selected="false" aria-controls="html">📝 HTML</button>
       </div>
 
-      <div id="json" style="display: flex; flex-direction: column; gap: 10px;">
+      <div id="json" style="display: flex; flex-direction: column; gap: 10px;" role="tabpanel" aria-labelledby="json-button">
         <p>Export your bookmarks and custom actions</p>
 
-        <form method="POST" action="/settings/data/export">
+        <form method="POST" action="/settings/data/export" novalidate>
           <%- include('../components/input-csrf.html') %>
-          <div style="display: flex; flex-direction: column; gap: 10px;">
-            <div>
-              <label for="bookmarks-checkbox">
+          <fieldset style="border: none; padding: 0; margin: 0;">
+            <legend>Select data to export <abbr title="Required">*</abbr></legend>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <label>
                 <input type="checkbox" id="bookmarks-checkbox" name="options[]" value="bookmarks">
                 🔖 Include Bookmarks
               </label>
-            </div>
-            <div>
-              <label for="actions-checkbox">
+              <label>
                 <input type="checkbox" id="actions-checkbox" name="options[]" value="actions">
                 ⚡ Include Actions
               </label>
-            </div>
-            <div>
-              <label for="notes-checkbox">
+              <label>
                 <input type="checkbox" id="notes-checkbox" name="options[]" value="notes">
                 📝 Include Notes
               </label>
-            </div>
 
-            <% if (state.errors.options) { %>
-              <small style="color: red;"><%= state.errors.options %></small>
-            <% } %>
-            <button type="submit" style="width: 100%;">⬇️ Export</button>
-          </div>
+              <% if (state.errors.options) { %>
+                <small style="color: red;" role="alert"><%= state.errors.options %></small>
+              <% } %>
+              <button type="submit">⬇️ Export</button>
+            </div>
+          </fieldset>
         </form>
       </div>
 
-      <div id="html" style="display: none; flex-direction: column; gap: 10px;">
+      <div id="html" style="display: none; flex-direction: column; gap: 10px;" role="tabpanel" aria-labelledby="html-button">
         <p>Export your bookmarks to import to browsers</p>
         <button type="button" onclick="location.href='/bookmarks/export'">⬇️ Export</button>
       </div>
-    </div>
+    </fieldset>
 
-    <div style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
-      <div style="display: flex; flex-direction: column; gap: 5px;">
-        <h3>⬆️ Import Data</h3>
-        <p>Import your bookmarks and custom actions</p>
-      </div>
+    <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
+      <legend>📥 Import Data</legend>
 
-      <form method="POST" action="/settings/data/import">
+      <p>Import your bookmarks and custom actions</p>
+
+      <form method="POST" action="/settings/data/import" novalidate>
         <%- include('../components/input-csrf.html') %>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <textarea
-            name="config"
-            rows="10"
-            style="width: 100%;"
-            placeholder="Paste your JSON configuration here"></textarea>
+        <fieldset style="border: none; padding: 0; margin: 0;">
+          <legend>Configuration Data</legend>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <label for="config-textarea">JSON Configuration <abbr title="Required">*</abbr></label>
+            <textarea
+              id="config-textarea"
+              name="config"
+              rows="10"
+              style="width: 100%;"
+              placeholder="Paste your JSON configuration here"
+              required
+              aria-describedby="config-help <%= state.errors.config ? 'config-error' : '' %>"
+            ></textarea>
+            <small id="config-help">Paste the JSON data exported from Bang</small>
             <% if (state.errors.config) { %>
-              <small style="color: red;"><%= state.errors.config %></small>
-          <% } %>
-          <button type="submit">⬆️ Import</button>
-        </div>
+              <small id="config-error" style="color: red;" role="alert"><%= state.errors.config %></small>
+            <% } %>
+            <button type="submit">⬆️ Import</button>
+          </div>
+        </fieldset>
       </form>
-    </div>
+    </fieldset>
   </div>
-</div>
+</section>

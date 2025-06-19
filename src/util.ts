@@ -529,6 +529,9 @@ https://github.com/wajeht/bang`,
     };
 
     try {
+        if (!((await checkMailpit()) && config.app.env === 'development')) {
+            logger.info(`We are on dev mode and mailpit is not running, %o`, { mailOptions });
+        }
         await emailTransporter.sendMail(mailOptions);
         logger.info(`Magic link sent to ${email}`);
     } catch (error) {

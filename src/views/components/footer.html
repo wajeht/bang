@@ -1,16 +1,16 @@
 <footer style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; flex: 0;">
-  <span>Copyright © <%= state.copyRightYear %>. Made with ❤️ by <a href="https://github.com/wajeht" target="_blank">@wajeht</a></span>
+  <p style="margin: 0;">Copyright © <%= state.copyRightYear %>. Made with ❤️ by <a href="https://github.com/wajeht" target="_blank" rel="noopener noreferrer">@wajeht</a></p>
   <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
-    <span>|</span>
-    <nav>
-      <ul style="display: flex; gap: 10px; padding: 0;">
-        <li style="list-style-type: none;"><a href="https://github.com/wajeht/bang" target="_blank">📂 Github</a></li></li>
-        <span>|</span>
-        <li style="list-style-type: none;"><a href="/privacy-policy">🔒 Privacy</a></li>
-        <span>|</span>
-        <li style="list-style-type: none;"><a href="/terms-of-service">📜 Terms</a></li>
-        <span>|</span>
-        <button id="theme-toggle" class="no-style-btn" onclick="toggleTheme()">🌓 Dark</button>
+    <span aria-hidden="true">|</span>
+    <nav aria-label="Footer navigation">
+      <ul style="display: flex; gap: 10px; padding: 0; margin: 0; list-style: none; align-items: center;">
+        <li><a href="https://github.com/wajeht/bang" target="_blank" rel="noopener noreferrer">📂 Github</a></li>
+        <li><span aria-hidden="true">|</span></li>
+        <li><a href="/privacy-policy">🔒 Privacy</a></li>
+        <li><span aria-hidden="true">|</span></li>
+        <li><a href="/terms-of-service">📜 Terms</a></li>
+        <li><span aria-hidden="true">|</span></li>
+        <li><button id="theme-toggle" class="no-style-btn" onclick="toggleTheme()">🌓 Dark</button></li>
       </ul>
     </nav>
   </div>

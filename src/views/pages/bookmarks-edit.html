@@ -1,50 +1,57 @@
-<div style="display: flex; flex-direction: column; gap: 20px;">
-  <div>
+<section style="display: flex; flex-direction: column; gap: 20px;">
+  <header>
       <h2>🔖 Bookmarks / Edit</h2>
       <p>Edit your bookmark</p>
-  </div>
+  </header>
 
   <form
       method="POST"
       action="/bookmarks/<%= bookmark.id %>/update"
       style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+      novalidate
   >
       <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
-      <div style="display: flex; flex-direction: column; gap: 5px;">
-          <label for="title">📝 Name<span style="color: red;">*</span></label>
-          <input
-              type="text"
-              id="title"
-              name="title"
-              placeholder="bang"
-              value="<%= bookmark.title %>"
-              style="width: 100%;"
-              required
-          >
-          <% if (state.errors.title) { %>
-              <small style="color: red;"><%= state.errors.title %></small>
-          <% } %>
-      </div>
+      <fieldset style="border: none; padding: 0; margin: 0;">
+          <legend style="font-weight: bold; margin-bottom: 15px;">Bookmark Details</legend>
 
-      <div style="display: flex; flex-direction: column; gap: 5px;">
-          <label for="url">🌐 URL<span style="color: red;">*</span></label>
-          <input
-              type="url"
-              name="url"
-              id="url"
-              placeholder="https://bang.jaw.dev/"
-              value="<%= bookmark.url %>"
-              style="width: 100%;"
-              required
-          >
-          <% if (state.errors.url) { %>
-              <small style="color: red;"><%= state.errors.url %></small>
-          <% } %>
-      </div>
+          <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+              <label for="title">📝 Name <abbr title="Required">*</abbr></label>
+              <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  placeholder="bang"
+                  value="<%= bookmark.title %>"
+                  required
+                  aria-describedby="title-help <%= state.errors.title ? 'title-error' : '' %>"
+              >
+              <small id="title-help">A descriptive name for your bookmark</small>
+              <% if (state.errors.title) { %>
+                  <small id="title-error" style="color: red;" role="alert"><%= state.errors.title %></small>
+              <% } %>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+              <label for="url">🌐 URL <abbr title="Required">*</abbr></label>
+              <input
+                  type="url"
+                  name="url"
+                  id="url"
+                  placeholder="https://bang.jaw.dev/"
+                  value="<%= bookmark.url %>"
+                  required
+                  aria-describedby="url-help <%= state.errors.url ? 'url-error' : '' %>"
+              >
+              <small id="url-help">Enter the full website address, including https:// or http://</small>
+              <% if (state.errors.url) { %>
+                  <small id="url-error" style="color: red;" role="alert"><%= state.errors.url %></small>
+              <% } %>
+          </div>
+      </fieldset>
 
       <div style="display: flex; gap: 10px;">
           <button type="submit" style="flex: 1;">💾 Save</button>
       </div>
   </form>
-</div>
+</section>

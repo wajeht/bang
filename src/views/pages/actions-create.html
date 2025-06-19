@@ -1,89 +1,96 @@
-<div style="display: flex; flex-direction: column; gap: 20px;">
-    <div>
+<section style="display: flex; flex-direction: column; gap: 20px;">
+    <header>
         <h2>⚡ Actions / New</h2>
         <p>Create a new action</p>
-    </div>
+    </header>
 
     <form
         method="POST"
         action="/actions"
         style="border-style: dashed; border-radius: 5px; padding: 20px; width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+        novalidate
     >
         <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="name">📝 Name<span style="color: red;">*</span></label>
-            <input
-                type="text"
-                id="name"
-                name="name"
-                placeholder="Google Search"
-                value="<%= state.input.name ?? state.input.name %>"
-                style="width: 100%;"
-                required
-            >
-            <small>A descriptive name for your action</small>
-            <% if (state.errors.name) { %>
-                <small style="color: red;"><%= state.errors.name %></small>
-            <% } %>
-        </div>
+        <fieldset style="border: none; padding: 0; margin: 0;">
+            <legend style="font-weight: bold; margin-bottom: 15px;">Action Details</legend>
 
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="trigger">⚡ Trigger<span style="color: red;">*</span></label>
-            <div style="display: flex; align-items: center; gap: 5px;">
-                <span style="font-size: 1.2em;">!</span>
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                <label for="name">📝 Name <abbr title="Required">*</abbr></label>
                 <input
                     type="text"
-                    name="trigger"
-                    id="trigger"
-                    placeholder="g"
-                    value="<%= state.input.trigger ?? state.input.trigger %>"
-                    style="width: 100%;"
+                    id="name"
+                    name="name"
+                    placeholder="Google Search"
+                    value="<%= state.input.name ?? '' %>"
                     required
+                    aria-describedby="name-help <%= state.errors.name ? 'name-error' : '' %>"
                 >
+                <small id="name-help">A descriptive name for your action</small>
+                <% if (state.errors.name) { %>
+                    <small id="name-error" style="color: red;" role="alert"><%= state.errors.name %></small>
+                <% } %>
             </div>
-            <small>The command to trigger this action (e.g., 'g' for Google)</small>
-            <% if (state.errors.trigger) { %>
-                <small style="color: red;"><%= state.errors.trigger %></small>
-            <% } %>
-        </div>
 
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="url">🌐 URL<span style="color: red;">*</span></label>
-            <input
-                type="url"
-                name="url"
-                id="url"
-                placeholder="https://google.com/search?q={query}"
-                value="<%= state.input.url ?? state.input.url %>"
-                style="width: 100%;"
-                required
-            >
-            <small>For search actions, use {query} where the search term should go</small>
-            <% if (state.errors.url) { %>
-                <small style="color: red;"><%= state.errors.trigger %></small>
-            <% } %>
-        </div>
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                <label for="trigger">⚡ Trigger <abbr title="Required">*</abbr></label>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 1.2em;" aria-hidden="true">!</span>
+                    <input
+                        type="text"
+                        name="trigger"
+                        id="trigger"
+                        placeholder="g"
+                        value="<%= state.input.trigger ?? '' %>"
+                        required
+                        aria-describedby="trigger-help <%= state.errors.trigger ? 'trigger-error' : '' %>"
+                    >
+                </div>
+                <small id="trigger-help">The command to trigger this action (e.g., 'g' for Google)</small>
+                <% if (state.errors.trigger) { %>
+                    <small id="trigger-error" style="color: red;" role="alert"><%= state.errors.trigger %></small>
+                <% } %>
+            </div>
 
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="actionType">🏷️ Action Type<span style="color: red;">*</span></label>
-            <select
-                id="actionType"
-                name="actionType"
-                style="width: 100%;"
-                required
-            >
-                <% actionTypes.forEach(type => { %>
-                    <option value="<%= type %>" <%= state.input.actionType === type ? 'selected' : '' %>>
-                        <%= type.charAt(0).toUpperCase() + type.slice(1) %>
-                    </option>
-                <% }); %>
-            </select>
-        </div>
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                <label for="url">🌐 URL <abbr title="Required">*</abbr></label>
+                <input
+                    type="url"
+                    name="url"
+                    id="url"
+                    placeholder="https://google.com/search?q={query}"
+                    value="<%= state.input.url ?? '' %>"
+                    required
+                    aria-describedby="url-help <%= state.errors.url ? 'url-error' : '' %>"
+                >
+                <small id="url-help">For search actions, use {query} where the search term should go</small>
+                <% if (state.errors.url) { %>
+                    <small id="url-error" style="color: red;" role="alert"><%= state.errors.url %></small>
+                <% } %>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                <label for="actionType">🏷️ Action Type <abbr title="Required">*</abbr></label>
+                <select
+                    id="actionType"
+                    name="actionType"
+                    required
+                    aria-describedby="actionType-help"
+                >
+                    <option value="">Choose an action type</option>
+                    <% actionTypes.forEach(type => { %>
+                        <option value="<%= type %>" <%= state.input.actionType === type ? 'selected' : '' %>>
+                            <%= type.charAt(0).toUpperCase() + type.slice(1) %>
+                        </option>
+                    <% }); %>
+                </select>
+                <small id="actionType-help">Select the type of action to perform</small>
+            </div>
+        </fieldset>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-            <button type="button" onclick="location.href='/notes'">❌ Cancel</button>
+            <button type="button" onclick="location.href='/actions'">❌ Cancel</button>
             <button type="submit">💾 Save</button>
         </div>
     </form>
-</div>
+</section>
