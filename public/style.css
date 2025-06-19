@@ -297,6 +297,7 @@ summary:hover {
     cursor: pointer;
     padding: 0;
     font: inherit;
+    margin: 0;
 }
 
 [data-theme='dark'] .no-style-btn {

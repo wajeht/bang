@@ -108,7 +108,7 @@
                                     <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: dashed; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
                                         <a href="/bookmarks/<%= data[i].id %>/actions/create" style="display: inline-flex; align-items: center;" role="menuitem"> ❗️Bang</a>
                                         <a href="/bookmarks/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
-                                        <button type="button" style="background: none; border: none; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; color: inherit; text-align: left;" onclick="document.getElementById('delete-bookmark-<%= data[i].id %>-modal').showModal()" role="menuitem">🗑️ Delete</button>
+                                        <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-bookmark-<%= data[i].id %>-modal').showModal()" role="menuitem">🗑️ Delete</button>
                                         <dialog id="delete-bookmark-<%= data[i].id %>-modal" aria-labelledby="delete-bookmark-<%= data[i].id %>-title">
                                             <h2 id="delete-bookmark-<%= data[i].id %>-title">Confirm</h2>
                                             <p>Are you sure you want to delete <strong><%= data[i].title %></strong>?</p>
