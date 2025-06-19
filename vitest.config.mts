@@ -15,5 +15,29 @@ export default defineConfig({
             './scripts',
             './playwright.config.ts',
         ],
+        coverage: {
+            exclude: [
+                'node_modules/**',
+                'src/tests/**',
+                'src/db/migrations/**',
+                'src/db/seeds/**',
+                'src/db/sqlite/**',
+                'dist/**',
+                'public/**',
+                'test-results/**',
+                'playwright-report/**',
+                'scripts/**',
+                '*.config.*',
+                '**/*.d.ts',
+                'src/db/knexfile.ts',
+                'src/type.ts'
+            ],
+            include: [
+                'src/**/*.ts',
+                'src/**/*.mts'
+            ],
+            reporter: ['text', 'html', 'json'],
+            reportsDirectory: './coverage'
+        }
     },
 });
