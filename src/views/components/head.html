@@ -14,7 +14,10 @@
 
 	<!-- Preload and Preconnect -->
 	<link rel="preload" href="/style.css?v=<%- state.version.style %>" as="style">
-	<link rel="preconnect" href="https://plausible.jaw.dev">
+
+	<% if (state.env === 'production') { %>
+	    <link rel="preconnect" href="https://plausible.jaw.dev">
+	<% } %>
 
 	<!-- Open Graph -->
 	<meta property="og:type" content="website">
@@ -72,7 +75,9 @@
 
 	<!-- Styles and Scripts -->
   <link rel="stylesheet" href="/style.css?v=<%- state.version.style %>">
-	<script defer data-domain="bang.jaw.dev" src="https://plausible.jaw.dev/js/script.js"></script>
+	<% if (state.env === 'production') { %>
+	    <script defer data-domain="bang.jaw.dev" src="https://plausible.jaw.dev/js/script.js"></script>
+    <% } %>
 	<script type="application/json" id="app-state"><%- JSON.stringify(state) %></script>
 	<script defer src="/script.js?v=<%- state.version.script %>"></script>
 </head>
