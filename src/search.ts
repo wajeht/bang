@@ -330,7 +330,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
     if (commandType === 'direct') {
         // For command-only queries like @notes, @bookmarks with no search term
         if (!searchTerm) {
-            const directPath = searchConfig.directCommands.get(trigger); // prettier-ignore
+            const directPath = searchConfig.directCommands.get(trigger);
             if (directPath) {
                 return redirectWithCache(res, directPath);
             }
@@ -422,7 +422,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 return goBackWithValidationAlert(res, 'Invalid trigger or empty URL');
             }
 
-            const hasSystemBangCommands = searchConfig.systemBangs.has(bangTrigger); // prettier-ignore
+            const hasSystemBangCommands = searchConfig.systemBangs.has(bangTrigger);
 
             const existingBang = await db('bangs')
                 .where({ user_id: user.id, trigger: bangTrigger })
