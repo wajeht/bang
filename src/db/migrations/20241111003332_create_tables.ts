@@ -105,6 +105,9 @@ export async function up(knex: Knex): Promise<void> {
             table.index(['user_id', 'last_read_at']);
             table.unique(['user_id', 'trigger']);
             table.index(['user_id', 'trigger']);
+            table.index(['trigger'], 'bangs_trigger_idx');
+            table.index(['user_id', 'created_at'], 'bangs_user_created_idx');
+            table.index(['action_type_id'], 'bangs_action_type_idx');
         });
     }
 

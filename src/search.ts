@@ -28,32 +28,32 @@ const searchConfig = {
     /**
      * System-level bang commands that cannot be overridden by user-defined bangs
      */
-    systemBangs: ['!add', '!bm', '!note', '!del', '!edit'] as const,
+    systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit']),
     /**
      * Direct commands that can be used to navigate to different sections of the application
      */
-    directCommands: {
-        '@a': '/actions',
-        '@action': '/actions',
-        '@actions': '/actions',
-        '@am': '/admin',
-        '@admin': '/admin',
-        '@api': '/api-docs',
-        '@b': '/',
-        '@bang': '/',
-        '@bangs': '/',
-        '@bgh': 'https://github.com/wajeht/bang',
-        '@bm': '/bookmarks',
-        '@bookmark': '/bookmarks',
-        '@bookmarks': '/bookmarks',
-        '@d': '/settings/data',
-        '@data': '/settings/data',
-        '@s': '/settings',
-        '@settings': '/settings',
-        '@n': '/notes',
-        '@note': '/notes',
-        '@notes': '/notes',
-    },
+    directCommands: new Map([
+        ['@a', '/actions'],
+        ['@action', '/actions'],
+        ['@actions', '/actions'],
+        ['@am', '/admin'],
+        ['@admin', '/admin'],
+        ['@api', '/api-docs'],
+        ['@b', '/'],
+        ['@bang', '/'],
+        ['@bangs', '/'],
+        ['@bgh', 'https://github.com/wajeht/bang'],
+        ['@bm', '/bookmarks'],
+        ['@bookmark', '/bookmarks'],
+        ['@bookmarks', '/bookmarks'],
+        ['@d', '/settings/data'],
+        ['@data', '/settings/data'],
+        ['@s', '/settings'],
+        ['@settings', '/settings'],
+        ['@n', '/notes'],
+        ['@note', '/notes'],
+        ['@notes', '/notes'],
+    ]),
 } as const;
 
 export function trackAnonymousUserSearch(req: Request) {
@@ -322,7 +322,7 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string): string {
 export async function search({ res, req, user, query }: Parameters<Search>[0]): ReturnType<Search> {
     const { commandType, trigger, triggerWithoutPrefix, url, searchTerm } = parseSearchQuery(query);
 
-    if (!user || !user.id) {
+    if (!user?.id) {
         return handleAnonymousSearch(req, res, query, triggerWithoutPrefix ?? '', searchTerm ?? '');
     }
 
@@ -330,7 +330,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
     if (commandType === 'direct') {
         // For command-only queries like @notes, @bookmarks with no search term
         if (!searchTerm) {
-            const directPath = searchConfig.directCommands[trigger as keyof typeof searchConfig.directCommands]; // prettier-ignore
+            const directPath = searchConfig.directCommands.get(trigger); // prettier-ignore
             if (directPath) {
                 return redirectWithCache(res, directPath);
             }
@@ -365,11 +365,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
     }
 
     // Process system-level bang commands (!bm, !add, !note)
-    if (
-        trigger &&
-        commandType === 'bang' &&
-        searchConfig.systemBangs.includes(trigger as (typeof searchConfig.systemBangs)[number])
-    ) {
+    if (trigger && commandType === 'bang' && searchConfig.systemBangs.has(trigger)) {
         // Process bookmark creation command (!bm)
         // Format supported:
         // 1. !bm URL
@@ -426,7 +422,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 return goBackWithValidationAlert(res, 'Invalid trigger or empty URL');
             }
 
-            const hasSystemBangCommands = searchConfig.systemBangs.includes(bangTrigger as (typeof searchConfig.systemBangs)[number]); // prettier-ignore
+            const hasSystemBangCommands = searchConfig.systemBangs.has(bangTrigger); // prettier-ignore
 
             const existingBang = await db('bangs')
                 .where({ user_id: user.id, trigger: bangTrigger })
@@ -530,9 +526,10 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             const oldTrigger = parts[0]?.startsWith('!') ? parts[0] : `!${parts[0]}`;
 
             const existingBang = await db('bangs')
+                .select('bangs.*')
                 .where({
-                    user_id: user.id,
-                    trigger: oldTrigger,
+                    'bangs.user_id': user.id,
+                    'bangs.trigger': oldTrigger,
                 })
                 .first();
 
@@ -549,11 +546,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             if (parts.length >= 2 && parts[1] && parts[1].startsWith('!')) {
                 const newTrigger = parts[1];
 
-                if (
-                    searchConfig.systemBangs.includes(
-                        newTrigger as (typeof searchConfig.systemBangs)[number],
-                    )
-                ) {
+                if (searchConfig.systemBangs.has(newTrigger)) {
                     return goBackWithValidationAlert(
                         res,
                         `${newTrigger} is a system command and cannot be used as a trigger`,
@@ -671,9 +664,9 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
     // Process user-defined bang commands
     if (commandType === 'bang' && triggerWithoutPrefix) {
         const customBang = await db('bangs')
-            .where({ user_id: user.id, trigger: trigger })
+            .select('bangs.id', 'bangs.url', 'action_types.name as action_type')
+            .where({ 'bangs.user_id': user.id, 'bangs.trigger': trigger })
             .join('action_types', 'bangs.action_type_id', 'action_types.id')
-            .select('bangs.*', 'action_types.name as action_type')
             .first();
 
         if (customBang) {
