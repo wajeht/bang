@@ -3,7 +3,7 @@ import path from 'node:path';
 import { logger } from '../logger';
 import { config } from '../config';
 import knexConfig from './knexfile';
-import { attachPaginate } from 'knex-paginate';
+import { attachPaginate } from './paginate';
 
 attachPaginate();
 
