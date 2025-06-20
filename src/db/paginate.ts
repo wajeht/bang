@@ -21,6 +21,15 @@ export interface PaginationResult<T = any> {
     };
 }
 
+declare module 'knex' {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace Knex {
+        interface QueryBuilder {
+            paginate(options?: PaginationOptions): Promise<PaginationResult>;
+        }
+    }
+}
+
 export function attachPaginate() {
     async function paginate(
         this: Knex.QueryBuilder,

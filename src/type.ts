@@ -21,6 +21,15 @@ declare global {
     }
 }
 
+declare module 'knex' {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace Knex {
+        interface QueryBuilder {
+            paginate(options?: PaginationOptions): Promise<PaginationResult>;
+        }
+    }
+}
+
 export type DefaultSearchProviders = 'duckduckgo' | 'google' | 'yahoo' | 'bing';
 
 import type { Request, Response } from 'express';
