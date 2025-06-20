@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+import knex from 'knex';
 
 export interface PaginationOptions {
     perPage?: number;
@@ -57,5 +58,5 @@ export function attachPaginate() {
         return { data, pagination };
     }
 
-    (Knex as any).QueryBuilder.extend('paginate', paginate);
+    (knex as any).QueryBuilder.extend('paginate', paginate);
 }
