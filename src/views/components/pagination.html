@@ -18,7 +18,7 @@
         <!-- Current Page and Jump to Pages -->
         <details style="position: relative;">
             <summary aria-label="Current page: <%= pagination.currentPage %>. Click to view all pages">📄 Page <%= pagination.currentPage %></summary>
-            <div style="bottom: 30px; right: 0px; position: absolute; padding: 10px; width: max-content; display: flex; flex-direction: column; background-color: var(--background-color); border: dashed; border-radius: 5px;" role="menu">
+            <div style="bottom: 30px; right: 0px; position: absolute; padding: 10px; width: max-content; display: flex; flex-direction: column; background-color: var(--background-color); border: solid; border-radius: 5px;" role="menu">
                 <% for (let i = 1; i <= pagination.lastPage; i++) { %>
                     <% if (i === pagination.currentPage) { %>
                         <span aria-current="page" style="font-weight: bold; text-decoration: underline;">Page <%= i %></span>

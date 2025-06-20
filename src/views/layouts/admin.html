@@ -18,16 +18,16 @@
           <nav>
             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
               <li>
-                <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/admin/users' ? 'bold' : 'normal' %>; <%= path === '/admin/users' ? 'text-decoration: underline' : '' %>; display: block;" href="/admin/users">👥 Users</a>
+                <a style="border: solid; border-radius: 5px; padding: 5px 10px; font-weight: <%= path === '/admin/users' ? 'bold' : 'normal' %>; <%= path === '/admin/users' ? 'text-decoration: underline' : '' %>; display: block;" href="/admin/users">👥 Users</a>
               </li>
               <li>
-                <a style="border: dashed; border-radius: 5px; padding: 5px 10px; font-weight: normal; display: block;" href="/settings">⚙️ Settings</a>
+                <a style="border: solid; border-radius: 5px; padding: 5px 10px; font-weight: normal; display: block;" href="/settings">⚙️ Settings</a>
               </li>
             </ul>
           </nav>
         </aside>
 
-        <div style="display: inline-block; border-left: dashed; padding-left: 30px">
+        <div style="display: inline-block; border-left: solid; padding-left: 30px">
           <%- body %>
         </div>
       </div>
