@@ -51,7 +51,7 @@ export async function checkDatabaseHealth() {
                       : 'FULL',
         };
 
-        logger.info('Database health check: %o', healthInfo);
+        logger.info(`Database health check: %o`, { healthInfo });
 
         return true;
     } catch (error) {
@@ -77,7 +77,7 @@ export async function runMigrations(force: boolean = false) {
 
         const version = await db.migrate.currentVersion();
 
-        logger.info(`current database version ${version}`);
+        logger.info(`current database version %s`, version);
 
         logger.info(`checking for database upgrades`);
 
@@ -92,9 +92,9 @@ export async function runMigrations(force: boolean = false) {
             .map((migration: string) => migration.split('_')[1]?.split('.')[0] ?? '')
             .join(', ');
 
-        logger.info(`database upgrades completed for ${migrationList} schema`);
+        logger.info(`database upgrades completed for %s schema`, migrationList);
 
-        logger.info(`batch ${batchNo} run: ${migrations.length} migrations`);
+        logger.info(`batch %s run: %s migrations`, batchNo, migrations.length);
     } catch (error) {
         logger.error(`error running migrations: %o`, { error });
         throw error;

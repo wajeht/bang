@@ -18,9 +18,9 @@ import { Server } from 'node:http';
 import compression from 'compression';
 import { AddressInfo } from 'node:net';
 import { isMailpitRunning } from './util';
-import { db, runMigrations } from './db/db';
 import expressLayouts from 'express-ejs-layouts';
 import { expressJSDocSwaggerHandler, swagger } from './util';
+import { db, runMigrations, checkDatabaseHealth, optimizeDatabase } from './db/db';
 import { expressTemplatesReload as reload } from '@wajeht/express-templates-reload';
 
 export async function createServer() {
@@ -85,8 +85,8 @@ export async function createServer() {
 
         if (config.app.env === 'production') {
             try {
-                await db.raw('SELECT 1');
-                logger.info('Database connection verified before migrations');
+                await checkDatabaseHealth();
+                await optimizeDatabase();
                 await runMigrations();
                 logger.info('Database migrations completed successfully');
             } catch (error) {
