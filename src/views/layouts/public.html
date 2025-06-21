@@ -90,11 +90,16 @@
             history.replaceState({}, document.title, newUrl);
           }
 
-          const state = `<%- JSON.stringify(state) %>`;
+          const state = JSON.parse(`<%- JSON.stringify(state) %>`);
           // auto pre-fill the email if the user is logged in before and the email is in local storage
           const localStorageData = getLocalStorageData();
           if (!state.errors?.email && localStorageData.user?.email) {
               document.getElementById('email-input').value = localStorageData.user.email;
+          }
+
+          // if there are errors, use the submitted email value
+          if (state.errors?.email && state.input?.email) {
+              document.getElementById('email-input').value = state.input.email;
           }
         });
       </script>
