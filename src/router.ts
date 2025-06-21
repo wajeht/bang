@@ -396,6 +396,8 @@ router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
  *
  * @security BearerAuth
  *
+ * @param {string} content.body.required - note content
+ *
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  * @return {object} 404 - Not found response - application/json
