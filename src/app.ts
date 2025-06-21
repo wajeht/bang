@@ -76,11 +76,9 @@ export async function createServer() {
             typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port;
 
         logger.info(`Server is listening on ${bind}`);
-        if (config.app.env === 'development') {
-            const isRunning = await isMailpitRunning();
-            if (isRunning) {
-                logger.info('mailpit is running on http://localhost:8025');
-            }
+
+        if (config.app.env === 'development' && (await isMailpitRunning())) {
+            logger.info('Mailpit is running on http://localhost:8025');
         }
 
         if (config.app.env === 'production') {

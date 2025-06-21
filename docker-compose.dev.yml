@@ -13,6 +13,7 @@ services:
             - /usr/src/app/node_modules
         environment:
             CHOKIDAR_USEPOLLING: 'true'
+            DOCKER_CONTAINER: 'true'
         depends_on:
             - mailpit
 

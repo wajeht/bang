@@ -450,17 +450,18 @@ export function isOnlyLettersAndNumbers(str: string): boolean {
     return /^[a-zA-Z0-9]+$/.test(str);
 }
 
-export function isMailpitRunning(): Promise<boolean> {
-    return new Promise((resolve) => {
-        const req = http.get('http://localhost:8025', () => {
-            resolve(true);
+export async function isMailpitRunning(): Promise<boolean> {
+    try {
+        const url = process.env.DOCKER_CONTAINER
+            ? 'http://mailpit:8025/'
+            : 'http://localhost:8025/';
+        const response = await fetch(url, {
+            signal: AbortSignal.timeout(1500),
         });
-        req.on('error', () => resolve(false));
-        req.setTimeout(1000, () => {
-            req.destroy();
-            resolve(false);
-        });
-    });
+        return response.ok;
+    } catch {
+        return false;
+    }
 }
 
 export async function getReadmeFileContent(): Promise<string> {
