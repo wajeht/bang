@@ -392,11 +392,11 @@ router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
  * POST /api/notes/render-markdown
  *
  * @tags Notes
- * @summary Render markdown
+ * @summary Render markdown content to html
  *
  * @security BearerAuth
  *
- * @param {string} content.body.required - note content
+ * @param {string} request.body.required - markdown content
  *
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
