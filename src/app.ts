@@ -20,8 +20,8 @@ import { AddressInfo } from 'node:net';
 import { isMailpitRunning } from './util';
 import expressLayouts from 'express-ejs-layouts';
 import { expressJSDocSwaggerHandler, swagger } from './util';
+import { expressTemplatesReload } from '@wajeht/express-templates-reload';
 import { db, runMigrations, checkDatabaseHealth, optimizeDatabase } from './db/db';
-import { expressTemplatesReload as reload } from '@wajeht/express-templates-reload';
 
 export async function createServer() {
     const app = express()
@@ -45,7 +45,7 @@ export async function createServer() {
         .use(appLocalStateMiddleware);
 
     if (config.app.env === 'development') {
-        reload({
+        expressTemplatesReload({
             app,
             options: { quiet: false },
             watch: [
