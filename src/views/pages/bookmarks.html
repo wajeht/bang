@@ -10,7 +10,7 @@
 
         <nav style="display: flex; gap: 10px;" aria-label="Bookmark management controls">
             <% if (search) { %>
-                <button type="button" onclick="location.href='/bookmarks'">❌ Clear</button>
+                <button type="button" class="no-style-btn" onclick="location.href='/bookmarks'">❌ Clear</button>
             <% } %>
 
             <form method="GET" action="/bookmarks" style="display: flex; gap: 10px;" role="search">

@@ -10,7 +10,7 @@
 
         <nav style="display: flex; gap: 10px;" aria-label="Note management controls">
             <% if (search) { %>
-                <button type="button" onclick="location.href='/notes'">❌ Clear</button>
+                <button type="button" class="no-style-btn" onclick="location.href='/notes'">❌ Clear</button>
             <% } %>
 
             <form method="GET" action="/notes" style="display: flex; gap: 10px;" role="search">
