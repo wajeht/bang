@@ -11,6 +11,7 @@ import { Request } from 'express';
 import nodemailer from 'nodemailer';
 import { HttpError } from './error';
 import { Application } from 'express';
+import type { Bookmark } from './type';
 import { bookmarks } from './repository';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
 import { authenticationMiddleware, cacheMiddleware } from './middleware';
@@ -36,9 +37,24 @@ export async function updateUserBangLastReadAt({
     try {
         await db('bangs')
             .where({ user_id: userId, id: bangId })
-            .update({ last_read_at: db.fn.now() });
+            .update({
+                last_read_at: db.fn.now(),
+                usage_count: db.raw('usage_count + 1'),
+            });
     } catch (error) {
         logger.error(`[updateUserBangLastReadAt]: error updating bang last read at, %o`, { error });
+    }
+}
+
+export async function checkDuplicateBookmarkUrl(
+    userId: number,
+    url: string,
+): Promise<Bookmark | null> {
+    try {
+        return await db('bookmarks').where({ user_id: userId, url }).first();
+    } catch (error) {
+        logger.error(`[checkDuplicateBookmarkUrl]: error checking duplicate URL, %o`, { error });
+        return null;
     }
 }
 
