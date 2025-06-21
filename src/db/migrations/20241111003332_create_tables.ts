@@ -48,6 +48,14 @@ export async function up(knex: Knex): Promise<void> {
                         created_at: true,
                         view_type: 'table',
                     },
+                    users: {
+                        username: true,
+                        email: true,
+                        is_admin: true,
+                        default_per_page: 10,
+                        email_verified_at: true,
+                        created_at: true,
+                    },
                 }),
             );
             table.timestamp('email_verified_at').nullable();

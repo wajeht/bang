@@ -1146,6 +1146,41 @@ export const postSettingsDisplayHandler = {
                 value.notes.view_type = req.session.user.column_preferences.notes.view_type;
             }
 
+            // users (admin only)
+            if (req.user?.is_admin && value.users) {
+                if (typeof value.users !== 'object') {
+                    throw new ValidationError('Users must be an object', req as Request);
+                }
+
+                value.users.username = value.users.username === 'on';
+                value.users.email = value.users.email === 'on';
+                value.users.is_admin = value.users.is_admin === 'on';
+                value.users.email_verified_at = value.users.email_verified_at === 'on';
+                value.users.created_at = value.users.created_at === 'on';
+
+                value.users.default_per_page = parseInt(value.users.default_per_page, 10);
+
+                if (isNaN(value.users.default_per_page) || value.users.default_per_page < 1) {
+                    throw new ValidationError(
+                        'Users per page must be greater than 0',
+                        req as Request,
+                    );
+                }
+
+                if (
+                    !value.users.username &&
+                    !value.users.email &&
+                    !value.users.is_admin &&
+                    !value.users.email_verified_at &&
+                    !value.users.created_at
+                ) {
+                    throw new ValidationError(
+                        'At least one user column must be enabled',
+                        req as Request,
+                    );
+                }
+            }
+
             return true;
         }),
     ]),
@@ -1516,6 +1551,7 @@ export function getAdminUsersHandler(db: Knex) {
             .paginate({ perPage, currentPage: page, isLengthAware: true });
 
         return res.render('admin-users.html', {
+            user: req.session?.user,
             title: 'Admin / Users',
             path: '/admin/users',
             layout: '../layouts/admin.html',

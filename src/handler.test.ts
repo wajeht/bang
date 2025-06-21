@@ -117,6 +117,8 @@ describe('Export Data Handler', () => {
                         created_at: true,
                         last_read_at: true,
                         default_per_page: 10,
+                        action_type: true,
+                        usage_count: true,
                     },
                     notes: {
                         title: true,
@@ -124,6 +126,14 @@ describe('Export Data Handler', () => {
                         created_at: true,
                         default_per_page: 10,
                         view_type: 'table',
+                    },
+                    users: {
+                        username: true,
+                        email: true,
+                        is_admin: true,
+                        email_verified_at: true,
+                        created_at: true,
+                        default_per_page: 10,
                     },
                 },
                 email_verified_at: null,

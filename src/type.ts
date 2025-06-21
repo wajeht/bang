@@ -68,6 +68,8 @@ export type ColumnPreferences = {
         name: boolean;
         trigger: boolean;
         url: boolean;
+        action_type: boolean;
+        usage_count: boolean;
         default_per_page: number;
         created_at: boolean;
         last_read_at: boolean;
@@ -78,6 +80,14 @@ export type ColumnPreferences = {
         default_per_page: number;
         created_at: boolean;
         view_type: 'table' | 'list';
+    };
+    users: {
+        username: boolean;
+        email: boolean;
+        is_admin: boolean;
+        email_verified_at: boolean;
+        created_at: boolean;
+        default_per_page: number;
     };
 };
 

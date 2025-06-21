@@ -380,7 +380,7 @@ export function extractPagination(req: Request, pageType: PageType | 'admin') {
     }
 
     if (pageType === 'admin') {
-        defaultPerPage = 10;
+        defaultPerPage = user.column_preferences.users.default_per_page;
     }
 
     return {

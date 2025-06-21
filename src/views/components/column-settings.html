@@ -211,6 +211,73 @@
           </label>
         </fieldset>
       </div>
+
+      <!-- Users -->
+      <% if (state.user.is_admin) { %>
+        <div style="display: flex; flex-direction: column; gap: 15px; <%= path === '/admin/users' ? '' : 'display: none;' %>">
+          <% if (path === "/admin/users") { %>
+              <input type="hidden" name="path" value="<%= path %>" />
+          <% } %>
+
+          <!-- Items Per Page -->
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label for="users_per_page">🔢 Items Per Page <abbr title="Required">*</abbr></label>
+            <input
+              type="number"
+              id="users_per_page"
+              name="column_preferences[users][default_per_page]"
+              value="<%= state.input.users_per_page ?? user.column_preferences.users.default_per_page %>"
+              min="1"
+              required
+            >
+          </div>
+
+          <!-- Visible Columns -->
+          <fieldset style="border: none; padding: 0; margin: 0;">
+            <legend style="font-weight: normal;">Columns <abbr title="Required">*</abbr></legend>
+            <label style="display: flex; align-items: center; gap: 10px;">
+              <input
+                type="checkbox"
+                name="column_preferences[users][username]"
+                <%= user.column_preferences?.users?.username !== false ? 'checked' : '' %>
+              >
+              👤 Username
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px;">
+              <input
+                type="checkbox"
+                name="column_preferences[users][email]"
+                <%= user.column_preferences?.users?.email !== false ? 'checked' : '' %>
+              >
+              📧 Email
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px;">
+              <input
+                type="checkbox"
+                name="column_preferences[users][is_admin]"
+                <%= user.column_preferences?.users?.is_admin !== false ? 'checked' : '' %>
+              >
+              👑 Admin
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px;">
+              <input
+                type="checkbox"
+                name="column_preferences[users][email_verified_at]"
+                <%= user.column_preferences?.users?.email_verified_at !== false ? 'checked' : '' %>
+              >
+              ✅ Email Verified
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px;">
+              <input
+                type="checkbox"
+                name="column_preferences[users][created_at]"
+                <%= user.column_preferences?.users?.created_at !== false ? 'checked' : '' %>
+              >
+              📅 Created At
+            </label>
+          </fieldset>
+        </div>
+      <% } %>
     </div>
 
     <% if (state.errors.column_preferences) { %>
