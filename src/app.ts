@@ -49,8 +49,7 @@ export async function createServer() {
             app,
             options: { quiet: false },
             watch: [
-                { path: './public/style.css' },
-                { path: './public/script.js' },
+                { path: './public', extensions: ['.css', '.js'] },
                 { path: './src/views', extensions: ['.html'] },
             ],
         });
