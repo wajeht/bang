@@ -13,7 +13,7 @@ test.describe('Authenticated User Flows', () => {
     test('can create a new action', async ({ page }) => {
         await page.goto('/actions');
 
-        await page.getByRole('button', { name: '➕ New Action' }).click();
+        await page.getByRole('button', { name: 'Create new action' }).click();
 
         await expect(page).toHaveURL('/actions/create');
         await expect(page.getByText('Actions / New')).toBeVisible();
@@ -35,7 +35,7 @@ test.describe('Authenticated User Flows', () => {
     test('can create a new bookmark', async ({ page }) => {
         await page.goto('/bookmarks');
 
-        await page.getByRole('button', { name: '➕ New Bookmark' }).click();
+        await page.getByRole('button', { name: 'Create new bookmark' }).click();
 
         await expect(page).toHaveURL('/bookmarks/create');
         await expect(page.getByText('🔖 Bookmarks / New')).toBeVisible();
@@ -57,7 +57,7 @@ test.describe('Authenticated User Flows', () => {
     test('can create a new note', async ({ page }) => {
         await page.goto('/notes');
 
-        await page.getByRole('button', { name: '➕ New Note' }).click();
+        await page.getByRole('button', { name: 'Create new note' }).click();
 
         await expect(page).toHaveURL('/notes/create');
         await expect(page.getByText('📝 Notes / New')).toBeVisible();
