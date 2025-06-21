@@ -47,14 +47,22 @@
             });
 
             toggleContentBtn.addEventListener('click', async () => {
-                if (!fetchedContent) fetchedContent = await renderMarkdown(content.value);
-                preview.innerHTML = fetchedContent;
+                if (!fetchedContent && content.value !== '') {
+                    fetchedContent = await renderMarkdown(content.value);
+                    preview.innerHTML = fetchedContent;
+                } else {
+                    preview.innerHTML = 'Nothing to preview';
+                }
             });
 
             // fetch when user navigates with keyboard and lands on it
             toggleContentBtn.addEventListener('focus', async () => {
-                if (!fetchedContent) fetchedContent = await renderMarkdown(content.value);
-                preview.innerHTML = fetchedContent;
+                if (!fetchedContent && content.value !== ''){
+                    fetchedContent = await renderMarkdown(content.value);
+                    preview.innerHTML = fetchedContent;
+                } else {
+                    preview.innerHTML = 'Nothing to preview';
+                }
             });
 
         }
