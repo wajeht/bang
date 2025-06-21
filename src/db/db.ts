@@ -9,6 +9,57 @@ attachPaginate();
 
 export const db = knex(knexConfig);
 
+export async function optimizeDatabase() {
+    try {
+        // Update query planner statistics
+        await db.raw('ANALYZE');
+
+        // Optimize query planner
+        await db.raw('PRAGMA optimize');
+
+        // Vacuum database (non-production only)
+        if (config.app.env !== 'production') {
+            await db.raw('VACUUM');
+        }
+
+        logger.info('Database optimization completed');
+    } catch (error) {
+        logger.error('Error optimizing database:', error);
+    }
+}
+
+export async function checkDatabaseHealth() {
+    try {
+        const [walMode] = await db.raw('PRAGMA journal_mode');
+        const [cacheSize] = await db.raw('PRAGMA cache_size');
+        const [busyTimeout] = await db.raw('PRAGMA busy_timeout');
+        const [threads] = await db.raw('PRAGMA threads');
+        const [mmapSize] = await db.raw('PRAGMA mmap_size');
+        const [syncMode] = await db.raw('PRAGMA synchronous');
+
+        const healthInfo = {
+            journalMode: walMode.journal_mode || walMode,
+            cacheSize: cacheSize.cache_size || cacheSize,
+            busyTimeout: busyTimeout.timeout || busyTimeout,
+            threads: threads.threads || threads,
+            mmapSize: `${Math.round((mmapSize.mmap_size || mmapSize) / 1024 / 1024)}MB`,
+            synchronous:
+                (syncMode.synchronous || syncMode) === 1
+                    ? 'NORMAL'
+                    : (syncMode.synchronous || syncMode) === 0
+                      ? 'OFF'
+                      : 'FULL',
+        };
+
+        logger.info('Database health check: %o', healthInfo);
+
+        return true;
+    } catch (error) {
+        logger.error('Database health check failed:', error);
+        return false;
+    }
+}
+
 export async function runMigrations(force: boolean = false) {
     try {
         if (config.app.env !== 'production' && force !== true) {

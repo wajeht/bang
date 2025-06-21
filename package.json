@@ -19,6 +19,7 @@
         "test:browser": "npx playwright test --ui",
         "test:watch": "NODE_ENV=testing  vitest",
         "test": "NODE_ENV=testing vitest --run",
+        "test:load": "tsx ./scripts/load-test.ts",
         "test:coverage": "NODE_ENV=testing vitest run --coverage",
         "format:check": "prettier --check .",
         "format:verbose": "prettier --write --cache .",

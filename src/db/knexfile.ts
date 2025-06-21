@@ -29,42 +29,64 @@ const knexConfig: Knex.Config = {
     seeds: { directory: path.resolve(__dirname, './seeds') },
     // debug: _developmentEnvironmentOnly,
     pool: {
-        min: 2,
-        max: 20, // Increased max connections to handle higher concurrency
-        acquireTimeoutMillis: 30000, // 30 seconds
+        min: 10, // Higher minimum for production server
+        max: 100, // Increased max connections
+        acquireTimeoutMillis: 60000, // 60 seconds
         createTimeoutMillis: 30000, // 30 seconds
-        idleTimeoutMillis: 30000, // 30 seconds
+        idleTimeoutMillis: 900000, // 15 minutes
         reapIntervalMillis: 1000, // 1 second
+        createRetryIntervalMillis: 100, // Faster retry
+        propagateCreateError: false, // Don't fail immediately on connection errors
         afterCreate: (conn: any, done: (err: Error | null, conn: any) => void) => {
             try {
                 // Enable foreign key constraints
                 conn.pragma('foreign_keys = ON');
 
                 // Use Write-Ahead Logging (WAL) for better concurrency
-                // WAL mode allows multiple readers and a single writer to operate simultaneously.
                 conn.pragma('journal_mode = WAL');
 
-                // Set synchronous mode to NORMAL for a balance between performance and data integrity
-                // If you can tolerate a small risk of data loss, you could set this to OFF.
+                // Set synchronous mode to NORMAL for balance between performance and data integrity
                 conn.pragma('synchronous = NORMAL');
 
-                // Adjust the cache size to 20 MB (-20000 KB) to reduce disk I/O
-                // Your system has 32 GB of RAM, so allocating 20 MB is reasonable.
-                conn.pragma('cache_size = -20000');
+                // Cache size: 500 MB
+                conn.pragma('cache_size = -500000');
 
-                // Store temporary objects in memory for faster operations
+                // Store temporary objects in memory
                 conn.pragma('temp_store = MEMORY');
 
-                // Set a busy timeout of 5000 ms (5 seconds) to reduce contention
-                // SQLite will wait for 5 seconds before returning a "database is locked" error.
-                conn.pragma('busy_timeout = 5000');
+                // Busy timeout: 45 seconds
+                conn.pragma('busy_timeout = 45000');
 
-                // Enable multi-threaded operations with 4 threads (matching your CPU's 4 cores)
-                // This allows SQLite to utilize all available cores for better performance.
+                // Multi-threaded operations: 4 threads
                 conn.pragma('threads = 4');
 
+                // WAL checkpoint every 2000 pages
+                conn.pragma('wal_autocheckpoint = 2000');
+                conn.pragma('wal_checkpoint(TRUNCATE)');
+
+                // Memory-mapped I/O: 1GB
+                conn.pragma('mmap_size = 1073741824');
+
+                // Page size: 4KB
+                conn.pragma('page_size = 4096');
+
+                // Lock timeout: 45 seconds
+                conn.pragma('lock_timeout = 45000');
+
+                // Temp cache: 100MB
+                conn.pragma('temp_cache_size = -100000');
+
+                // Allow concurrent access
+                conn.pragma('locking_mode = NORMAL');
+
+                // Faster reads (safe with WAL mode)
+                conn.pragma('read_uncommitted = 1');
+
+                // Optimize query planner
+                conn.pragma('optimize');
+
                 console.log(
-                    `${_getFormattedTimestamp()} INFO: New database connection established`,
+                    `${_getFormattedTimestamp()} INFO: New database connection established with enhanced concurrency settings`,
                 );
 
                 done(null, conn);
