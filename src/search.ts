@@ -5,6 +5,7 @@ import {
     insertPageTitle,
     isOnlyLettersAndNumbers,
     updateUserBangLastReadAt,
+    checkDuplicateBookmarkUrl,
 } from './util';
 import { db } from './db/db';
 import { Bang, Search } from './type';
@@ -376,6 +377,32 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             }
 
             try {
+                const existingBookmark = await checkDuplicateBookmarkUrl(user.id, url);
+
+                if (existingBookmark) {
+                    // Extract title from command by removing "!bm" and URL
+                    let titleSection: string | null = null;
+                    if (searchTerm) {
+                        const urlIndex = searchTerm.indexOf(url);
+                        titleSection =
+                            urlIndex > -1 ? searchTerm.slice(0, urlIndex).trim() : searchTerm;
+                    }
+
+                    const newTitle = titleSection || '';
+
+                    if (newTitle.length > 0) {
+                        return goBackWithValidationAlert(
+                            res,
+                            `URL already bookmarked as ${existingBookmark.title}. Use a different URL or update the existing bookmark.`,
+                        );
+                    }
+
+                    return goBackWithValidationAlert(
+                        res,
+                        `URL already bookmarked as ${existingBookmark.title}. Bookmark already exists.`,
+                    );
+                }
+
                 // Extract title from command by removing "!bm" and URL - optimized to avoid redundant operations
                 let titleSection: string | null = null;
 
