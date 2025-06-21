@@ -450,7 +450,7 @@ export function isOnlyLettersAndNumbers(str: string): boolean {
     return /^[a-zA-Z0-9]+$/.test(str);
 }
 
-export function checkMailpit(): Promise<boolean> {
+export function isMailpitRunning(): Promise<boolean> {
     return new Promise((resolve) => {
         const req = http.get('http://localhost:8025', () => {
             resolve(true);
@@ -545,7 +545,7 @@ https://github.com/wajeht/bang`,
     };
 
     try {
-        if (!((await checkMailpit()) && config.app.env === 'development')) {
+        if (config.app.env === 'development' && (await isMailpitRunning()) === false) {
             logger.info(`We are on dev mode and mailpit is not running, magic link: ${magicLink}`);
         }
         await emailTransporter.sendMail(mailOptions);

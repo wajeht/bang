@@ -15,9 +15,9 @@ import flash from 'connect-flash';
 import { config } from './config';
 import { logger } from './logger';
 import { Server } from 'node:http';
-import { checkMailpit } from './util';
 import compression from 'compression';
 import { AddressInfo } from 'node:net';
+import { isMailpitRunning } from './util';
 import { db, runMigrations } from './db/db';
 import expressLayouts from 'express-ejs-layouts';
 import { expressJSDocSwaggerHandler, swagger } from './util';
@@ -77,8 +77,8 @@ export async function createServer() {
 
         logger.info(`Server is listening on ${bind}`);
         if (config.app.env === 'development') {
-            const isMailpitRunning = await checkMailpit();
-            if (isMailpitRunning) {
+            const isRunning = await isMailpitRunning();
+            if (isRunning) {
                 logger.info('mailpit is running on http://localhost:8025');
             }
         }
