@@ -38,6 +38,7 @@ export async function up(knex: Knex): Promise<void> {
                         url: true,
                         default_per_page: 10,
                         last_read_at: true,
+                        usage_count: true,
                         created_at: true,
                     },
                     notes: {
@@ -101,6 +102,7 @@ export async function up(knex: Knex): Promise<void> {
             table.text('url').notNullable();
             table.timestamps(true, true);
             table.timestamp('last_read_at').nullable();
+            table.integer('usage_count').defaultTo(0).notNullable();
 
             table.index(['user_id', 'last_read_at']);
             table.unique(['user_id', 'trigger']);
@@ -108,6 +110,7 @@ export async function up(knex: Knex): Promise<void> {
             table.index(['trigger'], 'bangs_trigger_idx');
             table.index(['user_id', 'created_at'], 'bangs_user_created_idx');
             table.index(['action_type_id'], 'bangs_action_type_idx');
+            table.index(['user_id', 'usage_count'], 'bangs_user_usage_idx');
         });
     }
 
