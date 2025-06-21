@@ -73,6 +73,14 @@
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
+              name="column_preferences[actions][usage_count]"
+              <%= user.column_preferences?.actions?.usage_count !== false ? 'checked' : '' %>
+            >
+            📊 Usage Count
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
               name="column_preferences[actions][created_at]"
               <%= user.column_preferences?.actions?.created_at !== false ? 'checked' : '' %>
             >
