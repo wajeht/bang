@@ -24,7 +24,7 @@ export async function optimizeDatabase() {
 
         logger.info('Database optimization completed');
     } catch (error) {
-        logger.error('Error optimizing database:', error);
+        logger.error(`Error optimizing database: %o`, { error });
     }
 }
 
@@ -55,7 +55,7 @@ export async function checkDatabaseHealth() {
 
         return true;
     } catch (error) {
-        logger.error('Database health check failed:', error);
+        logger.error(`Database health check failed: %o`, { error });
         return false;
     }
 }
@@ -96,7 +96,7 @@ export async function runMigrations(force: boolean = false) {
 
         logger.info(`batch ${batchNo} run: ${migrations.length} migrations`);
     } catch (error) {
-        logger.error('error running migrations', error);
+        logger.error(`error running migrations: %o`, { error });
         throw error;
     }
 }
