@@ -47,11 +47,11 @@ export async function createServer() {
     if (config.app.env === 'development') {
         expressTemplatesReload({
             app,
-            options: { quiet: false },
             watch: [
                 { path: './public', extensions: ['.css', '.js'] },
                 { path: './src/views', extensions: ['.html'] },
             ],
+            options: { quiet: false },
         });
     }
 
