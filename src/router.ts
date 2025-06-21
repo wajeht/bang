@@ -365,6 +365,12 @@ router.get('/api/collections', authenticationMiddleware, cacheMiddleware(1, 'day
  */
 
 /**
+ * A note request body
+ * @typedef {object} NoteRequestBody
+ * @property {string} content.required - markdown content to render
+ */
+
+/**
  * GET /api/notes
  *
  * @tags Notes
@@ -396,7 +402,7 @@ router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
  *
  * @security BearerAuth
  *
- * @param {string} request.body.required - markdown content
+ * @param {NoteRequestBody} request.body.required - request body
  *
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
