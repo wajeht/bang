@@ -45,9 +45,15 @@ export const actions: Actions = {
         }
 
         if (
-            ['name', 'trigger', 'url', 'created_at', 'action_type', 'last_read_at'].includes(
-                sortKey,
-            )
+            [
+                'name',
+                'trigger',
+                'url',
+                'created_at',
+                'action_type',
+                'last_read_at',
+                'usage_count',
+            ].includes(sortKey)
         ) {
             if (sortKey === 'action_type') {
                 query.orderBy('action_types.name', direction);
