@@ -10,7 +10,7 @@ import { db } from './db/db';
 import { User } from './type';
 import { config } from './config';
 import { Request, Response } from 'express';
-import { isValidUrl, insertBookmark, insertPageTitle } from './util';
+import { isValidUrl, insertBookmark, insertPageTitle, checkDuplicateBookmarkUrl } from './util';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('./util', async () => {
@@ -20,6 +20,7 @@ vi.mock('./util', async () => {
         isValidUrl: vi.fn(),
         insertBookmark: vi.fn(),
         insertPageTitle: vi.fn(),
+        checkDuplicateBookmarkUrl: vi.fn(),
     };
 });
 
@@ -1637,6 +1638,213 @@ describe('search', () => {
             } finally {
                 vi.restoreAllMocks();
             }
+        });
+
+        describe('duplicate bookmark detection', () => {
+            beforeEach(async () => {
+                await db('bookmarks').del();
+                await db('bookmarks').insert({
+                    id: 999,
+                    user_id: 1,
+                    title: 'Existing Bookmark',
+                    url: 'https://existing.com',
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                });
+            });
+
+            afterEach(async () => {
+                await db('bookmarks').del();
+            });
+
+            it('should detect duplicate URL and show error with title', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                vi.mocked(isValidUrl).mockReturnValue(true);
+                vi.mocked(checkDuplicateBookmarkUrl).mockResolvedValue({
+                    id: 999,
+                    user_id: 1,
+                    title: 'Existing Bookmark',
+                    url: 'https://existing.com',
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                });
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!bm New Title https://existing.com',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'URL already bookmarked as Existing Bookmark. Use a different URL or update the existing bookmark.',
+                    ),
+                );
+
+                vi.mocked(isValidUrl).mockReset();
+                vi.mocked(checkDuplicateBookmarkUrl).mockReset();
+            });
+
+            it('should detect duplicate URL and show error without title', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                vi.mocked(isValidUrl).mockReturnValue(true);
+                vi.mocked(checkDuplicateBookmarkUrl).mockResolvedValue({
+                    id: 999,
+                    user_id: 1,
+                    title: 'Existing Bookmark',
+                    url: 'https://existing.com',
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                });
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!bm https://existing.com',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'URL already bookmarked as Existing Bookmark. Bookmark already exists.',
+                    ),
+                );
+
+                vi.mocked(isValidUrl).mockReset();
+                vi.mocked(checkDuplicateBookmarkUrl).mockReset();
+            });
+
+            it('should handle bookmark titles with special characters in duplicate detection', async () => {
+                // Insert bookmark with special characters
+                await db('bookmarks').where({ id: 999 }).update({
+                    title: 'Test "Quotes" & Special Chars',
+                });
+
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                vi.mocked(isValidUrl).mockReturnValue(true);
+                vi.mocked(checkDuplicateBookmarkUrl).mockResolvedValue({
+                    id: 999,
+                    user_id: 1,
+                    title: 'Test "Quotes" & Special Chars',
+                    url: 'https://existing.com',
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                });
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!bm https://existing.com',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'URL already bookmarked as Test "Quotes" & Special Chars. Bookmark already exists.',
+                    ),
+                );
+
+                vi.mocked(isValidUrl).mockReset();
+                vi.mocked(checkDuplicateBookmarkUrl).mockReset();
+            });
+
+            it('should allow bookmark creation with unique URL', async () => {
+                const req = {} as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
+
+                vi.mocked(isValidUrl).mockReturnValue(true);
+                vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
+                vi.mocked(checkDuplicateBookmarkUrl).mockResolvedValue(null); // No duplicate found
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!bm Unique Title https://unique.com',
+                });
+
+                await new Promise((resolve) => setTimeout(resolve, 0));
+
+                expect(mockInsertBookmark).toHaveBeenCalledWith({
+                    url: 'https://unique.com',
+                    title: 'Unique Title',
+                    userId: testUser.id,
+                });
+
+                expect(res.set).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        'Cache-Control': 'public, max-age=3600',
+                    }),
+                );
+                expect(res.redirect).toHaveBeenCalledWith('https://unique.com');
+
+                vi.restoreAllMocks();
+            });
+
+            it('should not check for duplicates for other users', async () => {
+                const otherUser = {
+                    ...testUser,
+                    id: 2,
+                } as User;
+
+                const req = {} as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
+
+                vi.mocked(isValidUrl).mockReturnValue(true);
+                vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
+                vi.mocked(checkDuplicateBookmarkUrl).mockResolvedValue(null); // No duplicate found for other user
+
+                await search({
+                    req,
+                    res,
+                    user: otherUser,
+                    query: '!bm Same URL https://existing.com', // Same URL as user 1's bookmark
+                });
+
+                await new Promise((resolve) => setTimeout(resolve, 0));
+
+                expect(mockInsertBookmark).toHaveBeenCalledWith({
+                    url: 'https://existing.com',
+                    title: 'Same URL',
+                    userId: otherUser.id,
+                });
+
+                expect(res.redirect).toHaveBeenCalledWith('https://existing.com');
+
+                vi.restoreAllMocks();
+            });
         });
     });
 });
