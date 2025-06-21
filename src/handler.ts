@@ -1242,12 +1242,10 @@ export function getNotesHandler(notes: Notes) {
         }
 
         const markdownRemovedData = await Promise.all(
-            data.map(async (d: any) => {
-                return {
-                    ...d,
-                    content: await convertMarkdownToPlainText(d.content),
-                };
-            }),
+            data.map(async (d: any) => ({
+                ...d,
+                content: await convertMarkdownToPlainText(d.content, 200),
+            })),
         );
 
         return res.render('notes.html', {

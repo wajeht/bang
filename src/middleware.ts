@@ -342,8 +342,11 @@ export async function authenticationMiddleware(req: Request, res: Response, next
                 throw new UnauthorizedError('Unauthorized - API key required', req);
             }
 
-            req.session.redirectTo = req.originalUrl || req.url;
-            req.session.save();
+            if (req.session) {
+                req.session.redirectTo = req.originalUrl || req.url;
+                req.session.save();
+            }
+
             res.redirect('/?login=true');
             return;
         }
@@ -356,8 +359,11 @@ export async function authenticationMiddleware(req: Request, res: Response, next
         } as User;
 
         req.user = parsedUser;
-        req.session.user = parsedUser;
-        req.session.save();
+
+        if (req.session) {
+            req.session.user = parsedUser;
+            req.session.save();
+        }
 
         next();
     } catch (error) {

@@ -555,13 +555,22 @@ https://github.com/wajeht/bang`,
     }
 }
 
-export async function convertMarkdownToPlainText(markdownInput: string): Promise<string> {
+export async function convertMarkdownToPlainText(
+    markdownInput: string,
+    maxLength?: number,
+): Promise<string> {
+    if (!markdownInput?.trim()) {
+        return '';
+    }
+
     try {
         const htmlOutput = await marked(markdownInput);
-        let plainText = htmlOutput.replace(/<[^>]*>/g, '');
+        let plainText = (htmlOutput as string).replace(/<[^>]*>/g, '');
+        plainText = plainText.replace(/\s+/g, ' ').trim();
 
-        plainText = plainText.replace(/\n\s*\n/g, '\n');
-        plainText = plainText.trim();
+        if (maxLength && plainText.length > maxLength) {
+            plainText = plainText.slice(0, maxLength).trim() + '...';
+        }
 
         return plainText;
     } catch (error) {
