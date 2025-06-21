@@ -17,6 +17,7 @@ import {
     extractPagination,
     sendMagicLinkEmail,
     isOnlyLettersAndNumbers,
+    checkDuplicateBookmarkUrl,
     getConvertedReadmeMDToHTML,
     convertMarkdownToPlainText,
 } from './util';
@@ -561,7 +562,20 @@ export const postBookmarkHandler = {
             .notEmpty()
             .withMessage('URL is required')
             .isURL()
-            .withMessage('Invalid URL format'),
+            .withMessage('Invalid URL format')
+            .custom(async (url, { req }) => {
+                const user = req.user as User;
+                const existingBookmark = await checkDuplicateBookmarkUrl(user.id, url);
+
+                if (existingBookmark) {
+                    throw new ValidationError(
+                        `URL already bookmarked as "${existingBookmark.title}". Please use a different URL or update the existing bookmark.`,
+                        req as Request,
+                    );
+                }
+
+                return true;
+            }),
         body('title').optional().trim(),
     ]),
     handler: function () {
@@ -1074,6 +1088,7 @@ export const postSettingsDisplayHandler = {
             value.actions.action_type = value.actions.action_type === 'on';
             value.actions.created_at = value.actions.created_at === 'on';
             value.actions.last_read_at = value.actions.last_read_at === 'on';
+            value.actions.usage_count = value.actions.usage_count === 'on';
 
             value.actions.default_per_page = parseInt(value.actions.default_per_page, 10);
 
@@ -1090,6 +1105,7 @@ export const postSettingsDisplayHandler = {
                 !value.actions.url &&
                 !value.actions.action_type &&
                 !value.actions.last_read_at &&
+                !value.actions.usage_count &&
                 !value.actions.created_at
             ) {
                 throw new ValidationError(
