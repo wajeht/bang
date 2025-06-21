@@ -1170,16 +1170,21 @@ export const postSettingsDisplayHandler = {
 };
 
 // POST /api/notes/render-markdown
-export function postNotesRenderMarkdownHandler(markdownParser: typeof marked) {
-    return async (req: Request, res: Response) => {
-        const content = req.body.content;
+export const postNotesRenderMarkdownHandler = {
+    validator: validateRequestMiddleware([
+        body('content').trim().notEmpty().withMessage('Content is required'),
+    ]),
+    handler: function (markdownParser: typeof marked) {
+        return async (req: Request, res: Response) => {
+            const content = req.body.content;
 
-        const markdown = markdownParser(content) as string;
+            const markdown = markdownParser(content) as string;
 
-        res.json({ content: markdown });
-        return;
-    };
-}
+            res.json({ content: markdown });
+            return;
+        };
+    },
+};
 
 // GET /notes or /api/notes
 export function getNotesHandler(notes: Notes) {

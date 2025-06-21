@@ -400,7 +400,7 @@ router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
  * @return {object} 400 - Bad request response - application/json
  * @return {object} 404 - Not found response - application/json
  */
-router.post('/api/notes/render-markdown', authenticationMiddleware, postNotesRenderMarkdownHandler(marked)); // prettier-ignore
+router.post('/api/notes/render-markdown', authenticationMiddleware, postNotesRenderMarkdownHandler.validator, postNotesRenderMarkdownHandler.handler(marked)); // prettier-ignore
 
 /**
  * GET /api/notes/{id}
