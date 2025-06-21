@@ -81,25 +81,26 @@
 
       <script>
         document.addEventListener('DOMContentLoaded', () => {
+          const emailInput = document.getElementById('email-input');
           const urlParams = new URLSearchParams(window.location.search);
+          const state = JSON.parse(`<%- JSON.stringify(state) %>`);
+
           if (urlParams.get('login') === 'true') {
             document.getElementById('login-dialog').showModal()
-            // Clean up URL
             urlParams.delete('login');
             const newUrl = `${window.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
             history.replaceState({}, document.title, newUrl);
           }
 
-          const state = JSON.parse(`<%- JSON.stringify(state) %>`);
           // auto pre-fill the email if the user is logged in before and the email is in local storage
           const localStorageData = getLocalStorageData();
           if (!state.errors?.email && localStorageData.user?.email) {
-              document.getElementById('email-input').value = localStorageData.user.email;
+              emailInput.value = localStorageData.user.email;
           }
 
           // if there are errors, use the submitted email value
           if (state.errors?.email && state.input?.email) {
-              document.getElementById('email-input').value = state.input.email;
+              emailInput.value = state.input.email;
           }
         });
       </script>
