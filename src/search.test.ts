@@ -1671,8 +1671,7 @@ describe('search', () => {
                     user_id: 1,
                     title: 'Existing Bookmark',
                     url: 'https://existing.com',
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                    created_at: new Date().toISOString(),
                 });
 
                 await search({
@@ -1707,8 +1706,7 @@ describe('search', () => {
                     user_id: 1,
                     title: 'Existing Bookmark',
                     url: 'https://existing.com',
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                    created_at: new Date().toISOString(),
                 });
 
                 await search({
@@ -1748,8 +1746,7 @@ describe('search', () => {
                     user_id: 1,
                     title: 'Test "Quotes" & Special Chars',
                     url: 'https://existing.com',
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                    created_at: new Date().toISOString(),
                 });
 
                 await search({
