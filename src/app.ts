@@ -24,8 +24,20 @@ import { expressTemplatesReload } from '@wajeht/express-templates-reload';
 import { db, runMigrations, checkDatabaseHealth, optimizeDatabase } from './db/db';
 
 export async function createServer() {
-    const app = express()
-        .set('trust proxy', 1)
+    const app = express();
+
+    if (config.app.env === 'development') {
+        expressTemplatesReload({
+            app,
+            watch: [
+                { path: './public', extensions: ['.css', '.js'] },
+                { path: './src/views', extensions: ['.html'] },
+            ],
+            options: { quiet: false },
+        });
+    }
+
+    app.set('trust proxy', 1)
         .use(sessionMiddleware())
         .use(flash())
         .use(compression())
@@ -42,20 +54,8 @@ export async function createServer() {
         .set('layout', '../layouts/public.html')
         .use(expressLayouts)
         .use(...csrfMiddleware)
-        .use(appLocalStateMiddleware);
-
-    if (config.app.env === 'development') {
-        expressTemplatesReload({
-            app,
-            watch: [
-                { path: './public', extensions: ['.css', '.js'] },
-                { path: './src/views', extensions: ['.html'] },
-            ],
-            options: { quiet: false },
-        });
-    }
-
-    app.use(router);
+        .use(appLocalStateMiddleware)
+        .use(router);
 
     expressJSDocSwaggerHandler(app, swagger);
 
