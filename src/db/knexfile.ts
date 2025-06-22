@@ -86,7 +86,7 @@ const knexConfig: Knex.Config = {
                 conn.pragma('optimize');
 
                 console.log(
-                    `${_getFormattedTimestamp()} INFO: New database connection established with enhanced concurrency settings`,
+                    `${_getFormattedTimestamp()} INFO: New database connection established`,
                 );
 
                 done(null, conn);
