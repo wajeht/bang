@@ -37,17 +37,8 @@
       </fieldset>
 
       <div style="display: flex; gap: 10px; margin-top: 10px; justify-content: flex-end;">
-        <%- include('../../components/buttons/button.html', {
-          text: '❌ Cancel',
-          onclick: 'location.href="/bookmarks"',
-          ariaLabel: 'Cancel'
-        }) %>
-
-        <%- include('../../components/buttons/button.html', {
-          text: '💾 Save',
-          type: 'submit',
-          ariaLabel: 'Save'
-        }) %>
+        <button type="button" onclick="location.href='/bookmarks'">❌ Cancel</button>
+        <button type="submit">💾 Save</button>
       </div>
   </form>
 </section>

@@ -151,32 +151,6 @@ Hidden input (commonly used for CSRF tokens).
 }) %>
 ```
 
-## Button Components (`/buttons`)
-
-### button.html
-Standard button component.
-```ejs
-<%- include('../components/buttons/button.html', {
-  type: 'submit',
-  text: '💾 Save',
-  onclick: 'location.href="/actions"',
-  ariaLabel: 'Save action',
-  style: 'flex: 1;'
-}) %>
-```
-
-### no-style-button.html
-Button with no-style-btn class.
-```ejs
-<%- include('../components/buttons/button-ghost.html', {
-  type: 'button',
-  text: '❌ Clear',
-  onclick: 'location.href="/actions"',
-  ariaLabel: 'Clear search',
-  style: 'text-align: left;'
-}) %>
-```
-
 ## Dialog Components (`/dialogs`)
 
 ### confirmation-dialog.html
