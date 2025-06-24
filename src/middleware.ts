@@ -7,7 +7,6 @@ import { users } from './repository';
 import { csrfSync } from 'csrf-sync';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
-import { validationResult } from 'express-validator';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { api, nl2br, getApiKey, isApiRequest, highlightSearchTerm } from './util';
@@ -83,13 +82,33 @@ export function errorMiddleware() {
                 try {
                     responsePayload.details = JSON.parse(message);
                 } catch (parseError) {
-                    logger.error(`Failed to parse error message as JSON: %o`, parseError);
+                    logger.error(`Failed to parse error message as JSON: %o`, {
+                        parseError: parseError as any,
+                    });
                     responsePayload.details = message;
                 }
             }
 
             res.status(statusCode).json(responsePayload);
             return;
+        }
+
+        // For form requests with validation errors, store errors and redirect back
+        if (statusCode === 422) {
+            if (req.session) {
+                if (httpError instanceof ValidationError) {
+                    // Use ValidationError's field mappings directly
+                    req.session.errors = httpError.errors;
+                } else {
+                    // Other HTTP errors
+                    req.session.errors = { general: message };
+                }
+
+                // Preserve form input for redisplay
+                req.session.input = req.body as Record<string, any>;
+            }
+            const referer = req.headers?.referer || '/';
+            return res.redirect(referer);
         }
 
         // Ensure locals are set up for error pages
@@ -172,50 +191,6 @@ export function sessionMiddleware() {
     });
 }
 
-export function validateRequestMiddleware(schemas: any) {
-    return async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            for (const schema of schemas) {
-                await schema.run(req);
-            }
-
-            const result = validationResult(req) as any;
-
-            // Always set input for POST, PATCH, PUT requests
-            if (/^(POST|PATCH|PUT|DELETE)$/.test(req.method)) {
-                req.session.input = req.body;
-            }
-
-            if (result.isEmpty()) {
-                // Clear errors if validation passes
-                delete req.session.errors;
-                return next();
-            }
-
-            const { errors } = result;
-            const reshapedErrors: { [key: string]: string } = {};
-            for (const error of errors) {
-                reshapedErrors[error.path] = error.msg;
-            }
-
-            req.session.errors = reshapedErrors;
-
-            if (isApiRequest(req)) {
-                throw new ValidationError(
-                    JSON.stringify({
-                        fields: reshapedErrors,
-                    }),
-                    req,
-                );
-            }
-
-            return res.redirect(req.headers?.referer ?? '/');
-        } catch (error) {
-            next(error);
-        }
-    };
-}
-
 export function setupAppLocals(req: Request, res: Response) {
     const isProd = config.app.env === 'production';
     const randomNumber = Math.random();
@@ -224,8 +199,8 @@ export function setupAppLocals(req: Request, res: Response) {
         env: config.app.env,
         user: req.user ?? req.session?.user,
         copyRightYear: new Date().getFullYear(),
-        input: req.session?.input || {},
-        errors: req.session?.errors || {},
+        input: (req.session?.input as Record<string, any>) || {},
+        errors: (req.session?.errors as Record<string, any>) || {},
         flash: {
             success: req.flash ? req.flash('success') : [],
             error: req.flash ? req.flash('error') : [],
@@ -294,6 +269,11 @@ export const csrfMiddleware = (() => {
 
 export async function appLocalStateMiddleware(req: Request, res: Response, next: NextFunction) {
     try {
+        // Set session input for form data before setting up locals
+        if (/^(POST|PATCH|PUT|DELETE)$/.test(req.method) && req.session) {
+            req.session.input = req.body as Record<string, any>;
+        }
+
         setupAppLocals(req, res);
 
         // Clear session input and errors after setting locals
@@ -367,7 +347,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 
         next();
     } catch (error) {
-        logger.error(`Authentication error: %o`, error);
+        logger.error(`Authentication error: %o`, { error: error as any });
         next(error);
     }
 }

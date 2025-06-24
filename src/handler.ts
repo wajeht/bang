@@ -13,6 +13,8 @@ import {
     magicLink,
     expectJson,
     isApiRequest,
+    isValidUrl,
+    isValidEmail,
     insertBookmark,
     extractPagination,
     sendMagicLinkEmail,
@@ -26,10 +28,8 @@ import { db } from './db/db';
 import { marked } from 'marked';
 import { logger } from './logger';
 import { config } from './config';
-import { validateRequestMiddleware } from './middleware';
 import { actions, bookmarks, notes } from './repository';
 import { Request, Response, NextFunction } from 'express';
-import { body, validationResult } from 'express-validator';
 import { actionTypes, defaultSearchProviders } from './util';
 import { HttpError, NotFoundError, ValidationError } from './error';
 
@@ -195,72 +195,69 @@ export function getActionsHandler(actions: Actions) {
 }
 
 // POST /actions or POST /api/actions
-export const postActionHandler = {
-    validator: validateRequestMiddleware([
-        body('url')
-            .notEmpty()
-            .withMessage('URL is required')
-            .isURL()
-            .withMessage('Invalid URL format'),
-        body('name').notEmpty().withMessage('Name is required').trim(),
-        body('actionType')
-            .notEmpty()
-            .withMessage('Action type is required')
-            .isIn(actionTypes)
-            .withMessage('Invalid action type'),
-        body('trigger')
-            .notEmpty()
-            .withMessage('Trigger is required')
-            .custom(async (trigger, { req }) => {
-                const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+export function postActionHandler(actions: Actions) {
+    return async (req: Request, res: Response) => {
+        const { url, name, actionType, trigger } = req.body;
 
-                if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
-                    throw new ValidationError(
-                        'Trigger can only contain letters and numbers',
-                        req as Request,
-                    );
-                }
+        if (!url) {
+            throw new ValidationError({ url: 'URL is required' });
+        }
 
-                const existingBang = await db('bangs')
-                    .where({
-                        trigger: formattedTrigger,
-                        user_id: req.user.id,
-                    })
-                    .first();
+        if (!name) {
+            throw new ValidationError({ name: 'Name is required' });
+        }
 
-                if (existingBang) {
-                    throw new ValidationError('This trigger already exists', req as Request);
-                }
+        if (!actionType) {
+            throw new ValidationError({ actionType: 'Action type is required' });
+        }
 
-                return true;
-            }),
-    ]),
-    handler: function (actions: Actions) {
-        return async (req: Request, res: Response) => {
-            const { trigger, url, actionType, name } = req.body;
+        if (!trigger) {
+            throw new ValidationError({ trigger: 'Trigger is required' });
+        }
 
-            const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
+        if (!isValidUrl(url)) {
+            throw new ValidationError({ url: 'Invalid URL format' });
+        }
 
-            await actions.create({
-                name: name.trim(),
-                trigger: formattedTrigger.toLowerCase(),
-                url,
-                actionType,
+        if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
+            throw new ValidationError(
+                { trigger: 'Trigger can only contain letters and numbers' },
+                req,
+            );
+        }
+
+        const existingBang = await db('bangs')
+            .where({
+                trigger: trigger.startsWith('!') ? trigger : `!${trigger}`,
                 user_id: (req.user as User).id,
+            })
+            .first();
+
+        if (existingBang) {
+            throw new ValidationError({ trigger: 'This trigger already exists' });
+        }
+
+        const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
+
+        await actions.create({
+            name: name.trim(),
+            trigger: formattedTrigger.toLowerCase(),
+            url,
+            actionType,
+            user_id: (req.user as User).id,
+        });
+
+        if (isApiRequest(req)) {
+            res.status(201).json({
+                message: `Action ${formattedTrigger} created successfully!`,
             });
+            return;
+        }
 
-            if (isApiRequest(req)) {
-                res.status(201).json({
-                    message: `Action ${formattedTrigger} created successfully!`,
-                });
-                return;
-            }
-
-            req.flash('success', `Action ${formattedTrigger} created successfully!`);
-            return res.redirect('/actions');
-        };
-    },
-};
+        req.flash('success', `Action ${formattedTrigger} created successfully!`);
+        return res.redirect('/actions');
+    };
+}
 
 // GET /actions/create
 export function getActionCreatePageHandler() {
@@ -323,75 +320,73 @@ export function getEditActionPageHandler(db: Knex) {
 }
 
 // POST /actions/:id/update or PATCH /api/actions/:id
-export const updateActionHandler = {
-    validator: validateRequestMiddleware([
-        body('url')
-            .notEmpty()
-            .withMessage('URL is required')
-            .isURL()
-            .withMessage('Invalid URL format'),
-        body('name').notEmpty().withMessage('Name is required').trim(),
-        body('actionType')
-            .notEmpty()
-            .withMessage('Action type is required')
-            .isIn(actionTypes)
-            .withMessage('Invalid action type'),
-        body('trigger')
-            .notEmpty()
-            .withMessage('Trigger is required')
-            .custom(async (trigger, { req }) => {
-                const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+export function updateActionHandler(actions: Actions) {
+    return async (req: Request, res: Response) => {
+        const { url, name, actionType, trigger } = req.body;
 
-                if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
-                    throw new ValidationError(
-                        'Trigger can only contain letters and numbers',
-                        req as Request,
-                    );
-                }
+        if (!url) {
+            throw new ValidationError({ url: 'URL is required' });
+        }
 
-                const existingBang = await db('bangs')
-                    .where({
-                        trigger: formattedTrigger,
-                        user_id: req.user!.id,
-                    })
-                    .whereNot('id', req.params?.id)
-                    .first();
+        if (!name) {
+            throw new ValidationError({ name: 'Name is required' });
+        }
 
-                if (existingBang) {
-                    throw new ValidationError('This trigger already exists', req as Request);
-                }
+        if (!actionType) {
+            throw new ValidationError({ actionType: 'Action type is required' });
+        }
 
-                return true;
-            }),
-    ]),
-    handler: function (actions: Actions) {
-        return async (req: Request, res: Response) => {
-            const { trigger, url, actionType, name } = req.body;
-            const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+        if (!trigger) {
+            throw new ValidationError({ trigger: 'Trigger is required' });
+        }
 
-            const updatedAction = await actions.update(
-                req.params.id as unknown as number,
-                (req.user as User).id,
-                {
-                    trigger: formattedTrigger,
-                    name: name.trim(),
-                    url,
-                    actionType,
-                },
+        if (!isValidUrl(url)) {
+            throw new ValidationError({ url: 'Invalid URL format' });
+        }
+
+        if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
+            throw new ValidationError(
+                { trigger: 'Trigger can only contain letters and numbers' },
+                req,
             );
+        }
 
-            if (isApiRequest(req)) {
-                res.status(200).json({
-                    message: `Action ${updatedAction.trigger} updated successfully!`,
-                });
-                return;
-            }
+        const existingBang = await db('bangs')
+            .where({
+                trigger: trigger.startsWith('!') ? trigger : `!${trigger}`,
+                user_id: req.user!.id,
+            })
+            .whereNot('id', req.params?.id)
+            .first();
 
-            req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
-            return res.redirect('/actions');
-        };
-    },
-};
+        if (existingBang) {
+            throw new ValidationError({ trigger: 'This trigger already exists' });
+        }
+
+        const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+
+        const updatedAction = await actions.update(
+            req.params.id as unknown as number,
+            (req.user as User).id,
+            {
+                trigger: formattedTrigger,
+                name: name.trim(),
+                url,
+                actionType,
+            },
+        );
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: `Action ${updatedAction.trigger} updated successfully!`,
+            });
+            return;
+        }
+
+        req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
+        return res.redirect('/actions');
+    };
+}
 
 // GET /bookmarks/create
 export function getBookmarkCreatePageHandler() {
@@ -527,73 +522,76 @@ export function getBookmarkActionCreatePageHandler(db: Knex) {
 }
 
 // POST /bookmarks/:id/update or PATCH /api/bookmarks/:id
-export const updateBookmarkHandler = {
-    validator: validateRequestMiddleware([
-        body('url')
-            .notEmpty()
-            .withMessage('URL is required')
-            .isURL()
-            .withMessage('Invalid URL format'),
-        body('title').notEmpty().withMessage('Title is required').trim(),
-    ]),
-    handler: function (bookmarks: Bookmarks) {
-        return async (req: Request, res: Response) => {
-            const { url, title } = req.body;
+export function updateBookmarkHandler(bookmarks: Bookmarks) {
+    return async (req: Request, res: Response) => {
+        const { url, title } = req.body;
 
-            const updatedBookmark = await bookmarks.update(
-                req.params.id as unknown as number,
-                (req.user as User).id,
-                {
-                    url,
-                    title,
-                },
-            );
+        if (!title) {
+            throw new ValidationError({ title: 'Title is required' });
+        }
 
-            req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
-            return res.redirect('/bookmarks');
-        };
-    },
-};
+        if (!url) {
+            throw new ValidationError({ url: 'URL is required' });
+        }
+
+        if (!isValidUrl(url)) {
+            throw new ValidationError({ url: 'Invalid URL format' });
+        }
+
+        const updatedBookmark = await bookmarks.update(
+            req.params.id as unknown as number,
+            (req.user as User).id,
+            {
+                url,
+                title,
+            },
+        );
+
+        req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
+        return res.redirect('/bookmarks');
+    };
+}
 
 // POST /bookmarks or POST /api/bookmarks
-export const postBookmarkHandler = {
-    validator: validateRequestMiddleware([
-        body('url')
-            .notEmpty()
-            .withMessage('URL is required')
-            .isURL()
-            .withMessage('Invalid URL format')
-            .custom(async (url, { req }) => {
-                const user = req.user as User;
-                const existingBookmark = await checkDuplicateBookmarkUrl(user.id, url);
+export function postBookmarkHandler() {
+    return async (req: Request, res: Response) => {
+        const { url, title } = req.body;
 
-                if (existingBookmark) {
-                    throw new ValidationError(
-                        `URL already bookmarked as "${existingBookmark.title}". Please use a different URL or update the existing bookmark.`,
-                        req as Request,
-                    );
-                }
+        if (!title) {
+            throw new ValidationError({ title: 'Title is required' });
+        }
 
-                return true;
-            }),
-        body('title').optional().trim(),
-    ]),
-    handler: function () {
-        return async (req: Request, res: Response) => {
-            const { url, title } = req.body;
+        if (!url) {
+            throw new ValidationError({ url: 'URL is required' });
+        }
 
-            setTimeout(() => insertBookmark({ url, userId: (req.user as User).id, title, req }), 0);
+        if (!isValidUrl(url)) {
+            throw new ValidationError({ url: 'Invalid URL format' });
+        }
 
-            if (isApiRequest(req)) {
-                res.status(201).json({ message: `Bookmark ${title} created successfully!` });
-                return;
-            }
+        const user = req.user as User;
+        const existingBookmark = await checkDuplicateBookmarkUrl(user.id, url);
 
-            req.flash('success', `Bookmark ${title} created successfully!`);
-            return res.redirect('/bookmarks');
-        };
-    },
-};
+        if (existingBookmark) {
+            throw new ValidationError(
+                {
+                    url: `URL already bookmarked as "${existingBookmark.title}". Please use a different URL or update the existing bookmark.`,
+                },
+                req,
+            );
+        }
+
+        setTimeout(() => insertBookmark({ url, userId: (req.user as User).id, title, req }), 0);
+
+        if (isApiRequest(req)) {
+            res.status(201).json({ message: `Bookmark ${title} created successfully!` });
+            return;
+        }
+
+        req.flash('success', `Bookmark ${title} created successfully!`);
+        return res.redirect('/bookmarks');
+    };
+}
 
 // GET /bookmarks/export
 export function getExportBookmarksHandler(db: Knex) {
@@ -664,77 +662,60 @@ export function postSettingsCreateApiKeyHandler(db: Knex, api: Api) {
 }
 
 // POST /settings/account
-export const postSettingsAccountHandler = {
-    validator: validateRequestMiddleware([
-        body('username')
-            .notEmpty()
-            .custom(async (username, { req }) => {
-                const existingUser = await db
-                    .select('*')
-                    .from('users')
-                    .where('username', username)
-                    .whereNot('id', req.session?.user?.id)
-                    .first();
+export function postSettingsAccountHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const { username, email, default_search_provider, autocomplete_search_on_homepage } =
+            req.body;
 
-                if (existingUser) {
-                    throw new ValidationError('Username is already taken', req as Request);
-                }
+        if (!username) {
+            throw new ValidationError({ username: 'Username is required' });
+        }
 
-                return true;
-            }),
-        body('email')
-            .notEmpty()
-            .isEmail()
-            .custom(async (email, { req }) => {
-                const existingUser = await db
-                    .select('*')
-                    .from('users')
-                    .where('email', email)
-                    .whereNot('id', req.session?.user?.id)
-                    .first();
+        if (!email) {
+            throw new ValidationError({ email: 'Email is required' });
+        }
 
-                if (existingUser) {
-                    throw new ValidationError('Email is already in use', req as Request);
-                }
+        if (!default_search_provider) {
+            throw new ValidationError({
+                default_search_provider: 'Default search provider is required',
+            });
+        }
 
-                return true;
-            }),
-        body('default_search_provider')
-            .notEmpty()
-            .isIn(Object.keys(defaultSearchProviders))
-            .withMessage('Invalid search provider selected'),
-        body('autocomplete_search_on_homepage').custom((value) => {
-            if (value === undefined) {
-                value = false;
-            }
+        if (!isValidEmail(email)) {
+            throw new ValidationError({ email: 'Please enter a valid email address' });
+        }
 
-            if (value === 'on') {
-                value = true;
-            }
+        if (!Object.keys(defaultSearchProviders).includes(default_search_provider)) {
+            throw new ValidationError(
+                { default_search_provider: 'Invalid search provider selected' },
+                req,
+            );
+        }
 
-            return true;
-        }),
-    ]),
-    handler: function (db: Knex) {
-        return async (req: Request, res: Response) => {
-            const { email, username, default_search_provider } = req.body;
-            const autocomplete_search_on_homepage =
-                req.body.autocomplete_search_on_homepage === 'on';
+        let parsedAutocompleteSearchOnHomepage = false;
+        if (autocomplete_search_on_homepage === undefined) {
+            parsedAutocompleteSearchOnHomepage = false;
+        } else if (autocomplete_search_on_homepage !== 'on') {
+            throw new ValidationError({
+                autocomplete_search_on_homepage: 'Invalid autocomplete search on homepage format',
+            });
+        } else {
+            parsedAutocompleteSearchOnHomepage = true;
+        }
 
-            await db('users')
-                .update({
-                    email,
-                    username,
-                    default_search_provider,
-                    autocomplete_search_on_homepage,
-                })
-                .where({ id: (req.user as User).id });
+        await db('users')
+            .update({
+                email,
+                username,
+                default_search_provider,
+                autocomplete_search_on_homepage: parsedAutocompleteSearchOnHomepage,
+            })
+            .where({ id: (req.user as User).id });
 
-            req.flash('success', '🔄 updated!');
-            return res.redirect('/settings/account');
-        };
-    },
-};
+        req.flash('success', '🔄 updated!');
+        return res.redirect('/settings/account');
+    };
+}
 
 // GET /settings/data
 export function getSettingsDataPageHandler() {
@@ -749,181 +730,163 @@ export function getSettingsDataPageHandler() {
 }
 
 // POST /settings/data/export
-export const postExportDataHandler = {
-    validator: validateRequestMiddleware([
-        body('options').custom((value, { req }) => {
-            if (value === undefined) {
-                throw new ValidationError(
-                    'Please select at least one data type to export',
-                    req as Request,
-                );
-            }
-            return true;
-        }),
-    ]),
-    handler: function (db: Knex, log: typeof logger) {
-        return async (req: Request, res: Response) => {
-            const userId = (req.user as User).id;
-            const includeBookmarks = req.body.options.includes('bookmarks');
-            const includeActions = req.body.options.includes('actions');
-            const includeNotes = req.body.options.includes('notes');
-            const exportData: {
-                exported_at: string;
-                version: string;
-                bookmarks?: Record<string, unknown>[];
-                actions?: Record<string, unknown>[];
-                notes?: Record<string, unknown>[];
-            } = {
-                exported_at: new Date().toISOString(),
-                version: '1.0',
-            };
+export function postExportDataHandler(db: Knex, log: typeof logger) {
+    return async (req: Request, res: Response) => {
+        const { options } = req.body;
 
-            const fetchBookmarks = () =>
-                includeBookmarks
-                    ? db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at')
-                    : Promise.resolve([]);
+        if (!options || !Array.isArray(options) || options.length === 0) {
+            throw new ValidationError(
+                { options: 'Please select at least one data type to export' },
+                req,
+            );
+        }
 
-            const fetchActions = () =>
-                includeActions
-                    ? db
-                          .select(
-                              'bangs.trigger',
-                              'bangs.name',
-                              'bangs.url',
-                              'action_types.name as action_type',
-                              'bangs.created_at',
-                          )
-                          .from('bangs')
-                          .join('action_types', 'bangs.action_type_id', 'action_types.id')
-                          .where('bangs.user_id', userId)
-                    : Promise.resolve([]);
-
-            const fetchNotes = () =>
-                includeNotes
-                    ? db('notes').where('user_id', userId).select('title', 'content', 'created_at')
-                    : Promise.resolve([]);
-
-            const [bookmarksResult, actionsResult, notesResult] = await Promise.allSettled([
-                fetchBookmarks(),
-                fetchActions(),
-                fetchNotes(),
-            ]);
-
-            if (includeBookmarks) {
-                if (bookmarksResult.status === 'fulfilled') {
-                    exportData.bookmarks = bookmarksResult.value;
-                } else {
-                    log.error('Failed to fetch bookmarks: %o', bookmarksResult.reason);
-                }
-            }
-
-            if (includeActions) {
-                if (actionsResult.status === 'fulfilled') {
-                    exportData.actions = actionsResult.value;
-                } else {
-                    log.error('Failed to fetch actions: %o', actionsResult.reason);
-                }
-            }
-
-            if (includeNotes) {
-                if (notesResult.status === 'fulfilled') {
-                    exportData.notes = notesResult.value;
-                } else {
-                    log.error('Failed to fetch notes: %o', notesResult.reason);
-                }
-            }
-
-            res.setHeader(
-                'Content-Disposition',
-                `attachment; filename=bang-data-export-${exportData.exported_at}.json`,
-            )
-                .setHeader('Content-Type', 'application/json')
-                .send(JSON.stringify(exportData, null, 2));
+        const userId = (req.user as User).id;
+        const includeBookmarks = req.body.options.includes('bookmarks');
+        const includeActions = req.body.options.includes('actions');
+        const includeNotes = req.body.options.includes('notes');
+        const exportData: {
+            exported_at: string;
+            version: string;
+            bookmarks?: Record<string, unknown>[];
+            actions?: Record<string, unknown>[];
+            notes?: Record<string, unknown>[];
+        } = {
+            exported_at: new Date().toISOString(),
+            version: '1.0',
         };
-    },
-};
+
+        const fetchBookmarks = () =>
+            includeBookmarks
+                ? db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at')
+                : Promise.resolve([]);
+
+        const fetchActions = () =>
+            includeActions
+                ? db
+                      .select(
+                          'bangs.trigger',
+                          'bangs.name',
+                          'bangs.url',
+                          'action_types.name as action_type',
+                          'bangs.created_at',
+                      )
+                      .from('bangs')
+                      .join('action_types', 'bangs.action_type_id', 'action_types.id')
+                      .where('bangs.user_id', userId)
+                : Promise.resolve([]);
+
+        const fetchNotes = () =>
+            includeNotes
+                ? db('notes').where('user_id', userId).select('title', 'content', 'created_at')
+                : Promise.resolve([]);
+
+        const [bookmarksResult, actionsResult, notesResult] = await Promise.allSettled([
+            fetchBookmarks(),
+            fetchActions(),
+            fetchNotes(),
+        ]);
+
+        if (includeBookmarks) {
+            if (bookmarksResult.status === 'fulfilled') {
+                exportData.bookmarks = bookmarksResult.value;
+            } else {
+                log.error('Failed to fetch bookmarks: %o', bookmarksResult.reason);
+            }
+        }
+
+        if (includeActions) {
+            if (actionsResult.status === 'fulfilled') {
+                exportData.actions = actionsResult.value;
+            } else {
+                log.error('Failed to fetch actions: %o', actionsResult.reason);
+            }
+        }
+
+        if (includeNotes) {
+            if (notesResult.status === 'fulfilled') {
+                exportData.notes = notesResult.value;
+            } else {
+                log.error('Failed to fetch notes: %o', notesResult.reason);
+            }
+        }
+
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename=bang-data-export-${exportData.exported_at}.json`,
+        )
+            .setHeader('Content-Type', 'application/json')
+            .send(JSON.stringify(exportData, null, 2));
+    };
+}
 
 // POST /settings/data/import
-export const postImportDataHandler = {
-    validator: validateRequestMiddleware([
-        body('config')
-            .notEmpty()
-            .withMessage('config must not be empty')
-            .custom((value, { req }) => {
-                try {
-                    const parsed = JSON.parse(value);
+export function postImportDataHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const { config } = req.body;
 
-                    if (!parsed.version || parsed.version !== '1.0') {
-                        throw new ValidationError('Config version must be 1.0', req as Request);
-                    }
-                } catch (_error) {
-                    throw new ValidationError('Invalid JSON format', req as Request);
+        if (!config || !config.version || config.version !== '1.0') {
+            throw new ValidationError({ config: 'Config version must be 1.0' });
+        }
+
+        const userId = req.session.user?.id;
+        const importData = JSON.parse(req.body.config);
+
+        try {
+            await db.transaction(async (trx) => {
+                if (importData.bookmarks?.length > 0) {
+                    const bookmarks = importData.bookmarks.map(
+                        (bookmark: { title: string; url: string }) => ({
+                            user_id: userId,
+                            title: bookmark.title,
+                            url: bookmark.url,
+                            created_at: db.fn.now(),
+                        }),
+                    );
+                    await trx('bookmarks').insert(bookmarks);
                 }
 
-                return true;
-            }),
-    ]),
-    handler: function (db: Knex) {
-        return async (req: Request, res: Response) => {
-            const userId = req.session.user?.id;
-            const importData = JSON.parse(req.body.config);
+                if (importData.actions?.length > 0) {
+                    for (const action of importData.actions) {
+                        const actionType = await trx('action_types')
+                            .where('name', action.action_type)
+                            .first();
 
-            try {
-                await db.transaction(async (trx) => {
-                    if (importData.bookmarks?.length > 0) {
-                        const bookmarks = importData.bookmarks.map(
-                            (bookmark: { title: string; url: string }) => ({
+                        if (actionType) {
+                            await trx('bangs').insert({
                                 user_id: userId,
-                                title: bookmark.title,
-                                url: bookmark.url,
+                                trigger: action.trigger,
+                                name: action.name,
+                                url: action.url,
+                                action_type_id: actionType.id,
                                 created_at: db.fn.now(),
-                            }),
-                        );
-                        await trx('bookmarks').insert(bookmarks);
-                    }
-
-                    if (importData.actions?.length > 0) {
-                        for (const action of importData.actions) {
-                            const actionType = await trx('action_types')
-                                .where('name', action.action_type)
-                                .first();
-
-                            if (actionType) {
-                                await trx('bangs').insert({
-                                    user_id: userId,
-                                    trigger: action.trigger,
-                                    name: action.name,
-                                    url: action.url,
-                                    action_type_id: actionType.id,
-                                    created_at: db.fn.now(),
-                                });
-                            }
+                            });
                         }
                     }
+                }
 
-                    if (importData.notes?.length > 0) {
-                        const notes = importData.notes.map(
-                            (note: { title: string; content: string }) => ({
-                                user_id: userId,
-                                title: note.title,
-                                content: note.content,
-                                created_at: db.fn.now(),
-                            }),
-                        );
+                if (importData.notes?.length > 0) {
+                    const notes = importData.notes.map(
+                        (note: { title: string; content: string }) => ({
+                            user_id: userId,
+                            title: note.title,
+                            content: note.content,
+                            created_at: db.fn.now(),
+                        }),
+                    );
 
-                        await trx('notes').insert(notes);
-                    }
-                });
+                    await trx('notes').insert(notes);
+                }
+            });
 
-                req.flash('success', 'Data imported successfully!');
-            } catch (_error) {
-                req.flash('error', 'Failed to import data. Please check the format and try again.');
-            }
+            req.flash('success', 'Data imported successfully!');
+        } catch (_error) {
+            req.flash('error', 'Failed to import data. Please check the format and try again.');
+        }
 
-            return res.redirect('/settings/data');
-        };
-    },
-};
+        return res.redirect('/settings/data');
+    };
+}
 
 // GET /settings/danger-zone
 export function getSettingsDangerZonePageHandler() {
@@ -1041,185 +1004,190 @@ export async function getCollectionsHandler(req: Request, res: Response) {
 }
 
 // POST /settings/display
-export const postSettingsDisplayHandler = {
-    validator: validateRequestMiddleware([
-        body('column_preferences').custom((value, { req }) => {
-            if (value === undefined) {
-                throw new ValidationError('Column preferences are required', req as Request);
+export function postSettingsDisplayHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const { column_preferences } = req.body;
+
+        if (!column_preferences || typeof column_preferences !== 'object') {
+            throw new ValidationError('Column preferences must be an object', req);
+        }
+
+        // bookmarks
+        if (typeof column_preferences.bookmarks !== 'object') {
+            throw new ValidationError('Bookmarks must be an object', req);
+        }
+
+        column_preferences.bookmarks.title = column_preferences.bookmarks.title === 'on';
+        column_preferences.bookmarks.url = column_preferences.bookmarks.url === 'on';
+        column_preferences.bookmarks.created_at = column_preferences.bookmarks.created_at === 'on';
+
+        column_preferences.bookmarks.default_per_page = parseInt(
+            column_preferences.bookmarks.default_per_page,
+            10,
+        );
+
+        if (
+            isNaN(column_preferences.bookmarks.default_per_page) ||
+            column_preferences.bookmarks.default_per_page < 1
+        ) {
+            throw new ValidationError('Bookmarks per page must be greater than 0', req);
+        }
+
+        if (
+            !column_preferences.bookmarks.title &&
+            !column_preferences.bookmarks.url &&
+            !column_preferences.bookmarks.created_at
+        ) {
+            throw new ValidationError('At least one bookmark column must be enabled', req);
+        }
+
+        // actions
+        if (typeof column_preferences.actions !== 'object') {
+            throw new ValidationError('Actions must be an object', req);
+        }
+
+        column_preferences.actions.name = column_preferences.actions.name === 'on';
+        column_preferences.actions.trigger = column_preferences.actions.trigger === 'on';
+        column_preferences.actions.url = column_preferences.actions.url === 'on';
+        column_preferences.actions.action_type = column_preferences.actions.action_type === 'on';
+        column_preferences.actions.created_at = column_preferences.actions.created_at === 'on';
+        column_preferences.actions.last_read_at = column_preferences.actions.last_read_at === 'on';
+        column_preferences.actions.usage_count = column_preferences.actions.usage_count === 'on';
+
+        column_preferences.actions.default_per_page = parseInt(
+            column_preferences.actions.default_per_page,
+            10,
+        );
+
+        if (
+            isNaN(column_preferences.actions.default_per_page) ||
+            column_preferences.actions.default_per_page < 1
+        ) {
+            throw new ValidationError('Actions per page must be greater than 0', req);
+        }
+
+        if (
+            !column_preferences.actions.name &&
+            !column_preferences.actions.trigger &&
+            !column_preferences.actions.url &&
+            !column_preferences.actions.action_type &&
+            !column_preferences.actions.last_read_at &&
+            !column_preferences.actions.usage_count &&
+            !column_preferences.actions.created_at
+        ) {
+            throw new ValidationError('At least one action column must be enabled', req);
+        }
+
+        // notes
+        if (typeof column_preferences.notes !== 'object') {
+            throw new ValidationError('Notes must be an object', req);
+        }
+
+        column_preferences.notes.title = column_preferences.notes.title === 'on';
+        column_preferences.notes.content = column_preferences.notes.content === 'on';
+        column_preferences.notes.created_at = column_preferences.notes.created_at === 'on';
+
+        // Handle view_type preference
+        if (
+            column_preferences.notes.view_type &&
+            !['card', 'table'].includes(column_preferences.notes.view_type)
+        ) {
+            column_preferences.notes.view_type = 'table'; // Default to table if invalid
+        }
+
+        if (!column_preferences.notes.title && !column_preferences.notes.content) {
+            throw new ValidationError('At least one note column must be enabled', req);
+        }
+
+        column_preferences.notes.default_per_page = parseInt(
+            column_preferences.notes.default_per_page,
+            10,
+        );
+
+        if (
+            isNaN(column_preferences.notes.default_per_page) ||
+            column_preferences.notes.default_per_page < 1
+        ) {
+            throw new ValidationError('Notes per page must be greater than 0', req);
+        }
+
+        // Preserve the view_type if it's not in the form submission
+        if (
+            !column_preferences.notes.view_type &&
+            req.session?.user?.column_preferences?.notes?.view_type
+        ) {
+            column_preferences.notes.view_type =
+                req.session.user.column_preferences.notes.view_type;
+        }
+
+        // users (admin only)
+        if (req.user?.is_admin && column_preferences.users) {
+            if (typeof column_preferences.users !== 'object') {
+                throw new ValidationError('Users must be an object', req);
             }
 
-            if (typeof value !== 'object') {
-                throw new ValidationError('Column preferences must be an object', req as Request);
-            }
+            column_preferences.users.username = column_preferences.users.username === 'on';
+            column_preferences.users.email = column_preferences.users.email === 'on';
+            column_preferences.users.is_admin = column_preferences.users.is_admin === 'on';
+            column_preferences.users.email_verified_at =
+                column_preferences.users.email_verified_at === 'on';
+            column_preferences.users.created_at = column_preferences.users.created_at === 'on';
 
-            // bookmarks
-            if (typeof value.bookmarks !== 'object') {
-                throw new ValidationError('Bookmarks must be an object', req as Request);
-            }
+            column_preferences.users.default_per_page = parseInt(
+                column_preferences.users.default_per_page,
+                10,
+            );
 
-            value.bookmarks.title = value.bookmarks.title === 'on';
-            value.bookmarks.url = value.bookmarks.url === 'on';
-            value.bookmarks.created_at = value.bookmarks.created_at === 'on';
-
-            value.bookmarks.default_per_page = parseInt(value.bookmarks.default_per_page, 10);
-
-            if (isNaN(value.bookmarks.default_per_page) || value.bookmarks.default_per_page < 1) {
-                throw new ValidationError(
-                    'Bookmarks per page must be greater than 0',
-                    req as Request,
-                );
-            }
-
-            if (!value.bookmarks.title && !value.bookmarks.url && !value.bookmarks.created_at) {
-                throw new ValidationError(
-                    'At least one bookmark column must be enabled',
-                    req as Request,
-                );
-            }
-
-            // actions
-            if (typeof value.actions !== 'object') {
-                throw new ValidationError('Actions must be an object', req as Request);
-            }
-
-            value.actions.name = value.actions.name === 'on';
-            value.actions.trigger = value.actions.trigger === 'on';
-            value.actions.url = value.actions.url === 'on';
-            value.actions.action_type = value.actions.action_type === 'on';
-            value.actions.created_at = value.actions.created_at === 'on';
-            value.actions.last_read_at = value.actions.last_read_at === 'on';
-            value.actions.usage_count = value.actions.usage_count === 'on';
-
-            value.actions.default_per_page = parseInt(value.actions.default_per_page, 10);
-
-            if (isNaN(value.actions.default_per_page) || value.actions.default_per_page < 1) {
-                throw new ValidationError(
-                    'Actions per page must be greater than 0',
-                    req as Request,
-                );
+            if (
+                isNaN(column_preferences.users.default_per_page) ||
+                column_preferences.users.default_per_page < 1
+            ) {
+                throw new ValidationError('Users per page must be greater than 0', req);
             }
 
             if (
-                !value.actions.name &&
-                !value.actions.trigger &&
-                !value.actions.url &&
-                !value.actions.action_type &&
-                !value.actions.last_read_at &&
-                !value.actions.usage_count &&
-                !value.actions.created_at
+                !column_preferences.users.username &&
+                !column_preferences.users.email &&
+                !column_preferences.users.is_admin &&
+                !column_preferences.users.email_verified_at &&
+                !column_preferences.users.created_at
             ) {
-                throw new ValidationError(
-                    'At least one action column must be enabled',
-                    req as Request,
-                );
+                throw new ValidationError('At least one user column must be enabled', req);
             }
+        }
 
-            // notes
-            if (typeof value.notes !== 'object') {
-                throw new ValidationError('Notes must be an object', req as Request);
-            }
+        const user = req.user as User;
+        const { path } = req.body;
 
-            value.notes.title = value.notes.title === 'on';
-            value.notes.content = value.notes.content === 'on';
-            value.notes.created_at = value.notes.created_at === 'on';
+        await db('users')
+            .where('id', user.id)
+            .update({
+                column_preferences: JSON.stringify(column_preferences),
+            });
 
-            // Handle view_type preference
-            if (value.notes.view_type && !['card', 'table'].includes(value.notes.view_type)) {
-                value.notes.view_type = 'table'; // Default to table if invalid
-            }
+        req.session.user!.column_preferences = column_preferences;
 
-            if (!value.notes.title && !value.notes.content) {
-                throw new ValidationError(
-                    'At least one note column must be enabled',
-                    req as Request,
-                );
-            }
+        req.flash('success', 'Column settings updated');
 
-            value.notes.default_per_page = parseInt(value.notes.default_per_page, 10);
-
-            if (isNaN(value.notes.default_per_page) || value.notes.default_per_page < 1) {
-                throw new ValidationError('Notes per page must be greater than 0', req as Request);
-            }
-
-            // Preserve the view_type if it's not in the form submission
-            if (!value.notes.view_type && req.session?.user?.column_preferences?.notes?.view_type) {
-                value.notes.view_type = req.session.user.column_preferences.notes.view_type;
-            }
-
-            // users (admin only)
-            if (req.user?.is_admin && value.users) {
-                if (typeof value.users !== 'object') {
-                    throw new ValidationError('Users must be an object', req as Request);
-                }
-
-                value.users.username = value.users.username === 'on';
-                value.users.email = value.users.email === 'on';
-                value.users.is_admin = value.users.is_admin === 'on';
-                value.users.email_verified_at = value.users.email_verified_at === 'on';
-                value.users.created_at = value.users.created_at === 'on';
-
-                value.users.default_per_page = parseInt(value.users.default_per_page, 10);
-
-                if (isNaN(value.users.default_per_page) || value.users.default_per_page < 1) {
-                    throw new ValidationError(
-                        'Users per page must be greater than 0',
-                        req as Request,
-                    );
-                }
-
-                if (
-                    !value.users.username &&
-                    !value.users.email &&
-                    !value.users.is_admin &&
-                    !value.users.email_verified_at &&
-                    !value.users.created_at
-                ) {
-                    throw new ValidationError(
-                        'At least one user column must be enabled',
-                        req as Request,
-                    );
-                }
-            }
-
-            return true;
-        }),
-    ]),
-    handler: function (db: Knex) {
-        return async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const { column_preferences, path } = req.body;
-
-            await db('users')
-                .where('id', user.id)
-                .update({
-                    column_preferences: JSON.stringify(column_preferences),
-                });
-
-            req.session.user!.column_preferences = column_preferences;
-
-            req.flash('success', 'Column settings updated');
-
-            return res.redirect(path);
-        };
-    },
-};
+        return res.redirect(path);
+    };
+}
 
 // POST /api/notes/render-markdown
-export const postNotesRenderMarkdownHandler = {
-    validator: validateRequestMiddleware([
-        body('content').trim().notEmpty().withMessage('Content is required'),
-    ]),
-    handler: function (markdownParser: typeof marked) {
-        return async (req: Request, res: Response) => {
-            const content = req.body.content;
+export function postNotesRenderMarkdownHandler(markdownParser: typeof marked) {
+    return async (req: Request, res: Response) => {
+        const { content } = req.body;
 
-            const markdown = markdownParser(content) as string;
+        if (!content || content.trim() === '') {
+            throw new ValidationError({ content: 'Content is required' });
+        }
 
-            res.json({ content: markdown });
-            return;
-        };
-    },
-};
+        const markdown = markdownParser(content) as string;
+
+        res.json({ content: markdown });
+        return;
+    };
+}
 
 // GET /notes or /api/notes
 export function getNotesHandler(notes: Notes) {
@@ -1275,49 +1243,43 @@ export function getNoteCreatePageHandler() {
 }
 
 // POST /notes or /api/notes
-export const postNoteHandler = {
-    validator: validateRequestMiddleware([
-        body('title')
-            .trim()
-            .notEmpty()
-            .withMessage('Title is required')
-            .isLength({ max: 255 })
-            .withMessage('Title must be less than 255 characters'),
-        body('content').trim().notEmpty().withMessage('Content is required'),
-        body('pinned')
-            .optional()
-            .custom((value) => {
-                if (value === undefined || value === 'on') {
-                    return true;
-                }
-                if (typeof value === 'boolean') {
-                    return true;
-                }
-                throw new Error('Pinned must be a boolean or checkbox value');
-            }),
-    ]),
-    handler: function (notes: Notes) {
-        return async (req: Request, res: Response) => {
-            const { title, content, pinned } = req.body;
-            const user = req.user as User;
+export function postNoteHandler(notes: Notes) {
+    return async (req: Request, res: Response) => {
+        const { title, content, pinned } = req.body;
 
-            const note = await notes.create({
-                user_id: user.id,
-                title: title.trim(),
-                content: content.trim(),
-                pinned: pinned === 'on' || pinned === true,
-            });
+        if (!title) {
+            throw new ValidationError({ title: 'Title is required' });
+        }
 
-            if (isApiRequest(req)) {
-                res.status(201).json({ message: `Note ${note.title} created successfully!` });
-                return;
-            }
+        if (!content) {
+            throw new ValidationError({ content: 'Content is required' });
+        }
 
-            req.flash('success', 'Note created successfully');
-            return res.redirect('/notes');
-        };
-    },
-};
+        if (typeof pinned !== 'boolean' && pinned !== 'on') {
+            throw new ValidationError(
+                { pinned: 'Pinned must be a boolean or checkbox value' },
+                req,
+            );
+        }
+
+        const user = req.user as User;
+
+        const note = await notes.create({
+            user_id: user.id,
+            title: title.trim(),
+            content: content.trim(),
+            pinned: pinned === 'on' || pinned === true,
+        });
+
+        if (isApiRequest(req)) {
+            res.status(201).json({ message: `Note ${note.title} created successfully!` });
+            return;
+        }
+
+        req.flash('success', 'Note created successfully');
+        return res.redirect('/notes');
+    };
+}
 
 // GET /notes/:id/edit
 export function getEditNotePageHandler(notes: Notes) {
@@ -1339,52 +1301,46 @@ export function getEditNotePageHandler(notes: Notes) {
 }
 
 // POST /notes/:id/update or PATCH /api/notes/:id
-export const updateNoteHandler = {
-    validator: validateRequestMiddleware([
-        body('title')
-            .trim()
-            .notEmpty()
-            .withMessage('Title is required')
-            .isLength({ max: 255 })
-            .withMessage('Title must be less than 255 characters'),
-        body('content').trim().notEmpty().withMessage('Content is required'),
-        body('pinned')
-            .optional()
-            .custom((value) => {
-                if (value === undefined || value === 'on') {
-                    return true;
-                }
-                if (typeof value === 'boolean') {
-                    return true;
-                }
-                throw new Error('Pinned must be a boolean or checkbox value');
-            }),
-    ]),
-    handler: function (notes: Notes) {
-        return async (req: Request, res: Response) => {
-            const { title, content, pinned } = req.body;
-            const user = req.user as User;
+export function updateNoteHandler(notes: Notes) {
+    return async (req: Request, res: Response) => {
+        const { title, content, pinned } = req.body;
 
-            const updatedNote = await notes.update(
-                parseInt(req.params.id as unknown as string),
-                user.id,
-                {
-                    title: title.trim(),
-                    content: content.trim(),
-                    pinned: pinned === 'on' || pinned === true, // Handle both checkbox and API boolean
-                },
+        if (!title) {
+            throw new ValidationError({ title: 'Title is required' });
+        }
+
+        if (!content) {
+            throw new ValidationError({ content: 'Content is required' });
+        }
+
+        if (typeof pinned !== 'boolean' && pinned !== 'on') {
+            throw new ValidationError(
+                { pinned: 'Pinned must be a boolean or checkbox value' },
+                req,
             );
+        }
 
-            if (isApiRequest(req)) {
-                res.status(200).json({ message: 'note updated successfully' });
-                return;
-            }
+        const user = req.user as User;
 
-            req.flash('success', `Note ${updatedNote.title} updated successfully`);
-            return res.redirect(`/notes/${updatedNote.id}`);
-        };
-    },
-};
+        const updatedNote = await notes.update(
+            parseInt(req.params.id as unknown as string),
+            user.id,
+            {
+                title: title.trim(),
+                content: content.trim(),
+                pinned: pinned === 'on' || pinned === true, // Handle both checkbox and API boolean
+            },
+        );
+
+        if (isApiRequest(req)) {
+            res.status(200).json({ message: 'note updated successfully' });
+            return;
+        }
+
+        req.flash('success', `Note ${updatedNote.title} updated successfully`);
+        return res.redirect(`/notes/${updatedNote.id}`);
+    };
+}
 
 // GET /notes/:id or GET /api/notes/:id
 export function getNoteHandler(notes: Notes, markdownParser: typeof marked, log: typeof logger) {
@@ -1497,15 +1453,23 @@ export function getNotesByApiHandler(notes: Notes) {
 
 // POST /api/notes
 export const createNoteByApiHandler = [
-    validateRequestMiddleware([
-        body('title')
-            .trim()
-            .notEmpty()
-            .withMessage('Title is required')
-            .isLength({ max: 255 })
-            .withMessage('Title must be less than 255 characters'),
-        body('content').trim().notEmpty().withMessage('Content is required'),
-    ]),
+    async (req: Request, res: Response, next: NextFunction) => {
+        const { title, content } = req.body;
+
+        if (!title) {
+            throw new ValidationError({ title: 'Title is required' });
+        }
+
+        if (!content) {
+            throw new ValidationError({ content: 'Content is required' });
+        }
+
+        if (title.length > 255) {
+            throw new ValidationError({ title: 'Title must be less than 255 characters' });
+        }
+
+        return next();
+    },
     async (req: Request, res: Response) => {
         const { title, content } = req.body;
         const user = req.user as User;
@@ -1522,15 +1486,23 @@ export const createNoteByApiHandler = [
 
 // PUT /api/notes/:id
 export const updateNoteByApiHandler = [
-    validateRequestMiddleware([
-        body('title')
-            .trim()
-            .notEmpty()
-            .withMessage('Title is required')
-            .isLength({ max: 255 })
-            .withMessage('Title must be less than 255 characters'),
-        body('content').trim().notEmpty().withMessage('Content is required'),
-    ]),
+    async (req: Request, res: Response, next: NextFunction) => {
+        const { title, content } = req.body;
+
+        if (!title) {
+            throw new ValidationError({ title: 'Title is required' });
+        }
+
+        if (!content) {
+            throw new ValidationError({ content: 'Content is required' });
+        }
+
+        if (title.length > 255) {
+            throw new ValidationError({ title: 'Title must be less than 255 characters' });
+        }
+
+        return next();
+    },
     async (req: Request, res: Response) => {
         const { title, content } = req.body;
         const user = req.user as User;
@@ -1616,62 +1588,42 @@ export function getAdminUsersHandler(db: Knex) {
 }
 
 // POST /login
-export const postLoginHandler = {
-    validator: async (req: Request, res: Response, next: NextFunction) => {
-        await body('email')
-            .isEmail()
-            .withMessage('Please enter a valid email address')
-            .normalizeEmail()
-            .run(req);
+export function postLoginHandler() {
+    return async (req: Request, res: Response) => {
+        const { email } = req.body;
 
-        const result = validationResult(req) as any;
-
-        req.session.input = req.body;
-
-        if (result.isEmpty()) {
-            delete req.session.errors;
-            return next();
+        if (!email) {
+            throw new ValidationError({ email: 'Email is required' });
         }
 
-        const { errors } = result;
-        const reshapedErrors: { [key: string]: string } = {};
-        for (const error of errors) {
-            reshapedErrors[error.path] = error.msg;
+        if (!isValidEmail(email)) {
+            throw new ValidationError({ email: 'Please enter a valid email address' });
         }
 
-        req.session.errors = reshapedErrors;
+        let user = await db('users').where({ email }).first();
 
-        return res.redirect('/?login=true');
-    },
-    handler: function () {
-        return async (req: Request, res: Response) => {
-            const { email } = req.body;
+        if (!user) {
+            const username = email.split('@')[0];
+            [user] = await db('users')
+                .insert({
+                    username,
+                    email,
+                    is_admin: config.app.adminEmail === email,
+                })
+                .returning('*');
+        }
 
-            let user = await db('users').where({ email }).first();
+        const token = magicLink.generate({ email });
 
-            if (!user) {
-                const username = email.split('@')[0];
-                [user] = await db('users')
-                    .insert({
-                        username,
-                        email,
-                        is_admin: config.app.adminEmail === email,
-                    })
-                    .returning('*');
-            }
+        setTimeout(() => sendMagicLinkEmail({ email, token, req }), 0);
 
-            const token = magicLink.generate({ email });
-
-            setTimeout(() => sendMagicLinkEmail({ email, token, req }), 0);
-
-            req.flash(
-                'success',
-                `📧 Magic link sent to ${email}! Check your email and click the link to log in.`,
-            );
-            return res.redirect('/');
-        };
-    },
-};
+        req.flash(
+            'success',
+            `📧 Magic link sent to ${email}! Check your email and click the link to log in.`,
+        );
+        return res.redirect('/');
+    };
+}
 
 // GET /auth/magic/:token
 export function getMagicLinkHandler() {

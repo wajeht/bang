@@ -77,7 +77,7 @@ export async function runMigrations(force: boolean = false) {
 
         const version = await db.migrate.currentVersion();
 
-        logger.info(`current database version %s`, version);
+        logger.info(`current database version %s`, { version });
 
         logger.info(`checking for database upgrades`);
 
@@ -94,7 +94,10 @@ export async function runMigrations(force: boolean = false) {
 
         logger.info(`database upgrades completed for %s schema`, migrationList);
 
-        logger.info(`batch %s run: %s migrations`, batchNo, migrations.length);
+        logger.info(`batch %s run: %s migrations`, {
+            batchNo,
+            migrationsLength: migrations.length,
+        });
     } catch (error) {
         logger.error(`error running migrations: %o`, { error });
         throw error;

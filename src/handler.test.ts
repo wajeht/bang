@@ -184,7 +184,7 @@ describe('Export Data Handler', () => {
             content: 'Test content',
         });
 
-        const handler = postExportDataHandler.handler(db, logger);
+        const handler = postExportDataHandler(db, logger);
         await handler(req as Request, res as Response);
 
         expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/json');
@@ -233,7 +233,7 @@ describe('Export Data Handler', () => {
 
         req.body = { options: ['bookmarks'] };
 
-        const handler = postExportDataHandler.handler(db, logger);
+        const handler = postExportDataHandler(db, logger);
         await handler(req as Request, res as Response);
 
         const sentData = (res.send as any).mock.calls[0][0];
@@ -246,7 +246,7 @@ describe('Export Data Handler', () => {
     });
 
     it('should handle empty data gracefully', async () => {
-        const handler = postExportDataHandler.handler(db, logger);
+        const handler = postExportDataHandler(db, logger);
         await handler(req as Request, res as Response);
 
         const sentData = (res.send as any).mock.calls[0][0];
@@ -260,7 +260,7 @@ describe('Export Data Handler', () => {
     });
 
     it('should include correct metadata in export', async () => {
-        const handler = postExportDataHandler.handler(db, logger);
+        const handler = postExportDataHandler(db, logger);
         await handler(req as Request, res as Response);
 
         const sentData = (res.send as any).mock.calls[0][0];
@@ -272,7 +272,7 @@ describe('Export Data Handler', () => {
     });
 
     it('should set correct response headers', async () => {
-        const handler = postExportDataHandler.handler(db, logger);
+        const handler = postExportDataHandler(db, logger);
         await handler(req as Request, res as Response);
 
         expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/json');
@@ -313,7 +313,7 @@ describe('Export Data Handler', () => {
             { user_id: testUserId, title: 'Note 2', content: 'Content 2' },
         ]);
 
-        const handler = postExportDataHandler.handler(db, logger);
+        const handler = postExportDataHandler(db, logger);
         await handler(req as Request, res as Response);
 
         const sentData = (res.send as any).mock.calls[0][0];
