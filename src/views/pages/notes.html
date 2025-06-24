@@ -36,7 +36,7 @@
         <section style="display: flex; flex-wrap: wrap; gap: 20px; <%- (search.length && data.length < 1) ? 'border-radius: 5px; border: solid;' : null %>">
             <% if (data && data.length > 0) { %>
                 <% for (let i = 0; i < data.length; i++) { %>
-                    <article style="border-style: solid; border-radius: 5px; padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <article style="border-style: solid; border-radius: 5px; padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 200px;">
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
                             <h3>
                                 <% if (data[i].pinned) { %>📌<% } else { %>📝<% } %>
@@ -44,11 +44,11 @@
                             </h3>
                         <% } %>
                         <% if (state.user.column_preferences?.notes?.content !== false) { %>
-                            <div style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;">
+                            <div style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; flex: 1;">
                                📄 <%- utils.highlightSearchTerm(data[i].content, search) %>
                             </div>
                         <% } %>
-                        <footer style="display: flex; justify-content: space-between; gap: 10px;">
+                        <footer style="display: flex; justify-content: space-between; gap: 10px; margin-top: auto;">
                             <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
                                 <p>📅 Created: <time datetime="<%= data[i].created_at %>"><%= new Date(data[i].created_at).toLocaleDateString() %></time></p>
                             <% } %>
