@@ -1351,11 +1351,9 @@ export const updateNoteHandler = {
         body('pinned')
             .optional()
             .custom((value) => {
-                // Checkbox sends 'on' when checked, undefined when unchecked
                 if (value === undefined || value === 'on') {
                     return true;
                 }
-                // For API requests, also allow boolean values
                 if (typeof value === 'boolean') {
                     return true;
                 }
