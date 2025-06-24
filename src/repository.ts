@@ -286,6 +286,9 @@ export const notes: Notes = {
             });
         }
 
+        // Always sort by pinned first (pinned notes at top), then by the requested sort
+        query.orderBy('pinned', 'desc');
+
         if (['title', 'content', 'created_at'].includes(sortKey)) {
             query.orderBy(sortKey, direction);
         } else {
@@ -315,7 +318,7 @@ export const notes: Notes = {
     },
 
     update: async (id: number, userId: number, updates: Partial<Note>) => {
-        const allowedFields = ['title', 'content'];
+        const allowedFields = ['title', 'content', 'pinned'];
 
         const updateData = Object.fromEntries(
             Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
