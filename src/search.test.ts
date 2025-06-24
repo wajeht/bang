@@ -9,9 +9,10 @@ import {
 import { db } from './db/db';
 import { User } from './type';
 import { config } from './config';
+import { notes } from './repository';
 import { Request, Response } from 'express';
-import { isValidUrl, insertBookmark, insertPageTitle, checkDuplicateBookmarkUrl } from './util';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { isValidUrl, insertBookmark, insertPageTitle, checkDuplicateBookmarkUrl } from './util';
 
 vi.mock('./util', async () => {
     const actual = await vi.importActual('./util');
@@ -949,6 +950,30 @@ describe('search', () => {
                 expect(createdNote.content).toBe('This is just content without a title');
             });
 
+            it('should create notes with pinned defaulting to false', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!note Test Note | Test content',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+
+                const createdNote = await db('notes')
+                    .where({ user_id: testUser.id, title: 'Test Note' })
+                    .first();
+                expect(createdNote).toBeDefined();
+                expect(createdNote.pinned).toBe(0); // SQLite stores boolean as 0/1
+            });
+
             it('should reject note creation with title longer than 255 characters', async () => {
                 const req = {} as Request;
                 const res = {
@@ -1106,6 +1131,49 @@ describe('search', () => {
                     .first();
                 expect(createdNote).toBeDefined();
                 expect(createdNote.content).toBe('pipe | Content also has | more pipes');
+            });
+
+            it('should sort pinned notes at the top', async () => {
+                // Create multiple notes via search
+                const queries = [
+                    '!note First Note | First content',
+                    '!note Second Note | Second content',
+                    '!note Third Note | Third content'
+                ];
+
+                for (const query of queries) {
+                    const req = {} as Request;
+                    const res = {
+                        set: vi.fn().mockReturnThis(),
+                        status: vi.fn().mockReturnThis(),
+                        send: vi.fn(),
+                    } as unknown as Response;
+
+                    await search({ req, res, user: testUser, query });
+                }
+
+                // Pin the second note (created in middle)
+                await db('notes')
+                    .where({ user_id: testUser.id, title: 'Second Note' })
+                    .update({ pinned: true });
+
+                // Get all notes using repository
+                const result = await notes.all({
+                    user: testUser,
+                    perPage: 10,
+                    page: 1,
+                    search: '',
+                    sortKey: 'created_at',
+                    direction: 'desc'
+                });
+
+                expect(result.data).toHaveLength(3);
+                expect(result.data[0].title).toBe('Second Note'); // Pinned note should be first
+                expect(result.data[0].pinned).toBe(1); // SQLite stores boolean as 0/1
+
+                // Other notes should follow in creation order (newest first)
+                expect(result.data[1].title).toBe('Third Note');
+                expect(result.data[2].title).toBe('First Note');
             });
         });
 
