@@ -39,13 +39,13 @@
                     <article style="border-style: solid; border-radius: 5px; padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 200px;">
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
                             <h3>
-                                <% if (data[i].pinned) { %>📌<% } else { %>📝<% } %>
+                                <% if (data[i].pinned) { %>📌<% } %>
                                 <a href="/notes/<%- data[i].id %>" title="<%= data[i].title %>"><%- utils.highlightSearchTerm(data[i].title, search) %></a>
                             </h3>
                         <% } %>
                         <% if (state.user.column_preferences?.notes?.content !== false) { %>
                             <div style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; flex: 1;">
-                               📄 <%- utils.highlightSearchTerm(data[i].content, search) %>
+                               <%- utils.highlightSearchTerm(data[i].content, search) %>
                             </div>
                         <% } %>
                         <footer style="display: flex; justify-content: space-between; gap: 10px; margin-top: auto;">

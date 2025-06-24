@@ -2,7 +2,7 @@
     <header style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h2>
-                <% if (note.pinned) { %>📌<% } else { %>📝<% } %> <%= note.title %>
+                <% if (note.pinned) { %>📌<% } %> <%= note.title %>
             </h2>
             <div style="display: flex; gap: 15px;">
                 <div>📅 Created: <time datetime="<%= note.created_at %>"><%= new Date(note.created_at).toLocaleDateString() %></time></div>
