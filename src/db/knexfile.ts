@@ -1,20 +1,7 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
 import { config } from '../config';
-
-function _getFormattedTimestamp() {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const seconds = now.getSeconds();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const formattedHours = hours % 12 || 12;
-    const formattedTime = `${formattedHours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${ampm}`;
-    const formattedDate = now.toISOString().split('T')[0];
-    return `[${formattedDate} ${formattedTime}]`;
-}
-
-// const _developmentEnvironmentOnly = appConfig.env === 'development';
+import { logger } from '../logger';
 
 const knexConfig: Knex.Config = {
     client: 'better-sqlite3',
@@ -85,17 +72,11 @@ const knexConfig: Knex.Config = {
                 // Optimize query planner
                 conn.pragma('optimize');
 
-                console.log(
-                    `${_getFormattedTimestamp()} INFO: New database connection established`,
-                );
+                logger.info('New database connection established');
 
                 done(null, conn);
             } catch (err) {
-                console.error(
-                    `${_getFormattedTimestamp()} ERROR: Error establishing database connection:`,
-                    err,
-                );
-
+                logger.error('Error establishing database connection: %o', { error: err });
                 done(err as Error, conn);
             }
         },
