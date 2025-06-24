@@ -1,8 +1,9 @@
 import { db } from './db/db';
 import { logger } from './logger';
+import { notes } from './repository';
 import { Request, Response } from 'express';
-import { getHealthzHandler, postExportDataHandler } from './handler';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { getHealthzHandler, postExportDataHandler, toggleNotePinHandler } from './handler';
 
 describe('Health Check Endpoint', () => {
     let req: Partial<Request>;
@@ -321,5 +322,109 @@ describe('Export Data Handler', () => {
         expect(exportData.bookmarks).toHaveLength(2);
         expect(exportData.actions).toHaveLength(2);
         expect(exportData.notes).toHaveLength(2);
+    });
+});
+
+describe('Toggle Note Pin Handler', () => {
+    let testUserId: number;
+    let testNoteId: number;
+    let req: any;
+    let res: any;
+
+    beforeEach(async () => {
+        const [user] = await db('users')
+            .insert({
+                username: 'testuser',
+                email: 'test@example.com',
+                is_admin: false,
+                email_verified_at: db.fn.now(),
+            })
+            .returning('*');
+
+        testUserId = user.id;
+
+        const [note] = await db('notes')
+            .insert({
+                user_id: testUserId,
+                title: 'Test Note',
+                content: 'Test content',
+                pinned: false,
+            })
+            .returning('*');
+
+        testNoteId = note.id;
+
+        req = {
+            user: { id: testUserId },
+            params: { id: testNoteId },
+            flash: vi.fn(),
+            header: vi.fn().mockReturnValue(undefined),
+            path: '/notes/123/pin',
+        };
+
+        res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn().mockReturnThis(),
+            redirect: vi.fn().mockReturnThis(),
+        };
+    });
+
+    afterEach(async () => {
+        if (testUserId) {
+            await db('notes').where({ user_id: testUserId }).delete();
+            await db('users').where({ id: testUserId }).delete();
+        }
+        vi.clearAllMocks();
+    });
+
+    it('should pin an unpinned note', async () => {
+        const handler = toggleNotePinHandler(notes);
+
+        await handler(req as Request, res as Response);
+
+        const updatedNote = await db('notes').where({ id: testNoteId }).first();
+        expect(updatedNote.pinned).toBe(1); // SQLite stores boolean as 0/1
+        expect(req.flash).toHaveBeenCalledWith('success', 'Note pinned successfully');
+        expect(res.redirect).toHaveBeenCalledWith('/notes');
+    });
+
+    it('should unpin a pinned note', async () => {
+        // First pin the note
+        await db('notes').where({ id: testNoteId }).update({ pinned: true });
+
+        const handler = toggleNotePinHandler(notes);
+
+        await handler(req as Request, res as Response);
+
+        const updatedNote = await db('notes').where({ id: testNoteId }).first();
+        expect(updatedNote.pinned).toBe(0); // SQLite stores boolean as 0/1
+        expect(req.flash).toHaveBeenCalledWith('success', 'Note unpinned successfully');
+        expect(res.redirect).toHaveBeenCalledWith('/notes');
+    });
+
+    it('should return 404 for non-existent note', async () => {
+        req.params.id = 99999; // Non-existent note ID
+
+        const handler = toggleNotePinHandler(notes);
+
+        await expect(handler(req as Request, res as Response)).rejects.toThrow('Note not found');
+    });
+
+    it('should not allow pinning notes from other users', async () => {
+        const [otherUser] = await db('users')
+            .insert({
+                username: 'otheruser',
+                email: 'other@example.com',
+                is_admin: false,
+            })
+            .returning('*');
+
+        req.user.id = otherUser.id; // Try to pin note as different user
+
+        const handler = toggleNotePinHandler(notes);
+
+        await expect(handler(req as Request, res as Response)).rejects.toThrow('Note not found');
+
+        await db('users').where({ id: otherUser.id }).delete();
     });
 });
