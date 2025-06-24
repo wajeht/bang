@@ -38,7 +38,10 @@
                 <% for (let i = 0; i < data.length; i++) { %>
                     <article style="border-style: solid; border-radius: 5px; padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px;">
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
-                            <h3><a href="/notes/<%- data[i].id %>" title="<%= data[i].title %>">📝 <%- utils.highlightSearchTerm(data[i].title, search) %></a></h3>
+                            <h3>
+                                <% if (data[i].pinned) { %>📌<% } else { %>📝<% } %>
+                                <a href="/notes/<%- data[i].id %>" title="<%= data[i].title %>"><%- utils.highlightSearchTerm(data[i].title, search) %></a>
+                            </h3>
                         <% } %>
                         <% if (state.user.column_preferences?.notes?.content !== false) { %>
                             <div style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;">
@@ -50,6 +53,12 @@
                                 <p>📅 Created: <time datetime="<%= data[i].created_at %>"><%= new Date(data[i].created_at).toLocaleDateString() %></time></p>
                             <% } %>
                             <nav style="display: flex; gap: 10px; align-items: center;">
+                                <form method="POST" action="/notes/<%= data[i].id %>/pin" style="display: inline;">
+                                    <%- include('../components/input-csrf.html') %>
+                                    <button type="submit" class="no-style-btn" aria-label="<%= data[i].pinned ? 'Unpin' : 'Pin' %> note <%= data[i].title %>">
+                                        <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
+                                    </button>
+                                </form>
                                 <a href="/notes/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;">✏️ Edit</a>
                                 <button type="button" class="no-style-btn" onclick="document.getElementById('delete-note-<%= data[i].id %>-modal').showModal()" aria-label="Delete note <%= data[i].title %>">🗑️ Delete</button>
 
@@ -138,6 +147,7 @@
                             <tr style="border-bottom: 1px solid #ddd;">
                                 <% if (state.user.column_preferences?.notes?.title !== false) { %>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                        <% if (data[i].pinned) { %>📌<% } %>
                                         <a href="/notes/<%= data[i].id %>" title="<%= data[i].title %>">
                                             <%- utils.highlightSearchTerm(data[i].title, search) %>
                                         </a>
@@ -155,6 +165,12 @@
                                     <details style="position: relative;">
                                         <summary aria-label="Actions for note <%= data[i].title %>">Actions</summary>
                                         <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                            <form method="POST" action="/notes/<%= data[i].id %>/pin" style="display: inline;">
+                                                <%- include('../components/input-csrf.html') %>
+                                                <button type="submit" class="no-style-btn" style="text-align: left;" role="menuitem" aria-label="<%= data[i].pinned ? 'Unpin' : 'Pin' %> note <%= data[i].title %>">
+                                                    <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
+                                                </button>
+                                            </form>
                                             <a href="/notes/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                             <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-note-<%= data[i].id %>-modal').showModal()" role="menuitem" aria-label="Delete note <%= data[i].title %>">🗑️ Delete</button>
                                             <dialog id="delete-note-<%= data[i].id %>-modal" aria-labelledby="delete-note-<%= data[i].id %>-title">
