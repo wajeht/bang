@@ -26,16 +26,16 @@ import { db, runMigrations, checkDatabaseHealth, optimizeDatabase } from './db/d
 export async function createServer() {
     const app = express();
 
-    // if (config.app.env === 'development') {
-    //     expressTemplatesReload({
-    //         app,
-    //         watch: [
-    //             { path: './public', extensions: ['.css', '.js'] },
-    //             { path: './src/views', extensions: ['.html'] },
-    //         ],
-    //         options: { quiet: false },
-    //     });
-    // }
+    if (config.app.env === 'development') {
+        expressTemplatesReload({
+            app,
+            watch: [
+                { path: './public', extensions: ['.css', '.js'] },
+                { path: './src/views', extensions: ['.html'] },
+            ],
+            options: { quiet: false },
+        });
+    }
 
     app.set('trust proxy', 1)
         .use(sessionMiddleware())
