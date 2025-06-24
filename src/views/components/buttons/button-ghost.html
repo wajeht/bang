@@ -1,0 +1,10 @@
+<button
+  class="no-style-btn"
+  <% if (typeof type !== 'undefined') { %>type="<%= type %>"<% } else { %>type="button"<% } %>
+  <% if (typeof onclick !== 'undefined') { %>onclick="<%= onclick %>"<% } %>
+  <% if (typeof ariaLabel !== 'undefined') { %>aria-label="<%= ariaLabel %>"<% } %>
+  <% if (typeof style !== 'undefined') { %>style="<%= style %>"<% } %>
+  <% if (typeof id !== 'undefined') { %>id="<%= id %>"<% } %>
+  <% if (typeof role !== 'undefined') { %>role="<%= role %>"<% } %>
+  <% if (typeof disabled !== 'undefined' && disabled) { %>disabled<% } %>
+><%= text %></button>

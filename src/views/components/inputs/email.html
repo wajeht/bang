@@ -1,0 +1,21 @@
+<div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+  <label for="<%= id %>"><%= label %><% if (typeof required !== 'undefined' && required) { %> <abbr title="Required">*</abbr><% } %></label>
+  <input
+    type="email"
+    id="<%= id %>"
+    name="<%= name %>"
+    <% if (typeof placeholder !== 'undefined') { %>placeholder="<%= placeholder %>"<% } %>
+    <% if (typeof value !== 'undefined') { %>value="<%= value %>"<% } %>
+    <% if (typeof required !== 'undefined' && required) { %>required<% } %>
+    <% if (typeof autocomplete !== 'undefined') { %>autocomplete="<%= autocomplete %>"<% } %>
+    <% if (typeof autofocus !== 'undefined' && autofocus) { %>autofocus<% } %>
+    <% if (typeof style !== 'undefined') { %>style="<%= style %>"<% } %>
+    aria-describedby="<%= id %>-help<% if (typeof error !== 'undefined' && error) { %> <%= id %>-error<% } %>"
+  >
+  <% if (typeof helpText !== 'undefined') { %>
+    <small id="<%= id %>-help"><%= helpText %></small>
+  <% } %>
+  <% if (typeof error !== 'undefined' && error) { %>
+    <small id="<%= id %>-error" style="color: red;" role="alert"><%= error %></small>
+  <% } %>
+</div>

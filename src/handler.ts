@@ -179,7 +179,7 @@ export function getActionsHandler(actions: Actions) {
             return;
         }
 
-        return res.render('actions.html', {
+        return res.render('./actions/actions-get.html', {
             user: req.session?.user,
             path: '/actions',
             title: 'Actions',
@@ -265,7 +265,7 @@ export const postActionHandler = {
 // GET /actions/create
 export function getActionCreatePageHandler() {
     return (_req: Request, res: Response) => {
-        return res.render('actions-create.html', {
+        return res.render('./actions/actions-create.html', {
             title: 'Actions / New',
             path: '/actions/create',
             layout: '../layouts/auth.html',
@@ -313,7 +313,7 @@ export function getEditActionPageHandler(db: Knex) {
             throw new NotFoundError('Action not found', req);
         }
 
-        return res.render('actions-edit.html', {
+        return res.render('./actions/actions-edit.html', {
             title: 'Actions / Edit',
             path: '/actions/edit',
             layout: '../layouts/auth.html',
@@ -396,7 +396,7 @@ export const updateActionHandler = {
 // GET /bookmarks/create
 export function getBookmarkCreatePageHandler() {
     return (_req: Request, res: Response) => {
-        return res.render('bookmarks-create.html', {
+        return res.render('./bookmarks/bookmarks-create.html', {
             title: 'Bookmarks / New',
             path: '/bookmarks/create',
             layout: '../layouts/auth.html',
@@ -449,7 +449,7 @@ export function getBookmarksHandler(bookmarks: Bookmarks) {
             return;
         }
 
-        return res.render('bookmarks.html', {
+        return res.render('./bookmarks/bookmarks-get.html', {
             user: req.session?.user,
             title: 'Bookmarks',
             path: '/bookmarks',
@@ -498,7 +498,7 @@ export function getEditBookmarkPageHandler(bookmarks: Bookmarks) {
             throw new NotFoundError('Bookmark not found', req);
         }
 
-        return res.render('bookmarks-edit.html', {
+        return res.render('./bookmarks/bookmarks-edit.html', {
             title: 'Bookmarks / Edit',
             path: '/bookmarks/edit',
             layout: '../layouts/auth.html',
@@ -517,7 +517,7 @@ export function getBookmarkActionCreatePageHandler(db: Knex) {
             })
             .first();
 
-        return res.render('bookmarks-id-actions-create.html', {
+        return res.render('./bookmarks/bookmarks-id-actions-create.html', {
             title: `Bookmarks / ${req.params.id} / Actions / Create`,
             path: `/bookmarks/${req.params.id}/actions/create`,
             layout: '../layouts/auth.html',
@@ -627,7 +627,7 @@ export function getSettingsPageHandler() {
 // GET /settings/account
 export function getSettingsAccountPageHandler() {
     return (req: Request, res: Response) => {
-        return res.render('settings-account.html', {
+        return res.render('./settings/settings-account.html', {
             user: req.session?.user,
             title: 'Settings Account',
             path: '/settings/account',
@@ -739,7 +739,7 @@ export const postSettingsAccountHandler = {
 // GET /settings/data
 export function getSettingsDataPageHandler() {
     return (req: Request, res: Response) => {
-        return res.render('settings-data.html', {
+        return res.render('./settings/settings-data.html', {
             user: req.session?.user,
             title: 'Settings Data',
             path: '/settings/data',
@@ -928,7 +928,7 @@ export const postImportDataHandler = {
 // GET /settings/danger-zone
 export function getSettingsDangerZonePageHandler() {
     return (req: Request, res: Response) => {
-        return res.render('settings-danger-zone.html', {
+        return res.render('./settings/settings-danger-zone.html', {
             title: 'Settings Danger Zone',
             user: req.session?.user,
             path: '/settings/danger-zone',
@@ -1248,7 +1248,7 @@ export function getNotesHandler(notes: Notes) {
             })),
         );
 
-        return res.render('notes.html', {
+        return res.render('./notes/notes-get.html', {
             user: req.session?.user,
             title: 'Notes',
             path: '/notes',
@@ -1266,7 +1266,7 @@ export function getNotesHandler(notes: Notes) {
 // GET /notes/create
 export function getNoteCreatePageHandler() {
     return (_req: Request, res: Response) => {
-        return res.render('notes-create.html', {
+        return res.render('./notes/notes-create.html', {
             title: 'Notes / Create',
             path: '/notes/create',
             layout: '../layouts/auth',
@@ -1329,7 +1329,7 @@ export function getEditNotePageHandler(notes: Notes) {
             throw new NotFoundError('Note not found', req);
         }
 
-        return res.render('notes-edit.html', {
+        return res.render('./notes/notes-edit.html', {
             title: 'Notes / Edit',
             path: '/notes/edit',
             layout: '../layouts/auth',
@@ -1418,7 +1418,7 @@ export function getNoteHandler(notes: Notes, markdownParser: typeof marked, log:
             return;
         }
 
-        return res.render('notes-id-get.html', {
+        return res.render('./notes/notes-show.html', {
             title: `Notes / ${note.title}`,
             path: `/notes/${note.id}`,
             layout: '../layouts/auth',
@@ -1601,7 +1601,7 @@ export function getAdminUsersHandler(db: Knex) {
             .orderBy(sortKey || 'created_at', direction || 'desc')
             .paginate({ perPage, currentPage: page, isLengthAware: true });
 
-        return res.render('admin-users.html', {
+        return res.render('./admin/admin-users.html', {
             user: req.session?.user,
             title: 'Admin / Users',
             path: '/admin/users',

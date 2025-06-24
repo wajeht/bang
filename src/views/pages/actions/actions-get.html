@@ -3,7 +3,7 @@
         <div>
             <div style="display: flex; align-items: center; gap: 5px;">
                 <h2>⚡ Actions</h2>
-		        <%- include('../components/question-mark-button.html') %>
+		        <%- include('../partials/question-mark-button.html') %>
             </div>
             <p>Manage your actions and shortcuts</p>
         </div>
@@ -28,7 +28,7 @@
 
             <button type="button" aria-label="Create new action" onclick="location.href='/actions/create'">➕</button>
 
-		    <%- include('../components/column-settings.html') %>
+		    <%- include('../partials/column-settings.html') %>
         </nav>
     </header>
 
@@ -234,7 +234,7 @@
         <% } %>
     </section>
 
-    <%- include('../components/pagination.html', {
+    <%- include('../partials/pagination.html', {
         pagination,
         path,
         perPageDefault: state.user.actions_per_page,

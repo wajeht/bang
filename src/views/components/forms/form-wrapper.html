@@ -1,0 +1,10 @@
+<form
+  method="<%= method %>"
+  action="<%= action %>"
+  <% if (typeof style !== 'undefined') { %>style="<%= style %>"<% } %>
+  <% if (typeof enctype !== 'undefined') { %>enctype="<%= enctype %>"<% } %>
+  <% if (typeof role !== 'undefined') { %>role="<%= role %>"<% } %>
+>
+  <%- include('../inputs/hidden-input.html', { name: 'csrfToken', value: csrfToken }) %>
+  <%- content %>
+</form>

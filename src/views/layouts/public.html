@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 
-  <%- include('../components/head.html') %>
+  <%- include('./partials/head.html') %>
 
   <body style="display: flex; flex-direction: column; min-height: 100vh; gap: 30px; position: relative;">
 
@@ -44,7 +44,7 @@
       </div>
     </main>
 
-    <%- include('../components/footer.html') %>
+    <%- include('./partials/footer.html') %>
 
     <% if (!state.user) { %>
       <dialog id="login-dialog" style="width: 450px;">

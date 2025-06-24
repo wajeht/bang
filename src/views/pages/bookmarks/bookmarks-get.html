@@ -3,7 +3,7 @@
         <div>
             <div style="display: flex; align-items: center; gap: 5px;">
                 <h2>🔖 Bookmarks</h2>
-		        <%- include('../components/question-mark-button.html') %>
+		        <%- include('../partials/question-mark-button.html') %>
             </div>
             <p>Manage your saved bookmarks</p>
         </div>
@@ -28,7 +28,7 @@
 
             <button type="button" aria-label="Create new bookmark" onclick="location.href='/bookmarks/create'">➕</button>
 
-		    <%- include('../components/column-settings.html') %>
+		    <%- include('../partials/column-settings.html') %>
         </nav>
     </header>
 
@@ -105,11 +105,12 @@
                                         <a href="/bookmarks/<%= data[i].id %>/actions/create" style="display: inline-flex; align-items: center;" role="menuitem"> ❗️Bang</a>
                                         <a href="/bookmarks/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                         <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-bookmark-<%= data[i].id %>-modal').showModal()" role="menuitem">🗑️ Delete</button>
+
                                         <dialog id="delete-bookmark-<%= data[i].id %>-modal" aria-labelledby="delete-bookmark-<%= data[i].id %>-title">
                                             <h2 id="delete-bookmark-<%= data[i].id %>-title">Confirm</h2>
                                             <p>Are you sure you want to delete <strong><%= data[i].title %></strong>?</p>
                                             <form action="/bookmarks/<%= data[i].id %>/delete" method="POST">
-                                                <%- include('../components/input-csrf.html') %>
+                                                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
                                                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                                                     <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
                                                     <button type="submit">🗑️ Delete</button>
@@ -136,7 +137,7 @@
         <% } %>
     </section>
 
-    <%- include('../components/pagination.html', {
+    <%- include('../partials/pagination.html', {
         pagination,
         path,
         perPageDefault: state.user.bookmarks_per_page,

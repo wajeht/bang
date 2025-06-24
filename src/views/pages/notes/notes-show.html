@@ -15,7 +15,7 @@
         <div style="display: flex; gap: 10px;">
             <button type="button" onclick="location.href='/notes'" aria-label="Go back to notes list">← Back to Notes</button>
             <form method="POST" action="/notes/<%= note.id %>/pin" style="display: inline;">
-                <%- include('../components/input-csrf.html') %>
+                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
                 <button type="submit" aria-label="<%= note.pinned ? 'Unpin' : 'Pin' %> this note">
                     <%= note.pinned ? '📌 Unpin' : '📌 Pin' %>
                 </button>
@@ -34,7 +34,7 @@
     <h2 id="delete-note-title">Confirm</h2>
     <p>Are you sure you want to delete <strong><%= note.title %></strong>?</p>
     <form action="/notes/<%= note.id %>/delete" method="POST">
-        <%- include('../components/input-csrf.html') %>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
             <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
             <button type="submit">🗑️ Delete</button>

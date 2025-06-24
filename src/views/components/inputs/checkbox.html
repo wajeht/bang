@@ -1,0 +1,20 @@
+<div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+  <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+    <input
+      type="checkbox"
+      id="<%= id %>"
+      name="<%= name %>"
+      <% if (typeof checked !== 'undefined' && checked) { %>checked<% } %>
+      <% if (typeof value !== 'undefined') { %>value="<%= value %>"<% } %>
+      <% if (typeof style !== 'undefined') { %>style="<%= style %>"<% } %>
+      aria-describedby="<%= id %>-help<% if (typeof error !== 'undefined' && error) { %> <%= id %>-error<% } %>"
+    >
+    <%= label %>
+  </label>
+  <% if (typeof helpText !== 'undefined') { %>
+    <small id="<%= id %>-help"><%= helpText %></small>
+  <% } %>
+  <% if (typeof error !== 'undefined' && error) { %>
+    <small id="<%= id %>-error" style="color: red;" role="alert"><%= error %></small>
+  <% } %>
+</div>

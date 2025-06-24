@@ -1,18 +1,18 @@
-<%- include('../components/markdown-preview.html') %>
+<%- include('../partials/markdown-preview.html') %>
 
 <section style="display: flex; flex-direction: column; gap: 20px;">
     <header>
-        <h2>📝 Notes / New</h2>
-        <p>Create a new note</p>
+        <h2>📝 Notes / <%= note.id %> / Edit</h2>
+        <p>Edit your note</p>
     </header>
 
     <form
         method="POST"
-        action="/notes"
+        action="/notes/<%= note.id %>/update"
         style="border-style: solid; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;"
 
     >
-        <%- include('../components/input-csrf.html') %>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
         <fieldset style="border: none; padding: 0; margin: 0;">
             <legend style="font-weight: bold; margin-bottom: 15px;">Note Details</legend>
@@ -21,10 +21,10 @@
                 <label for="title">📝 Title <abbr title="Required">*</abbr></label>
                 <input
                     type="text"
-                    id="title"
                     name="title"
+                    id="title"
                     placeholder="My Note Title"
-                    value="<%= state.input.title ?? '' %>"
+                    value="<%= state.input.title ?? note.title %>"
                     required
                     aria-describedby="title-help <%= state.errors.title ? 'title-error' : '' %>"
                 >
@@ -47,7 +47,7 @@
                     style="min-height: 200px; resize: vertical;"
                     required
                     aria-describedby="content-help <%= state.errors.content ? 'content-error' : '' %>"
-                ><%= state.input.content ?? '' %></textarea>
+                ><%= state.input.content ?? note.content %></textarea>
                 <small id="content-help">The content of your note (supports Markdown)</small>
                 <% if (state.errors.content) { %>
                     <small id="content-error" style="color: red;" role="alert"><%= state.errors.content %></small>
@@ -60,7 +60,7 @@
                         type="checkbox"
                         name="pinned"
                         id="pinned"
-                        <%= state.input.pinned === 'on' ? 'checked' : '' %>
+                        <%= note.pinned ? 'checked' : '' %>
                         aria-describedby="pinned-help <%= state.errors.pinned ? 'pinned-error' : '' %>"
                     >
                     📌 Pin this note

@@ -14,22 +14,15 @@
         <fieldset style="border: none; padding: 0; margin: 0;">
             <legend style="font-weight: bold; margin-bottom: 15px;">Action Details</legend>
 
-            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
-                <label for="name">📝 Name <abbr title="Required">*</abbr></label>
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    placeholder="Google Search"
-                    value="<%= state.input.name ?? '' %>"
-                    required
-                    aria-describedby="name-help <%= state.errors.name ? 'name-error' : '' %>"
-                >
-                <small id="name-help">A descriptive name for your action</small>
-                <% if (state.errors.name) { %>
-                    <small id="name-error" style="color: red;" role="alert"><%= state.errors.name %></small>
-                <% } %>
-            </div>
+            <%- include('../../components/inputs/text.html', {
+                id: 'name',
+                name: 'name',
+                label: '📝 Name',
+                placeholder: 'Google Search',
+                value: state.input.name ?? '',
+                required: true,
+                helpText: 'A descriptive name for your action', error: state.errors.name
+            }) %>
 
             <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
                 <label for="trigger">⚡ Trigger <abbr title="Required">*</abbr></label>

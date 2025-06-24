@@ -3,7 +3,7 @@
         <div>
             <div style="display: flex; align-items: center; gap: 5px;">
                 <h2>📝 Notes</h2>
-		        <%- include('../components/question-mark-button.html') %>
+		        <%- include('../partials/question-mark-button.html') %>
             </div>
             <p>Manage your quick notes</p>
         </div>
@@ -28,7 +28,7 @@
 
             <button type="button" aria-label="Create new note" onclick="location.href='/notes/create'">➕</button>
 
-		    <%- include('../components/column-settings.html') %>
+		    <%- include('../partials/column-settings.html') %>
         </nav>
     </header>
 
@@ -54,7 +54,7 @@
                             <% } %>
                             <nav style="display: flex; gap: 10px; align-items: center;">
                                 <form method="POST" action="/notes/<%= data[i].id %>/pin" style="display: inline;">
-                                    <%- include('../components/input-csrf.html') %>
+                                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
                                     <button type="submit" class="no-style-btn" aria-label="<%= data[i].pinned ? 'Unpin' : 'Pin' %> note <%= data[i].title %>">
                                         <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
                                     </button>
@@ -66,7 +66,7 @@
                                     <h2 id="delete-note-<%= data[i].id %>-title">Confirm</h2>
                                     <p>Are you sure you want to delete <strong><%= data[i].title %></strong>?</p>
                                     <form action="/notes/<%= data[i].id %>/delete" method="POST">
-                                        <%- include('../components/input-csrf.html') %>
+                                        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
                                         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                                             <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
                                             <button type="submit">🗑️ Delete</button>
@@ -166,7 +166,7 @@
                                         <summary aria-label="Actions for note <%= data[i].title %>">Actions</summary>
                                         <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
                                             <form method="POST" action="/notes/<%= data[i].id %>/pin" style="display: inline;">
-                                                <%- include('../components/input-csrf.html') %>
+                                                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
                                                 <button type="submit" class="no-style-btn" style="text-align: left;" role="menuitem" aria-label="<%= data[i].pinned ? 'Unpin' : 'Pin' %> note <%= data[i].title %>">
                                                     <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
                                                 </button>
@@ -177,7 +177,7 @@
                                                 <h2 id="delete-note-<%= data[i].id %>-title">Confirm</h2>
                                                 <p>Are you sure you want to delete <strong><%= data[i].title %></strong>?</p>
                                                 <form action="/notes/<%= data[i].id %>/delete" method="POST">
-                                                    <%- include('../components/input-csrf.html') %>
+                                                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
                                                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                                                         <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
                                                         <button type="submit">🗑️ Delete</button>
@@ -205,7 +205,7 @@
         </section>
     <% } %>
 
-    <%- include('../components/pagination.html', {
+    <%- include('../partials/pagination.html', {
         pagination,
         path,
         perPageDefault: state.user.notes_per_page,

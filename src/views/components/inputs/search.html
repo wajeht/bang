@@ -1,0 +1,14 @@
+<% if (typeof label !== 'undefined') { %>
+  <label for="<%= id %>" style="position: absolute; left: -10000px;"><%= label %></label>
+<% } %>
+<input
+  type="search"
+  id="<%= id %>"
+  name="<%= name %>"
+  <% if (typeof placeholder !== 'undefined') { %>placeholder="<%= placeholder %>"<% } %>
+  <% if (typeof value !== 'undefined') { %>value="<%= value %>"<% } %>
+  <% if (typeof ariaLabel !== 'undefined') { %>aria-label="<%= ariaLabel %>"<% } %>
+  <% if (typeof required !== 'undefined' && required) { %>required<% } %>
+  <% if (typeof autofocus !== 'undefined' && autofocus) { %>autofocus<% } %>
+  <% if (typeof style !== 'undefined') { %>style="<%= style %>"<% } else { %>style="padding: 8px; border-radius: 5px; border: 1px solid; flex: 1;"<% } %>
+>
