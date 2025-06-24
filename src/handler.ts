@@ -1423,6 +1423,35 @@ export function deleteNoteHandler(notes: Notes) {
     };
 }
 
+// POST /notes/:id/pin
+export function toggleNotePinHandler(notes: Notes) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const noteId = parseInt(req.params.id as unknown as string);
+
+        const currentNote = await notes.read(noteId, user.id);
+
+        if (!currentNote) {
+            throw new NotFoundError('Note not found', req);
+        }
+
+        const updatedNote = await notes.update(noteId, user.id, {
+            pinned: !currentNote.pinned
+        });
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`,
+                data: updatedNote
+            });
+            return;
+        }
+
+        req.flash('success', `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`);
+        return res.redirect('/notes');
+    };
+}
+
 // GET /api/notes
 export function getNotesByApiHandler(notes: Notes) {
     return async (req: Request, res: Response) => {
