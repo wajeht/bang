@@ -1138,7 +1138,7 @@ describe('search', () => {
                 const queries = [
                     '!note First Note | First content',
                     '!note Second Note | Second content',
-                    '!note Third Note | Third content'
+                    '!note Third Note | Third content',
                 ];
 
                 for (const query of queries) {
@@ -1164,7 +1164,7 @@ describe('search', () => {
                     page: 1,
                     search: '',
                     sortKey: 'created_at',
-                    direction: 'desc'
+                    direction: 'desc',
                 });
 
                 expect(result.data).toHaveLength(3);

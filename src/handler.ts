@@ -1284,15 +1284,17 @@ export const postNoteHandler = {
             .isLength({ max: 255 })
             .withMessage('Title must be less than 255 characters'),
         body('content').trim().notEmpty().withMessage('Content is required'),
-        body('pinned').optional().custom((value) => {
-            if (value === undefined || value === 'on') {
-                return true;
-            }
-            if (typeof value === 'boolean') {
-                return true;
-            }
-            throw new Error('Pinned must be a boolean or checkbox value');
-        }),
+        body('pinned')
+            .optional()
+            .custom((value) => {
+                if (value === undefined || value === 'on') {
+                    return true;
+                }
+                if (typeof value === 'boolean') {
+                    return true;
+                }
+                throw new Error('Pinned must be a boolean or checkbox value');
+            }),
     ]),
     handler: function (notes: Notes) {
         return async (req: Request, res: Response) => {
@@ -1346,17 +1348,19 @@ export const updateNoteHandler = {
             .isLength({ max: 255 })
             .withMessage('Title must be less than 255 characters'),
         body('content').trim().notEmpty().withMessage('Content is required'),
-        body('pinned').optional().custom((value) => {
-            // Checkbox sends 'on' when checked, undefined when unchecked
-            if (value === undefined || value === 'on') {
-                return true;
-            }
-            // For API requests, also allow boolean values
-            if (typeof value === 'boolean') {
-                return true;
-            }
-            throw new Error('Pinned must be a boolean or checkbox value');
-        }),
+        body('pinned')
+            .optional()
+            .custom((value) => {
+                // Checkbox sends 'on' when checked, undefined when unchecked
+                if (value === undefined || value === 'on') {
+                    return true;
+                }
+                // For API requests, also allow boolean values
+                if (typeof value === 'boolean') {
+                    return true;
+                }
+                throw new Error('Pinned must be a boolean or checkbox value');
+            }),
     ]),
     handler: function (notes: Notes) {
         return async (req: Request, res: Response) => {
@@ -1458,13 +1462,13 @@ export function toggleNotePinHandler(notes: Notes) {
         }
 
         const updatedNote = await notes.update(noteId, user.id, {
-            pinned: !currentNote.pinned
+            pinned: !currentNote.pinned,
         });
 
         if (isApiRequest(req)) {
             res.status(200).json({
                 message: `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`,
-                data: updatedNote
+                data: updatedNote,
             });
             return;
         }
