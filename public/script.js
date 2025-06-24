@@ -98,8 +98,14 @@ function initializeToast() {
 
     try {
         const { flash = {} } = getAppLocalState();
-        for (const msg of Object.values(flash)) {
-            if (msg?.length) createToast(msg);
+        // Flash messages are arrays: { success: [], error: [], info: [], warning: [] }
+        for (const [type, messages] of Object.entries(flash)) {
+            if (Array.isArray(messages) && messages.length > 0) {
+                // Show each message in the array
+                for (const message of messages) {
+                    if (message) createToast(message);
+                }
+            }
         }
     } catch {}
 }
