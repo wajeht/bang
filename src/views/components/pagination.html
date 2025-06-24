@@ -1,4 +1,4 @@
-<% if (pagination.perPage === pagination.total) { %>
+<% if (pagination.perPage === pagination.total && pagination.total > perPageDefault) { %>
     <nav aria-label="Return to paginated view" style="display: flex; justify-content: center; gap: 10px; align-items: center;">
         <a href="<%= path %>?page=1&per_page=<%= perPageDefault %>&sort_key=<%= sortKey %>&direction=<%= direction %>&search=<%= search %>" aria-label="Back to Paginated View">Back to Paginated View</a>
     </nav>
