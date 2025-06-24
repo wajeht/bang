@@ -1284,16 +1284,26 @@ export const postNoteHandler = {
             .isLength({ max: 255 })
             .withMessage('Title must be less than 255 characters'),
         body('content').trim().notEmpty().withMessage('Content is required'),
+        body('pinned').optional().custom((value) => {
+            if (value === undefined || value === 'on') {
+                return true;
+            }
+            if (typeof value === 'boolean') {
+                return true;
+            }
+            throw new Error('Pinned must be a boolean or checkbox value');
+        }),
     ]),
     handler: function (notes: Notes) {
         return async (req: Request, res: Response) => {
-            const { title, content } = req.body;
+            const { title, content, pinned } = req.body;
             const user = req.user as User;
 
             const note = await notes.create({
                 user_id: user.id,
                 title: title.trim(),
                 content: content.trim(),
+                pinned: pinned === 'on' || pinned === true,
             });
 
             if (isApiRequest(req)) {
@@ -1336,10 +1346,21 @@ export const updateNoteHandler = {
             .isLength({ max: 255 })
             .withMessage('Title must be less than 255 characters'),
         body('content').trim().notEmpty().withMessage('Content is required'),
+        body('pinned').optional().custom((value) => {
+            // Checkbox sends 'on' when checked, undefined when unchecked
+            if (value === undefined || value === 'on') {
+                return true;
+            }
+            // For API requests, also allow boolean values
+            if (typeof value === 'boolean') {
+                return true;
+            }
+            throw new Error('Pinned must be a boolean or checkbox value');
+        }),
     ]),
     handler: function (notes: Notes) {
         return async (req: Request, res: Response) => {
-            const { title, content } = req.body;
+            const { title, content, pinned } = req.body;
             const user = req.user as User;
 
             const updatedNote = await notes.update(
@@ -1348,6 +1369,7 @@ export const updateNoteHandler = {
                 {
                     title: title.trim(),
                     content: content.trim(),
+                    pinned: pinned === 'on' || pinned === true, // Handle both checkbox and API boolean
                 },
             );
 
