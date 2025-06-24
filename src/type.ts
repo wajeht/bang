@@ -156,6 +156,7 @@ export type Note = {
     title: string;
     content: string;
     user_id: number;
+    pinned?: boolean;
     created_at?: string;
 };
 
