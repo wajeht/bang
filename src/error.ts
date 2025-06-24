@@ -37,7 +37,9 @@ export class HttpError extends Error {
 
                 logger.info(`Scheduled ${this.constructor.name} notification`);
             } catch (queueError) {
-                logger.error('Failed to push error to notification queue: %o', queueError);
+                logger.error('Failed to push error to notification queue: %o', {
+                    queueError: queueError as any,
+                });
             }
         }
     }
@@ -62,8 +64,22 @@ export class NotFoundError extends HttpError {
 }
 
 export class ValidationError extends HttpError {
-    constructor(message = 'validation error', request?: Request) {
-        super(422, message, request);
+    public errors: Record<string, string> = {};
+
+    constructor(messageOrErrors: string | Record<string, string>, request?: Request) {
+        let message = 'validation error';
+
+        if (typeof messageOrErrors === 'string') {
+            message = messageOrErrors;
+            super(422, message, request);
+            this.errors = { general: message };
+        } else if (typeof messageOrErrors === 'object') {
+            super(422, message, request);
+            this.errors = messageOrErrors;
+        } else {
+            super(422, message, request);
+            this.errors = { general: message };
+        }
     }
 }
 

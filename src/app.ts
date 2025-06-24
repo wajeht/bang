@@ -87,7 +87,7 @@ export async function createServer() {
                 await runMigrations();
                 logger.info('Database migrations completed successfully');
             } catch (error) {
-                logger.error('Database connection or migration error: %o', error);
+                logger.error('Database connection or migration error: %o', { error: error as any });
             }
         }
     });
@@ -138,7 +138,7 @@ export async function closeServer({ server }: { server: Server }) {
             shutdownComplete = true;
             logger.info('[closeServer]: All connections closed successfully.');
         } catch (error) {
-            logger.error(`[closeServer]: Error during shutdown: %o`, error);
+            logger.error(`[closeServer]: Error during shutdown: %o`, { error: error as any });
             throw error;
         }
     });

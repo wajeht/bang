@@ -13,10 +13,10 @@ import { HttpError } from './error';
 import { Application } from 'express';
 import type { Bookmark } from './type';
 import { bookmarks } from './repository';
+import type { Options } from 'express-jsdoc-swagger';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
 import { authenticationMiddleware, cacheMiddleware } from './middleware';
 import { Api, User, PageType, ApiKeyPayload, BookmarkToExport, MagicLinkPayload } from './type';
-import type { Options } from 'express-jsdoc-swagger';
 
 export const actionTypes = ['search', 'redirect'] as const;
 
@@ -208,6 +208,11 @@ export function isValidUrl(url: string): boolean {
         logger.error(`[isValidUrl]: Not a valid url, %o`, { error });
         return false;
     }
+}
+
+export function isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
 
 export function addHttps(url: string): string {
