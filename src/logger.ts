@@ -78,18 +78,25 @@ function createLogger() {
         const diff = next.getTime() - last;
         last = next.getTime();
 
-        return `${getFormattedTimestamp()} (+${diff}ms) ${formattedMessage}\n`;
+        return {
+            timestamp: getFormattedTimestamp(),
+            message: formattedMessage,
+            diff,
+        };
     }
 
     return {
         info(message?: any, extra?: Record<string, any>) {
-            process.stderr.write(build('INFO: ' + message, extra));
+            const { timestamp, message: formattedMessage, diff } = build(message, extra);
+            process.stderr.write(`${timestamp} INFO (+${diff}ms): ${formattedMessage}\n`);
         },
         error(message?: any, extra?: Record<string, any>) {
-            process.stderr.write(build('ERROR: ' + message, extra));
+            const { timestamp, message: formattedMessage, diff } = build(message, extra);
+            process.stderr.write(`${timestamp} ERROR (+${diff}ms): ${formattedMessage}\n`);
         },
         warn(message?: any, extra?: Record<string, any>) {
-            process.stderr.write(build('WARN: ' + message, extra));
+            const { timestamp, message: formattedMessage, diff } = build(message, extra);
+            process.stderr.write(`${timestamp} WARN (+${diff}ms): ${formattedMessage}\n`);
         },
     };
 }
