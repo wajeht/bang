@@ -54,23 +54,18 @@
         <form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
-          <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="email-input">📧 Email Address</label>
-            <input
-              type="email"
-              id="email-input"
-              name="email"
-              placeholder="your@email.com"
-              autocomplete="email"
-              value="<%= state.input.email || '' %>"
-              required
-              autofocus
-              style="padding: 10px; border: 1px solid var(--border-color); border-radius: 5px;"
-            />
-            <% if (state.errors.email) { %>
-              <small style="color: red;" role="alert"><%= state.errors.email %></small>
-            <% } %>
-          </div>
+          <%- include('../components/inputs/email.html', {
+            id: 'email-input',
+            name: 'email',
+            label: '📧 Email Address',
+            placeholder: 'your@email.com',
+            value: state.input && state.input.email ? state.input.email : '',
+            required: true,
+            autocomplete: 'email',
+            autofocus: true,
+            style: 'padding: 10px; border: 1px solid var(--border-color); border-radius: 5px;',
+            error: state.errors && state.errors.email ? state.errors.email : undefined
+          }) %>
 
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
             <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>

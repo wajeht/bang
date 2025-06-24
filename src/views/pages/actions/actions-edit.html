@@ -26,25 +26,16 @@
               error: state.errors && state.errors.name ? state.errors.name : undefined
           }) %>
 
-          <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
-              <label for="trigger">⚡ Trigger <abbr title="Required">*</abbr></label>
-              <div style="display: flex; align-items: center; gap: 5px;">
-                  <span style="font-size: 1.2em;" aria-hidden="true">!</span>
-                  <input
-                      type="text"
-                      name="trigger"
-                      id="trigger"
-                      placeholder="g"
-                      value="<%= state.input && state.input.trigger ? state.input.trigger.slice(1) : action.trigger.slice(1) %>"
-                      required
-                      aria-describedby="trigger-help <%= state.errors && state.errors.trigger ? 'trigger-error' : '' %>"
-                  >
-              </div>
-              <small id="trigger-help">The command to trigger this action (e.g., 'g' for Google)</small>
-              <% if (state.errors && state.errors.trigger) { %>
-                  <small id="trigger-error" style="color: red;" role="alert"><%= state.errors.trigger %></small>
-              <% } %>
-          </div>
+          <%- include('../../components/inputs/text.html', {
+              id: 'trigger',
+              name: 'trigger',
+              label: '⚡ Trigger',
+              placeholder: 'g',
+              value: state.input && state.input.trigger ? state.input.trigger.slice(1) : action.trigger.slice(1),
+              required: true,
+              helpText: 'The command to trigger this action (e.g., \'g\' for Google)',
+              error: state.errors && state.errors.trigger ? state.errors.trigger : undefined
+          }) %>
 
           <%- include('../../components/inputs/url.html', {
               id: 'url',

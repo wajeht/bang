@@ -11,15 +11,15 @@
       <% } %>
 
       <form method="GET" style="display: flex; gap: 10px;" role="search">
-        <label for="search-input" style="position: absolute; left: -10000px;">Search users</label>
-        <input
-          type="search"
-          id="search-input"
-          name="search"
-          placeholder="Search users..."
-          value="<%= search %>"
-          style="padding: 8px; border-radius: 5px; border: 1px solid; flex: 1;"
-        >
+        <%- include('../../components/inputs/search.html', {
+          id: 'search-input',
+          name: 'search',
+          placeholder: 'Search users...',
+          value: search,
+          label: 'Search users',
+          ariaLabel: 'Search users',
+          style: 'padding: 8px; border-radius: 5px; border: 1px solid; flex: 1;'
+        }) %>
         <button type="submit">🔍</button>
       </form>
 

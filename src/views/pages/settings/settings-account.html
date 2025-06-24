@@ -31,56 +31,52 @@
   <form action="/settings/account" method="POST" >
     <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
-    <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 15px;">
+    <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column;">
       <legend>Account Information</legend>
 
-      <div style="display: flex; flex-direction: column; gap: 5px;">
-        <label for="username">👤 Username <abbr title="Required">*</abbr></label>
-        <input type="text" id="username" name="username" value="<%= state.input.username ?? user.username %>" required aria-describedby="username-help <%= state.errors.username ? 'username-error' : '' %>">
-        <small id="username-help">Your unique username</small>
-        <% if (state.errors.username) { %>
-          <small id="username-error" style="color: red;" role="alert"><%= state.errors.username %></small>
-        <% } %>
-      </div>
+      <%- include('../../components/inputs/text.html', {
+        id: 'username',
+        name: 'username',
+        label: '👤 Username',
+        value: state.input && state.input.username ? state.input.username : user.username,
+        required: true,
+        helpText: 'Your unique username',
+        error: state.errors && state.errors.username ? state.errors.username : undefined
+      }) %>
 
-      <div style="display: flex; flex-direction: column; gap: 5px;">
-        <label for="email">📧 Email <abbr title="Required">*</abbr></label>
-        <input type="email" id="email" name="email" value="<%= state.input.email ?? user.email %>" required aria-describedby="email-help <%= state.errors.email ? 'email-error' : '' %>">
-        <small id="email-help">Your email address for login and notifications</small>
-        <% if (state.errors.email) { %>
-          <small id="email-error" style="color: red;" role="alert"><%= state.errors.email %></small>
-        <% } %>
-      </div>
+      <%- include('../../components/inputs/email.html', {
+        id: 'email',
+        name: 'email',
+        label: '📧 Email',
+        value: state.input && state.input.email ? state.input.email : user.email,
+        required: true,
+        autocomplete: 'email',
+        helpText: 'Your email address for login and notifications',
+        error: state.errors && state.errors.email ? state.errors.email : undefined
+      }) %>
 
-      <div style="display: flex; flex-direction: column; gap: 5px;">
-        <label for="default_search_provider">🔎 Default Search Provider <abbr title="Required">*</abbr></label>
-        <select id="default_search_provider" name="default_search_provider" required aria-describedby="search-provider-help <%= state.errors.default_search_provider ? 'search-provider-error' : '' %>">
-            <% defaultSearchProviders.forEach(provider => { %>
-                <option value="<%= provider %>" <%= (state.input.default_search_provider ?? user.default_search_provider) === provider ? 'selected' : '' %> >
-                    <%= provider.charAt(0).toUpperCase() + provider.slice(1) %>
-                </option>
-            <% }); %>
-        </select>
-        <small id="search-provider-help">Your preferred search engine for queries</small>
-        <% if (state.errors.default_search_provider) { %>
-          <small id="search-provider-error" style="color: red;" role="alert"><%= state.errors.default_search_provider %></small>
-        <% } %>
-      </div>
+      <%- include('../../components/inputs/select.html', {
+        id: 'default_search_provider',
+        name: 'default_search_provider',
+        label: '🔎 Default Search Provider',
+        options: defaultSearchProviders.map(provider => ({
+          value: provider,
+          text: provider.charAt(0).toUpperCase() + provider.slice(1),
+          selected: (state.input && state.input.default_search_provider ? state.input.default_search_provider : user.default_search_provider) === provider
+        })),
+        required: true,
+        helpText: 'Your preferred search engine for queries',
+        error: state.errors && state.errors.default_search_provider ? state.errors.default_search_provider : undefined
+      }) %>
 
-      <div style="display: flex; flex-direction: column; gap: 5px;">
-        <label>
-          <input
-            type="checkbox"
-            name="autocomplete_search_on_homepage"
-            <%= user.autocomplete_search_on_homepage ? 'checked' : '' %>
-            aria-describedby="autocomplete-help <%= state.errors.autocomplete_search_on_homepage ? 'autocomplete-error' : '' %>">
-          Autocomplete Search on Homepage
-        </label>
-        <small id="autocomplete-help">Enable search suggestions on the homepage</small>
-        <% if (state.errors.autocomplete_search_on_homepage) { %>
-          <small id="autocomplete-error" style="color: red;" role="alert"><%= state.errors.autocomplete_search_on_homepage %></small>
-        <% } %>
-      </div>
+      <%- include('../../components/inputs/checkbox.html', {
+        id: 'autocomplete_search_on_homepage',
+        name: 'autocomplete_search_on_homepage',
+        label: 'Autocomplete Search on Homepage',
+        checked: user.autocomplete_search_on_homepage ? true : false,
+        helpText: 'Enable search suggestions on the homepage',
+        error: state.errors && state.errors.autocomplete_search_on_homepage ? state.errors.autocomplete_search_on_homepage : undefined
+      }) %>
 
       <button type="submit">💾 Save</button>
     </fieldset>

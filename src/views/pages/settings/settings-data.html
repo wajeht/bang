@@ -39,21 +39,29 @@
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
           <fieldset style="border: none; padding: 0; margin: 0;">
             <legend>Select data to export <abbr title="Required">*</abbr></legend>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              <label>
-                <input type="checkbox" id="bookmarks-checkbox" name="options[]" value="bookmarks">
-                🔖 Include Bookmarks
-              </label>
-              <label>
-                <input type="checkbox" id="actions-checkbox" name="options[]" value="actions">
-                ⚡ Include Actions
-              </label>
-              <label>
-                <input type="checkbox" id="notes-checkbox" name="options[]" value="notes">
-                📝 Include Notes
-              </label>
+            <div style="display: flex; flex-direction: column;">
+              <%- include('../../components/inputs/checkbox.html', {
+                id: 'bookmarks-checkbox',
+                name: 'options[]',
+                value: 'bookmarks',
+                label: '🔖 Include Bookmarks'
+              }) %>
 
-              <% if (state.errors.options) { %>
+              <%- include('../../components/inputs/checkbox.html', {
+                id: 'actions-checkbox',
+                name: 'options[]',
+                value: 'actions',
+                label: '⚡ Include Actions'
+              }) %>
+
+              <%- include('../../components/inputs/checkbox.html', {
+                id: 'notes-checkbox',
+                name: 'options[]',
+                value: 'notes',
+                label: '📝 Include Notes'
+              }) %>
+
+              <% if (state.errors && state.errors.options) { %>
                 <small style="color: red;" role="alert"><%= state.errors.options %></small>
               <% } %>
               <button type="submit">⬇️ Export</button>
@@ -77,21 +85,18 @@
         <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
         <fieldset style="border: none; padding: 0; margin: 0;">
           <legend>Configuration Data</legend>
-          <div style="display: flex; flex-direction: column; gap: 10px;">
-            <label for="config-textarea">JSON Configuration <abbr title="Required">*</abbr></label>
-            <textarea
-              id="config-textarea"
-              name="config"
-              rows="10"
-              style="width: 100%;"
-              placeholder="Paste your JSON configuration here"
-              required
-              aria-describedby="config-help <%= state.errors.config ? 'config-error' : '' %>"
-            ></textarea>
-            <small id="config-help">Paste the JSON data exported from Bang</small>
-            <% if (state.errors.config) { %>
-              <small id="config-error" style="color: red;" role="alert"><%= state.errors.config %></small>
-            <% } %>
+          <div style="display: flex; flex-direction: column;">
+            <%- include('../../components/inputs/textarea.html', {
+              id: 'config-textarea',
+              name: 'config',
+              label: 'JSON Configuration',
+              placeholder: 'Paste your JSON configuration here',
+              rows: 10,
+              style: 'width: 100%;',
+              required: true,
+              helpText: 'Paste the JSON data exported from Bang',
+              error: state.errors && state.errors.config ? state.errors.config : undefined
+            }) %>
             <button type="submit">⬆️ Import</button>
           </div>
         </fieldset>
