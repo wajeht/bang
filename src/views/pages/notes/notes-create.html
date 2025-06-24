@@ -1,5 +1,3 @@
-<%- include('../partials/markdown-preview.html') %>
-
 <section style="display: flex; flex-direction: column; gap: 20px;">
     <header>
         <h2>📝 Notes / New</h2>
@@ -17,59 +15,37 @@
         <fieldset style="border: none; padding: 0; margin: 0;">
             <legend style="font-weight: bold; margin-bottom: 15px;">Note Details</legend>
 
-            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
-                <label for="title">📝 Title <abbr title="Required">*</abbr></label>
-                <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    placeholder="My Note Title"
-                    value="<%= state.input.title ?? '' %>"
-                    required
-                    aria-describedby="title-help <%= state.errors.title ? 'title-error' : '' %>"
-                >
-                <small id="title-help">A descriptive title for your note</small>
-                <% if (state.errors.title) { %>
-                    <small id="title-error" style="color: red;" role="alert"><%= state.errors.title %></small>
-                <% } %>
-            </div>
+            <%- include('../../components/inputs/text.html', {
+                id: 'title',
+                name: 'title',
+                label: '📝 Title',
+                placeholder: 'My Note Title',
+                value: state.input && state.input.title ? state.input.title : '',
+                required: true,
+                helpText: 'A descriptive title for your note',
+                error: state.errors && state.errors.title ? state.errors.title : undefined
+            }) %>
 
-            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <label for="content">📄 Content <abbr title="Required">*</abbr></label>
-                    <button type="button" id="toggle-content-btn" onclick="toggleContent()" style="background: none; border: none; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; color: inherit;">Preview</button>
-                </div>
-                <div class="content" id="content-preview" style="display: none;"></div>
-                <textarea
-                    name="content"
-                    id="content"
-                    placeholder="Note content..."
-                    style="min-height: 200px; resize: vertical;"
-                    required
-                    aria-describedby="content-help <%= state.errors.content ? 'content-error' : '' %>"
-                ><%= state.input.content ?? '' %></textarea>
-                <small id="content-help">The content of your note (supports Markdown)</small>
-                <% if (state.errors.content) { %>
-                    <small id="content-error" style="color: red;" role="alert"><%= state.errors.content %></small>
-                <% } %>
-            </div>
+            <%- include('./partials/notes-textarea.html', {
+                id: 'content',
+                name: 'content',
+                label: '📄 Content',
+                placeholder: 'Note content...',
+                value: state.input && state.input.content ? state.input.content : '',
+                style: 'min-height: 200px; resize: vertical;',
+                required: true,
+                helpText: 'The content of your note (supports Markdown)',
+                error: state.errors && state.errors.content ? state.errors.content : undefined
+            }) %>
 
-            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input
-                        type="checkbox"
-                        name="pinned"
-                        id="pinned"
-                        <%= state.input.pinned === 'on' ? 'checked' : '' %>
-                        aria-describedby="pinned-help <%= state.errors.pinned ? 'pinned-error' : '' %>"
-                    >
-                    📌 Pin this note
-                </label>
-                <small id="pinned-help">Pinned notes appear at the top of your notes list</small>
-                <% if (state.errors.pinned) { %>
-                    <small id="pinned-error" style="color: red;" role="alert"><%= state.errors.pinned %></small>
-                <% } %>
-            </div>
+            <%- include('../../components/inputs/checkbox.html', {
+                id: 'pinned',
+                name: 'pinned',
+                label: '📌 Pin this note',
+                checked: state.input && state.input.pinned === 'on' ? true : false,
+                helpText: 'Pinned notes appear at the top of your notes list',
+                error: state.errors && state.errors.pinned ? state.errors.pinned : undefined
+            }) %>
         </fieldset>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">

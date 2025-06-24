@@ -15,22 +15,16 @@
       <fieldset style="border: none; padding: 0; margin: 0;">
           <legend style="font-weight: bold; margin-bottom: 15px;">Action Details</legend>
 
-          <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
-              <label for="name">📝 Name <abbr title="Required">*</abbr></label>
-              <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  placeholder="Google Search"
-                  value="<%= action.name %>"
-                  required
-                  aria-describedby="name-help <%= state.errors.name ? 'name-error' : '' %>"
-              >
-              <small id="name-help">A descriptive name for your action</small>
-              <% if (state.errors.name) { %>
-                  <small id="name-error" style="color: red;" role="alert"><%= state.errors.name %></small>
-              <% } %>
-          </div>
+          <%- include('../../components/inputs/text.html', {
+              id: 'name',
+              name: 'name',
+              label: '📝 Name',
+              placeholder: 'Google Search',
+              value: state.input && state.input.name ? state.input.name : action.name,
+              required: true,
+              helpText: 'A descriptive name for your action',
+              error: state.errors && state.errors.name ? state.errors.name : undefined
+          }) %>
 
           <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
               <label for="trigger">⚡ Trigger <abbr title="Required">*</abbr></label>
@@ -41,48 +35,40 @@
                       name="trigger"
                       id="trigger"
                       placeholder="g"
-                      value="<%= action.trigger.slice(1) %>"
+                      value="<%= state.input && state.input.trigger ? state.input.trigger.slice(1) : action.trigger.slice(1) %>"
                       required
-                      aria-describedby="trigger-help <%= state.errors.trigger ? 'trigger-error' : '' %>"
+                      aria-describedby="trigger-help <%= state.errors && state.errors.trigger ? 'trigger-error' : '' %>"
                   >
               </div>
               <small id="trigger-help">The command to trigger this action (e.g., 'g' for Google)</small>
-              <% if (state.errors.trigger) { %>
+              <% if (state.errors && state.errors.trigger) { %>
                   <small id="trigger-error" style="color: red;" role="alert"><%= state.errors.trigger %></small>
               <% } %>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
-              <label for="url">🌐 URL <abbr title="Required">*</abbr></label>
-              <input
-                  type="url"
-                  name="url"
-                  id="url"
-                  placeholder="https://google.com/search?q={query}"
-                  value="<%= action.url %>"
-                  required
-                  aria-describedby="url-help <%= state.errors.url ? 'url-error' : '' %>"
-              >
-              <small id="url-help">For search actions, use {query} where the search term should go</small>
-              <% if (state.errors.url) { %>
-                  <small id="url-error" style="color: red;" role="alert"><%= state.errors.url %></small>
-              <% } %>
-          </div>
+          <%- include('../../components/inputs/url.html', {
+              id: 'url',
+              name: 'url',
+              label: '🌐 URL',
+              placeholder: 'https://google.com/search?q={query}',
+              value: state.input && state.input.url ? state.input.url : action.url,
+              required: true,
+              helpText: 'For search actions, use {query} where the search term should go',
+              error: state.errors && state.errors.url ? state.errors.url : undefined
+          }) %>
 
-          <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
-              <label for="actionType">🏷️ Action Type <abbr title="Required">*</abbr></label>
-              <select
-                  id="actionType"
-                  name="actionType"
-                  required
-                  aria-describedby="actionType-help"
-              >
-                  <option value="">Choose an action type</option>
-                  <option value="search" <%= action.action_type === 'search' ? 'selected' : '' %>>Search</option>
-                  <option value="redirect" <%= action.action_type === 'redirect' ? 'selected' : '' %>>Redirect</option>
-              </select>
-              <small id="actionType-help">Select the type of action to perform</small>
-          </div>
+          <%- include('../../components/inputs/select.html', {
+              id: 'actionType',
+              name: 'actionType',
+              label: '🏷️ Action Type',
+              options: [
+                  { value: 'search', text: 'Search', selected: (state.input && state.input.actionType ? state.input.actionType : action.action_type) === 'search' },
+                  { value: 'redirect', text: 'Redirect', selected: (state.input && state.input.actionType ? state.input.actionType : action.action_type) === 'redirect' }
+              ],
+              required: true,
+              helpText: 'Select the type of action to perform',
+              error: state.errors && state.errors.actionType ? state.errors.actionType : undefined
+          }) %>
       </fieldset>
 
       <div style="display: flex; gap: 10px;">

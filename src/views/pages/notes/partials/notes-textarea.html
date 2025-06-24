@@ -1,0 +1,114 @@
+<script>
+    async function renderMarkdown(content) {
+        const response = await fetch('/api/notes/render-markdown', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: content }),
+        });
+
+        const data = await response.json();
+        return data.content;
+    };
+
+    async function toggleContent() {
+        const content = document.getElementById('content');
+        const preview = document.getElementById('content-preview');
+
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            preview.style.display = 'none';
+            document.getElementById('toggle-content-btn').innerHTML = 'Preview';
+        } else {
+            content.style.display = 'none';
+            preview.style.display = 'block';
+            preview.style.padding = '5px 10px';
+            preview.style.borderRadius = '3px';
+            preview.style.borderStyle = 'solid';
+            preview.style.borderColor = '#767676';
+            preview.style.borderWidth = '1px';
+            document.getElementById('toggle-content-btn').innerHTML = 'Edit';
+        }
+    }
+
+    window.addEventListener('load', () => {
+        const toggleContentBtn = document.getElementById('toggle-content-btn');
+        const content = document.getElementById('content');
+        const preview = document.getElementById('content-preview');
+        let fetchedContent = '';
+        let lastFetchedContentValue = '';
+
+        if (toggleContentBtn) {
+            // fetch when user mouse is hover on top
+            toggleContentBtn.addEventListener('mouseenter', async () => {
+                if (toggleContentBtn.innerHTML === 'Preview' && content.value !== '' && content.value !== lastFetchedContentValue) {
+                    try {
+                        fetchedContent = await renderMarkdown(content.value);
+                        preview.innerHTML = fetchedContent;
+                        lastFetchedContentValue = content.value;
+                    } catch (error) {
+                        console.error('Error rendering markdown:', error);
+                        preview.innerHTML = 'Error rendering preview';
+                    }
+                }
+            });
+
+            toggleContentBtn.addEventListener('click', async () => {
+                if (toggleContentBtn.innerHTML === 'Preview') {
+                    if (content.value !== '') {
+                        try {
+                            if (!fetchedContent || content.value !== lastFetchedContentValue) {
+                                fetchedContent = await renderMarkdown(content.value);
+                                lastFetchedContentValue = content.value;
+                            }
+                            preview.innerHTML = fetchedContent;
+                        } catch (error) {
+                            console.error('Error rendering markdown:', error);
+                            preview.innerHTML = 'Error rendering preview';
+                        }
+                    } else {
+                        preview.innerHTML = 'Nothing to preview';
+                    }
+                }
+            });
+
+            // fetch when user navigates with keyboard and lands on it
+            toggleContentBtn.addEventListener('focus', async () => {
+                if (toggleContentBtn.innerHTML === 'Preview' && content.value !== '' && content.value !== lastFetchedContentValue) {
+                    try {
+                        fetchedContent = await renderMarkdown(content.value);
+                        preview.innerHTML = fetchedContent;
+                        lastFetchedContentValue = content.value;
+                    } catch (error) {
+                        console.error('Error rendering markdown:', error);
+                        preview.innerHTML = 'Error rendering preview';
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+<div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <label for="<%= id %>"><%= label %><% if (typeof required !== 'undefined' && required) { %> <abbr title="Required">*</abbr><% } %></label>
+        <button type="button" id="toggle-content-btn" onclick="toggleContent()" style="background: none; border: none; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; color: inherit;">Preview</button>
+    </div>
+    <div class="content" id="content-preview" style="display: none;"></div>
+    <textarea
+        id="<%= id %>"
+        name="<%= name %>"
+        <% if (typeof placeholder !== 'undefined') { %>placeholder="<%= placeholder %>"<% } %>
+        <% if (typeof rows !== 'undefined') { %>rows="<%= rows %>"<% } %>
+        <% if (typeof cols !== 'undefined') { %>cols="<%= cols %>"<% } %>
+        <% if (typeof required !== 'undefined' && required) { %>required<% } %>
+        <% if (typeof readonly !== 'undefined' && readonly) { %>readonly<% } %>
+        <% if (typeof style !== 'undefined') { %>style="<%= style %>"<% } %>
+        aria-describedby="<%= id %>-help<% if (typeof error !== 'undefined' && error) { %> <%= id %>-error<% } %>"
+    ><%= typeof value !== 'undefined' ? value : '' %></textarea>
+    <% if (typeof helpText !== 'undefined') { %>
+        <small id="<%= id %>-help"><%= helpText %></small>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+        <small id="<%= id %>-error" style="color: red;" role="alert"><%= error %></small>
+    <% } %>
+</div>
