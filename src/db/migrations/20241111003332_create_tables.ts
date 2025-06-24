@@ -134,9 +134,11 @@ export async function up(knex: Knex): Promise<void> {
                 .onDelete('CASCADE');
             table.string('title').notNullable();
             table.text('content').notNullable();
+            table.boolean('pinned').defaultTo(false);
             table.timestamps(true, true);
 
             table.index(['user_id', 'created_at']);
+            table.index(['user_id', 'pinned', 'created_at']);
         });
     }
 
