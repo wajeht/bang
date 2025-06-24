@@ -216,39 +216,3 @@ Fieldset wrapper with legend.
   content: content
 }) %>
 ```
-
-## Migration Examples
-
-### Before (Original Code)
-```html
-<div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
-    <label for="name">📝 Name <abbr title="Required">*</abbr></label>
-    <input
-        type="text"
-        id="name"
-        name="name"
-        placeholder="Google Search"
-        value="<%= state.input.name ?? '' %>"
-        required
-        aria-describedby="name-help <%= state.errors.name ? 'name-error' : '' %>"
-    >
-    <small id="name-help">A descriptive name for your action</small>
-    <% if (state.errors.name) { %>
-        <small id="name-error" style="color: red;" role="alert"><%= state.errors.name %></small>
-    <% } %>
-</div>
-```
-
-### After (Using Components)
-```html
-<%- include('../components/inputs/text.html', {
-    id: 'name',
-    name: 'name',
-    label: '📝 Name',
-    placeholder: 'Google Search',
-    value: state.input.name ?? '',
-    required: true,
-    helpText: 'A descriptive name for your action',
-    error: state.errors.name
-}) %>
-```
