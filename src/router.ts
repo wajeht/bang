@@ -22,6 +22,7 @@ import {
     deleteActionHandler,
     getBookmarksHandler,
     postBookmarkHandler,
+    toggleNotePinHandler,
     getAdminUsersHandler,
     postExportDataHandler,
     postImportDataHandler,
@@ -105,6 +106,7 @@ router.post('/bookmarks/:id/update', authenticationMiddleware, updateBookmarkHan
 router.get('/notes', authenticationMiddleware, getNotesHandler(notes));
 router.get('/notes/create', authenticationMiddleware, getNoteCreatePageHandler());
 router.post('/notes/:id/delete', authenticationMiddleware, deleteNoteHandler(notes));
+router.post('/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler(notes));
 router.get('/notes/:id/edit', authenticationMiddleware, getEditNotePageHandler(notes));
 router.get('/notes/:id', authenticationMiddleware, getNoteHandler(notes, marked, logger));
 router.post('/notes', authenticationMiddleware, postNoteHandler.validator, postNoteHandler.handler(notes)); // prettier-ignore
@@ -476,5 +478,21 @@ router.put('/api/notes/:id', authenticationMiddleware, updateNoteHandler.validat
  *
  */
 router.delete('/api/notes/:id', authenticationMiddleware, deleteNoteHandler(notes));
+
+/**
+ * POST /api/notes/{id}/pin
+ *
+ * @tags Notes
+ * @summary Toggle pin status of a note
+ *
+ * @security BearerAuth
+ *
+ * @param {string} id.path.required - note id
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 404 - Not found response - application/json
+ *
+ */
+router.post('/api/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler(notes));
 
 export { router };
