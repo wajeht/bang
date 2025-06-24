@@ -53,6 +53,23 @@
                     <small id="content-error" style="color: red;" role="alert"><%= state.errors.content %></small>
                 <% } %>
             </div>
+
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input
+                        type="checkbox"
+                        name="pinned"
+                        id="pinned"
+                        <%= state.input.pinned === 'on' ? 'checked' : '' %>
+                        aria-describedby="pinned-help <%= state.errors.pinned ? 'pinned-error' : '' %>"
+                    >
+                    📌 Pin this note
+                </label>
+                <small id="pinned-help">Pinned notes appear at the top of your notes list</small>
+                <% if (state.errors.pinned) { %>
+                    <small id="pinned-error" style="color: red;" role="alert"><%= state.errors.pinned %></small>
+                <% } %>
+            </div>
         </fieldset>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
