@@ -58,7 +58,6 @@ export function errorMiddleware() {
     return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
         logger.error(`${req.method} ${req.path} - ${error.message}`, { error });
 
-        // Handle CSRF errors specifically - they have a code property
         if ((error as any).code === 'EBADCSRFTOKEN') {
             error = new HttpError(403, error.message, req);
         } else if (!(error instanceof HttpError)) {
@@ -79,12 +78,9 @@ export function errorMiddleware() {
             };
 
             if (statusCode === 422) {
-                try {
-                    responsePayload.details = JSON.parse(message);
-                } catch (parseError) {
-                    logger.error(`Failed to parse error message as JSON: %o`, {
-                        parseError: parseError as any,
-                    });
+                if (httpError instanceof ValidationError) {
+                    responsePayload.details = httpError.errors;
+                } else {
                     responsePayload.details = message;
                 }
             }
@@ -93,30 +89,24 @@ export function errorMiddleware() {
             return;
         }
 
-        // For form requests with validation errors, store errors and redirect back
         if (statusCode === 422) {
             if (req.session) {
                 if (httpError instanceof ValidationError) {
-                    // Use ValidationError's field mappings directly
                     req.session.errors = httpError.errors;
                 } else {
-                    // Other HTTP errors
                     req.session.errors = { general: message };
                 }
 
-                // Preserve form input for redisplay
                 req.session.input = req.body as Record<string, any>;
             }
             const referer = req.headers?.referer || '/';
             return res.redirect(referer);
         }
 
-        // Ensure locals are set up for error pages
         if (!res.locals.state) {
             setupAppLocals(req, res);
         }
 
-        // Ensure csrfToken is available for error page rendering
         if (typeof res.locals.csrfToken === 'undefined') {
             res.locals.csrfToken = '';
         }

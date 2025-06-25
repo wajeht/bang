@@ -368,6 +368,7 @@ describe('errorMiddleware', () => {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
+            redirect: vi.fn().mockReturnThis(),
             locals: {},
         };
         next = vi.fn();
@@ -397,6 +398,7 @@ describe('errorMiddleware', () => {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
+            redirect: vi.fn().mockReturnThis(),
             locals: {},
         };
 
@@ -407,20 +409,14 @@ describe('errorMiddleware', () => {
             res as unknown as Response,
             next,
         );
-        expect(res.status).toHaveBeenCalledWith(422);
-        expect(res.render).toHaveBeenCalledWith(
-            'error.html',
-            expect.objectContaining({
-                statusCode: 422,
-                message: expect.stringContaining('Invalid input'),
-            }),
-        );
+        expect(res.redirect).toHaveBeenCalledWith('/');
 
         vi.resetAllMocks();
         res = {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
+            redirect: vi.fn().mockReturnThis(),
             locals: {},
         };
 
@@ -445,6 +441,7 @@ describe('errorMiddleware', () => {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
+            redirect: vi.fn().mockReturnThis(),
             locals: {},
         };
 
@@ -469,6 +466,7 @@ describe('errorMiddleware', () => {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
+            redirect: vi.fn().mockReturnThis(),
             locals: {},
         };
 
@@ -513,6 +511,7 @@ describe('errorMiddleware', () => {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
+            redirect: vi.fn().mockReturnThis(),
             locals: {},
         };
 
