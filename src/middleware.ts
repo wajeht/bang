@@ -100,6 +100,14 @@ export function errorMiddleware() {
                 req.session.input = req.body as Record<string, any>;
             }
             const referer = req.headers?.referer || '/';
+
+            if (req.session && req.session.errors) {
+                req.flash(
+                    'error',
+                    Object.values(req.session.errors as Record<string, string>).join(', '),
+                );
+            }
+
             return res.redirect(referer);
         }
 
