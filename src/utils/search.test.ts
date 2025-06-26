@@ -5,14 +5,19 @@ import {
     getBangRedirectUrl,
     processDelayedSearch,
     handleAnonymousSearch,
-} from './search';
-import { db } from './db/db';
-import { User } from './type';
-import { config } from './config';
-import { notes } from './repository';
+} from '../utils/search';
+import { db } from '../db/db';
+import { User } from '../type';
+import { config } from '../config';
+import { notes } from '../repository';
 import { Request, Response } from 'express';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { isValidUrl, insertBookmark, insertPageTitle, checkDuplicateBookmarkUrl } from './util';
+import {
+    isValidUrl,
+    insertBookmark,
+    insertPageTitle,
+    checkDuplicateBookmarkUrl,
+} from '../utils/util';
 
 vi.mock('./util', async () => {
     const actual = await vi.importActual('./util');

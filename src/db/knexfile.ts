@@ -1,7 +1,7 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
 import { config } from '../config';
-import { logger } from '../logger';
+import { logger } from '../utils/logger';
 
 const knexConfig: Knex.Config = {
     client: 'better-sqlite3',

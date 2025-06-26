@@ -6,13 +6,13 @@ import {
     UnauthorizedError,
     UnimplementedFunctionError,
 } from './error';
-import { logger } from './logger';
-import { Request } from 'express';
 import { config } from './config';
-import { sendNotification } from './util';
+import type { Request } from 'express';
+import { logger } from './utils/logger';
+import { sendNotification } from './utils/util';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('./util', () => ({
+vi.mock('./utils/util', () => ({
     sendNotification: vi.fn(),
 }));
 
@@ -22,10 +22,17 @@ vi.mock('./config', () => ({
             env: 'production',
             adminEmail: 'test-admin@example.com',
         },
+        email: {
+            host: 'testing',
+            port: 1234,
+            secure: false,
+            user: 'testing',
+            password: 'testing',
+        },
     },
 }));
 
-vi.mock('./logger', () => ({
+vi.mock('./utils/logger', () => ({
     logger: {
         error: vi.fn(),
         info: vi.fn(),

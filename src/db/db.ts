@@ -1,6 +1,6 @@
 import knex from 'knex';
 import path from 'node:path';
-import { logger } from '../logger';
+import { logger } from '../utils/logger';
 import { config } from '../config';
 import knexConfig from './knexfile';
 import { attachPaginate } from './paginate';

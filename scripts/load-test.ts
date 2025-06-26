@@ -1,12 +1,12 @@
 #!/usr/bin/env tsx
 
-import { api } from '../src/util.js';
-import { db, optimizeDatabase, checkDatabaseHealth } from '../src/db/db.js';
+import { api } from '../src/utils/util.js';
 import type { User } from '../src/type.js';
+import { db, optimizeDatabase, checkDatabaseHealth } from '../src/db/db.js';
 
 const CONFIG = {
     baseUrl: 'http://localhost:80',
-    users: 1000, // Increased for production server testing
+    users: 1000,
 };
 
 const TESTS = [
@@ -199,7 +199,6 @@ async function createUsers(): Promise<Array<{ user: User; apiKey: string }>> {
 
                 await db('bookmarks').insert(bookmarks);
 
-                // Create sample notes
                 const notes = [
                     {
                         user_id: user.id,
@@ -243,7 +242,6 @@ async function runTest(test: any, users: Array<{ user: User; apiKey: string }>) 
     const rps = results.length / duration;
     const success = (successful / results.length) * 100;
 
-    // Show status codes for first few requests
     const statusCodes = results
         .slice(0, 3)
         .map((r) => r.status)
@@ -269,7 +267,6 @@ async function cleanup() {
     if (users.length > 0) {
         const ids = users.map((u) => u.id);
 
-        // Clean up in proper order due to foreign key constraints
         await db('bookmarks').whereIn('user_id', ids).del();
         await db('bangs').whereIn('user_id', ids).del();
         await db('notes').whereIn('user_id', ids).del();

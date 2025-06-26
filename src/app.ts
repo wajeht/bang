@@ -13,13 +13,13 @@ import express from 'express';
 import { router } from './router';
 import flash from 'connect-flash';
 import { config } from './config';
-import { logger } from './logger';
+import { logger } from './utils/logger';
 import { Server } from 'node:http';
 import compression from 'compression';
 import { AddressInfo } from 'node:net';
-import { isMailpitRunning } from './util';
+import { isMailpitRunning } from './utils/util';
 import expressLayouts from 'express-ejs-layouts';
-import { expressJSDocSwaggerHandler, swagger } from './util';
+import { expressJSDocSwaggerHandler } from './utils/swagger';
 import { expressTemplatesReload } from '@wajeht/express-templates-reload';
 import { db, runMigrations, checkDatabaseHealth, optimizeDatabase } from './db/db';
 
@@ -33,11 +33,12 @@ export async function createServer() {
                 { path: './public', extensions: ['.css', '.js'] },
                 { path: './src/views', extensions: ['.html'] },
             ],
-            options: { quiet: false },
+            options: { quiet: true },
         });
     }
 
     app.set('trust proxy', 1)
+        .set('etag', false) // Disable Express's built-in ETag to use our custom cache
         .use(sessionMiddleware())
         .use(flash())
         .use(compression())
@@ -57,7 +58,7 @@ export async function createServer() {
         .use(appLocalStateMiddleware)
         .use(router);
 
-    expressJSDocSwaggerHandler(app, swagger);
+    expressJSDocSwaggerHandler(app);
 
     app.use(notFoundMiddleware());
     app.use(errorMiddleware());

@@ -18,12 +18,12 @@ import {
     getConvertedReadmeMDToHTML,
 } from './util';
 import path from 'node:path';
-import { db } from './db/db';
+import { db } from '../db/db';
 import jwt from 'jsonwebtoken';
 import fs from 'node:fs/promises';
 import { Request } from 'express';
-import { config } from './config';
-import { ApiKeyPayload, BookmarkToExport } from './type';
+import { config } from '../config';
+import { ApiKeyPayload, BookmarkToExport } from '../type';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 describe.concurrent('isValidUrl', () => {

@@ -1,7 +1,7 @@
-import { Request } from 'express';
-import { logger } from './logger';
 import { config } from './config';
-import { sendNotification } from './util';
+import type { Request } from 'express';
+import { logger } from './utils/logger';
+import { sendNotification } from './utils/util';
 
 export class HttpError extends Error {
     statusCode: number;

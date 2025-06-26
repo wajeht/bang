@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import type { Bang } from './type.js';
+import type { Bang } from '../type.js';
 
 interface BangSource {
     name: string;

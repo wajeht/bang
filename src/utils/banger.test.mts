@@ -7,7 +7,7 @@ import {
     fetchBangsFromSource,
 } from './banger.mjs';
 import fs from 'node:fs';
-import type { Bang } from './type.js';
+import type { Bang } from '../type.js';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('node:fs', () => ({

@@ -1,7 +1,7 @@
 import { db } from './db/db';
-import { logger } from './logger';
+import { logger } from './utils/logger';
 import { notes } from './repository';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getHealthzHandler, postExportDataHandler, toggleNotePinHandler } from './handler';
 

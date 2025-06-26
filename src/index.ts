@@ -1,8 +1,9 @@
-import { createServer, closeServer } from './app';
-import { logger } from './logger';
-import { Request } from 'express';
 import { config } from './config';
-import { sendNotification } from './util';
+import { logger } from './utils/logger';
+import type { Request } from 'express';
+import { createServer, closeServer } from './app';
+import { sendNotification } from './utils/util';
+
 export async function run() {
     process.title = 'bang';
 

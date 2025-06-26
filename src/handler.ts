@@ -22,16 +22,17 @@ import {
     checkDuplicateBookmarkUrl,
     getConvertedReadmeMDToHTML,
     convertMarkdownToPlainText,
-} from './util';
+} from './utils/util';
 import { Knex } from 'knex';
 import { db } from './db/db';
 import { marked } from 'marked';
-import { logger } from './logger';
+import { logger } from './utils/logger';
 import { config } from './config';
 import { actions, bookmarks, notes } from './repository';
-import { Request, Response, NextFunction } from 'express';
-import { actionTypes, defaultSearchProviders } from './util';
+import type { Request, Response, NextFunction } from 'express';
+import { actionTypes, defaultSearchProviders } from './utils/util';
 import { HttpError, NotFoundError, ValidationError } from './error';
+import { invalidateUserData } from './utils/cache';
 
 // GET /healthz
 export function getHealthzHandler(db: Knex) {
@@ -1621,6 +1622,7 @@ export function postLoginHandler() {
             'success',
             `📧 Magic link sent to ${email}! Check your email and click the link to log in.`,
         );
+        invalidateUserData();
         return res.redirect('/');
     };
 }
@@ -1667,6 +1669,7 @@ export function getMagicLinkHandler() {
         req.session.save();
 
         req.flash('success', `🎉 Welcome ${user.username}! You're now logged in.`);
+        invalidateUserData();
         return res.redirect(redirectTo);
     };
 }

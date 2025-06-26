@@ -7,10 +7,10 @@ import {
     updateUserBangLastReadAt,
     checkDuplicateBookmarkUrl,
 } from './util';
-import { db } from './db/db';
-import { Bang, Search } from './type';
+import { db } from '../db/db';
+import { Bang, Search } from '../type';
 import { Request, Response } from 'express';
-import { bangs as bangsTable } from './db/bang';
+import { bangs as bangsTable } from '../db/bang';
 import { defaultSearchProviders } from './util';
 
 const searchConfig = {

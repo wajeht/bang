@@ -1,15 +1,15 @@
 import { db } from './db/db';
-import { User } from './type';
-import { logger } from './logger';
+import type { User } from './type';
+import { logger } from './utils/logger';
 import { users } from './repository';
 import { Session } from 'express-session';
-import { api, getApiKey, isApiRequest } from './util';
-import { Request, Response, NextFunction } from 'express';
+import { api, getApiKey, isApiRequest } from './utils/util';
+import type { Request, Response, NextFunction } from 'express';
 import { authenticationMiddleware, errorMiddleware } from './middleware';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from './error';
 
-vi.mock('./util', () => ({
+vi.mock('./utils/util', () => ({
     getApiKey: vi.fn(),
     isApiRequest: vi.fn(),
     api: {
@@ -22,7 +22,7 @@ vi.mock('./util', () => ({
     nl2br: vi.fn((text) => text),
 }));
 
-vi.mock('./logger', () => ({
+vi.mock('./utils/logger', () => ({
     logger: {
         error: vi.fn(),
         info: vi.fn(),

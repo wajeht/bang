@@ -1,6 +1,6 @@
 import helmet from 'helmet';
 import { db } from './db/db';
-import { logger } from './logger';
+import { logger } from './utils/logger';
 import { config } from './config';
 import type { User } from './type';
 import { users } from './repository';
@@ -8,44 +8,10 @@ import { csrfSync } from 'csrf-sync';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
 import { rateLimitHandler } from './handler';
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
-import { api, nl2br, getApiKey, isApiRequest, highlightSearchTerm } from './util';
+import { api, nl2br, getApiKey, isApiRequest, highlightSearchTerm } from './utils/util';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
-
-export const CACHE_DURATION = {
-    second: 1,
-    minute: 60,
-    hour: 60 * 60,
-    day: 24 * 60 * 60,
-    week: 7 * 24 * 60 * 60,
-    month: 30 * 24 * 60 * 60,
-    year: 365 * 24 * 60 * 60,
-} as const;
-
-export function cacheMiddleware(value: number, unit: keyof typeof CACHE_DURATION = 'second') {
-    const seconds = value * CACHE_DURATION[unit];
-
-    return (req: Request, res: Response, next: NextFunction) => {
-        if (req.method !== 'GET') {
-            return next();
-        }
-
-        if (isApiRequest(req)) {
-            res.set({
-                'Cache-Control': `private, max-age=${seconds}, must-revalidate`,
-                Vary: 'Authorization, Accept-Encoding',
-                'Surrogate-Control': `max-age=${seconds}`,
-                'stale-while-revalidate': '30',
-                'stale-if-error': '86400',
-            });
-        } else {
-            res.set('Cache-Control', `public, max-age=${seconds}`);
-        }
-
-        next();
-    };
-}
 
 export function notFoundMiddleware() {
     return (req: Request, _res: Response, _next: NextFunction) => {

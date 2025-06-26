@@ -21,9 +21,9 @@ declare global {
     }
 }
 
-export type DefaultSearchProviders = 'duckduckgo' | 'google' | 'yahoo' | 'bing';
-
 import type { Request, Response } from 'express';
+
+export type DefaultSearchProviders = 'duckduckgo' | 'google' | 'yahoo' | 'bing';
 
 export type PageType = 'actions' | 'bookmarks' | 'notes';
 

@@ -1,22 +1,25 @@
-import { db } from './db/db';
+import type {
+    Api,
+    User,
+    PageType,
+    ApiKeyPayload,
+    BookmarkToExport,
+    MagicLinkPayload,
+} from '../type';
 import http from 'node:http';
 import path from 'node:path';
+import { db } from '../db/db';
 import https from 'node:https';
 import jwt from 'jsonwebtoken';
 import { marked } from 'marked';
 import { logger } from './logger';
-import { config } from './config';
+import { config } from '../config';
 import fs from 'node:fs/promises';
-import { Request } from 'express';
 import nodemailer from 'nodemailer';
-import { HttpError } from './error';
-import { Application } from 'express';
-import type { Bookmark } from './type';
-import { bookmarks } from './repository';
-import type { Options } from 'express-jsdoc-swagger';
-import expressJSDocSwagger from 'express-jsdoc-swagger';
-import { authenticationMiddleware, cacheMiddleware } from './middleware';
-import { Api, User, PageType, ApiKeyPayload, BookmarkToExport, MagicLinkPayload } from './type';
+import type { Request } from 'express';
+import { HttpError } from '../error';
+import type { Bookmark } from '../type';
+import { bookmarks } from '../repository';
 
 export const actionTypes = ['search', 'redirect'] as const;
 
@@ -583,42 +586,4 @@ export async function convertMarkdownToPlainText(
         logger.error(`Failed to convert markdown to plain text: %o`, { error });
         return '';
     }
-}
-
-export const swagger = {
-    info: {
-        title: 'bang',
-        description: `DuckDuckGo's !Bangs, but on steroids`,
-        termsOfService: `/terms-of-service`,
-        contact: {
-            name: 'Support',
-            url: `https://github.com/wajeht/bang/issues`,
-        },
-        license: {
-            name: 'MIT',
-            url: 'https://github.com/wajeht/bang/blob/main/LICENSE',
-        },
-        version: '0.0.1',
-    },
-    baseDir: './src',
-    filesPattern: ['./**/router.ts'],
-    swaggerUIPath: '/api-docs',
-    exposeSwaggerUI: true,
-    notRequiredAsNullable: false,
-    swaggerUiOptions: {
-        customSiteTitle: `DuckDuckGo's !Bangs, but on steroids`,
-        customfavIcon: '/favicon.ico',
-    },
-    security: {
-        BearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-        },
-    },
-    multiple: {},
-} as unknown as Options;
-
-export function expressJSDocSwaggerHandler(app: Application, swaggerConfig: typeof swagger) {
-    app.use('/api-docs', authenticationMiddleware, cacheMiddleware(30, 'day'));
-    expressJSDocSwagger(app)(swaggerConfig);
 }

@@ -7,7 +7,7 @@ import {
     BookmarksQueryParams,
 } from './type';
 import { db } from './db/db';
-import { Actions, Bookmarks, Notes } from './type';
+import type { Actions, Bookmarks, Notes } from './type';
 
 export const actions: Actions = {
     all: async ({
