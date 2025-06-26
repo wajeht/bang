@@ -17,7 +17,6 @@ DuckDuckGo's !Bangs, but on steroids.
 Before you can use the Bang command from your browser's search bar, you need to add the Bang URL as a custom search engine. Follow these steps:
 
 1. In your browser settings, add a new search engine:
-
     - **Name**: Whatever you prefer (e.g., "Bang")
     - **Shortcut**: `bd` (or any keyword you prefer)
     - **URL**: `http://bang.jaw.dev/?q=%s`
