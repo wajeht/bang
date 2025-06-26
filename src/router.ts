@@ -63,9 +63,9 @@ const router = express.Router();
 
 router.get('/healthz', getHealthzHandler(db));
 router.get('/', getHomePageAndSearchHandler(search));
-router.get('/privacy-policy', getPrivacyPolicyPageHandler());
-router.get('/terms-of-service', getTermsOfServicePageHandler());
-router.get('/how-to', cacheMiddleware(1, 'day'), getHowToPageHandler());
+router.get('/how-to', cacheMiddleware(30, 'day'), getHowToPageHandler());
+router.get('/privacy-policy', cacheMiddleware(30, 'day'), getPrivacyPolicyPageHandler());
+router.get('/terms-of-service', cacheMiddleware(30, 'day'), getTermsOfServicePageHandler());
 
 router.post('/login', postLoginHandler());
 router.get('/logout', getLogoutHandler());
