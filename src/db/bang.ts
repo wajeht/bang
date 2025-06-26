@@ -5866,7 +5866,7 @@ export const bangs: Record<string, any> = {
         s: 'ArchLinux User Repository',
         d: 'aur.archlinux.org',
         t: 'archaur',
-        u: 'https://aur.archlinux.org/packages.php?O=0&K={{{s}}}&do_Search=Go',
+        u: 'https://aur.archlinux.org/packages?O=0&K={{{s}}}',
         c: 'Tech',
         sc: 'Languages (other)',
     },
