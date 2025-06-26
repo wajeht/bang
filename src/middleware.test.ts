@@ -540,7 +540,7 @@ describe('errorMiddleware', () => {
         const validationError = new ValidationError('Validation failed');
         validationError.errors = {
             name: 'Name is required',
-            email: 'Email is invalid'
+            email: 'Email is invalid',
         };
 
         await errorMiddlewareInstance(
@@ -550,10 +550,7 @@ describe('errorMiddleware', () => {
             next,
         );
 
-        expect(req.flash).toHaveBeenCalledWith(
-            'error',
-            'Name is required, Email is invalid',
-        );
+        expect(req.flash).toHaveBeenCalledWith('error', 'Name is required, Email is invalid');
         expect(res.redirect).toHaveBeenCalledWith('/test-page');
     });
 });

@@ -1670,3 +1670,15 @@ export function getMagicLinkHandler() {
         return res.redirect(redirectTo);
     };
 }
+
+export function rateLimitHandler() {
+    return async (req: Request, res: Response) => {
+        if (isApiRequest(req)) {
+            return res.json({ message: 'Too many requests, please try again later.' });
+        }
+
+        return res.status(429).render('./rate-limit.html', {
+            title: 'Rate Limit Exceeded',
+        });
+    };
+}

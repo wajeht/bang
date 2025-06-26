@@ -7,6 +7,7 @@ import { users } from './repository';
 import { csrfSync } from 'csrf-sync';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
+import { rateLimitHandler } from './handler';
 import { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { api, nl2br, getApiKey, isApiRequest, highlightSearchTerm } from './util';
@@ -356,15 +357,7 @@ export function rateLimitMiddleware() {
         max: 100, // Limit each IP to 100 requests per windowMs
         standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-        handler: (req, res) => {
-            if (req.path.startsWith('/api/')) {
-                return res.status(429).json({
-                    message: 'Too many requests from this IP, please try again later.',
-                });
-            }
-
-            return res.status(429).send('Too many requests from this IP, please try again later.');
-        },
+        handler: rateLimitHandler(),
         skip: (_req: Request, _res: Response) => config.app.env !== 'production',
     });
 }
