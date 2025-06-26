@@ -1,17 +1,17 @@
 import helmet from 'helmet';
 import { db } from './db/db';
-import { logger } from './utils/logger';
 import { config } from './config';
 import type { User } from './type';
 import { users } from './repository';
 import { csrfSync } from 'csrf-sync';
 import session from 'express-session';
+import { logger } from './utils/logger';
 import rateLimit from 'express-rate-limit';
 import { rateLimitHandler } from './handler';
 import type { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
-import { api, nl2br, getApiKey, isApiRequest, highlightSearchTerm } from './utils/util';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
+import { api, nl2br, getApiKey, isApiRequest, highlightSearchTerm } from './utils/util';
 
 export function notFoundMiddleware() {
     return (req: Request, _res: Response, _next: NextFunction) => {

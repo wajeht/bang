@@ -1,8 +1,7 @@
 import { Application } from 'express';
-import { authenticationMiddleware } from '../middleware';
-import { cacheMiddleware } from './cache';
-import expressJSDocSwagger from 'express-jsdoc-swagger';
 import type { Options } from 'express-jsdoc-swagger';
+import expressJSDocSwagger from 'express-jsdoc-swagger';
+import { authenticationMiddleware } from '../middleware';
 
 const swaggerConfig = {
     info: {
@@ -38,6 +37,6 @@ const swaggerConfig = {
 } as unknown as Options;
 
 export function expressJSDocSwaggerHandler(app: Application) {
-    app.use('/api-docs', authenticationMiddleware, cacheMiddleware(30, 'day'));
+    app.use('/api-docs', authenticationMiddleware);
     expressJSDocSwagger(app)(swaggerConfig);
 }

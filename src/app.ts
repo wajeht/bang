@@ -38,7 +38,6 @@ export async function createServer() {
     }
 
     app.set('trust proxy', 1)
-        .set('etag', false) // Disable Express's built-in ETag to use our custom cache
         .use(sessionMiddleware())
         .use(flash())
         .use(compression())
