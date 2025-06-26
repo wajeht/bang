@@ -530,4 +530,30 @@ describe('errorMiddleware', () => {
             }),
         );
     });
+
+    it('should call req.flash with error messages when session has errors for 422 status', async () => {
+        vi.mocked(isApiRequest).mockReturnValue(false);
+        const errorMiddlewareInstance = errorMiddleware();
+
+        req.headers = { referer: '/test-page' };
+
+        const validationError = new ValidationError('Validation failed');
+        validationError.errors = {
+            name: 'Name is required',
+            email: 'Email is invalid'
+        };
+
+        await errorMiddlewareInstance(
+            validationError,
+            req as unknown as Request,
+            res as unknown as Response,
+            next,
+        );
+
+        expect(req.flash).toHaveBeenCalledWith(
+            'error',
+            'Name is required, Email is invalid',
+        );
+        expect(res.redirect).toHaveBeenCalledWith('/test-page');
+    });
 });
