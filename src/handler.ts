@@ -1255,7 +1255,7 @@ export function postNoteHandler(notes: Notes) {
             throw new ValidationError({ content: 'Content is required' });
         }
 
-        if (typeof pinned !== 'boolean' && pinned !== 'on') {
+        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
             throw new ValidationError(
                 { pinned: 'Pinned must be a boolean or checkbox value' },
                 req,
@@ -1313,7 +1313,7 @@ export function updateNoteHandler(notes: Notes) {
             throw new ValidationError({ content: 'Content is required' });
         }
 
-        if (typeof pinned !== 'boolean' && pinned !== 'on') {
+        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
             throw new ValidationError(
                 { pinned: 'Pinned must be a boolean or checkbox value' },
                 req,
