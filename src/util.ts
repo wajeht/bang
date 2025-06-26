@@ -619,6 +619,6 @@ export const swagger = {
 } as unknown as Options;
 
 export function expressJSDocSwaggerHandler(app: Application, swaggerConfig: typeof swagger) {
-    app.use('/api-docs', authenticationMiddleware, cacheMiddleware(1, 'day'));
+    app.use('/api-docs', authenticationMiddleware, cacheMiddleware(30, 'day'));
     expressJSDocSwagger(app)(swaggerConfig);
 }
