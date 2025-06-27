@@ -36,29 +36,14 @@ import { HttpError, NotFoundError, ValidationError } from './error';
 // GET /healthz
 export function getHealthzHandler(db: Knex) {
     return async (req: Request, res: Response) => {
-        try {
-            await db.raw('SELECT 1');
+        await db.raw('SELECT 1');
 
-            if (expectJson(req)) {
-                res.status(200).json({ status: 'ok', database: 'connected' });
-                return;
-            }
-
-            res.setHeader('Content-Type', 'text/html').status(200).send('<p>ok</p>');
-        } catch (_error) {
-            if (expectJson(req)) {
-                res.status(503).json({
-                    status: 'error',
-                    database: 'disconnected',
-                    message: 'Database connection failed',
-                });
-                return;
-            }
-
-            res.setHeader('Content-Type', 'text/html')
-                .status(503)
-                .send('<p>error: database connection failed</p>');
+        if (expectJson(req)) {
+            res.status(200).json({ status: 'ok', database: 'connected' });
+            return;
         }
+
+        res.setHeader('Content-Type', 'text/html').status(200).send('<p>ok</p>');
     };
 }
 
@@ -1460,7 +1445,7 @@ export function getNotesByApiHandler(notes: Notes) {
 
 // POST /api/notes
 export const createNoteByApiHandler = [
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: Request, _res: Response, next: NextFunction) => {
         const { title, content } = req.body;
 
         if (!title) {
@@ -1493,7 +1478,7 @@ export const createNoteByApiHandler = [
 
 // PUT /api/notes/:id
 export const updateNoteByApiHandler = [
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: Request, _res: Response, next: NextFunction) => {
         const { title, content } = req.body;
 
         if (!title) {
