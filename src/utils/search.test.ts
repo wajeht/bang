@@ -1,7 +1,6 @@
 import {
     search,
     parseSearchQuery,
-    redirectWithCache,
     getBangRedirectUrl,
     processDelayedSearch,
     handleAnonymousSearch,

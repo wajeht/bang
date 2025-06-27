@@ -42,7 +42,7 @@ async function initLogger(print: boolean) {
     try {
         await fs.writeFile(logpath, '', { flag: 'w' });
     } catch (error) {
-        // Continue without file logging
+        // Silent fail
     }
 
     const originalWrite = process.stderr.write;

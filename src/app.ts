@@ -45,7 +45,7 @@ export async function createServer() {
         .use(helmetMiddleware())
         .use(rateLimitMiddleware())
         .use(express.json({ limit: '10mb' }))
-        .use(express.urlencoded({ extended: true, limit: '10mb' }))
+        .use(express.urlencoded({ extended: true, limit: '10mb' })) // NOTE(wajeht): to be able to handle export/import data
         .use(express.static('./public', { maxAge: '30d', etag: true, lastModified: true }))
         .engine('html', ejs.renderFile)
         .set('view engine', 'html')

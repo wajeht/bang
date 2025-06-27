@@ -18,7 +18,7 @@ vi.mock('./utils/util', () => ({
     sendNotificationQueue: {
         push: vi.fn(),
     },
-    highlightSearchTerm: vi.fn((text, term) => text),
+    highlightSearchTerm: vi.fn((text, _term) => text),
     nl2br: vi.fn((text) => text),
 }));
 
