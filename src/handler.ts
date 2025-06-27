@@ -825,12 +825,17 @@ export function postImportDataHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const { config } = req.body;
 
-        if (!config || !config.version || config.version !== '1.0') {
+        if (!config) {
+            throw new ValidationError({ config: 'Please provide a config' });
+        }
+
+        const importData = JSON.parse(req.body.config);
+
+        if (importData.version || importData.version !== '1.0') {
             throw new ValidationError({ config: 'Config version must be 1.0' });
         }
 
         const userId = req.session.user?.id;
-        const importData = JSON.parse(req.body.config);
 
         try {
             await db.transaction(async (trx) => {
