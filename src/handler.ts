@@ -882,6 +882,8 @@ export function postImportDataHandler(db: Knex) {
 
                     await trx('notes').insert(notes);
                 }
+
+                // TODO(wajeht): import column preferences, settings
             });
 
             req.flash('success', 'Data imported successfully!');
