@@ -563,7 +563,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             if (!existingBang || typeof existingBang.id === 'undefined') {
                 return goBackWithValidationAlert(
                     res,
-                    `Bang '${oldTrigger}' not found or you don't have permission to edit it`,
+                    `Bang ${oldTrigger} not found or you don't have permission to edit it`,
                 );
             }
 

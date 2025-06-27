@@ -1481,7 +1481,7 @@ describe('search', () => {
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.stringContaining(
-                        "Bang '!nonexistent' not found or you don\'t have permission to edit it",
+                        "Bang !nonexistent not found or you don\'t have permission to edit it",
                     ),
                 );
             });
