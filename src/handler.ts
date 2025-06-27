@@ -831,7 +831,7 @@ export function postImportDataHandler(db: Knex) {
 
         const importData = JSON.parse(req.body.config);
 
-        if (importData.version || importData.version !== '1.0') {
+        if (!importData.version || importData.version !== '1.0') {
             throw new ValidationError({ config: 'Config version must be 1.0' });
         }
 
