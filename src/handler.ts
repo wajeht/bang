@@ -24,11 +24,9 @@ import {
     convertMarkdownToPlainText,
 } from './utils/util';
 import { Knex } from 'knex';
-import { db } from './db/db';
-import { marked } from 'marked';
-import { logger } from './utils/logger';
 import { config } from './config';
-import { actions, bookmarks, notes } from './repository';
+import { logger } from './utils/logger';
+import { db, actions, bookmarks, notes } from './db/db';
 import type { Request, Response, NextFunction } from 'express';
 import { actionTypes, defaultSearchProviders } from './utils/util';
 import { HttpError, NotFoundError, ValidationError } from './error';
@@ -1166,7 +1164,7 @@ export function postSettingsDisplayHandler(db: Knex) {
 }
 
 // POST /api/notes/render-markdown
-export function postNotesRenderMarkdownHandler(markdownParser: typeof marked) {
+export function postNotesRenderMarkdownHandler() {
     return async (req: Request, res: Response) => {
         const { content } = req.body;
 
@@ -1174,7 +1172,8 @@ export function postNotesRenderMarkdownHandler(markdownParser: typeof marked) {
             throw new ValidationError({ content: 'Content is required' });
         }
 
-        const markdown = markdownParser(content) as string;
+        const { marked } = await import('marked');
+        const markdown = marked(content) as string;
 
         res.json({ content: markdown });
         return;
@@ -1335,7 +1334,7 @@ export function updateNoteHandler(notes: Notes) {
 }
 
 // GET /notes/:id or GET /api/notes/:id
-export function getNoteHandler(notes: Notes, markdownParser: typeof marked, log: typeof logger) {
+export function getNoteHandler(notes: Notes, log: typeof logger) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         let note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
@@ -1347,7 +1346,8 @@ export function getNoteHandler(notes: Notes, markdownParser: typeof marked, log:
         let content: string = '';
 
         try {
-            content = markdownParser(note.content) as string;
+            const { marked } = await import('marked');
+            content = marked(note.content) as string;
         } catch (_error) {
             content = '';
             log.error(`cannot parse content into markdown`, { error: _error });

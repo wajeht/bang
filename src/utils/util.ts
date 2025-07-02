@@ -11,15 +11,14 @@ import path from 'node:path';
 import { db } from '../db/db';
 import https from 'node:https';
 import jwt from 'jsonwebtoken';
-import { marked } from 'marked';
 import { logger } from './logger';
-import { config } from '../config';
 import fs from 'node:fs/promises';
+import { config } from '../config';
 import nodemailer from 'nodemailer';
-import type { Request } from 'express';
 import { HttpError } from '../error';
+import { bookmarks } from '../db/db';
+import type { Request } from 'express';
 import type { Bookmark } from '../type';
-import { bookmarks } from '../repository';
 
 export const actionTypes = ['search', 'redirect'] as const;
 
@@ -504,6 +503,7 @@ export async function getConvertedReadmeMDToHTML(): Promise<string> {
         if (!cachedReadMeMdHTML) {
             const content = await getReadmeFileContent();
             const usage = extractReadmeUsage(content);
+            const { marked } = await import('marked');
             cachedReadMeMdHTML = Promise.resolve(marked(usage));
         }
         return cachedReadMeMdHTML;
@@ -573,6 +573,7 @@ export async function convertMarkdownToPlainText(
     }
 
     try {
+        const { marked } = await import('marked');
         const htmlOutput = await marked(markdownInput);
         let plainText = (htmlOutput as string).replace(/<[^>]*>/g, '');
         plainText = plainText.replace(/\s+/g, ' ').trim();

@@ -1,8 +1,7 @@
 import helmet from 'helmet';
-import { db } from './db/db';
 import { config } from './config';
 import type { User } from './type';
-import { users } from './repository';
+import { db, users } from './db/db';
 import { csrfSync } from 'csrf-sync';
 import session from 'express-session';
 import { logger } from './utils/logger';

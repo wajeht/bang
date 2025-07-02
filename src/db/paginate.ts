@@ -1,5 +1,4 @@
-import { Knex } from 'knex';
-import knex from 'knex';
+import knex, { type Knex } from 'knex';
 
 export interface PaginationOptions {
     perPage?: number;

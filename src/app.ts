@@ -13,10 +13,10 @@ import express from 'express';
 import { router } from './router';
 import flash from 'connect-flash';
 import { config } from './config';
-import { logger } from './utils/logger';
 import { Server } from 'node:http';
 import compression from 'compression';
 import { AddressInfo } from 'node:net';
+import { logger } from './utils/logger';
 import { isMailpitRunning } from './utils/util';
 import expressLayouts from 'express-ejs-layouts';
 import { expressJSDocSwaggerHandler } from './utils/swagger';
@@ -71,8 +71,7 @@ export async function createServer() {
 
     server.on('listening', async () => {
         const addr: string | AddressInfo | null = server.address();
-        const bind: string =
-            typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port;
+        const bind: string = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port; // prettier-ignore
 
         logger.info(`Server is listening on ${bind}`);
 

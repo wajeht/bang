@@ -1,12 +1,11 @@
 import express from 'express';
-import { marked } from 'marked';
 import { logger } from './utils/logger';
 
 import {
     getNoteHandler,
-    getLogoutHandler,
     getNotesHandler,
     postNoteHandler,
+    getLogoutHandler,
     postLoginHandler,
     getActionHandler,
     getActionsHandler,
@@ -52,10 +51,9 @@ import {
     postDeleteSettingsDangerZoneHandler,
 } from './handler';
 
-import { db } from './db/db';
 import { api } from './utils/util';
 import { search } from './utils/search';
-import { actions, bookmarks, notes } from './repository';
+import { db, actions, bookmarks, notes } from './db/db';
 import { adminOnlyMiddleware, authenticationMiddleware } from './middleware';
 
 const router = express.Router();
@@ -104,12 +102,12 @@ router.get('/bookmarks/:id/actions/create', authenticationMiddleware, getBookmar
 
 router.get('/notes', authenticationMiddleware, getNotesHandler(notes));
 router.post('/notes', authenticationMiddleware, postNoteHandler(notes));
+router.get('/notes/:id', authenticationMiddleware, getNoteHandler(notes, logger));
 router.get('/notes/create', authenticationMiddleware, getNoteCreatePageHandler());
 router.post('/notes/:id/update', authenticationMiddleware, updateNoteHandler(notes));
 router.post('/notes/:id/delete', authenticationMiddleware, deleteNoteHandler(notes));
 router.post('/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler(notes));
 router.get('/notes/:id/edit', authenticationMiddleware, getEditNotePageHandler(notes));
-router.get('/notes/:id', authenticationMiddleware, getNoteHandler(notes, marked, logger));
 
 /**
  * @swagger
@@ -409,7 +407,7 @@ router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
  * @return {object} 400 - Bad request response - application/json
  * @return {object} 404 - Not found response - application/json
  */
-router.post('/api/notes/render-markdown', authenticationMiddleware, postNotesRenderMarkdownHandler(marked)); // prettier-ignore
+router.post('/api/notes/render-markdown', authenticationMiddleware, postNotesRenderMarkdownHandler()); // prettier-ignore
 
 /**
  * GET /api/notes/{id}
@@ -426,7 +424,7 @@ router.post('/api/notes/render-markdown', authenticationMiddleware, postNotesRen
  * @return {object} 404 - Not found response - application/json
  *
  */
-router.get('/api/notes/:id', authenticationMiddleware, getNoteHandler(notes, marked, logger));
+router.get('/api/notes/:id', authenticationMiddleware, getNoteHandler(notes, logger));
 
 /**
  * POST /api/notes
