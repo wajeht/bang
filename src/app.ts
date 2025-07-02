@@ -96,10 +96,7 @@ export async function createServer() {
             throw error;
         }
 
-        const bind: string =
-            typeof config.app.port === 'string'
-                ? 'Pipe ' + config.app.port
-                : 'Port ' + config.app.port;
+        const bind: string = typeof config.app.port === 'string' ? 'Pipe ' + config.app.port : 'Port ' + config.app.port; // prettier-ignore
 
         switch (error.code) {
             case 'EACCES':
