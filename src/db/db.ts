@@ -14,9 +14,13 @@ import { logger } from '../utils/logger';
 import { attachPaginate } from './paginate';
 import type { Actions, Bookmarks, Notes } from '../type';
 
-attachPaginate();
+function knexInstance() {
+    const db = knex(knexConfig);
+    attachPaginate();
+    return db;
+}
 
-export const db = knex(knexConfig);
+export const db = knexInstance();
 
 export async function optimizeDatabase() {
     try {
