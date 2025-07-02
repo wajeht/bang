@@ -102,8 +102,8 @@ router.get('/bookmarks/:id/actions/create', authenticationMiddleware, getBookmar
 
 router.get('/notes', authenticationMiddleware, getNotesHandler(notes));
 router.post('/notes', authenticationMiddleware, postNoteHandler(notes));
-router.get('/notes/:id', authenticationMiddleware, getNoteHandler(notes, logger));
 router.get('/notes/create', authenticationMiddleware, getNoteCreatePageHandler());
+router.get('/notes/:id', authenticationMiddleware, getNoteHandler(notes, logger));
 router.post('/notes/:id/update', authenticationMiddleware, updateNoteHandler(notes));
 router.post('/notes/:id/delete', authenticationMiddleware, deleteNoteHandler(notes));
 router.post('/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler(notes));
