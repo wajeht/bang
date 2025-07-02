@@ -10,8 +10,8 @@ import {
 import { db } from '../db/db';
 import { Bang, Search } from '../type';
 import { Request, Response } from 'express';
-import { bangs as bangsTable } from '../db/bang';
 import { defaultSearchProviders } from './util';
+import { bangs as bangsTable } from '../db/bang';
 
 const searchConfig = {
     /**

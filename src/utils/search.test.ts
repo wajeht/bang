@@ -5,18 +5,18 @@ import {
     processDelayedSearch,
     handleAnonymousSearch,
 } from '../utils/search';
-import { db } from '../db/db';
-import { User } from '../type';
-import { config } from '../config';
-import { notes } from '../repository';
-import { Request, Response } from 'express';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     isValidUrl,
     insertBookmark,
     insertPageTitle,
     checkDuplicateBookmarkUrl,
 } from '../utils/util';
+import { db } from '../db/db';
+import { User } from '../type';
+import { config } from '../config';
+import { notes } from '../db/db';
+import { Request, Response } from 'express';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('./util', async () => {
     const actual = await vi.importActual('./util');
