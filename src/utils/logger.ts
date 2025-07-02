@@ -11,18 +11,37 @@ function getFormattedTimestamp() {
 }
 
 function createLogger() {
+    function formatMessage(message: string, args: any[]): string {
+        let formattedMessage = message;
+        let argIndex = 0;
+        formattedMessage = formattedMessage.replace(/%[os]/g, (match) => {
+            if (argIndex < args.length) {
+                const arg = args[argIndex++];
+                if (match === '%o' && typeof arg === 'object') {
+                    return JSON.stringify(arg, null, 2);
+                }
+                return String(arg);
+            }
+            return match;
+        });
+        return formattedMessage;
+    }
+
     return {
-        info(message: any) {
+        info(message: string, ...args: any[]) {
             const timestamp = getFormattedTimestamp();
-            process.stdout.write(`${timestamp} INFO: ${message}\n`);
+            const formattedMessage = formatMessage(message, args);
+            process.stdout.write(`${timestamp} INFO: ${formattedMessage}\n`);
         },
-        error(message: any) {
+        error(message: string, ...args: any[]) {
             const timestamp = getFormattedTimestamp();
-            process.stdout.write(`${timestamp} ERROR: ${message}\n`);
+            const formattedMessage = formatMessage(message, args);
+            process.stdout.write(`${timestamp} ERROR: ${formattedMessage}\n`);
         },
-        warn(message: any) {
+        warn(message: string, ...args: any[]) {
             const timestamp = getFormattedTimestamp();
-            process.stdout.write(`${timestamp} WARN: ${message}\n`);
+            const formattedMessage = formatMessage(message, args);
+            process.stdout.write(`${timestamp} WARN: ${formattedMessage}\n`);
         },
     };
 }
