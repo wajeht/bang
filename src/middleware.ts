@@ -74,6 +74,10 @@ export function errorMiddleware() {
                 );
             }
 
+            if (req.path === '/login') {
+                return res.redirect('/?modal=login');
+            }
+
             return res.redirect(referer);
         }
 
@@ -291,7 +295,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
                 req.session.save();
             }
 
-            res.redirect('/?login=true');
+            res.redirect('/?modal=login');
             return;
         }
 

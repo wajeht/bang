@@ -1626,7 +1626,7 @@ export function getMagicLinkHandler() {
 
         if (!decoded || !decoded.email) {
             req.flash('error', 'Magic link has expired or is invalid. Please request a new one.');
-            return res.redirect('/?login=true');
+            return res.redirect('/?modal=login');
         }
 
         const user = await db('users').where({ email: decoded.email }).first();
@@ -1669,8 +1669,6 @@ export function rateLimitHandler() {
             return res.json({ message: 'Too many requests, please try again later.' });
         }
 
-        return res.status(429).render('./rate-limit.html', {
-            title: 'Rate Limit Exceeded',
-        });
+        return res.status(429).render('./rate-limit.html');
     };
 }
