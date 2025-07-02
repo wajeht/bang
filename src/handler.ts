@@ -1613,7 +1613,7 @@ export function postLoginHandler() {
             'success',
             `📧 Magic link sent to ${email}! Check your email and click the link to log in.`,
         );
-        return res.redirect('/');
+        return res.redirect(req.headers.referer || '/');
     };
 }
 
