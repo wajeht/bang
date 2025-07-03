@@ -164,7 +164,6 @@ export function helmetMiddleware() {
                 'frame-ancestors': ["'self'"],
                 'img-src': ["'self'", 'data:', 'https://*.cloudflare.com'],
                 'worker-src': ["'self'", 'blob:'],
-                'prefetch-src': ["'self'", 'https://*.cloudflare.com'],
             },
         },
         referrerPolicy: {
