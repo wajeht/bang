@@ -146,6 +146,7 @@ export function helmetMiddleware() {
                     'https://challenges.cloudflare.com',
                     'https://*.turnstile.com',
                     'https://*.cloudflare.com',
+                    'about:blank',
                 ],
                 'style-src': [
                     "'self'",
@@ -164,6 +165,7 @@ export function helmetMiddleware() {
                 'frame-ancestors': ["'self'"],
                 'img-src': ["'self'", 'data:', 'https://*.cloudflare.com'],
                 'worker-src': ["'self'", 'blob:'],
+                'prefetch-src': ["'self'", 'https://*.cloudflare.com'],
             },
         },
         referrerPolicy: {
