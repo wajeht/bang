@@ -76,7 +76,6 @@
               data-refresh-expired="auto"
               data-retry="auto"
               data-action="login"
-              <% if (state.env !== 'production') { %>data-appearance="interaction-only"<% } %>
             ></div>
           <% } %>
 
@@ -88,7 +87,7 @@
       </dialog>
 
       <% if (state.env === 'production' && !state.user) { %>
-        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?v=<%- state.version.script %>" defer></script>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
       <% } %>
 
       <script>
