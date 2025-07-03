@@ -1,0 +1,58 @@
+{
+  local_certs
+  # Disable auto_https redirects since we don't want permanent redirects to https
+  auto_https disable_redirects
+  ocsp_stapling off
+  skip_install_trust
+}
+
+(log) {
+    log {
+        output stderr
+        format console
+        level INFO
+    }
+}
+
+# Redirect www to main domain
+www.jaw.run, http://www.jaw.run {
+    redir https://jaw.run{uri}
+}
+
+# Main application with websocket support
+jaw.run, *.jaw.run, http:// {
+    # WebSocket endpoints
+    @websockets {
+        path /ws/*
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websockets bang:80 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+        header_up Connection {>Connection}
+        header_up Upgrade {>Upgrade}
+    }
+
+    # Regular HTTP traffic
+    reverse_proxy bang:80 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    import log
+}
+
+# Mailpit UI
+mail.jaw.run {
+    reverse_proxy mailpit:8025 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    import log
+}
