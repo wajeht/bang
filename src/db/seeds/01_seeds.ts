@@ -24,6 +24,7 @@ export async function seed(knex: Knex): Promise<void> {
                         url: true,
                         default_per_page: 10,
                         created_at: true,
+                        pinned: true,
                     },
                     actions: {
                         name: true,
@@ -38,6 +39,7 @@ export async function seed(knex: Knex): Promise<void> {
                         content: true,
                         default_per_page: 10,
                         created_at: true,
+                        pinned: true,
                         view_type: 'table',
                     },
                     users: {
@@ -132,6 +134,7 @@ export async function seed(knex: Knex): Promise<void> {
                 user_id: user.id,
                 url: 'https://github.com',
                 title: 'GitHub - Where the world builds software',
+                pinned: true,
             },
             {
                 user_id: user.id,
@@ -161,6 +164,7 @@ export async function seed(knex: Knex): Promise<void> {
             {
                 user_id: user.id,
                 title: 'Note 1',
+                pinned: true,
                 content: `## 📝 Note 1
 
 This is the **content** of _note 1_.
