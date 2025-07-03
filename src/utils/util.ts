@@ -64,11 +64,13 @@ export async function insertBookmark({
     url,
     userId,
     title,
+    pinned,
     req,
 }: {
     url: string;
     userId: number;
     title?: string;
+    pinned?: boolean;
     req?: Request;
 }): Promise<void> {
     try {
@@ -76,6 +78,7 @@ export async function insertBookmark({
             user_id: userId,
             url: url,
             title: title || 'Fetching title...',
+            pinned: pinned || false,
         });
 
         if (!title) {
