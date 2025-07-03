@@ -116,7 +116,12 @@ export function helmetMiddleware() {
             useDefaults: true,
             directives: {
                 ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-                'default-src': ["'self'", 'plausible.jaw.dev', 'bang.jaw.dev'],
+                'default-src': [
+                    "'self'",
+                    'plausible.jaw.dev',
+                    'bang.jaw.dev',
+                    'https://*.cloudflare.com',
+                ],
                 'script-src': [
                     "'self'",
                     "'unsafe-inline'",
@@ -124,8 +129,15 @@ export function helmetMiddleware() {
                     'plausible.jaw.dev',
                     'bang.jaw.dev',
                     'https://challenges.cloudflare.com',
+                    'https://*.turnstile.com',
                 ],
-                'frame-src': ["'self'", 'https://challenges.cloudflare.com'],
+                'frame-src': [
+                    "'self'",
+                    'https://challenges.cloudflare.com',
+                    'https://*.turnstile.com',
+                ],
+                'style-src': ["'self'", "'unsafe-inline'", 'https://*.turnstile.com'],
+                'connect-src': ["'self'", 'https://*.cloudflare.com'],
                 'script-src-attr': ["'unsafe-inline'"],
                 'form-action': ["'self'", '*'],
             },
