@@ -47,7 +47,7 @@
     <%- include('./partials/footer.html') %>
 
     <% if (!state.user) { %>
-      <dialog id="login-dialog" style="width: 450px;">
+      <dialog id="login-dialog" style="width: 450px;" data-allow-scripts="true">
         <h2>🔑 Login</h2>
         <p>Enter your email address and we'll send you a magic link to log in.</p>
 
