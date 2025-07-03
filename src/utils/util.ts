@@ -591,3 +591,239 @@ export async function convertMarkdownToPlainText(
         return '';
     }
 }
+
+export async function generateUserDataExport(
+    userId: number,
+    options: {
+        includeBookmarks?: boolean;
+        includeActions?: boolean;
+        includeNotes?: boolean;
+        includeUserPreferences?: boolean;
+    } = {},
+): Promise<{
+    exported_at: string;
+    version: string;
+    bookmarks?: Record<string, unknown>[];
+    actions?: Record<string, unknown>[];
+    notes?: Record<string, unknown>[];
+    user_preferences?: Record<string, unknown>;
+}> {
+    const {
+        includeBookmarks = true,
+        includeActions = true,
+        includeNotes = true,
+        includeUserPreferences = true,
+    } = options;
+
+    const exportData: {
+        exported_at: string;
+        version: string;
+        bookmarks?: Record<string, unknown>[];
+        actions?: Record<string, unknown>[];
+        notes?: Record<string, unknown>[];
+        user_preferences?: Record<string, unknown>;
+    } = {
+        exported_at: new Date().toISOString(),
+        version: '1.0',
+    };
+
+    const fetchBookmarks = () =>
+        includeBookmarks
+            ? db('bookmarks')
+                  .where('user_id', userId)
+                  .select('title', 'url', 'pinned', 'created_at')
+            : Promise.resolve([]);
+
+    const fetchActions = () =>
+        includeActions
+            ? db
+                  .select(
+                      'bangs.trigger',
+                      'bangs.name',
+                      'bangs.url',
+                      'action_types.name as action_type',
+                      'bangs.created_at',
+                  )
+                  .from('bangs')
+                  .join('action_types', 'bangs.action_type_id', 'action_types.id')
+                  .where('bangs.user_id', userId)
+            : Promise.resolve([]);
+
+    const fetchNotes = () =>
+        includeNotes
+            ? db('notes')
+                  .where('user_id', userId)
+                  .select('title', 'content', 'pinned', 'created_at')
+            : Promise.resolve([]);
+
+    const fetchUserPreferences = () =>
+        includeUserPreferences
+            ? db('users')
+                  .where('id', userId)
+                  .select(
+                      'username',
+                      'default_search_provider',
+                      'autocomplete_search_on_homepage',
+                      'column_preferences',
+                  )
+                  .first()
+            : Promise.resolve(null);
+
+    const [bookmarksResult, actionsResult, notesResult, userPreferencesResult] =
+        await Promise.allSettled([
+            fetchBookmarks(),
+            fetchActions(),
+            fetchNotes(),
+            fetchUserPreferences(),
+        ]);
+
+    if (includeBookmarks) {
+        if (bookmarksResult.status === 'fulfilled') {
+            exportData.bookmarks = bookmarksResult.value;
+        } else {
+            logger.error('Failed to fetch bookmarks: %o', bookmarksResult.reason);
+        }
+    }
+
+    if (includeActions) {
+        if (actionsResult.status === 'fulfilled') {
+            exportData.actions = actionsResult.value;
+        } else {
+            logger.error('Failed to fetch actions: %o', actionsResult.reason);
+        }
+    }
+
+    if (includeNotes) {
+        if (notesResult.status === 'fulfilled') {
+            exportData.notes = notesResult.value;
+        } else {
+            logger.error('Failed to fetch notes: %o', notesResult.reason);
+        }
+    }
+
+    if (includeUserPreferences) {
+        if (userPreferencesResult.status === 'fulfilled' && userPreferencesResult.value) {
+            const userPrefs = userPreferencesResult.value;
+            // Parse column_preferences if it's a string
+            if (typeof userPrefs.column_preferences === 'string') {
+                try {
+                    userPrefs.column_preferences = JSON.parse(userPrefs.column_preferences);
+                } catch (error) {
+                    logger.error('Failed to parse column_preferences: %o', error);
+                    userPrefs.column_preferences = {};
+                }
+            }
+            exportData.user_preferences = userPrefs;
+        } else if (userPreferencesResult.status === 'rejected') {
+            logger.error('Failed to fetch user preferences: %o', userPreferencesResult.reason);
+        }
+    }
+
+    return exportData;
+}
+
+export async function generateBookmarkHtmlExport(userId: number): Promise<string> {
+    const bookmarks = (await db
+        .select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
+        .from('bookmarks')
+        .where({ user_id: userId })) as BookmarkToExport[];
+
+    return bookmark.createDocument(bookmarks);
+}
+
+export async function sendDataExportEmail({
+    email,
+    username,
+    req,
+    includeJson = true,
+    includeHtml = true,
+}: {
+    email: string;
+    username: string;
+    req: Request;
+    includeJson?: boolean;
+    includeHtml?: boolean;
+}): Promise<void> {
+    try {
+        if (!includeJson && !includeHtml) {
+            logger.info(`No export options selected for ${email}, skipping export email`);
+            return;
+        }
+
+        const userId = (req.user as User).id;
+        const currentDate = new Date().toISOString().split('T')[0];
+        const attachments: any[] = [];
+        const exportTypes: string[] = [];
+
+        if (includeJson) {
+            const jsonExportData = await generateUserDataExport(userId);
+            const jsonBuffer = Buffer.from(JSON.stringify(jsonExportData, null, 2));
+            attachments.push({
+                filename: `bang-data-export-${currentDate}.json`,
+                content: jsonBuffer,
+                contentType: 'application/json',
+            });
+            exportTypes.push(
+                'bang-data-export-' +
+                    currentDate +
+                    '.json - Complete data export including bookmarks, actions, notes, and user preferences',
+            );
+        }
+
+        if (includeHtml) {
+            const htmlBookmarksExport = await generateBookmarkHtmlExport(userId);
+            const htmlBuffer = Buffer.from(htmlBookmarksExport);
+            attachments.push({
+                filename: `bookmarks-${currentDate}.html`,
+                content: htmlBuffer,
+                contentType: 'text/html',
+            });
+            exportTypes.push(
+                'bookmarks-' +
+                    currentDate +
+                    '.html - HTML bookmarks file that can be imported into browsers',
+            );
+        }
+
+        const attachmentsList = exportTypes
+            .map((type, index) => `${index + 1}. ${type}`)
+            .join('\n');
+
+        const mailOptions = {
+            from: config.email.from,
+            to: email,
+            subject: '📦 Your Bang Data Export - Account Deletion',
+            text: `Hello ${username},
+
+As requested, we have prepared your data export from Bang before proceeding with your account deletion.
+
+Attached to this email you will find:
+${attachmentsList}
+
+Your account will be deleted shortly. This action cannot be undone.
+
+If you change your mind about deleting your account, please contact us immediately.
+
+Thank you for using Bang!
+
+--
+Bang Team
+https://github.com/wajeht/bang`,
+            attachments,
+        };
+
+        if (config.app.env === 'development' && (await isMailpitRunning()) === false) {
+            logger.info(
+                `We are on dev mode and mailpit is not running. Data export email would be sent to ${email} with ${attachments.length} attachment(s).`,
+            );
+            return;
+        }
+
+        await emailTransporter.sendMail(mailOptions);
+        logger.info(
+            `Data export email sent to ${email} before account deletion with ${attachments.length} attachment(s)`,
+        );
+    } catch (error) {
+        logger.error(`Failed to send data export email: %o`, { error });
+    }
+}

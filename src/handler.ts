@@ -18,6 +18,9 @@ import {
     insertBookmark,
     extractPagination,
     sendMagicLinkEmail,
+    sendDataExportEmail,
+    generateUserDataExport,
+    generateBookmarkHtmlExport,
     isOnlyLettersAndNumbers,
     checkDuplicateBookmarkUrl,
     getConvertedReadmeMDToHTML,
@@ -633,22 +636,30 @@ export function toggleBookmarkPinHandler(bookmarks: Bookmarks) {
 // GET /bookmarks/export
 export function getExportBookmarksHandler(db: Knex) {
     return async (req: Request, res: Response) => {
+        const userId = req.session.user?.id;
+
+        if (!userId) {
+            throw new NotFoundError('User not found');
+        }
+
         const bookmarks = (await db
             .select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
             .from('bookmarks')
-            .where({ user_id: req.session.user?.id })) as BookmarkToExport[];
+            .where({ user_id: userId })) as BookmarkToExport[];
 
         if (!bookmarks.length) {
             req.flash('info', 'no bookmarks to export yet.');
             return res.redirect('/bookmarks');
         }
 
+        const htmlExport = await generateBookmarkHtmlExport(userId);
+
         res.setHeader(
             'Content-Disposition',
             `attachment; filename=bookmarks-${new Date().toISOString().split('T')[0]}.html`,
         )
             .setHeader('Content-Type', 'text/html; charset=UTF-8')
-            .send(bookmark.createDocument(bookmarks));
+            .send(htmlExport);
     };
 }
 
@@ -783,104 +794,13 @@ export function postExportDataHandler(db: Knex, log: typeof logger) {
         const includeActions = req.body.options.includes('actions');
         const includeNotes = req.body.options.includes('notes');
         const includeUserPreferences = req.body.options.includes('user_preferences');
-        const exportData: {
-            exported_at: string;
-            version: string;
-            bookmarks?: Record<string, unknown>[];
-            actions?: Record<string, unknown>[];
-            notes?: Record<string, unknown>[];
-            user_preferences?: Record<string, unknown>;
-        } = {
-            exported_at: new Date().toISOString(),
-            version: '1.0',
-        };
 
-        const fetchBookmarks = () =>
-            includeBookmarks
-                ? db('bookmarks').where('user_id', userId).select('title', 'url', 'pinned', 'created_at')
-                : Promise.resolve([]);
-
-        const fetchActions = () =>
-            includeActions
-                ? db
-                      .select(
-                          'bangs.trigger',
-                          'bangs.name',
-                          'bangs.url',
-                          'action_types.name as action_type',
-                          'bangs.created_at',
-                      )
-                      .from('bangs')
-                      .join('action_types', 'bangs.action_type_id', 'action_types.id')
-                      .where('bangs.user_id', userId)
-                : Promise.resolve([]);
-
-        const fetchNotes = () =>
-            includeNotes
-                ? db('notes').where('user_id', userId).select('title', 'content', 'pinned', 'created_at')
-                : Promise.resolve([]);
-
-        const fetchUserPreferences = () =>
-            includeUserPreferences
-                ? db('users')
-                      .where('id', userId)
-                      .select(
-                          'username',
-                          'default_search_provider',
-                          'autocomplete_search_on_homepage',
-                          'column_preferences'
-                      )
-                      .first()
-                : Promise.resolve(null);
-
-        const [bookmarksResult, actionsResult, notesResult, userPreferencesResult] = await Promise.allSettled([
-            fetchBookmarks(),
-            fetchActions(),
-            fetchNotes(),
-            fetchUserPreferences(),
-        ]);
-
-        if (includeBookmarks) {
-            if (bookmarksResult.status === 'fulfilled') {
-                exportData.bookmarks = bookmarksResult.value;
-            } else {
-                log.error('Failed to fetch bookmarks: %o', bookmarksResult.reason);
-            }
-        }
-
-        if (includeActions) {
-            if (actionsResult.status === 'fulfilled') {
-                exportData.actions = actionsResult.value;
-            } else {
-                log.error('Failed to fetch actions: %o', actionsResult.reason);
-            }
-        }
-
-        if (includeNotes) {
-            if (notesResult.status === 'fulfilled') {
-                exportData.notes = notesResult.value;
-            } else {
-                log.error('Failed to fetch notes: %o', notesResult.reason);
-            }
-        }
-
-        if (includeUserPreferences) {
-            if (userPreferencesResult.status === 'fulfilled' && userPreferencesResult.value) {
-                const userPrefs = userPreferencesResult.value;
-                // Parse column_preferences if it's a string
-                if (typeof userPrefs.column_preferences === 'string') {
-                    try {
-                        userPrefs.column_preferences = JSON.parse(userPrefs.column_preferences);
-                    } catch (error) {
-                        log.error('Failed to parse column_preferences: %o', error);
-                        userPrefs.column_preferences = {};
-                    }
-                }
-                exportData.user_preferences = userPrefs;
-            } else if (userPreferencesResult.status === 'rejected') {
-                log.error('Failed to fetch user preferences: %o', userPreferencesResult.reason);
-            }
-        }
+        const exportData = await generateUserDataExport(userId, {
+            includeBookmarks,
+            includeActions,
+            includeNotes,
+            includeUserPreferences,
+        });
 
         res.setHeader(
             'Content-Disposition',
@@ -977,12 +897,14 @@ export function postImportDataHandler(db: Knex) {
                         updateData.default_search_provider = userPrefs.default_search_provider;
                     }
                     if (userPrefs.autocomplete_search_on_homepage !== undefined) {
-                        updateData.autocomplete_search_on_homepage = userPrefs.autocomplete_search_on_homepage;
+                        updateData.autocomplete_search_on_homepage =
+                            userPrefs.autocomplete_search_on_homepage;
                     }
                     if (userPrefs.column_preferences) {
-                        updateData.column_preferences = typeof userPrefs.column_preferences === 'string'
-                            ? userPrefs.column_preferences
-                            : JSON.stringify(userPrefs.column_preferences);
+                        updateData.column_preferences =
+                            typeof userPrefs.column_preferences === 'string'
+                                ? userPrefs.column_preferences
+                                : JSON.stringify(userPrefs.column_preferences);
                     }
 
                     if (Object.keys(updateData).length > 0) {
@@ -991,9 +913,10 @@ export function postImportDataHandler(db: Knex) {
                         // Update session with new preferences
                         if (req.session?.user && updateData.column_preferences) {
                             try {
-                                req.session.user.column_preferences = typeof updateData.column_preferences === 'string'
-                                    ? JSON.parse(updateData.column_preferences)
-                                    : updateData.column_preferences;
+                                req.session.user.column_preferences =
+                                    typeof updateData.column_preferences === 'string'
+                                        ? JSON.parse(updateData.column_preferences)
+                                        : updateData.column_preferences;
                             } catch (error) {
                                 // Handle parsing error gracefully
                             }
@@ -1027,7 +950,35 @@ export function getSettingsDangerZonePageHandler() {
 // POST /settings/danger-zone/delete
 export function postDeleteSettingsDangerZoneHandler(db: Knex) {
     return async (req: Request, res: Response) => {
-        await db('users').where({ id: req.session.user?.id }).delete();
+        const user = req.session.user;
+
+        if (!user) {
+            throw new NotFoundError('User not found');
+        }
+
+        const exportOptions = req.body.export_options || [];
+        const includeJson = Array.isArray(exportOptions)
+            ? exportOptions.includes('json')
+            : exportOptions === 'json';
+        const includeHtml = Array.isArray(exportOptions)
+            ? exportOptions.includes('html')
+            : exportOptions === 'html';
+
+        if (includeJson || includeHtml) {
+            try {
+                await sendDataExportEmail({
+                    email: user.email,
+                    username: user.username,
+                    req,
+                    includeJson,
+                    includeHtml,
+                });
+            } catch (error) {
+                logger.error('Failed to send export email before account deletion: %o', { error });
+            }
+        }
+
+        await db('users').where({ id: user.id }).delete();
 
         if ((req.session && req.session.user) || req.user) {
             req.session.user = null;
