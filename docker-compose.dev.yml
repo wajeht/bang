@@ -6,8 +6,8 @@ services:
         build:
             context: ./
             dockerfile: ./Dockerfile.dev
-        ports:
-            - '${APP_PORT}:${APP_PORT}'
+        expose:
+            - '80'
         volumes:
             - ./:/usr/src/app
             - /usr/src/app/node_modules
@@ -16,14 +16,41 @@ services:
             DOCKER_CONTAINER: 'true'
         depends_on:
             - mailpit
+        networks:
+            - bang_network
 
     mailpit:
         image: axllent/mailpit
         container_name: bang-mailpit
         restart: unless-stopped
-        ports:
-            - '8025:8025' # Web UI
-            - '1025:1025' # SMTP server
+        expose:
+            - '8025'
+            - '1025'
         environment:
             MP_SMTP_AUTH_ACCEPT_ANY: 1
             MP_SMTP_AUTH_ALLOW_INSECURE: 1
+        networks:
+            - bang_network
+
+    caddy:
+        image: caddy:2-alpine
+        container_name: bang-caddy
+        restart: unless-stopped
+        ports:
+            - '80:80'
+            - '443:443'
+            - '443:443/udp'
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile
+            - ~/.config/caddy:/data
+            - ~/.config/caddy/config:/config
+        networks:
+            - bang_network
+
+volumes:
+    caddy_data:
+    caddy_config:
+
+networks:
+    bang_network:
+        driver: bridge
