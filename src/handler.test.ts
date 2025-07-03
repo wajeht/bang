@@ -1,14 +1,14 @@
+import {
+    getHealthzHandler,
+    toggleNotePinHandler,
+    postExportDataHandler,
+    postDeleteSettingsDangerZoneHandler,
+} from './handler';
 import { db } from './db/db';
 import { notes } from './db/db';
 import { logger } from './utils/logger';
 import type { Request, Response } from 'express';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-    getHealthzHandler,
-    postExportDataHandler,
-    toggleNotePinHandler,
-    postDeleteSettingsDangerZoneHandler,
-} from './handler';
 
 describe('Health Check Endpoint', () => {
     let req: Partial<Request>;
