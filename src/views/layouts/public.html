@@ -67,17 +67,7 @@
             error: state.errors && state.errors.email ? state.errors.email : undefined
           }) %>
 
-          <% if (state.env === 'production' && !state.user) { %>
-            <div
-              class="cf-turnstile"
-              data-sitekey="<%= state.cloudflare_turnstile_site_key %>"
-              data-theme="auto"
-              data-size="normal"
-              data-refresh-expired="auto"
-              data-retry="auto"
-              data-action="login"
-            ></div>
-          <% } %>
+          <div class="cf-turnstile" data-sitekey="<%- state.cloudflare_turnstile_site_key %>"></div>
 
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
             <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
@@ -86,8 +76,8 @@
         </form>
       </dialog>
 
-      <% if (state.env === 'production' && !state.user) { %>
-        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+      <% if (!state.user) { %>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
       <% } %>
 
       <script>
