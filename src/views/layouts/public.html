@@ -2,7 +2,10 @@
 <html lang="en" data-theme="light">
 
   <%- include('./partials/head.html') %>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+
+  <% if (state.env === 'production') { %>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+  <% } %>
 
   <body style="display: flex; flex-direction: column; min-height: 100vh; gap: 30px; position: relative;">
 
