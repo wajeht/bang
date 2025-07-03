@@ -4,7 +4,7 @@ source .env
 
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-caprover deploy \
+npx caprover deploy \
   --caproverUrl "$CAPROVER_DOMAIN" \
   --appToken "$CAPROVER_APP_TOKEN" \
   --appName "$CAPROVER_APP_NAME" \
