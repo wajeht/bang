@@ -1,12 +1,12 @@
 import helmet from 'helmet';
 import { config } from './config';
-import type { User } from './type';
 import { db, users } from './db/db';
 import { csrfSync } from 'csrf-sync';
 import session from 'express-session';
 import { logger } from './utils/logger';
 import rateLimit from 'express-rate-limit';
 import { rateLimitHandler } from './handler';
+import type { LayoutOptions, User } from './type';
 import type { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
@@ -329,4 +329,47 @@ export function rateLimitMiddleware() {
         handler: rateLimitHandler(),
         skip: (_req: Request, _res: Response) => config.app.env !== 'production',
     });
+}
+
+export function layoutMiddleware(options: LayoutOptions = {}) {
+    const defaultOptions: LayoutOptions = {
+        defaultLayout: '../layouts/public.html',
+        layoutsDir: '../layouts',
+        ...options,
+    };
+
+    return (req: any, res: any, next: any) => {
+        const originalRender = res.render;
+
+        res.render = function (
+            view: string,
+            viewOptions: any = {},
+            callback?: (err: Error | null, html?: string) => void,
+        ) {
+            const layout =
+                viewOptions.layout === false
+                    ? false
+                    : viewOptions.layout || defaultOptions.defaultLayout;
+            const options = { ...viewOptions };
+
+            if (!layout) {
+                return originalRender.call(this, view, options, callback);
+            }
+
+            originalRender.call(this, view, options, (err: Error | null, html: string) => {
+                if (err) return callback ? callback(err) : next(err);
+
+                const layoutOptions = {
+                    ...options,
+                    body: html,
+                };
+
+                delete layoutOptions.layout;
+
+                originalRender.call(this, layout, layoutOptions, callback);
+            });
+        };
+
+        next();
+    };
 }

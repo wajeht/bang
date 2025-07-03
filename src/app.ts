@@ -6,6 +6,7 @@ import {
     notFoundMiddleware,
     rateLimitMiddleware,
     appLocalStateMiddleware,
+    layoutMiddleware,
 } from './middleware';
 import ejs from 'ejs';
 import cors from 'cors';
@@ -18,7 +19,6 @@ import compression from 'compression';
 import { AddressInfo } from 'node:net';
 import { logger } from './utils/logger';
 import { isMailpitRunning } from './utils/util';
-import expressLayouts from 'express-ejs-layouts';
 import { expressJSDocSwaggerHandler } from './utils/swagger';
 import { expressTemplatesReload } from '@wajeht/express-templates-reload';
 import { db, runMigrations, checkDatabaseHealth, optimizeDatabase } from './db/db';
@@ -51,8 +51,12 @@ export async function createServer() {
         .set('view engine', 'html')
         .set('view cache', config.app.env === 'production')
         .set('views', './src/views/pages')
-        .set('layout', '../layouts/public.html')
-        .use(expressLayouts)
+        .use(
+            layoutMiddleware({
+                defaultLayout: '../layouts/public.html',
+                layoutsDir: '../layouts',
+            }),
+        )
         .use(...csrfMiddleware)
         .use(appLocalStateMiddleware)
         .use(router);

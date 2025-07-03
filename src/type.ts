@@ -210,3 +210,10 @@ export interface Notes {
     update: (id: number, userId: number, updates: Partial<Note>) => Promise<Note>;
     delete: (id: number, userId: number) => Promise<boolean>;
 }
+
+export type LayoutOptions = {
+    /** Default layout file path relative to views directory */
+    defaultLayout?: string;
+    /** Layout directory path relative to views directory */
+    layoutsDir?: string;
+};
