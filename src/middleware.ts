@@ -147,6 +147,14 @@ export function helmetMiddleware() {
                 'connect-src': ["'self'", 'https://*.cloudflare.com', 'plausible.jaw.dev'],
                 'script-src-attr': ["'unsafe-inline'"],
                 'form-action': ["'self'", '*'],
+                'frame-ancestors': ["'self'"],
+                sandbox: [
+                    'allow-same-origin',
+                    'allow-scripts',
+                    'allow-forms',
+                    'allow-popups',
+                    'allow-downloads',
+                ],
             },
         },
         referrerPolicy: {
