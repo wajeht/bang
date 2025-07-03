@@ -26,6 +26,18 @@ import { db, runMigrations, checkDatabaseHealth, optimizeDatabase } from './db/d
 export async function createServer() {
     const app = express();
 
+    if (config.app.env === 'production') {
+        try {
+            await checkDatabaseHealth();
+            await optimizeDatabase();
+            await runMigrations();
+            logger.info('Database migrations completed successfully');
+        } catch (error) {
+            logger.error('Database connection or migration error: %o', { error: error as any });
+            throw error;
+        }
+    }
+
     if (config.app.env === 'development') {
         expressTemplatesReload({
             app,
@@ -81,17 +93,6 @@ export async function createServer() {
 
         if (config.app.env === 'development' && (await isMailpitRunning())) {
             logger.info('Mailpit is running on http://localhost:8025');
-        }
-
-        if (config.app.env === 'production') {
-            try {
-                await checkDatabaseHealth();
-                await optimizeDatabase();
-                await runMigrations();
-                logger.info('Database migrations completed successfully');
-            } catch (error) {
-                logger.error('Database connection or migration error: %o', { error: error as any });
-            }
         }
     });
 
