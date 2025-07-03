@@ -146,7 +146,6 @@ export function helmetMiddleware() {
                     'https://challenges.cloudflare.com',
                     'https://*.turnstile.com',
                     'https://*.cloudflare.com',
-                    'about:blank',
                 ],
                 'style-src': [
                     "'self'",
