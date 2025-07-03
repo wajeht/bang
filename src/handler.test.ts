@@ -112,7 +112,13 @@ describe('Export Data Handler', () => {
                 api_key_created_at: '2023-01-01',
                 autocomplete_search_on_homepage: false,
                 column_preferences: {
-                    bookmarks: { title: true, url: true, created_at: true, default_per_page: 10, pinned: true },
+                    bookmarks: {
+                        title: true,
+                        url: true,
+                        created_at: true,
+                        default_per_page: 10,
+                        pinned: true,
+                    },
                     actions: {
                         name: true,
                         trigger: true,
