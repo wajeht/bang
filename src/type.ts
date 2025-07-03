@@ -63,6 +63,7 @@ export type ColumnPreferences = {
         url: boolean;
         default_per_page: number;
         created_at: boolean;
+        pinned: boolean;
     };
     actions: {
         name: boolean;
@@ -79,6 +80,7 @@ export type ColumnPreferences = {
         content: boolean;
         default_per_page: number;
         created_at: boolean;
+        pinned: boolean;
         view_type: 'table' | 'list';
     };
     users: {
@@ -106,6 +108,7 @@ export type User = {
     updated_at: string;
     column_preferences: ColumnPreferences;
     email_verified_at: string | null;
+    autocomplete_search_on_homepage: boolean;
 };
 
 export type BookmarkToExport = {
@@ -139,6 +142,7 @@ export type Bookmark = {
     title: string;
     url: string;
     user_id: number;
+    pinned?: boolean;
     created_at?: string;
 };
 
