@@ -76,10 +76,7 @@
         </form>
       </dialog>
 
-      <% if (!state.user) { %>
-        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
-      <% } %>
-
+      <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
       <script>
         document.addEventListener('DOMContentLoaded', () => {
           const emailInput = document.getElementById('email-input');
