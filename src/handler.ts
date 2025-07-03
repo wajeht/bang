@@ -782,12 +782,14 @@ export function postExportDataHandler(db: Knex, log: typeof logger) {
         const includeBookmarks = req.body.options.includes('bookmarks');
         const includeActions = req.body.options.includes('actions');
         const includeNotes = req.body.options.includes('notes');
+        const includeUserPreferences = req.body.options.includes('user_preferences');
         const exportData: {
             exported_at: string;
             version: string;
             bookmarks?: Record<string, unknown>[];
             actions?: Record<string, unknown>[];
             notes?: Record<string, unknown>[];
+            user_preferences?: Record<string, unknown>;
         } = {
             exported_at: new Date().toISOString(),
             version: '1.0',
@@ -795,7 +797,7 @@ export function postExportDataHandler(db: Knex, log: typeof logger) {
 
         const fetchBookmarks = () =>
             includeBookmarks
-                ? db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at')
+                ? db('bookmarks').where('user_id', userId).select('title', 'url', 'pinned', 'created_at')
                 : Promise.resolve([]);
 
         const fetchActions = () =>
@@ -815,13 +817,27 @@ export function postExportDataHandler(db: Knex, log: typeof logger) {
 
         const fetchNotes = () =>
             includeNotes
-                ? db('notes').where('user_id', userId).select('title', 'content', 'created_at')
+                ? db('notes').where('user_id', userId).select('title', 'content', 'pinned', 'created_at')
                 : Promise.resolve([]);
 
-        const [bookmarksResult, actionsResult, notesResult] = await Promise.allSettled([
+        const fetchUserPreferences = () =>
+            includeUserPreferences
+                ? db('users')
+                      .where('id', userId)
+                      .select(
+                          'username',
+                          'default_search_provider',
+                          'autocomplete_search_on_homepage',
+                          'column_preferences'
+                      )
+                      .first()
+                : Promise.resolve(null);
+
+        const [bookmarksResult, actionsResult, notesResult, userPreferencesResult] = await Promise.allSettled([
             fetchBookmarks(),
             fetchActions(),
             fetchNotes(),
+            fetchUserPreferences(),
         ]);
 
         if (includeBookmarks) {
@@ -848,6 +864,24 @@ export function postExportDataHandler(db: Knex, log: typeof logger) {
             }
         }
 
+        if (includeUserPreferences) {
+            if (userPreferencesResult.status === 'fulfilled' && userPreferencesResult.value) {
+                const userPrefs = userPreferencesResult.value;
+                // Parse column_preferences if it's a string
+                if (typeof userPrefs.column_preferences === 'string') {
+                    try {
+                        userPrefs.column_preferences = JSON.parse(userPrefs.column_preferences);
+                    } catch (error) {
+                        log.error('Failed to parse column_preferences: %o', error);
+                        userPrefs.column_preferences = {};
+                    }
+                }
+                exportData.user_preferences = userPrefs;
+            } else if (userPreferencesResult.status === 'rejected') {
+                log.error('Failed to fetch user preferences: %o', userPreferencesResult.reason);
+            }
+        }
+
         res.setHeader(
             'Content-Disposition',
             `attachment; filename=bang-data-export-${exportData.exported_at}.json`,
@@ -866,7 +900,12 @@ export function postImportDataHandler(db: Knex) {
             throw new ValidationError({ config: 'Please provide a config' });
         }
 
-        const importData = JSON.parse(req.body.config);
+        let importData;
+        try {
+            importData = JSON.parse(req.body.config);
+        } catch (error) {
+            throw new ValidationError({ config: 'Invalid JSON format' });
+        }
 
         if (!importData.version || importData.version !== '1.0') {
             throw new ValidationError({ config: 'Config version must be 1.0' });
@@ -876,18 +915,21 @@ export function postImportDataHandler(db: Knex) {
 
         try {
             await db.transaction(async (trx) => {
+                // Import bookmarks
                 if (importData.bookmarks?.length > 0) {
                     const bookmarks = importData.bookmarks.map(
-                        (bookmark: { title: string; url: string }) => ({
+                        (bookmark: { title: string; url: string; pinned?: boolean }) => ({
                             user_id: userId,
                             title: bookmark.title,
                             url: bookmark.url,
+                            pinned: bookmark.pinned || false,
                             created_at: db.fn.now(),
                         }),
                     );
                     await trx('bookmarks').insert(bookmarks);
                 }
 
+                // Import actions
                 if (importData.actions?.length > 0) {
                     for (const action of importData.actions) {
                         const actionType = await trx('action_types')
@@ -907,12 +949,14 @@ export function postImportDataHandler(db: Knex) {
                     }
                 }
 
+                // Import notes
                 if (importData.notes?.length > 0) {
                     const notes = importData.notes.map(
-                        (note: { title: string; content: string }) => ({
+                        (note: { title: string; content: string; pinned?: boolean }) => ({
                             user_id: userId,
                             title: note.title,
                             content: note.content,
+                            pinned: note.pinned || false,
                             created_at: db.fn.now(),
                         }),
                     );
@@ -920,11 +964,47 @@ export function postImportDataHandler(db: Knex) {
                     await trx('notes').insert(notes);
                 }
 
-                // TODO(wajeht): import column preferences, settings
+                // Import user preferences
+                if (importData.user_preferences) {
+                    const userPrefs = importData.user_preferences;
+                    const updateData: any = {};
+
+                    // Only update allowed fields
+                    if (userPrefs.username) {
+                        updateData.username = userPrefs.username;
+                    }
+                    if (userPrefs.default_search_provider) {
+                        updateData.default_search_provider = userPrefs.default_search_provider;
+                    }
+                    if (userPrefs.autocomplete_search_on_homepage !== undefined) {
+                        updateData.autocomplete_search_on_homepage = userPrefs.autocomplete_search_on_homepage;
+                    }
+                    if (userPrefs.column_preferences) {
+                        updateData.column_preferences = typeof userPrefs.column_preferences === 'string'
+                            ? userPrefs.column_preferences
+                            : JSON.stringify(userPrefs.column_preferences);
+                    }
+
+                    if (Object.keys(updateData).length > 0) {
+                        await trx('users').where('id', userId).update(updateData);
+
+                        // Update session with new preferences
+                        if (req.session?.user && updateData.column_preferences) {
+                            try {
+                                req.session.user.column_preferences = typeof updateData.column_preferences === 'string'
+                                    ? JSON.parse(updateData.column_preferences)
+                                    : updateData.column_preferences;
+                            } catch (error) {
+                                // Handle parsing error gracefully
+                            }
+                        }
+                    }
+                }
             });
 
             req.flash('success', 'Data imported successfully!');
-        } catch (_error) {
+        } catch (error) {
+            logger.error('Import error: %o', error);
             req.flash('error', 'Failed to import data. Please check the format and try again.');
         }
 

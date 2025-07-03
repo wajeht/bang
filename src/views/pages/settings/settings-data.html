@@ -33,7 +33,7 @@
       </div>
 
       <div id="json" style="display: flex; flex-direction: column; gap: 10px;" role="tabpanel" aria-labelledby="json-button">
-        <p>Export your bookmarks and custom actions</p>
+        <p>Export your bookmarks, custom actions, notes, and user preferences</p>
 
         <form method="POST" action="/settings/data/export" >
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
@@ -61,6 +61,13 @@
                 label: '📝 Include Notes'
               }) %>
 
+              <%- include('../../components/inputs/checkbox.html', {
+                id: 'user-preferences-checkbox',
+                name: 'options[]',
+                value: 'user_preferences',
+                label: '⚙️ Include User Preferences'
+              }) %>
+
               <% if (state.errors && state.errors.options) { %>
                 <small style="color: red;" role="alert"><%= state.errors.options %></small>
               <% } %>
@@ -79,7 +86,7 @@
     <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
       <legend>📥 Import Data</legend>
 
-      <p>Import your bookmarks and custom actions</p>
+      <p>Import your bookmarks, custom actions, notes, and user preferences</p>
 
       <form method="POST" action="/settings/data/import" >
         <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
