@@ -3,7 +3,12 @@ import { notes } from './db/db';
 import { logger } from './utils/logger';
 import type { Request, Response } from 'express';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getHealthzHandler, postExportDataHandler, toggleNotePinHandler, postDeleteSettingsDangerZoneHandler } from './handler';
+import {
+    getHealthzHandler,
+    postExportDataHandler,
+    toggleNotePinHandler,
+    postDeleteSettingsDangerZoneHandler,
+} from './handler';
 
 describe('Health Check Endpoint', () => {
     let req: Partial<Request>;
@@ -392,13 +397,12 @@ describe('Toggle Note Pin Handler', () => {
         await handler(req as Request, res as Response);
 
         const updatedNote = await db('notes').where({ id: testNoteId }).first();
-        expect(updatedNote.pinned).toBe(1); // SQLite stores boolean as 0/1
+        expect(updatedNote.pinned).toBe(1);
         expect(req.flash).toHaveBeenCalledWith('success', 'Note pinned successfully');
         expect(res.redirect).toHaveBeenCalledWith('/notes');
     });
 
     it('should unpin a pinned note', async () => {
-        // First pin the note
         await db('notes').where({ id: testNoteId }).update({ pinned: true });
 
         const handler = toggleNotePinHandler(notes);
@@ -406,13 +410,13 @@ describe('Toggle Note Pin Handler', () => {
         await handler(req as Request, res as Response);
 
         const updatedNote = await db('notes').where({ id: testNoteId }).first();
-        expect(updatedNote.pinned).toBe(0); // SQLite stores boolean as 0/1
+        expect(updatedNote.pinned).toBe(0);
         expect(req.flash).toHaveBeenCalledWith('success', 'Note unpinned successfully');
         expect(res.redirect).toHaveBeenCalledWith('/notes');
     });
 
     it('should return 404 for non-existent note', async () => {
-        req.params.id = 99999; // Non-existent note ID
+        req.params.id = 99999;
 
         const handler = toggleNotePinHandler(notes);
 
@@ -428,7 +432,7 @@ describe('Toggle Note Pin Handler', () => {
             })
             .returning('*');
 
-        req.user.id = otherUser.id; // Try to pin note as different user
+        req.user.id = otherUser.id;
 
         const handler = toggleNotePinHandler(notes);
 
@@ -446,7 +450,6 @@ describe('Delete Settings Danger Zone Handler', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
 
-        // Create test user
         const [user] = await db('users')
             .insert({
                 username: 'dangeruser',
@@ -497,11 +500,9 @@ describe('Delete Settings Danger Zone Handler', () => {
         const handler = postDeleteSettingsDangerZoneHandler(db);
         await handler(req as Request, res as Response);
 
-        // Verify user is deleted
         const deletedUser = await db('users').where({ id: testUserId }).first();
         expect(deletedUser).toBeUndefined();
 
-        // Verify session is destroyed
         expect(req.session.destroy).toHaveBeenCalled();
         expect(res.redirect).toHaveBeenCalledWith('/?toast=🗑️ deleted');
     });
@@ -509,7 +510,6 @@ describe('Delete Settings Danger Zone Handler', () => {
     it('should send JSON export email before deletion', async () => {
         req.body.export_options = ['json'];
 
-        // Add some test data to export
         await db('bookmarks').insert({
             user_id: testUserId,
             title: 'Test Bookmark',
@@ -519,7 +519,6 @@ describe('Delete Settings Danger Zone Handler', () => {
         const handler = postDeleteSettingsDangerZoneHandler(db);
         await handler(req as Request, res as Response);
 
-        // Verify user is still deleted even with export
         const deletedUser = await db('users').where({ id: testUserId }).first();
         expect(deletedUser).toBeUndefined();
 
@@ -529,7 +528,6 @@ describe('Delete Settings Danger Zone Handler', () => {
     it('should send HTML export email before deletion', async () => {
         req.body.export_options = ['html'];
 
-        // Add some test data to export
         await db('bookmarks').insert({
             user_id: testUserId,
             title: 'Test Bookmark',
@@ -539,7 +537,6 @@ describe('Delete Settings Danger Zone Handler', () => {
         const handler = postDeleteSettingsDangerZoneHandler(db);
         await handler(req as Request, res as Response);
 
-        // Verify user is deleted
         const deletedUser = await db('users').where({ id: testUserId }).first();
         expect(deletedUser).toBeUndefined();
 
@@ -549,7 +546,6 @@ describe('Delete Settings Danger Zone Handler', () => {
     it('should send both exports before deletion', async () => {
         req.body.export_options = ['json', 'html'];
 
-        // Add some test data to export
         await db('bookmarks').insert({
             user_id: testUserId,
             title: 'Test Bookmark',
@@ -559,7 +555,6 @@ describe('Delete Settings Danger Zone Handler', () => {
         const handler = postDeleteSettingsDangerZoneHandler(db);
         await handler(req as Request, res as Response);
 
-        // Verify user is deleted
         const deletedUser = await db('users').where({ id: testUserId }).first();
         expect(deletedUser).toBeUndefined();
 
@@ -567,27 +562,23 @@ describe('Delete Settings Danger Zone Handler', () => {
     });
 
     it('should handle single export option (not array)', async () => {
-        req.body.export_options = 'json'; // Single value, not array
+        req.body.export_options = 'json';
 
         const handler = postDeleteSettingsDangerZoneHandler(db);
         await handler(req as Request, res as Response);
 
-        // Verify user is deleted
         const deletedUser = await db('users').where({ id: testUserId }).first();
         expect(deletedUser).toBeUndefined();
 
         expect(res.redirect).toHaveBeenCalledWith('/?toast=🗑️ deleted');
     });
 
-        it('should continue deletion even if export email fails', async () => {
+    it('should continue deletion even if export email fails', async () => {
         req.body.export_options = ['json'];
 
-        // This test verifies that deletion continues even if email fails
-        // The actual email failure is handled gracefully in the function
         const handler = postDeleteSettingsDangerZoneHandler(db);
         await handler(req as Request, res as Response);
 
-        // Verify user is still deleted despite any potential email failure
         const deletedUser = await db('users').where({ id: testUserId }).first();
         expect(deletedUser).toBeUndefined();
 
@@ -603,7 +594,6 @@ describe('Delete Settings Danger Zone Handler', () => {
     });
 
     it('should delete user data along with account', async () => {
-        // Add user data
         await db('bookmarks').insert({
             user_id: testUserId,
             title: 'Test Bookmark',
@@ -628,7 +618,6 @@ describe('Delete Settings Danger Zone Handler', () => {
         const handler = postDeleteSettingsDangerZoneHandler(db);
         await handler(req as Request, res as Response);
 
-        // Verify all user data is deleted via cascade
         const remainingBookmarks = await db('bookmarks').where({ user_id: testUserId });
         const remainingActions = await db('bangs').where({ user_id: testUserId });
         const remainingNotes = await db('notes').where({ user_id: testUserId });
