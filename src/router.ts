@@ -30,6 +30,7 @@ import {
     getCollectionsHandler,
     getSettingsPageHandler,
     getEditNotePageHandler,
+    toggleBookmarkPinHandler,
     getNoteCreatePageHandler,
     getEditActionPageHandler,
     getExportBookmarksHandler,
@@ -99,6 +100,7 @@ router.post('/bookmarks/:id/delete', authenticationMiddleware, deleteBookmarkHan
 router.post('/bookmarks/:id/update', authenticationMiddleware, updateBookmarkHandler(bookmarks));
 router.get('/bookmarks/:id/edit', authenticationMiddleware, getEditBookmarkPageHandler(bookmarks));
 router.get('/bookmarks/:id/actions/create', authenticationMiddleware, getBookmarkActionCreatePageHandler(db)); // prettier-ignore
+router.post('/bookmarks/:id/pin', authenticationMiddleware, toggleBookmarkPinHandler(bookmarks));
 
 router.get('/notes', authenticationMiddleware, getNotesHandler(notes));
 router.post('/notes', authenticationMiddleware, postNoteHandler(notes));
@@ -491,5 +493,21 @@ router.delete('/api/notes/:id', authenticationMiddleware, deleteNoteHandler(note
  *
  */
 router.post('/api/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler(notes));
+
+/**
+ * POST /api/bookmarks/{id}/pin
+ *
+ * @tags Bookmarks
+ * @summary Toggle pin status of a bookmark
+ *
+ * @security BearerAuth
+ *
+ * @param {string} id.path.required - bookmark id
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 404 - Not found response - application/json
+ *
+ */
+router.post('/api/bookmarks/:id/pin', authenticationMiddleware, toggleBookmarkPinHandler(bookmarks)); // prettier-ignore
 
 export { router };
