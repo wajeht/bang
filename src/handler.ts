@@ -507,7 +507,7 @@ export function getBookmarkActionCreatePageHandler(db: Knex) {
 // POST /bookmarks/:id/update or PATCH /api/bookmarks/:id
 export function updateBookmarkHandler(bookmarks: Bookmarks) {
     return async (req: Request, res: Response) => {
-        const { url, title } = req.body;
+        const { url, title, pinned } = req.body;
 
         if (!title) {
             throw new ValidationError({ title: 'Title is required' });
@@ -521,12 +521,17 @@ export function updateBookmarkHandler(bookmarks: Bookmarks) {
             throw new ValidationError({ url: 'Invalid URL format' });
         }
 
+        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
+            throw new ValidationError({ pinned: 'Pinned must be a boolean or checkbox value' });
+        }
+
         const updatedBookmark = await bookmarks.update(
             req.params.id as unknown as number,
             (req.user as User).id,
             {
                 url,
                 title,
+                pinned: pinned === 'on' || pinned === true,
             },
         );
 
@@ -538,7 +543,7 @@ export function updateBookmarkHandler(bookmarks: Bookmarks) {
 // POST /bookmarks or POST /api/bookmarks
 export function postBookmarkHandler() {
     return async (req: Request, res: Response) => {
-        const { url, title } = req.body;
+        const { url, title, pinned } = req.body;
 
         if (!title) {
             throw new ValidationError({ title: 'Title is required' });
@@ -550,6 +555,13 @@ export function postBookmarkHandler() {
 
         if (!isValidUrl(url)) {
             throw new ValidationError({ url: 'Invalid URL format' });
+        }
+
+        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
+            throw new ValidationError(
+                { pinned: 'Pinned must be a boolean or checkbox value' },
+                req,
+            );
         }
 
         const user = req.user as User;
@@ -564,7 +576,17 @@ export function postBookmarkHandler() {
             );
         }
 
-        setTimeout(() => insertBookmark({ url, userId: (req.user as User).id, title, req }), 0);
+        setTimeout(
+            () =>
+                insertBookmark({
+                    url,
+                    userId: (req.user as User).id,
+                    title,
+                    pinned: pinned === 'on' || pinned === true,
+                    req,
+                }),
+            0,
+        );
 
         if (isApiRequest(req)) {
             res.status(201).json({ message: `Bookmark ${title} created successfully!` });
@@ -572,6 +594,38 @@ export function postBookmarkHandler() {
         }
 
         req.flash('success', `Bookmark ${title} created successfully!`);
+        return res.redirect('/bookmarks');
+    };
+}
+
+// POST /bookmarks/:id/pin
+export function toggleBookmarkPinHandler(bookmarks: Bookmarks) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const bookmarkId = parseInt(req.params.id as unknown as string);
+
+        const currentBookmark = await bookmarks.read(bookmarkId, user.id);
+
+        if (!currentBookmark) {
+            throw new NotFoundError('Bookmark not found', req);
+        }
+
+        const updatedBookmark = await bookmarks.update(bookmarkId, user.id, {
+            pinned: !currentBookmark.pinned,
+        });
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: `Bookmark ${updatedBookmark.pinned ? 'pinned' : 'unpinned'} successfully`,
+                data: updatedBookmark,
+            });
+            return;
+        }
+
+        req.flash(
+            'success',
+            `Bookmark ${updatedBookmark.pinned ? 'pinned' : 'unpinned'} successfully`,
+        );
         return res.redirect('/bookmarks');
     };
 }
@@ -1010,6 +1064,7 @@ export function postSettingsDisplayHandler(db: Knex) {
         column_preferences.bookmarks.title = column_preferences.bookmarks.title === 'on';
         column_preferences.bookmarks.url = column_preferences.bookmarks.url === 'on';
         column_preferences.bookmarks.created_at = column_preferences.bookmarks.created_at === 'on';
+        column_preferences.bookmarks.pinned = column_preferences.bookmarks.pinned === 'on';
 
         column_preferences.bookmarks.default_per_page = parseInt(
             column_preferences.bookmarks.default_per_page,
@@ -1026,7 +1081,8 @@ export function postSettingsDisplayHandler(db: Knex) {
         if (
             !column_preferences.bookmarks.title &&
             !column_preferences.bookmarks.url &&
-            !column_preferences.bookmarks.created_at
+            !column_preferences.bookmarks.created_at &&
+            !column_preferences.bookmarks.pinned
         ) {
             throw new ValidationError('At least one bookmark column must be enabled', req);
         }
@@ -1076,6 +1132,7 @@ export function postSettingsDisplayHandler(db: Knex) {
         column_preferences.notes.title = column_preferences.notes.title === 'on';
         column_preferences.notes.content = column_preferences.notes.content === 'on';
         column_preferences.notes.created_at = column_preferences.notes.created_at === 'on';
+        column_preferences.notes.pinned = column_preferences.notes.pinned === 'on';
 
         // Handle view_type preference
         if (
@@ -1085,7 +1142,11 @@ export function postSettingsDisplayHandler(db: Knex) {
             column_preferences.notes.view_type = 'table'; // Default to table if invalid
         }
 
-        if (!column_preferences.notes.title && !column_preferences.notes.content) {
+        if (
+            !column_preferences.notes.title &&
+            !column_preferences.notes.content &&
+            !column_preferences.notes.pinned
+        ) {
             throw new ValidationError('At least one note column must be enabled', req);
         }
 
