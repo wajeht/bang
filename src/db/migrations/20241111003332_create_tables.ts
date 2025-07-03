@@ -31,6 +31,7 @@ export async function up(knex: Knex): Promise<void> {
                         url: true,
                         default_per_page: 10,
                         created_at: true,
+                        pinned: true,
                     },
                     actions: {
                         name: true,
@@ -46,6 +47,7 @@ export async function up(knex: Knex): Promise<void> {
                         content: true,
                         default_per_page: 10,
                         created_at: true,
+                        pinned: true,
                         view_type: 'table',
                     },
                     users: {
