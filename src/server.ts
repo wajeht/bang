@@ -33,11 +33,11 @@ export async function run() {
     process.on('SIGQUIT', () => gracefulShutdown('SIGQUIT'));
 
     process.on('warning', (warning) => {
-        logger.warn(`Process warning: %s - %s`, { name: warning.name, message: warning.message });
+        logger.warn(`Process warning: ${warning.name} - ${warning.message}`);
     });
 
     process.on('uncaughtException', async (error, origin) => {
-        logger.error(`Uncaught Exception: %o, Origin: %s`, { error, origin });
+        logger.error(`Uncaught Exception: ${error}, Origin: ${origin}`);
 
         if (config.app.env === 'production') {
             try {

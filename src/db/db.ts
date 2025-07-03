@@ -90,9 +90,9 @@ export async function runMigrations(force: boolean = false) {
 
         const version = await db.migrate.currentVersion();
 
-        logger.info(`current database version %s`, { version });
+        logger.info(`current database version ${version}`);
 
-        logger.info(`checking for database upgrades`);
+        logger.info('checking for database upgrades');
 
         const [batchNo, migrations] = await db.migrate.latest(dbConfig);
 
@@ -105,12 +105,9 @@ export async function runMigrations(force: boolean = false) {
             .map((migration: string) => migration.split('_')[1]?.split('.')[0] ?? '')
             .join(', ');
 
-        logger.info(`database upgrades completed for %s schema`, migrationList);
+        logger.info(`database upgrades completed for ${migrationList} schema`);
 
-        logger.info(`batch %s run: %s migrations`, {
-            batchNo,
-            migrationsLength: migrations.length,
-        });
+        logger.info(`batch ${batchNo} run: ${migrations.length} migrations`);
     } catch (error) {
         logger.error(`error running migrations: %o`, { error });
         throw error;
