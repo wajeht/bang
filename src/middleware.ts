@@ -137,7 +137,7 @@ export function helmetMiddleware() {
                     'https://*.turnstile.com',
                 ],
                 'style-src': ["'self'", "'unsafe-inline'", 'https://*.turnstile.com'],
-                'connect-src': ["'self'", 'https://*.cloudflare.com'],
+                'connect-src': ["'self'", 'https://*.cloudflare.com', 'plausible.jaw.dev'],
                 'script-src-attr': ["'unsafe-inline'"],
                 'form-action': ["'self'", '*'],
             },
