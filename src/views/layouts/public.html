@@ -88,7 +88,7 @@
       </dialog>
 
       <% if (state.env === 'production') { %>
-        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?v=<%- state.version.script %>" defer></script>
       <% } %>
 
       <script>
