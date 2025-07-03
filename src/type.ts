@@ -217,3 +217,12 @@ export type LayoutOptions = {
     /** Layout directory path relative to views directory */
     layoutsDir?: string;
 };
+
+export interface TurnstileVerifyResponse {
+    success: boolean;
+    'error-codes'?: string[];
+    challenge_ts?: string;
+    hostname?: string;
+    action?: string;
+    cdata?: string;
+}
