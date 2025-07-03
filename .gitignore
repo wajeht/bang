@@ -134,7 +134,6 @@ src/scratch.js
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-deploy.sh
 db.sqlite
 db.sqlite-shm
 db.sqlite-wal
