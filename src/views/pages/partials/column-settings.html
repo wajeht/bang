@@ -130,6 +130,14 @@
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
+              name="column_preferences[bookmarks][pinned]"
+              <%= user.column_preferences?.bookmarks?.pinned !== false ? 'checked' : '' %>
+            >
+            📌 Pinned
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
               name="column_preferences[bookmarks][created_at]"
               <%= user.column_preferences?.bookmarks?.created_at !== false ? 'checked' : '' %>
             >
@@ -176,6 +184,14 @@
                 <%= user.column_preferences?.notes?.content !== false ? 'checked' : '' %>
               >
               📝 Content
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px;">
+              <input
+                type="checkbox"
+                name="column_preferences[notes][pinned]"
+                <%= user.column_preferences?.notes?.pinned !== false ? 'checked' : '' %>
+              >
+              📌 Pinned
             </label>
             <label style="display: flex; align-items: center; gap: 10px;">
               <input
