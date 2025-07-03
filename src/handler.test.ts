@@ -92,6 +92,7 @@ describe('Export Data Handler', () => {
                 email: 'handler-test@example.com',
                 is_admin: false,
                 default_search_provider: 'duckduckgo',
+                autocomplete_search_on_homepage: false,
             })
             .returning('*');
 
@@ -109,8 +110,9 @@ describe('Export Data Handler', () => {
                 api_key: 'test-key',
                 api_key_version: 1,
                 api_key_created_at: '2023-01-01',
+                autocomplete_search_on_homepage: false,
                 column_preferences: {
-                    bookmarks: { title: true, url: true, created_at: true, default_per_page: 10 },
+                    bookmarks: { title: true, url: true, created_at: true, default_per_page: 10, pinned: true },
                     actions: {
                         name: true,
                         trigger: true,
@@ -127,6 +129,7 @@ describe('Export Data Handler', () => {
                         created_at: true,
                         default_per_page: 10,
                         view_type: 'table',
+                        pinned: true,
                     },
                     users: {
                         username: true,
