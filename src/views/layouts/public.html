@@ -67,7 +67,12 @@
             error: state.errors && state.errors.email ? state.errors.email : undefined
           }) %>
 
-          <div class="cf-turnstile" data-sitekey="<%- state.cloudflare_turnstile_site_key %>"></div>
+          <div
+            class="cf-turnstile"
+            data-sitekey="<%- state.cloudflare_turnstile_site_key %>"
+            data-size="flexible"
+           >
+           </div>
 
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
             <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
