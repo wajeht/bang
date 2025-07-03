@@ -298,7 +298,10 @@ export const bookmarks: Bookmarks = {
             });
         }
 
-        if (['title', 'url', 'created_at'].includes(sortKey)) {
+        // Always sort by pinned first (pinned bookmarks at top), then by the requested sort
+        query.orderBy('pinned', 'desc');
+
+        if (['title', 'url', 'created_at', 'pinned'].includes(sortKey)) {
             query.orderBy(sortKey, direction);
         } else {
             query.orderBy('created_at', 'desc');
@@ -331,7 +334,7 @@ export const bookmarks: Bookmarks = {
     },
 
     update: async (id: number, userId: number, updates: Partial<Bookmark>) => {
-        const allowedFields = ['title', 'url'];
+        const allowedFields = ['title', 'url', 'pinned'];
 
         const updateData = Object.fromEntries(
             Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
@@ -394,7 +397,7 @@ export const notes: Notes = {
         // Always sort by pinned first (pinned notes at top), then by the requested sort
         query.orderBy('pinned', 'desc');
 
-        if (['title', 'content', 'created_at'].includes(sortKey)) {
+        if (['title', 'content', 'created_at', 'pinned'].includes(sortKey)) {
             query.orderBy(sortKey, direction);
         } else {
             query.orderBy('created_at', 'desc');
