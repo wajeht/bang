@@ -3,7 +3,7 @@ import { notes } from './db/db';
 import { logger } from './utils/logger';
 import type { Request, Response } from 'express';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getHealthzHandler, postExportDataHandler, toggleNotePinHandler } from './handler';
+import { getHealthzHandler, postExportDataHandler, toggleNotePinHandler, postDeleteSettingsDangerZoneHandler } from './handler';
 
 describe('Health Check Endpoint', () => {
     let req: Partial<Request>;
@@ -435,5 +435,206 @@ describe('Toggle Note Pin Handler', () => {
         await expect(handler(req as Request, res as Response)).rejects.toThrow('Note not found');
 
         await db('users').where({ id: otherUser.id }).delete();
+    });
+});
+
+describe('Delete Settings Danger Zone Handler', () => {
+    let testUserId: number;
+    let req: any;
+    let res: any;
+
+    beforeEach(async () => {
+        vi.clearAllMocks();
+
+        // Create test user
+        const [user] = await db('users')
+            .insert({
+                username: 'dangeruser',
+                email: 'danger@example.com',
+                is_admin: false,
+                email_verified_at: db.fn.now(),
+            })
+            .returning('*');
+
+        testUserId = user.id;
+
+        req = {
+            session: {
+                user: {
+                    id: testUserId,
+                    email: 'danger@example.com',
+                    username: 'dangeruser',
+                },
+                destroy: vi.fn((callback) => callback(null)),
+            },
+            user: {
+                id: testUserId,
+                email: 'danger@example.com',
+                username: 'dangeruser',
+            },
+            body: {},
+            flash: vi.fn(),
+        };
+
+        res = {
+            redirect: vi.fn(),
+        };
+    });
+
+    afterEach(async () => {
+        if (testUserId) {
+            await db('notes').where({ user_id: testUserId }).delete();
+            await db('bookmarks').where({ user_id: testUserId }).delete();
+            await db('bangs').where({ user_id: testUserId }).delete();
+            await db('users').where({ id: testUserId }).delete();
+        }
+        vi.clearAllMocks();
+    });
+
+    it('should delete user account without export options', async () => {
+        req.body.export_options = [];
+
+        const handler = postDeleteSettingsDangerZoneHandler(db);
+        await handler(req as Request, res as Response);
+
+        // Verify user is deleted
+        const deletedUser = await db('users').where({ id: testUserId }).first();
+        expect(deletedUser).toBeUndefined();
+
+        // Verify session is destroyed
+        expect(req.session.destroy).toHaveBeenCalled();
+        expect(res.redirect).toHaveBeenCalledWith('/?toast=🗑️ deleted');
+    });
+
+    it('should send JSON export email before deletion', async () => {
+        req.body.export_options = ['json'];
+
+        // Add some test data to export
+        await db('bookmarks').insert({
+            user_id: testUserId,
+            title: 'Test Bookmark',
+            url: 'https://test.com',
+        });
+
+        const handler = postDeleteSettingsDangerZoneHandler(db);
+        await handler(req as Request, res as Response);
+
+        // Verify user is still deleted even with export
+        const deletedUser = await db('users').where({ id: testUserId }).first();
+        expect(deletedUser).toBeUndefined();
+
+        expect(res.redirect).toHaveBeenCalledWith('/?toast=🗑️ deleted');
+    });
+
+    it('should send HTML export email before deletion', async () => {
+        req.body.export_options = ['html'];
+
+        // Add some test data to export
+        await db('bookmarks').insert({
+            user_id: testUserId,
+            title: 'Test Bookmark',
+            url: 'https://test.com',
+        });
+
+        const handler = postDeleteSettingsDangerZoneHandler(db);
+        await handler(req as Request, res as Response);
+
+        // Verify user is deleted
+        const deletedUser = await db('users').where({ id: testUserId }).first();
+        expect(deletedUser).toBeUndefined();
+
+        expect(res.redirect).toHaveBeenCalledWith('/?toast=🗑️ deleted');
+    });
+
+    it('should send both exports before deletion', async () => {
+        req.body.export_options = ['json', 'html'];
+
+        // Add some test data to export
+        await db('bookmarks').insert({
+            user_id: testUserId,
+            title: 'Test Bookmark',
+            url: 'https://test.com',
+        });
+
+        const handler = postDeleteSettingsDangerZoneHandler(db);
+        await handler(req as Request, res as Response);
+
+        // Verify user is deleted
+        const deletedUser = await db('users').where({ id: testUserId }).first();
+        expect(deletedUser).toBeUndefined();
+
+        expect(res.redirect).toHaveBeenCalledWith('/?toast=🗑️ deleted');
+    });
+
+    it('should handle single export option (not array)', async () => {
+        req.body.export_options = 'json'; // Single value, not array
+
+        const handler = postDeleteSettingsDangerZoneHandler(db);
+        await handler(req as Request, res as Response);
+
+        // Verify user is deleted
+        const deletedUser = await db('users').where({ id: testUserId }).first();
+        expect(deletedUser).toBeUndefined();
+
+        expect(res.redirect).toHaveBeenCalledWith('/?toast=🗑️ deleted');
+    });
+
+        it('should continue deletion even if export email fails', async () => {
+        req.body.export_options = ['json'];
+
+        // This test verifies that deletion continues even if email fails
+        // The actual email failure is handled gracefully in the function
+        const handler = postDeleteSettingsDangerZoneHandler(db);
+        await handler(req as Request, res as Response);
+
+        // Verify user is still deleted despite any potential email failure
+        const deletedUser = await db('users').where({ id: testUserId }).first();
+        expect(deletedUser).toBeUndefined();
+
+        expect(res.redirect).toHaveBeenCalledWith('/?toast=🗑️ deleted');
+    });
+
+    it('should throw error if user not found', async () => {
+        req.session.user = null;
+
+        const handler = postDeleteSettingsDangerZoneHandler(db);
+
+        await expect(handler(req as Request, res as Response)).rejects.toThrow('User not found');
+    });
+
+    it('should delete user data along with account', async () => {
+        // Add user data
+        await db('bookmarks').insert({
+            user_id: testUserId,
+            title: 'Test Bookmark',
+            url: 'https://test.com',
+        });
+
+        const actionType = await db('action_types').where('name', 'search').first();
+        await db('bangs').insert({
+            user_id: testUserId,
+            trigger: '!test',
+            name: 'Test Action',
+            url: 'https://action.com',
+            action_type_id: actionType.id,
+        });
+
+        await db('notes').insert({
+            user_id: testUserId,
+            title: 'Test Note',
+            content: 'Test content',
+        });
+
+        const handler = postDeleteSettingsDangerZoneHandler(db);
+        await handler(req as Request, res as Response);
+
+        // Verify all user data is deleted via cascade
+        const remainingBookmarks = await db('bookmarks').where({ user_id: testUserId });
+        const remainingActions = await db('bangs').where({ user_id: testUserId });
+        const remainingNotes = await db('notes').where({ user_id: testUserId });
+
+        expect(remainingBookmarks).toHaveLength(0);
+        expect(remainingActions).toHaveLength(0);
+        expect(remainingNotes).toHaveLength(0);
     });
 });

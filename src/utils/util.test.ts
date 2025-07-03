@@ -24,7 +24,8 @@ import fs from 'node:fs/promises';
 import { Request } from 'express';
 import { config } from '../config';
 import { ApiKeyPayload, BookmarkToExport } from '../type';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { generateUserDataExport, generateBookmarkHtmlExport } from './util';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe.concurrent('isValidUrl', () => {
     it('should return true for valid URLs', () => {
@@ -764,4 +765,313 @@ describe.concurrent('README.md', () => {
         expect(result).toContain('<!-- starts -->');
         expect(result).toContain('<!-- ends -->');
     });
+});
+
+describe('Export Functions', () => {
+    let testUserId: number;
+
+    beforeAll(async () => {
+        // Insert test data for export functions
+        await db.raw(`
+            INSERT OR IGNORE INTO action_types (name) VALUES
+            ('search'),
+            ('redirect'),
+            ('bookmark')
+        `);
+
+        await db('users').where('email', 'export-test@example.com').delete();
+
+        const [user] = await db('users')
+            .insert({
+                username: 'exportuser',
+                email: 'export-test@example.com',
+                is_admin: false,
+                default_search_provider: 'duckduckgo',
+                autocomplete_search_on_homepage: true,
+                column_preferences: JSON.stringify({
+                    bookmarks: { title: true, url: true, default_per_page: 10 },
+                    actions: { name: true, trigger: true, default_per_page: 15 },
+                    notes: { title: true, content: true, default_per_page: 20 },
+                }),
+            })
+            .returning('*');
+
+        testUserId = user.id;
+    });
+
+    afterAll(async () => {
+        if (testUserId) {
+            await db('notes').where({ user_id: testUserId }).delete();
+            await db('bookmarks').where({ user_id: testUserId }).delete();
+            await db('bangs').where({ user_id: testUserId }).delete();
+            await db('users').where({ id: testUserId }).delete();
+        }
+    });
+
+    describe('generateUserDataExport', () => {
+        beforeEach(async () => {
+            // Clean up any existing test data
+            await db('notes').where({ user_id: testUserId }).delete();
+            await db('bookmarks').where({ user_id: testUserId }).delete();
+            await db('bangs').where({ user_id: testUserId }).delete();
+        });
+
+        it('should export all data types when all options are true', async () => {
+            // Insert test data
+            await db('bookmarks').insert({
+                user_id: testUserId,
+                title: 'Test Bookmark',
+                url: 'https://test.com',
+                pinned: true,
+            });
+
+            const actionType = await db('action_types').where('name', 'search').first();
+            await db('bangs').insert({
+                user_id: testUserId,
+                trigger: '!test',
+                name: 'Test Action',
+                url: 'https://action.com/{{{s}}}',
+                action_type_id: actionType.id,
+            });
+
+            await db('notes').insert({
+                user_id: testUserId,
+                title: 'Test Note',
+                content: 'Test note content',
+                pinned: false,
+            });
+
+            const exportData = await generateUserDataExport(testUserId);
+
+            expect(exportData.version).toBe('1.0');
+            expect(exportData.exported_at).toBeDefined();
+            expect(new Date(exportData.exported_at)).toBeInstanceOf(Date);
+
+            expect(exportData.bookmarks).toHaveLength(1);
+            expect(exportData.bookmarks![0]).toEqual(
+                expect.objectContaining({
+                    title: 'Test Bookmark',
+                    url: 'https://test.com',
+                    pinned: 1, // SQLite stores boolean as 0/1
+                }),
+            );
+
+            expect(exportData.actions).toHaveLength(1);
+            expect(exportData.actions![0]).toEqual(
+                expect.objectContaining({
+                    trigger: '!test',
+                    name: 'Test Action',
+                    url: 'https://action.com/{{{s}}}',
+                    action_type: 'search',
+                }),
+            );
+
+            expect(exportData.notes).toHaveLength(1);
+            expect(exportData.notes![0]).toEqual(
+                expect.objectContaining({
+                    title: 'Test Note',
+                    content: 'Test note content',
+                    pinned: 0,
+                }),
+            );
+
+            expect(exportData.user_preferences).toEqual(
+                expect.objectContaining({
+                    username: 'exportuser',
+                    default_search_provider: 'duckduckgo',
+                    autocomplete_search_on_homepage: 1,
+                    column_preferences: expect.any(Object),
+                }),
+            );
+        });
+
+        it('should export only selected data types', async () => {
+            await db('bookmarks').insert({
+                user_id: testUserId,
+                title: 'Test Bookmark',
+                url: 'https://test.com',
+            });
+
+            const exportData = await generateUserDataExport(testUserId, {
+                includeBookmarks: true,
+                includeActions: false,
+                includeNotes: false,
+                includeUserPreferences: false,
+            });
+
+            expect(exportData.bookmarks).toHaveLength(1);
+            expect(exportData.actions).toBeUndefined();
+            expect(exportData.notes).toBeUndefined();
+            expect(exportData.user_preferences).toBeUndefined();
+        });
+
+        it('should handle empty data gracefully', async () => {
+            const exportData = await generateUserDataExport(testUserId);
+
+            expect(exportData.bookmarks).toEqual([]);
+            expect(exportData.actions).toEqual([]);
+            expect(exportData.notes).toEqual([]);
+            expect(exportData.user_preferences).toBeDefined();
+        });
+
+        it('should parse column_preferences JSON string correctly', async () => {
+            const exportData = await generateUserDataExport(testUserId, {
+                includeUserPreferences: true,
+            });
+
+            expect(exportData.user_preferences!.column_preferences).toEqual({
+                bookmarks: { title: true, url: true, default_per_page: 10 },
+                actions: { name: true, trigger: true, default_per_page: 15 },
+                notes: { title: true, content: true, default_per_page: 20 },
+            });
+        });
+
+        it('should handle user with invalid column_preferences JSON', async () => {
+            // Update user with invalid JSON
+            await db('users').where('id', testUserId).update({
+                column_preferences: 'invalid json string'
+            });
+
+            const exportData = await generateUserDataExport(testUserId, {
+                includeUserPreferences: true,
+            });
+
+            expect(exportData.user_preferences).toBeDefined();
+            expect(exportData.user_preferences!.column_preferences).toEqual({});
+
+            // Restore valid JSON for other tests
+            await db('users').where('id', testUserId).update({
+                column_preferences: JSON.stringify({
+                    bookmarks: { title: true, url: true, default_per_page: 10 },
+                    actions: { name: true, trigger: true, default_per_page: 15 },
+                    notes: { title: true, content: true, default_per_page: 20 },
+                }),
+            });
+        });
+
+        it('should handle multiple items of each data type', async () => {
+            // Insert multiple bookmarks, actions, and notes
+            await db('bookmarks').insert([
+                { user_id: testUserId, title: 'Bookmark 1', url: 'https://test1.com', pinned: true },
+                { user_id: testUserId, title: 'Bookmark 2', url: 'https://test2.com', pinned: false },
+                { user_id: testUserId, title: 'Bookmark 3', url: 'https://test3.com', pinned: false },
+            ]);
+
+            const actionType = await db('action_types').where('name', 'search').first();
+            await db('bangs').insert([
+                { user_id: testUserId, trigger: '!test1', name: 'Action 1', url: 'https://action1.com/{{{s}}}', action_type_id: actionType.id },
+                { user_id: testUserId, trigger: '!test2', name: 'Action 2', url: 'https://action2.com/{{{s}}}', action_type_id: actionType.id },
+            ]);
+
+            await db('notes').insert([
+                { user_id: testUserId, title: 'Note 1', content: 'Content 1', pinned: true },
+                { user_id: testUserId, title: 'Note 2', content: 'Content 2', pinned: false },
+                { user_id: testUserId, title: 'Note 3', content: 'Content 3', pinned: false },
+            ]);
+
+            const exportData = await generateUserDataExport(testUserId);
+
+            expect(exportData.bookmarks).toHaveLength(3);
+            expect(exportData.actions).toHaveLength(2);
+            expect(exportData.notes).toHaveLength(3);
+
+            // Verify pinned status is preserved
+            expect(exportData.bookmarks!.filter(b => b.pinned === 1)).toHaveLength(1);
+            expect(exportData.notes!.filter(n => n.pinned === 1)).toHaveLength(1);
+        });
+
+        it('should exclude data types when all options are false', async () => {
+            const exportData = await generateUserDataExport(testUserId, {
+                includeBookmarks: false,
+                includeActions: false,
+                includeNotes: false,
+                includeUserPreferences: false,
+            });
+
+            expect(exportData.bookmarks).toBeUndefined();
+            expect(exportData.actions).toBeUndefined();
+            expect(exportData.notes).toBeUndefined();
+            expect(exportData.user_preferences).toBeUndefined();
+        });
+    });
+
+    describe('generateBookmarkHtmlExport', () => {
+        beforeEach(async () => {
+            await db('bookmarks').where({ user_id: testUserId }).delete();
+        });
+
+        it('should generate valid HTML bookmark export', async () => {
+            await db('bookmarks').insert([
+                {
+                    user_id: testUserId,
+                    title: 'Test Bookmark 1',
+                    url: 'https://test1.com',
+                    created_at: new Date('2023-01-01').toISOString(),
+                },
+                {
+                    user_id: testUserId,
+                    title: 'Test Bookmark 2',
+                    url: 'https://test2.com',
+                    created_at: new Date('2023-01-02').toISOString(),
+                },
+            ]);
+
+            const htmlExport = await generateBookmarkHtmlExport(testUserId);
+
+            expect(htmlExport).toContain('<!DOCTYPE NETSCAPE-Bookmark-file-1>');
+            expect(htmlExport).toContain('<TITLE>Bookmarks</TITLE>');
+            expect(htmlExport).toContain('<H1>Bookmarks</H1>');
+            expect(htmlExport).toContain('Test Bookmark 1');
+            expect(htmlExport).toContain('Test Bookmark 2');
+            expect(htmlExport).toContain('https://test1.com');
+            expect(htmlExport).toContain('https://test2.com');
+            expect(htmlExport).toContain('ADD_DATE=');
+        });
+
+        it('should handle empty bookmarks', async () => {
+            const htmlExport = await generateBookmarkHtmlExport(testUserId);
+
+            expect(htmlExport).toContain('<!DOCTYPE NETSCAPE-Bookmark-file-1>');
+            expect(htmlExport).toContain('<TITLE>Bookmarks</TITLE>');
+            expect(htmlExport).toContain('<H1>Bookmarks</H1>');
+            // Should still have proper structure even with no bookmarks
+            expect(htmlExport).toContain('<DL><p>');
+            expect(htmlExport).toContain('</DL><p>');
+        });
+
+        it('should properly escape HTML characters in bookmark data', async () => {
+            await db('bookmarks').insert({
+                user_id: testUserId,
+                title: 'Test & <Script> "Special" Characters',
+                url: 'https://test.com?param=<value>&other="quoted"',
+                created_at: new Date('2023-01-01').toISOString(),
+            });
+
+            const htmlExport = await generateBookmarkHtmlExport(testUserId);
+
+            // Should escape HTML special characters
+            expect(htmlExport).toContain('Test &amp; &lt;Script&gt; &quot;Special&quot; Characters');
+            expect(htmlExport).toContain('https://test.com?param=&lt;value&gt;&amp;other=&quot;quoted&quot;');
+        });
+
+        it('should handle very long bookmark titles and URLs', async () => {
+            const longTitle = 'A'.repeat(1000);
+            const longUrl = 'https://example.com/' + 'b'.repeat(2000);
+
+            await db('bookmarks').insert({
+                user_id: testUserId,
+                title: longTitle,
+                url: longUrl,
+                created_at: new Date('2023-01-01').toISOString(),
+            });
+
+            const htmlExport = await generateBookmarkHtmlExport(testUserId);
+
+            expect(htmlExport).toContain(longTitle);
+            expect(htmlExport).toContain(longUrl);
+            expect(htmlExport).toContain('<!DOCTYPE NETSCAPE-Bookmark-file-1>');
+        });
+    });
+
+
 });

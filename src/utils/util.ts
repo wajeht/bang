@@ -184,8 +184,18 @@ export async function fetchPageTitle(url: string): Promise<string> {
 }
 
 export const bookmark = {
+    _escapeHtml: function (text: string): string {
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    },
     _createHTML: function (bookmark: BookmarkToExport): string {
-        return `<DT><A HREF="${bookmark.url}" ADD_DATE="${bookmark.add_date}">${bookmark.title}</A>`;
+        const escapedUrl = this._escapeHtml(bookmark.url);
+        const escapedTitle = this._escapeHtml(bookmark.title);
+        return `<DT><A HREF="${escapedUrl}" ADD_DATE="${bookmark.add_date}">${escapedTitle}</A>`;
     },
     createDocument: function (bookmarks: BookmarkToExport[]): string {
         const header = `<!DOCTYPE NETSCAPE-Bookmark-file-1>

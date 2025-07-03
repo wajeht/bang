@@ -14,13 +14,13 @@ import { logger } from '../utils/logger';
 import { attachPaginate } from './paginate';
 import type { Actions, Bookmarks, Notes } from '../type';
 
-function knexInstance() {
+function _createKnexInstance() {
     const db = knex(knexConfig);
     attachPaginate();
     return db;
 }
 
-export const db = knexInstance();
+export const db = _createKnexInstance();
 
 export async function optimizeDatabase() {
     try {
