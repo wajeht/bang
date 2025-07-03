@@ -32,4 +32,11 @@ export const config = {
         url: process.env.NOTIFY_URL || 'https://notify.jaw.dev/',
         apiKey: process.env.NOTIFY_X_API_KEY || '',
     } as const,
+
+    cloudflare: {
+        turnstile: {
+            siteKey: process.env.CLOUDFLARE_TURNSTILE_SITE_KEY || '',
+            secretKey: process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || '',
+        },
+    } as const,
 } as const;

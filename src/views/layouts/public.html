@@ -2,6 +2,7 @@
 <html lang="en" data-theme="light">
 
   <%- include('./partials/head.html') %>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 
   <body style="display: flex; flex-direction: column; min-height: 100vh; gap: 30px; position: relative;">
 
@@ -53,6 +54,9 @@
 
         <form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+          <!-- cloudflare CAPTCHA -->
+          <div class="cf-turnstile" data-sitekey="<%= state.cloudflare_turnstile_site_key %>"></div>
 
           <%- include('../components/inputs/email.html', {
             id: 'email-input',
