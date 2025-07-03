@@ -5,6 +5,7 @@ import type {
     ApiKeyPayload,
     BookmarkToExport,
     MagicLinkPayload,
+    TurnstileVerifyResponse,
 } from '../type';
 import http from 'node:http';
 import path from 'node:path';
@@ -835,5 +836,35 @@ https://github.com/wajeht/bang`,
         );
     } catch (error) {
         logger.error(`Failed to send data export email: %o`, { error });
+    }
+}
+
+export async function verifyTurnstileToken(
+    token: string,
+    remoteip?: string,
+): Promise<TurnstileVerifyResponse> {
+    const formData = new URLSearchParams();
+    formData.append('secret', config.cloudflare.turnstile.secretKey);
+    formData.append('response', token);
+    if (remoteip) {
+        formData.append('remoteip', remoteip);
+    }
+
+    try {
+        const result = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const outcome = (await result.json()) as TurnstileVerifyResponse;
+
+        if (!outcome.success) {
+            const errors = outcome['error-codes']?.join(', ') || 'Unknown error';
+            throw new Error(`Turnstile validation failed: ${errors}`);
+        }
+
+        return outcome;
+    } catch (error) {
+        throw new Error(`Failed to verify Turnstile token: ${(error as Error).message}`);
     }
 }

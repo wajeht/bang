@@ -10,7 +10,14 @@ import type { LayoutOptions, User } from './type';
 import type { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
-import { api, nl2br, getApiKey, isApiRequest, highlightSearchTerm } from './utils/util';
+import {
+    api,
+    nl2br,
+    getApiKey,
+    isApiRequest,
+    highlightSearchTerm,
+    verifyTurnstileToken,
+} from './utils/util';
 
 export function notFoundMiddleware() {
     return (req: Request, _res: Response, _next: NextFunction) => {
@@ -178,7 +185,7 @@ export function setupAppLocals(req: Request, res: Response) {
     const randomNumber = Math.random();
 
     res.locals.state = {
-        cloudflare_turnstile_site_key: config.cloudflare.turnstile.siteKey,
+        cloudflare_turnstile_site_key: config.cloudflare?.turnstile?.siteKey || '',
         env: config.app.env,
         user: req.user ?? req.session?.user,
         copyRightYear: new Date().getFullYear(),
@@ -387,4 +394,30 @@ export function layoutMiddleware(options: LayoutOptions = {}) {
 
         next();
     };
+}
+
+export async function turnstileMiddleware(req: Request, _res: Response, next: NextFunction) {
+    try {
+        if (config.app.env !== 'production') {
+            return next();
+        }
+
+        if (req.method === 'GET' || isApiRequest(req)) {
+            return next();
+        }
+
+        const token = req.body['cf-turnstile-response'];
+        if (!token) {
+            throw new ValidationError({
+                turnstile: 'Turnstile verification failed: Missing token',
+            });
+        }
+
+        const ip = (req.headers['cf-connecting-ip'] as string) || req.ip;
+        await verifyTurnstileToken(token, ip);
+
+        next();
+    } catch (error) {
+        next(error);
+    }
 }

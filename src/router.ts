@@ -55,7 +55,7 @@ import {
 import { api } from './utils/util';
 import { search } from './utils/search';
 import { db, actions, bookmarks, notes } from './db/db';
-import { adminOnlyMiddleware, authenticationMiddleware } from './middleware';
+import { adminOnlyMiddleware, authenticationMiddleware, turnstileMiddleware } from './middleware';
 
 const router = express.Router();
 
@@ -65,7 +65,7 @@ router.get('/', getHomePageAndSearchHandler(search));
 router.get('/privacy-policy', getPrivacyPolicyPageHandler());
 router.get('/terms-of-service', getTermsOfServicePageHandler());
 
-router.post('/login', postLoginHandler());
+router.post('/login', turnstileMiddleware, postLoginHandler());
 router.get('/logout', getLogoutHandler());
 router.post('/search', postSearchHandler(search));
 router.get('/auth/magic/:token', getMagicLinkHandler());
