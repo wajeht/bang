@@ -127,7 +127,6 @@ export function helmetMiddleware() {
                     "'self'",
                     'plausible.jaw.dev',
                     'bang.jaw.dev',
-                    'jaw.run',
                     '*.cloudflare.com',
                 ],
                 'script-src': [
@@ -138,7 +137,6 @@ export function helmetMiddleware() {
                     'blob:',
                     'plausible.jaw.dev',
                     'bang.jaw.dev',
-                    'jaw.run',
                     '*.cloudflare.com',
                 ],
                 'script-src-elem': [
@@ -147,17 +145,15 @@ export function helmetMiddleware() {
                     'https://plausible.jaw.dev',
                     '*.cloudflare.com',
                 ],
-                'frame-src': ["'self'", 'jaw.run', '*.cloudflare.com'],
+                'frame-src': ["'self'", '*.cloudflare.com'],
                 'style-src': [
                     "'self'",
                     "'unsafe-inline'",
-                    'jaw.run',
                     '*.cloudflare.com',
                 ],
 
                 'connect-src': [
                     "'self'",
-                    'jaw.run',
                     'plausible.jaw.dev',
                     '*.cloudflare.com',
                 ],
