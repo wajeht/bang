@@ -48,6 +48,10 @@ vi.mock('./config', () => ({
             url: 'https://testing',
             apiKey: 'testing',
         },
+        cloudflare: {
+            turnstileSiteKey: 'deeznutz',
+            turnstileSecretKey: 'joemama',
+        },
     },
 }));
 
