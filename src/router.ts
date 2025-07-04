@@ -2,6 +2,7 @@ import express from 'express';
 import { logger } from './utils/logger';
 
 import {
+    getBangsPage,
     getNoteHandler,
     getNotesHandler,
     postNoteHandler,
@@ -59,6 +60,7 @@ import { adminOnlyMiddleware, authenticationMiddleware, turnstileMiddleware } fr
 
 const router = express.Router();
 
+router.get('/bangs', getBangsPage());
 router.get('/how-to', getHowToPageHandler());
 router.get('/healthz', getHealthzHandler(db));
 router.get('/', getHomePageAndSearchHandler(search));
