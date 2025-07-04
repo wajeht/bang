@@ -1774,7 +1774,7 @@ export function getBangsPage() {
             sort_key = 't',
             direction = 'asc',
             page = 1,
-            per_page = 25,
+            per_page = 100,
         } = req.query;
 
         const bangsArray = Object.values(bangsTable as Record<string, Bang>);
