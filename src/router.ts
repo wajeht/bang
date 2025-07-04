@@ -65,10 +65,10 @@ router.get('/', getHomePageAndSearchHandler(search));
 router.get('/privacy-policy', getPrivacyPolicyPageHandler());
 router.get('/terms-of-service', getTermsOfServicePageHandler());
 
-router.post('/login', turnstileMiddleware, postLoginHandler());
 router.get('/logout', getLogoutHandler());
 router.post('/search', postSearchHandler(search));
 router.get('/auth/magic/:token', getMagicLinkHandler());
+router.post('/login', turnstileMiddleware, postLoginHandler());
 
 router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, getAdminUsersHandler(db));
 router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, getAdminUsersHandler(db));
