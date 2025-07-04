@@ -128,7 +128,7 @@ export function helmetMiddleware() {
                     'plausible.jaw.dev',
                     'bang.jaw.dev',
                     'jaw.run',
-                    'https://challenges.cloudflare.com',
+                    '*.cloudflare.com',
                 ],
                 'script-src': [
                     "'self'",
@@ -139,7 +139,7 @@ export function helmetMiddleware() {
                     'plausible.jaw.dev',
                     'bang.jaw.dev',
                     'jaw.run',
-                    'https://challenges.cloudflare.com',
+                    '*.cloudflare.com',
                 ],
                 'script-src-elem': [
                     "'self'",
