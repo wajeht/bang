@@ -31,6 +31,10 @@ env:
     NOTIFY_URL: 'https://deeznutz.co'
     NOTIFY_X_API_KEY: 'your mom'
 
+    # cloudflare
+    CLOUDFLARE_TURNSTILE_SITE_KEY: 'deeznutz'
+    CLOUDFLARE_TURNSTILE_SECRET_KEY: 'joemama'
+
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
