@@ -1,3 +1,11 @@
+import {
+    api,
+    nl2br,
+    getApiKey,
+    isApiRequest,
+    highlightSearchTerm,
+    verifyTurnstileToken,
+} from './utils/util';
 import helmet from 'helmet';
 import { config } from './config';
 import { db, users } from './db/db';
@@ -10,14 +18,6 @@ import type { LayoutOptions, User } from './type';
 import type { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
-import {
-    api,
-    nl2br,
-    getApiKey,
-    isApiRequest,
-    highlightSearchTerm,
-    verifyTurnstileToken,
-} from './utils/util';
 
 export function notFoundMiddleware() {
     return (req: Request, _res: Response, _next: NextFunction) => {
