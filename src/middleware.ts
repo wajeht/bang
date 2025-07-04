@@ -169,9 +169,8 @@ export function sessionMiddleware() {
         cookie: {
             path: '/',
             // Don't set domain for localhost/127.0.0.1 to avoid cookie issues in tests
-            domain:
-                config.session.domain === 'production' ? `.${config.session.domain}` : undefined,
-            maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+            domain: config.session.domain === 'production' ? `.${config.session.domain}` : undefined, // prettier-ignore
+            maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
             httpOnly: config.session.domain === 'production',
             sameSite: 'lax',
             secure: config.session.domain === 'production',
