@@ -338,7 +338,7 @@ describe('search', () => {
                     'Cache-Control': 'public, max-age=3600',
                 }),
             );
-            expect(res.redirect).toHaveBeenCalledWith('/');
+            expect(res.redirect).toHaveBeenCalledWith('/bangs');
         });
 
         it('should handle direct commands with search terms for @notes', async () => {
@@ -1669,8 +1669,8 @@ describe('search', () => {
                 '@a': '/actions',
                 '@actions': '/actions',
                 '@api': '/api-docs',
-                '@b': '/',
-                '@bang': '/',
+                '@b': '/bangs',
+                '@bang': '/bangs',
                 '@bm': '/bookmarks',
                 '@bookmarks': '/bookmarks',
                 '@data': '/settings/data',

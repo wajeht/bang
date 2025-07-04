@@ -1,12 +1,12 @@
 import {
     csrfMiddleware,
     errorMiddleware,
+    layoutMiddleware,
     helmetMiddleware,
     sessionMiddleware,
     notFoundMiddleware,
     rateLimitMiddleware,
     appLocalStateMiddleware,
-    layoutMiddleware,
 } from './middleware';
 import ejs from 'ejs';
 import cors from 'cors';
