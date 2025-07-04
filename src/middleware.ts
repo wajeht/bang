@@ -201,7 +201,7 @@ export function setupAppLocals(req: Request, res: Response) {
     const randomNumber = Math.random();
 
     res.locals.state = {
-        cloudflare_turnstile_site_key: config.cloudflare.turnstile.siteKey,
+        cloudflare_turnstile_site_key: config.cloudflare.turnstileSiteKey,
         env: config.app.env,
         user: req.user ?? req.session?.user,
         copyRightYear: new Date().getFullYear(),

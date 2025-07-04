@@ -34,9 +34,7 @@ export const config = {
     } as const,
 
     cloudflare: {
-        turnstile: {
-            siteKey: process.env.CLOUDFLARE_TURNSTILE_SITE_KEY || '',
-            secretKey: process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || '',
-        },
+        turnstileSiteKey: process.env.CLOUDFLARE_TURNSTILE_SITE_KEY || '',
+        turnstileSecretKey: process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || '',
     } as const,
 } as const;
