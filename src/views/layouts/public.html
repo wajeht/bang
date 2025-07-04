@@ -67,12 +67,9 @@
             error: state.errors && state.errors.email ? state.errors.email : undefined
           }) %>
 
-          <div
-            class="cf-turnstile"
-            data-sitekey="<%- state.cloudflare_turnstile_site_key %>"
-            data-size="flexible"
-           >
-           </div>
+          <% if (state.env === 'production') { %>
+            <div class="cf-turnstile" data-sitekey="<%- state.cloudflare_turnstile_site_key %>" data-size="flexible"></div>
+          <% } %>
 
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
             <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
@@ -81,7 +78,9 @@
         </form>
       </dialog>
 
-      <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+      <% if (state.env === 'production') { %>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+      <% } %>
 
       <script>
         document.addEventListener('DOMContentLoaded', () => {

@@ -414,6 +414,10 @@ export function layoutMiddleware(options: LayoutOptions = {}) {
 
 export async function turnstileMiddleware(req: Request, _res: Response, next: NextFunction) {
     try {
+        if (config.app.env !== 'production') {
+            return next();
+        }
+
         if (req.method === 'GET' || isApiRequest(req)) {
             return next();
         }
