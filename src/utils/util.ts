@@ -844,7 +844,7 @@ export async function verifyTurnstileToken(
     remoteip?: string,
 ): Promise<TurnstileVerifyResponse> {
     const formData = new URLSearchParams();
-    formData.append('secret', config.cloudflare.turnstile.secretKey);
+    formData.append('secret', config.cloudflare.turnstileSecretKey);
     formData.append('response', token);
     if (remoteip) {
         formData.append('remoteip', remoteip);
