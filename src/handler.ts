@@ -9,7 +9,6 @@ import {
     BookmarkToExport,
 } from './type';
 import {
-    bookmark,
     magicLink,
     expectJson,
     isApiRequest,
@@ -28,11 +27,14 @@ import {
 } from './utils/util';
 import { Knex } from 'knex';
 import { config } from './config';
+import type { Bang } from './type';
 import { logger } from './utils/logger';
+import { paginate } from './utils/paginate-array';
 import { db, actions, bookmarks, notes } from './db/db';
 import type { Request, Response, NextFunction } from 'express';
 import { actionTypes, defaultSearchProviders } from './utils/util';
 import { HttpError, NotFoundError, ValidationError } from './error';
+import { bangs as bangsTable } from './db/bang';
 
 // GET /healthz
 export function getHealthzHandler(db: Knex) {
@@ -1762,5 +1764,51 @@ export function rateLimitHandler() {
         }
 
         return res.status(429).render('./rate-limit.html');
+    };
+}
+
+export function getBangsPage() {
+    return async (req: Request, res: Response) => {
+        const {
+            search: searchTerm = '',
+            sort_key = 't',
+            direction = 'asc',
+            page = 1,
+            per_page = 25,
+        } = req.query;
+
+        const bangsArray = Object.values(bangsTable as Record<string, Bang>);
+
+        const filteredBangs = bangsArray.filter(
+            (bang) =>
+                bang.t.toLowerCase().includes(String(searchTerm).toLowerCase()) ||
+                bang.s.toLowerCase().includes(String(searchTerm).toLowerCase()) ||
+                bang.d.toLowerCase().includes(String(searchTerm).toLowerCase()),
+        );
+
+        const sortedBangs = filteredBangs.sort((a, b) => {
+            const key = sort_key as keyof Bang;
+            if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
+            if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        const { data, ...pagination } = paginate(sortedBangs, {
+            page: Number(page),
+            perPage: Number(per_page),
+            total: sortedBangs.length,
+        });
+
+        return res.render('./bangs/bangs-get.html', {
+            layout: '../layouts/auth.html',
+            howToContent: await getConvertedReadmeMDToHTML(),
+            user: req.session.user,
+            path: req.path,
+            data,
+            pagination,
+            search: searchTerm,
+            sortKey: sort_key,
+            direction,
+        });
     };
 }
