@@ -26,6 +26,7 @@ import {
     convertMarkdownToPlainText,
 } from './utils/util';
 import { Knex } from 'knex';
+import { bangs } from './db/bang';
 import { config } from './config';
 import type { Bang } from './type';
 import { logger } from './utils/logger';
@@ -34,7 +35,6 @@ import { db, actions, bookmarks, notes } from './db/db';
 import type { Request, Response, NextFunction } from 'express';
 import { actionTypes, defaultSearchProviders } from './utils/util';
 import { HttpError, NotFoundError, ValidationError } from './error';
-import { bangs as bangsTable } from './db/bang';
 
 // GET /healthz
 export function getHealthzHandler(db: Knex) {
@@ -1777,7 +1777,7 @@ export function getBangsPage() {
             per_page = 100,
         } = req.query;
 
-        const bangsArray = Object.values(bangsTable as Record<string, Bang>);
+        const bangsArray = Object.values(bangs as Record<string, Bang>);
 
         const filteredBangs = bangsArray.filter(
             (bang) =>

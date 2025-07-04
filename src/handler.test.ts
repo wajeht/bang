@@ -346,6 +346,8 @@ describe('Toggle Note Pin Handler', () => {
     let res: any;
 
     beforeEach(async () => {
+        await db('users').where('email', 'test@example.com').delete();
+
         const [user] = await db('users')
             .insert({
                 username: 'testuser',
@@ -379,7 +381,7 @@ describe('Toggle Note Pin Handler', () => {
         res = {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
-            redirect: vi.fn().mockReturnThis(),
+            redirect: vi.fn(),
         };
     });
 
