@@ -414,10 +414,6 @@ export function layoutMiddleware(options: LayoutOptions = {}) {
 
 export async function turnstileMiddleware(req: Request, _res: Response, next: NextFunction) {
     try {
-        if (config.app.env !== 'production') {
-            return next();
-        }
-
         if (req.method === 'GET' || isApiRequest(req)) {
             return next();
         }
@@ -425,7 +421,7 @@ export async function turnstileMiddleware(req: Request, _res: Response, next: Ne
         const token = req.body['cf-turnstile-response'];
         if (!token) {
             throw new ValidationError({
-                turnstile: 'Turnstile verification failed: Missing token',
+                email: 'Turnstile verification failed: Missing token',
             });
         }
 
