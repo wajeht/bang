@@ -114586,6 +114586,14 @@ export const bangs: Record<string, any> = {
         c: 'Multimedia',
         sc: 'Music',
     },
+    winget: {
+        s: 'winget.run',
+        d: 'winget.run',
+        t: 'winget',
+        u: 'https://winget.run/search?query={{{s}}}',
+        c: 'Tech',
+        sc: 'Downloads (apps)',
+    },
     libro: {
         s: 'Libro.fm',
         d: 'libro.fm',
