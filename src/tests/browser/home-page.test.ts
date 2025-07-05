@@ -72,3 +72,32 @@ test('redirects authenticated users to actions page', async ({ page }) => {
     await expect(page.locator('summary')).toContainText('👤');
     await expect(page.getByRole('link', { name: '🔑 Login' })).not.toBeVisible();
 });
+
+test('can navigate through user menu', async ({ page }) => {
+    await loginUser(page, 'test@example.com');
+    await page.goto('/');
+
+    await page.locator('summary').click();
+
+    await expect(page.getByRole('link', { name: '📝 Notes' })).toBeVisible();
+    await expect(page.getByRole('link', { name: '🚀 Actions' })).toBeVisible();
+    await expect(page.getByRole('link', { name: '⭐️ Bookmarks' })).toBeVisible();
+    await expect(page.locator('a[href="/api-docs"]')).toBeVisible();
+    await expect(page.locator('a[href="/settings"]')).toBeVisible();
+    await expect(page.locator('a[href="/logout"]')).toBeVisible();
+
+    await page.getByRole('link', { name: '🚀 Actions' }).click();
+    await expect(page).toHaveURL('/actions');
+
+    await page.locator('summary').click();
+    await page.getByRole('link', { name: '⭐️ Bookmarks' }).click();
+    await expect(page).toHaveURL('/bookmarks');
+
+    await page.locator('summary').click();
+    await page.getByRole('link', { name: '📝 Notes' }).click();
+    await expect(page).toHaveURL('/notes');
+
+    await page.locator('summary').click();
+    await page.locator('a[href="/settings"]').click();
+    await expect(page).toHaveURL('/settings/account');
+});
