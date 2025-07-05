@@ -228,7 +228,7 @@
     <%- include('../partials/pagination.html', {
         pagination,
         path,
-        perPageDefault: state.user.notes_per_page,
+        perPageDefault: state.user.column_preferences.notes.default_per_page,
         sortKey,
         direction,
         search

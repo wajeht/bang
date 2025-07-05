@@ -242,7 +242,7 @@
     <%- include('../partials/pagination.html', {
         pagination,
         path,
-        perPageDefault: state.user.actions_per_page,
+        perPageDefault: state.user.column_preferences.actions.default_per_page,
         sortKey,
         direction,
         search

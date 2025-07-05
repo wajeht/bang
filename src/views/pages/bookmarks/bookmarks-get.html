@@ -169,7 +169,7 @@
     <%- include('../partials/pagination.html', {
         pagination,
         path,
-        perPageDefault: state.user.bookmarks_per_page,
+        perPageDefault: state.user.column_preferences.bookmarks.default_per_page,
         sortKey,
         direction,
         search
