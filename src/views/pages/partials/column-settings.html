@@ -16,7 +16,7 @@
 
         <!-- Items Per Page -->
         <div style="display: flex; flex-direction: column; gap: 5px;">
-          <label for="actions_per_page">🔢 Items Per Page <abbr title="Required">*</abbr></label>
+          <label for="actions_per_page">🔢 Items Per Page <abbr style="color: red;" title="Required">*</abbr></label>
           <input
             type="number"
             id="actions_per_page"
@@ -29,7 +29,7 @@
 
         <!-- Visible Columns -->
         <fieldset style="border: none; padding: 0; margin: 0;">
-          <legend style="font-weight: normal;">Columns <abbr title="Required">*</abbr></legend>
+          <legend style="font-weight: normal;">Columns <abbr style="color: red;" title="Required">*</abbr></legend>
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
@@ -97,7 +97,7 @@
 
         <!-- Items Per Page -->
         <div style="display: flex; flex-direction: column; gap: 5px;">
-          <label for="bookmarks_per_page">🔢 Items Per Page <abbr title="Required">*</abbr></label>
+          <label for="bookmarks_per_page">🔢 Items Per Page <abbr style="color: red;" title="Required">*</abbr></label>
           <input
             type="number"
             id="bookmarks_per_page"
@@ -110,7 +110,7 @@
 
         <!-- Visible Columns -->
         <fieldset style="border: none; padding: 0; margin: 0;">
-          <legend style="font-weight: normal;">Columns <abbr title="Required">*</abbr></legend>
+          <legend style="font-weight: normal;">Columns <abbr style="color: red;" title="Required">*</abbr></legend>
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
@@ -155,7 +155,7 @@
         <div style="display: flex; flex-direction: column; gap: 15px;">
           <!-- Items Per Page -->
           <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="notes_per_page">🔢 Items Per Page <abbr title="Required">*</abbr></label>
+            <label for="notes_per_page">🔢 Items Per Page <abbr style="color: red;" title="Required">*</abbr></label>
             <input
               type="number"
               id="notes_per_page"
@@ -168,7 +168,7 @@
 
           <!-- Visible Columns -->
           <fieldset style="border: none; padding: 0; margin: 0; <%= (user.column_preferences?.notes?.view_type === 'table') ? 'display:block' : 'display: none;' %>">
-            <legend style="font-weight: normal;">Columns <abbr title="Required">*</abbr></legend>
+            <legend style="font-weight: normal;">Columns <abbr style="color: red;" title="Required">*</abbr></legend>
             <label style="display: flex; align-items: center; gap: 10px;">
               <input
                 type="checkbox"
@@ -206,7 +206,7 @@
 
         <!-- Default View -->
         <fieldset style="border: none; padding: 0; margin: 0; margin-top: 10px;">
-          <legend style="font-weight: normal;">Default View <abbr title="Required">*</abbr></legend>
+          <legend style="font-weight: normal;">Default View <abbr style="color: red;" title="Required">*</abbr></legend>
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="radio"
@@ -237,7 +237,7 @@
 
           <!-- Items Per Page -->
           <div style="display: flex; flex-direction: column; gap: 5px;">
-            <label for="users_per_page">🔢 Items Per Page <abbr title="Required">*</abbr></label>
+            <label for="users_per_page">🔢 Items Per Page <abbr style="color: red;" title="Required">*</abbr></label>
             <input
               type="number"
               id="users_per_page"
@@ -250,7 +250,7 @@
 
           <!-- Visible Columns -->
           <fieldset style="border: none; padding: 0; margin: 0;">
-            <legend style="font-weight: normal;">Columns <abbr title="Required">*</abbr></legend>
+            <legend style="font-weight: normal;">Columns <abbr style="color: red;" title="Required">*</abbr></legend>
             <label style="display: flex; align-items: center; gap: 10px;">
               <input
                 type="checkbox"

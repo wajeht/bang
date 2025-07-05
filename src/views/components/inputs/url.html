@@ -1,5 +1,5 @@
 <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px;">
-  <label for="<%= id %>"><%= label %><% if (typeof required !== 'undefined' && required) { %> <abbr title="Required">*</abbr><% } %></label>
+  <label for="<%= id %>"><%= label %><% if (typeof required !== 'undefined' && required) { %> <abbr style="color: red;" title="Required">*</abbr><% } %></label>
   <input
     type="url"
     id="<%= id %>"
