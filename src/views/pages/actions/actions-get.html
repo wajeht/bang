@@ -152,7 +152,11 @@
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.url !== false) { %>
                                 <td style="padding: 10px;">
-                                    <a href="<%= data[i].url %>" title="<%= data[i].name %>" target="_blank" rel="noopener noreferrer">
+                                    <a href="<%= data[i].url %>"
+                                       title="<%= data[i].url %>"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       style="overflow: auto; white-space: nowrap;">
                                         <%- utils.highlightSearchTerm(data[i].url, search) %>
                                     </a>
                                 </td>
