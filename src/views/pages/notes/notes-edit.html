@@ -1,4 +1,4 @@
-<section style="display: flex; flex-direction: column; gap: 20px;">
+<section style="display: flex; flex-direction: column; gap: 30px;">
     <header>
         <h2>📝 Notes / <%= note.id %> / Edit</h2>
         <p>Edit your note</p>
@@ -7,13 +7,9 @@
     <form
         method="POST"
         action="/notes/<%= note.id %>/update"
-        style="border-style: solid; border-radius: 5px; padding: 20px; display: flex; flex-direction: column; gap: 10px;"
-
+        style="display: flex; flex-direction: column; gap: 10px;"
     >
         <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-
-        <fieldset style="border: none; padding: 0; margin: 0;">
-            <legend style="font-weight: bold; margin-bottom: 15px;">Note Details</legend>
 
             <%- include('../../components/inputs/text.html', {
                 id: 'title',
@@ -44,11 +40,10 @@
                 label: '📌 Pin this note',
                 checked: note.pinned ? true : false,
                 helpText: 'Pinned notes appear at the top of your notes list',
-                error: state.errors && state.errors.pinned ? state.errors.pinned : undefined
-            }) %>
-        </fieldset>
+            error: state.errors && state.errors.pinned ? state.errors.pinned : undefined
+        }) %>
 
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
             <button type="button" onclick="location.href='/notes'">❌ Cancel</button>
             <button type="submit">💾 Save</button>
         </div>
