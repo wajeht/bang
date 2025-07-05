@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import path from 'node:path';
 import type { Env } from './type';
 
-dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')) });
+dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')), quiet: true });
 
 export const config = {
     app: {
