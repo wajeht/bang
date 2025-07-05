@@ -38,7 +38,7 @@ test.describe('Authenticated User Flows', () => {
         await page.getByRole('button', { name: 'Create new bookmark' }).click();
 
         await expect(page).toHaveURL('/bookmarks/create');
-        await expect(page.getByText('🔖 Bookmarks / New')).toBeVisible();
+        await expect(page.getByText('⭐️ Bookmarks / New')).toBeVisible();
 
         await page.getByLabel('🌐 URL').fill('https://example.com');
         await page.getByLabel('📝 Name').fill('Test Bookmark');
@@ -80,7 +80,7 @@ test.describe('Authenticated User Flows', () => {
 
         await expect(page.getByRole('link', { name: '📝 Notes' })).toBeVisible();
         await expect(page.getByRole('link', { name: '⚡ Actions' })).toBeVisible();
-        await expect(page.getByRole('link', { name: '🔖 Bookmarks' })).toBeVisible();
+        await expect(page.getByRole('link', { name: '⭐️ Bookmarks' })).toBeVisible();
         await expect(page.locator('a[href="/api-docs"]')).toBeVisible();
         await expect(page.locator('a[href="/settings"]')).toBeVisible();
         await expect(page.locator('a[href="/logout"]')).toBeVisible();
@@ -89,7 +89,7 @@ test.describe('Authenticated User Flows', () => {
         await expect(page).toHaveURL('/actions');
 
         await page.locator('summary').click();
-        await page.getByRole('link', { name: '🔖 Bookmarks' }).click();
+        await page.getByRole('link', { name: '⭐️ Bookmarks' }).click();
         await expect(page).toHaveURL('/bookmarks');
 
         await page.locator('summary').click();
