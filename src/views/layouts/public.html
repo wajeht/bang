@@ -9,7 +9,7 @@
       <!-- top left -->
       <nav style="position: absolute; left: 0; margin-left: 3rem; display: flex; gap: 20px;" aria-label="Main navigation">
         <a href="/" style="font-weight: <%= path === '/' ? 'bold' : 'normal' %>; <%= path === '/' ? 'text-decoration: underline;' : '' %>">🔎 Search</a>
-        <span aria-hidden="true">|</span>
+        <span aria-hidden="true" style="color: var(--link-divider-color);">|</span>
         <a href="/how-to" style="font-weight: <%= path === '/how-to' ? 'bold' : 'normal' %>; <%= path === '/how-to' ? 'text-decoration: underline;' : '' %>">❓ How To</a>
       </nav>
 
@@ -17,18 +17,18 @@
       <% if (typeof state?.user !== 'undefined') { %>
         <details style="position: absolute; right: 0; margin-right: 3rem;">
           <summary><%= state.user.username %> 👤</summary>
-          <div style="position: absolute; top: 100%; right: 0; z-index: 1; border: solid; display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;">
+          <div style="position: absolute; top: 100%; right: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;">
               <a href="/actions" style="font-weight: <%= path === '/actions' ? 'bold' : 'normal' %>; <%= path === '/actions' ? 'text-decoration: underline;' : '' %>">⚡ Actions</a>
               <a href="/bangs" style="font-weight: <%= path === '/bangs' ? 'bold' : 'normal' %>; <%= path === '/bangs' ? 'text-decoration: underline;' : '' %>">💥 Bangs</a>
               <a href="/bookmarks" style="font-weight: <%= path === '/bookmarks' ? 'bold' : 'normal' %>; <%= path === '/bookmarks' ? 'text-decoration: underline;' : '' %>">🔖 Bookmarks</a>
               <a href="/notes" style="font-weight: <%= path === '/notes' ? 'bold' : 'normal' %>; <%= path === '/notes' ? 'text-decoration: underline;' : '' %>">📝 Notes</a>
-              <hr style="border: none; border-top: solid 1px; margin: 5px 0;">
+              <hr style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;">
               <% if (state.user.is_admin) { %>
                 <a href="/admin" style="font-weight: <%= path === '/admin' ? 'bold' : 'normal' %>; <%= path === '/admin' ? 'text-decoration: underline;' : '' %>">️👑 Admin</a>
               <% } %>
               <a href="/api-docs" style="font-weight: <%= path === '/api-docs' ? 'bold' : 'normal' %>; <%= path === '/api-docs' ? 'text-decoration: underline;' : '' %>">📄 API Docs</a>
               <a href="/settings" style="font-weight: <%= path.match(/^\/settings/) ? 'bold' : 'normal' %>; <%= path.match(/^\/settings/) ? 'text-decoration: underline;' : '' %>">⚙️ Settings</a>
-              <hr style="border: none; border-top: solid 1px; margin: 5px 0;">
+              <hr style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;">
               <a href="/logout">🚪 Logout</a>
           </div>
         </details>
