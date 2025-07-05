@@ -1,8 +1,7 @@
 import type { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
-    const hasSessionsTable = await knex.schema.hasTable('sessions');
-    if (!hasSessionsTable) {
+    if (!(await knex.schema.hasTable('sessions'))) {
         await knex.schema.createTable('sessions', (table) => {
             table.string('sid', 255).primary().notNullable();
             table.json('sess').notNullable();
@@ -12,8 +11,7 @@ export async function up(knex: Knex): Promise<void> {
         });
     }
 
-    const hasUsersTable = await knex.schema.hasTable('users');
-    if (!hasUsersTable) {
+    if (!(await knex.schema.hasTable('users'))) {
         await knex.schema.createTable('users', (table) => {
             table.increments('id').primary();
             table.string('username').unique().notNullable();
@@ -68,8 +66,7 @@ export async function up(knex: Knex): Promise<void> {
         });
     }
 
-    const hasActionTypesTable = await knex.schema.hasTable('action_types');
-    if (!hasActionTypesTable) {
+    if (!(await knex.schema.hasTable('action_types'))) {
         await knex.schema.createTable('action_types', (table) => {
             table.increments('id').primary();
             table.string('name').unique().notNullable();
@@ -78,8 +75,7 @@ export async function up(knex: Knex): Promise<void> {
         });
     }
 
-    const hasBookmarksTable = await knex.schema.hasTable('bookmarks');
-    if (!hasBookmarksTable) {
+    if (!(await knex.schema.hasTable('bookmarks'))) {
         await knex.schema.createTable('bookmarks', (table) => {
             table.increments('id').primary();
             table
@@ -98,8 +94,7 @@ export async function up(knex: Knex): Promise<void> {
         });
     }
 
-    const hasBangsTable = await knex.schema.hasTable('bangs');
-    if (!hasBangsTable) {
+    if (!(await knex.schema.hasTable('bangs'))) {
         await knex.schema.createTable('bangs', (table) => {
             table.increments('id').primary();
             table
@@ -126,8 +121,7 @@ export async function up(knex: Knex): Promise<void> {
         });
     }
 
-    const hasNotesTable = await knex.schema.hasTable('notes');
-    if (!hasNotesTable) {
+    if (!(await knex.schema.hasTable('notes'))) {
         await knex.schema.createTable('notes', (table) => {
             table.increments('id').primary();
             table

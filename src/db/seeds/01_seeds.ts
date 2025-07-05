@@ -2,7 +2,10 @@ import dotenv from 'dotenv';
 import { Knex } from 'knex';
 import path from 'node:path';
 
-const env = dotenv.config({ path: path.resolve(path.join(process.cwd(), '..', '..', '.env')) });
+const env = dotenv.config({
+    path: path.resolve(path.join(process.cwd(), '..', '..', '.env')),
+    quiet: true,
+});
 
 export async function seed(knex: Knex): Promise<void> {
     try {
