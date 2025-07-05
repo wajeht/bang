@@ -85,7 +85,7 @@ export function getHowToPageHandler() {
 export function getHomePageAndSearchHandler(search: Search) {
     return async (req: Request, res: Response) => {
         const query = req.query.q?.toString().trim() || '';
-        const user = req.session.user as User;
+        const user = req.session.user as User | undefined;
 
         if (!query) {
             return res.render('home.html', {

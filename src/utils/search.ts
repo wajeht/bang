@@ -27,6 +27,10 @@ const searchConfig = {
      */
     delayIncrement: 5000,
     /**
+     * Cache duration for redirects (in minutes)
+     */
+    redirectWithCacheDuration: 5,
+    /**
      * System-level bang commands that cannot be overridden by user-defined bangs
      */
     systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit']),
@@ -232,10 +236,14 @@ export async function processDelayedSearch(req: Request): Promise<void> {
     }
 }
 
-export function redirectWithCache(res: Response, url: string, cacheDuration: number = 3600): void {
+export function redirectWithCache(
+    res: Response,
+    url: string,
+    cacheDuration: number = searchConfig.redirectWithCacheDuration,
+): void {
     res.set({
-        'Cache-Control': `public, max-age=${cacheDuration}`,
-        Expires: new Date(Date.now() + cacheDuration * 1000).toUTCString(), // 1 hour
+        'Cache-Control': `public, max-age=${cacheDuration * 60}`,
+        Expires: new Date(Date.now() + cacheDuration * 60 * 1000).toUTCString(),
     });
     res.redirect(url);
 }
