@@ -9,38 +9,42 @@
       action="/bookmarks/<%= bookmark.id %>/update"
       style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
   >
-      <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+      <fieldset style="display: flex; flex-direction: column;">
+          <legend>Edit <%= bookmark.title %></legend>
 
-      <%- include('../../components/inputs/text.html', {
-          id: 'title',
-          name: 'title',
-          label: '📝 Name',
-          placeholder: 'bang',
-          value: state.input && state.input.title ? state.input.title : bookmark.title,
-          required: true,
-          helpText: 'A descriptive name for your bookmark',
-          error: state.errors && state.errors.title ? state.errors.title : undefined
-      }) %>
+          <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
-      <%- include('../../components/inputs/url.html', {
-          id: 'url',
-          name: 'url',
-          label: '🌐 URL',
-          placeholder: 'https://bang.jaw.dev/',
-          value: state.input && state.input.url ? state.input.url : bookmark.url,
-          required: true,
-          helpText: 'Enter the full website address, including https:// or http://',
-          error: state.errors && state.errors.url ? state.errors.url : undefined
-      }) %>
+          <%- include('../../components/inputs/text.html', {
+              id: 'title',
+              name: 'title',
+              label: '📝 Name',
+              placeholder: 'bang',
+              value: state.input && state.input.title ? state.input.title : bookmark.title,
+              required: true,
+              helpText: 'A descriptive name for your bookmark',
+              error: state.errors && state.errors.title ? state.errors.title : undefined
+          }) %>
 
-      <%- include('../../components/inputs/checkbox.html', {
-          id: 'pinned',
-          name: 'pinned',
-          label: '📌 Pin this bookmark',
-          checked: (state.input && state.input.pinned === 'on') || bookmark.pinned ? true : false,
-          helpText: 'Pinned bookmarks appear at the top of your bookmarks list',
-          error: state.errors && state.errors.pinned ? state.errors.pinned : undefined
-      }) %>
+          <%- include('../../components/inputs/url.html', {
+              id: 'url',
+              name: 'url',
+              label: '🌐 URL',
+              placeholder: 'https://bang.jaw.dev/',
+              value: state.input && state.input.url ? state.input.url : bookmark.url,
+              required: true,
+              helpText: 'Enter the full website address, including https:// or http://',
+              error: state.errors && state.errors.url ? state.errors.url : undefined
+          }) %>
+
+          <%- include('../../components/inputs/checkbox.html', {
+              id: 'pinned',
+              name: 'pinned',
+              label: '📌 Pin this bookmark',
+              checked: (state.input && state.input.pinned === 'on') || bookmark.pinned ? true : false,
+              helpText: 'Pinned bookmarks appear at the top of your bookmarks list',
+              error: state.errors && state.errors.pinned ? state.errors.pinned : undefined
+          }) %>
+      </fieldset>
 
       <div style="display: flex; gap: 10px; justify-content: flex-end;">
           <button type="button" onclick="location.href='/bookmarks'">🚫 Cancel</button>

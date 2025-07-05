@@ -47,7 +47,7 @@ function createToast(message) {
 		top: 20px;
 		right: -420px;
 		background-color: var(--background-color);
-		border: 2px solid var(--border-color);
+		border: 1px solid var(--toast-border-color);
 		color: var(--text-color);
 		padding: 20px;
 		border-radius: 5px;

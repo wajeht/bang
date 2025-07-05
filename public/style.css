@@ -26,6 +26,7 @@
     --summary-content-border-color: #646464;
     --link-divider-color: #ddd;
     --card-border-color: #ddd;
+    --toast-border-color: #646464;
 }
 
 html {
@@ -60,6 +61,7 @@ html {
     --summary-content-border-color: #4a4a4a;
     --link-divider-color: #4a4a4a;
     --card-border-color: #4a4a4a;
+    --toast-border-color: #4a4a4a;
 }
 
 [data-theme='dark'] {

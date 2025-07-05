@@ -9,7 +9,10 @@
         action="/notes/<%= note.id %>/update"
         style="display: flex; flex-direction: column; gap: 10px;"
     >
-        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+        <fieldset style="display: flex; flex-direction: column;">
+            <legend>Edit <%= note.title %></legend>
+
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
             <%- include('../../components/inputs/text.html', {
                 id: 'title',
@@ -40,8 +43,10 @@
                 label: '📌 Pin this note',
                 checked: note.pinned ? true : false,
                 helpText: 'Pinned notes appear at the top of your notes list',
-            error: state.errors && state.errors.pinned ? state.errors.pinned : undefined
-        }) %>
+                error: state.errors && state.errors.pinned ? state.errors.pinned : undefined
+            }) %>
+
+        </fieldset>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px;">
             <button type="button" onclick="location.href='/notes'">❌ Cancel</button>
