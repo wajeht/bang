@@ -6,7 +6,7 @@ import { authenticationMiddleware } from '../middleware';
 const swaggerConfig = {
     info: {
         title: 'bang',
-        description: `DuckDuckGo's !Bangs, but on steroids`,
+        description: `your personal command center for blazingly fast web navigation and note taking`,
         termsOfService: `/terms-of-service`,
         contact: {
             name: 'Support',
@@ -24,7 +24,7 @@ const swaggerConfig = {
     exposeSwaggerUI: true,
     notRequiredAsNullable: false,
     swaggerUiOptions: {
-        customSiteTitle: `DuckDuckGo's !Bangs, but on steroids`,
+        customSiteTitle: `your personal command center for blazingly fast web navigation and note taking`,
         customfavIcon: '/favicon.ico',
     },
     security: {

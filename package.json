@@ -1,7 +1,7 @@
 {
     "name": "bang",
     "version": "0.0.1",
-    "description": "DuckDuckGo's !Bangs, but on steroids.",
+    "description": "your personal command center for blazingly fast web navigation and note taking",
     "main": "dist/src/server.js",
     "scripts": {
         "start": "export APP_ENV=production && node --no-warnings ./dist/src/server.js",
