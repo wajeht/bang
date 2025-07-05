@@ -2,7 +2,7 @@ process.env.APP_ENV = 'testing';
 process.env.NODE_ENV = 'testing';
 
 import { db } from '../db/db';
-import { beforeAll, afterAll, expect } from 'vitest';
+import { beforeAll, afterAll } from 'vitest';
 
 beforeAll(async () => {
     try {
