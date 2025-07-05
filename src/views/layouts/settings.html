@@ -23,15 +23,15 @@
                   <a style="font-weight: normal; display: block;" href="/admin">👑 Admin</a>
                 </li>
               <% } %>
-              <hr style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;">
+              <hr aria-hidden="true" style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;">
               <li>
                 <a style="font-weight: <%= (path === '/settings' || path === '/settings/account') ? 'bold' : 'normal' %>; <%= (path === '/settings' || path === '/settings/account') ? 'text-decoration: underline' : '' %>; display: block;" href="/settings/account" <%= (path === '/settings' || path === '/settings/account') ? 'aria-current="page"' : '' %>>👤 Account</a>
               </li>
-              <hr style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;">
+              <hr aria-hidden="true" style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;">
               <li>
                 <a style="font-weight: <%= path === '/settings/data' ? 'bold' : 'normal' %>; <%= path === '/settings/data' ? 'text-decoration: underline' : '' %>; display: block;" href="/settings/data" <%= path === '/settings/data' ? 'aria-current="page"' : '' %>>📊 Data</a>
               </li>
-              <hr style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;">
+              <hr aria-hidden="true" style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;">
               <li>
                 <a style="font-weight: <%= path === '/settings/danger-zone' ? 'bold' : 'normal' %>; <%= path === '/settings/danger-zone' ? 'text-decoration: underline' : '' %>; display: block;" href="/settings/danger-zone" <%= path === '/settings/danger-zone' ? 'aria-current="page"' : '' %>>⚠️ ️Danger Zone</a>
               </li>
