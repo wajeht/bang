@@ -8,6 +8,11 @@
     margin: 0;
 }
 
+html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+}
+
 :root {
     --text-color: #333333;
     --background-color: #ffffff;
@@ -29,10 +34,6 @@
     --toast-border-color: #646464;
 }
 
-html {
-    scroll-behavior: smooth;
-    -webkit-tap-highlight-color: transparent;
-}
 
 [data-theme='dark'] {
     --text-color: #e0e0e0;
@@ -88,7 +89,7 @@ html {
 }
 
 body {
-    padding: 2em 2rem;
+    padding: 1em 1rem;
     color: var(--text-color);
     background-color: var(--background-color);
     font-family: system-ui, -apple-system, sans-serif;

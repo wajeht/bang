@@ -68,7 +68,7 @@ function createToast(message) {
 
     // Add toast to body and animate
     document.body.appendChild(toast);
-    setTimeout(() => (toast.style.right = '20px'), 100);
+    setTimeout(() => (toast.style.right = '15px'), 100);
 
     // Auto-dismiss toast after 5 seconds
     setTimeout(() => dismissToast(toast), 5000);
