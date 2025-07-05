@@ -32,6 +32,7 @@ html {
     --link-divider-color: #ddd;
     --card-border-color: #ddd;
     --toast-border-color: #646464;
+    --tr-hover-background: #fafafa;
 }
 
 [data-theme='dark'] {
@@ -62,6 +63,7 @@ html {
     --link-divider-color: #4a4a4a;
     --card-border-color: #4a4a4a;
     --toast-border-color: #4a4a4a;
+    --tr-hover-background: #1f1f1f;
 }
 
 [data-theme='dark'] {
@@ -338,6 +340,10 @@ td {
 
 tr {
     border-bottom: 1px solid var(--tr-border-color);
+}
+
+tbody tr:hover {
+    background-color: var(--tr-hover-background);
 }
 
 /* actions column */
