@@ -25,6 +25,7 @@
     --fieldset-border-color: #ddd;
     --summary-content-border-color: #646464;
     --link-divider-color: #ddd;
+    --card-border-color: #ddd;
 }
 
 html {
@@ -58,6 +59,7 @@ html {
     --fieldset-border-color: #4a4a4a;
     --summary-content-border-color: #4a4a4a;
     --link-divider-color: #4a4a4a;
+    --card-border-color: #4a4a4a;
 }
 
 [data-theme='dark'] {

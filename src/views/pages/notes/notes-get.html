@@ -34,10 +34,10 @@
     </header>
 
     <% if (state.user.column_preferences?.notes?.view_type === 'card') { %>
-        <section style="display: flex; flex-wrap: wrap; gap: 20px; <%- (search.length && data.length < 1) ? 'border-radius: 5px; border: solid;' : null %>">
+        <section style="display: flex; flex-wrap: wrap; gap: 20px;">
             <% if (data && data.length > 0) { %>
                 <% for (let i = 0; i < data.length; i++) { %>
-                    <article style="border-style: solid; border-radius: 5px; padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 200px;">
+                    <article style="border-style: solid; border-radius: 5px; border-color: var(--card-border-color); padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 200px;">
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
                             <h3>
                                 <% if (data[i].pinned) { %>📌<% } %>

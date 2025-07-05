@@ -196,7 +196,7 @@ export function setupAppLocals(req: Request, res: Response) {
             warning: req.flash ? req.flash('warning') : [],
         },
         version: {
-            style: isProd ? '0.19' : randomNumber,
+            style: isProd ? '0.20' : randomNumber,
             script: isProd ? '0.17' : randomNumber,
         },
     };
