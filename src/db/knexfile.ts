@@ -2,16 +2,18 @@ import path from 'node:path';
 import type { Knex } from 'knex';
 import { config } from '../config';
 import { logger } from '../utils/logger';
+import { CustomMigrationSource } from './migration-source';
 
-const knexConfig: Knex.Config = {
+const migrationsPath = path.resolve(__dirname, 'migrations');
+
+let knexConfig: Knex.Config = {
     client: 'better-sqlite3',
     useNullAsDefault: true,
     asyncStackTraces: false,
     connection: path.resolve(__dirname, 'sqlite', 'db.sqlite'),
     migrations: {
-        extension: 'ts',
+        migrationSource: new CustomMigrationSource(migrationsPath),
         tableName: 'knex_migrations',
-        directory: path.resolve(__dirname, './migrations'),
     },
     seeds: { directory: path.resolve(__dirname, './seeds') },
     // debug: _developmentEnvironmentOnly,
@@ -83,10 +85,18 @@ const knexConfig: Knex.Config = {
     },
 };
 
-if (config.app.env === 'testing') {
-    knexConfig.connection = {
-        filename: ':memory:',
+if (
+    config.app.env === 'testing' ||
+    process.env.NODE_ENV === 'testing' ||
+    process.env.APP_ENV === 'testing'
+) {
+    knexConfig = {
+        ...knexConfig,
+        connection: {
+            filename: ':memory:',
+        },
     };
+    logger.info('Using in-memory database for testing');
 }
 
 export default knexConfig;
