@@ -3,7 +3,7 @@
         <div>
             <div style="display: flex; align-items: center; gap: 5px;">
                 <h2>⭐️ Bookmarks (<%- pagination.total %>)</h2>
-		        <%- include('../partials/question-mark-button.html') %>
+		        <%- include('../_partials/question-mark-button.html') %>
             </div>
             <p>Manage your saved bookmarks</p>
         </div>
@@ -29,7 +29,7 @@
 
             <button type="button" aria-label="Create new bookmark" onclick="location.href='/bookmarks/create'">➕</button>
 
-		    <%- include('../partials/column-settings.html') %>
+		    <%- include('../_partials/column-settings.html') %>
         </nav>
     </header>
 
@@ -166,7 +166,7 @@
         <% } %>
     </section>
 
-    <%- include('../partials/pagination.html', {
+    <%- include('../_partials/pagination.html', {
         pagination,
         path,
         perPageDefault: state.user.column_preferences.bookmarks.default_per_page,

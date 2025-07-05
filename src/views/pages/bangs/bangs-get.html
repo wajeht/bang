@@ -3,7 +3,7 @@
         <div>
             <div style="display: flex; align-items: center; gap: 5px;">
                 <h2>❗️ Bangs (<%- pagination.total %>)</h2>
-                <%- include('../partials/question-mark-button.html') %>
+                <%- include('../_partials/question-mark-button.html') %>
             </div>
             <p>Discover all the available bangs</p>
         </div>
@@ -171,7 +171,7 @@
         <% } %>
     </section>
 
-    <%- include('../partials/pagination.html', {
+    <%- include('../_partials/pagination.html', {
         pagination,
         path,
         perPageDefault: 25,

@@ -24,7 +24,7 @@
         <button type="submit">🔍</button>
       </form>
 
-      <%- include('../partials/column-settings.html') %>
+      <%- include('../_partials/column-settings.html') %>
 
     </nav>
   </header>
@@ -156,7 +156,7 @@
     <% } %>
   </div>
 
-  <%- include('../partials/pagination.html', {
+  <%- include('../_partials/pagination.html', {
     pagination,
     path,
     perPageDefault: state.user.column_preferences.users.default_per_page,

@@ -3,7 +3,7 @@
         <div>
             <div style="display: flex; align-items: center; gap: 5px;">
                 <h2>📝 Notes (<%- pagination.total %>)</h2>
-		        <%- include('../partials/question-mark-button.html') %>
+		        <%- include('../_partials/question-mark-button.html') %>
             </div>
             <p>Manage your quick notes</p>
         </div>
@@ -29,7 +29,7 @@
 
             <button type="button" aria-label="Create new note" onclick="location.href='/notes/create'">➕</button>
 
-		    <%- include('../partials/column-settings.html') %>
+		    <%- include('../_partials/column-settings.html') %>
         </nav>
     </header>
 
@@ -225,7 +225,7 @@
         </section>
     <% } %>
 
-    <%- include('../partials/pagination.html', {
+    <%- include('../_partials/pagination.html', {
         pagination,
         path,
         perPageDefault: state.user.column_preferences.notes.default_per_page,
