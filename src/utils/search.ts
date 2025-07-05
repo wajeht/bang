@@ -629,7 +629,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     () =>
                         insertPageTitle({
                             actionId: existingBang.id,
-                            url: updates.url || '' as string,
+                            url: updates.url || ('' as string),
                             req,
                         }),
                     0,

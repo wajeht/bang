@@ -23,7 +23,9 @@ export async function run() {
             await closeServer(serverInfo);
             process.exit(0);
         } catch (error) {
-            logger.error(`[gracefulShutdown]: Error during shutdown: %o`, { error: error as Error });
+            logger.error(`[gracefulShutdown]: Error during shutdown: %o`, {
+                error: error as Error,
+            });
             process.exit(1);
         }
     };
