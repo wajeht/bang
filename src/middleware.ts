@@ -187,8 +187,8 @@ export function setupAppLocals(req: Request, res: Response) {
         env: config.app.env,
         user: req.user ?? req.session?.user,
         copyRightYear: new Date().getFullYear(),
-        input: (req.session?.input as Record<string, any>) || {},
-        errors: (req.session?.errors as Record<string, any>) || {},
+        input: (req.session?.input as Record<string, string>) || {},
+        errors: (req.session?.errors as Record<string, string>) || {},
         flash: {
             success: req.flash ? req.flash('success') : [],
             error: req.flash ? req.flash('error') : [],
