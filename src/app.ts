@@ -21,7 +21,7 @@ import { logger } from './utils/logger';
 import { isMailpitRunning } from './utils/util';
 import { expressJSDocSwaggerHandler } from './utils/swagger';
 import { expressTemplatesReload } from '@wajeht/express-templates-reload';
-import { db, runMigrations, checkDatabaseHealth, optimizeDatabase } from './db/db';
+import { db, runProdMigration, checkDatabaseHealth, optimizeDatabase } from './db/db';
 
 export async function createServer() {
     const app = express();
@@ -30,7 +30,7 @@ export async function createServer() {
         try {
             await checkDatabaseHealth();
             await optimizeDatabase();
-            await runMigrations();
+            await runProdMigration();
             logger.info('Database migrations completed successfully');
         } catch (error) {
             logger.error('Database connection or migration error: %o', { error: error as any });
