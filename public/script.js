@@ -44,7 +44,7 @@ function createToast(message) {
     toast.id = 'toast';
     toast.style.cssText = `
 		position: fixed;
-		top: 20px;
+		top: 15px;
 		right: -420px;
 		background-color: var(--background-color);
 		border: 1px solid var(--toast-border-color);
