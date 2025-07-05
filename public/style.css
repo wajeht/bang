@@ -325,6 +325,10 @@ table {
     width: 100%;
 }
 
+th {
+    border-top: 1px solid var(--tr-border-color);
+}
+
 td {
     overflow: auto;
 }
