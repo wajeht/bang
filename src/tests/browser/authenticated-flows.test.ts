@@ -79,13 +79,13 @@ test.describe('Authenticated User Flows', () => {
         await page.locator('summary').click();
 
         await expect(page.getByRole('link', { name: '📝 Notes' })).toBeVisible();
-        await expect(page.getByRole('link', { name: '⚡ Actions' })).toBeVisible();
+        await expect(page.getByRole('link', { name: '🚀 Actions' })).toBeVisible();
         await expect(page.getByRole('link', { name: '⭐️ Bookmarks' })).toBeVisible();
         await expect(page.locator('a[href="/api-docs"]')).toBeVisible();
         await expect(page.locator('a[href="/settings"]')).toBeVisible();
         await expect(page.locator('a[href="/logout"]')).toBeVisible();
 
-        await page.getByRole('link', { name: '⚡ Actions' }).click();
+        await page.getByRole('link', { name: '🚀 Actions' }).click();
         await expect(page).toHaveURL('/actions');
 
         await page.locator('summary').click();
