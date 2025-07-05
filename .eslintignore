@@ -21,3 +21,4 @@ db.sqlite-wal
 **.test.mts
 src/db/bang.ts
 src/tests
+scripts/load-test.ts

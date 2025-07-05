@@ -567,7 +567,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 );
             }
 
-            const updates: Record<string, any> = {};
+            const updates: Record<string, string> = {};
 
             // Handle new trigger (if provided and starts with !)
             if (parts.length >= 2 && parts[1] && parts[1].startsWith('!')) {
@@ -629,7 +629,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     () =>
                         insertPageTitle({
                             actionId: existingBang.id,
-                            url: updates.url,
+                            url: updates.url || '' as string,
                             req,
                         }),
                     0,

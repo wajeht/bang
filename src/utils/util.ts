@@ -20,6 +20,7 @@ import { HttpError } from '../error';
 import { bookmarks } from '../db/db';
 import type { Request } from 'express';
 import type { Bookmark } from '../type';
+import type { Attachment } from 'nodemailer/lib/mailer';
 
 export const actionTypes = ['search', 'redirect'] as const;
 
@@ -489,7 +490,7 @@ export async function getReadmeFileContent(): Promise<string> {
     try {
         const readmeFilepath = path.resolve(path.join(process.cwd(), 'README.md'));
         return await fs.readFile(readmeFilepath, { encoding: 'utf8' });
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Failed to get readme file content: %o`, { error });
         return '';
     }
@@ -763,7 +764,7 @@ export async function sendDataExportEmail({
 
         const userId = (req.user as User).id;
         const currentDate = new Date().toISOString().split('T')[0];
-        const attachments: any[] = [];
+        const attachments: Attachment[] = [];
         const exportTypes: string[] = [];
 
         if (includeJson) {

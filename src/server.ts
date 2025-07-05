@@ -23,7 +23,7 @@ export async function run() {
             await closeServer(serverInfo);
             process.exit(0);
         } catch (error) {
-            logger.error(`[gracefulShutdown]: Error during shutdown: %o`, { error: error as any });
+            logger.error(`[gracefulShutdown]: Error during shutdown: %o`, { error: error as Error });
             process.exit(1);
         }
     };
@@ -51,7 +51,7 @@ export async function run() {
                 );
             } catch (error) {
                 logger.error(`Failed to send uncaught exception notification: %o`, {
-                    error: error as any,
+                    error: error as Error,
                 });
             }
         }
@@ -75,7 +75,7 @@ export async function run() {
                     );
                 } catch (error) {
                     logger.error(`Failed to send unhandled rejection notification: %o`, {
-                        error: error as any,
+                        error: error as Error,
                     });
                 }
             }
