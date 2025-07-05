@@ -31,7 +31,7 @@ export function errorMiddleware() {
     return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
         logger.error(`${req.method} ${req.path} - ${error.message}`, { error });
 
-        if ((error as any).code === 'EBADCSRFTOKEN') {
+        if ((error as { code?: string }).code === 'EBADCSRFTOKEN') {
             error = new HttpError(403, error.message, req);
         } else if (!(error instanceof HttpError)) {
             error = new HttpError(500, error.message, req);
@@ -41,9 +41,7 @@ export function errorMiddleware() {
 
         const httpError = error as HttpError;
         const statusCode = httpError.statusCode || 500;
-        const message =
-            httpError.message ||
-            'The server encountered an internal error or misconfiguration and was unable to complete your request';
+        const message = httpError.message || 'The server encountered an internal error or misconfiguration and was unable to complete your request'; // prettier-ignore
 
         if (isApiRequest(req)) {
             const responsePayload: any = {
@@ -397,6 +395,7 @@ export function layoutMiddleware(options: LayoutOptions = {}) {
 export async function turnstileMiddleware(req: Request, _res: Response, next: NextFunction) {
     try {
         if (config.app.env !== 'production') {
+            logger.info('Skipping turnstile middleware in non-production environment');
             return next();
         }
 
