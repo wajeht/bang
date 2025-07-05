@@ -34,19 +34,6 @@
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr>
-                        <!-- Trigger (t) -->
-                        <th scope="col" style="text-align: left; padding: 10px;">
-                            <a href="/bangs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=t&direction=<%= (sortKey === 't' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
-                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
-                               aria-label="Sort by trigger <%= (sortKey === 't' && direction === 'asc') ? 'descending' : 'ascending' %>">
-                                🔥 Trigger
-                                <% if (sortKey === 't') { %>
-                                    <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
-                                <% } else { %>
-                                    <span class="sort-icon" aria-label="Not sorted">⏺️</span>
-                                <% } %>
-                            </a>
-                        </th>
                         <!-- Suggestion/Name (s) -->
                         <th scope="col" style="text-align: left; padding: 10px;">
                             <a href="/bangs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=s&direction=<%= (sortKey === 's' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
@@ -54,6 +41,19 @@
                                aria-label="Sort by suggestion <%= (sortKey === 's' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                 📝 Name
                                 <% if (sortKey === 's') { %>
+                                    <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                <% } else { %>
+                                    <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                                <% } %>
+                            </a>
+                        </th>
+                        <!-- Trigger (t) -->
+                        <th scope="col" style="text-align: left; padding: 10px;">
+                            <a href="/bangs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=t&direction=<%= (sortKey === 't' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                               aria-label="Sort by trigger <%= (sortKey === 't' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                🔥 Trigger
+                                <% if (sortKey === 't') { %>
                                     <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
                                 <% } else { %>
                                     <span class="sort-icon" aria-label="Not sorted">⏺️</span>
@@ -131,12 +131,12 @@
                 <tbody>
                     <% for (let i = 0; i < data.length; i++) { %>
                         <tr>
+                            <!-- Suggestion/Name (s) -->
+                             <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%- utils.highlightSearchTerm(data[i].s, search) %></td>
                             <!-- Trigger (t) -->
                             <td style="padding: 10px;">
                                 <code>!<%- utils.highlightSearchTerm(data[i].t, search) %></code>
                             </td>
-                            <!-- Suggestion/Name (s) -->
-                             <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%- utils.highlightSearchTerm(data[i].s, search) %></td>
                             <!-- Domain (d) -->
                             <td style="padding: 10px;">
                                 <a href="https://<%- data[i].d %>" title="<%- data[i].d %>" target="_blank" rel="noopener noreferrer">
