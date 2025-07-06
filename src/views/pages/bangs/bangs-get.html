@@ -26,6 +26,8 @@
                 }) %>
                 <button type="submit">🔍</button>
             </form>
+
+            <button type="button" onclick="location.href='/bangs/suggest'">➕</button>
         </nav>
     </header>
 
@@ -164,6 +166,7 @@
                 <% if (search) { %>
                     <p>🔍 No bangs found matching "<%= search %>"</p>
                     <p>Try a different search term or <a href="/bangs">view all bangs</a></p>
+                    <p>Can't find what you're looking for? <a href="/bangs/suggest">Suggest a new bang!</a></p>
                 <% } else { %>
                     <p>📭 No bangs found.</p>
                 <% } %>
