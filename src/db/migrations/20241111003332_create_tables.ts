@@ -140,6 +140,50 @@ export async function up(knex: Knex): Promise<void> {
         });
     }
 
+    if (!(await knex.schema.hasTable('suggested_bangs'))) {
+        await knex.schema.createTable('suggested_bangs', (table) => {
+            table.increments('id').primary();
+            table
+                .integer('user_id')
+                .unsigned()
+                .references('id')
+                .inTable('users')
+                .onDelete('CASCADE');
+            table.string('trigger').notNullable();
+            table.string('name').notNullable();
+            table.string('domain').notNullable();
+            table.text('url').notNullable();
+            table.string('category').notNullable();
+            table.string('subcategory').notNullable();
+            table.enum('status', ['pending', 'approved', 'rejected']).defaultTo('pending');
+            table.text('rejection_reason').nullable();
+            table.timestamp('reviewed_at').nullable();
+            table.timestamps(true, true);
+
+            table.index(['status', 'created_at']);
+            table.index(['user_id', 'status']);
+            table.unique(['trigger']); // Ensure no duplicate triggers
+        });
+    }
+
+    if (!(await knex.schema.hasTable('approved_bangs'))) {
+        await knex.schema.createTable('approved_bangs', (table) => {
+            table.increments('id').primary();
+            table.string('trigger').notNullable().unique();
+            table.string('name').notNullable();
+            table.string('domain').notNullable();
+            table.text('url').notNullable();
+            table.string('category').notNullable();
+            table.string('subcategory').notNullable();
+            table.integer('rank').defaultTo(0);
+            table.timestamps(true, true);
+
+            table.index(['trigger']);
+            table.index(['category', 'subcategory']);
+            table.index(['domain']);
+        });
+    }
+
     // Insert default action types
     await knex('action_types').insert([
         { name: 'search' },
@@ -149,7 +193,14 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-    for (const table of ['bangs', 'bookmarks', 'action_types', 'users', 'sessions']) {
+    for (const table of [
+        'suggested_bangs',
+        'bangs',
+        'bookmarks',
+        'action_types',
+        'users',
+        'sessions',
+    ]) {
         await knex.schema.dropTableIfExists(table);
     }
 }
