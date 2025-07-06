@@ -1,0 +1,83 @@
+name: Approve Bang
+
+on:
+    repository_dispatch:
+        types: [approve-bang]
+
+jobs:
+    create-pr:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            pull-requests: write
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Create Branch
+              run: |
+                  BRANCH_NAME="approve-bang-${{ github.event.client_payload.trigger }}"
+                  git checkout -b $BRANCH_NAME
+
+            - name: Update approved-bangs.ts
+              run: |
+                  # Read current content and parse JSON
+                  CONTENT=$(cat src/db/approved-bangs.ts)
+                  # Extract everything between the curly braces
+                  JSON_CONTENT=$(echo "$CONTENT" | sed -n '/approvedBangs = {/,/};/p' | sed '1d;$d')
+
+                  # Add new bang
+                  NEW_BANG=$(cat <<EOF
+                  "${{ github.event.client_payload.trigger }}": {
+                    "trigger": "${{ github.event.client_payload.trigger }}",
+                    "name": "${{ github.event.client_payload.name }}",
+                    "domain": "${{ github.event.client_payload.domain }}",
+                    "url": "${{ github.event.client_payload.url }}",
+                    "category": "${{ github.event.client_payload.category }}",
+                    "subcategory": "${{ github.event.client_payload.subcategory }}",
+                    "rank": 0
+                  }
+                  EOF
+                  )
+
+                  # If file is not empty (has existing bangs), add a comma
+                  if [ ! -z "$JSON_CONTENT" ]; then
+                    NEW_BANG=",\n  $NEW_BANG"
+                  fi
+
+                  # Create new content
+                  NEW_CONTENT=$(cat <<EOF
+                  interface ApprovedBang {
+                      trigger: string;
+                      name: string;
+                      domain: string;
+                      url: string;
+                      category: string;
+                      subcategory: string;
+                      rank: number;
+                  }
+
+                  // This file stores user-approved bangs that should persist across bang.ts updates
+                  export const approvedBangs: Record<string, ApprovedBang> = {
+                    $JSON_CONTENT$NEW_BANG
+                  };
+                  EOF
+                  )
+
+                  echo "$NEW_CONTENT" > src/db/approved-bangs.ts
+
+            - name: Create Pull Request
+              uses: peter-evans/create-pull-request@v6
+              with:
+                  commit-message: 'feat: approve bang !${{ github.event.client_payload.trigger }}'
+                  title: 'feat: approve bang !${{ github.event.client_payload.trigger }}'
+                  body: |
+                      Approving bang suggestion:
+                      - Trigger: !${{ github.event.client_payload.trigger }}
+                      - Name: ${{ github.event.client_payload.name }}
+                      - Domain: ${{ github.event.client_payload.domain }}
+                      - URL: ${{ github.event.client_payload.url }}
+                      - Category: ${{ github.event.client_payload.category }}
+                      - Subcategory: ${{ github.event.client_payload.subcategory }}
+                  branch: approve-bang-${{ github.event.client_payload.trigger }}
+                  delete-branch: true
