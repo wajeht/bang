@@ -57,6 +57,34 @@ export type Bang = {
     u: string;
 };
 
+export type SuggestedBang = {
+    id?: number;
+    /** Name or title of the bang */
+    name: string;
+    /** Trigger or shortcut keyword for the bang */
+    trigger: string;
+    /** URL template for the search query. The `{{{s}}}` placeholder is replaced with the user's search term */
+    url: string;
+    /** Category of the bang */
+    category: string;
+    /** Subcategory of the bang */
+    subcategory: string;
+    /** Domain or website associated with the bang */
+    domain: string;
+    /** Status of the suggestion: 'pending', 'approved', or 'rejected' */
+    status: 'pending' | 'approved' | 'rejected';
+    /** User who suggested the bang */
+    user_id: number;
+    /** When the bang was suggested */
+    created_at?: string;
+    /** When the bang status was last updated */
+    updated_at?: string;
+    /** When the bang was reviewed by an admin */
+    reviewed_at?: string;
+    /** Optional reason for rejection */
+    rejection_reason?: string;
+};
+
 export type ColumnPreferences = {
     bookmarks: {
         title: boolean;

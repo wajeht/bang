@@ -37,4 +37,8 @@ export const config = {
         turnstileSiteKey: process.env.CLOUDFLARE_TURNSTILE_SITE_KEY || 'sitekey',
         turnstileSecretKey: process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || 'secretkey',
     } as const,
+
+    github: {
+        token: process.env.GITHUB_TOKEN || '',
+    } as const,
 } as const;

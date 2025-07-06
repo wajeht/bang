@@ -166,24 +166,6 @@ export async function up(knex: Knex): Promise<void> {
         });
     }
 
-    if (!(await knex.schema.hasTable('approved_bangs'))) {
-        await knex.schema.createTable('approved_bangs', (table) => {
-            table.increments('id').primary();
-            table.string('trigger').notNullable().unique();
-            table.string('name').notNullable();
-            table.string('domain').notNullable();
-            table.text('url').notNullable();
-            table.string('category').notNullable();
-            table.string('subcategory').notNullable();
-            table.integer('rank').defaultTo(0);
-            table.timestamps(true, true);
-
-            table.index(['trigger']);
-            table.index(['category', 'subcategory']);
-            table.index(['domain']);
-        });
-    }
-
     // Insert default action types
     await knex('action_types').insert([
         { name: 'search' },

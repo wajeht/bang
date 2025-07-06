@@ -6,6 +6,7 @@ import {
     Actions,
     Bookmarks,
     ApiKeyPayload,
+    SuggestedBang,
     BookmarkToExport,
 } from './type';
 import {
@@ -1937,11 +1938,18 @@ export function getAdminSuggestedBangsHandler() {
     };
 }
 
-// POST /admin/suggested-bangs/:id/approve
 export function postApproveSuggestedBangHandler() {
     return async (req: Request, res: Response) => {
+        if (!config.github.token) {
+            throw new Error('GitHub token is not configured');
+        }
+
         const id = parseInt(req.params.id as unknown as string);
-        const suggestion = await db('suggested_bangs').where({ id }).first();
+        if (isNaN(id)) {
+            throw new ValidationError({ id: 'Invalid suggestion ID' });
+        }
+
+        const suggestion = await db<SuggestedBang>('suggested_bangs').where({ id }).first();
 
         if (!suggestion) {
             throw new NotFoundError('Suggested bang not found');
@@ -1951,38 +1959,50 @@ export function postApproveSuggestedBangHandler() {
             throw new ValidationError({ status: 'This suggestion has already been reviewed' });
         }
 
-        await db('suggested_bangs').where({ id }).update({
-            status: 'approved',
-            reviewed_at: db.fn.now(),
-        });
+        await db.transaction(async (trx) => {
+            await trx<SuggestedBang>('suggested_bangs').where({ id }).update({
+                status: 'approved',
+                reviewed_at: db.fn.now(),
+            });
 
-        const trigger = suggestion.trigger.slice(1); // Remove the ! prefix
-        const response = await fetch(
-            `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/dispatches`,
-            {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/vnd.github.v3+json',
-                    Authorization: `token ${process.env.GITHUB_TOKEN}`,
-                },
-                body: JSON.stringify({
-                    event_type: 'approve-bang',
-                    client_payload: {
-                        trigger,
-                        name: suggestion.name,
-                        domain: suggestion.domain,
-                        url: suggestion.url,
-                        category: suggestion.category,
-                        subcategory: suggestion.subcategory,
+            const trigger = suggestion.trigger.slice(1); // Remove the ! prefix
+            try {
+                const response = await fetch(
+                    `https://api.github.com/repos/wajeht/bang/dispatches`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            Accept: 'application/vnd.github.v3+json',
+                            Authorization: `token ${config.github.token}`,
+                        },
+                        body: JSON.stringify({
+                            event_type: 'approve-bang',
+                            client_payload: {
+                                trigger,
+                                name: suggestion.name,
+                                domain: suggestion.domain,
+                                url: suggestion.url,
+                                category: suggestion.category,
+                                subcategory: suggestion.subcategory,
+                            },
+                        }),
                     },
-                }),
-            },
-        );
+                );
 
-        if (!response.ok) {
-            const error = await response.text();
-            throw new Error(`Failed to trigger GitHub workflow: ${error}`);
-        }
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(`GitHub API error: ${error}`);
+                }
+
+                const data = await response.json();
+
+                logger.info(`GitHub workflow triggered for ${suggestion.trigger}`, data);
+            } catch (error) {
+                throw new Error(
+                    `Failed to trigger GitHub workflow: ${error instanceof Error ? error.message : 'Unknown error'}. The suggestion was not approved.`,
+                );
+            }
+        });
 
         req.flash(
             'success',
