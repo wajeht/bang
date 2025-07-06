@@ -1859,23 +1859,19 @@ export function postSuggestBangHandler() {
         }
 
         if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
-            throw new ValidationError(
-                { trigger: 'Trigger can only contain letters and numbers' },
-                req,
-            );
+            throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
         }
 
         const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
-        // Check if trigger exists in bangs.ts
         const existingBang = bangs[formattedTrigger];
+
         if (existingBang) {
             throw new ValidationError({
                 trigger: 'This trigger already exists in the global bangs',
             });
         }
 
-        // Check if trigger exists in suggested_bangs
         const existingSuggestion = await db('suggested_bangs')
             .where('trigger', formattedTrigger)
             .first();
