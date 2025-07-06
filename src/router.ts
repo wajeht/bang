@@ -65,7 +65,6 @@ import { adminOnlyMiddleware, authenticationMiddleware, turnstileMiddleware } fr
 
 const router = express.Router();
 
-router.get('/bangs', getBangsPage());
 router.get('/how-to', getHowToPageHandler());
 router.get('/healthz', getHealthzHandler(db));
 router.get('/', getHomePageAndSearchHandler(search));
@@ -77,24 +76,15 @@ router.post('/search', postSearchHandler(search));
 router.get('/auth/magic/:token', getMagicLinkHandler());
 router.post('/login', turnstileMiddleware, postLoginHandler());
 
-router.get('/bangs/suggest', authenticationMiddleware, getSuggestBangPageHandler());
+router.get('/bangs', getBangsPage());
 router.post('/bangs/suggest', authenticationMiddleware, postSuggestBangHandler());
+router.get('/bangs/suggest', authenticationMiddleware, getSuggestBangPageHandler());
 
 router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, getAdminUsersHandler(db));
 router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, getAdminUsersHandler(db));
 router.post('/admin/users/:id/delete', authenticationMiddleware, adminOnlyMiddleware, postDeleteAdminUserHandler(db)); // prettier-ignore
-router.get(
-    '/admin/suggested-bangs',
-    authenticationMiddleware,
-    adminOnlyMiddleware,
-    getAdminSuggestedBangsHandler(),
-);
-router.post(
-    '/admin/suggested-bangs/:id/approve',
-    authenticationMiddleware,
-    adminOnlyMiddleware,
-    postApproveSuggestedBangHandler(),
-);
+router.get('/admin/suggested-bangs', authenticationMiddleware, adminOnlyMiddleware, getAdminSuggestedBangsHandler()); // prettier-ignore
+router.post('/admin/suggested-bangs/:id/approve', authenticationMiddleware, adminOnlyMiddleware, postApproveSuggestedBangHandler()); // prettier-ignore
 router.post('/admin/suggested-bangs/:id/reject', authenticationMiddleware, adminOnlyMiddleware, postRejectSuggestedBangHandler()); // prettier-ignore
 
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler());
