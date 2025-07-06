@@ -1,5 +1,4 @@
 import { db, notes } from './db/db';
-import { logger } from './utils/logger';
 import type { Request, Response } from 'express';
 import { getHealthzHandler, toggleNotePinHandler } from './handler';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';

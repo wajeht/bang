@@ -7,7 +7,7 @@ import {
     expectUserLoggedIn,
     expectUserLoggedOut,
     submitEmailForMagicLink,
-} from './test-utils';
+} from './browser-test-utils';
 import { test, expect } from '@playwright/test';
 
 test.afterEach(async () => {
