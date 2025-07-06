@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import type { Bang } from '../type.js';
+import { approvedBangs } from '../db/approved-bangs.js';
 
 interface BangSource {
     name: string;
@@ -92,6 +93,18 @@ export function parseCliArgs(args: string[]): { sources?: BangSource[]; outputPa
     return { sources, outputPath };
 }
 
+export function getApprovedBangs(): Bang[] {
+    return Object.entries(approvedBangs).map(([trigger, bang]) => ({
+        t: trigger,
+        s: bang.name,
+        d: bang.domain,
+        u: bang.url,
+        c: bang.category,
+        sc: bang.subcategory,
+        r: bang.rank || 0,
+    }));
+}
+
 export async function buildBangs(
     sources: BangSource[],
     outputPath: string,
@@ -103,6 +116,13 @@ export async function buildBangs(
     },
 ): Promise<{ totalBangs: number; duplicates: number }> {
     const fetchedSources: { bangs: Bang[]; priority: number }[] = [];
+
+    // Add approved bangs with highest priority
+    const approvedBangs = getApprovedBangs();
+    if (approvedBangs.length > 0) {
+        fetchedSources.push({ bangs: approvedBangs, priority: 999 }); // Highest priority
+        deps.console.log(`✓ Loaded ${approvedBangs.length} approved bangs from approved-bangs.ts`);
+    }
 
     for (const source of sources) {
         try {
