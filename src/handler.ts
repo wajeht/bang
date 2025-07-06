@@ -20,11 +20,11 @@ import {
     sendMagicLinkEmail,
     sendDataExportEmail,
     generateUserDataExport,
-    generateBookmarkHtmlExport,
     isOnlyLettersAndNumbers,
     checkDuplicateBookmarkUrl,
     getConvertedReadmeMDToHTML,
     convertMarkdownToPlainText,
+    generateBookmarkHtmlExport,
 } from './utils/util';
 import { Knex } from 'knex';
 import { bangs } from './db/bang';
