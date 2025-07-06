@@ -13,6 +13,9 @@
 
 		<%- include('./_partials/footer.html') %>
 
+		<% if (['/actions', '/bangs', '/bookmarks'].includes(path) || path.startsWith('/notes')) { %>
+			<%- include('./_partials/scroll-to-top.html') %>
+		<% } %>
 	</body>
 
 </html>
