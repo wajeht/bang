@@ -29,7 +29,7 @@ const searchConfig = {
     /**
      * Cache duration for redirects (in minutes)
      */
-    redirectWithCacheDuration: 5,
+    redirectWithCacheDuration: 60,
     /**
      * System-level bang commands that cannot be overridden by user-defined bangs
      */

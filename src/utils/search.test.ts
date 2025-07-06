@@ -52,7 +52,7 @@ describe('search', () => {
             expect(res.status).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://google.com/search?q=python');
@@ -80,7 +80,7 @@ describe('search', () => {
             expect(res.status).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://google.com');
@@ -108,7 +108,7 @@ describe('search', () => {
             expect(res.status).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith(
@@ -137,7 +137,7 @@ describe('search', () => {
                 expect(res.status).toBe(200);
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        'Cache-Control': 'public, max-age=300',
+                        'Cache-Control': 'public, max-age=3600',
                     }),
                 );
                 expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=!g');
@@ -327,7 +327,7 @@ describe('search', () => {
             await search({ req, res, user: testUser, query: '@settings' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('/settings');
@@ -335,7 +335,7 @@ describe('search', () => {
             await search({ req, res, user: testUser, query: '@b' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('/bangs');
@@ -351,7 +351,7 @@ describe('search', () => {
             await search({ req, res, user: testUser, query: '@notes search query' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=search%20query');
@@ -375,7 +375,7 @@ describe('search', () => {
             await search({ req, res, user: testUser, query: '@bookmarks search query' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=search%20query');
@@ -395,7 +395,7 @@ describe('search', () => {
             await search({ req, res, user: testUser, query: '@actions search query' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=search%20query');
@@ -420,7 +420,7 @@ describe('search', () => {
             });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith(
@@ -462,7 +462,7 @@ describe('search', () => {
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://example.com');
@@ -496,7 +496,7 @@ describe('search', () => {
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://example.com');
@@ -588,7 +588,7 @@ describe('search', () => {
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://example.com/search?q=test%20search');
@@ -618,7 +618,7 @@ describe('search', () => {
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith(
@@ -652,7 +652,7 @@ describe('search', () => {
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith(
@@ -678,7 +678,7 @@ describe('search', () => {
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://mysite.com');
@@ -700,7 +700,7 @@ describe('search', () => {
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=test%20search');
@@ -722,7 +722,7 @@ describe('search', () => {
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=nonexistent');
@@ -816,7 +816,7 @@ describe('search', () => {
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://example.com');
@@ -864,7 +864,7 @@ describe('search', () => {
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=300',
+                    'Cache-Control': 'public, max-age=3600',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith(
@@ -1319,7 +1319,7 @@ describe('search', () => {
 
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        'Cache-Control': 'public, max-age=300',
+                        'Cache-Control': 'public, max-age=3600',
                     }),
                 );
                 expect(res.redirect).toHaveBeenCalledWith(
@@ -1618,7 +1618,7 @@ describe('search', () => {
 
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        'Cache-Control': 'public, max-age=300',
+                        'Cache-Control': 'public, max-age=3600',
                     }),
                 );
                 expect(res.redirect).toHaveBeenCalledWith(
@@ -1682,7 +1682,7 @@ describe('search', () => {
                 await search({ req, res, user: testUser, query: command });
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        'Cache-Control': 'public, max-age=300',
+                        'Cache-Control': 'public, max-age=3600',
                     }),
                 );
                 expect(res.redirect).toHaveBeenCalledWith(path);
@@ -1703,7 +1703,7 @@ describe('search', () => {
 
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        'Cache-Control': 'public, max-age=300',
+                        'Cache-Control': 'public, max-age=3600',
                     }),
                 );
                 expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=g');
@@ -1869,7 +1869,7 @@ describe('search', () => {
 
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        'Cache-Control': 'public, max-age=300',
+                        'Cache-Control': 'public, max-age=3600',
                     }),
                 );
                 expect(res.redirect).toHaveBeenCalledWith('https://unique.com');
