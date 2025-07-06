@@ -82,7 +82,7 @@ router.post('/settings/data/import', authenticationMiddleware, postImportDataHan
 router.post('/settings/account', authenticationMiddleware, postSettingsAccountHandler(db));
 router.post('/settings/display', authenticationMiddleware, postSettingsDisplayHandler(db));
 router.get('/settings/account', authenticationMiddleware, getSettingsAccountPageHandler());
-router.post('/settings/data/export', authenticationMiddleware, postExportDataHandler(db, logger));
+router.post('/settings/data/export', authenticationMiddleware, postExportDataHandler());
 router.get('/settings/danger-zone', authenticationMiddleware, getSettingsDangerZonePageHandler());
 router.post('/settings/create-api-key', authenticationMiddleware, postSettingsCreateApiKeyHandler(db, api)); // prettier-ignore
 router.post('/settings/danger-zone/delete', authenticationMiddleware, postDeleteSettingsDangerZoneHandler(db)); // prettier-ignore

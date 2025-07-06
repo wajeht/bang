@@ -780,7 +780,7 @@ export function getSettingsDataPageHandler() {
 }
 
 // POST /settings/data/export
-export function postExportDataHandler(db: Knex, log: typeof logger) {
+export function postExportDataHandler() {
     return async (req: Request, res: Response) => {
         const { options } = req.body;
 
