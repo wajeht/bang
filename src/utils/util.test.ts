@@ -24,7 +24,7 @@ import fs from 'node:fs/promises';
 import { Request } from 'express';
 import { config } from '../config';
 import { ApiKeyPayload, BookmarkToExport } from '../type';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 describe.concurrent('isValidUrl', () => {
     it('should return true for valid URLs', () => {
