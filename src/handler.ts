@@ -1960,7 +1960,7 @@ export function postApproveSuggestedBangHandler() {
 
         await db.transaction(async (trx) => {
             await trx<SuggestedBang>('suggested_bangs').where({ id }).update({
-                status: 'approved',
+                status: 'pending_commit',
                 reviewed_at: db.fn.now(),
             });
 
@@ -2012,6 +2012,45 @@ export function postApproveSuggestedBangHandler() {
             'success',
             `Bang ${suggestion.trigger} has been approved! A pull request will be created shortly.`,
         );
+        return res.redirect('/admin/suggested-bangs');
+    };
+}
+
+// POST /admin/suggested-bangs/:id/commit-complete
+export function postCommitCompleteSuggestedBangHandler() {
+    return async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id as unknown as string);
+        if (isNaN(id)) {
+            throw new ValidationError({ id: 'Invalid suggestion ID' });
+        }
+
+        const suggestion = await db<SuggestedBang>('suggested_bangs').where({ id }).first();
+
+        if (!suggestion) {
+            throw new NotFoundError('Suggested bang not found');
+        }
+
+        // Verify the bang exists in approved-bangs.ts
+        const { approvedBangs } = await import('./db/approved-bangs.js');
+        const trigger = suggestion.trigger.slice(1); // Remove the ! prefix
+
+        if (!approvedBangs[trigger]) {
+            throw new ValidationError({
+                status: 'Bang not found in approved-bangs.ts. Please wait for the PR to be merged.',
+            });
+        }
+
+        // Delete the suggested bang since it's now in approved-bangs.ts
+        await db<SuggestedBang>('suggested_bangs').where({ id }).delete();
+
+        if (isApiRequest(req)) {
+            res.json({
+                message: `Bang ${suggestion.trigger} has been deleted`,
+            });
+            return;
+        }
+
+        req.flash('success', `Bang ${suggestion.trigger} has been deleted`);
         return res.redirect('/admin/suggested-bangs');
     };
 }

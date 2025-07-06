@@ -68,6 +68,7 @@ jobs:
 
             - name: Create Pull Request
               uses: peter-evans/create-pull-request@v6
+              id: cpr
               with:
                   commit-message: 'feat: approve bang !${{ github.event.client_payload.trigger }}'
                   title: 'feat: approve bang !${{ github.event.client_payload.trigger }}'
@@ -81,3 +82,34 @@ jobs:
                       - Subcategory: ${{ github.event.client_payload.subcategory }}
                   branch: approve-bang-${{ github.event.client_payload.trigger }}
                   delete-branch: true
+
+            - name: Enable Auto-merge
+              if: steps.cpr.outputs.pull-request-operation == 'created'
+              run: gh pr merge --auto --merge "${{ steps.cpr.outputs.pull-request-number }}"
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Delete Suggested Bang After Merge
+              if: steps.cpr.outputs.pull-request-operation == 'created'
+              run: |
+                  PR_NUMBER="${{ steps.cpr.outputs.pull-request-number }}"
+
+                  # Wait for PR to be merged
+                  while true; do
+                    PR_STATE=$(gh pr view $PR_NUMBER --json state -q .state)
+                    if [ "$PR_STATE" = "MERGED" ]; then
+                      break
+                    elif [ "$PR_STATE" = "CLOSED" ]; then
+                      echo "PR was closed without merging"
+                      exit 1
+                    fi
+                    sleep 10
+                  done
+
+                  # Delete the suggested bang using the API
+                  curl -X DELETE \
+                    -H "Authorization: Bearer ${{ secrets.BANG_API_KEY }}" \
+                    -H "Content-Type: application/json" \
+                    "https://bang.jaw.dev/api/suggested-bangs/${{ github.event.client_payload.id }}"
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

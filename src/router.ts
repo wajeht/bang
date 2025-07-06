@@ -56,6 +56,7 @@ import {
     getSettingsDangerZonePageHandler,
     getBookmarkActionCreatePageHandler,
     postDeleteSettingsDangerZoneHandler,
+    postCommitCompleteSuggestedBangHandler,
 } from './handler';
 
 import { api } from './utils/util';
@@ -522,5 +523,21 @@ router.post('/api/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler
  *
  */
 router.post('/api/bookmarks/:id/pin', authenticationMiddleware, toggleBookmarkPinHandler(bookmarks)); // prettier-ignore
+
+/**
+ * DELETE /api/suggested-bangs/{id}
+ *
+ * @tags Suggested Bangs
+ * @summary Delete a suggested bang after it has been committed to the repository
+ *
+ * @security BearerAuth
+ *
+ * @param {string} id.path.required - suggested bang id
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 404 - Not found response - application/json
+ *
+ */
+router.delete('/api/suggested-bangs/:id', authenticationMiddleware, postCommitCompleteSuggestedBangHandler()); // prettier-ignore
 
 export { router };

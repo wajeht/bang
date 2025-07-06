@@ -71,8 +71,8 @@ export type SuggestedBang = {
     subcategory: string;
     /** Domain or website associated with the bang */
     domain: string;
-    /** Status of the suggestion: 'pending', 'approved', or 'rejected' */
-    status: 'pending' | 'approved' | 'rejected';
+    /** Status of the suggestion: 'pending', 'approved', 'rejected', or 'pending_commit' */
+    status: 'pending' | 'approved' | 'rejected' | 'pending_commit';
     /** User who suggested the bang */
     user_id: number;
     /** When the bang was suggested */
