@@ -992,7 +992,7 @@ export function postDeleteSettingsDangerZoneHandler(db: Knex) {
             });
         }
 
-        return res.redirect('/?toast=🗑️ deleted');
+        return res.redirect(`/?toast=🗑️ You're account has been delted!`);
     };
 }
 
