@@ -36,7 +36,6 @@ import { db, actions, bookmarks, notes } from './db/db';
 import type { Request, Response, NextFunction } from 'express';
 import { actionTypes, defaultSearchProviders } from './utils/util';
 import { HttpError, NotFoundError, ValidationError } from './error';
-import fs from 'fs';
 
 // GET /healthz
 export function getHealthzHandler(db: Knex) {
