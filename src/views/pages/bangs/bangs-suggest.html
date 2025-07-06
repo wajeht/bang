@@ -1,0 +1,79 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+    <header>
+        <h2>🔍 Suggest a Bang</h2>
+        <p>Suggest a new bang to be added to the global list. Your suggestion will be reviewed by an admin.</p>
+    </header>
+
+    <form method="POST" action="/bangs/suggest" style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
+        <fieldset style="display: flex; flex-direction: column;">
+            <legend>Bang Details</legend>
+
+            <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+
+            <%- include('../../components/inputs/text.html', {
+                id: 'trigger',
+                name: 'trigger',
+                label: 'Trigger',
+                placeholder: '!example',
+                required: true,
+                helpText: 'The bang trigger, e.g. !w for Wikipedia. Must start with ! and contain only letters and numbers.',
+                error: state.errors && state.errors.trigger ? state.errors.trigger : undefined
+            }) %>
+
+            <%- include('../../components/inputs/text.html', {
+                id: 'name',
+                name: 'name',
+                label: 'Name',
+                placeholder: 'Example Search',
+                required: true,
+                helpText: 'A descriptive name for the bang',
+                error: state.errors && state.errors.name ? state.errors.name : undefined
+            }) %>
+
+            <%- include('../../components/inputs/text.html', {
+                id: 'domain',
+                name: 'domain',
+                label: 'Domain',
+                placeholder: 'example.com',
+                required: true,
+                helpText: 'The domain of the website (without https:// or www)',
+                error: state.errors && state.errors.domain ? state.errors.domain : undefined
+            }) %>
+
+            <%- include('../../components/inputs/url.html', {
+                id: 'url',
+                name: 'url',
+                label: 'URL',
+                placeholder: 'https://example.com/search?q={{{s}}}',
+                required: true,
+                helpText: 'The search URL. Use {{{s}}} as a placeholder for the search term.',
+                error: state.errors && state.errors.url ? state.errors.url : undefined
+            }) %>
+
+            <%- include('../../components/inputs/text.html', {
+                id: 'category',
+                name: 'category',
+                label: 'Category',
+                placeholder: 'Search',
+                required: true,
+                helpText: 'The main category for this bang (e.g. Search, Shopping, Reference)',
+                error: state.errors && state.errors.category ? state.errors.category : undefined
+            }) %>
+
+            <%- include('../../components/inputs/text.html', {
+                id: 'subcategory',
+                name: 'subcategory',
+                label: 'Subcategory',
+                placeholder: 'General',
+                required: true,
+                helpText: 'A more specific category (e.g. General, Images, News)',
+                error: state.errors && state.errors.subcategory ? state.errors.subcategory : undefined
+            }) %>
+        </fieldset>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" onclick="location.href='/bangs'">❌ Cancel</button>
+            <button type="submit">📝 Submit</button>
+        </div>
+    </form>
+</section>
