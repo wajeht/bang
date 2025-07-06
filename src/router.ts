@@ -31,9 +31,11 @@ import {
     getCollectionsHandler,
     getSettingsPageHandler,
     getEditNotePageHandler,
+    postSuggestBangHandler,
     toggleBookmarkPinHandler,
     getNoteCreatePageHandler,
     getEditActionPageHandler,
+    getSuggestBangPageHandler,
     getExportBookmarksHandler,
     getEditBookmarkPageHandler,
     getActionCreatePageHandler,
@@ -46,7 +48,10 @@ import {
     getBookmarkCreatePageHandler,
     getTermsOfServicePageHandler,
     getSettingsAccountPageHandler,
+    getAdminSuggestedBangsHandler,
+    postRejectSuggestedBangHandler,
     postNotesRenderMarkdownHandler,
+    postApproveSuggestedBangHandler,
     postSettingsCreateApiKeyHandler,
     getSettingsDangerZonePageHandler,
     getBookmarkActionCreatePageHandler,
@@ -72,9 +77,25 @@ router.post('/search', postSearchHandler(search));
 router.get('/auth/magic/:token', getMagicLinkHandler());
 router.post('/login', turnstileMiddleware, postLoginHandler());
 
+router.get('/bangs/suggest', authenticationMiddleware, getSuggestBangPageHandler());
+router.post('/bangs/suggest', authenticationMiddleware, postSuggestBangHandler());
+
 router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, getAdminUsersHandler(db));
 router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, getAdminUsersHandler(db));
 router.post('/admin/users/:id/delete', authenticationMiddleware, adminOnlyMiddleware, postDeleteAdminUserHandler(db)); // prettier-ignore
+router.get(
+    '/admin/suggested-bangs',
+    authenticationMiddleware,
+    adminOnlyMiddleware,
+    getAdminSuggestedBangsHandler(),
+);
+router.post(
+    '/admin/suggested-bangs/:id/approve',
+    authenticationMiddleware,
+    adminOnlyMiddleware,
+    postApproveSuggestedBangHandler(),
+);
+router.post('/admin/suggested-bangs/:id/reject', authenticationMiddleware, adminOnlyMiddleware, postRejectSuggestedBangHandler()); // prettier-ignore
 
 router.get('/settings', authenticationMiddleware, getSettingsPageHandler());
 router.get('/settings/data', authenticationMiddleware, getSettingsDataPageHandler());
