@@ -233,3 +233,9 @@ export type Logger = {
     warn: (message: string, ...args: unknown[]) => void;
     info: (message: string, ...args: unknown[]) => void;
 };
+
+export type PaginateArrayOptions = {
+    page: number;
+    perPage: number;
+    total: number;
+};

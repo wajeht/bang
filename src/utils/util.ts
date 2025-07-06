@@ -5,6 +5,7 @@ import type {
     ApiKeyPayload,
     BookmarkToExport,
     MagicLinkPayload,
+    PaginateArrayOptions,
     TurnstileVerifyResponse,
 } from '../type';
 import http from 'node:http';
@@ -868,4 +869,24 @@ export async function verifyTurnstileToken(
     } catch (error) {
         throw new Error(`Failed to verify Turnstile token: ${(error as Error).message}`);
     }
+}
+
+export function paginate<T>(array: T[], options: PaginateArrayOptions) {
+    const { page, perPage, total } = options;
+    const currentPage = Math.max(1, page);
+    const offset = (currentPage - 1) * perPage;
+    const data = array.slice(offset, offset + perPage);
+    const lastPage = Math.ceil(total / perPage);
+
+    return {
+        data,
+        total,
+        perPage,
+        currentPage,
+        lastPage,
+        from: offset + 1,
+        to: offset + data.length,
+        hasNext: currentPage < lastPage,
+        hasPrev: currentPage > 1,
+    };
 }

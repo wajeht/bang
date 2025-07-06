@@ -9,10 +9,11 @@ import {
     BookmarkToExport,
 } from './type';
 import {
+    paginate,
     magicLink,
     expectJson,
-    isApiRequest,
     isValidUrl,
+    isApiRequest,
     isValidEmail,
     insertBookmark,
     extractPagination,
@@ -30,7 +31,6 @@ import { bangs } from './db/bang';
 import { config } from './config';
 import type { Bang } from './type';
 import { logger } from './utils/logger';
-import { paginate } from './utils/paginate-array';
 import { db, actions, bookmarks, notes } from './db/db';
 import type { Request, Response, NextFunction } from 'express';
 import { actionTypes, defaultSearchProviders } from './utils/util';
