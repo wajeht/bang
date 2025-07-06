@@ -35,6 +35,7 @@ import { db, actions, bookmarks, notes } from './db/db';
 import type { Request, Response, NextFunction } from 'express';
 import { actionTypes, defaultSearchProviders } from './utils/util';
 import { HttpError, NotFoundError, ValidationError } from './error';
+import fs from 'fs';
 
 // GET /healthz
 export function getHealthzHandler(db: Knex) {
@@ -1810,5 +1811,220 @@ export function getBangsPage() {
             sortKey: sort_key,
             direction,
         });
+    };
+}
+
+// GET /bangs/suggest
+export function getSuggestBangPageHandler() {
+    return async (_req: Request, res: Response) => {
+        return res.render('./bangs/bangs-suggest.html', {
+            title: 'Suggest a Bang',
+            path: '/bangs/suggest',
+            layout: '../layouts/auth.html',
+        });
+    };
+}
+
+// POST /bangs/suggest
+export function postSuggestBangHandler() {
+    return async (req: Request, res: Response) => {
+        const { trigger, name, domain, url, category, subcategory } = req.body;
+
+        if (!trigger) {
+            throw new ValidationError({ trigger: 'Trigger is required' });
+        }
+
+        if (!name) {
+            throw new ValidationError({ name: 'Name is required' });
+        }
+
+        if (!domain) {
+            throw new ValidationError({ domain: 'Domain is required' });
+        }
+
+        if (!url) {
+            throw new ValidationError({ url: 'URL is required' });
+        }
+
+        if (!category) {
+            throw new ValidationError({ category: 'Category is required' });
+        }
+
+        if (!subcategory) {
+            throw new ValidationError({ subcategory: 'Subcategory is required' });
+        }
+
+        if (!isValidUrl(url)) {
+            throw new ValidationError({ url: 'Invalid URL format' });
+        }
+
+        if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
+            throw new ValidationError(
+                { trigger: 'Trigger can only contain letters and numbers' },
+                req,
+            );
+        }
+
+        const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+
+        // Check if trigger exists in bangs.ts
+        const existingBang = bangs[formattedTrigger];
+        if (existingBang) {
+            throw new ValidationError({
+                trigger: 'This trigger already exists in the global bangs',
+            });
+        }
+
+        // Check if trigger exists in suggested_bangs
+        const existingSuggestion = await db('suggested_bangs')
+            .where('trigger', formattedTrigger)
+            .first();
+
+        if (existingSuggestion) {
+            throw new ValidationError({ trigger: 'This trigger has already been suggested' });
+        }
+
+        await db('suggested_bangs').insert({
+            user_id: (req.user as User).id,
+            trigger: formattedTrigger,
+            name,
+            domain,
+            url,
+            category,
+            subcategory,
+            status: 'pending',
+            created_at: db.fn.now(),
+        });
+
+        req.flash('success', 'Bang suggestion submitted for review!');
+        return res.redirect('/bangs');
+    };
+}
+
+// GET /admin/suggested-bangs
+export function getAdminSuggestedBangsHandler() {
+    return async (req: Request, res: Response) => {
+        const { perPage, page, search, sortKey, direction } = extractPagination(req, 'admin');
+
+        const query = db
+            .select([
+                'suggested_bangs.*',
+                'users.username as suggested_by',
+                'users.email as user_email',
+            ])
+            .from('suggested_bangs')
+            .leftJoin('users', 'suggested_bangs.user_id', 'users.id');
+
+        if (search) {
+            query.where((q) =>
+                q
+                    .whereRaw('LOWER(trigger) LIKE ?', [`%${search.toLowerCase()}%`])
+                    .orWhereRaw('LOWER(name) LIKE ?', [`%${search.toLowerCase()}%`])
+                    .orWhereRaw('LOWER(domain) LIKE ?', [`%${search.toLowerCase()}%`]),
+            );
+        }
+
+        const { data, pagination } = await query
+            .orderBy(sortKey || 'created_at', direction || 'desc')
+            .paginate({ perPage, currentPage: page, isLengthAware: true });
+
+        return res.render('./admin/admin-suggested-bangs.html', {
+            title: 'Admin / Suggested Bangs',
+            path: '/admin/suggested-bangs',
+            layout: '../layouts/admin.html',
+            data,
+            pagination,
+            search,
+            sortKey,
+            direction,
+        });
+    };
+}
+
+// POST /admin/suggested-bangs/:id/approve
+export function postApproveSuggestedBangHandler() {
+    return async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id as unknown as string);
+        const suggestion = await db('suggested_bangs').where({ id }).first();
+
+        if (!suggestion) {
+            throw new NotFoundError('Suggested bang not found');
+        }
+
+        if (suggestion.status !== 'pending') {
+            throw new ValidationError({ status: 'This suggestion has already been reviewed' });
+        }
+
+        await db('suggested_bangs').where({ id }).update({
+            status: 'approved',
+            reviewed_at: db.fn.now(),
+        });
+
+        const trigger = suggestion.trigger.slice(1); // Remove the ! prefix
+        const response = await fetch(
+            `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/dispatches`,
+            {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/vnd.github.v3+json',
+                    Authorization: `token ${process.env.GITHUB_TOKEN}`,
+                },
+                body: JSON.stringify({
+                    event_type: 'approve-bang',
+                    client_payload: {
+                        trigger,
+                        name: suggestion.name,
+                        domain: suggestion.domain,
+                        url: suggestion.url,
+                        category: suggestion.category,
+                        subcategory: suggestion.subcategory,
+                    },
+                }),
+            },
+        );
+
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`Failed to trigger GitHub workflow: ${error}`);
+        }
+
+        req.flash(
+            'success',
+            `Bang ${suggestion.trigger} has been approved! A pull request will be created shortly.`,
+        );
+        return res.redirect('/admin/suggested-bangs');
+    };
+}
+
+// POST /admin/suggested-bangs/:id/reject
+export function postRejectSuggestedBangHandler() {
+    return async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id as unknown as string);
+        const { rejection_reason } = req.body;
+
+        if (!rejection_reason) {
+            throw new ValidationError({
+                rejection_reason: 'Please provide a reason for rejection',
+            });
+        }
+
+        const suggestion = await db('suggested_bangs').where({ id }).first();
+
+        if (!suggestion) {
+            throw new NotFoundError('Suggested bang not found');
+        }
+
+        if (suggestion.status !== 'pending') {
+            throw new ValidationError({ status: 'This suggestion has already been reviewed' });
+        }
+
+        await db('suggested_bangs').where({ id }).update({
+            status: 'rejected',
+            rejection_reason,
+            reviewed_at: db.fn.now(),
+        });
+
+        req.flash('success', `Bang ${suggestion.trigger} has been rejected`);
+        return res.redirect('/admin/suggested-bangs');
     };
 }
