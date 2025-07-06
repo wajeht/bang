@@ -1,0 +1,218 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+    <header style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h2>🔍 Suggested Bangs (<%- pagination.total %>)</h2>
+            <p>Review and manage user-suggested bangs</p>
+        </div>
+
+        <nav style="display: flex; gap: 10px;" aria-label="Suggested bangs management controls">
+            <% if (search) { %>
+                <button class="no-style-btn" type="button" onclick="location.href='/admin/suggested-bangs'">❌ Clear</button>
+            <% } %>
+
+            <form method="GET" style="display: flex; gap: 10px;" role="search">
+                <%- include('../../components/inputs/search.html', {
+                    id: 'search',
+                    name: 'search',
+                    label: 'Search suggestions',
+                    placeholder: 'Search suggestions...',
+                    value: search,
+                    required: false,
+                    helpText: 'Search by trigger, name, or domain',
+                    error: state.errors && state.errors.search ? state.errors.search : undefined
+                }) %>
+                <button type="submit">🔍</button>
+            </form>
+        </nav>
+    </header>
+
+    <section style="display: flex; flex-direction: column; gap: 10px;">
+        <% if (data && data.length > 0) { %>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
+                    <tr>
+                        <th scope="col" style="text-align: left; padding: 10px;">
+                            <a href="/admin/suggested-bangs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=trigger&direction=<%= (sortKey === 'trigger' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                🔥 Trigger
+                                <% if (sortKey === 'trigger') { %>
+                                    <span><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                <% } else { %>
+                                    <span class="sort-icon">⏺️</span>
+                                <% } %>
+                            </a>
+                        </th>
+                        <th scope="col" style="text-align: left; padding: 10px;">
+                            <a href="/admin/suggested-bangs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=name&direction=<%= (sortKey === 'name' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                📝 Name
+                                <% if (sortKey === 'name') { %>
+                                    <span><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                <% } else { %>
+                                    <span class="sort-icon">⏺️</span>
+                                <% } %>
+                            </a>
+                        </th>
+                        <th scope="col" style="text-align: left; padding: 10px;">
+                            <a href="/admin/suggested-bangs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=domain&direction=<%= (sortKey === 'domain' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                🌐 Domain
+                                <% if (sortKey === 'domain') { %>
+                                    <span><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                <% } else { %>
+                                    <span class="sort-icon">⏺️</span>
+                                <% } %>
+                            </a>
+                        </th>
+                        <th scope="col" style="text-align: left; padding: 10px;">🔗 URL</th>
+                        <th scope="col" style="text-align: left; padding: 10px;">
+                            <a href="/admin/suggested-bangs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=category&direction=<%= (sortKey === 'category' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                🏷️ Category
+                                <% if (sortKey === 'category') { %>
+                                    <span><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                <% } else { %>
+                                    <span class="sort-icon">⏺️</span>
+                                <% } %>
+                            </a>
+                        </th>
+                        <th scope="col" style="text-align: left; padding: 10px;">
+                            <a href="/admin/suggested-bangs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=status&direction=<%= (sortKey === 'status' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                📊 Status
+                                <% if (sortKey === 'status') { %>
+                                    <span><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                <% } else { %>
+                                    <span class="sort-icon">⏺️</span>
+                                <% } %>
+                            </a>
+                        </th>
+                        <th scope="col" style="text-align: left; padding: 10px;">👤 Suggested By</th>
+                        <th scope="col" style="text-align: left; padding: 10px;">
+                            <a href="/admin/suggested-bangs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                📅 Created
+                                <% if (sortKey === 'created_at') { %>
+                                    <span><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                <% } else { %>
+                                    <span class="sort-icon">⏺️</span>
+                                <% } %>
+                            </a>
+                        </th>
+                        <th scope="col" style="text-align: left; padding: 10px;">🚀 Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for (const suggestion of data) { %>
+                        <tr>
+                            <td style="padding: 10px;"><code><%- utils.highlightSearchTerm(suggestion.trigger, search) %></code></td>
+                            <td style="padding: 10px;"><%- utils.highlightSearchTerm(suggestion.name, search) %></td>
+                            <td style="padding: 10px;"><%- utils.highlightSearchTerm(suggestion.domain, search) %></td>
+                            <td style="padding: 10px; white-space: nowrap; overflow: auto;">
+                                <a href="<%- suggestion.url.replace('{{{s}}}', 'test') %>" target="_blank" rel="noopener noreferrer">
+                                    <%- utils.highlightSearchTerm(suggestion.url, search) %>
+                                </a>
+                            </td>
+                            <td style="padding: 10px;"><%- suggestion.category %> / <%- suggestion.subcategory %></td>
+                            <td style="padding: 10px;">
+                                <% if (suggestion.status === 'pending') { %>
+                                    ⏳ Pending
+                                <% } else if (suggestion.status === 'approved') { %>
+                                    ✅ Approved
+                                <% } else { %>
+                                    ❌ Rejected
+                                <% } %>
+                            </td>
+                            <td style="padding: 10px;">
+                                <a href="mailto:<%- suggestion.user_email %>" title="<%- suggestion.user_email %>">
+                                    <%- suggestion.suggested_by %>
+                                </a>
+                            </td>
+                            <td style="padding: 10px;">
+                                <time datetime="<%- suggestion.created_at %>">
+                                    <%- new Date(suggestion.created_at).toLocaleDateString() %>
+                                </time>
+                            </td>
+                            <td style="padding: 10px;">
+                                <% if (suggestion.status === 'pending') { %>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="button" class="no-style-btn" onclick="document.getElementById('approve-<%- suggestion.id %>-modal').showModal()">
+                                            ✅ Approve
+                                        </button>
+                                        <button type="button" class="no-style-btn" onclick="document.getElementById('reject-<%- suggestion.id %>-modal').showModal()">
+                                            ❌ Reject
+                                        </button>
+
+                                        <dialog id="approve-<%- suggestion.id %>-modal">
+                                            <h2>Confirm Approval</h2>
+                                            <p>Are you sure you want to approve this bang suggestion?</p>
+                                            <form method="POST" action="/admin/suggested-bangs/<%- suggestion.id %>/approve">
+                                                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                                                    <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+                                                    <button type="submit">✅ Approve</button>
+                                                </div>
+                                            </form>
+                                        </dialog>
+
+                                        <dialog id="reject-<%- suggestion.id %>-modal">
+                                            <h2>Reject Bang</h2>
+                                            <p>Please provide a reason for rejecting this bang suggestion.</p>
+                                            <form method="POST" action="/admin/suggested-bangs/<%- suggestion.id %>/reject">
+                                                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                                                <%- include('../../components/inputs/textarea.html', {
+                                                    id: 'rejection_reason',
+                                                    name: 'rejection_reason',
+                                                    label: 'Rejection Reason',
+                                                    placeholder: 'Enter the reason for rejection...',
+                                                    required: true,
+                                                    error: state.errors && state.errors.rejection_reason ? state.errors.rejection_reason : undefined
+                                                }) %>
+                                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                                                    <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+                                                    <button type="submit">❌ Reject</button>
+                                                </div>
+                                            </form>
+                                        </dialog>
+                                    </div>
+                                <% } else { %>
+                                    <% if (suggestion.rejection_reason) { %>
+                                        <button type="button" class="no-style-btn" onclick="document.getElementById('reason-<%- suggestion.id %>-modal').showModal()">
+                                            ℹ️ View Reason
+                                        </button>
+
+                                        <dialog id="reason-<%- suggestion.id %>-modal">
+                                            <h2>Rejection Reason</h2>
+                                            <p><%- suggestion.rejection_reason %></p>
+                                            <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                                                <button type="button" onclick="this.closest('dialog').close()">✅ Close</button>
+                                            </div>
+                                        </dialog>
+                                    <% } %>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <div style="text-align: center; padding: 20px;">
+                <% if (search) { %>
+                    <p>🔍 No suggestions found matching "<%= search %>"</p>
+                    <p>Try a different search term or <a href="/admin/suggested-bangs">view all suggestions</a></p>
+                <% } else { %>
+                    <p>📭 No bang suggestions found.</p>
+                <% } %>
+            </div>
+        <% } %>
+    </section>
+
+    <%- include('../_partials/pagination.html', {
+        pagination,
+        path,
+        perPageDefault: 25,
+        sortKey,
+        direction,
+        search
+    }) %>
+</section>
