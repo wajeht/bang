@@ -1974,6 +1974,7 @@ export function postApproveSuggestedBangHandler() {
                         headers: {
                             Accept: 'application/vnd.github.v3+json',
                             Authorization: `token ${config.github.token}`,
+                            'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
                             event_type: 'approve-bang',
@@ -1994,9 +1995,13 @@ export function postApproveSuggestedBangHandler() {
                     throw new Error(`GitHub API error: ${error}`);
                 }
 
-                const data = await response.json();
-
-                logger.info(`GitHub workflow triggered for ${suggestion.trigger}`, data);
+                // Repository dispatch endpoint returns 204 No Content on success
+                if (response.status === 204) {
+                    logger.info(`GitHub workflow triggered for ${suggestion.trigger}`);
+                } else {
+                    const data = await response.json();
+                    logger.info(`GitHub workflow triggered for ${suggestion.trigger}`, data);
+                }
             } catch (error) {
                 throw new Error(
                     `Failed to trigger GitHub workflow: ${error instanceof Error ? error.message : 'Unknown error'}. The suggestion was not approved.`,
