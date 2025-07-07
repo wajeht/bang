@@ -6,23 +6,30 @@ import {
     getNoteHandler,
     getNotesHandler,
     postNoteHandler,
+    updateTabHandler,
     getLogoutHandler,
     postLoginHandler,
     getActionHandler,
+    deleteTabHandler,
     getActionsHandler,
     getHealthzHandler,
     postSearchHandler,
     postActionHandler,
     deleteNoteHandler,
     updateNoteHandler,
+    postTabsAddHandler,
+    getTabsPageHandler,
     getBookmarkHandler,
     getMagicLinkHandler,
     getHowToPageHandler,
     updateActionHandler,
     deleteActionHandler,
     getBookmarksHandler,
+    postTabsPageHandler,
+    getTabsLaunchHandler,
     postBookmarkHandler,
     toggleNotePinHandler,
+    deleteAllTabsHandler,
     getAdminUsersHandler,
     postExportDataHandler,
     postImportDataHandler,
@@ -31,6 +38,8 @@ import {
     getCollectionsHandler,
     getSettingsPageHandler,
     getEditNotePageHandler,
+    getTabCreatePageHandler,
+    getTabEditPageHandler,
     toggleBookmarkPinHandler,
     getNoteCreatePageHandler,
     getEditActionPageHandler,
@@ -72,6 +81,16 @@ router.post('/search', postSearchHandler(search));
 router.get('/auth/magic/:token', getMagicLinkHandler());
 router.post('/login', turnstileMiddleware, postLoginHandler());
 
+router.get('/tabs', authenticationMiddleware, getTabsPageHandler(db));
+router.post('/tabs', authenticationMiddleware, postTabsPageHandler(db));
+router.get('/tabs/launch', authenticationMiddleware, getTabsLaunchHandler(db));
+router.get('/tabs/create', authenticationMiddleware, getTabCreatePageHandler());
+router.post('/tabs/:id/delete', authenticationMiddleware, deleteTabHandler(db));
+router.get('/tabs/:id/edit', authenticationMiddleware, getTabEditPageHandler(db));
+router.post('/tabs/:id/update', authenticationMiddleware, updateTabHandler(db));
+router.post('/tabs/delete-all', authenticationMiddleware, deleteAllTabsHandler(db));
+router.post('/tabs/add', authenticationMiddleware, postTabsAddHandler(db));
+
 router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, getAdminUsersHandler(db));
 router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, getAdminUsersHandler(db));
 router.post('/admin/users/:id/delete', authenticationMiddleware, adminOnlyMiddleware, postDeleteAdminUserHandler(db)); // prettier-ignore
@@ -112,6 +131,7 @@ router.post('/notes/:id/update', authenticationMiddleware, updateNoteHandler(not
 router.post('/notes/:id/delete', authenticationMiddleware, deleteNoteHandler(notes));
 router.post('/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler(notes));
 router.get('/notes/:id/edit', authenticationMiddleware, getEditNotePageHandler(notes));
+
 
 /**
  * @swagger
