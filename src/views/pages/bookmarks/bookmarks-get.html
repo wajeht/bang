@@ -131,6 +131,12 @@
                                                 <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
                                             </button>
                                         </form>
+                                        <form action="/tabs/add" method="POST">
+                                            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                                            <input type="hidden" name="id" value="<%= data[i].id %>" />
+                                            <input type="hidden" name="type" value="bookmarks" />
+                                            <button class="no-style-btn" type="submit">🔗 Tab</button>
+                                        </form>
                                         <a href="/bookmarks/<%= data[i].id %>/actions/create" style="display: inline-flex; align-items: center;" role="menuitem">⚡️ Bang</a>
                                         <a href="/bookmarks/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                         <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-bookmark-<%= data[i].id %>-modal').showModal()" role="menuitem">🗑️ Delete</button>
