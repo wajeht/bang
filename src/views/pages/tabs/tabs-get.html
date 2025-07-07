@@ -1,0 +1,74 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+  <header style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+          <div style="display: flex; align-items: center; gap: 5px;">
+              <h2>🔗 Tabs (<%- tabs.length %>)</h2>
+          <%- include('../_partials/question-mark-button.html') %>
+          </div>
+          <p>Manage your saved tabs</p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <!-- delete all tabs -->
+        <form action="/tabs/delete-all" method="POST">
+          <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+          <button type="submit" aria-label="Delete all tabs">🗑️</button>
+        </form>
+        <button type="button" aria-label="Create new tab" onclick="location.href='/tabs/create'">➕</button>
+        <button type="button" aria-label="Launch tabs" onclick="location.href='/tabs/launch'">🚀</button>
+      </div>
+  </header>
+
+  <section style="display: flex; flex-direction: column; gap: 10px;">
+      <% if (tabs && tabs.length > 0) { %>
+          <table style="width: 100%; border-collapse: collapse;">
+              <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
+                  <tr>
+                      <th scope="col" style="text-align: left; padding: 10px;">🔖 Title</th>
+                      <th scope="col" style="text-align: left; padding: 10px;">🌐 URL</th>
+                      <th scope="col" style="text-align: left; padding: 10px;">🚀 Actions</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <% for (let i = 0; i < tabs.length; i++) { %>
+                      <tr>
+                          <td style="padding: 10px;"><%= tabs[i].title %></td>
+
+                          <td style="padding: 10px;">
+                              <a style="overflow: auto; white-space: nowrap;" href="<%= tabs[i].url %>" title="<%= tabs[i].title %>" target="_blank" rel="noopener noreferrer">
+                                  <%- tabs[i].url %>
+                              </a>
+                          </td>
+                          <td style="padding: 10px;">
+                              <details style="position: relative;">
+                                  <summary>Actions</summary>
+                                  <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                      <a href="/tabs/<%= tabs[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
+                                      <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-tab-<%= tabs[i].id %>-modal').showModal()" role="menuitem">🗑️ Delete</button>
+
+                                      <dialog id="delete-tab-<%= tabs[i].id %>-modal" aria-labelledby="delete-tab-<%= tabs[i].id %>-title">
+                                          <h2 id="delete-tab-<%= tabs[i].id %>-title">Confirm</h2>
+                                          <p>Are you sure you want to delete <strong><%= tabs[i].title %></strong>?</p>
+                                          <form action="/tabs/<%= tabs[i].id %>/delete" method="POST">
+                                              <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                                              <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                                                  <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+                                                  <button type="submit">🗑️ Delete</button>
+                                              </div>
+                                          </form>
+                                      </dialog>
+                                  </div>
+                              </details>
+                          </td>
+                      </tr>
+                  <% } %>
+              </tbody>
+          </table>
+      <% } else { %>
+          <div style="text-align: center; padding: 20px;">
+              <p>📭 You haven't created any tabs yet.</p>
+              <p>Use <code>!tab [title] [url]</code> in the search box to create a tab! or <a href="/tabs/create">click here</a> to create a tab!</p>
+          </div>
+      <% } %>
+  </section>
+
+</section>
