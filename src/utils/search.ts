@@ -755,7 +755,6 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         }
     }
 
-
     const defaultProvider = user.default_search_provider || 'duckduckgo';
 
     let searchUrl: string = defaultSearchProviders[defaultProvider as keyof typeof defaultSearchProviders].replace('{{{s}}}', encodeURIComponent(searchTerm || query)); // prettier-ignore

@@ -132,7 +132,6 @@ router.post('/notes/:id/delete', authenticationMiddleware, deleteNoteHandler(not
 router.post('/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler(notes));
 router.get('/notes/:id/edit', authenticationMiddleware, getEditNotePageHandler(notes));
 
-
 /**
  * @swagger
  * components:

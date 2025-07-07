@@ -61,6 +61,13 @@
                 label: '📝 Include Notes'
               }) %>
 
+              <%- include('../../components/inputs/checkbox.html', {
+                id: 'tabs-checkbox',
+                name: 'options[]',
+                value: 'tabs',
+                label: '🔗 Include Tabs'
+              }) %>
+
               <div style="display: flex; align-items: center; gap: 10px;">
                 <%- include('../../components/inputs/checkbox.html', {
                   id: 'user-preferences-checkbox',

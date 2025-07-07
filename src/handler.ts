@@ -795,6 +795,7 @@ export function postExportDataHandler() {
         const includeBookmarks = req.body.options.includes('bookmarks');
         const includeActions = req.body.options.includes('actions');
         const includeNotes = req.body.options.includes('notes');
+        const includeTabs = req.body.options.includes('tabs');
         const includeUserPreferences = req.body.options.includes('user_preferences');
 
         const exportData = await generateUserDataExport(userId, {
@@ -802,6 +803,7 @@ export function postExportDataHandler() {
             includeActions,
             includeNotes,
             includeUserPreferences,
+            includeTabs,
         });
 
         res.setHeader(
@@ -884,6 +886,17 @@ export function postImportDataHandler(db: Knex) {
                     );
 
                     await trx('notes').insert(notes);
+                }
+
+                // Import tabs
+                if (importData.tabs?.length > 0) {
+                    const tabs = importData.tabs.map((tab: { title: string; url: string }) => ({
+                        user_id: userId,
+                        title: tab.title,
+                        url: tab.url,
+                        created_at: db.fn.now(),
+                    }));
+                    await trx('tabs').insert(tabs);
                 }
 
                 // Import user preferences
