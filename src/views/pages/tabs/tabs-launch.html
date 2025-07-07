@@ -11,7 +11,7 @@
     <% }) %>
   </ul>
   <script>
-    const urls = <%- JSON.stringify(tabs.map(t => t.url)) %>;
+    const urls = JSON.parse('<%- JSON.stringify(tabs.map(t => t.url)) %>');
     urls.forEach(url => window.open(url, '_blank'));
     window.history.back();
   </script>
