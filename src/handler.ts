@@ -1757,6 +1757,7 @@ export function getMagicLinkHandler() {
     };
 }
 
+// GET
 export function rateLimitHandler() {
     return async (req: Request, res: Response) => {
         if (isApiRequest(req)) {
@@ -1767,6 +1768,7 @@ export function rateLimitHandler() {
     };
 }
 
+// GET /bangs
 export function getBangsPage() {
     return async (req: Request, res: Response) => {
         const {
@@ -1810,5 +1812,184 @@ export function getBangsPage() {
             sortKey: sort_key,
             direction,
         });
+    };
+}
+
+// GET /tabs
+export function getTabsPageHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+
+        const tabs = await db('tabs').where({ user_id: user.id }).orderBy('created_at', 'desc');
+
+        return res.render('tabs/tabs-get.html', {
+            title: 'Tabs',
+            path: '/tabs',
+            layout: '../layouts/auth.html',
+            howToContent: await getConvertedReadmeMDToHTML(),
+            tabs,
+            user,
+        });
+    };
+}
+
+// POST /tabs
+export function postTabsPageHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+
+        if (!req.body.url) {
+            throw new ValidationError({ url: 'URL is required' });
+        }
+
+        if (!req.body.title) {
+            throw new ValidationError({ title: 'Title is required' });
+        }
+
+        await db('tabs').insert({
+            user_id: user.id,
+            title: req.body.title,
+            url: req.body.url,
+        });
+
+        req.flash('success', 'Tab created!');
+        return res.redirect('/tabs');
+    };
+}
+
+// GET /tabs/create
+export function getTabCreatePageHandler() {
+    return async (req: Request, res: Response) => {
+        return res.render('./tabs/tabs-create.html', {
+            title: 'Tabs / Create',
+            path: '/tabs/create',
+            layout: '../layouts/auth.html',
+            user: req.session.user,
+        });
+    };
+}
+
+// GET /tabs/:id/edit
+export function getTabEditPageHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const tab = await db('tabs').where({ id: req.params.id }).first();
+        return res.render('./tabs/tabs-edit.html', {
+            title: 'Tabs / Edit',
+            path: `/tabs/${req.params.id}/edit`,
+            layout: '../layouts/auth.html',
+            user: req.session.user,
+            tab,
+        });
+    };
+}
+
+// POST /tabs/:id/update
+export function updateTabHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+
+        const tab = await db('tabs').where({ id: req.params.id }).first();
+
+        if (!tab) {
+            throw new NotFoundError('Tab not found', req);
+        }
+
+        await db('tabs').where({ id: req.params.id }).update({
+            user_id: user.id,
+            title: req.body.title,
+            url: req.body.url,
+        });
+
+        req.flash('success', 'Tab updated!');
+        return res.redirect('/tabs');
+    };
+}
+
+// GET /tabs/launch
+export function getTabsLaunchHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+
+        const tabs = await db('tabs').where({ user_id: user.id }).orderBy('created_at', 'desc');
+
+        return res.render('tabs/tabs-launch.html', {
+            title: 'Tabs Launch',
+            path: '/tabs/launch',
+            layout: '../layouts/auth.html',
+            tabs,
+            user,
+        });
+    };
+}
+
+// POST /tabs/:id/delete
+export function deleteTabHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const tabId = parseInt(req.params.id as unknown as string);
+
+        await db('tabs').where({ user_id: user.id, id: tabId }).delete();
+
+        req.flash('success', 'Tab deleted!');
+        return res.redirect('/tabs');
+    };
+}
+
+// POST /tabs/delete-all
+export function deleteAllTabsHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+
+        await db('tabs').where({ user_id: user.id }).delete();
+
+        req.flash('success', 'All tabs deleted!');
+
+        return res.redirect('/tabs');
+    };
+}
+
+// POST /tabs/add
+export function postTabsAddHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const id = req.body.id;
+        const validTypes = ['bookmarks', 'bangs'] as const;
+        const type = req.body.type as (typeof validTypes)[number];
+
+        if (!validTypes.includes(type)) {
+            throw new ValidationError({ type: 'Invalid type' });
+        }
+
+        if (!id) {
+            throw new ValidationError({ id: 'ID is required' });
+        }
+
+        const item = await db(type).where({ id, user_id: user.id }).first();
+
+        if (!item) {
+            throw new NotFoundError(`${type} not found`, req);
+        }
+
+        switch (type) {
+            case 'bookmarks':
+                await db('tabs').insert({
+                    user_id: user.id,
+                    title: item.title,
+                    url: item.url,
+                });
+                break;
+            case 'bangs':
+                await db('tabs').insert({
+                    user_id: user.id,
+                    title: item.name,
+                    url: item.url,
+                });
+                break;
+            default:
+                throw new ValidationError({ type: 'Invalid type' });
+        }
+
+        req.flash('success', 'Tab added!');
+        return res.redirect('/tabs');
     };
 }
