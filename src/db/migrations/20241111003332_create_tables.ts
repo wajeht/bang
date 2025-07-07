@@ -143,7 +143,12 @@ export async function up(knex: Knex): Promise<void> {
     if (!(await knex.schema.hasTable('tabs'))) {
         await knex.schema.createTable('tabs', (table) => {
             table.increments('id').primary();
-            table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE');
+            table
+                .integer('user_id')
+                .unsigned()
+                .references('id')
+                .inTable('users')
+                .onDelete('CASCADE');
             table.string('title').notNullable();
             table.text('url').notNullable();
             table.timestamps(true, true);

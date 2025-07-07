@@ -612,6 +612,7 @@ export async function generateUserDataExport(
         includeActions?: boolean;
         includeNotes?: boolean;
         includeUserPreferences?: boolean;
+        includeTabs?: boolean;
     } = {},
 ): Promise<{
     exported_at: string;
@@ -626,6 +627,7 @@ export async function generateUserDataExport(
         includeActions = true,
         includeNotes = true,
         includeUserPreferences = true,
+        includeTabs = true,
     } = options;
 
     const exportData: {
@@ -634,6 +636,7 @@ export async function generateUserDataExport(
         bookmarks?: Record<string, unknown>[];
         actions?: Record<string, unknown>[];
         notes?: Record<string, unknown>[];
+        tabs?: Record<string, unknown>[];
         user_preferences?: Record<string, unknown>;
     } = {
         exported_at: new Date().toISOString(),
@@ -669,6 +672,11 @@ export async function generateUserDataExport(
                   .select('title', 'content', 'pinned', 'created_at')
             : Promise.resolve([]);
 
+    const fetchTabs = () =>
+        includeTabs
+            ? db('tabs').where('user_id', userId).select('title', 'url', 'created_at')
+            : Promise.resolve([]);
+
     const fetchUserPreferences = () =>
         includeUserPreferences
             ? db('users')
@@ -682,12 +690,13 @@ export async function generateUserDataExport(
                   .first()
             : Promise.resolve(null);
 
-    const [bookmarksResult, actionsResult, notesResult, userPreferencesResult] =
+    const [bookmarksResult, actionsResult, notesResult, userPreferencesResult, tabsResult] =
         await Promise.allSettled([
             fetchBookmarks(),
             fetchActions(),
             fetchNotes(),
             fetchUserPreferences(),
+            fetchTabs(),
         ]);
 
     if (includeBookmarks) {
@@ -729,6 +738,14 @@ export async function generateUserDataExport(
             exportData.user_preferences = userPrefs;
         } else if (userPreferencesResult.status === 'rejected') {
             logger.error('Failed to fetch user preferences: %o', userPreferencesResult.reason);
+        }
+    }
+
+    if (includeTabs) {
+        if (tabsResult.status === 'fulfilled') {
+            exportData.tabs = tabsResult.value;
+        } else {
+            logger.error('Failed to fetch tabs: %o', tabsResult.reason);
         }
     }
 
