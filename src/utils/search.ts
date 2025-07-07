@@ -33,7 +33,7 @@ const searchConfig = {
     /**
      * System-level bang commands that cannot be overridden by user-defined bangs
      */
-    systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit']),
+    systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit', '!tabs']),
     /**
      * Direct commands that can be used to navigate to different sections of the application
      */
@@ -694,6 +694,14 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
             return goBack(res);
         }
+
+        // Process tabs command (!tabs)
+        // Format supported:
+        // 1. !tabs
+        // Example: !tabs
+        if (trigger === '!tabs') {
+            return res.redirect('/tabs/launch');
+        }
     }
 
     // Process user-defined bang commands
@@ -746,6 +754,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             }
         }
     }
+
 
     const defaultProvider = user.default_search_provider || 'duckduckgo';
 
