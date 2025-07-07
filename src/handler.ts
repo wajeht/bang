@@ -1833,7 +1833,57 @@ export function getTabsPageHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
 
-        const tabs = await db('tabs').where({ user_id: user.id }).orderBy('created_at', 'desc');
+        const tabs = await db('tabs')
+            .leftJoin('tab_items', 'tabs.id', 'tab_items.tab_id')
+            .where('tabs.user_id', user.id)
+            .orderBy(['tabs.created_at', 'tab_items.created_at'])
+            .select(
+                'tabs.id as tab_id',
+                'tabs.user_id',
+                'tabs.trigger',
+                'tabs.title as tab_title',
+                'tabs.created_at as tab_created_at',
+                'tabs.updated_at as tab_updated_at',
+                'tab_items.id as item_id',
+                'tab_items.title as item_title',
+                'tab_items.url',
+                'tab_items.created_at as item_created_at',
+                'tab_items.updated_at as item_updated_at',
+            )
+            .then((rows) => {
+                const result: any[] = [];
+                let currentTabId: number | null = null;
+                let currentTab: any = null;
+
+                for (let i = 0, len = rows.length; i < len; i++) {
+                    const row = rows[i];
+                    if (row.tab_id !== currentTabId) {
+                        currentTab = {
+                            id: row.tab_id,
+                            user_id: row.user_id,
+                            trigger: row.trigger,
+                            title: row.tab_title,
+                            created_at: row.tab_created_at,
+                            updated_at: row.tab_updated_at,
+                            items: [] as any[],
+                        };
+                        result.push(currentTab);
+                        currentTabId = row.tab_id;
+                    }
+
+                    if (!row.item_id) continue;
+
+                    currentTab.items.push({
+                        id: row.item_id,
+                        title: row.item_title,
+                        url: row.url,
+                        created_at: row.item_created_at,
+                        updated_at: row.item_updated_at,
+                    });
+                }
+
+                return result;
+            });
 
         return res.render('tabs/tabs-get.html', {
             title: 'Tabs',
@@ -1850,22 +1900,21 @@ export function getTabsPageHandler(db: Knex) {
 export function postTabsPageHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
-
-        if (!req.body.url) {
-            throw new ValidationError({ url: 'URL is required' });
-        }
-
         if (!req.body.title) {
             throw new ValidationError({ title: 'Title is required' });
+        }
+
+        if (!req.body.trigger) {
+            throw new ValidationError({ trigger: 'Trigger is required' });
         }
 
         await db('tabs').insert({
             user_id: user.id,
             title: req.body.title,
-            url: req.body.url,
+            trigger: req.body.trigger,
         });
 
-        req.flash('success', 'Tab created!');
+        req.flash('success', 'Tab group created!');
         return res.redirect('/tabs');
     };
 }
@@ -1886,6 +1935,7 @@ export function getTabCreatePageHandler() {
 export function getTabEditPageHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const tab = await db('tabs').where({ id: req.params.id }).first();
+
         return res.render('./tabs/tabs-edit.html', {
             title: 'Tabs / Edit',
             path: `/tabs/${req.params.id}/edit`,
@@ -1904,31 +1954,49 @@ export function updateTabHandler(db: Knex) {
         const tab = await db('tabs').where({ id: req.params.id }).first();
 
         if (!tab) {
-            throw new NotFoundError('Tab not found', req);
+            throw new NotFoundError('Tab group not found', req);
+        }
+
+        if (!req.body.title) {
+            throw new ValidationError({ title: 'Title is required' });
+        }
+
+        if (!req.body.trigger) {
+            throw new ValidationError({ trigger: 'Trigger is required' });
         }
 
         await db('tabs').where({ id: req.params.id }).update({
             user_id: user.id,
             title: req.body.title,
-            url: req.body.url,
+            trigger: req.body.trigger,
         });
 
-        req.flash('success', 'Tab updated!');
+        req.flash('success', 'Tab group updated!');
         return res.redirect('/tabs');
     };
 }
 
-// GET /tabs/launch
+// GET /tabs/:id/launch
 export function getTabsLaunchHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
+        const id = req.params.id;
 
-        const tabs = await db('tabs').where({ user_id: user.id }).orderBy('created_at', 'desc');
+        const tabGroup = await db('tabs').where({ user_id: user.id, id }).first();
+
+        if (!tabGroup) {
+            throw new NotFoundError('Tab group not found', req);
+        }
+
+        const tabs = await db('tab_items')
+            .where({ tab_id: tabGroup.id })
+            .orderBy('created_at', 'asc');
 
         return res.render('tabs/tabs-launch.html', {
-            title: 'Tabs Launch',
-            path: '/tabs/launch',
+            title: `Tabs Launch: ${tabGroup.title}`,
+            path: `/tabs/${id}/launch`,
             layout: '../layouts/auth.html',
+            tabGroup,
             tabs,
             user,
         });
@@ -1940,10 +2008,8 @@ export function deleteTabHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const tabId = parseInt(req.params.id as unknown as string);
-
         await db('tabs').where({ user_id: user.id, id: tabId }).delete();
-
-        req.flash('success', 'Tab deleted!');
+        req.flash('success', 'Tab group deleted!');
         return res.redirect('/tabs');
     };
 }
@@ -1952,11 +2018,8 @@ export function deleteTabHandler(db: Knex) {
 export function deleteAllTabsHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
-
         await db('tabs').where({ user_id: user.id }).delete();
-
-        req.flash('success', 'All tabs deleted!');
-
+        req.flash('success', 'All tab groups deleted!');
         return res.redirect('/tabs');
     };
 }
@@ -1989,6 +2052,7 @@ export function postTabsAddHandler(db: Knex) {
                     user_id: user.id,
                     title: item.title,
                     url: item.url,
+                    trigger: item.trigger,
                 });
                 break;
             case 'bangs':
@@ -1996,6 +2060,7 @@ export function postTabsAddHandler(db: Knex) {
                     user_id: user.id,
                     title: item.name,
                     url: item.url,
+                    trigger: item.trigger,
                 });
                 break;
             default:
@@ -2004,5 +2069,72 @@ export function postTabsAddHandler(db: Knex) {
 
         req.flash('success', 'Tab added!');
         return res.redirect('/tabs');
+    };
+}
+
+// GET /tabs/:id/items/create
+export function getTabItemCreatePageHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const tabId = req.params.id;
+        const tab = await db('tabs').where({ id: tabId, user_id: user.id }).first();
+
+        if (!tab) {
+            throw new NotFoundError('Tab group not found');
+        }
+
+        return res.render('tabs/tabs-items-create.html', {
+            title: 'Add Tab Item',
+            path: `/tabs/${tabId}/items/create`,
+            layout: '../layouts/auth.html',
+            tab,
+            user,
+        });
+    };
+}
+
+// POST /tabs/:id/items/create
+export function postTabItemCreateHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const tabId = req.params.id;
+        const { title, url } = req.body;
+
+        if (!title) {
+            throw new ValidationError({ title: 'Title is required' });
+        }
+
+        if (!url) {
+            throw new ValidationError({ url: 'URL is required' });
+        }
+
+        const tab = await db('tabs').where({ id: tabId, user_id: user.id }).first();
+
+        if (!tab) {
+            throw new NotFoundError('Tab group not found');
+        }
+
+        await db('tab_items').insert({
+            tab_id: tab.id,
+            title,
+            url,
+        });
+
+        req.flash('success', 'Tab item added!');
+        return res.redirect('/tabs');
+    };
+}
+
+// POST /tabs/:id/items/:itemId/delete
+export function deleteTabItemHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const tabId = parseInt(req.params.id as unknown as string);
+        const itemId = parseInt(req.params.itemId as unknown as string);
+
+        await db('tab_items').where({ id: itemId, tab_id: tabId }).delete();
+        await db('tabs').where({ id: tabId }).update({ updated_at: db.fn.now() });
+
+        req.flash('success', 'Tab item deleted!');
+        return res.redirect(`/tabs`);
     };
 }
