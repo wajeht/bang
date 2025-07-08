@@ -128,7 +128,14 @@
                                 }
 
                                 tr {
+                                  border-bottom: 1px dashed var(--link-divider-color) !important;
+                                }
+
+                                tr:last-child td {
                                   border-bottom: none !important;
+                                }
+                                td {
+                                  border-bottom: 1px dashed var(--link-divider-color) !important;
                                 }
 
                                 thead {
@@ -142,6 +149,7 @@
                                 <tr>
                                   <th style="text-align: left; padding: 8px;">🔖 Title</th>
                                   <th style="text-align: left; padding: 8px;">🌐 URL</th>
+                                  <th style="text-align: left; padding: 8px;"></th>
                                   <th style="text-align: left; padding: 8px;">🚀 Sub Actions</th>
                                 </tr>
                               </thead>
@@ -149,7 +157,7 @@
                                 <% for (let j = 0; j < tabs[i].items.length; j++) { %>
                                   <tr>
                                     <td style="padding: 8px;"><%= tabs[i].items[j].title %></td>
-                                    <td style="padding: 8px;"><a href="<%= tabs[i].items[j].url %>" target="_blank" rel="noopener noreferrer"><%= tabs[i].items[j].url %></a></td>
+                                    <td colspan="2" style="padding: 8px;"><a href="<%= tabs[i].items[j].url %>" target="_blank" rel="noopener noreferrer"><%= tabs[i].items[j].url %></a></td>
                                     <td style="padding: 8px;">
                                       <details style="position: relative; display: inline-flex; align-items: center;">
                                         <summary>Actions</summary>
