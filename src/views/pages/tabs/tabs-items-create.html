@@ -1,0 +1,45 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+  <header>
+      <h2>🔗 Add Tab to <%= tab.title %></h2>
+      <p>Add a new tab item to this group.</p>
+  </header>
+
+  <form
+    method="POST"
+    action="/tabs/<%= tab.id %>/items/create"
+    style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+  >
+    <fieldset style="display: flex; flex-direction: column;">
+      <legend>Tab Item Details</legend>
+
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+      <%- include('../../components/inputs/text.html', {
+        id: 'title',
+        name: 'title',
+        label: '📝 Tab Title',
+        placeholder: 'e.g., Google',
+        value: state.input.title ?? '',
+        required: true,
+        helpText: 'Give your tab a descriptive name',
+        error: state.errors.title
+      }) %>
+
+      <%- include('../../components/inputs/url.html', {
+        id: 'url',
+        name: 'url',
+        label: '🌐 URL',
+        placeholder: 'https://example.com',
+        value: state.input.url ?? '',
+        required: true,
+        helpText: 'Enter the full website address, including https:// or http://',
+        error: state.errors.url
+      }) %>
+    </fieldset>
+
+    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+      <button type="button" onclick="location.href='/tabs'">❌ Cancel</button>
+      <button type="submit">💾 Add Tab</button>
+    </div>
+  </form>
+</section>
