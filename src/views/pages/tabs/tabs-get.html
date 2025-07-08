@@ -1,72 +1,191 @@
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggleButtons = document.querySelectorAll('.toggle-details-btn');
+    toggleButtons.forEach(button => {
+      button.addEventListener('click', function(event) {
+        event.stopPropagation(); // Prevent row click from triggering
+        const tabId = this.dataset.tabId;
+        const detailsRow = document.getElementById('details-' + tabId);
+        if (detailsRow.style.display === 'none') {
+          detailsRow.style.display = 'table-row';
+        } else {
+          detailsRow.style.display = 'none';
+        }
+      });
+    });
+
+    const groupRows = document.querySelectorAll('.tab-group-row');
+    groupRows.forEach(row => {
+      row.addEventListener('click', function(event) {
+        const target = event.target;
+        if (target.closest('a, button, details, summary')) {
+          return;
+        }
+
+        const tabId = row.dataset.tabId;
+        const detailsRow = document.getElementById('details-' + tabId);
+        if (detailsRow.style.display === 'none') {
+          detailsRow.style.display = 'table-row';
+        } else {
+          detailsRow.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  function toggleAddItemForm(tabId) {
+    var form = document.getElementById('add-item-form-' + tabId);
+    if (form.style.display === 'none' || !form.style.display) {
+      form.style.display = 'flex';
+    } else {
+      form.style.display = 'none';
+    }
+  }
+</script>
+
 <section style="display: flex; flex-direction: column; gap: 30px;">
   <header style="display: flex; justify-content: space-between; align-items: center;">
       <div>
           <div style="display: flex; align-items: center; gap: 5px;">
-              <h2>🔗 Tabs (<%- tabs.length %>)</h2>
-          <%- include('../_partials/question-mark-button.html') %>
+            <h2>🔗 Tab Groups (<%- tabs.length %>)</h2>
+            <%- include('../_partials/question-mark-button.html') %>
           </div>
-          <p>Manage your saved tabs</p>
+          <p>Manage your saved tab groups</p>
       </div>
       <div style="display: flex; gap: 10px;">
-        <!-- delete all tabs -->
-        <form action="/tabs/delete-all" method="POST">
-          <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-          <button type="submit" aria-label="Delete all tabs">🗑️</button>
-        </form>
-        <button type="button" aria-label="Create new tab" onclick="location.href='/tabs/create'">➕</button>
-        <button type="button" aria-label="Launch tabs" onclick="location.href='/tabs/launch'">🚀</button>
+        <button type="button" aria-label="Delete all tab groups" onclick="document.getElementById('delete-all-tabs-modal').showModal()">🗑️</button>
+        <dialog id="delete-all-tabs-modal" aria-labelledby="delete-all-tabs">
+          <h2 id="delete-all-tabs-title">Confirm</h2>
+          <p>Are you sure you want to delete all tab groups and its items?</p>
+          <form action="/tabs/delete-all" method="POST">
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+              <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+              <button type="submit">🗑️ Delete</button>
+            </div>
+          </form>
+        </dialog>
+        <button type="button" aria-label="Create new tab group" onclick="location.href='/tabs/create'">➕</button>
       </div>
   </header>
 
   <section style="display: flex; flex-direction: column; gap: 10px;">
       <% if (tabs && tabs.length > 0) { %>
-          <table style="width: 100%; border-collapse: collapse;">
+          <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
               <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
                   <tr>
-                      <th scope="col" style="text-align: left; padding: 10px;">🔖 Title</th>
-                      <th scope="col" style="text-align: left; padding: 10px;">🌐 URL</th>
-                      <th scope="col" style="text-align: left; padding: 10px;">🚀 Actions</th>
+                      <th style="text-align: left; padding: 10px;">🏷️ Group</th>
+                      <th style="text-align: left; padding: 10px;">🔥 Trigger</th>
+                      <th style="text-align: left; padding: 10px;">🗂️ Items</th>
+                      <th style="text-align: left; padding: 10px;">🚀 Actions</th>
                   </tr>
               </thead>
               <tbody>
                   <% for (let i = 0; i < tabs.length; i++) { %>
-                      <tr>
-                          <td style="padding: 10px;"><%= tabs[i].title %></td>
-
+                      <tr class="tab-group-row" data-tab-id="<%= tabs[i].id %>" style="cursor: pointer;">
+                          <td style="padding: 10px;"><span style="font-weight: bold;"><%= tabs[i].title %></span></td>
+                          <td style="padding: 10px;"><code><%= tabs[i].trigger %></code></td>
+                          <td style="padding: 10px;"><%= tabs[i].items.length %></td>
                           <td style="padding: 10px;">
-                              <a style="overflow: auto; white-space: nowrap;" href="<%= tabs[i].url %>" title="<%= tabs[i].title %>" target="_blank" rel="noopener noreferrer">
-                                  <%- tabs[i].url %>
-                              </a>
+                            <details style="position: relative; display: inline-flex; align-items: center;">
+                              <summary>Actions</summary>
+                              <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 200px; gap: 10px;" role="menu">
+                                <a href="/tabs/<%= tabs[i].id %>/items/create" class="no-style-btn" style="display: inline-flex; align-items: center;" role="menuitem">➕ Add Item</a>
+                                <button class="no-style-btn toggle-details-btn" data-tab-id="<%= tabs[i].id %>" style="display: inline-flex; align-items: center;">👁️ View Items</button>
+                                <a href="/tabs/<%= tabs[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit Group</a>
+                                <a href="/tabs/<%= tabs[i].id %>/launch" style="display: inline-flex; align-items: center;" role="menuitem">🚀 Launch Group</a>
+                                <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-tab-<%= tabs[i].id %>-modal').showModal()" role="menuitem">🗑️ Delete Group</button>
+                                <dialog id="delete-tab-<%= tabs[i].id %>-modal" aria-labelledby="delete-tab-<%= tabs[i].id %>-title">
+                                  <h2 id="delete-tab-<%= tabs[i].id %>-title">Confirm</h2>
+                                  <p>Are you sure you want to delete <strong><%= tabs[i].title %></strong>?</p>
+                                  <form action="/tabs/<%= tabs[i].id %>/delete" method="POST">
+                                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                                      <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+                                      <button type="submit">🗑️ Delete</button>
+                                    </div>
+                                  </form>
+                                </dialog>
+                              </div>
+                            </details>
                           </td>
-                          <td style="padding: 10px;">
-                              <details style="position: relative;">
-                                  <summary>Actions</summary>
-                                  <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
-                                      <a href="/tabs/<%= tabs[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
-                                      <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-tab-<%= tabs[i].id %>-modal').showModal()" role="menuitem">🗑️ Delete</button>
+                      </tr>
+                      <tr id="details-<%= tabs[i].id %>" style="display: none; background: var(--sub-table-background);">
+                        <td colspan="4">
+                          <% if (tabs[i].items && tabs[i].items.length > 0) { %>
+                            <style>
+                              .sub-table {
 
-                                      <dialog id="delete-tab-<%= tabs[i].id %>-modal" aria-labelledby="delete-tab-<%= tabs[i].id %>-title">
-                                          <h2 id="delete-tab-<%= tabs[i].id %>-title">Confirm</h2>
-                                          <p>Are you sure you want to delete <strong><%= tabs[i].title %></strong>?</p>
-                                          <form action="/tabs/<%= tabs[i].id %>/delete" method="POST">
+                                border: none !important;
+
+                                tbody tr:hover {
+                                  background-color: none !important;
+                                }
+
+                                th {
+                                  border-top: none !important;
+                                  border-bottom: 1px dashed var(--link-divider-color) !important;
+                                }
+
+                                tr {
+                                  border-bottom: none !important;
+                                }
+
+                                thead {
+                                  border-bottom: none !important;
+                                }
+
+                              }
+                            </style>
+                            <table class="sub-table">
+                              <thead>
+                                <tr>
+                                  <th style="text-align: left; padding: 8px;">🔖 Title</th>
+                                  <th style="text-align: left; padding: 8px;">🌐 URL</th>
+                                  <th style="text-align: left; padding: 8px;">🚀 Sub Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <% for (let j = 0; j < tabs[i].items.length; j++) { %>
+                                  <tr>
+                                    <td style="padding: 8px;"><%= tabs[i].items[j].title %></td>
+                                    <td style="padding: 8px;"><a href="<%= tabs[i].items[j].url %>" target="_blank" rel="noopener noreferrer"><%= tabs[i].items[j].url %></a></td>
+                                    <td style="padding: 8px;">
+                                      <details style="position: relative; display: inline-flex; align-items: center;">
+                                        <summary>Actions</summary>
+                                        <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 200px; gap: 10px;" role="menu">
+                                          <a href="/tabs/<%= tabs[i].id %>/items/<%= tabs[i].items[j].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit <%- tabs[i].items[j].id %></a>
+                                          <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-item-<%= tabs[i].items[j].id %>-modal').showModal()" role="menuitem">🗑️ Delete <%- tabs[i].items[j].id %></button>
+                                          <dialog id="delete-item-<%= tabs[i].items[j].id %>-modal" aria-labelledby="delete-item-<%= tabs[i].items[j].id %>-title">
+                                            <h2 id="delete-item-<%= tabs[i].items[j].id %>-title">Confirm</h2>
+                                            <p>Are you sure you want to delete <strong><%= tabs[i].items[j].title %></strong>?</p>
+                                            <form action="/tabs/<%= tabs[i].id %>/items/<%= tabs[i].items[j].id %>/delete" method="POST">
                                               <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
                                               <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                                                  <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-                                                  <button type="submit">🗑️ Delete</button>
+                                                <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+                                                <button type="submit">🗑️ Delete</button>
                                               </div>
-                                          </form>
-                                      </dialog>
-                                  </div>
-                              </details>
-                          </td>
+                                            </form>
+                                          </dialog>
+                                        </div>
+                                      </details>
+                                    </td>
+                                  </tr>
+                                <% } %>
+                              </tbody>
+                            </table>
+                          <% } else { %>
+                            <div style="text-align: center; padding: 20px;">📭 No tab items in this group yet.</div>
+                          <% } %>
+                        </td>
                       </tr>
                   <% } %>
               </tbody>
           </table>
       <% } else { %>
           <div style="text-align: center; padding: 20px;">
-              <p>📭 You haven't created any tabs yet.</p>
-              <p>Use <code>!tab [title] [url]</code> in the search box to create a tab! or <a href="/tabs/create">click here</a> to create a tab!</p>
+              <p>📭 You haven't created any tab groups yet.</p>
+              <p>Use <code>!tab [title] [url]</code> in the search box to create a tab! or <a href="/tabs/create">click here</a> to create a tab group!</p>
           </div>
       <% } %>
   </section>
