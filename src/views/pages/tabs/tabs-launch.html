@@ -1,20 +1,24 @@
 <section style="display: flex; flex-direction: column; gap: 30px; align-items: center;">
   <header>
-    <h2>🚀 Current Launch</h2>
+    <h2>🚀 Launching: <%= tabGroup ? tabGroup.title : '' %> <span style="color: #888; font-size: 0.8em;">(<%= tabGroup ? tabGroup.trigger : '' %>)</span></h2>
     <p>Opening your current tabs...</p>
   </header>
-  <ul>
-    <% tabs.forEach(t => { %>
-      <li>
-        <a href="<%= t.url %>" target="_blank" rel="noopener noreferrer"><%= t.title %></a>
-      </li>
-    <% }) %>
-  </ul>
-  <script>
-    const urls = JSON.parse('<%- JSON.stringify(tabs.map(t => t.url)) %>');
-    urls.forEach(url => window.open(url, '_blank'));
-    window.history.back();
-  </script>
+  <% if (tabs && tabs.length > 0) { %>
+    <ul>
+      <% tabs.forEach(t => { %>
+        <li>
+          <a href="<%= t.url %>" target="_blank" rel="noopener noreferrer"><%= t.title %></a>
+        </li>
+      <% }) %>
+    </ul>
+    <script>
+      const urls = JSON.parse('<%- JSON.stringify(tabs.map(t => t.url)) %>');
+      urls.forEach(url => window.open(url, '_blank'));
+      window.history.back();
+    </script>
+  <% } else { %>
+    <div style="color: #888;">No tabs in this group to launch.</div>
+  <% } %>
   <noscript>
     <p>Enable JavaScript to auto-open your current. Or open these links manually:</p>
     <ul>
