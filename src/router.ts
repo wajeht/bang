@@ -30,6 +30,7 @@ import {
     postBookmarkHandler,
     toggleNotePinHandler,
     deleteAllTabsHandler,
+    deleteTabItemHandler,
     getAdminUsersHandler,
     postExportDataHandler,
     postImportDataHandler,
@@ -38,8 +39,9 @@ import {
     getCollectionsHandler,
     getSettingsPageHandler,
     getEditNotePageHandler,
-    getTabCreatePageHandler,
     getTabEditPageHandler,
+    getTabCreatePageHandler,
+    postTabItemCreateHandler,
     toggleBookmarkPinHandler,
     getNoteCreatePageHandler,
     getEditActionPageHandler,
@@ -50,6 +52,7 @@ import {
     postSettingsAccountHandler,
     postSettingsDisplayHandler,
     postDeleteAdminUserHandler,
+    getTabItemCreatePageHandler,
     getPrivacyPolicyPageHandler,
     getHomePageAndSearchHandler,
     getBookmarkCreatePageHandler,
@@ -83,13 +86,16 @@ router.post('/login', turnstileMiddleware, postLoginHandler());
 
 router.get('/tabs', authenticationMiddleware, getTabsPageHandler(db));
 router.post('/tabs', authenticationMiddleware, postTabsPageHandler(db));
-router.get('/tabs/launch', authenticationMiddleware, getTabsLaunchHandler(db));
+router.get('/tabs/:id/launch', authenticationMiddleware, getTabsLaunchHandler(db));
 router.get('/tabs/create', authenticationMiddleware, getTabCreatePageHandler());
 router.post('/tabs/:id/delete', authenticationMiddleware, deleteTabHandler(db));
 router.get('/tabs/:id/edit', authenticationMiddleware, getTabEditPageHandler(db));
 router.post('/tabs/:id/update', authenticationMiddleware, updateTabHandler(db));
 router.post('/tabs/delete-all', authenticationMiddleware, deleteAllTabsHandler(db));
 router.post('/tabs/add', authenticationMiddleware, postTabsAddHandler(db));
+router.get('/tabs/:id/items/create', authenticationMiddleware, getTabItemCreatePageHandler(db));
+router.post('/tabs/:id/items/create', authenticationMiddleware, postTabItemCreateHandler(db));
+router.post('/tabs/:id/items/:itemId/delete', authenticationMiddleware, deleteTabItemHandler(db));
 
 router.get('/admin', authenticationMiddleware, adminOnlyMiddleware, getAdminUsersHandler(db));
 router.get('/admin/users', authenticationMiddleware, adminOnlyMiddleware, getAdminUsersHandler(db));
