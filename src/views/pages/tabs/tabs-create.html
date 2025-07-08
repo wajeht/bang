@@ -19,21 +19,21 @@
             name: 'title',
             label: '📝 Group Name',
             placeholder: 'e.g., Work Tabs',
-            value: state.input.title ?? '',
+            value: state.input && state.input.title ? state.input.title : '',
             required: true,
             helpText: 'Give your tab group a memorable name',
-            error: state.errors.title
+            error: state.errors && state.errors.title ? state.errors.title : undefined
           }) %>
 
           <%- include('../../components/inputs/text.html', {
             id: 'trigger',
             name: 'trigger',
-            label: '🔗 Trigger',
-            placeholder: 'e.g., worktabs',
-            value: state.input.trigger ?? '',
+            label: '⚡ Trigger',
+            placeholder: 'g',
+            value: state.input && state.input.trigger ? state.input.trigger : '',
             required: true,
-            helpText: 'Enter a unique trigger for this group (required, e.g., worktabs)',
-            error: state.errors.trigger
+            helpText: 'The command to trigger this action (e.g., "g" for Google)',
+            error: state.errors && state.errors.trigger ? state.errors.trigger : undefined
           }) %>
       </fieldset>
 
