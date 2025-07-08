@@ -1820,7 +1820,7 @@ export function getBangsPage() {
     };
 }
 
-// GET /tabs
+// GET /tabs or GET /api/tabs
 export function getTabsPageHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
@@ -1877,6 +1877,14 @@ export function getTabsPageHandler(db: Knex) {
                 return result;
             });
 
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: 'Tabs retrieved successfully',
+                data: tabs,
+            });
+            return;
+        }
+
         return res.render('tabs/tabs-get.html', {
             title: 'Tabs',
             path: '/tabs',
@@ -1888,7 +1896,7 @@ export function getTabsPageHandler(db: Knex) {
     };
 }
 
-// POST /tabs
+// POST /tabs or POST /api/tabs
 export function postTabsPageHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
@@ -1925,6 +1933,11 @@ export function postTabsPageHandler(db: Knex) {
             title,
             trigger: formattedTrigger,
         });
+
+        if (isApiRequest(req)) {
+            res.status(201).json({ message: 'Tab group created successfully' });
+            return;
+        }
 
         req.flash('success', 'Tab group created!');
         return res.redirect('/tabs');
@@ -2035,22 +2048,34 @@ export function getTabsLaunchHandler(db: Knex) {
     };
 }
 
-// POST /tabs/:id/delete
+// POST /tabs/:id/delete or DELETE /api/tabs/:id
 export function deleteTabHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const tabId = parseInt(req.params.id as unknown as string);
         await db('tabs').where({ user_id: user.id, id: tabId }).delete();
+
+        if (isApiRequest(req)) {
+            res.status(200).json({ message: 'Tab group deleted successfully' });
+            return;
+        }
+
         req.flash('success', 'Tab group deleted!');
         return res.redirect('/tabs');
     };
 }
 
-// POST /tabs/delete-all
+// POST /tabs/delete-all or DELETE /api/tabs/delete-all
 export function deleteAllTabsHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         await db('tabs').where({ user_id: user.id }).delete();
+
+        if (isApiRequest(req)) {
+            res.status(200).json({ message: 'All tab groups deleted successfully' });
+            return;
+        }
+
         req.flash('success', 'All tab groups deleted!');
         return res.redirect('/tabs');
     };
@@ -2099,6 +2124,11 @@ export function postTabsAddHandler(db: Knex) {
                 throw new ValidationError({ type: 'Invalid type' });
         }
 
+        if (isApiRequest(req)) {
+            res.status(201).json({ message: 'Tab added successfully' });
+            return;
+        }
+
         req.flash('success', 'Tab added!');
         return res.redirect('/tabs');
     };
@@ -2125,7 +2155,7 @@ export function getTabItemCreatePageHandler(db: Knex) {
     };
 }
 
-// POST /tabs/:id/items/create
+// POST /tabs/:id/items/create or POST /api/tabs/:id/items
 export function postTabItemCreateHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
@@ -2156,12 +2186,17 @@ export function postTabItemCreateHandler(db: Knex) {
             url,
         });
 
+        if (isApiRequest(req)) {
+            res.status(201).json({ message: 'Tab item created successfully' });
+            return;
+        }
+
         req.flash('success', 'Tab item added!');
         return res.redirect('/tabs');
     };
 }
 
-// POST /tabs/:id/items/:itemId/delete
+// POST /tabs/:id/items/:itemId/delete or DELETE /api/tabs/:id/items/:itemId
 export function deleteTabItemHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const tabId = parseInt(req.params.id as unknown as string);
@@ -2169,6 +2204,11 @@ export function deleteTabItemHandler(db: Knex) {
 
         await db('tab_items').where({ id: itemId, tab_id: tabId }).delete();
         await db('tabs').where({ id: tabId }).update({ updated_at: db.fn.now() });
+
+        if (isApiRequest(req)) {
+            res.status(200).json({ message: 'Tab item deleted successfully' });
+            return;
+        }
 
         req.flash('success', 'Tab item deleted!');
         return res.redirect(`/tabs`);
