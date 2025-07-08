@@ -1,7 +1,7 @@
 <section style="display: flex; flex-direction: column; gap: 30px;">
   <header>
-      <h2>🔗 Tabs / New</h2>
-      <p>Create a new tab to quickly access your favorite websites</p>
+      <h2>🔗 Tabs / New Group</h2>
+      <p>Create a new tab group. You can add tabs to this group after creation.</p>
   </header>
 
     <form
@@ -10,31 +10,31 @@
       style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
   >
       <fieldset style="display: flex; flex-direction: column;">
-          <legend>Tab Details</legend>
+          <legend>Tab Group Details</legend>
 
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
           <%- include('../../components/inputs/text.html', {
             id: 'title',
             name: 'title',
-            label: '📝 Name',
-            placeholder: 'e.g., My Search Engine',
+            label: '📝 Group Name',
+            placeholder: 'e.g., Work Tabs',
             value: state.input.title ?? '',
-            helpText: 'Give your tab a memorable name (optional)',
+            required: true,
+            helpText: 'Give your tab group a memorable name',
             error: state.errors.title
           }) %>
 
-          <%- include('../../components/inputs/url.html', {
-            id: 'url',
-            name: 'url',
-            label: '🌐 URL',
-            placeholder: 'https://bang.jaw.dev/',
-            value: state.input && state.input.url ? state.input.url : '',
+          <%- include('../../components/inputs/text.html', {
+            id: 'trigger',
+            name: 'trigger',
+            label: '🔗 Trigger',
+            placeholder: 'e.g., worktabs',
+            value: state.input.trigger ?? '',
             required: true,
-            helpText: 'Enter the full website address, including https:// or http://',
-            error: state.errors && state.errors.url ? state.errors.url : undefined
+            helpText: 'Enter a unique trigger for this group (required, e.g., worktabs)',
+            error: state.errors.trigger
           }) %>
-
       </fieldset>
 
       <div style="display: flex; gap: 10px; justify-content: flex-end;">
