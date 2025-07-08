@@ -33,7 +33,7 @@ const searchConfig = {
     /**
      * System-level bang commands that cannot be overridden by user-defined bangs
      */
-    systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit', '!tabs']),
+    systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit']),
     /**
      * Direct commands that can be used to navigate to different sections of the application
      */
@@ -737,6 +737,16 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 return redirectWithCache(res, `/bookmarks#${customBang.id}`);
             }
         }
+    }
+
+    const tab = await db
+        .select('*')
+        .from('tabs')
+        .where({ user_id: user.id, trigger: triggerWithoutPrefix })
+        .first();
+
+    if (tab) {
+        return redirectWithCache(res, `/tabs/${tab.id}/launch`);
     }
 
     // Process system-defined bang commands
