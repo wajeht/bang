@@ -1,7 +1,7 @@
 <section style="display: flex; flex-direction: column; gap: 30px;">
   <header>
-      <h2>🔗 Tabs / Edit</h2>
-      <p>Edit your tab</p>
+      <h2>🔗 Tabs / Edit Group</h2>
+      <p>Edit your tab group details. You can manage the tabs in this group after saving changes.</p>
   </header>
 
   <form
@@ -17,26 +17,24 @@
           <%- include('../../components/inputs/text.html', {
               id: 'title',
               name: 'title',
-              label: '📝 Name',
-              placeholder: 'bang',
+              label: '📝 Group Name',
+              placeholder: 'e.g., Work Tabs',
               value: state.input && state.input.title ? state.input.title : tab.title,
               required: true,
-              helpText: 'A descriptive name for your bookmark',
+              helpText: 'A descriptive name for your tab group',
               error: state.errors && state.errors.title ? state.errors.title : undefined
           }) %>
 
-          <%- include('../../components/inputs/url.html', {
-              id: 'url',
-              name: 'url',
-              label: '🌐 URL',
-              placeholder: 'https://bang.jaw.dev/',
-              value: state.input && state.input.url ? state.input.url : tab.url,
+          <%- include('../../components/inputs/text.html', {
+              id: 'trigger',
+              name: 'trigger',
+              label: '🔗 Trigger',
+              placeholder: 'e.g., worktabs',
+              value: state.input && state.input.trigger ? state.input.trigger : tab.trigger,
               required: true,
-              helpText: 'Enter the full website address, including https:// or http://',
-              error: state.errors && state.errors.url ? state.errors.url : undefined
+              helpText: 'Edit the unique trigger for this group (required, e.g., worktabs)',
+              error: state.errors && state.errors.trigger ? state.errors.trigger : undefined
           }) %>
-
-
       </fieldset>
 
       <div style="display: flex; gap: 10px; justify-content: flex-end;">
