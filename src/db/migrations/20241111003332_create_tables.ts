@@ -149,10 +149,20 @@ export async function up(knex: Knex): Promise<void> {
                 .references('id')
                 .inTable('users')
                 .onDelete('CASCADE');
+            table.string('trigger').notNullable(); // e.g., 'worktabs'
+            table.string('title').notNullable(); // e.g., 'Work Tabs'
+            table.unique(['user_id', 'trigger']);
+            table.timestamps(true, true);
+        });
+    }
+
+    if (!(await knex.schema.hasTable('tab_items'))) {
+        await knex.schema.createTable('tab_items', (table) => {
+            table.increments('id').primary();
+            table.integer('tab_id').unsigned().references('id').inTable('tabs').onDelete('CASCADE');
             table.string('title').notNullable();
             table.text('url').notNullable();
             table.timestamps(true, true);
-            table.index(['user_id']);
         });
     }
 
