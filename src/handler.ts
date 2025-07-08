@@ -186,6 +186,7 @@ export function getActionsHandler(actions: Actions) {
 export function postActionHandler(actions: Actions) {
     return async (req: Request, res: Response) => {
         const { url, name, actionType, trigger } = req.body;
+        const user = req.user as User;
 
         if (!url) {
             throw new ValidationError({ url: 'URL is required' });
@@ -216,7 +217,7 @@ export function postActionHandler(actions: Actions) {
         const existingBang = await db('bangs')
             .where({
                 trigger: formattedTrigger,
-                user_id: (req.user as User).id,
+                user_id: user.id,
             })
             .first();
 
@@ -229,7 +230,7 @@ export function postActionHandler(actions: Actions) {
             trigger: formattedTrigger.toLowerCase(),
             url,
             actionType,
-            user_id: (req.user as User).id,
+            user_id: user.id,
         });
 
         if (isApiRequest(req)) {
@@ -265,7 +266,7 @@ export function deleteActionHandler(actions: Actions) {
         );
 
         if (!deleted) {
-            throw new NotFoundError('Action not found', req);
+            throw new NotFoundError('Action not found');
         }
 
         if (isApiRequest(req)) {
@@ -292,7 +293,7 @@ export function getEditActionPageHandler(db: Knex) {
             .first();
 
         if (!action) {
-            throw new NotFoundError('Action not found', req);
+            throw new NotFoundError('Action not found');
         }
 
         return res.render('./actions/actions-edit.html', {
@@ -308,6 +309,7 @@ export function getEditActionPageHandler(db: Knex) {
 export function updateActionHandler(actions: Actions) {
     return async (req: Request, res: Response) => {
         const { url, name, actionType, trigger } = req.body;
+        const user = req.user as User;
 
         if (!url) {
             throw new ValidationError({ url: 'URL is required' });
@@ -330,10 +332,7 @@ export function updateActionHandler(actions: Actions) {
         }
 
         if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
-            throw new ValidationError(
-                { trigger: 'Trigger can only contain letters and numbers' },
-                req,
-            );
+            throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
         }
 
         const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
@@ -341,7 +340,7 @@ export function updateActionHandler(actions: Actions) {
         const existingBang = await db('bangs')
             .where({
                 trigger: formattedTrigger,
-                user_id: req.user!.id,
+                user_id: user.id,
             })
             .whereNot('id', req.params?.id)
             .first();
@@ -350,16 +349,12 @@ export function updateActionHandler(actions: Actions) {
             throw new ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        const updatedAction = await actions.update(
-            req.params.id as unknown as number,
-            (req.user as User).id,
-            {
-                trigger: formattedTrigger,
-                name: name.trim(),
-                url,
-                actionType,
-            },
-        );
+        const updatedAction = await actions.update(req.params.id as unknown as number, user.id, {
+            trigger: formattedTrigger,
+            name: name.trim(),
+            url,
+            actionType,
+        });
 
         if (isApiRequest(req)) {
             res.status(200).json({
