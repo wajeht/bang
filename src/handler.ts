@@ -207,16 +207,15 @@ export function postActionHandler(actions: Actions) {
             throw new ValidationError({ url: 'Invalid URL format' });
         }
 
-        if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
-            throw new ValidationError(
-                { trigger: 'Trigger can only contain letters and numbers' },
-                req,
-            );
+        const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
+
+        if (!isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
+            throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
         }
 
         const existingBang = await db('bangs')
             .where({
-                trigger: trigger.startsWith('!') ? trigger : `!${trigger}`,
+                trigger: formattedTrigger,
                 user_id: (req.user as User).id,
             })
             .first();
@@ -224,8 +223,6 @@ export function postActionHandler(actions: Actions) {
         if (existingBang) {
             throw new ValidationError({ trigger: 'This trigger already exists' });
         }
-
-        const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
         await actions.create({
             name: name.trim(),
@@ -339,9 +336,11 @@ export function updateActionHandler(actions: Actions) {
             );
         }
 
+        const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+
         const existingBang = await db('bangs')
             .where({
-                trigger: trigger.startsWith('!') ? trigger : `!${trigger}`,
+                trigger: formattedTrigger,
                 user_id: req.user!.id,
             })
             .whereNot('id', req.params?.id)
@@ -350,8 +349,6 @@ export function updateActionHandler(actions: Actions) {
         if (existingBang) {
             throw new ValidationError({ trigger: 'This trigger already exists' });
         }
-
-        const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
 
         const updatedAction = await actions.update(
             req.params.id as unknown as number,
@@ -1900,18 +1897,38 @@ export function getTabsPageHandler(db: Knex) {
 export function postTabsPageHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
-        if (!req.body.title) {
+
+        const { title, trigger } = req.body;
+
+        if (!title) {
             throw new ValidationError({ title: 'Title is required' });
         }
 
-        if (!req.body.trigger) {
+        if (!trigger) {
             throw new ValidationError({ trigger: 'Trigger is required' });
+        }
+
+        const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
+
+        if (!isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
+            throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
+        }
+
+        const existingTrigger = await db('tabs')
+            .where({
+                trigger: formattedTrigger,
+                user_id: user.id,
+            })
+            .first();
+
+        if (existingTrigger) {
+            throw new ValidationError({ trigger: 'This trigger already exists' });
         }
 
         await db('tabs').insert({
             user_id: user.id,
-            title: req.body.title,
-            trigger: req.body.trigger,
+            title,
+            trigger: formattedTrigger,
         });
 
         req.flash('success', 'Tab group created!');
@@ -1951,24 +1968,44 @@ export function updateTabHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
 
+        const { title, trigger } = req.body;
+
         const tab = await db('tabs').where({ id: req.params.id }).first();
 
         if (!tab) {
-            throw new NotFoundError('Tab group not found', req);
+            throw new NotFoundError('Tab group not found');
         }
 
-        if (!req.body.title) {
+        if (!title) {
             throw new ValidationError({ title: 'Title is required' });
         }
 
-        if (!req.body.trigger) {
+        if (!trigger) {
             throw new ValidationError({ trigger: 'Trigger is required' });
+        }
+
+        const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
+
+        if (!isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
+            throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
+        }
+
+        const existingTrigger = await db('tabs')
+            .where({
+                trigger: formattedTrigger,
+                user_id: user.id,
+            })
+            .whereNot({ id: tab.id })
+            .first();
+
+        if (existingTrigger) {
+            throw new ValidationError({ trigger: 'This trigger already exists' });
         }
 
         await db('tabs').where({ id: req.params.id }).update({
             user_id: user.id,
-            title: req.body.title,
-            trigger: req.body.trigger,
+            title,
+            trigger: formattedTrigger,
         });
 
         req.flash('success', 'Tab group updated!');
@@ -2106,6 +2143,10 @@ export function postTabItemCreateHandler(db: Knex) {
 
         if (!url) {
             throw new ValidationError({ url: 'URL is required' });
+        }
+
+        if (!isValidUrl(url)) {
+            throw new ValidationError({ url: 'Invalid URL format' });
         }
 
         const tab = await db('tabs').where({ id: tabId, user_id: user.id }).first();
