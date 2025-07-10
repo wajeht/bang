@@ -135,7 +135,6 @@
                                         <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('tab-bookmark-<%= data[i].id %>-modal').showModal()" role="menuitem">🔗 Tab</button>
                                         <dialog id="tab-bookmark-<%= data[i].id %>-modal" aria-labelledby="tab-bookmark-<%= data[i].id %>-title">
                                             <h2 id="tab-bookmark-<%= data[i].id %>-title">Tab</h2>
-                                            <p>Add to tab group</p>
                                             <form id="tab-bookmark-<%= data[i].id %>-form" action="/tabs/add" method="POST">
                                                 <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
                                                 <input type="hidden" name="id" value="<%= data[i].id %>" />
@@ -156,6 +155,14 @@
                                                         error: state.errors && state.errors.tab_id ? state.errors.tab_id : undefined
                                                     }) %>
                                                 <% } else { %>
+                                                    <%- include('../../components/inputs/text.html', {
+                                                        id: 'disabled_tab',
+                                                        name: 'disabled_tab',
+                                                        disabled: true,
+                                                        value: 'No tab groups available',
+                                                        label: 'Tab Group',
+                                                        required: true,
+                                                    }) %>
                                                     <a href='/tabs/create'>Create a tab group first</a>
                                                 <% } %>
 
