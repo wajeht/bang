@@ -17,11 +17,11 @@ import { logger } from './logger';
 import fs from 'node:fs/promises';
 import { config } from '../config';
 import nodemailer from 'nodemailer';
-import { HttpError } from '../error';
 import { bookmarks } from '../db/db';
 import type { Request } from 'express';
 import type { Bookmark } from '../type';
 import type { Attachment } from 'nodemailer/lib/mailer';
+import { HttpError, NotFoundError, ValidationError } from '../error';
 
 export const actionTypes = ['search', 'redirect'] as const;
 
@@ -906,4 +906,56 @@ export function paginate<T>(array: T[], options: PaginateArrayOptions) {
         hasNext: currentPage < lastPage,
         hasPrev: currentPage > 1,
     };
+}
+
+export async function addToTabs(
+    /** The ID of the user to add the bookmark or bang to */
+    userId: number,
+    /** The ID of the tab to add the bookmark or bang to */
+    tab_id: number,
+    /** The type of the tab to add, either 'bookmarks' or 'bangs' */
+    type: 'bookmarks' | 'bangs',
+    /** The ID of the bookmark or bang to add */
+    id: number,
+): Promise<void | ValidationError | NotFoundError> {
+    if (!['bookmarks', 'bangs'].includes(type)) {
+        throw new ValidationError({ type: 'Invalid type, must be either "bookmarks" or "bangs"' });
+    }
+
+    if (!id) {
+        throw new ValidationError({ id: 'Invalid id, must be a valid number' });
+    }
+
+    const tab = await db('tabs').where({ id: tab_id, user_id: userId }).first();
+
+    if (!tab) {
+        throw new ValidationError({ tab_id: `Tab with ID ${tab_id} not found for user ${userId}` });
+    }
+
+    const item = await db(type).where({ id, user_id: userId }).first();
+
+    if (!item) {
+        throw new NotFoundError(`${type} not found`);
+    }
+
+    switch (type) {
+        case 'bookmarks':
+            await db('tab_items').insert({
+                tab_id,
+                title: item.title,
+                url: item.url,
+            });
+            break;
+        case 'bangs':
+            await db('tab_items').insert({
+                tab_id,
+                title: item.name,
+                url: item.url,
+            });
+            break;
+        default:
+            throw new ValidationError({
+                type: 'Invalid type, must be either "bookmarks" or "bangs"',
+            });
+    }
 }
