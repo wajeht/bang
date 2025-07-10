@@ -168,8 +168,6 @@ export function getActionsHandler(actions: Actions) {
             return;
         }
 
-        const tabs = await db('tabs').where({ user_id: user.id });
-
         return res.render('./actions/actions-get.html', {
             user: req.session?.user,
             path: '/actions',
@@ -177,7 +175,6 @@ export function getActionsHandler(actions: Actions) {
             layout: '../layouts/auth.html',
             howToContent: await getConvertedReadmeMDToHTML(),
             data,
-            tabs,
             pagination,
             search,
             sortKey,
@@ -520,8 +517,6 @@ export function getBookmarksHandler(bookmarks: Bookmarks) {
             return;
         }
 
-        const tabs = await db('tabs').where({ user_id: user.id });
-
         return res.render('./bookmarks/bookmarks-get.html', {
             user: req.session?.user,
             title: 'Bookmarks',
@@ -531,7 +526,6 @@ export function getBookmarksHandler(bookmarks: Bookmarks) {
             data,
             search,
             pagination,
-            tabs,
             sortKey,
             direction,
         });
