@@ -222,34 +222,34 @@ Here is the \`content\` of **note 2**.
 
         await knex('notes').insert(notes);
 
-        const tabs = [
-            {
-                user_id: user.id,
-                title: 'docs',
-                trigger: '!docs',
-            },
-            {
-                user_id: user.id,
-                title: 'videos',
-                trigger: '!videos',
-            },
-        ];
-
-        await knex('tabs').insert(tabs);
+        const tabs = await knex('tabs')
+            .insert([
+                {
+                    user_id: user.id,
+                    title: 'docs',
+                    trigger: '!docs',
+                },
+                {
+                    user_id: user.id,
+                    title: 'videos',
+                    trigger: '!videos',
+                },
+            ])
+            .returning('*');
 
         const tabItems = [
             {
-                tab_id: 1,
+                tab_id: tabs[0].id,
                 title: 'GitHub - Where the world builds software',
                 url: 'https://github.com',
             },
             {
-                tab_id: 1,
+                tab_id: tabs[0].id,
                 title: 'MDN Web Docs',
                 url: 'https://developer.mozilla.org',
             },
             {
-                tab_id: 2,
+                tab_id: tabs[1].id,
                 title: 'rick roll',
                 url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
             },
