@@ -620,6 +620,7 @@ export async function generateUserDataExport(
     bookmarks?: Record<string, unknown>[];
     actions?: Record<string, unknown>[];
     notes?: Record<string, unknown>[];
+    tabs?: Record<string, unknown>[];
     user_preferences?: Record<string, unknown>;
 }> {
     const {
@@ -672,10 +673,53 @@ export async function generateUserDataExport(
                   .select('title', 'content', 'pinned', 'created_at')
             : Promise.resolve([]);
 
-    const fetchTabs = () =>
-        includeTabs
-            ? db('tabs').where('user_id', userId).select('title', 'url', 'created_at')
-            : Promise.resolve([]);
+    const fetchTabs = async () => {
+        if (!includeTabs) return [];
+
+        // Get all tabs for the user
+        const tabs = await db('tabs')
+            .where('user_id', userId)
+            .select('id', 'trigger', 'title', 'created_at', 'updated_at')
+            .orderBy('created_at', 'asc');
+
+        // Get all tab items for these tabs
+        const tabIds = tabs.map((tab) => tab.id);
+
+        if (tabIds.length === 0) {
+            return [];
+        }
+
+        const tabItems = await db('tab_items')
+            .whereIn('tab_id', tabIds)
+            .select('tab_id', 'title', 'url', 'created_at', 'updated_at')
+            .orderBy('created_at', 'asc');
+
+        // Group items by tab_id
+        const itemsByTabId = tabItems.reduce(
+            (acc, item) => {
+                if (!acc[item.tab_id]) {
+                    acc[item.tab_id] = [];
+                }
+                acc[item.tab_id].push({
+                    title: item.title,
+                    url: item.url,
+                    created_at: item.created_at,
+                    updated_at: item.updated_at,
+                });
+                return acc;
+            },
+            {} as Record<number, any[]>,
+        );
+
+        // Combine tabs with their items
+        return tabs.map((tab) => ({
+            trigger: tab.trigger,
+            title: tab.title,
+            created_at: tab.created_at,
+            updated_at: tab.updated_at,
+            items: itemsByTabId[tab.id] || [],
+        }));
+    };
 
     const fetchUserPreferences = () =>
         includeUserPreferences
