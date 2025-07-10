@@ -17,7 +17,6 @@ import {
     postActionHandler,
     deleteNoteHandler,
     updateNoteHandler,
-    postTabsAddHandler,
     getTabsPageHandler,
     getBookmarkHandler,
     getMagicLinkHandler,
@@ -37,10 +36,12 @@ import {
     deleteBookmarkHandler,
     updateBookmarkHandler,
     getCollectionsHandler,
-    getSettingsPageHandler,
     getEditNotePageHandler,
     getTabEditPageHandler,
+    postActionsTabsHandler,
+    getSettingsPageHandler,
     getTabCreatePageHandler,
+    postBookmarksTabsHandler,
     postTabItemUpdateHandler,
     postTabItemCreateHandler,
     toggleBookmarkPinHandler,
@@ -62,7 +63,9 @@ import {
     getSettingsAccountPageHandler,
     postNotesRenderMarkdownHandler,
     postSettingsCreateApiKeyHandler,
+    getActionssTabsCreatePageHandler,
     getSettingsDangerZonePageHandler,
+    getBookmarksTabsCreatePageHandler,
     getBookmarkActionCreatePageHandler,
     postDeleteSettingsDangerZoneHandler,
 } from './handler';
@@ -94,7 +97,6 @@ router.post('/tabs/:id/delete', authenticationMiddleware, deleteTabHandler(db));
 router.get('/tabs/:id/edit', authenticationMiddleware, getTabEditPageHandler(db));
 router.post('/tabs/:id/update', authenticationMiddleware, updateTabHandler(db));
 router.post('/tabs/delete-all', authenticationMiddleware, deleteAllTabsHandler(db));
-router.post('/tabs/add', authenticationMiddleware, postTabsAddHandler(db));
 
 router.get('/tabs/:id/items/create', authenticationMiddleware, getTabItemCreatePageHandler(db));
 router.get('/tabs/:id/items/:itemId/edit', authenticationMiddleware, getTabItemEditPageHandler(db));
@@ -120,7 +122,9 @@ router.post('/settings/danger-zone/delete', authenticationMiddleware, postDelete
 router.get('/actions', authenticationMiddleware, getActionsHandler(actions));
 router.post('/actions', authenticationMiddleware, postActionHandler(actions));
 router.get('/actions/create', authenticationMiddleware, getActionCreatePageHandler());
+router.post('/actions/:id/tabs', authenticationMiddleware, postActionsTabsHandler());
 router.get('/actions/:id/edit', authenticationMiddleware, getEditActionPageHandler(db));
+router.get('/actions/:id/tabs/create', authenticationMiddleware, getActionssTabsCreatePageHandler()); // prettier-ignore
 router.post('/actions/:id/delete', authenticationMiddleware, deleteActionHandler(actions));
 router.post('/actions/:id/update', authenticationMiddleware, updateActionHandler(actions));
 
@@ -128,6 +132,8 @@ router.post('/bookmarks', authenticationMiddleware, postBookmarkHandler());
 router.get('/bookmarks', authenticationMiddleware, getBookmarksHandler(bookmarks));
 router.get('/bookmarks/export', authenticationMiddleware, getExportBookmarksHandler(db));
 router.get('/bookmarks/create', authenticationMiddleware, getBookmarkCreatePageHandler());
+router.post('/bookmarks/:id/tabs', authenticationMiddleware, postBookmarksTabsHandler());
+router.get('/bookmarks/:id/tabs/create', authenticationMiddleware, getBookmarksTabsCreatePageHandler()); // prettier-ignore
 router.post('/bookmarks/:id/delete', authenticationMiddleware, deleteBookmarkHandler(bookmarks));
 router.post('/bookmarks/:id/update', authenticationMiddleware, updateBookmarkHandler(bookmarks));
 router.get('/bookmarks/:id/edit', authenticationMiddleware, getEditBookmarkPageHandler(bookmarks));
