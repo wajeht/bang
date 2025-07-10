@@ -37,7 +37,7 @@ Before you can use the Bang command from your browser's search bar, you need to 
 - `@api` - Access API docs
 - `@b`, `@bangs` - Go to home page
 - `@s`, `@settings` - Access settings
-- `@t`,  `@tab`, `@tabs` - Access your tabs
+- `@t`, `@tab`, `@tabs` - Access your tabs
 - `@n`, `@note`, `@notes` - Access your notes
 - `@a`, `@action`, `@actions` - Access your actions
 - `@bm`, `@bookmark`, `@bookmarks` - Access your bookmarks
