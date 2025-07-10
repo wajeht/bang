@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import { Knex } from 'knex';
 import path from 'node:path';
 import { logger } from '../../utils/logger';
+import { title } from 'node:process';
 
 const env = dotenv.config({
     path: path.resolve(path.join(process.cwd(), '..', '..', '.env')),
@@ -10,6 +11,9 @@ const env = dotenv.config({
 
 export async function seed(knex: Knex): Promise<void> {
     try {
+        await knex('tab_items').del();
+        await knex('tabs').del();
+        await knex('notes').del();
         await knex('bangs').del();
         await knex('bookmarks').del();
         await knex('users').del();
@@ -217,6 +221,41 @@ Here is the \`content\` of **note 2**.
         ];
 
         await knex('notes').insert(notes);
+
+        const tabs = [
+            {
+                user_id: user.id,
+                title: 'docs',
+                trigger: '!docs',
+            },
+            {
+                user_id: user.id,
+                title: 'videos',
+                trigger: '!videos',
+            },
+        ];
+
+        await knex('tabs').insert(tabs);
+
+        const tabItems = [
+            {
+                tab_id: 1,
+                title: 'GitHub - Where the world builds software',
+                url: 'https://github.com',
+            },
+            {
+                tab_id: 1,
+                title: 'MDN Web Docs',
+                url: 'https://developer.mozilla.org',
+            },
+            {
+                tab_id: 2,
+                title: 'rick roll',
+                url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            },
+        ];
+
+        await knex('tab_items').insert(tabItems);
     } catch (error) {
         logger.error('Seed failed:', error);
         throw error;
