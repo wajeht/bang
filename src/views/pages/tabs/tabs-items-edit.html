@@ -1,7 +1,7 @@
 <section style="display: flex; flex-direction: column; gap: 30px;">
   <header>
       <h2>🔗 Edit Tab item <%= tabItem.title %></h2>
-      <p>Add a new tab item to this group.</p>
+      <p>Edit the details of this tab item.</p>
   </header>
 
   <form
@@ -10,7 +10,7 @@
     style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
   >
     <fieldset style="display: flex; flex-direction: column;">
-      <legend>Tab Item Details</legend>
+      <legend>Edit Tab Item Details</legend>
 
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
@@ -39,7 +39,7 @@
 
     <div style="display: flex; gap: 10px; justify-content: flex-end;">
       <button type="button" onclick="location.href='/tabs'">❌ Cancel</button>
-      <button type="submit">💾 Add Tab</button>
+      <button type="submit">💾 Save</button>
     </div>
   </form>
 </section>
