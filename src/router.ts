@@ -41,10 +41,12 @@ import {
     getEditNotePageHandler,
     getTabEditPageHandler,
     getTabCreatePageHandler,
+    postTabItemUpdateHandler,
     postTabItemCreateHandler,
     toggleBookmarkPinHandler,
     getNoteCreatePageHandler,
     getEditActionPageHandler,
+    getTabItemEditPageHandler,
     getExportBookmarksHandler,
     getEditBookmarkPageHandler,
     getActionCreatePageHandler,
@@ -93,7 +95,10 @@ router.get('/tabs/:id/edit', authenticationMiddleware, getTabEditPageHandler(db)
 router.post('/tabs/:id/update', authenticationMiddleware, updateTabHandler(db));
 router.post('/tabs/delete-all', authenticationMiddleware, deleteAllTabsHandler(db));
 router.post('/tabs/add', authenticationMiddleware, postTabsAddHandler(db));
+
 router.get('/tabs/:id/items/create', authenticationMiddleware, getTabItemCreatePageHandler(db));
+router.get('/tabs/:id/items/:itemId/edit', authenticationMiddleware, getTabItemEditPageHandler(db));
+router.post('/tabs/:id/items/:itemId/update', authenticationMiddleware, postTabItemUpdateHandler(db)); // prettier-ignore
 router.post('/tabs/:id/items/create', authenticationMiddleware, postTabItemCreateHandler(db));
 router.post('/tabs/:id/items/:itemId/delete', authenticationMiddleware, deleteTabItemHandler(db));
 
