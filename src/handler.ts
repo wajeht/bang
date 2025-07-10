@@ -35,6 +35,7 @@ import { db, actions, bookmarks, notes } from './db/db';
 import type { Request, Response, NextFunction } from 'express';
 import { actionTypes, defaultSearchProviders } from './utils/util';
 import { HttpError, NotFoundError, ValidationError } from './error';
+import { format } from 'node:path/win32';
 
 // GET /healthz
 export function getHealthzHandler(db: Knex) {
@@ -1924,6 +1925,17 @@ export function postTabsPageHandler(db: Knex) {
             })
             .first();
 
+        const existingAction = await db.select('*').from('bangs').where({
+            user_id: user.id,
+            trigger: formattedTrigger,
+        });
+
+        if (existingAction.length) {
+            throw new ValidationError({
+                trigger: 'This trigger already exists in Actions. Please choose another one!',
+            });
+        }
+
         if (existingTrigger) {
             throw new ValidationError({ trigger: 'This trigger already exists' });
         }
@@ -1996,6 +2008,17 @@ export function updateTabHandler(db: Knex) {
 
         if (!isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
             throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
+        }
+
+        const existingAction = await db.select('*').from('bangs').where({
+            user_id: user.id,
+            trigger: formattedTrigger,
+        });
+
+        if (existingAction.length) {
+            throw new ValidationError({
+                trigger: 'This trigger already exists in Actions. Please choose another one!',
+            });
         }
 
         const existingTrigger = await db('tabs')
