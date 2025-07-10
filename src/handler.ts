@@ -34,7 +34,7 @@ import { logger } from './utils/logger';
 import { db, actions, bookmarks, notes } from './db/db';
 import type { Request, Response, NextFunction } from 'express';
 import { actionTypes, defaultSearchProviders } from './utils/util';
-import { HttpError, NotFoundError, ValidationError } from './error';
+import { HttpError, NotFoundError, UnimplementedFunctionError, ValidationError } from './error';
 import { format } from 'node:path/win32';
 
 // GET /healthz
@@ -2046,48 +2046,50 @@ export function postTabsAddHandler(db: Knex) {
         const validTypes = ['bookmarks', 'bangs'] as const;
         const type = req.body.type as (typeof validTypes)[number];
 
-        if (!validTypes.includes(type)) {
-            throw new ValidationError({ type: 'Invalid type' });
-        }
+        throw new UnimplementedFunctionError('This function is not implemented yet.');
 
-        if (!id) {
-            throw new ValidationError({ id: 'ID is required' });
-        }
+        // if (!validTypes.includes(type)) {
+        //     throw new ValidationError({ type: 'Invalid type' });
+        // }
 
-        const item = await db(type).where({ id, user_id: user.id }).first();
+        // if (!id) {
+        //     throw new ValidationError({ id: 'ID is required' });
+        // }
 
-        if (!item) {
-            throw new NotFoundError(`${type} not found`, req);
-        }
+        // const item = await db(type).where({ id, user_id: user.id }).first();
 
-        switch (type) {
-            case 'bookmarks':
-                await db('tabs').insert({
-                    user_id: user.id,
-                    title: item.title,
-                    url: item.url,
-                    trigger: item.trigger,
-                });
-                break;
-            case 'bangs':
-                await db('tabs').insert({
-                    user_id: user.id,
-                    title: item.name,
-                    url: item.url,
-                    trigger: item.trigger,
-                });
-                break;
-            default:
-                throw new ValidationError({ type: 'Invalid type' });
-        }
+        // if (!item) {
+        //     throw new NotFoundError(`${type} not found`, req);
+        // }
 
-        if (isApiRequest(req)) {
-            res.status(201).json({ message: 'Tab added successfully' });
-            return;
-        }
+        // switch (type) {
+        //     case 'bookmarks':
+        //         await db('tabs').insert({
+        //             user_id: user.id,
+        //             title: item.title,
+        //             url: item.url,
+        //             trigger: item.trigger,
+        //         });
+        //         break;
+        //     case 'bangs':
+        //         await db('tabs').insert({
+        //             user_id: user.id,
+        //             title: item.name,
+        //             url: item.url,
+        //             trigger: item.trigger,
+        //         });
+        //         break;
+        //     default:
+        //         throw new ValidationError({ type: 'Invalid type' });
+        // }
 
-        req.flash('success', 'Tab added!');
-        return res.redirect('/tabs');
+        // if (isApiRequest(req)) {
+        //     res.status(201).json({ message: 'Tab added successfully' });
+        //     return;
+        // }
+
+        // req.flash('success', 'Tab added!');
+        // return res.redirect('/tabs');
     };
 }
 
