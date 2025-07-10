@@ -50,7 +50,7 @@
             <h2>🔗 Tab Groups (<%- tabs.length %>)</h2>
             <%- include('../_partials/question-mark-button.html') %>
           </div>
-          <p>Manage your saved tab groups</p>
+          <p>Manage your saved tab groups <span style="color: red">(using Tabs requires you to have popup allowed/redirect on <code>https://bang.jaw.dev</code> )</span></p>
       </div>
       <div style="display: flex; gap: 10px;">
         <button type="button" aria-label="Delete all tab groups" onclick="document.getElementById('delete-all-tabs-modal').showModal()">🗑️</button>
@@ -83,7 +83,7 @@
               <tbody>
                   <% for (let i = 0; i < tabs.length; i++) { %>
                       <tr class="tab-group-row" data-tab-id="<%= tabs[i].id %>" style="cursor: pointer;">
-                          <td style="padding: 10px;"><span style="font-weight: bold;"><%= tabs[i].title %></span></td>
+                          <td style="padding: 10px;"><%= tabs[i].title %></td>
                           <td style="padding: 10px;"><code><%= tabs[i].trigger %></code></td>
                           <td style="padding: 10px;"><%= tabs[i].items.length %></td>
                           <td style="padding: 10px;">
