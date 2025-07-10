@@ -20,6 +20,7 @@ import {
     extractPagination,
     sendMagicLinkEmail,
     sendDataExportEmail,
+    normalizeBangTrigger,
     generateUserDataExport,
     isOnlyLettersAndNumbers,
     checkDuplicateBookmarkUrl,
@@ -32,10 +33,10 @@ import { bangs } from './db/bang';
 import { config } from './config';
 import type { Bang } from './type';
 import { logger } from './utils/logger';
+import type { Request, Response } from 'express';
 import { db, actions, bookmarks, notes } from './db/db';
-import type { Request, Response, NextFunction } from 'express';
 import { actionTypes, defaultSearchProviders } from './utils/util';
-import { HttpError, NotFoundError, UnimplementedFunctionError, ValidationError } from './error';
+import { HttpError, NotFoundError, ValidationError } from './error';
 
 // GET /healthz
 export function getHealthzHandler(db: Knex) {
@@ -228,7 +229,7 @@ export function postActionHandler(actions: Actions) {
             throw new ValidationError({ url: 'Invalid URL format' });
         }
 
-        const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
+        const formattedTrigger: string = normalizeBangTrigger(trigger);
 
         if (!isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
             throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
@@ -382,7 +383,7 @@ export function updateActionHandler(actions: Actions) {
             throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
         }
 
-        const formattedTrigger = trigger.startsWith('!') ? trigger : `!${trigger}`;
+        const formattedTrigger = normalizeBangTrigger(trigger);
 
         const existingBang = await db('bangs')
             .where({
@@ -1900,7 +1901,7 @@ export function postTabsPageHandler(db: Knex) {
             throw new ValidationError({ trigger: 'Trigger is required' });
         }
 
-        const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
+        const formattedTrigger: string = normalizeBangTrigger(trigger);
 
         if (!isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
             throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
@@ -1992,7 +1993,7 @@ export function updateTabHandler(db: Knex) {
             throw new ValidationError({ trigger: 'Trigger is required' });
         }
 
-        const formattedTrigger: string = trigger.startsWith('!') ? trigger : `!${trigger}`;
+        const formattedTrigger: string = normalizeBangTrigger(trigger);
 
         if (!isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
             throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
