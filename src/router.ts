@@ -174,7 +174,7 @@ router.get('/notes/:id/edit', authenticationMiddleware, getEditNotePageHandler(n
  *
  * @security BearerAuth
  *
- * @return {array<Action>} 200 - success response - application/json
+ * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
 
  */
@@ -272,9 +272,8 @@ router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler(
  *
  * @security BearerAuth
  *
- * @return {array<Bookmark>} 200 - success response - application/json
+ * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
- * @example response - 200 - success response example
  *
  */
 router.get('/api/bookmarks', authenticationMiddleware, getBookmarksHandler(bookmarks));
@@ -375,12 +374,6 @@ router.get('/api/collections', authenticationMiddleware, getCollectionsHandler);
  */
 
 /**
- * A note request body
- * @typedef {object} NoteRequestBody
- * @property {string} content.required - markdown content to render
- */
-
-/**
  * GET /api/notes
  *
  * @tags Notes
@@ -388,19 +381,8 @@ router.get('/api/collections', authenticationMiddleware, getCollectionsHandler);
  *
  * @security BearerAuth
  *
- * @return {array<Note>} 200 - success response - application/json
+ * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
- * @example response - 200 - success response example
- * [
- *   {
- *     "id": "1",
- *     "title": "My First Note",
- *     "content": "This is the content of my first note",
- *     "tags": ["personal", "important"],
- *     "created_at": "2023-01-01T00:00:00Z",
- *     "updated_at": "2023-01-01T00:00:00Z"
- *   }
- * ]
  */
 router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
 
@@ -412,7 +394,7 @@ router.get('/api/notes', authenticationMiddleware, getNotesHandler(notes));
  *
  * @security BearerAuth
  *
- * @param {NoteRequestBody} request.body.required - request body
+ * @param {string} request.body.required - request body
  *
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
