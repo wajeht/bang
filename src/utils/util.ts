@@ -908,6 +908,24 @@ export function paginate<T>(array: T[], options: PaginateArrayOptions) {
     };
 }
 
+/**
+ *
+ * Normalizes a bang trigger by ensuring it starts with a '!'
+ *
+ */
+export function normalizeBangTrigger(trigger: string): string {
+    if (!trigger.length) {
+        throw new ValidationError({ trigger: 'Trigger cannot be empty' });
+    }
+
+    trigger = trigger.trim();
+
+    if (trigger.startsWith('!')) {
+        return trigger;
+    }
+    return `!${trigger}`;
+}
+
 export async function addToTabs(
     /** The ID of the user to add the bookmark or bang to */
     userId: number,
