@@ -194,12 +194,12 @@
                                 <details style="position: relative;">
                                     <summary aria-label="Actions for <%= data[i].name %>">Actions</summary>
                                     <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
-                                        <form action="/tabs/add" method="POST">
-                                            <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
-                                            <input type="hidden" name="id" value="<%= data[i].id %>" />
-                                            <input type="hidden" name="type" value="bangs" />
-                                            <button class="no-style-btn" type="submit">🔗 Tab</button>
-                                        </form>
+                                        <a
+                                            href="/actions/<%= data[i].id %>/tabs/create"
+                                            style="display: inline-flex; align-items: center;"
+                                            role="menuitem"
+                                        >
+                                            🔗 Tab
                                         <a
                                             href="/actions/<%= data[i].id %>/edit"
                                             style="display: inline-flex; align-items: center;"
