@@ -11,6 +11,7 @@ import {
 import {
     paginate,
     magicLink,
+    addToTabs,
     expectJson,
     isValidUrl,
     isApiRequest,
@@ -185,6 +186,25 @@ export function getActionsHandler(actions: Actions) {
     };
 }
 
+// POST /actions/:id/tabs
+export function postActionsTabsHandler() {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const tab_id = parseInt(req.body.tab_id as unknown as string);
+        const id = parseInt(req.params.id as unknown as string);
+
+        await addToTabs(user.id, tab_id, 'bangs', id);
+
+        if (isApiRequest(req)) {
+            res.status(201).json({ message: 'Tab added successfully' });
+            return;
+        }
+
+        req.flash('success', 'Tab added!');
+        return res.redirect('/actions');
+    };
+}
+
 // POST /actions or POST /api/actions
 export function postActionHandler(actions: Actions) {
     return async (req: Request, res: Response) => {
@@ -282,6 +302,33 @@ export function deleteActionHandler(actions: Actions) {
     };
 }
 
+// GET /actions/:id/tabs/create
+export function getActionssTabsCreatePageHandler() {
+    return async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id as unknown as string);
+        const action = await db('bangs')
+            .where({
+                id,
+                user_id: req.session.user?.id,
+            })
+            .first();
+
+        if (!action) {
+            throw new NotFoundError('Actions not found');
+        }
+
+        const tabs = await db('tabs').where({ user_id: req.session.user?.id });
+
+        return res.render('./actions/actions-id-tabs-create.html', {
+            title: `Actions / ${id} / Tabs / Create`,
+            path: `/actions/${id}/tabs/create`,
+            layout: '../layouts/auth.html',
+            action,
+            tabs,
+        });
+    };
+}
+
 // GET /actions/:id/edit
 export function getEditActionPageHandler(db: Knex) {
     return async (req: Request, res: Response) => {
@@ -368,6 +415,52 @@ export function updateActionHandler(actions: Actions) {
 
         req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
         return res.redirect('/actions');
+    };
+}
+
+// POST /bookmarks/:id/tabs
+export function postBookmarksTabsHandler() {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const tab_id = parseInt(req.body.tab_id as unknown as string);
+        const id = parseInt(req.params.id as unknown as string);
+
+        await addToTabs(user.id, tab_id, 'bookmarks', id);
+
+        if (isApiRequest(req)) {
+            res.status(201).json({ message: 'Tab added successfully' });
+            return;
+        }
+
+        req.flash('success', 'Tab added!');
+        return res.redirect('/bookmarks');
+    };
+}
+
+// GET /bookmarks/:id/tabs/create
+export function getBookmarksTabsCreatePageHandler() {
+    return async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id as unknown as string);
+        const bookmark = await db('bookmarks')
+            .where({
+                id,
+                user_id: req.session.user?.id,
+            })
+            .first();
+
+        if (!bookmark) {
+            throw new NotFoundError('Bookmark not found');
+        }
+
+        const tabs = await db('tabs').where({ user_id: req.session.user?.id });
+
+        return res.render('./bookmarks/bookmarks-id-tabs-create.html', {
+            title: `Bookmarks / ${id} / Tabs / Create`,
+            path: `/bookmarks/${id}/tabs/create`,
+            layout: '../layouts/auth.html',
+            bookmark,
+            tabs,
+        });
     };
 }
 
@@ -1763,57 +1856,21 @@ export function getTabsPageHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
 
-        const tabs = await db('tabs')
-            .leftJoin('tab_items', 'tabs.id', 'tab_items.tab_id')
-            .where('tabs.user_id', user.id)
-            .orderBy(['tabs.created_at', 'tab_items.created_at'])
-            .select(
-                'tabs.id as tab_id',
-                'tabs.user_id',
-                'tabs.trigger',
-                'tabs.title as tab_title',
-                'tabs.created_at as tab_created_at',
-                'tabs.updated_at as tab_updated_at',
-                'tab_items.id as item_id',
-                'tab_items.title as item_title',
-                'tab_items.url',
-                'tab_items.created_at as item_created_at',
-                'tab_items.updated_at as item_updated_at',
-            )
-            .then((rows) => {
-                const result: any[] = [];
-                let currentTabId: number | null = null;
-                let currentTab: any = null;
+        const tabs = await db
+            .select('*')
+            .from('tabs')
+            .where('user_id', user.id)
+            .orderBy('created_at', 'asc');
 
-                for (let i = 0, len = rows.length; i < len; i++) {
-                    const row = rows[i];
-                    if (row.tab_id !== currentTabId) {
-                        currentTab = {
-                            id: row.tab_id,
-                            user_id: row.user_id,
-                            trigger: row.trigger,
-                            title: row.tab_title,
-                            created_at: row.tab_created_at,
-                            updated_at: row.tab_updated_at,
-                            items: [] as any[],
-                        };
-                        result.push(currentTab);
-                        currentTabId = row.tab_id;
-                    }
+        for (const tab of tabs) {
+            const items = await db
+                .select('*')
+                .from('tab_items')
+                .where('tab_id', tab.id)
+                .orderBy('created_at', 'asc');
 
-                    if (!row.item_id) continue;
-
-                    currentTab.items.push({
-                        id: row.item_id,
-                        title: row.item_title,
-                        url: row.url,
-                        created_at: row.item_created_at,
-                        updated_at: row.item_updated_at,
-                    });
-                }
-
-                return result;
-            });
+            tab.items = items;
+        }
 
         if (isApiRequest(req)) {
             res.status(200).json({
@@ -2039,51 +2096,6 @@ export function deleteAllTabsHandler(db: Knex) {
         }
 
         req.flash('success', 'All tab groups deleted!');
-        return res.redirect('/tabs');
-    };
-}
-
-// POST /tabs/add
-export function postTabsAddHandler(db: Knex) {
-    return async (req: Request, res: Response) => {
-        const user = req.user as User;
-        const id = req.body.id;
-        const tabId = req.body.tab_id;
-        const validTypes = ['bookmarks', 'bangs'] as const;
-        const type = req.body.type as (typeof validTypes)[number];
-
-        if (!validTypes.includes(type)) {
-            throw new ValidationError({ type: 'Invalid type' });
-        }
-
-        if (!id) {
-            throw new ValidationError({ id: 'ID is required' });
-        }
-
-        const tab = await db('tabs').where({ id: tabId, user_id: user.id }).first();
-
-        if (!tab) {
-            throw new ValidationError({ tab_group: 'Tab group not found' });
-        }
-
-        const item = await db(type).where({ id, user_id: user.id }).first();
-
-        if (!item) {
-            throw new NotFoundError(`${type} not found`);
-        }
-
-        await db('tab_items').insert({
-            tab_id: tab.id,
-            title: item.title,
-            url: item.url,
-        });
-
-        if (isApiRequest(req)) {
-            res.status(201).json({ message: 'Tab added successfully' });
-            return;
-        }
-
-        req.flash('success', 'Tab added!');
         return res.redirect('/tabs');
     };
 }
