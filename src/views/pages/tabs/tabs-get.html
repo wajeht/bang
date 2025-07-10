@@ -93,7 +93,9 @@
                                 <a href="/tabs/<%= tabs[i].id %>/items/create" class="no-style-btn" style="display: inline-flex; align-items: center;" role="menuitem">➕ Add Item</a>
                                 <button class="no-style-btn toggle-details-btn" data-tab-id="<%= tabs[i].id %>" style="display: inline-flex; align-items: center;">👁️ View Items</button>
                                 <a href="/tabs/<%= tabs[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit Group</a>
-                                <a href="/tabs/<%= tabs[i].id %>/launch" style="display: inline-flex; align-items: center;" role="menuitem">🚀 Launch Group</a>
+                                <% if (tabs[i].items.length > 0) { %>
+                                  <a href="/tabs/<%= tabs[i].id %>/launch" style="display: inline-flex; align-items: center;" role="menuitem">🚀 Launch Group</a>
+                                <% } %>
                                 <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-tab-<%= tabs[i].id %>-modal').showModal()" role="menuitem">🗑️ Delete Group</button>
                                 <dialog id="delete-tab-<%= tabs[i].id %>-modal" aria-labelledby="delete-tab-<%= tabs[i].id %>-title">
                                   <h2 id="delete-tab-<%= tabs[i].id %>-title">Confirm</h2>
