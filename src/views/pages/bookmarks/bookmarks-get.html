@@ -131,16 +131,45 @@
                                                 <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
                                             </button>
                                         </form>
-                                        <form action="/tabs/add" method="POST">
-                                            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-                                            <input type="hidden" name="id" value="<%= data[i].id %>" />
-                                            <input type="hidden" name="type" value="bookmarks" />
-                                            <button class="no-style-btn" type="submit">🔗 Tab</button>
-                                        </form>
+
+                                        <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('tab-bookmark-<%= data[i].id %>-modal').showModal()" role="menuitem">🔗 Tab</button>
+                                        <dialog id="tab-bookmark-<%= data[i].id %>-modal" aria-labelledby="tab-bookmark-<%= data[i].id %>-title">
+                                            <h2 id="tab-bookmark-<%= data[i].id %>-title">Tab</h2>
+                                            <p>Add to tab group</p>
+                                            <form id="tab-bookmark-<%= data[i].id %>-form" action="/tabs/add" method="POST">
+                                                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                                                <input type="hidden" name="id" value="<%= data[i].id %>" />
+                                                <input type="hidden" name="type" value="bookmarks" />
+
+                                                <% if (tabs && tabs.length > 0) { %>
+                                                    <%- include('../../components/inputs/select.html', {
+                                                        id: 'tab_id',
+                                                        name: 'tab_id',
+                                                        label: 'Tab Group',
+                                                        options: tabs.map(t => ({
+                                                            value: t.id,
+                                                            text: t.title,
+                                                            selected: (state.input && state.input.tab_id ? state.input.tab_id : user.tab_id) == t.id
+                                                        })),
+                                                        required: true,
+                                                        helpText: 'Your preferred tab group for this bookmark',
+                                                        error: state.errors && state.errors.tab_id ? state.errors.tab_id : undefined
+                                                    }) %>
+                                                <% } else { %>
+                                                    <a href='/tabs/create'>Create a tab group first</a>
+                                                <% } %>
+
+                                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                                                    <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+                                                    <button type="submit" <%= (!tabs || tabs.length === 0) ? 'disabled' : '' %>>💾 Add</button>
+                                                </div>
+                                            </form>
+                                        </dialog>
+
                                         <a href="/bookmarks/<%= data[i].id %>/actions/create" style="display: inline-flex; align-items: center;" role="menuitem">⚡️ Bang</a>
                                         <a href="/bookmarks/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
-                                        <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-bookmark-<%= data[i].id %>-modal').showModal()" role="menuitem">🗑️ Delete</button>
 
+                                        <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-bookmark-<%= data[i].id %>-modal').showModal()" role="menuitem">🗑️ Delete</button>
                                         <dialog id="delete-bookmark-<%= data[i].id %>-modal" aria-labelledby="delete-bookmark-<%= data[i].id %>-title">
                                             <h2 id="delete-bookmark-<%= data[i].id %>-title">Confirm</h2>
                                             <p>Are you sure you want to delete <strong><%= data[i].title %></strong>?</p>
