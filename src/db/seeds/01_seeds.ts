@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { Knex } from 'knex';
 import path from 'node:path';
+import { logger } from '../../utils/logger';
 
 const env = dotenv.config({
     path: path.resolve(path.join(process.cwd(), '..', '..', '.env')),
@@ -61,7 +62,7 @@ export async function seed(knex: Knex): Promise<void> {
         let actionTypes = await knex('action_types').select('*');
 
         if (actionTypes.length === 0) {
-            console.log('No action types found. Creating them now...');
+            logger.info('No action types found. Creating them now...');
 
             await knex('action_types').insert([
                 { name: 'search', description: 'Search action' },
@@ -217,7 +218,7 @@ Here is the \`content\` of **note 2**.
 
         await knex('notes').insert(notes);
     } catch (error) {
-        console.error('Seed failed:', error);
+        logger.error('Seed failed:', error);
         throw error;
     }
 }
