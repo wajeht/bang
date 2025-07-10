@@ -167,6 +167,8 @@ export function getActionsHandler(actions: Actions) {
             return;
         }
 
+        const tabs = await db('tabs').where({ user_id: user.id });
+
         return res.render('./actions/actions-get.html', {
             user: req.session?.user,
             path: '/actions',
@@ -174,6 +176,7 @@ export function getActionsHandler(actions: Actions) {
             layout: '../layouts/auth.html',
             howToContent: await getConvertedReadmeMDToHTML(),
             data,
+            tabs,
             pagination,
             search,
             sortKey,
@@ -424,6 +427,8 @@ export function getBookmarksHandler(bookmarks: Bookmarks) {
             return;
         }
 
+        const tabs = await db('tabs').where({ user_id: user.id });
+
         return res.render('./bookmarks/bookmarks-get.html', {
             user: req.session?.user,
             title: 'Bookmarks',
@@ -433,6 +438,7 @@ export function getBookmarksHandler(bookmarks: Bookmarks) {
             data,
             search,
             pagination,
+            tabs,
             sortKey,
             direction,
         });
@@ -2042,53 +2048,43 @@ export function postTabsAddHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const id = req.body.id;
+        const tabId = req.body.tab_id;
         const validTypes = ['bookmarks', 'bangs'] as const;
         const type = req.body.type as (typeof validTypes)[number];
 
-        throw new UnimplementedFunctionError('This function is not implemented yet.');
+        if (!validTypes.includes(type)) {
+            throw new ValidationError({ type: 'Invalid type' });
+        }
 
-        // if (!validTypes.includes(type)) {
-        //     throw new ValidationError({ type: 'Invalid type' });
-        // }
+        if (!id) {
+            throw new ValidationError({ id: 'ID is required' });
+        }
 
-        // if (!id) {
-        //     throw new ValidationError({ id: 'ID is required' });
-        // }
+        const tab = await db('tabs').where({ id: tabId, user_id: user.id }).first();
 
-        // const item = await db(type).where({ id, user_id: user.id }).first();
+        if (!tab) {
+            throw new ValidationError({ tab_group: 'Tab group not found' });
+        }
 
-        // if (!item) {
-        //     throw new NotFoundError(`${type} not found`, req);
-        // }
+        const item = await db(type).where({ id, user_id: user.id }).first();
 
-        // switch (type) {
-        //     case 'bookmarks':
-        //         await db('tabs').insert({
-        //             user_id: user.id,
-        //             title: item.title,
-        //             url: item.url,
-        //             trigger: item.trigger,
-        //         });
-        //         break;
-        //     case 'bangs':
-        //         await db('tabs').insert({
-        //             user_id: user.id,
-        //             title: item.name,
-        //             url: item.url,
-        //             trigger: item.trigger,
-        //         });
-        //         break;
-        //     default:
-        //         throw new ValidationError({ type: 'Invalid type' });
-        // }
+        if (!item) {
+            throw new NotFoundError(`${type} not found`);
+        }
 
-        // if (isApiRequest(req)) {
-        //     res.status(201).json({ message: 'Tab added successfully' });
-        //     return;
-        // }
+        await db('tab_items').insert({
+            tab_id: tab.id,
+            title: item.title,
+            url: item.url,
+        });
 
-        // req.flash('success', 'Tab added!');
-        // return res.redirect('/tabs');
+        if (isApiRequest(req)) {
+            res.status(201).json({ message: 'Tab added successfully' });
+            return;
+        }
+
+        req.flash('success', 'Tab added!');
+        return res.redirect('/tabs');
     };
 }
 
