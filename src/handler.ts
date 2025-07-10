@@ -35,7 +35,6 @@ import { db, actions, bookmarks, notes } from './db/db';
 import type { Request, Response, NextFunction } from 'express';
 import { actionTypes, defaultSearchProviders } from './utils/util';
 import { HttpError, NotFoundError, UnimplementedFunctionError, ValidationError } from './error';
-import { format } from 'node:path/win32';
 
 // GET /healthz
 export function getHealthzHandler(db: Knex) {
