@@ -1543,79 +1543,11 @@ export function getNotesByApiHandler(notes: Notes) {
     };
 }
 
-// POST /api/notes
-export const createNoteByApiHandler = [
-    async (req: Request, _res: Response, next: NextFunction) => {
-        const { title, content } = req.body;
-
-        if (!title) {
-            throw new ValidationError({ title: 'Title is required' });
-        }
-
-        if (!content) {
-            throw new ValidationError({ content: 'Content is required' });
-        }
-
-        if (title.length > 255) {
-            throw new ValidationError({ title: 'Title must be less than 255 characters' });
-        }
-
-        return next();
-    },
-    async (req: Request, res: Response) => {
-        const { title, content } = req.body;
-        const user = req.user as User;
-
-        const note = await notes.create({
-            user_id: user.id,
-            title: title.trim(),
-            content: content.trim(),
-        });
-
-        return res.status(201).json(note);
-    },
-];
-
-// PUT /api/notes/:id
-export const updateNoteByApiHandler = [
-    async (req: Request, _res: Response, next: NextFunction) => {
-        const { title, content } = req.body;
-
-        if (!title) {
-            throw new ValidationError({ title: 'Title is required' });
-        }
-
-        if (!content) {
-            throw new ValidationError({ content: 'Content is required' });
-        }
-
-        if (title.length > 255) {
-            throw new ValidationError({ title: 'Title must be less than 255 characters' });
-        }
-
-        return next();
-    },
-    async (req: Request, res: Response) => {
-        const { title, content } = req.body;
-        const user = req.user as User;
-
-        const updatedNote = await notes.update(
-            parseInt(req.params.id as unknown as string),
-            user.id,
-            {
-                title: title.trim(),
-                content: content.trim(),
-            },
-        );
-
-        return res.json(updatedNote);
-    },
-];
-
 // DELETE /api/notes/:id
 export function deleteNoteByApiHandler(notes: Notes) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
+
         const deletedNote = await notes.delete(
             parseInt(req.params.id as unknown as string),
             user.id,
@@ -2311,8 +2243,10 @@ export function deleteTabItemHandler(db: Knex) {
         const tabId = parseInt(req.params.id as unknown as string);
         const itemId = parseInt(req.params.itemId as unknown as string);
 
-        await db('tab_items').where({ id: itemId, tab_id: tabId }).delete();
-        await db('tabs').where({ id: tabId }).update({ updated_at: db.fn.now() });
+        await db.transaction(async (trx) => {
+            await trx('tab_items').where({ id: itemId, tab_id: tabId }).delete();
+            await trx('tabs').where({ id: tabId }).update({ updated_at: db.fn.now() });
+        });
 
         if (isApiRequest(req)) {
             res.status(200).json({ message: 'Tab item deleted successfully' });

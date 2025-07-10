@@ -1,7 +1,7 @@
 <section style="display: flex; flex-direction: column; gap: 30px;">
   <header>
       <h2>🔗 Edit Tab item <%= tabItem.title %></h2>
-      <p>Edit the details of this tab item.</p>
+      <p>Edit the details of this tab item</p>
   </header>
 
   <form
@@ -21,7 +21,7 @@
         placeholder: 'e.g., Google',
         value: state.input && state.input.title ? state.input.title : tabItem.title,
         required: true,
-        helpText: 'Give your tab a descriptive name',
+        helpText: 'Give your tab item a descriptive name',
         error: state.errors && state.errors.title ? state.errors.title : undefined
       }) %>
 
