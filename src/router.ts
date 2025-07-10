@@ -154,10 +154,10 @@ router.get('/notes/:id/edit', authenticationMiddleware, getEditNotePageHandler(n
  * @property {string} id - action id
  * @property {string} url.required - action url
  * @property {string} name.required - action name
- * @property {string} actionType.required - action type (e.g., webhook, email)
+ * @property {string} actionType.required - action type
  * @property {string} trigger.required - trigger condition
- * @property {string} createdAt - creation timestamp
- * @property {string} updatedAt - last update timestamp
+ * @property {string} created_at - creation timestamp
+ * @property {string} updated_at - last update timestamp
  */
 
 /**
@@ -171,18 +171,7 @@ router.get('/notes/:id/edit', authenticationMiddleware, getEditNotePageHandler(n
  *
  * @return {array<Action>} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
- * @example response - 200 - success response example
- * [
- *   {
- *     "id": "1",
- *     "url": "https://webhook.example.com",
- *     "name": "Webhook Action",
- *     "actionType": "webhook",
- *     "trigger": "bookmark_created",
- *     "createdAt": "2023-01-01T00:00:00Z",
- *     "updatedAt": "2023-01-01T00:00:00Z"
- *   }
- * ]
+
  */
 router.get('/api/actions', authenticationMiddleware, getActionsHandler(actions));
 
@@ -265,9 +254,8 @@ router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler(
  * @property {string} url.required - bookmark url
  * @property {string} title.required - bookmark title
  * @property {string} description - bookmark description
- * @property {array<string>} tags - bookmark tags
- * @property {string} createdAt - creation timestamp
- * @property {string} updatedAt - last update timestamp
+ * @property {string} created_at - creation timestamp
+ * @property {string} updated_at - last update timestamp
  */
 
 /**
@@ -282,17 +270,7 @@ router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler(
  * @return {array<Bookmark>} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  * @example response - 200 - success response example
- * [
- *   {
- *     "id": 1,
- *     "url": "https://example.com",
- *     "title": "Example Website",
- *     "description": "A sample bookmark",
- *     "tags": ["web", "example"],
- *     "createdAt": "2023-01-01T00:00:00Z",
- *     "updatedAt": "2023-01-01T00:00:00Z"
- *   }
- * ]
+ *
  */
 router.get('/api/bookmarks', authenticationMiddleware, getBookmarksHandler(bookmarks));
 
@@ -387,9 +365,8 @@ router.get('/api/collections', authenticationMiddleware, getCollectionsHandler);
  * @property {string} id - note id
  * @property {string} title.required - note title
  * @property {string} content.required - note content
- * @property {array<string>} tags - note tags
- * @property {string} createdAt - creation timestamp
- * @property {string} updatedAt - last update timestamp
+ * @property {string} created_at - creation timestamp
+ * @property {string} updated_at - last update timestamp
  */
 
 /**
@@ -415,8 +392,8 @@ router.get('/api/collections', authenticationMiddleware, getCollectionsHandler);
  *     "title": "My First Note",
  *     "content": "This is the content of my first note",
  *     "tags": ["personal", "important"],
- *     "createdAt": "2023-01-01T00:00:00Z",
- *     "updatedAt": "2023-01-01T00:00:00Z"
+ *     "created_at": "2023-01-01T00:00:00Z",
+ *     "updated_at": "2023-01-01T00:00:00Z"
  *   }
  * ]
  */
@@ -536,5 +513,88 @@ router.post('/api/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler
  *
  */
 router.post('/api/bookmarks/:id/pin', authenticationMiddleware, toggleBookmarkPinHandler(bookmarks)); // prettier-ignore
+
+/**
+ *
+ * A tab
+ * @typedef {object} Tab
+ * @property {string} id - tab id
+ * @property {string} title.required - tab title
+ * @property {string} trigger.required - tab trigger
+ * @property {string} created_at - creation timestamp
+ * @property {string} updated_at - last update timestamp
+ *
+ */
+
+/**
+ *
+ * POST /api/tabs
+ *
+ * @tags Tabs
+ * @summary create a tab
+ *
+ * @security BearerAuth
+ *
+ * @param {string} request.title.required - tab title
+ * @param {string} request.trigger.required - tab trigger
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ *
+ */
+router.post('/api/tabs', authenticationMiddleware, postTabsPageHandler(db));
+
+/**
+ *
+ * GET /api/tabs
+ *
+ * @tags Tabs
+ * @summary Get all tabs
+ *
+ * @security BearerAuth
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ *
+ */
+router.get('/api/tabs', authenticationMiddleware, getTabsPageHandler(db));
+
+/**
+ *
+ * PATCH /api/tabs/{id}
+ *
+ * @tags Tabs
+ * @summary update a tab
+ *
+ * @security BearerAuth
+ *
+ * @param {string} id.path.required - tab id
+ * @param {string} request.title.required - tab title
+ * @param {string} request.trigger.required - tab trigger
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
+ *
+ */
+router.patch('/api/tabs/:id', authenticationMiddleware, updateTabHandler(db));
+
+/**
+ *
+ * DELETE /api/tabs/{id}
+ *
+ * @tags Tabs
+ * @summary delete a tab
+ *
+ * @security BearerAuth
+ *
+ * @param {string} id.path.required - tab id
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
+ *
+ */
+router.delete('/api/tabs/:id', authenticationMiddleware, deleteTabHandler(db));
 
 export { router };
