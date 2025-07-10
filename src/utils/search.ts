@@ -739,11 +739,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         }
     }
 
-    const tab = await db
-        .select('*')
-        .from('tabs')
-        .where({ user_id: user.id, trigger: triggerWithoutPrefix })
-        .first();
+    const tab = await db.select('*').from('tabs').where({ user_id: user.id, trigger }).first();
 
     if (tab) {
         return redirectWithCache(res, `/tabs/${tab.id}/launch`);
