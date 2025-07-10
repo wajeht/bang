@@ -974,15 +974,33 @@ export function postImportDataHandler(db: Knex) {
                     await trx('notes').insert(notes);
                 }
 
-                // Import tabs
+                // Import tabs and tab items
                 if (importData.tabs?.length > 0) {
-                    const tabs = importData.tabs.map((tab: { title: string; url: string }) => ({
-                        user_id: userId,
-                        title: tab.title,
-                        url: tab.url,
-                        created_at: db.fn.now(),
-                    }));
-                    await trx('tabs').insert(tabs);
+                    for (const tabData of importData.tabs) {
+                        // Insert the tab first
+                        const [tabId] = await trx('tabs')
+                            .insert({
+                                user_id: userId,
+                                trigger: tabData.trigger,
+                                title: tabData.title,
+                                created_at: db.fn.now(),
+                            })
+                            .returning('id');
+
+                        // Insert the tab items if they exist
+                        if (tabData.items?.length > 0) {
+                            const tabItems = tabData.items.map(
+                                (item: { title: string; url: string }) => ({
+                                    tab_id: typeof tabId === 'object' ? tabId.id : tabId,
+                                    title: item.title,
+                                    url: item.url,
+                                    created_at: db.fn.now(),
+                                }),
+                            );
+
+                            await trx('tab_items').insert(tabItems);
+                        }
+                    }
                 }
 
                 // Import user preferences
