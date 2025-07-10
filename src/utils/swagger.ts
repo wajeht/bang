@@ -6,7 +6,7 @@ import { authenticationMiddleware } from '../middleware';
 const swaggerConfig = {
     info: {
         title: 'bang',
-        description: `your personal command center for blazingly fast web navigation and note taking`,
+        description: `your personal command center for blazingly fast web navigation`,
         termsOfService: `/terms-of-service`,
         contact: {
             name: 'Support',
@@ -24,7 +24,7 @@ const swaggerConfig = {
     exposeSwaggerUI: true,
     notRequiredAsNullable: false,
     swaggerUiOptions: {
-        customSiteTitle: `your personal command center for blazingly fast web navigation and note taking`,
+        customSiteTitle: `your personal command center for blazingly fast web navigation`,
         customfavIcon: '/favicon.ico',
     },
     security: {

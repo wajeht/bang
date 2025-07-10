@@ -6,7 +6,7 @@ https://github.com/user-attachments/assets/5f033de3-afa1-44a7-b55b-dc45fc203d10
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Open Source Love svg1](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/wajeht/bang)
 
-your personal command center for blazingly fast web navigation and note taking
+your personal command center for blazingly fast web navigation
 
 ## 📖 Usage
 
