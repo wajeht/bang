@@ -2180,6 +2180,90 @@ export function getTabItemCreatePageHandler(db: Knex) {
     };
 }
 
+// POST /tabs/:id/items/:itemId/update
+export function postTabItemUpdateHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const { id, itemId } = req.params;
+
+        const tab = await db('tabs').where({ id, user_id: user.id }).first();
+
+        if (!tab) {
+            throw new NotFoundError('Tab group not found');
+        }
+
+        const { title, url } = req.body;
+
+        if (!title) {
+            throw new ValidationError({ title: 'Title is required' });
+        }
+
+        if (!url) {
+            throw new ValidationError({ url: 'URL is required' });
+        }
+
+        if (!isValidUrl(url)) {
+            throw new ValidationError({ url: 'Invalid URL format' });
+        }
+
+        const tabItem = await db('tab_items').where({ id: itemId, tab_id: id }).first();
+
+        if (!tabItem) {
+            throw new NotFoundError('Tab item not found');
+        }
+
+        await db.transaction(async (trx) => {
+            await trx('tab_items').where({ id: itemId, tab_id: id }).update({
+                title,
+                url,
+                updated_at: db.fn.now(),
+            });
+
+            await trx('tabs').where({ id }).update({ updated_at: db.fn.now() });
+        });
+
+        if (isApiRequest(req)) {
+            res.status(200).json({ message: 'Tab item updated successfully' });
+            return;
+        }
+
+        req.flash('success', 'Tab item updated!');
+        return res.redirect(`/tabs`);
+    };
+}
+
+// GET /tabs/:id/items/:itemId/edit
+export function getTabItemEditPageHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const { id, itemId } = req.params;
+
+        const tab = await db.select('*').from('tabs').where({ id, user_id: user.id }).first();
+
+        if (!tab) {
+            throw new NotFoundError('Tab group not found');
+        }
+
+        const tabItem = await db
+            .select('*')
+            .from('tab_items')
+            .where({ id: itemId, tab_id: id })
+            .first();
+
+        if (!tabItem) {
+            throw new NotFoundError('Tab item not found');
+        }
+
+        return res.render('tabs/tabs-items-edit.html', {
+            title: 'Edit Tab Item',
+            path: `/tabs/${id}/items/${itemId}/edit`,
+            layout: '../layouts/auth.html',
+            tabItem,
+            user,
+        });
+    };
+}
+
 // POST /tabs/:id/items/create
 export function postTabItemCreateHandler(db: Knex) {
     return async (req: Request, res: Response) => {
