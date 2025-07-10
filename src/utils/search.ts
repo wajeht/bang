@@ -58,6 +58,9 @@ const searchConfig = {
         ['@n', '/notes'],
         ['@note', '/notes'],
         ['@notes', '/notes'],
+        ['@t', '/tabs'],
+        ['@tab', '/tabs'],
+        ['@tabs', '/tabs'],
     ]),
 } as const;
 
