@@ -3,6 +3,7 @@ import {
     isValidUrl,
     insertBookmark,
     insertPageTitle,
+    normalizeBangTrigger,
     isOnlyLettersAndNumbers,
     updateUserBangLastReadAt,
     checkDuplicateBookmarkUrl,
@@ -358,6 +359,11 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 case '@notes':
                     redirectPath = `/notes?search=${encodeURIComponent(searchTerm)}`;
                     break;
+                case '@b':
+                case '@bang':
+                case '@bangs':
+                    redirectPath = `/bangs?search=${encodeURIComponent(searchTerm)}`;
+                    break;
                 case '@bm':
                 case '@bookmark':
                 case '@bookmarks':
@@ -454,11 +460,12 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         // Example: !add custom https://custom-search.com
         if (trigger === '!add') {
             const [, rawTrigger, bangUrl] = query.split(' ');
-            const bangTrigger = rawTrigger?.startsWith('!') ? rawTrigger : `!${rawTrigger}`;
 
-            if (!bangTrigger || !bangUrl?.length) {
+            if (!rawTrigger || !bangUrl?.length) {
                 return goBackWithValidationAlert(res, 'Invalid trigger or empty URL');
             }
+
+            const bangTrigger = normalizeBangTrigger(rawTrigger);
 
             const hasSystemBangCommands = searchConfig.systemBangs.has(bangTrigger);
 
@@ -517,11 +524,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         // Example: !del !custom
         if (trigger === '!del') {
             const bangToDelete =
-                searchTerm && searchTerm.length > 0
-                    ? searchTerm.startsWith('!')
-                        ? searchTerm
-                        : `!${searchTerm}`
-                    : '';
+                searchTerm && searchTerm.length > 0 ? normalizeBangTrigger(searchTerm) : '';
 
             if (!bangToDelete || bangToDelete.length === 0) {
                 return goBackWithValidationAlert(res, 'Please specify a trigger to delete');
@@ -560,8 +563,15 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 );
             }
 
+            if (!parts[0]) {
+                return goBackWithValidationAlert(
+                    res,
+                    'Invalid format. Use: !edit !trigger !newTrigger or !edit !trigger newUrl',
+                );
+            }
+
             // Extract the old trigger, making sure it has the ! prefix
-            const oldTrigger = parts[0]?.startsWith('!') ? parts[0] : `!${parts[0]}`;
+            const oldTrigger = normalizeBangTrigger(parts[0]);
 
             const existingBang = await db('bangs')
                 .select('bangs.*')
