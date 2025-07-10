@@ -1971,7 +1971,7 @@ export function getTabEditPageHandler(db: Knex) {
     };
 }
 
-// POST /tabs/:id/update
+// POST /tabs/:id/update or PATCH /api/tabs/:id
 export function updateTabHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
@@ -2053,6 +2053,7 @@ export function deleteTabHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const tabId = parseInt(req.params.id as unknown as string);
+
         await db('tabs').where({ user_id: user.id, id: tabId }).delete();
 
         if (isApiRequest(req)) {
@@ -2065,10 +2066,11 @@ export function deleteTabHandler(db: Knex) {
     };
 }
 
-// POST /tabs/delete-all or DELETE /api/tabs/delete-all
+// POST /tabs/delete-all
 export function deleteAllTabsHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
+
         await db('tabs').where({ user_id: user.id }).delete();
 
         if (isApiRequest(req)) {
@@ -2155,7 +2157,7 @@ export function getTabItemCreatePageHandler(db: Knex) {
     };
 }
 
-// POST /tabs/:id/items/create or POST /api/tabs/:id/items
+// POST /tabs/:id/items/create
 export function postTabItemCreateHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
@@ -2196,7 +2198,7 @@ export function postTabItemCreateHandler(db: Knex) {
     };
 }
 
-// POST /tabs/:id/items/:itemId/delete or DELETE /api/tabs/:id/items/:itemId
+// POST /tabs/:id/items/:itemId/delete
 export function deleteTabItemHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const tabId = parseInt(req.params.id as unknown as string);
