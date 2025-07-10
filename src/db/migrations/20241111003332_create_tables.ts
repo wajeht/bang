@@ -175,7 +175,16 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-    for (const table of ['bangs', 'bookmarks', 'action_types', 'users', 'sessions']) {
+    for (const table of [
+        'tab_items',
+        'tabs',
+        'notes',
+        'bangs',
+        'bookmarks',
+        'action_types',
+        'users',
+        'sessions',
+    ]) {
         await knex.schema.dropTableIfExists(table);
     }
 }
