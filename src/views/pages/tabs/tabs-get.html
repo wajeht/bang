@@ -41,6 +41,24 @@
       form.style.display = 'none';
     }
   }
+
+  function showDeleteTabModal(tabId, tabTitle) {
+    const modal = document.getElementById('delete-tab-modal');
+    const nameElement = document.getElementById('delete-tab-name');
+    const form = document.getElementById('delete-tab-form');
+    nameElement.textContent = tabTitle;
+    form.action = `/tabs/${tabId}/delete`;
+    modal.showModal();
+  }
+
+  function showDeleteItemModal(tabId, itemId, itemTitle) {
+    const modal = document.getElementById('delete-item-modal');
+    const nameElement = document.getElementById('delete-item-name');
+    const form = document.getElementById('delete-item-form');
+    nameElement.textContent = itemTitle;
+    form.action = `/tabs/${tabId}/items/${itemId}/delete`;
+    modal.showModal();
+  }
 </script>
 
 <section style="display: flex; flex-direction: column; gap: 30px;">
@@ -54,17 +72,6 @@
       </div>
       <div style="display: flex; gap: 10px;">
         <button type="button" aria-label="Delete all tab groups" onclick="document.getElementById('delete-all-tabs-modal').showModal()">🗑️</button>
-        <dialog id="delete-all-tabs-modal" aria-labelledby="delete-all-tabs">
-          <h2 id="delete-all-tabs-title">Confirm</h2>
-          <p>Are you sure you want to delete all tab groups and its items?</p>
-          <form action="/tabs/delete-all" method="POST">
-            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-              <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-              <button type="submit">🗑️ Delete</button>
-            </div>
-          </form>
-        </dialog>
         <button type="button" aria-label="Create new tab group" onclick="location.href='/tabs/create'">➕</button>
       </div>
   </header>
@@ -96,18 +103,15 @@
                                 <% if (tabs[i].items.length > 0) { %>
                                   <a href="/tabs/<%= tabs[i].id %>/launch" style="display: inline-flex; align-items: center;" role="menuitem">🚀 Launch Group</a>
                                 <% } %>
-                                <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-tab-<%= tabs[i].id %>-modal').showModal()" role="menuitem">🗑️ Delete Group</button>
-                                <dialog id="delete-tab-<%= tabs[i].id %>-modal" aria-labelledby="delete-tab-<%= tabs[i].id %>-title">
-                                  <h2 id="delete-tab-<%= tabs[i].id %>-title">Confirm</h2>
-                                  <p>Are you sure you want to delete <strong><%= tabs[i].title %></strong>?</p>
-                                  <form action="/tabs/<%= tabs[i].id %>/delete" method="POST">
-                                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-                                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                                      <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-                                      <button type="submit">🗑️ Delete</button>
-                                    </div>
-                                  </form>
-                                </dialog>
+                                <button
+                                    type="button"
+                                    class="no-style-btn"
+                                    style="text-align: left;"
+                                    onclick="showDeleteTabModal('<%= tabs[i].id %>', '<%= (tabs[i].title || 'Untitled').replace(/'/g, '\\\'') %>')"
+                                    role="menuitem"
+                                >
+                                    🗑️ Delete Group
+                                </button>
                               </div>
                             </details>
                           </td>
@@ -165,18 +169,15 @@
                                         <summary>Actions</summary>
                                         <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 200px; gap: 10px;" role="menu">
                                           <a href="/tabs/<%= tabs[i].id %>/items/<%= tabs[i].items[j].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit <%- tabs[i].items[j].id %></a>
-                                          <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-item-<%= tabs[i].items[j].id %>-modal').showModal()" role="menuitem">🗑️ Delete <%- tabs[i].items[j].id %></button>
-                                          <dialog id="delete-item-<%= tabs[i].items[j].id %>-modal" aria-labelledby="delete-item-<%= tabs[i].items[j].id %>-title">
-                                            <h2 id="delete-item-<%= tabs[i].items[j].id %>-title">Confirm</h2>
-                                            <p>Are you sure you want to delete <strong><%= tabs[i].items[j].title %></strong>?</p>
-                                            <form action="/tabs/<%= tabs[i].id %>/items/<%= tabs[i].items[j].id %>/delete" method="POST">
-                                              <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-                                              <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                                                <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-                                                <button type="submit">🗑️ Delete</button>
-                                              </div>
-                                            </form>
-                                          </dialog>
+                                          <button
+                                              type="button"
+                                              class="no-style-btn"
+                                              style="text-align: left;"
+                                              onclick="showDeleteItemModal('<%= tabs[i].id %>', '<%= tabs[i].items[j].id %>', '<%= (tabs[i].items[j].title || 'Untitled').replace(/'/g, '\\\'') %>')"
+                                              role="menuitem"
+                                          >
+                                              🗑️ Delete <%- tabs[i].items[j].id %>
+                                          </button>
                                         </div>
                                       </details>
                                     </td>
@@ -199,5 +200,41 @@
           </div>
       <% } %>
   </section>
+
+  <dialog id="delete-all-tabs-modal" aria-labelledby="delete-all-tabs-title">
+    <h2 id="delete-all-tabs-title">Confirm</h2>
+    <p>Are you sure you want to delete all tab groups and its items?</p>
+    <form action="/tabs/delete-all" method="POST">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+        <button type="submit">🗑️ Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="delete-tab-modal" aria-labelledby="delete-tab-title">
+    <h2 id="delete-tab-title">Confirm</h2>
+    <p>Are you sure you want to delete <strong id="delete-tab-name"></strong>?</p>
+    <form id="delete-tab-form" method="POST">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button type="button" onclick="document.getElementById('delete-tab-modal').close()">❌ Cancel</button>
+        <button type="submit">🗑️ Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="delete-item-modal" aria-labelledby="delete-item-title">
+    <h2 id="delete-item-title">Confirm</h2>
+    <p>Are you sure you want to delete <strong id="delete-item-name"></strong>?</p>
+    <form id="delete-item-form" method="POST">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button type="button" onclick="document.getElementById('delete-item-modal').close()">❌ Cancel</button>
+        <button type="submit">🗑️ Delete</button>
+      </div>
+    </form>
+  </dialog>
 
 </section>
