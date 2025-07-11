@@ -10,3 +10,5 @@ docs
 .vscode
 LICENSE
 Makefile
+scripts
+README.md
