@@ -6,7 +6,7 @@ dev:
 		--misc.clean_on_exit "true"
 
 build:
-	@go build -o ./bang ./
+	@go build -o ./bang ./cmd/web
 
 push:
 	@git add -A
