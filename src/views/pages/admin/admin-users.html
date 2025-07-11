@@ -107,26 +107,26 @@
           <% data.forEach(function(user) { %>
             <tr>
               <% if (state.user.column_preferences?.users?.username !== false) { %>
-              <td style="padding: 10px;"><%- utils.highlightSearchTerm(user.username, search) %></td>
+                <td style="padding: 10px;"><%- utils.highlightSearchTerm(user.username, search) %></td>
               <% } %>
               <% if (state.user.column_preferences?.users?.email !== false) { %>
-              <td style="padding: 10px;"><%- utils.highlightSearchTerm(user.email, search) %></td>
+                <td style="padding: 10px;"><%- utils.highlightSearchTerm(user.email, search) %></td>
               <% } %>
               <% if (state.user.column_preferences?.users?.is_admin !== false) { %>
-              <td style="padding: 10px;"><%= user.is_admin ? '✅' : '❌' %></td>
+                <td style="padding: 10px;"><%= user.is_admin ? '✅' : '❌' %></td>
               <% } %>
               <% if (state.user.column_preferences?.users?.email_verified_at !== false) { %>
-              <td style="padding: 10px;"><%= user.email_verified_at ? '✅' : '❌' %></td>
+                <td style="padding: 10px;"><%= user.email_verified_at ? '✅' : '❌' %></td>
               <% } %>
               <% if (state.user.column_preferences?.users?.created_at !== false) { %>
-              <td style="padding: 10px;"><time datetime="<%= user.created_at %>"><%= new Date(user.created_at).toLocaleDateString() %></time></td>
+                <td style="padding: 10px;"><time datetime="<%= user.created_at %>"><%= new Date(user.created_at).toLocaleDateString() %></time></td>
               <% } %>
               <td style="padding: 10px;">
                 <div style="display: flex; gap: 10px;">
                   <button
                       type="button"
                       class="no-style-btn"
-                      onclick="showDeleteUserModal('<%= user.id %>', '<%= (user.username || 'Unknown User').replace(/'/g, '\\\'') %>')"
+                      onclick="showDeleteUserModal('<%= user.id %>', '<%= (user.username').replace(/'/g, '\\\'') %>')"
                       aria-label="Delete user <%= user.username %>"
                   >
                     🗑️ Delete
