@@ -1,4 +1,6 @@
 node_modules
+.env.example
+.github
 .git
 .gitignore
 dist
@@ -8,3 +10,5 @@ docs
 .vscode
 LICENSE
 Makefile
+scripts
+README.md
