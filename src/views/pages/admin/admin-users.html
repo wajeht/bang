@@ -126,7 +126,7 @@
                   <button
                       type="button"
                       class="no-style-btn"
-                      onclick="showDeleteUserModal('<%= user.id %>', '<%= (user.username').replace(/'/g, '\\\'') %>')"
+                      onclick="showDeleteUserModal('<%= user.id %>', '<%= (user.username || 'Unknown User').replace(/'/g, '\\\'') %>')"
                       aria-label="Delete user <%= user.username %>"
                   >
                     🗑️ Delete
