@@ -1,12 +1,10 @@
-<section style="display: flex; flex-direction: column; gap: 30px; align-items: center;">
-
+<section style="display: flex; flex-direction: column; gap: 30px; align-items: center; max-width: 500px; margin: 0 auto">
   <header>
     <h2>🚀 Launching: <%= tabGroup ? tabGroup.title : '' %> <span style="color: #888; font-size: 0.8em;">(<%= tabGroup ? tabGroup.trigger : '' %>)</span></h2>
     <p>Opening your current tabs...</p>
   </header>
 
   <% if (tabs && tabs.length > 0) { %>
-
     <ul>
       <% tabs.forEach(t => { %>
         <li>
@@ -14,18 +12,60 @@
         </li>
       <% }) %>
     </ul>
-
     <script>
       const urls = JSON.parse('<%- JSON.stringify(tabs.map(t => t.url)) %>');
-      urls.forEach(url => window.open(url, '_blank'));
-      window.history.back();
+      let successfulPopups = 0;
+      let totalUrls = urls.length;
+
+      function showPopupBlockedMessage() {
+        document.getElementById('popup-message').style.display = 'block';
+      }
+
+      function goBack() {
+        window.history.back();
+      }
+
+      urls.forEach((url, index) => {
+        try {
+          const popup = window.open(url, '_blank');
+
+          if (popup && !popup.closed) {
+            setTimeout(() => {
+              try {
+                if (popup.location || popup.document) {
+                  successfulPopups++;
+                }
+              } catch (e) {
+                successfulPopups++;
+              }
+
+              if (popup.closed) {
+              } else {
+                successfulPopups++;
+              }
+            }, 250);
+          }
+        } catch (e) {}
+      });
+
+      setTimeout(() => {
+        if (successfulPopups === 0) {
+          showPopupBlockedMessage();
+        } else {
+          goBack();
+        }
+      }, 500);
     </script>
-
   <% } else { %>
-
     <div style="color: #888;">No tabs in this group to launch.</div>
-
   <% } %>
+
+  <div id="popup-message" style="display: none; border: 1px solid var(--border-color); border-radius: 5px; padding: 20px; text-align: center;">
+    <h3>⚠️ Popup Blocked!</h3>
+    <p>Your browser blocked the popup windows. Please allow popups for this site or open the links manually below.</p>
+    <br>
+    <button onclick="document.getElementById('popup-message').style.display='none'">Dismiss</button>
+  </div>
 
   <noscript>
     <p>Enable JavaScript to auto-open your tabs. Or open these links manually:</p>
@@ -35,5 +75,4 @@
       <% }) %>
     </ul>
   </noscript>
-
 </section>
