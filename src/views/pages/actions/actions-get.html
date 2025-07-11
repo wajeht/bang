@@ -200,6 +200,7 @@
                                             role="menuitem"
                                         >
                                             🔗 Tab
+                                        </a>
                                         <a
                                             href="/actions/<%= data[i].id %>/edit"
                                             style="display: inline-flex; align-items: center;"
@@ -208,21 +209,15 @@
                                             ✏️ Edit
                                         </a>
 
-                                        <button type="button" class="no-style-btn" style="text-align: left;" onclick="document.getElementById('delete-action-<%= data[i].id %>-modal').showModal()" role="menuitem">
+                                        <button
+                                            type="button"
+                                            class="no-style-btn"
+                                            style="text-align: left;"
+                                            onclick="showDeleteModal('<%= data[i].id %>', '<%= data[i].name.replace(/'/g, '\\\'') %>')"
+                                            role="menuitem"
+                                        >
                                             🗑️ Delete
                                         </button>
-
-                                        <dialog id="delete-action-<%= data[i].id %>-modal" aria-labelledby="delete-action-<%= data[i].id %>-title">
-                                            <h2 id="delete-action-<%= data[i].id %>-title">Confirm</h2>
-                                            <p>Are you sure you want to delete <strong><%= data[i].name %></strong>?</p>
-                                            <form action="/actions/<%= data[i].id %>/delete" method="POST">
-                                                <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
-                                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                                                    <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-                                                    <button type="submit">🗑️ Delete</button>
-                                                </div>
-                                            </form>
-                                        </dialog>
                                     </div>
                                 </details>
                             </td>
@@ -253,5 +248,31 @@
         direction,
         search
     }) %>
+
+    <!-- Single reusable modal -->
+    <dialog id="delete-action-modal" aria-labelledby="delete-action-title">
+        <h2 id="delete-action-title">Confirm</h2>
+        <p>Are you sure you want to delete <strong id="delete-action-name"></strong>?</p>
+        <form id="delete-action-form" method="POST">
+            <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" onclick="document.getElementById('delete-action-modal').close()">❌ Cancel</button>
+                <button type="submit">🗑️ Delete</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script>
+        function showDeleteModal(actionId, actionName) {
+            const modal = document.getElementById('delete-action-modal');
+            const nameElement = document.getElementById('delete-action-name');
+            const form = document.getElementById('delete-action-form');
+
+            nameElement.textContent = actionName;
+            form.action = `/actions/${actionId}/delete`;
+
+            modal.showModal();
+        }
+    </script>
 
 </section>
