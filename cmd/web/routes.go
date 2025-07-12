@@ -2,10 +2,16 @@ package main
 
 import (
 	"net/http"
+
+	"github.com/wajeht/bang/assets"
 )
 
 func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
+
+	fileServer := http.FileServer(http.FS(assets.EmbddedFiels))
+
+	mux.Handle("GET /static/", app.neuterMiddleware(fileServer))
 
 	mux.HandleFunc("GET /{$}", app.getHomePageHandler)
 
