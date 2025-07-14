@@ -8,6 +8,9 @@ dev:
 build:
 	@go build -o ./bin/bang ./cmd/web/
 
+rmds:
+	@find . -name '.DS_Store' -delete
+
 push:
 	@git add -A
 	@curl -s https://commit.jaw.dev/ | sh
