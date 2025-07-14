@@ -1,13 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
+	"os"
+	"runtime/debug"
+
+	"github.com/wajeht/bang/internal/env"
 )
 
 type email struct {
 	host     string
-	port     string
+	port     int
 	secure   string
 	user     string
 	password string
@@ -16,7 +19,7 @@ type email struct {
 
 type app struct {
 	appUrl     string
-	appPort    string
+	appPort    int
 	env        string
 	adminEmail string
 }
@@ -44,5 +47,27 @@ type application struct {
 }
 
 func main() {
-	fmt.Println("hello world")
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	err := run(logger)
+
+	if err != nil {
+		trace := string(debug.Stack())
+		logger.Error(err.Error(), "trace", trace)
+		os.Exit(1)
+	}
+}
+
+func run(logger *slog.Logger) error {
+	var cfg config
+
+	cfg.app.appUrl = env.GetString("APP_URL", "http://localhost:80")
+	cfg.app.appPort = env.GetInt("APP_PORT", 80)
+
+	app := &application{
+		config: cfg,
+		logger: logger,
+	}
+
+	return app.serveHTTP()
 }
