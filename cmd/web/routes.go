@@ -19,5 +19,11 @@ func (app *application) routes() http.Handler {
 
 	mux.HandleFunc("GET /favicon.ico", app.getFaviconDotIcoHadnler)
 
+	mux.HandleFunc("GET /healthz", app.getHealthZHandler)
+
+	mux.HandleFunc("GET /privacy-policy", app.getPrivacyPolicyHandler)
+
+	mux.HandleFunc("GET /terms-of-service", app.getTermsOfServiceHandler)
+
 	return mux
 }
