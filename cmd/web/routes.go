@@ -9,7 +9,7 @@ import (
 func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
 
-	fileServer := http.FileServer(http.FS(assets.EmbddedFiels))
+	fileServer := http.FileServer(http.FS(assets.EmbeddedFiles))
 
 	mux.Handle("GET /static/", app.neuterMiddleware(fileServer))
 

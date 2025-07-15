@@ -5,4 +5,4 @@ import (
 )
 
 //go:embed "views" "static"
-var EmbddedFiels embed.FS
+var EmbeddedFiles embed.FS

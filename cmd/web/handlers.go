@@ -1,7 +1,10 @@
 package main
 
 import (
+	"io"
 	"net/http"
+
+	"github.com/wajeht/bang/assets"
 )
 
 func (app *application) getHomePageHandler(w http.ResponseWriter, r *http.Request) {
@@ -9,9 +12,24 @@ func (app *application) getHomePageHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) getRobotsDotTxtHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("getRobotsDotTXTHandler()"))
+	f, err := assets.EmbeddedFiles.Open("static/robots.txt")
+	if err != nil {
+		app.serverErrorHandler(w, r, err)
+	}
+	defer f.Close()
+
+	w.Header().Set("Content-Type", "text/plain")
+	io.Copy(w, f)
 }
 
 func (app *application) getFaviconDotIcoHadnler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("getFaviconDotIcoHadnler()"))
+	f, err := assets.EmbeddedFiles.Open("static/favicon.ico")
+	if err != nil {
+		app.serverErrorHandler(w, r, err)
+
+	}
+	defer f.Close()
+
+	w.Header().Set("Content-Type", "image/x-icon")
+	io.Copy(w, f)
 }
