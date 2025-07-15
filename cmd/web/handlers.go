@@ -11,6 +11,14 @@ func (app *application) getHomePageHandler(w http.ResponseWriter, r *http.Reques
 	w.Write([]byte("geHomePageHandler()"))
 }
 
+func (app *application) getPrivacyPolicyHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("getPrivacyPolicyHandler()"))
+}
+
+func (app *application) getTermsOfServiceHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("getTermsOfServiceHandler()"))
+}
+
 func (app *application) getRobotsDotTxtHandler(w http.ResponseWriter, r *http.Request) {
 	f, err := assets.EmbeddedFiles.Open("static/robots.txt")
 	if err != nil {
