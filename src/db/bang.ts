@@ -94287,7 +94287,7 @@ export const bangs: Record<string, any> = {
         s: "Terms of Service; Didn't Read",
         d: 'tosdr.org',
         t: 'tosdr',
-        u: 'https://tosdr.org/#search={{{s}}}',
+        u: 'https://tosdr.org/search/{{{s}}}',
         c: 'Online Services',
         sc: 'Tools',
     },
