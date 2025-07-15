@@ -19,6 +19,10 @@ func (app *application) getTermsOfServiceHandler(w http.ResponseWriter, r *http.
 	w.Write([]byte("getTermsOfServiceHandler()"))
 }
 
+func (app *application) getHealthZHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("getHealthZHandler()"))
+}
+
 func (app *application) getRobotsDotTxtHandler(w http.ResponseWriter, r *http.Request) {
 	f, err := assets.EmbeddedFiles.Open("static/robots.txt")
 	if err != nil {
