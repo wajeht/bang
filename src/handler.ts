@@ -1870,50 +1870,52 @@ export function getTabsPageHandler(db: Knex) {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'tabs');
 
-        let tabsQuery = db.select('tabs.*').from('tabs').where('tabs.user_id', user.id);
+        let tabsQuery = db
+            .select(
+                'tabs.*',
+                db.raw('GROUP_CONCAT(tab_items.id) as item_ids'),
+                db.raw('GROUP_CONCAT(tab_items.title) as item_titles'),
+                db.raw('GROUP_CONCAT(tab_items.url) as item_urls'),
+                db.raw('GROUP_CONCAT(tab_items.created_at) as item_created_ats')
+            )
+            .from('tabs')
+            .leftJoin('tab_items', 'tabs.id', 'tab_items.tab_id')
+            .where('tabs.user_id', user.id)
+            .groupBy('tabs.id');
 
         if (search) {
             tabsQuery = tabsQuery.where((builder) => {
                 builder
                     .whereRaw('LOWER(tabs.title) LIKE ?', [`%${search.toLowerCase()}%`])
                     .orWhereRaw('LOWER(tabs.trigger) LIKE ?', [`%${search.toLowerCase()}%`])
-                    .orWhereExists((subquery) => {
-                        subquery
-                            .select(db.raw('1'))
-                            .from('tab_items')
-                            .whereRaw('tab_items.tab_id = tabs.id')
-                            .where((itemBuilder) => {
-                                itemBuilder
-                                    .whereRaw('LOWER(tab_items.title) LIKE ?', [
-                                        `%${search.toLowerCase()}%`,
-                                    ])
-                                    .orWhereRaw('LOWER(tab_items.url) LIKE ?', [
-                                        `%${search.toLowerCase()}%`,
-                                    ]);
-                            });
-                    });
+                    .orWhereRaw('LOWER(tab_items.title) LIKE ?', [`%${search.toLowerCase()}%`])
+                    .orWhereRaw('LOWER(tab_items.url) LIKE ?', [`%${search.toLowerCase()}%`]);
             });
         }
 
-        const { data: tabs, pagination } = await tabsQuery
+        const { data: rawTabs, pagination } = await tabsQuery
             .orderBy(sortKey || 'created_at', direction || 'desc')
             .paginate({ perPage, currentPage: page, isLengthAware: true });
 
-        for (const tab of tabs) {
-            let itemsQuery = db.select('*').from('tab_items').where('tab_id', tab.id);
+        const tabs = rawTabs.map((tab) => {
+            const items = [];
+            if (tab.item_ids) {
+                const ids = tab.item_ids.split(',');
+                const titles = tab.item_titles.split(',');
+                const urls = tab.item_urls.split(',');
+                const createdAts = tab.item_created_ats.split(',');
 
-            // If we have a search term, only show tab items that match the search
-            if (search) {
-                itemsQuery = itemsQuery.where((builder) => {
-                    builder
-                        .whereRaw('LOWER(tab_items.title) LIKE ?', [`%${search.toLowerCase()}%`])
-                        .orWhereRaw('LOWER(tab_items.url) LIKE ?', [`%${search.toLowerCase()}%`]);
-                });
+                for (let i = 0; i < ids.length; i++) {
+                    items.push({
+                        id: ids[i],
+                        title: titles[i],
+                        url: urls[i],
+                        created_at: createdAts[i],
+                    });
+                }
             }
-
-            const items = await itemsQuery.orderBy('created_at', 'asc');
-            tab.items = items;
-        }
+            return { ...tab, items };
+        });
 
         if (isApiRequest(req)) {
             res.status(200).json({
