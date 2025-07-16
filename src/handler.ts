@@ -1868,20 +1868,48 @@ export function getBangsPage() {
 export function getTabsPageHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
+        const { perPage, page, search, sortKey, direction } = extractPagination(req, 'tabs');
 
-        const tabs = await db
-            .select('*')
+        // Build base query for tabs
+        let tabsQuery = db
+            .select('tabs.*')
             .from('tabs')
-            .where('user_id', user.id)
-            .orderBy('created_at', 'asc');
+            .where('tabs.user_id', user.id);
 
+        // Apply search filter if search term exists
+        if (search) {
+            tabsQuery = tabsQuery.where((builder) => {
+                // Search in tab title and trigger
+                builder
+                    .whereRaw('LOWER(tabs.title) LIKE ?', [`%${search.toLowerCase()}%`])
+                    .orWhereRaw('LOWER(tabs.trigger) LIKE ?', [`%${search.toLowerCase()}%`])
+                    // Also include tabs that have matching tab items
+                    .orWhereRaw(`EXISTS (
+                        SELECT 1 FROM tab_items
+                        WHERE tab_items.tab_id = tabs.id
+                        AND (
+                            LOWER(tab_items.title) LIKE ?
+                            OR LOWER(tab_items.url) LIKE ?
+                        )
+                    )`, [`%${search.toLowerCase()}%`, `%${search.toLowerCase()}%`]);
+            });
+        }
+
+        // Apply sorting and pagination
+        const { data: tabs, pagination } = await tabsQuery
+            .orderBy(sortKey || 'created_at', direction || 'desc')
+            .paginate({ perPage, currentPage: page, isLengthAware: true });
+
+        // Get tab items for each tab
         for (const tab of tabs) {
-            const items = await db
+            const itemsQuery = db
                 .select('*')
                 .from('tab_items')
-                .where('tab_id', tab.id)
-                .orderBy('created_at', 'asc');
+                .where('tab_id', tab.id);
 
+            // If we have a search term, highlight matching items but still show all items for the tab
+            // This way users can see the full context of the tab group
+            const items = await itemsQuery.orderBy('created_at', 'asc');
             tab.items = items;
         }
 
@@ -1889,6 +1917,10 @@ export function getTabsPageHandler(db: Knex) {
             res.status(200).json({
                 message: 'Tabs retrieved successfully',
                 data: tabs,
+                pagination,
+                search,
+                sortKey,
+                direction,
             });
             return;
         }
@@ -1900,6 +1932,10 @@ export function getTabsPageHandler(db: Knex) {
             howToContent: await getConvertedReadmeMDToHTML(),
             tabs,
             user,
+            pagination,
+            search,
+            sortKey,
+            direction,
         });
     };
 }
