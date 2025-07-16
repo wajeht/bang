@@ -402,6 +402,10 @@ export function extractPagination(req: Request, pageType: PageType | 'admin') {
         defaultPerPage = user.column_preferences.notes.default_per_page;
     }
 
+    if (pageType === 'tabs') {
+        defaultPerPage = user.column_preferences.tabs?.default_per_page || 10;
+    }
+
     if (pageType === 'admin') {
         defaultPerPage = user.column_preferences.users.default_per_page;
     }
