@@ -48,6 +48,13 @@ export async function up(knex: Knex): Promise<void> {
                         pinned: true,
                         view_type: 'table',
                     },
+                    tabs: {
+                        title: true,
+                        trigger: true,
+                        items_count: true,
+                        default_per_page: 10,
+                        created_at: true,
+                    },
                     users: {
                         username: true,
                         email: true,
