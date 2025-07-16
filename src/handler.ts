@@ -1877,17 +1877,17 @@ export function getTabsPageHandler(db: Knex) {
                 builder
                     .whereRaw('LOWER(tabs.title) LIKE ?', [`%${search.toLowerCase()}%`])
                     .orWhereRaw('LOWER(tabs.trigger) LIKE ?', [`%${search.toLowerCase()}%`])
-                    .orWhereRaw(
-                        `EXISTS (
-                        SELECT 1 FROM tab_items
-                        WHERE tab_items.tab_id = tabs.id
-                        AND (
-                            LOWER(tab_items.title) LIKE ?
-                            OR LOWER(tab_items.url) LIKE ?
-                        )
-                    )`,
-                        [`%${search.toLowerCase()}%`, `%${search.toLowerCase()}%`],
-                    );
+                    .orWhereExists((subquery) => {
+                        subquery
+                            .select(db.raw('1'))
+                            .from('tab_items')
+                            .whereRaw('tab_items.tab_id = tabs.id')
+                            .where((itemBuilder) => {
+                                itemBuilder
+                                    .whereRaw('LOWER(tab_items.title) LIKE ?', [`%${search.toLowerCase()}%`])
+                                    .orWhereRaw('LOWER(tab_items.url) LIKE ?', [`%${search.toLowerCase()}%`]);
+                            });
+                    });
             });
         }
 
