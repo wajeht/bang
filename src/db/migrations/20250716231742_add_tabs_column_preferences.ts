@@ -37,3 +37,7 @@ export async function up(knex: Knex): Promise<void> {
         }
     });
 }
+
+export async function down(knex: Knex): Promise<void> {
+    // We don't want to remove tabs configuration once added
+}
