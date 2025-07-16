@@ -1870,20 +1870,16 @@ export function getTabsPageHandler(db: Knex) {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'tabs');
 
-        // Build base query for tabs
         let tabsQuery = db
             .select('tabs.*')
             .from('tabs')
             .where('tabs.user_id', user.id);
 
-        // Apply search filter if search term exists
         if (search) {
             tabsQuery = tabsQuery.where((builder) => {
-                // Search in tab title and trigger
                 builder
                     .whereRaw('LOWER(tabs.title) LIKE ?', [`%${search.toLowerCase()}%`])
                     .orWhereRaw('LOWER(tabs.trigger) LIKE ?', [`%${search.toLowerCase()}%`])
-                    // Also include tabs that have matching tab items
                     .orWhereRaw(`EXISTS (
                         SELECT 1 FROM tab_items
                         WHERE tab_items.tab_id = tabs.id
@@ -1895,20 +1891,16 @@ export function getTabsPageHandler(db: Knex) {
             });
         }
 
-        // Apply sorting and pagination
         const { data: tabs, pagination } = await tabsQuery
             .orderBy(sortKey || 'created_at', direction || 'desc')
             .paginate({ perPage, currentPage: page, isLengthAware: true });
 
-        // Get tab items for each tab
         for (const tab of tabs) {
             const itemsQuery = db
                 .select('*')
                 .from('tab_items')
                 .where('tab_id', tab.id);
 
-            // If we have a search term, highlight matching items but still show all items for the tab
-            // This way users can see the full context of the tab group
             const items = await itemsQuery.orderBy('created_at', 'asc');
             tab.items = items;
         }
