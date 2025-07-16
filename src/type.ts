@@ -25,7 +25,7 @@ import type { Request, Response } from 'express';
 
 export type DefaultSearchProviders = 'duckduckgo' | 'google' | 'yahoo' | 'bing';
 
-export type PageType = 'actions' | 'bookmarks' | 'notes';
+export type PageType = 'actions' | 'bookmarks' | 'notes' | 'tabs';
 
 export type ActionTypes = 'bookmark' | 'redirect' | 'search';
 
@@ -82,6 +82,13 @@ export type ColumnPreferences = {
         created_at: boolean;
         pinned: boolean;
         view_type: 'table' | 'list';
+    };
+    tabs: {
+        title: boolean;
+        trigger: boolean;
+        items_count: boolean;
+        default_per_page: number;
+        created_at: boolean;
     };
     users: {
         username: boolean;
