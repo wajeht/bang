@@ -1870,24 +1870,24 @@ export function getTabsPageHandler(db: Knex) {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'tabs');
 
-        let tabsQuery = db
-            .select('tabs.*')
-            .from('tabs')
-            .where('tabs.user_id', user.id);
+        let tabsQuery = db.select('tabs.*').from('tabs').where('tabs.user_id', user.id);
 
         if (search) {
             tabsQuery = tabsQuery.where((builder) => {
                 builder
                     .whereRaw('LOWER(tabs.title) LIKE ?', [`%${search.toLowerCase()}%`])
                     .orWhereRaw('LOWER(tabs.trigger) LIKE ?', [`%${search.toLowerCase()}%`])
-                    .orWhereRaw(`EXISTS (
+                    .orWhereRaw(
+                        `EXISTS (
                         SELECT 1 FROM tab_items
                         WHERE tab_items.tab_id = tabs.id
                         AND (
                             LOWER(tab_items.title) LIKE ?
                             OR LOWER(tab_items.url) LIKE ?
                         )
-                    )`, [`%${search.toLowerCase()}%`, `%${search.toLowerCase()}%`]);
+                    )`,
+                        [`%${search.toLowerCase()}%`, `%${search.toLowerCase()}%`],
+                    );
             });
         }
 
@@ -1896,10 +1896,7 @@ export function getTabsPageHandler(db: Knex) {
             .paginate({ perPage, currentPage: page, isLengthAware: true });
 
         for (const tab of tabs) {
-            const itemsQuery = db
-                .select('*')
-                .from('tab_items')
-                .where('tab_id', tab.id);
+            const itemsQuery = db.select('*').from('tab_items').where('tab_id', tab.id);
 
             const items = await itemsQuery.orderBy('created_at', 'asc');
             tab.items = items;
