@@ -1876,7 +1876,7 @@ export function getTabsPageHandler(db: Knex) {
                 db.raw('GROUP_CONCAT(tab_items.id) as item_ids'),
                 db.raw('GROUP_CONCAT(tab_items.title) as item_titles'),
                 db.raw('GROUP_CONCAT(tab_items.url) as item_urls'),
-                db.raw('GROUP_CONCAT(tab_items.created_at) as item_created_ats')
+                db.raw('GROUP_CONCAT(tab_items.created_at) as item_created_ats'),
             )
             .from('tabs')
             .leftJoin('tab_items', 'tabs.id', 'tab_items.tab_id')
