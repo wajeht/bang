@@ -1884,8 +1884,12 @@ export function getTabsPageHandler(db: Knex) {
                             .whereRaw('tab_items.tab_id = tabs.id')
                             .where((itemBuilder) => {
                                 itemBuilder
-                                    .whereRaw('LOWER(tab_items.title) LIKE ?', [`%${search.toLowerCase()}%`])
-                                    .orWhereRaw('LOWER(tab_items.url) LIKE ?', [`%${search.toLowerCase()}%`]);
+                                    .whereRaw('LOWER(tab_items.title) LIKE ?', [
+                                        `%${search.toLowerCase()}%`,
+                                    ])
+                                    .orWhereRaw('LOWER(tab_items.url) LIKE ?', [
+                                        `%${search.toLowerCase()}%`,
+                                    ]);
                             });
                     });
             });
