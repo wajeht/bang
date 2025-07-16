@@ -25,7 +25,7 @@ export async function up(knex: Knex): Promise<void> {
 
                 updates.push({
                     id: user.id,
-                    column_preferences: JSON.stringify(columnPreferences)
+                    column_preferences: JSON.stringify(columnPreferences),
                 });
             }
         }
