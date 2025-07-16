@@ -1900,7 +1900,16 @@ export function getTabsPageHandler(db: Knex) {
             .paginate({ perPage, currentPage: page, isLengthAware: true });
 
         for (const tab of tabs) {
-            const itemsQuery = db.select('*').from('tab_items').where('tab_id', tab.id);
+            let itemsQuery = db.select('*').from('tab_items').where('tab_id', tab.id);
+
+            // If we have a search term, only show tab items that match the search
+            if (search) {
+                itemsQuery = itemsQuery.where((builder) => {
+                    builder
+                        .whereRaw('LOWER(tab_items.title) LIKE ?', [`%${search.toLowerCase()}%`])
+                        .orWhereRaw('LOWER(tab_items.url) LIKE ?', [`%${search.toLowerCase()}%`]);
+                });
+            }
 
             const items = await itemsQuery.orderBy('created_at', 'asc');
             tab.items = items;
