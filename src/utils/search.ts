@@ -556,13 +556,6 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 })
                 .delete();
 
-            if (deletedBangs === 0) {
-                return goBackWithValidationAlert(
-                    res,
-                    `Bang '${bangToDelete}' not found or you don't have permission to delete it`,
-                );
-            }
-
             const deletedTabs = await db('tabs')
                 .where({
                     user_id: user.id,
@@ -570,10 +563,10 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 })
                 .delete();
 
-            if (deletedTabs === 0) {
+            if (deletedBangs === 0 && deletedTabs === 0) {
                 return goBackWithValidationAlert(
                     res,
-                    `Tab '${bangToDelete}' not found or you don't have permission to delete it`,
+                    `Bang '${bangToDelete}' not found or you don't have permission to delete it`,
                 );
             }
 

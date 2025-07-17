@@ -1326,6 +1326,43 @@ describe('search', () => {
                     expect.stringContaining('duckduckgo.com'),
                 );
             });
+
+            it('should successfully delete an existing tab only', async () => {
+                await db('tabs').insert({
+                    id: 2000,
+                    user_id: 1,
+                    trigger: '!tabonly',
+                    title: 'Tab Only Test',
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                });
+
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!del !tabonly',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('window.history.back()'),
+                );
+
+                const deletedTab = await db('tabs')
+                    .where({ user_id: 1, trigger: '!tabonly' })
+                    .first();
+                expect(deletedTab).toBeUndefined();
+
+                await db('tabs').where({ id: 2000 }).delete();
+            });
         });
 
         describe('!edit command', () => {
