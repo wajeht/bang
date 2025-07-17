@@ -165,6 +165,7 @@ export function getActionsHandler(actions: Actions) {
             search,
             sortKey,
             direction,
+            highlight: !isApiRequest(req),
         });
 
         if (isApiRequest(req)) {
@@ -519,6 +520,7 @@ export function getBookmarksHandler(bookmarks: Bookmarks) {
             search,
             sortKey,
             direction,
+            highlight: !isApiRequest(req),
         });
 
         if (isApiRequest(req)) {
@@ -1446,6 +1448,7 @@ export function getNotesHandler(notes: Notes) {
             search,
             sortKey,
             direction,
+            highlight: !isApiRequest(req),
         });
 
         if (isApiRequest(req)) {
@@ -1895,7 +1898,6 @@ export function getBangsPage() {
             total: sortedBangs.length,
         });
 
-        // Apply highlighting if search exists
         const highlightedData = searchTerm
             ? data.map((bang) => ({
                   ...bang,
@@ -1931,8 +1933,6 @@ export function getTabsPageHandler(db: Knex) {
 
         let tabsQuery = db
             .select('tabs.id', 'tabs.user_id', 'tabs.created_at', 'tabs.updated_at')
-            .select(db.raw(`${sqlHighlight('tabs.title', search)} as title`))
-            .select(db.raw(`${sqlHighlight('tabs.trigger', search)} as trigger`))
             .select(
                 db.raw(
                     '(SELECT COUNT(*) FROM tab_items WHERE tab_items.tab_id = tabs.id) as items_count',
@@ -1940,6 +1940,14 @@ export function getTabsPageHandler(db: Knex) {
             )
             .from('tabs')
             .where('tabs.user_id', user.id);
+
+        if (!isApiRequest(req) && search) {
+            tabsQuery = tabsQuery
+                .select(db.raw(`${sqlHighlight('tabs.title', search)} as title`))
+                .select(db.raw(`${sqlHighlight('tabs.trigger', search)} as trigger`));
+        } else {
+            tabsQuery = tabsQuery.select('tabs.title').select('tabs.trigger');
+        }
 
         if (search) {
             tabsQuery = tabsQuery.where((builder) => {
@@ -1968,14 +1976,21 @@ export function getTabsPageHandler(db: Knex) {
             .orderBy(sortKey || 'created_at', direction || 'desc')
             .paginate({ perPage, currentPage: page, isLengthAware: true });
 
-        // Fetch all tab items in one query with highlighting
         const tabIds = tabs.map((tab) => tab.id);
         let itemsQuery = db
             .select('id', 'tab_id', 'created_at', 'updated_at')
-            .select(db.raw(`${sqlHighlight('tab_items.title', search)} as title`))
-            .select(db.raw(`${sqlHighlight('tab_items.url', search)} as url`))
             .from('tab_items')
             .whereIn('tab_id', tabIds);
+
+        if (!isApiRequest(req) && search) {
+            itemsQuery = itemsQuery
+                .select(db.raw(`${sqlHighlight('tab_items.title', search)} as title`))
+                .select(db.raw(`${sqlHighlight('tab_items.url', search)} as url`));
+        } else {
+            itemsQuery = itemsQuery
+                .select('tab_items.title as title')
+                .select('tab_items.url as url');
+        }
 
         if (search) {
             itemsQuery = itemsQuery.where((builder) => {

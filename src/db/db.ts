@@ -126,21 +126,33 @@ export const actions: Actions = {
         search = '',
         sortKey = 'created_at',
         direction = 'desc',
+        highlight = false,
     }: ActionsQueryParams) => {
-        const query = db
-            .select(
-                'bangs.id',
-                'bangs.user_id',
-                'bangs.action_type_id',
-                'bangs.created_at',
-                'bangs.updated_at',
-                'bangs.last_read_at',
-                'bangs.usage_count',
-            )
-            .select(db.raw(`${sqlHighlight('bangs.name', search)} as name`))
-            .select(db.raw(`${sqlHighlight('bangs.trigger', search)} as trigger`))
-            .select(db.raw(`${sqlHighlight('bangs.url', search)} as url`))
-            .select(db.raw(`${sqlHighlight('action_types.name', search)} as action_type`))
+        const query = db.select(
+            'bangs.id',
+            'bangs.user_id',
+            'bangs.action_type_id',
+            'bangs.created_at',
+            'bangs.updated_at',
+            'bangs.last_read_at',
+            'bangs.usage_count',
+        );
+
+        if (highlight && search) {
+            query
+                .select(db.raw(`${sqlHighlight('bangs.name', search)} as name`))
+                .select(db.raw(`${sqlHighlight('bangs.trigger', search)} as trigger`))
+                .select(db.raw(`${sqlHighlight('bangs.url', search)} as url`))
+                .select(db.raw(`${sqlHighlight('action_types.name', search)} as action_type`));
+        } else {
+            query
+                .select('bangs.name')
+                .select('bangs.trigger')
+                .select('bangs.url')
+                .select('action_types.name as action_type');
+        }
+
+        query
             .from('bangs')
             .join('action_types', 'bangs.action_type_id', 'action_types.id')
             .where('bangs.user_id', user.id);
@@ -290,13 +302,19 @@ export const bookmarks: Bookmarks = {
         search = '',
         sortKey = 'created_at',
         direction = 'desc',
+        highlight = false,
     }: BookmarksQueryParams) => {
-        const query = db
-            .select('id', 'user_id', 'pinned', 'created_at', 'updated_at')
-            .select(db.raw(`${sqlHighlight('title', search)} as title`))
-            .select(db.raw(`${sqlHighlight('url', search)} as url`))
-            .from('bookmarks')
-            .where('user_id', user.id);
+        const query = db.select('id', 'user_id', 'pinned', 'created_at', 'updated_at');
+
+        if (highlight && search) {
+            query
+                .select(db.raw(`${sqlHighlight('title', search)} as title`))
+                .select(db.raw(`${sqlHighlight('url', search)} as url`));
+        } else {
+            query.select('title').select('url');
+        }
+
+        query.from('bookmarks').where('user_id', user.id);
 
         if (search) {
             const searchTerms = search
@@ -391,13 +409,19 @@ export const notes: Notes = {
         search = '',
         sortKey = 'created_at',
         direction = 'desc',
+        highlight = false,
     }: NotesQueryParams) => {
-        const query = db
-            .select('id', 'user_id', 'pinned', 'created_at', 'updated_at')
-            .select(db.raw(`${sqlHighlight('title', search)} as title`))
-            .select(db.raw(`${sqlHighlight('content', search)} as content`))
-            .from('notes')
-            .where('user_id', user.id);
+        const query = db.select('id', 'user_id', 'pinned', 'created_at', 'updated_at');
+
+        if (highlight && search) {
+            query
+                .select(db.raw(`${sqlHighlight('title', search)} as title`))
+                .select(db.raw(`${sqlHighlight('content', search)} as content`));
+        } else {
+            query.select('title').select('content');
+        }
+
+        query.from('notes').where('user_id', user.id);
 
         if (search) {
             const searchTerms = search
