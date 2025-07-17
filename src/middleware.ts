@@ -43,6 +43,22 @@ export function errorMiddleware() {
         const statusCode = httpError.statusCode || 500;
         const message = httpError.message || 'The server encountered an internal error or misconfiguration and was unable to complete your request'; // prettier-ignore
 
+        logger.error(`${req.method} ${req.path} - ${error.message}`, {
+            error: {
+                stack: error.stack,
+                name: error.name,
+                cause: error.cause,
+            },
+            request: {
+                url: req.url,
+                method: req.method,
+                headers: req.headers,
+                query: req.query,
+                body: req.body,
+                userId: req.user?.id || req.session?.user?.id,
+            },
+        });
+
         if (isApiRequest(req)) {
             const responsePayload: any = {
                 message: statusCode === 422 ? 'Validation errors' : message,
