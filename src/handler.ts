@@ -2016,8 +2016,6 @@ export function getTabsPageHandler(db: Knex) {
             return;
         }
 
-        console.timeEnd('getTabsPageHandler()');
-
         return res.render('tabs/tabs-get.html', {
             title: 'Tabs',
             path: '/tabs',
