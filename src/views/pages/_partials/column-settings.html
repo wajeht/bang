@@ -167,7 +167,7 @@
           </div>
 
           <!-- Visible Columns -->
-          <fieldset style="border: none; padding: 0; margin: 0; <%= (user.column_preferences?.notes?.view_type === 'table') ? 'display:block' : 'display: none;' %>">
+          <fieldset style="border: none; padding: 0; margin: 0; <%= (user.column_preferences?.notes?.view_type === 'table') ? 'display:block;' : 'display: none;' %>">
             <legend style="font-weight: normal;">Columns <abbr style="color: red;" title="Required">*</abbr></legend>
             <label style="display: flex; align-items: center; gap: 10px;">
               <input
@@ -224,6 +224,63 @@
               <%= user.column_preferences?.notes?.view_type === 'card' ? 'checked' : '' %>
             >
             🗂️ Card View
+          </label>
+        </fieldset>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display: flex; flex-direction: column; gap: 15px; <%= path === '/tabs' ? '' : 'display: none;' %>">
+        <% if (path === "/tabs") { %>
+            <input type="hidden" name="path" value="<%= path %>" />
+        <% } %>
+
+        <!-- Items Per Page -->
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="tabs_per_page">🔢 Items Per Page <abbr style="color: red;" title="Required">*</abbr></label>
+          <input
+            type="number"
+            id="tabs_per_page"
+            name="column_preferences[tabs][default_per_page]"
+            value="<%= state.input.tabs_per_page ?? user.column_preferences.tabs?.default_per_page ?? 10 %>"
+            min="1"
+            required
+          >
+        </div>
+
+        <!-- Visible Columns -->
+        <fieldset style="border: none; padding: 0; margin: 0;">
+          <legend style="font-weight: normal;">Columns <abbr style="color: red;" title="Required">*</abbr></legend>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[tabs][title]"
+              <%= user.column_preferences?.tabs?.title !== false ? 'checked' : '' %>
+            >
+            🏷️ Title
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[tabs][trigger]"
+              <%= user.column_preferences?.tabs?.trigger !== false ? 'checked' : '' %>
+            >
+            🔥 Trigger
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[tabs][items_count]"
+              <%= user.column_preferences?.tabs?.items_count !== false ? 'checked' : '' %>
+            >
+            🗂️ Items Count
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[tabs][created_at]"
+              <%= user.column_preferences?.tabs?.created_at !== false ? 'checked' : '' %>
+            >
+            📅 Created At
           </label>
         </fieldset>
       </div>
