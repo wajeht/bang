@@ -374,6 +374,11 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 case '@actions':
                     redirectPath = `/actions?search=${encodeURIComponent(searchTerm)}`;
                     break;
+                case '@t':
+                case '@tab':
+                case '@tabs':
+                    redirectPath = `/tabs?search=${encodeURIComponent(searchTerm)}`;
+                    break;
             }
 
             if (redirectPath) {
