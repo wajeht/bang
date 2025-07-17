@@ -1517,7 +1517,7 @@ describe('search', () => {
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.stringContaining(
-                        "Bang !nonexistent not found or you don\'t have permission to edit it",
+                        "!nonexistent not found or you don\'t have permission to edit it",
                     ),
                 );
             });
@@ -1692,6 +1692,51 @@ describe('search', () => {
                 expect(updatedBang.url).toBe('https://new-without-prefix.com');
 
                 vi.mocked(isValidUrl).mockReset();
+            });
+
+            it('should successfully edit an existing tab trigger', async () => {
+                // Create a tab without a corresponding bang
+                await db('tabs').insert({
+                    id: 3000,
+                    user_id: 1,
+                    trigger: '!edittab',
+                    title: 'Edit Tab Test',
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                });
+
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit !edittab !newtab',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('window.history.back()'),
+                );
+
+                // Verify the tab trigger was updated
+                const updatedTab = await db('tabs')
+                    .where({ user_id: 1, trigger: '!newtab' })
+                    .first();
+                expect(updatedTab).toBeDefined();
+                expect(updatedTab.title).toBe('Edit Tab Test');
+
+                // Verify old trigger no longer exists
+                const oldTab = await db('tabs').where({ user_id: 1, trigger: '!edittab' }).first();
+                expect(oldTab).toBeUndefined();
+
+                // Clean up
+                await db('tabs').where({ id: 3000 }).delete();
             });
         });
 
