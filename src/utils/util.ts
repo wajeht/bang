@@ -473,18 +473,22 @@ export function sqlHighlight(columnName: string, searchTerm: string | null | und
         const upperWord = escapedWord.toUpperCase();
         const titleWord = escapedWord.charAt(0).toUpperCase() + escapedWord.slice(1).toLowerCase();
 
-        // Chain replacements for different case variations
-        sql = `REPLACE(
-            REPLACE(
-                REPLACE(${sql}, '${escapedWord}', '<mark>${escapedWord}</mark>'),
-                '${lowerWord}', '<mark>${lowerWord}</mark>'
-            ),
-            '${upperWord}', '<mark>${upperWord}</mark>'
-        )`;
+        // Apply REPLACE operations, avoiding duplicates
+        sql = `REPLACE(${sql}, '${escapedWord}', X'3C' || 'mark' || X'3E' || '${escapedWord}' || X'3C' || '/mark' || X'3E')`;
 
-        // Also handle title case if it's different from the original
+        // Only do lowercase if different from original
+        if (lowerWord !== escapedWord) {
+            sql = `REPLACE(${sql}, '${lowerWord}', X'3C' || 'mark' || X'3E' || '${lowerWord}' || X'3C' || '/mark' || X'3E')`;
+        }
+
+        // Only do uppercase if different from original and lowercase
+        if (upperWord !== escapedWord && upperWord !== lowerWord) {
+            sql = `REPLACE(${sql}, '${upperWord}', X'3C' || 'mark' || X'3E' || '${upperWord}' || X'3C' || '/mark' || X'3E')`;
+        }
+
+        // Only do title case if different from all others
         if (titleWord !== escapedWord && titleWord !== lowerWord && titleWord !== upperWord) {
-            sql = `REPLACE(${sql}, '${titleWord}', '<mark>${titleWord}</mark>')`;
+            sql = `REPLACE(${sql}, '${titleWord}', X'3C' || 'mark' || X'3E' || '${titleWord}' || X'3C' || '/mark' || X'3E')`;
         }
     }
 
@@ -636,7 +640,8 @@ export async function convertMarkdownToPlainText(
     try {
         const { marked } = await import('marked');
         const htmlOutput = await marked(markdownInput);
-        let plainText = (htmlOutput as string).replace(/<[^>]*>/g, '');
+        // Remove all HTML tags except <mark> tags for highlighting
+        let plainText = (htmlOutput as string).replace(/<(?!\/?mark\b)[^>]*>/g, '');
         plainText = plainText.replace(/\s+/g, ' ').trim();
 
         if (maxLength && plainText.length > maxLength) {
