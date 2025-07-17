@@ -154,7 +154,6 @@ export function getActionHandler(actions: Actions) {
 // GET /actions or /api/actions
 export function getActionsHandler(actions: Actions) {
     return async (req: Request, res: Response) => {
-        console.time('getActionsHandler()');
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'actions');
 
@@ -172,8 +171,6 @@ export function getActionsHandler(actions: Actions) {
             res.json({ data, pagination, search, sortKey, direction });
             return;
         }
-
-        console.timeEnd('getActionsHandler()');
 
         return res.render('./actions/actions-get.html', {
             user: req.session?.user,
@@ -482,7 +479,6 @@ export function getBookmarkCreatePageHandler() {
 // GET /bookmarks/:id or GET /api/bookmarks/:id
 export function getBookmarkHandler(bookmarks: Bookmarks) {
     return async (req: Request, res: Response) => {
-        console.time('getBookmarkHandler()');
         const user = req.user as User;
         const bookmark = await bookmarks.read(
             parseInt(req.params.id as unknown as string),
@@ -492,8 +488,6 @@ export function getBookmarkHandler(bookmarks: Bookmarks) {
         if (!bookmark) {
             throw new NotFoundError('Bookmark not found', req);
         }
-
-        console.timeEnd('getBookmarkHandler()');
 
         if (isApiRequest(req)) {
             res.status(200).json({
@@ -1437,7 +1431,6 @@ export function postNotesRenderMarkdownHandler() {
 // GET /notes or /api/notes
 export function getNotesHandler(notes: Notes) {
     return async (req: Request, res: Response) => {
-        console.time('getNotesHandler()');
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
 
@@ -1463,8 +1456,6 @@ export function getNotesHandler(notes: Notes) {
                 content: await convertMarkdownToPlainText(d.content, 200),
             })),
         );
-
-        console.timeEnd('getNotesHandler()');
 
         return res.render('./notes/notes-get.html', {
             user: req.session?.user,
@@ -1927,7 +1918,6 @@ export function getBangsPage() {
 // GET /tabs or GET /api/tabs
 export function getTabsPageHandler(db: Knex) {
     return async (req: Request, res: Response) => {
-        console.time('getTabsPageHandler()');
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'tabs');
 
