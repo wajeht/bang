@@ -27,6 +27,8 @@ import {
     getConvertedReadmeMDToHTML,
     convertMarkdownToPlainText,
     generateBookmarkHtmlExport,
+    sqlHighlight,
+    highlightSearchTerm,
 } from './utils/util';
 import { Knex } from 'knex';
 import { bangs } from './db/bang';
@@ -1893,12 +1895,25 @@ export function getBangsPage() {
             total: sortedBangs.length,
         });
 
+        // Apply highlighting if search exists
+        const highlightedData = searchTerm
+            ? data.map((bang) => ({
+                  ...bang,
+                  s: highlightSearchTerm(bang.s, String(searchTerm)),
+                  t: highlightSearchTerm(bang.t, String(searchTerm)),
+                  d: highlightSearchTerm(bang.d, String(searchTerm)),
+                  u: highlightSearchTerm(bang.u, String(searchTerm)),
+                  c: highlightSearchTerm(bang.c, String(searchTerm)),
+                  sc: highlightSearchTerm(bang.sc, String(searchTerm)),
+              }))
+            : data;
+
         return res.render('./bangs/bangs-get.html', {
             layout: '../layouts/auth.html',
             howToContent: await getConvertedReadmeMDToHTML(),
             user: req.session.user,
             path: req.path,
-            data,
+            data: highlightedData,
             pagination,
             search: searchTerm,
             sortKey: sort_key,
@@ -1915,7 +1930,9 @@ export function getTabsPageHandler(db: Knex) {
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'tabs');
 
         let tabsQuery = db
-            .select('tabs.*')
+            .select('tabs.id', 'tabs.user_id', 'tabs.created_at', 'tabs.updated_at')
+            .select(db.raw(`${sqlHighlight('tabs.title', search)} as title`))
+            .select(db.raw(`${sqlHighlight('tabs.trigger', search)} as trigger`))
             .select(
                 db.raw(
                     '(SELECT COUNT(*) FROM tab_items WHERE tab_items.tab_id = tabs.id) as items_count',
@@ -1951,9 +1968,14 @@ export function getTabsPageHandler(db: Knex) {
             .orderBy(sortKey || 'created_at', direction || 'desc')
             .paginate({ perPage, currentPage: page, isLengthAware: true });
 
-        // Fetch all tab items in one query
+        // Fetch all tab items in one query with highlighting
         const tabIds = tabs.map((tab) => tab.id);
-        let itemsQuery = db.select('*').from('tab_items').whereIn('tab_id', tabIds);
+        let itemsQuery = db
+            .select('id', 'tab_id', 'created_at', 'updated_at')
+            .select(db.raw(`${sqlHighlight('tab_items.title', search)} as title`))
+            .select(db.raw(`${sqlHighlight('tab_items.url', search)} as url`))
+            .from('tab_items')
+            .whereIn('tab_id', tabIds);
 
         if (search) {
             itemsQuery = itemsQuery.where((builder) => {

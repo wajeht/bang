@@ -103,13 +103,13 @@
                             <% if (state.user.column_preferences?.bookmarks?.title !== false) { %>
                                 <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                     <% if (data[i].pinned) { %>📌<% } %>
-                                    <%- utils.highlightSearchTerm(data[i].title || 'Untitled', search) %>
+                                    <%- data[i].title || 'Untitled' %>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.bookmarks?.url !== false) { %>
                                 <td style="padding: 10px;">
                                     <a style="overflow: auto; white-space: nowrap;" href="<%= data[i].url %>" title="<%= data[i].title %>" target="_blank" rel="noopener noreferrer">
-                                        <%- utils.highlightSearchTerm(data[i].url, search) %>
+                                        <%- data[i].url %>
                                     </a>
                                 </td>
                             <% } %>

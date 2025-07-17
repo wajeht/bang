@@ -172,10 +172,10 @@
                   <% for (let i = 0; i < tabs.length; i++) { %>
                       <tr class="tab-group-row" data-tab-id="<%= tabs[i].id %>" style="cursor: pointer;">
                           <% if (user.column_preferences?.tabs?.title !== false) { %>
-                          <td style="padding: 10px;"><%- utils.highlightSearchTerm(tabs[i].title, search) %></td>
+                          <td style="padding: 10px;"><%- tabs[i].title %></td>
                           <% } %>
                           <% if (user.column_preferences?.tabs?.trigger !== false) { %>
-                          <td style="padding: 10px;"><code><%- utils.highlightSearchTerm(tabs[i].trigger, search) %></code></td>
+                          <td style="padding: 10px;"><code><%- tabs[i].trigger %></code></td>
                           <% } %>
                           <% if (user.column_preferences?.tabs?.items_count !== false) { %>
                           <td style="padding: 10px;"><%= tabs[i].items.length %></td>
@@ -261,16 +261,16 @@
                               <tbody>
                                 <% for (let j = 0; j < tabs[i].items.length; j++) { %>
                                   <tr>
-                                    <% if (user.column_preferences?.tabs?.title !== false) { %>
-                                    <td>
-                                      <div style="font-weight: 500;"><%- utils.highlightSearchTerm(tabs[i].items[j].title, search) %></div>
-                                    </td>
-                                    <% } %>
-                                    <% if (user.column_preferences?.tabs?.trigger !== false) { %>
-                                    <td>
-                                      <a href="<%= tabs[i].items[j].url %>" target="_blank" rel="noopener noreferrer" style="word-break: break-all;"><%- utils.highlightSearchTerm(tabs[i].items[j].url, search) %></a>
-                                    </td>
-                                    <% } %>
+                                                                         <% if (user.column_preferences?.tabs?.title !== false) { %>
+                                     <td>
+                                       <div style="font-weight: 500;"><%- tabs[i].items[j].title %></div>
+                                     </td>
+                                     <% } %>
+                                     <% if (user.column_preferences?.tabs?.trigger !== false) { %>
+                                     <td>
+                                       <a href="<%= tabs[i].items[j].url %>" target="_blank" rel="noopener noreferrer" style="word-break: break-all;"><%- tabs[i].items[j].url %></a>
+                                     </td>
+                                     <% } %>
                                     <% if (user.column_preferences?.tabs?.items_count !== false) { %>
                                     <td></td>
                                     <% } %>
