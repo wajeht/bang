@@ -56,21 +56,25 @@ Before you can use the Bang command from your browser's search bar, you need to 
     - `[trigger]` is required
     - `[url]` is required
     - eg: `!add jaw https://bang.jaw.dev`
-- `!del [trigger]` - Delete a custom bang
-    - `[trigger]` is required (the bang trigger to delete)
+- `!del [trigger]` - Delete a custom bang or tab
+    - `[trigger]` is required (the bang/tab trigger to delete)
+    - Works with both bangs and tabs - will delete from both if they exist
     - eg: `!del jaw` or `!del !jaw`
-- `!edit [trigger] [new-trigger]` - Change a bang's trigger
-    - `[trigger]` is required (the current bang trigger)
+- `!edit [trigger] [new-trigger]` - Change a bang's or tab's trigger
+    - `[trigger]` is required (the current bang/tab trigger)
     - `[new-trigger]` is required (the new trigger name)
+    - Works with both bangs and tabs - will update whichever exists
     - eg: `!edit jaw !newjaw`
 - `!edit [trigger] [url]` - Change a bang's URL
     - `[trigger]` is required (the bang trigger to edit)
     - `[url]` is required (the new URL)
+    - Note: URL editing only applies to bangs, not tabs
     - eg: `!edit jaw https://new-url.com`
 - `!edit [trigger] [new-trigger] [url]` - Change both trigger and URL
     - `[trigger]` is required (the current bang trigger)
     - `[new-trigger]` is required (the new trigger name)
     - `[url]` is required (the new URL)
+    - Note: URL editing only applies to bangs, not tabs
     - eg: `!edit jaw !newjaw https://new-url.com`
 - `!note [title] | [content]` - Create a note
     - `[title]` is optional, if not provided, we will use it as `Untitled`
