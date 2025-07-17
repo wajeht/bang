@@ -13,6 +13,7 @@ import { Bang, Search } from '../type';
 import { Request, Response } from 'express';
 import { defaultSearchProviders } from './util';
 import { bangs as bangsTable } from '../db/bang';
+import { UnauthorizedError } from 'error';
 
 const searchConfig = {
     /**
@@ -378,6 +379,14 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 case '@tab':
                 case '@tabs':
                     redirectPath = `/tabs?search=${encodeURIComponent(searchTerm)}`;
+                    break;
+                case '@u':
+                case '@user':
+                case '@users':
+                    if (!user.is_admin) {
+                        throw new UnauthorizedError('You are not authorized to access this page');
+                    }
+                    redirectPath = `/admin/users?search=${encodeURIComponent(searchTerm)}`;
                     break;
             }
 
