@@ -11,9 +11,9 @@ import {
 import { db } from '../db/db';
 import { Bang, Search } from '../type';
 import { Request, Response } from 'express';
+import { UnauthorizedError } from '../error';
 import { defaultSearchProviders } from './util';
 import { bangs as bangsTable } from '../db/bang';
-import { UnauthorizedError } from '../error';
 
 const searchConfig = {
     /**
