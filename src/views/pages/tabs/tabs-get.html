@@ -98,8 +98,9 @@
             <button type="submit">🔍</button>
         </form>
 
-        <button type="button" aria-label="Delete all tab groups" onclick="document.getElementById('delete-all-tabs-modal').showModal()">🗑️</button>
         <button type="button" aria-label="Create new tab group" onclick="location.href='/tabs/create'">➕</button>
+        <button type="button" aria-label="Delete all tab groups" onclick="document.getElementById('delete-all-tabs-modal').showModal()">🗑️</button>
+		    <%- include('../_partials/column-settings.html') %>
       </div>
   </header>
 
@@ -108,6 +109,7 @@
           <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
               <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
                   <tr>
+                      <% if (user.column_preferences?.tabs?.title !== false) { %>
                       <th scope="col" style="text-align: left; padding: 10px;">
                           <a href="/tabs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=title&direction=<%= (sortKey === 'title' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
                              style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
@@ -120,6 +122,8 @@
                               <% } %>
                           </a>
                       </th>
+                      <% } %>
+                      <% if (user.column_preferences?.tabs?.trigger !== false) { %>
                       <th scope="col" style="text-align: left; padding: 10px;">
                           <a href="/tabs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=trigger&direction=<%= (sortKey === 'trigger' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
                              style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
@@ -132,16 +136,53 @@
                               <% } %>
                           </a>
                       </th>
-                      <th style="text-align: left; padding: 10px;">🗂️ Items</th>
+                      <% } %>
+                      <% if (user.column_preferences?.tabs?.items_count !== false) { %>
+                      <th scope="col" style="text-align: left; padding: 10px;">
+                          <a href="/tabs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=items_count&direction=<%= (sortKey === 'items_count' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                             style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                             aria-label="Sort by items count <%= (sortKey === 'items_count' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                              🗂️ Items
+                              <% if (sortKey === 'items_count') { %>
+                                  <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                              <% } else { %>
+                                  <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                              <% } %>
+                          </a>
+                      </th>
+                      <% } %>
+                      <% if (user.column_preferences?.tabs?.created_at !== false) { %>
+                      <th scope="col" style="text-align: left; padding: 10px;">
+                          <a href="/tabs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                             style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                             aria-label="Sort by created date <%= (sortKey === 'created_at' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                              📅 Created At
+                              <% if (sortKey === 'created_at') { %>
+                                  <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                              <% } else { %>
+                                  <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                              <% } %>
+                          </a>
+                      </th>
+                      <% } %>
                       <th style="text-align: left; padding: 10px;">🚀 Actions</th>
                   </tr>
               </thead>
               <tbody>
                   <% for (let i = 0; i < tabs.length; i++) { %>
                       <tr class="tab-group-row" data-tab-id="<%= tabs[i].id %>" style="cursor: pointer;">
+                          <% if (user.column_preferences?.tabs?.title !== false) { %>
                           <td style="padding: 10px;"><%- utils.highlightSearchTerm(tabs[i].title, search) %></td>
+                          <% } %>
+                          <% if (user.column_preferences?.tabs?.trigger !== false) { %>
                           <td style="padding: 10px;"><code><%- utils.highlightSearchTerm(tabs[i].trigger, search) %></code></td>
+                          <% } %>
+                          <% if (user.column_preferences?.tabs?.items_count !== false) { %>
                           <td style="padding: 10px;"><%= tabs[i].items.length %></td>
+                          <% } %>
+                          <% if (user.column_preferences?.tabs?.created_at !== false) { %>
+                          <td style="padding: 10px;"><time datetime="<%= tabs[i].created_at %>"><%= new Date(tabs[i].created_at).toLocaleDateString() %></time></td>
+                          <% } %>
                           <td style="padding: 10px;">
                             <details style="position: relative; display: inline-flex; align-items: center;">
                               <summary>Actions</summary>
@@ -166,7 +207,7 @@
                           </td>
                       </tr>
                       <tr id="details-<%= tabs[i].id %>" style="display: none; background: var(--sub-table-background);">
-                        <td colspan="4">
+                        <td colspan="<%= (user.column_preferences?.tabs?.title !== false ? 1 : 0) + (user.column_preferences?.tabs?.trigger !== false ? 1 : 0) + (user.column_preferences?.tabs?.items_count !== false ? 1 : 0) + (user.column_preferences?.tabs?.created_at !== false ? 1 : 0) + 1 %>">
                           <% if (tabs[i].items && tabs[i].items.length > 0) { %>
                             <style>
                               .sub-table {
@@ -199,20 +240,43 @@
 
                               }
                             </style>
-                            <table class="sub-table">
+                            <table class="sub-table" style="width: 100%; table-layout: fixed;">
                               <thead>
                                 <tr>
-                                  <th style="text-align: left; padding: 8px;">🔖 Title</th>
-                                  <th style="text-align: left; padding: 8px;">🌐 URL</th>
-                                  <th style="text-align: left; padding: 8px;"></th>
-                                  <th style="text-align: left; padding: 8px;">🚀 Sub Actions</th>
+                                  <% if (user.column_preferences?.tabs?.title !== false) { %>
+                                  <th style="text-align: left;">📝 Tab Items</th>
+                                  <% } %>
+                                  <% if (user.column_preferences?.tabs?.trigger !== false) { %>
+                                  <th style="text-align: left;">🌐 URL</th>
+                                  <% } %>
+                                  <% if (user.column_preferences?.tabs?.items_count !== false) { %>
+                                  <th style="text-align: left;"></th>
+                                  <% } %>
+                                  <% if (user.column_preferences?.tabs?.created_at !== false) { %>
+                                  <th style="text-align: left;"></th>
+                                  <% } %>
+                                  <th style="text-align: left;">🚀 Actions</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 <% for (let j = 0; j < tabs[i].items.length; j++) { %>
                                   <tr>
-                                    <td style="padding: 8px;"><%- utils.highlightSearchTerm(tabs[i].items[j].title, search) %></td>
-                                    <td colspan="2" style="padding: 8px;"><a href="<%= tabs[i].items[j].url %>" target="_blank" rel="noopener noreferrer"><%- utils.highlightSearchTerm(tabs[i].items[j].url, search) %></a></td>
+                                    <% if (user.column_preferences?.tabs?.title !== false) { %>
+                                    <td>
+                                      <div style="font-weight: 500;"><%- utils.highlightSearchTerm(tabs[i].items[j].title, search) %></div>
+                                    </td>
+                                    <% } %>
+                                    <% if (user.column_preferences?.tabs?.trigger !== false) { %>
+                                    <td>
+                                      <a href="<%= tabs[i].items[j].url %>" target="_blank" rel="noopener noreferrer" style="word-break: break-all;"><%- utils.highlightSearchTerm(tabs[i].items[j].url, search) %></a>
+                                    </td>
+                                    <% } %>
+                                    <% if (user.column_preferences?.tabs?.items_count !== false) { %>
+                                    <td></td>
+                                    <% } %>
+                                    <% if (user.column_preferences?.tabs?.created_at !== false) { %>
+                                    <td></td>
+                                    <% } %>
                                     <td style="padding: 8px;">
                                       <details style="position: relative; display: inline-flex; align-items: center;">
                                         <summary>Actions</summary>
