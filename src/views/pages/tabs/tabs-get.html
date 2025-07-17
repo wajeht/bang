@@ -253,7 +253,7 @@
                                   <th style="text-align: left;"></th>
                                   <% } %>
                                   <% if (user.column_preferences?.tabs?.created_at !== false) { %>
-                                  <th style="text-align: left;"></th>
+                                  <th style="text-align: left;">📅 Created At</th>
                                   <% } %>
                                   <th style="text-align: left;">🚀 Actions</th>
                                 </tr>
@@ -275,8 +275,10 @@
                                     <td></td>
                                     <% } %>
                                     <% if (user.column_preferences?.tabs?.created_at !== false) { %>
-                                    <td></td>
-                                    <% } %>
+                                     <td>
+                                       <time datetime="<%= tabs[i].items[j].created_at %>"><%= new Date(tabs[i].items[j].created_at).toLocaleDateString() %></time>
+                                     </td>
+                                     <% } %>
                                     <td style="padding: 8px;">
                                       <details style="position: relative; display: inline-flex; align-items: center;">
                                         <summary>Actions</summary>
