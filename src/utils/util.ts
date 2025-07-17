@@ -450,10 +450,6 @@ export function highlightSearchTerm(
     return result;
 }
 
-/**
- * Generates SQL expression to highlight search terms directly in SQLite query
- * Returns the column as-is if no search term, otherwise wraps matches with <mark> tags
- */
 export function sqlHighlight(columnName: string, searchTerm: string | null | undefined): string {
     if (!searchTerm || !searchTerm.trim()) {
         return columnName;
@@ -468,8 +464,6 @@ export function sqlHighlight(columnName: string, searchTerm: string | null | und
         return columnName;
     }
 
-    // For SQLite, we'll build a complex CASE expression that handles case-insensitive highlighting
-    // We'll try both lowercase and uppercase versions to handle case variations
     let sql = columnName;
 
     for (const word of searchWords) {
