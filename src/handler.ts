@@ -1321,6 +1321,39 @@ export function postSettingsDisplayHandler(db: Knex) {
                 req.session.user.column_preferences.notes.view_type;
         }
 
+        // tabs
+        if (column_preferences.tabs) {
+            if (typeof column_preferences.tabs !== 'object') {
+                throw new ValidationError('Tabs must be an object', req);
+            }
+
+            column_preferences.tabs.title = column_preferences.tabs.title === 'on';
+            column_preferences.tabs.trigger = column_preferences.tabs.trigger === 'on';
+            column_preferences.tabs.items_count = column_preferences.tabs.items_count === 'on';
+            column_preferences.tabs.created_at = column_preferences.tabs.created_at === 'on';
+
+            column_preferences.tabs.default_per_page = parseInt(
+                column_preferences.tabs.default_per_page,
+                10,
+            );
+
+            if (
+                isNaN(column_preferences.tabs.default_per_page) ||
+                column_preferences.tabs.default_per_page < 1
+            ) {
+                throw new ValidationError('Tabs per page must be greater than 0', req);
+            }
+
+            if (
+                !column_preferences.tabs.title &&
+                !column_preferences.tabs.trigger &&
+                !column_preferences.tabs.items_count &&
+                !column_preferences.tabs.created_at
+            ) {
+                throw new ValidationError('At least one tab column must be enabled', req);
+            }
+        }
+
         // users (admin only)
         if (req.user?.is_admin && column_preferences.users) {
             if (typeof column_preferences.users !== 'object') {
@@ -1871,7 +1904,15 @@ export function getTabsPageHandler(db: Knex) {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'tabs');
 
-        let tabsQuery = db.select('tabs.*').from('tabs').where('tabs.user_id', user.id);
+        let tabsQuery = db
+            .select('tabs.*')
+            .select(
+                db.raw(
+                    '(SELECT COUNT(*) FROM tab_items WHERE tab_items.tab_id = tabs.id) as items_count',
+                ),
+            )
+            .from('tabs')
+            .where('tabs.user_id', user.id);
 
         if (search) {
             tabsQuery = tabsQuery.where((builder) => {
