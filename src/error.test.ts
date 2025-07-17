@@ -9,41 +9,25 @@ import {
 import { config } from './config';
 import type { Request } from 'express';
 import { logger } from './utils/logger';
-import { sendNotification } from './utils/util';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-vi.mock('./utils/util', () => ({
-    sendNotification: vi.fn(),
-}));
-
-vi.mock('./config', () => ({
-    config: {
-        app: {
-            env: 'production',
-            adminEmail: 'test-admin@example.com',
-        },
-        email: {
-            host: 'testing',
-            port: 1234,
-            secure: false,
-            user: 'testing',
-            password: 'testing',
-        },
-    },
-}));
-
-vi.mock('./utils/logger', () => ({
-    logger: {
-        error: vi.fn(),
-        info: vi.fn(),
-    },
-}));
+import * as utilModule from './utils/util';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('Error classes', () => {
     let mockRequest: Partial<Request>;
+    let sendNotificationSpy: any;
+    let loggerSpy: any;
+    let configSpy: any;
 
     beforeEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
+
+        sendNotificationSpy = vi
+            .spyOn(utilModule, 'sendNotification')
+            .mockImplementation(() => Promise.resolve());
+        loggerSpy = vi.spyOn(logger, 'info');
+
+        configSpy = vi.spyOn(config.app, 'env', 'get').mockReturnValue('production');
+
         mockRequest = {
             method: 'GET',
             url: '/test',
@@ -51,6 +35,10 @@ describe('Error classes', () => {
             query: {},
             body: {},
         };
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
     describe('HttpError base class', () => {
@@ -75,41 +63,35 @@ describe('Error classes', () => {
         it('should send a notification when in production and request is provided', async () => {
             const error = new HttpError(500, 'Test error', mockRequest as Request);
 
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 10));
 
-            expect(sendNotification).toHaveBeenCalledWith({
+            expect(sendNotificationSpy).toHaveBeenCalledWith({
                 req: mockRequest,
                 error,
             });
-            expect(logger.info).toHaveBeenCalled();
+            expect(loggerSpy).toHaveBeenCalled();
         });
 
         it('should not send a notification when not in production', () => {
-            const originalEnv = config.app.env;
-            Object.defineProperty(config.app, 'env', { value: 'development' });
+            configSpy.mockReturnValue('development');
 
             new HttpError(500, 'Test error', mockRequest as Request);
-            expect(sendNotification).not.toHaveBeenCalled();
-
-            Object.defineProperty(config.app, 'env', { value: originalEnv });
+            expect(sendNotificationSpy).not.toHaveBeenCalled();
         });
 
         it('should not send a notification when in development mode', () => {
-            const originalEnv = config.app.env;
-            Object.defineProperty(config.app, 'env', { value: 'development' });
+            configSpy.mockReturnValue('development');
 
             new HttpError(500, 'Test error without request');
-            expect(sendNotification).not.toHaveBeenCalled();
-
-            Object.defineProperty(config.app, 'env', { value: originalEnv });
+            expect(sendNotificationSpy).not.toHaveBeenCalled();
         });
 
         it('should now send a notification even when request is not provided in production', async () => {
             new HttpError(500, 'Test error without request');
 
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 10));
 
-            expect(sendNotification).toHaveBeenCalledWith({
+            expect(sendNotificationSpy).toHaveBeenCalledWith({
                 req: expect.objectContaining({
                     method: null,
                     path: null,
@@ -130,9 +112,9 @@ describe('Error classes', () => {
             expect(error.message).toBe('No access');
             expect(error.request).toEqual(mockRequest);
 
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 10));
 
-            expect(sendNotification).toHaveBeenCalledWith({
+            expect(sendNotificationSpy).toHaveBeenCalledWith({
                 req: mockRequest,
                 error,
             });
@@ -144,9 +126,9 @@ describe('Error classes', () => {
             expect(error.message).toBe('Login required');
             expect(error.request).toEqual(mockRequest);
 
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 10));
 
-            expect(sendNotification).toHaveBeenCalledWith({
+            expect(sendNotificationSpy).toHaveBeenCalledWith({
                 req: mockRequest,
                 error,
             });
@@ -158,9 +140,9 @@ describe('Error classes', () => {
             expect(error.message).toBe('Resource not found');
             expect(error.request).toEqual(mockRequest);
 
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 10));
 
-            expect(sendNotification).toHaveBeenCalledWith({
+            expect(sendNotificationSpy).toHaveBeenCalledWith({
                 req: mockRequest,
                 error,
             });
@@ -172,9 +154,9 @@ describe('Error classes', () => {
             expect(error.message).toBe('Invalid input');
             expect(error.request).toEqual(mockRequest);
 
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 10));
 
-            expect(sendNotification).toHaveBeenCalledWith({
+            expect(sendNotificationSpy).toHaveBeenCalledWith({
                 req: mockRequest,
                 error,
             });
@@ -189,9 +171,9 @@ describe('Error classes', () => {
             expect(error.message).toBe('Not implemented yet');
             expect(error.request).toEqual(mockRequest);
 
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 10));
 
-            expect(sendNotification).toHaveBeenCalledWith({
+            expect(sendNotificationSpy).toHaveBeenCalledWith({
                 req: mockRequest,
                 error,
             });

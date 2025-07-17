@@ -142,6 +142,7 @@ export type ActionsQueryParams = {
     search: string;
     sortKey: string | 'created_at';
     direction: string | 'asc' | 'desc';
+    highlight?: boolean;
 };
 
 export type Bookmark = {
@@ -160,6 +161,7 @@ export type BookmarksQueryParams = {
     search: string;
     sortKey: string | 'created_at';
     direction: string | 'asc' | 'desc';
+    highlight?: boolean;
 };
 
 export type Note = {
@@ -178,6 +180,7 @@ export type NotesQueryParams = {
     search: string;
     sortKey: string | 'created_at';
     direction: string | 'asc' | 'desc';
+    highlight?: boolean;
 };
 
 export type Search = (options: {
