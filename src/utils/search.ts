@@ -607,14 +607,26 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 })
                 .first();
 
-            if (!existingBang || typeof existingBang.id === 'undefined') {
+            const existingTab = await db('tabs')
+                .select('tabs.*')
+                .where({
+                    'tabs.user_id': user.id,
+                    'tabs.trigger': oldTrigger,
+                })
+                .first();
+
+            if (
+                (!existingBang || typeof existingBang.id === 'undefined') &&
+                (!existingTab || typeof existingTab.id === 'undefined')
+            ) {
                 return goBackWithValidationAlert(
                     res,
-                    `Bang ${oldTrigger} not found or you don't have permission to edit it`,
+                    `${oldTrigger} not found or you don't have permission to edit it`,
                 );
             }
 
-            const updates: Record<string, string> = {};
+            const bangUpdates: Record<string, string> = {};
+            const tabUpdates: Record<string, string> = {};
 
             // Handle new trigger (if provided and starts with !)
             if (parts.length >= 2 && parts[1] && parts[1].startsWith('!')) {
@@ -627,15 +639,24 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     );
                 }
 
+                // Check for conflicts in both bangs and tabs
                 const conflictingBang = await db('bangs')
                     .where({
                         user_id: user.id,
                         trigger: newTrigger,
                     })
-                    .whereNot({ id: existingBang.id }) // Exclude the current bang
+                    .whereNot(existingBang ? { id: existingBang.id } : {}) // Exclude the current bang if it exists
                     .first();
 
-                if (conflictingBang) {
+                const conflictingTab = await db('tabs')
+                    .where({
+                        user_id: user.id,
+                        trigger: newTrigger,
+                    })
+                    .whereNot(existingTab ? { id: existingTab.id } : {}) // Exclude the current tab if it exists
+                    .first();
+
+                if (conflictingBang || conflictingTab) {
                     return goBackWithValidationAlert(
                         res,
                         `${newTrigger} already exists. Please choose a different trigger`,
@@ -649,38 +670,48 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     );
                 }
 
-                updates.trigger = newTrigger;
+                bangUpdates.trigger = newTrigger;
+                tabUpdates.trigger = newTrigger;
 
-                // URL is the third part if it exists
+                // URL is the third part if it exists (only for bangs)
                 if (parts.length >= 3) {
                     const newUrl = parts[2];
                     if (newUrl && isValidUrl(newUrl)) {
-                        updates.url = newUrl;
+                        bangUpdates.url = newUrl;
                     } else {
                         return goBackWithValidationAlert(res, 'Invalid URL format');
                     }
                 }
             } else {
+                // Only URL update (only for bangs)
                 const newUrl = parts[1];
                 if (newUrl && isValidUrl(newUrl)) {
-                    updates.url = newUrl;
+                    bangUpdates.url = newUrl;
                 } else {
                     return goBackWithValidationAlert(res, 'Invalid URL format');
                 }
             }
 
-            await db('bangs').where({ id: existingBang.id }).update(updates);
+            // Update bang if it exists and has updates
+            if (existingBang && Object.keys(bangUpdates).length > 0) {
+                await db('bangs').where({ id: existingBang.id }).update(bangUpdates);
 
-            if (updates.url) {
-                setTimeout(
-                    () =>
-                        insertPageTitle({
-                            actionId: existingBang.id,
-                            url: updates.url || ('' as string),
-                            req,
-                        }),
-                    0,
-                );
+                if (bangUpdates.url) {
+                    setTimeout(
+                        () =>
+                            insertPageTitle({
+                                actionId: existingBang.id,
+                                url: bangUpdates.url || ('' as string),
+                                req,
+                            }),
+                        0,
+                    );
+                }
+            }
+
+            // Update tab if it exists and has updates
+            if (existingTab && Object.keys(tabUpdates).length > 0) {
+                await db('tabs').where({ id: existingTab.id }).update(tabUpdates);
             }
 
             return goBack(res);
