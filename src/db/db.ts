@@ -12,6 +12,7 @@ import { config } from '../config';
 import knexConfig from './knexfile';
 import { logger } from '../utils/logger';
 import { attachPaginate } from './paginate';
+import { sqlHighlight } from '../utils/util';
 import type { Actions, Bookmarks, Notes } from '../type';
 
 function _createKnexInstance() {
@@ -127,7 +128,19 @@ export const actions: Actions = {
         direction = 'desc',
     }: ActionsQueryParams) => {
         const query = db
-            .select('bangs.*', 'action_types.name as action_type')
+            .select(
+                'bangs.id',
+                'bangs.user_id',
+                'bangs.action_type_id',
+                'bangs.created_at',
+                'bangs.updated_at',
+                'bangs.last_read_at',
+                'bangs.usage_count',
+            )
+            .select(db.raw(`${sqlHighlight('bangs.name', search)} as name`))
+            .select(db.raw(`${sqlHighlight('bangs.trigger', search)} as trigger`))
+            .select(db.raw(`${sqlHighlight('bangs.url', search)} as url`))
+            .select(db.raw(`${sqlHighlight('action_types.name', search)} as action_type`))
             .from('bangs')
             .join('action_types', 'bangs.action_type_id', 'action_types.id')
             .where('bangs.user_id', user.id);
@@ -278,7 +291,12 @@ export const bookmarks: Bookmarks = {
         sortKey = 'created_at',
         direction = 'desc',
     }: BookmarksQueryParams) => {
-        const query = db.select('*').from('bookmarks').where('user_id', user.id);
+        const query = db
+            .select('id', 'user_id', 'pinned', 'created_at', 'updated_at')
+            .select(db.raw(`${sqlHighlight('title', search)} as title`))
+            .select(db.raw(`${sqlHighlight('url', search)} as url`))
+            .from('bookmarks')
+            .where('user_id', user.id);
 
         if (search) {
             const searchTerms = search
@@ -374,7 +392,12 @@ export const notes: Notes = {
         sortKey = 'created_at',
         direction = 'desc',
     }: NotesQueryParams) => {
-        const query = db.select('*').from('notes').where('user_id', user.id);
+        const query = db
+            .select('id', 'user_id', 'pinned', 'created_at', 'updated_at')
+            .select(db.raw(`${sqlHighlight('title', search)} as title`))
+            .select(db.raw(`${sqlHighlight('content', search)} as content`))
+            .from('notes')
+            .where('user_id', user.id);
 
         if (search) {
             const searchTerms = search

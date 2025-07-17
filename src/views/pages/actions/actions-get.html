@@ -144,11 +144,11 @@
                     <% for (let i = 0; i < data.length; i++) { %>
                         <tr>
                             <% if (state.user.column_preferences?.actions?.name !== false) { %>
-                                <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%- utils.highlightSearchTerm(data[i].name, search) %></td>
+                                <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%- data[i].name %></td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.trigger !== false) { %>
                                 <td style="padding: 10px;">
-                                    <code><%- utils.highlightSearchTerm(data[i].trigger, search) %></code>
+                                    <code><%- data[i].trigger %></code>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.url !== false) { %>
@@ -158,13 +158,13 @@
                                        target="_blank"
                                        rel="noopener noreferrer"
                                        style="overflow: auto; white-space: nowrap;">
-                                        <%- utils.highlightSearchTerm(data[i].url, search) %>
+                                        <%- data[i].url %>
                                     </a>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.action_type !== false) { %>
                                 <td style="padding: 10px;">
-                                    <code><%- utils.highlightSearchTerm(data[i].action_type, search) %></code>
+                                    <code><%- data[i].action_type %></code>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.created_at !== false) { %>

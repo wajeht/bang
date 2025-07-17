@@ -450,6 +450,53 @@ export function highlightSearchTerm(
     return result;
 }
 
+/**
+ * Generates SQL expression to highlight search terms directly in SQLite query
+ * Returns the column as-is if no search term, otherwise wraps matches with <mark> tags
+ */
+export function sqlHighlight(columnName: string, searchTerm: string | null | undefined): string {
+    if (!searchTerm || !searchTerm.trim()) {
+        return columnName;
+    }
+
+    const searchWords = searchTerm
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0);
+
+    if (searchWords.length === 0) {
+        return columnName;
+    }
+
+    // For SQLite, we'll build a complex CASE expression that handles case-insensitive highlighting
+    // We'll try both lowercase and uppercase versions to handle case variations
+    let sql = columnName;
+
+    for (const word of searchWords) {
+        // Escape single quotes in the search word for SQL safety
+        const escapedWord = word.replace(/'/g, "''");
+        const lowerWord = escapedWord.toLowerCase();
+        const upperWord = escapedWord.toUpperCase();
+        const titleWord = escapedWord.charAt(0).toUpperCase() + escapedWord.slice(1).toLowerCase();
+
+        // Chain replacements for different case variations
+        sql = `REPLACE(
+            REPLACE(
+                REPLACE(${sql}, '${escapedWord}', '<mark>${escapedWord}</mark>'),
+                '${lowerWord}', '<mark>${lowerWord}</mark>'
+            ),
+            '${upperWord}', '<mark>${upperWord}</mark>'
+        )`;
+
+        // Also handle title case if it's different from the original
+        if (titleWord !== escapedWord && titleWord !== lowerWord && titleWord !== upperWord) {
+            sql = `REPLACE(${sql}, '${titleWord}', '<mark>${titleWord}</mark>')`;
+        }
+    }
+
+    return sql;
+}
+
 export function nl2br(str: string): string {
     if (str === null || str === undefined || str === '') {
         return '';

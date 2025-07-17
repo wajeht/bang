@@ -132,27 +132,27 @@
                     <% for (let i = 0; i < data.length; i++) { %>
                         <tr>
                             <!-- Suggestion/Name (s) -->
-                             <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%- utils.highlightSearchTerm(data[i].s, search) %></td>
+                             <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%- data[i].s %></td>
                             <!-- Trigger (t) -->
                             <td style="padding: 10px;">
-                                <code>!<%- utils.highlightSearchTerm(data[i].t, search) %></code>
+                                <code>!<%- data[i].t %></code>
                             </td>
                             <!-- Domain (d) -->
                             <td style="padding: 10px;">
                                 <a href="https://<%- data[i].d %>" title="<%- data[i].d %>" target="_blank" rel="noopener noreferrer">
-                                    <%- utils.highlightSearchTerm(data[i].d, search) %>
+                                    <%- data[i].d %>
                                 </a>
                             </td>
                              <!-- URL (u) -->
                              <td style="padding: 10px; white-space: nowrap; overflow: auto;">
                                 <a href="<%- data[i].u.replace('{{{s}}}', '') %>" title="<%- data[i].u %>" target="_blank" rel="noopener noreferrer">
-                                    <%- utils.highlightSearchTerm(data[i].u, search) %>
+                                    <%- data[i].u %>
                                 </a>
                             </td>
                              <!-- Category (c) -->
-                             <td style="padding: 10px;"><%- utils.highlightSearchTerm(data[i].c, search) %></td>
+                             <td style="padding: 10px;"><%- data[i].c %></td>
                              <!-- Subcategory (sc) -->
-                             <td style="padding: 10px;"><%- utils.highlightSearchTerm(data[i].sc, search) %></td>
+                             <td style="padding: 10px;"><%- data[i].sc %></td>
                              <!-- Rank (r) -->
                              <td style="padding: 10px;"><%- data[i].r %></td>
                         </tr>
