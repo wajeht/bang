@@ -9,11 +9,11 @@ import {
     checkDuplicateBookmarkUrl,
 } from './util';
 import { db } from '../db/db';
-import { Bang, Search } from '../type';
-import { Request, Response } from 'express';
+import type { Bang, Search } from '../type';
 import { UnauthorizedError } from '../error';
 import { defaultSearchProviders } from './util';
 import { bangs as bangsTable } from '../db/bang';
+import type { Request, Response } from 'express';
 
 const searchConfig = {
     /**
@@ -79,35 +79,29 @@ export function trackAnonymousUserSearch(req: Request) {
 }
 
 export function redirectWithAlert(res: Response, url: string, message?: string) {
-    return res.set({'Content-Type': 'text/html'})
-		.status(200)
-		.send(`
+    return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
 			<script>
 				${message ? `alert("${message}");` : ''}
 				window.location.href = "${url}";
 			</script>
-		`); // prettier-ignore
+		`);
 }
 
 export function goBackWithValidationAlert(res: Response, message: string) {
-    return res.set({'Content-Type': 'text/html'})
-		.status(422)
-		.send(`
+    return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
 			<script>
 				alert("${message}");
 				window.history.back();
 			</script>
-		`); // prettier-ignore
+		`);
 }
 
 export function goBack(res: Response) {
-    return res.set({'Content-Type': 'text/html'})
-		.status(200)
-		.send(`
+    return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
 			<script>
 				window.history.back();
 			</script>
-		`); // prettier-ignore
+		`);
 }
 
 /**
@@ -500,10 +494,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     message = `${bangTrigger} trigger can only contain letters and numbers. Please enter a new trigger:`;
                 }
 
-                return res
-                    .set({'Content-Type': 'text/html'})
-                    .status(422)
-                    .send(`
+                return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
                         <script>
                             const bangUrl = "${bangUrl}";
                             const newTrigger = prompt("${message}");
@@ -514,7 +505,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                                 window.history.back();
                             }
                         </script>
-                    `); // prettier-ignore
+                    `);
             }
 
             const bangs = await db('bangs')
@@ -791,11 +782,15 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
     const defaultProvider = user.default_search_provider || 'duckduckgo';
 
-    let searchUrl: string = defaultSearchProviders[defaultProvider as keyof typeof defaultSearchProviders].replace('{{{s}}}', encodeURIComponent(searchTerm || query)); // prettier-ignore
+    let searchUrl: string = defaultSearchProviders[
+        defaultProvider as keyof typeof defaultSearchProviders
+    ].replace('{{{s}}}', encodeURIComponent(searchTerm || query));
 
     // Handle unknown bang commands by searching for them without the "!"
     if (commandType === 'bang' && !searchTerm && triggerWithoutPrefix) {
-        searchUrl = defaultSearchProviders[defaultProvider as keyof typeof defaultSearchProviders].replace('{{{s}}}', encodeURIComponent(triggerWithoutPrefix)); // prettier-ignore
+        searchUrl = defaultSearchProviders[
+            defaultProvider as keyof typeof defaultSearchProviders
+        ].replace('{{{s}}}', encodeURIComponent(triggerWithoutPrefix));
     }
 
     return redirectWithCache(res, searchUrl);
