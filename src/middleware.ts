@@ -29,20 +29,6 @@ export function notFoundMiddleware() {
 
 export function errorMiddleware() {
     return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
-        logger.error(`${req.method} ${req.path} - ${error.message}`, { error });
-
-        if ((error as { code?: string }).code === 'EBADCSRFTOKEN') {
-            error = new HttpError(403, error.message, req);
-        } else if (!(error instanceof HttpError)) {
-            error = new HttpError(500, error.message, req);
-        } else if (error instanceof HttpError && !error.request) {
-            error.request = req;
-        }
-
-        const httpError = error as HttpError;
-        const statusCode = httpError.statusCode || 500;
-        const message = httpError.message || 'The server encountered an internal error or misconfiguration and was unable to complete your request'; // prettier-ignore
-
         logger.error(`${req.method} ${req.path} - ${error.message}`, {
             error: {
                 stack: error.stack,
@@ -58,6 +44,18 @@ export function errorMiddleware() {
                 userId: req.user?.id || req.session?.user?.id,
             },
         });
+
+        if ((error as { code?: string }).code === 'EBADCSRFTOKEN') {
+            error = new HttpError(403, error.message, req);
+        } else if (!(error instanceof HttpError)) {
+            error = new HttpError(500, error.message, req);
+        } else if (error instanceof HttpError && !error.request) {
+            error.request = req;
+        }
+
+        const httpError = error as HttpError;
+        const statusCode = httpError.statusCode || 500;
+        const message = httpError.message || 'The server encountered an internal error or misconfiguration and was unable to complete your request'; // prettier-ignore
 
         if (isApiRequest(req)) {
             const responsePayload: any = {
