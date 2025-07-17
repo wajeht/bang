@@ -14,7 +14,7 @@ import { UnauthorizedError } from '../error';
 import { bangs as bangsTable } from '../db/bang';
 import type { Request, Response } from 'express';
 
-const searchConfig = {
+export const searchConfig = {
     /**
      * List of bangs that are available to use from the bangs table
      */
@@ -42,7 +42,7 @@ const searchConfig = {
         duckduckgo: `https://duckduckgo.com/?q={{{s}}}`,
         google: `https://www.google.com/search?q={{{s}}}`,
         yahoo: `https://search.yahoo.com/search?p={{{s}}}`,
-        bing: `https://www.bing.com/search?q={{{s}}}`
+        bing: `https://www.bing.com/search?q={{{s}}}`,
     } as const,
     /**
      * Direct commands that can be used to navigate to different sections of the application
@@ -268,7 +268,10 @@ export async function handleAnonymousSearch(
         trackAnonymousUserSearch(req);
         return redirectWithAlert(
             res,
-            searchConfig.defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)),
+            searchConfig.defaultSearchProviders['duckduckgo'].replace(
+                '{{{s}}}',
+                encodeURIComponent(searchTerm),
+            ),
             warningMessage,
         );
     }
@@ -320,7 +323,10 @@ export async function handleAnonymousSearch(
 
     return redirectWithCache(
         res,
-        searchConfig.defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
+        searchConfig.defaultSearchProviders['duckduckgo'].replace(
+            '{{{s}}}',
+            encodeURIComponent(query),
+        ),
     );
 }
 

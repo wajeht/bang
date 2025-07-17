@@ -35,9 +35,10 @@ import { bangs } from './db/bang';
 import { config } from './config';
 import type { Bang } from './type';
 import { logger } from './utils/logger';
+import { actionTypes } from './utils/util';
+import { searchConfig } from './utils/search';
 import type { Request, Response } from 'express';
 import { db, actions, bookmarks, notes } from './db/db';
-import { actionTypes, defaultSearchProviders } from './utils/util';
 import { HttpError, NotFoundError, ValidationError } from './error';
 
 // GET /healthz
@@ -770,7 +771,7 @@ export function getSettingsAccountPageHandler() {
             title: 'Settings Account',
             path: '/settings/account',
             layout: '../layouts/settings.html',
-            defaultSearchProviders: Object.keys(defaultSearchProviders),
+            defaultSearchProviders: Object.keys(searchConfig.defaultSearchProviders),
         });
     };
 }
@@ -825,7 +826,7 @@ export function postSettingsAccountHandler(db: Knex) {
             throw new ValidationError({ email: 'Please enter a valid email address' });
         }
 
-        if (!Object.keys(defaultSearchProviders).includes(default_search_provider)) {
+        if (!Object.keys(searchConfig.defaultSearchProviders).includes(default_search_provider)) {
             throw new ValidationError(
                 { default_search_provider: 'Invalid search provider selected' },
                 req,
