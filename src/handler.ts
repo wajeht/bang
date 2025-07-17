@@ -15,11 +15,13 @@ import {
     expectJson,
     isValidUrl,
     isApiRequest,
+    sqlHighlight,
     isValidEmail,
     insertBookmark,
     extractPagination,
     sendMagicLinkEmail,
     sendDataExportEmail,
+    highlightSearchTerm,
     normalizeBangTrigger,
     generateUserDataExport,
     isOnlyLettersAndNumbers,
@@ -27,8 +29,6 @@ import {
     getConvertedReadmeMDToHTML,
     convertMarkdownToPlainText,
     generateBookmarkHtmlExport,
-    sqlHighlight,
-    highlightSearchTerm,
 } from './utils/util';
 import { Knex } from 'knex';
 import { bangs } from './db/bang';
