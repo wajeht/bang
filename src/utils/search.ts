@@ -13,7 +13,7 @@ import { Bang, Search } from '../type';
 import { Request, Response } from 'express';
 import { defaultSearchProviders } from './util';
 import { bangs as bangsTable } from '../db/bang';
-import { UnauthorizedError } from 'error';
+import { UnauthorizedError } from '../error';
 
 const searchConfig = {
     /**
