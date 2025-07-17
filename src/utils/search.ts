@@ -11,7 +11,6 @@ import {
 import { db } from '../db/db';
 import type { Bang, Search } from '../type';
 import { UnauthorizedError } from '../error';
-import { defaultSearchProviders } from './util';
 import { bangs as bangsTable } from '../db/bang';
 import type { Request, Response } from 'express';
 
@@ -36,6 +35,15 @@ const searchConfig = {
      * System-level bang commands that cannot be overridden by user-defined bangs
      */
     systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit']),
+    /**
+     * Default search providers
+     */
+    defaultSearchProviders: {
+        duckduckgo: `https://duckduckgo.com/?q={{{s}}}`,
+        google: `https://www.google.com/search?q={{{s}}}`,
+        yahoo: `https://search.yahoo.com/search?p={{{s}}}`,
+        bing: `https://www.bing.com/search?q={{{s}}}`
+    } as const,
     /**
      * Direct commands that can be used to navigate to different sections of the application
      */
@@ -260,7 +268,7 @@ export async function handleAnonymousSearch(
         trackAnonymousUserSearch(req);
         return redirectWithAlert(
             res,
-            defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)),
+            searchConfig.defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(searchTerm)),
             warningMessage,
         );
     }
@@ -278,13 +286,13 @@ export async function handleAnonymousSearch(
             if (bang) {
                 redirectUrl = getBangRedirectUrl(bang, searchTerm || '');
             } else {
-                redirectUrl = defaultSearchProviders['duckduckgo'].replace(
+                redirectUrl = searchConfig.defaultSearchProviders['duckduckgo'].replace(
                     '{{{s}}}',
                     encodeURIComponent(query),
                 );
             }
         } else {
-            redirectUrl = defaultSearchProviders['duckduckgo'].replace(
+            redirectUrl = searchConfig.defaultSearchProviders['duckduckgo'].replace(
                 '{{{s}}}',
                 encodeURIComponent(query),
             );
@@ -312,7 +320,7 @@ export async function handleAnonymousSearch(
 
     return redirectWithCache(
         res,
-        defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
+        searchConfig.defaultSearchProviders['duckduckgo'].replace('{{{s}}}', encodeURIComponent(query)),
     );
 }
 
@@ -782,14 +790,14 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
     const defaultProvider = user.default_search_provider || 'duckduckgo';
 
-    let searchUrl: string = defaultSearchProviders[
-        defaultProvider as keyof typeof defaultSearchProviders
+    let searchUrl: string = searchConfig.defaultSearchProviders[
+        defaultProvider as keyof typeof searchConfig.defaultSearchProviders
     ].replace('{{{s}}}', encodeURIComponent(searchTerm || query));
 
     // Handle unknown bang commands by searching for them without the "!"
     if (commandType === 'bang' && !searchTerm && triggerWithoutPrefix) {
-        searchUrl = defaultSearchProviders[
-            defaultProvider as keyof typeof defaultSearchProviders
+        searchUrl = searchConfig.defaultSearchProviders[
+            defaultProvider as keyof typeof searchConfig.defaultSearchProviders
         ].replace('{{{s}}}', encodeURIComponent(triggerWithoutPrefix));
     }
 
