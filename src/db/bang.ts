@@ -111098,6 +111098,14 @@ export const bangs: Record<string, any> = {
         c: 'Entertainment',
         sc: 'Comics',
     },
+    temu: {
+        s: 'Temu',
+        d: 'www.temu.com',
+        t: 'temu',
+        u: 'https://www.temu.com/search_result.html?search_key={{{s}}}',
+        c: 'Shopping',
+        sc: 'Online (marketplace)',
+    },
     'ddg-tim': {
         s: 'DuckDuckGo Timer',
         d: 'duckduckgo.com',
