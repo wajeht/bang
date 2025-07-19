@@ -154,7 +154,7 @@
                             <% if (state.user.column_preferences?.actions?.url !== false) { %>
                                 <td style="padding: 10px;">
                                     <div style="display: flex; gap: 5px; align-items: center;">
-                                        <img src= "https://www.google.com/s2/favicons?sz=16&domain_url=<%- data[i].url %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                        <img src= "<%- utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                         <a href="<%= data[i].url %>" style="overflow: auto; white-space: nowrap;" title="<%= data[i].url %>" target="_blank" rel="noopener noreferrer">
                                             <%- data[i].url %>
                                         </a>

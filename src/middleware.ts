@@ -3,6 +3,7 @@ import {
     nl2br,
     getApiKey,
     isApiRequest,
+    getFaviconUrl,
     highlightSearchTerm,
     verifyTurnstileToken,
 } from './utils/util';
@@ -215,8 +216,9 @@ export function setupAppLocals(req: Request, res: Response) {
     };
 
     res.locals.utils = {
-        highlightSearchTerm,
         nl2br,
+        getFaviconUrl,
+        highlightSearchTerm,
     };
 }
 

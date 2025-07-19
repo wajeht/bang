@@ -269,7 +269,7 @@
                                      <% if (user.column_preferences?.tabs?.trigger !== false) { %>
                                      <td style="padding: 10px;">
                                         <div style="display: flex; gap: 5px; align-items: center;">
-                                            <img src= "https://www.google.com/s2/favicons?sz=16&domain_url=<%- tabs[i].items[j].url %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                            <img src= "<%- utils.getFaviconUrl(tabs[i].items[j].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                             <a href="<%= tabs[i].items[j].url %>" style="overflow: auto; white-space: nowrap;" title="<%= tabs[i].items[j].url %>" target="_blank" rel="noopener noreferrer">
                                                 <%- tabs[i].items[j].url %>
                                             </a>

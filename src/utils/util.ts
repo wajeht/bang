@@ -1064,3 +1064,14 @@ export async function addToTabs(
             });
     }
 }
+
+export function getFaviconUrl(url: string): string {
+    let domain = '';
+    try {
+        domain = new URL(url).hostname;
+    } catch (error) {
+        logger.error(`[getFaviconUrl]: error getting favicon url, %o`, { error });
+        domain = url;
+    }
+    return `https://www.google.com/s2/favicons?sz=16&domain_url=${domain}`;
+}
