@@ -59480,7 +59480,7 @@ export const bangs: Record<string, any> = {
         sc: 'Games (Minecraft)',
     },
     mcname: {
-        s: 'Minecraft Name History',
+        s: 'NameMC',
         d: 'namemc.com',
         t: 'mcname',
         u: 'https://namemc.com/search?q={{{s}}}',
@@ -64603,9 +64603,9 @@ export const bangs: Record<string, any> = {
     },
     namemc: {
         s: 'NameMC',
-        d: 'de.namemc.com',
+        d: 'namemc.com',
         t: 'namemc',
-        u: 'https://de.namemc.com/search?q={{{s}}}',
+        u: 'https://namemc.com/search?q={{{s}}}',
         c: 'Entertainment',
         sc: 'Games (Minecraft)',
     },
@@ -110592,6 +110592,22 @@ export const bangs: Record<string, any> = {
         c: 'Entertainment',
         sc: 'Games (Minecraft)',
         fmt: ['url_encode_placeholder', 'url_encode_space_to_plus'],
+    },
+    laby: {
+        s: 'Laby',
+        d: 'laby.net',
+        t: 'laby',
+        u: 'https://laby.net/@{{{s}}}',
+        c: 'Entertainment',
+        sc: 'Games (Minecraft)',
+    },
+    crafty: {
+        s: 'Crafty',
+        d: 'crafty.gg',
+        t: 'crafty',
+        u: 'https://crafty.gg/players?search={{{s}}}',
+        c: 'Entertainment',
+        sc: 'Games (Minecraft)',
     },
     meny: {
         s: 'Meny',
