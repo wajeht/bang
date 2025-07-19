@@ -136,6 +136,7 @@ export function helmetMiddleware() {
             directives: {
                 ...helmet.contentSecurityPolicy.getDefaultDirectives(),
                 'default-src': ["'self'", 'plausible.jaw.dev', 'bang.jaw.dev', '*.cloudflare.com'],
+                'img-src': ["'self'", '*'],
                 'script-src': [
                     "'self'",
                     "'unsafe-inline'",
