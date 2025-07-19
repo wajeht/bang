@@ -1073,5 +1073,6 @@ export function getFaviconUrl(url: string): string {
         logger.error(`[getFaviconUrl]: error getting favicon url, %o`, { error });
         domain = url;
     }
-    return `https://www.google.com/s2/favicons?sz=16&domain_url=${domain}`;
+    // return `https://www.google.com/s2/favicons?sz=16&domain_url=${domain}`;
+    return `https://favicon.jaw.dev/?url=${domain}`;
 }
