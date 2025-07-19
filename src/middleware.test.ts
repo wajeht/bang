@@ -15,6 +15,7 @@ vi.mock('./utils/util', () => ({
     api: {
         verify: vi.fn(),
     },
+    getFaviconUrl: vi.fn((url) => url),
     sendNotificationQueue: {
         push: vi.fn(),
     },
