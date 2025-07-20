@@ -112,6 +112,10 @@ export function goBack(res: Response) {
 		`);
 }
 
+const TRIGGER_REGEX = /^([!@]\S+)/;
+const DOMAIN_REGEX = /^[a-zA-Z0-9][\w.-]*\.[a-zA-Z]{2,}/;
+const WHITESPACE_REGEX = /\s+/g;
+
 /**
  * Parses a search query to extract components: bang trigger, URL, and search terms
  *
@@ -130,105 +134,179 @@ export function goBack(res: Response) {
  * @example Custom bang creation
  * parseSearchQuery("!add !custom https://custom-search.com") → { commandType: "bang", trigger: "!add", triggerWithoutPrefix: "add", url: "https://custom-search.com", searchTerm: "!custom" }
  */
-export function parseSearchQuery(query: string) {
-    const trimmed = (query || '').trim();
-    if (!trimmed)
+export function parseSearchQuery(query: string): {
+    /**
+     * The type of command (bang or direct)
+     * Used to determine how to process the query
+     * @example "bang" for !g, !bm, etc.
+     * @example "direct" for @notes, @bookmarks, etc.
+     * @example null for regular searches without a command
+     */
+    commandType: 'bang' | 'direct' | null;
+
+    /**
+     * The full command trigger including prefix ("!" or "@")
+     * Used for command identification and routing
+     * @example "!g" for Google search
+     * @example "!bm" for bookmark command
+     * @example "@notes" for notes navigation
+     * @example null for regular searches
+     */
+    trigger: string | null;
+
+    /**
+     * Command trigger with prefix removed
+     * Used for looking up commands in bangs table or direct commands mapping
+     * @example "g" for Google search
+     * @example "bm" for bookmark command
+     * @example "notes" for notes navigation
+     * @example null for regular searches
+     */
+    triggerWithoutPrefix: string | null;
+
+    /**
+     * First valid URL found in the query string
+     * Used for bookmark creation and custom bang definition
+     * Supports both http and https protocols
+     * Only relevant for bang commands, not direct commands
+     * @example "https://example.com" from "!bm title https://example.com"
+     * @example null when no URL is present
+     */
+    url: string | null;
+
+    /**
+     * The search terms or content after removing trigger and URL
+     * Multiple uses based on context:
+     * - Search query for search bangs
+     * - Title for bookmarks
+     * - Trigger for custom bang creation
+     * - Search term for direct commands with search like @notes search
+     * @example "python" from "!g python"
+     * @example "My Bookmark" from "!bm My Bookmark https://example.com"
+     * @example "search term" from "@notes search term"
+     */
+    searchTerm: string;
+} {
+    // empty/null queries
+    if (!query?.trim()) {
         return {
             commandType: null,
             trigger: null,
             triggerWithoutPrefix: null,
             url: null,
             searchTerm: '',
-        };
+        } as const;
+    }
 
-    // Extract command trigger
-    const triggerMatch = trimmed.match(/^([!@]\S+)/);
-    if (!triggerMatch)
+    const trimmed: string = query.trim();
+
+    // queries without triggers
+    const triggerMatch: RegExpMatchArray | null = trimmed.match(TRIGGER_REGEX);
+    if (!triggerMatch) {
         return {
             commandType: null,
             trigger: null,
             triggerWithoutPrefix: null,
             url: null,
-            searchTerm: trimmed.replace(/\s+/g, ' ').trim(),
+            searchTerm: trimmed.replace(WHITESPACE_REGEX, ' '),
+        } as const;
+    }
+
+    const trigger: string = triggerMatch[0];
+    const commandType: 'bang' | 'direct' = trigger[0] === '!' ? 'bang' : 'direct';
+    const remaining: string = trimmed.slice(trigger.length).trim();
+
+    // direct commands
+    if (commandType === 'direct') {
+        return {
+            commandType,
+            trigger,
+            triggerWithoutPrefix: trigger.slice(1),
+            url: null,
+            searchTerm: remaining.replace(WHITESPACE_REGEX, ' '),
         };
+    }
 
-    const trigger = triggerMatch[0];
-    const commandType = trigger.startsWith('!') ? 'bang' : 'direct';
-    const remaining = trimmed.slice(trigger.length).trim();
+    let url: string | null = null;
+    let searchTerm: string = remaining;
 
-    // URL extraction for bang commands only
-    let url = null;
-    let searchTerm = remaining;
-    if (commandType === 'bang') {
-        // First try to match URLs with protocol (http:// or https://)
-        const protocolUrlMatch = remaining.match(/(?:^| )(https?:\/\/\S*)/);
-        if (protocolUrlMatch) {
-            url = protocolUrlMatch[1];
-            searchTerm = remaining.replace(protocolUrlMatch[0], '').trim();
-        } else {
-            // Try to match URLs without protocol (e.g., example.com/path)
-            const domainUrlMatch = remaining.match(
-                /(?:^| )([a-zA-Z0-9][\w-]*(?:\.[a-zA-Z0-9][\w-]*)+(?:\/\S*)?)/,
-            );
-            if (domainUrlMatch && domainUrlMatch[1]) {
-                url = addHttps(domainUrlMatch[1]);
-                searchTerm = remaining.replace(domainUrlMatch[0], '').trim();
+    if (remaining) {
+        let urlStart: number = -1;
+        let urlEnd: number = -1;
+        let foundUrl: string | null = null;
+
+        // Look for protocol URLs first
+        const httpIndex: number = remaining.indexOf('http://');
+        const httpsIndex: number = remaining.indexOf('https://');
+
+        if (httpIndex !== -1 || httpsIndex !== -1) {
+            // Find the earliest protocol occurrence
+            urlStart =
+                httpIndex === -1
+                    ? httpsIndex
+                    : httpsIndex === -1
+                      ? httpIndex
+                      : Math.min(httpIndex, httpsIndex);
+
+            // Find the end of the URL (next space or end of string)
+            urlEnd = remaining.indexOf(' ', urlStart);
+            if (urlEnd === -1) urlEnd = remaining.length;
+
+            foundUrl = remaining.slice(urlStart, urlEnd);
+
+            // if it throws, foundUrl becomes null
+            try {
+                new URL(foundUrl);
+            } catch {
+                foundUrl = null;
+            }
+        }
+
+        // If no protocol URL found, look for domain-like patterns
+        if (!foundUrl) {
+            const tokens: string[] = remaining.split(' ');
+            for (let i = 0; i < tokens.length; i++) {
+                const token: string = tokens[i] ?? '';
+                if (!token) continue;
+
+                // domain pattern check before expensive URL validation
+                if (DOMAIN_REGEX.test(token)) {
+                    try {
+                        new URL(`https://${token}`);
+                        foundUrl = `https://${token}`;
+                        // position for removal
+                        const tokenStart: number = remaining.indexOf(token);
+                        urlStart = tokenStart;
+                        urlEnd = tokenStart + token.length;
+                        break;
+                    } catch {
+                        // next token
+                    }
+                }
+            }
+        }
+
+        if (foundUrl) {
+            url = foundUrl;
+            // remove URL from search term
+            if (urlStart === 0) {
+                // at beginning
+                searchTerm = remaining.slice(urlEnd).trim();
+            } else {
+                // in middle or end
+                const beforeUrl: string = remaining.slice(0, urlStart).trim();
+                const afterUrl: string = remaining.slice(urlEnd).trim();
+                searchTerm = beforeUrl + (beforeUrl && afterUrl ? ' ' : '') + afterUrl;
             }
         }
     }
 
     return {
-        /**
-         * The type of command (bang or direct)
-         * Used to determine how to process the query
-         * @example "bang" for !g, !bm, etc.
-         * @example "direct" for @notes, @bookmarks, etc.
-         * @example null for regular searches without a command
-         */
         commandType,
-
-        /**
-         * The full command trigger including prefix ("!" or "@")
-         * Used for command identification and routing
-         * @example "!g" for Google search
-         * @example "!bm" for bookmark command
-         * @example "@notes" for notes navigation
-         * @example null for regular searches
-         */
         trigger,
-
-        /**
-         * Command trigger with prefix removed
-         * Used for looking up commands in bangs table or direct commands mapping
-         * @example "g" for Google search
-         * @example "bm" for bookmark command
-         * @example "notes" for notes navigation
-         * @example null for regular searches
-         */
         triggerWithoutPrefix: trigger.slice(1),
-
-        /**
-         * First valid URL found in the query string
-         * Used for bookmark creation and custom bang definition
-         * Supports both http and https protocols
-         * Only relevant for bang commands, not direct commands
-         * @example "https://example.com" from "!bm title https://example.com"
-         * @example null when no URL is present
-         */
         url,
-
-        /**
-         * The search terms or content after removing trigger and URL
-         * Multiple uses based on context:
-         * - Search query for search bangs
-         * - Title for bookmarks
-         * - Trigger for custom bang creation
-         * - Search term for direct commands with search like @notes search
-         * @example "python" from "!g python"
-         * @example "My Bookmark" from "!bm My Bookmark https://example.com"
-         * @example "search term" from "@notes search term"
-         */
-        searchTerm: searchTerm.replace(/\s+/g, ' ').trim(),
+        searchTerm: searchTerm.replace(WHITESPACE_REGEX, ' ').trim(),
     };
 }
 
@@ -362,7 +440,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
     if (commandType === 'direct') {
         // For command-only queries like @notes, @bookmarks with no search term
         if (!searchTerm) {
-            const directPath = searchConfig.directCommands.get(trigger);
+            const directPath = searchConfig.directCommands.get(trigger ?? '');
             if (directPath) {
                 return redirectWithCache(res, directPath);
             }
