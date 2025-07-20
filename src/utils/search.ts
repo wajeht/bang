@@ -45,6 +45,23 @@ export const searchConfig = {
         bing: `https://www.bing.com/search?q={{{s}}}`,
     } as const,
     /**
+     * Regular expressions for parsing search queries
+     */
+    regex: {
+        /**
+         * Regular expression for matching triggers
+         */
+        trigger: /^([!@]\S+)/,
+        /**
+         * Regular expression for matching domains
+         */
+        domain: /^[a-zA-Z0-9][\w.-]*\.[a-zA-Z]{2,}/,
+        /**
+         * Regular expression for matching whitespace
+         */
+        whitespace: /\s+/g,
+    },
+    /**
      * Direct commands that can be used to navigate to different sections of the application
      */
     directCommands: new Map([
@@ -111,10 +128,6 @@ export function goBack(res: Response) {
 			</script>
 		`);
 }
-
-const TRIGGER_REGEX = /^([!@]\S+)/;
-const DOMAIN_REGEX = /^[a-zA-Z0-9][\w.-]*\.[a-zA-Z]{2,}/;
-const WHITESPACE_REGEX = /\s+/g;
 
 /**
  * Parses a search query to extract components: bang trigger, URL, and search terms
@@ -201,14 +214,14 @@ export function parseSearchQuery(query: string): {
     const trimmed: string = query.trim();
 
     // queries without triggers
-    const triggerMatch: RegExpMatchArray | null = trimmed.match(TRIGGER_REGEX);
+    const triggerMatch: RegExpMatchArray | null = trimmed.match(searchConfig.regex.trigger);
     if (!triggerMatch) {
         return {
             commandType: null,
             trigger: null,
             triggerWithoutPrefix: null,
             url: null,
-            searchTerm: trimmed.replace(WHITESPACE_REGEX, ' '),
+            searchTerm: trimmed.replace(searchConfig.regex.whitespace, ' '),
         } as const;
     }
 
@@ -223,7 +236,7 @@ export function parseSearchQuery(query: string): {
             trigger,
             triggerWithoutPrefix: trigger.slice(1),
             url: null,
-            searchTerm: remaining.replace(WHITESPACE_REGEX, ' '),
+            searchTerm: remaining.replace(searchConfig.regex.whitespace, ' '),
         };
     }
 
@@ -270,7 +283,7 @@ export function parseSearchQuery(query: string): {
                 if (!token) continue;
 
                 // domain pattern check before expensive URL validation
-                if (DOMAIN_REGEX.test(token)) {
+                if (searchConfig.regex.domain.test(token)) {
                     try {
                         new URL(`https://${token}`);
                         foundUrl = `https://${token}`;
@@ -306,7 +319,7 @@ export function parseSearchQuery(query: string): {
         trigger,
         triggerWithoutPrefix: trigger.slice(1),
         url,
-        searchTerm: searchTerm.replace(WHITESPACE_REGEX, ' ').trim(),
+        searchTerm: searchTerm.replace(searchConfig.regex.whitespace, ' ').trim(),
     };
 }
 
