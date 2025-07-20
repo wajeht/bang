@@ -160,10 +160,20 @@ export function parseSearchQuery(query: string) {
     let url = null;
     let searchTerm = remaining;
     if (commandType === 'bang') {
-        const urlMatch = remaining.match(/(?:^| )(https?:\/\/\S*)/);
-        if (urlMatch) {
-            url = urlMatch[1];
-            searchTerm = remaining.replace(urlMatch[0], '').trim();
+        // First try to match URLs with protocol (http:// or https://)
+        const protocolUrlMatch = remaining.match(/(?:^| )(https?:\/\/\S*)/);
+        if (protocolUrlMatch) {
+            url = protocolUrlMatch[1];
+            searchTerm = remaining.replace(protocolUrlMatch[0], '').trim();
+        } else {
+            // Try to match URLs without protocol (e.g., example.com/path)
+            const domainUrlMatch = remaining.match(
+                /(?:^| )([a-zA-Z0-9][\w-]*(?:\.[a-zA-Z0-9][\w-]*)+(?:\/\S*)?)/,
+            );
+            if (domainUrlMatch && domainUrlMatch[1]) {
+                url = addHttps(domainUrlMatch[1]);
+                searchTerm = remaining.replace(domainUrlMatch[0], '').trim();
+            }
         }
     }
 
