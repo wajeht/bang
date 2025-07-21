@@ -66656,7 +66656,7 @@ export const bangs: Record<string, any> = {
         s: 'Nexus Mods',
         d: 'www.nexusmods.com',
         t: 'nm',
-        u: 'https://www.nexusmods.com/search/?gsearch={{{s}}}&gsearchtype=mods',
+        u: 'https://www.nexusmods.com/search?keyword={{{s}}}',
         c: 'Entertainment',
         sc: 'Games (general)',
     },
