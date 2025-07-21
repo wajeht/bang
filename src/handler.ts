@@ -137,7 +137,7 @@ export function getActionHandler(actions: Actions) {
         const action = await actions.read(parseInt(req.params.id as unknown as string), user.id);
 
         if (!action) {
-            throw new NotFoundError('Action not found', req);
+            throw new NotFoundError('Action not found');
         }
 
         if (isApiRequest(req)) {
@@ -487,7 +487,7 @@ export function getBookmarkHandler(bookmarks: Bookmarks) {
         );
 
         if (!bookmark) {
-            throw new NotFoundError('Bookmark not found', req);
+            throw new NotFoundError('Bookmark not found');
         }
 
         if (isApiRequest(req)) {
@@ -547,7 +547,7 @@ export function deleteBookmarkHandler(bookmarks: Bookmarks) {
         );
 
         if (!deleted) {
-            throw new NotFoundError('Bookmark not found', req);
+            throw new NotFoundError('Bookmark not found');
         }
 
         if (isApiRequest(req)) {
@@ -569,7 +569,7 @@ export function getEditBookmarkPageHandler(bookmarks: Bookmarks) {
         );
 
         if (!bookmark) {
-            throw new NotFoundError('Bookmark not found', req);
+            throw new NotFoundError('Bookmark not found');
         }
 
         return res.render('./bookmarks/bookmarks-edit.html', {
@@ -703,7 +703,7 @@ export function toggleBookmarkPinHandler(bookmarks: Bookmarks) {
         const currentBookmark = await bookmarks.read(bookmarkId, user.id);
 
         if (!currentBookmark) {
-            throw new NotFoundError('Bookmark not found', req);
+            throw new NotFoundError('Bookmark not found');
         }
 
         const updatedBookmark = await bookmarks.update(bookmarkId, user.id, {
@@ -782,7 +782,7 @@ export function postSettingsCreateApiKeyHandler(db: Knex, api: Api) {
         const user = await db('users').where({ id: req.session.user?.id }).first();
 
         if (!user) {
-            throw new NotFoundError('User not found', req);
+            throw new NotFoundError('User not found');
         }
 
         const newKeyVersion = (user.api_key_version || 0) + 1;
@@ -1208,12 +1208,14 @@ export function postSettingsDisplayHandler(db: Knex) {
         const { column_preferences } = req.body;
 
         if (!column_preferences || typeof column_preferences !== 'object') {
-            throw new ValidationError('Column preferences must be an object', req);
+            throw new ValidationError({
+                column_preferences: 'Column preferences must be an object',
+            });
         }
 
         // bookmarks
         if (typeof column_preferences.bookmarks !== 'object') {
-            throw new ValidationError('Bookmarks must be an object', req);
+            throw new ValidationError({ bookmarks: 'Bookmarks must be an object' });
         }
 
         column_preferences.bookmarks.title = column_preferences.bookmarks.title === 'on';
@@ -1230,7 +1232,7 @@ export function postSettingsDisplayHandler(db: Knex) {
             isNaN(column_preferences.bookmarks.default_per_page) ||
             column_preferences.bookmarks.default_per_page < 1
         ) {
-            throw new ValidationError('Bookmarks per page must be greater than 0', req);
+            throw new ValidationError({ bookmarks: 'Bookmarks per page must be greater than 0' });
         }
 
         if (
@@ -1239,12 +1241,14 @@ export function postSettingsDisplayHandler(db: Knex) {
             !column_preferences.bookmarks.created_at &&
             !column_preferences.bookmarks.pinned
         ) {
-            throw new ValidationError('At least one bookmark column must be enabled', req);
+            throw new ValidationError({
+                bookmarks: 'At least one bookmark column must be enabled',
+            });
         }
 
         // actions
         if (typeof column_preferences.actions !== 'object') {
-            throw new ValidationError('Actions must be an object', req);
+            throw new ValidationError({ actions: 'Actions must be an object' });
         }
 
         column_preferences.actions.name = column_preferences.actions.name === 'on';
@@ -1264,7 +1268,7 @@ export function postSettingsDisplayHandler(db: Knex) {
             isNaN(column_preferences.actions.default_per_page) ||
             column_preferences.actions.default_per_page < 1
         ) {
-            throw new ValidationError('Actions per page must be greater than 0', req);
+            throw new ValidationError({ actions: 'Actions per page must be greater than 0' });
         }
 
         if (
@@ -1276,12 +1280,12 @@ export function postSettingsDisplayHandler(db: Knex) {
             !column_preferences.actions.usage_count &&
             !column_preferences.actions.created_at
         ) {
-            throw new ValidationError('At least one action column must be enabled', req);
+            throw new ValidationError({ actions: 'At least one action column must be enabled' });
         }
 
         // notes
         if (typeof column_preferences.notes !== 'object') {
-            throw new ValidationError('Notes must be an object', req);
+            throw new ValidationError({ notes: 'Notes must be an object' });
         }
 
         column_preferences.notes.title = column_preferences.notes.title === 'on';
@@ -1302,7 +1306,7 @@ export function postSettingsDisplayHandler(db: Knex) {
             !column_preferences.notes.content &&
             !column_preferences.notes.pinned
         ) {
-            throw new ValidationError('At least one note column must be enabled', req);
+            throw new ValidationError({ notes: 'At least one note column must be enabled' });
         }
 
         column_preferences.notes.default_per_page = parseInt(
@@ -1314,7 +1318,7 @@ export function postSettingsDisplayHandler(db: Knex) {
             isNaN(column_preferences.notes.default_per_page) ||
             column_preferences.notes.default_per_page < 1
         ) {
-            throw new ValidationError('Notes per page must be greater than 0', req);
+            throw new ValidationError({ notes: 'Notes per page must be greater than 0' });
         }
 
         // Preserve the view_type if it's not in the form submission
@@ -1329,7 +1333,7 @@ export function postSettingsDisplayHandler(db: Knex) {
         // tabs
         if (column_preferences.tabs) {
             if (typeof column_preferences.tabs !== 'object') {
-                throw new ValidationError('Tabs must be an object', req);
+                throw new ValidationError({ tabs: 'Tabs must be an object' });
             }
 
             column_preferences.tabs.title = column_preferences.tabs.title === 'on';
@@ -1346,7 +1350,7 @@ export function postSettingsDisplayHandler(db: Knex) {
                 isNaN(column_preferences.tabs.default_per_page) ||
                 column_preferences.tabs.default_per_page < 1
             ) {
-                throw new ValidationError('Tabs per page must be greater than 0', req);
+                throw new ValidationError({ tabs: 'Tabs per page must be greater than 0' });
             }
 
             if (
@@ -1355,14 +1359,14 @@ export function postSettingsDisplayHandler(db: Knex) {
                 !column_preferences.tabs.items_count &&
                 !column_preferences.tabs.created_at
             ) {
-                throw new ValidationError('At least one tab column must be enabled', req);
+                throw new ValidationError({ tabs: 'At least one tab column must be enabled' });
             }
         }
 
         // users (admin only)
         if (req.user?.is_admin && column_preferences.users) {
             if (typeof column_preferences.users !== 'object') {
-                throw new ValidationError('Users must be an object', req);
+                throw new ValidationError({ users: 'Users must be an object' });
             }
 
             column_preferences.users.username = column_preferences.users.username === 'on';
@@ -1381,7 +1385,7 @@ export function postSettingsDisplayHandler(db: Knex) {
                 isNaN(column_preferences.users.default_per_page) ||
                 column_preferences.users.default_per_page < 1
             ) {
-                throw new ValidationError('Users per page must be greater than 0', req);
+                throw new ValidationError({ users: 'Users per page must be greater than 0' });
             }
 
             if (
@@ -1391,7 +1395,7 @@ export function postSettingsDisplayHandler(db: Knex) {
                 !column_preferences.users.email_verified_at &&
                 !column_preferences.users.created_at
             ) {
-                throw new ValidationError('At least one user column must be enabled', req);
+                throw new ValidationError({ users: 'At least one user column must be enabled' });
             }
         }
 
@@ -1530,7 +1534,7 @@ export function getEditNotePageHandler(notes: Notes) {
         const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
 
         if (!note) {
-            throw new NotFoundError('Note not found', req);
+            throw new NotFoundError('Note not found');
         }
 
         return res.render('./notes/notes-edit.html', {
@@ -1591,7 +1595,7 @@ export function getNoteHandler(notes: Notes, log: typeof logger) {
         let note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
 
         if (!note) {
-            throw new NotFoundError('Note not found', req);
+            throw new NotFoundError('Note not found');
         }
 
         let content: string = '';
@@ -1633,7 +1637,7 @@ export function deleteNoteHandler(notes: Notes) {
         const deleted = await notes.delete(parseInt(req.params.id as unknown as string), user.id);
 
         if (!deleted) {
-            throw new NotFoundError('Not not found', req);
+            throw new NotFoundError('Not not found');
         }
 
         if (isApiRequest(req)) {
@@ -1655,7 +1659,7 @@ export function toggleNotePinHandler(notes: Notes) {
         const currentNote = await notes.read(noteId, user.id);
 
         if (!currentNote) {
-            throw new NotFoundError('Note not found', req);
+            throw new NotFoundError('Note not found');
         }
 
         const updatedNote = await notes.update(noteId, user.id, {
@@ -1721,7 +1725,7 @@ export function postDeleteAdminUserHandler(db: Knex) {
         const user = await db('users').where({ id: userId }).delete();
 
         if (!user) {
-            throw new NotFoundError('User not found', req);
+            throw new NotFoundError('User not found');
         }
 
         req.flash('success', 'deleted');
@@ -1815,7 +1819,7 @@ export function getMagicLinkHandler() {
         const user = await db('users').where({ email: decoded.email }).first();
 
         if (!user) {
-            throw new NotFoundError('User not found', req);
+            throw new NotFoundError('User not found');
         }
 
         await db('users').where({ id: user.id }).update({ email_verified_at: db.fn.now() });
@@ -2188,7 +2192,7 @@ export function getTabsLaunchHandler(db: Knex) {
         const tabGroup = await db('tabs').where({ user_id: user.id, id }).first();
 
         if (!tabGroup) {
-            throw new NotFoundError('Tab group not found', req);
+            throw new NotFoundError('Tab group not found');
         }
 
         const tabs = await db('tab_items')
