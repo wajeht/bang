@@ -30358,7 +30358,7 @@ export const bangs: Record<string, any> = {
         s: 'Examine',
         d: 'examine.com',
         t: 'examine',
-        u: 'https://examine.com/search.php?q={{{s}}}',
+        u: 'https://examine.com/search/?q={{{s}}}',
         c: 'Research',
         sc: 'Health',
     },
