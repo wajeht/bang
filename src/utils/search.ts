@@ -1190,7 +1190,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         // Format supported:
         // 1. !remind <description> (uses user's default timing)
         // 2. !remind <when> | <description>
-        // 3. !remind <when> | <description> | <url>
+        // 3. !remind <when> | <description> | <content>
         // Examples:
         // - !remind take out trash (uses default timing)
         // - !remind 2025-01-15 | take out trash
@@ -1205,23 +1205,23 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
             let whenPart: string;
             let description: string;
-            let url: string | null = null;
+            let content: string | null = null;
 
             // Check if it's pipe-separated format or simple format
             if (reminderContent.includes('|')) {
-                // Parse the pipe-separated format: <when> | <description> [| <url>]
+                // Parse the pipe-separated format: <when> | <description> [| <content>]
                 const parts = reminderContent.split('|').map((part) => part.trim());
 
                 if (parts.length < 2) {
                     return goBackWithValidationAlert(
                         res,
-                        'Invalid format. Use: !remind <description> or !remind <when> | <description> [| <url>]',
+                        'Invalid format. Use: !remind <description> or !remind <when> | <description> [| <content>]',
                     );
                 }
 
                 whenPart = parts[0] || '';
                 description = parts[1] || '';
-                url = parts.length > 2 ? parts[2] || null : null;
+                content = parts.length > 2 ? parts[2] || null : null;
 
                 if (!whenPart) {
                     return goBackWithValidationAlert(
@@ -1239,9 +1239,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 return goBackWithValidationAlert(res, 'Description is required');
             }
 
-            if (url && !isValidUrl(url)) {
-                return goBackWithValidationAlert(res, 'Invalid URL format');
-            }
+            const trimmedContent = content ? content.trim() : null;
 
             // Parse the timing
             const timing = parseReminderTiming(whenPart.toLowerCase());
@@ -1256,7 +1254,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 await db('reminders').insert({
                     user_id: user.id,
                     title: description,
-                    url: url || null,
+                    content: trimmedContent,
                     reminder_type: timing.type,
                     frequency: timing.frequency,
                     next_due: timing.nextDue,

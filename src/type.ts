@@ -96,7 +96,7 @@ export type ColumnPreferences = {
     };
     reminders: {
         title: boolean;
-        url: boolean;
+        content: boolean;
         next_due: boolean;
         frequency: boolean;
         status: boolean;
@@ -200,7 +200,7 @@ export type NotesQueryParams = {
 export type Reminder = {
     id?: number;
     title: string;
-    url: string | null;
+    content: string | null;
     user_id: number;
     reminder_type: ReminderType;
     frequency: ReminderFrequency | null;

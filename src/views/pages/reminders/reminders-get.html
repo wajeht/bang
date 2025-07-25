@@ -53,8 +53,8 @@
                                 </a>
                             </th>
                         <% } %>
-                        <% if (state.user.column_preferences?.reminders?.url !== false) { %>
-                            <th scope="col" style="text-align: left; padding: 10px;">🔗 URL</th>
+                        <% if (state.user.column_preferences?.reminders?.content !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">📝 Content</th>
                         <% } %>
                         <% if (state.user.column_preferences?.reminders?.next_due !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
@@ -81,22 +81,26 @@
                 </thead>
                 <tbody>
                     <% for (let i = 0; i < reminders.length; i++) { %>
-                        <tr style="<%= reminders[i].is_completed ? 'opacity: 0.6;' : '' %>">
+                        <tr>
                             <% if (state.user.column_preferences?.reminders?.title !== false) { %>
                                 <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                     ⏰
                                     <%- reminders[i].title %>
                                 </td>
                             <% } %>
-                            <% if (state.user.column_preferences?.reminders?.url !== false) { %>
+                            <% if (state.user.column_preferences?.reminders?.content !== false) { %>
                                 <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                    <% if (reminders[i].url) { %>
-                                        <div style="display: flex; gap: 5px; align-items: center;">
-                                            <img src="<%- utils.getFaviconUrl(reminders[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                            <a href="<%= reminders[i].url %>" style="overflow: auto; white-space: nowrap;" title="<%= reminders[i].title %>" target="_blank" rel="noopener noreferrer">
-                                                <%- reminders[i].url %>
-                                            </a>
-                                        </div>
+                                    <% if (reminders[i].content) { %>
+                                        <% if (reminders[i].content.startsWith('http://') || reminders[i].content.startsWith('https://')) { %>
+                                            <div style="display: flex; gap: 5px; align-items: center;">
+                                                <img src="<%- utils.getFaviconUrl(reminders[i].content) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                                <a href="<%= reminders[i].content %>" style="overflow: auto; white-space: nowrap;" title="<%= reminders[i].title %>" target="_blank" rel="noopener noreferrer">
+                                                    <%- reminders[i].content %>
+                                                </a>
+                                            </div>
+                                        <% } else { %>
+                                            <%- reminders[i].content %>
+                                        <% } %>
                                     <% } else { %>
                                         -
                                     <% } %>
