@@ -86,11 +86,12 @@ const TESTS = [
 
 async function request(url: string, apiKey?: string) {
     try {
-        const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : {};
         const controller = new AbortController();
         setTimeout(() => controller.abort(), 5000);
         const response = await fetch(url, {
-            headers,
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+            },
             signal: controller.signal,
             redirect: 'manual',
         });
