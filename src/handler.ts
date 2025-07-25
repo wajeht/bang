@@ -1426,6 +1426,19 @@ export function postNotesRenderMarkdownHandler() {
         }
 
         const { marked } = await import('marked');
+        const hljs = await import('highlight.js');
+
+        const renderer = new marked.Renderer();
+
+        renderer.code = function ({ text, lang }) {
+            if (lang && hljs.default.getLanguage(lang)) {
+                const highlighted = hljs.default.highlight(text, { language: lang }).value;
+                return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>`;
+            }
+            return `<pre><code>${text}</code></pre>`;
+        };
+
+        marked.setOptions({ renderer });
         const markdown = marked(content) as string;
 
         res.json({ content: markdown });
@@ -1602,6 +1615,21 @@ export function getNoteHandler(notes: Notes, log: typeof logger) {
 
         try {
             const { marked } = await import('marked');
+            const hljs = await import('highlight.js');
+
+            // Configure marked with custom renderer for code blocks
+            const renderer = new marked.Renderer();
+
+            renderer.code = function ({ text, lang }) {
+                if (lang && hljs.default.getLanguage(lang)) {
+                    const highlighted = hljs.default.highlight(text, { language: lang }).value;
+                    return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>`;
+                }
+                // Fallback to default code rendering
+                return `<pre><code>${text}</code></pre>`;
+            };
+
+            marked.setOptions({ renderer });
             content = marked(note.content) as string;
         } catch (_error) {
             content = '';
