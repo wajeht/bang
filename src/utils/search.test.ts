@@ -2338,6 +2338,42 @@ describe('search command handling', () => {
             expect(googleBang).toContain('google.com');
             expect(googleBang).toContain('test');
         });
+
+        it('should handle Kagi bangs with relative URLs when search term is provided', () => {
+            const kagiHtmlBang = getBangRedirectUrl(
+                {
+                    u: '/html/search?q={{{s}}}',
+                    d: 'kagi.com',
+                } as any,
+                'python',
+            );
+
+            expect(kagiHtmlBang).toBe('/html/search?q=python');
+        });
+
+        it('should handle Kagi bangs with relative URLs when no search term is provided', () => {
+            const kagiHtmlBang = getBangRedirectUrl(
+                {
+                    u: '/html/search?q={{{s}}}',
+                    d: 'kagi.com',
+                } as any,
+                '',
+            );
+
+            expect(kagiHtmlBang).toBe('https://kagi.com/html/search?q=');
+        });
+
+        it('should fallback to domain for empty or invalid redirect URLs', () => {
+            const invalidBang = getBangRedirectUrl(
+                {
+                    u: '',
+                    d: 'example.com',
+                } as any,
+                '',
+            );
+
+            expect(invalidBang).toBe('https://example.com');
+        });
     });
 
     describe('direct commands handling', () => {

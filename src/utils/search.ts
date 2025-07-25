@@ -436,6 +436,17 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string): string {
     if (searchTerm) {
         redirectUrl = bang.u.replace('{{{s}}}', encodeURIComponent(searchTerm));
     } else {
+        // Handle Kagi bangs with relative URLs specially
+        if (bang.d === 'kagi.com' && bang.u.startsWith('/')) {
+            // For Kagi bangs with relative URLs, construct the full URL with empty search
+            redirectUrl = `https://${bang.d}${bang.u.replace('{{{s}}}', '')}`;
+        } else {
+            redirectUrl = addHttps(bang.d);
+        }
+    }
+
+    // Handle case where redirect URL is empty or invalid - fallback to domain
+    if (!redirectUrl || redirectUrl.trim() === '' || redirectUrl === 'https://') {
         redirectUrl = addHttps(bang.d);
     }
 
