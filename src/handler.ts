@@ -1889,6 +1889,156 @@ export function rateLimitHandler() {
     };
 }
 
+// GET /search
+export function getSearchHandler(actions: Actions, bookmarks: Bookmarks, notes: Notes, db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const searchQuery = req.query.q?.toString().trim() || '';
+        const searchType = req.query.type?.toString() || 'global';
+
+        if (!searchQuery) {
+            return res.render('./search/search-results.html', {
+                user: req.session?.user,
+                title: 'Global Search',
+                path: '/search',
+                layout: '../layouts/auth.html',
+                searchQuery: '',
+                searchType,
+                results: {
+                    bookmarks: { data: [], pagination: {} },
+                    actions: { data: [], pagination: {} },
+                    notes: { data: [], pagination: {} },
+                    tabs: [],
+                },
+            });
+        }
+
+        if (searchType !== 'global') {
+            return res.render('./search/search-results.html', {
+                user: req.session?.user,
+                title: 'Global Search',
+                path: '/search',
+                layout: '../layouts/auth.html',
+                searchQuery,
+                searchType,
+                results: {
+                    bookmarks: { data: [], pagination: {} },
+                    actions: { data: [], pagination: {} },
+                    notes: { data: [], pagination: {} },
+                    tabs: [],
+                },
+            });
+        }
+
+        // Search across all resource types in parallel
+        const [bookmarksResult, actionsResult, notesResult, tabsResult] = await Promise.all([
+            // Search bookmarks
+            bookmarks.all({
+                user,
+                perPage: 10,
+                page: 1,
+                search: searchQuery,
+                sortKey: 'created_at',
+                direction: 'desc',
+                highlight: true,
+            }),
+
+            // Search actions (bangs)
+            actions.all({
+                user,
+                perPage: 10,
+                page: 1,
+                search: searchQuery,
+                sortKey: 'created_at',
+                direction: 'desc',
+                highlight: true,
+            }),
+
+            // Search notes
+            notes.all({
+                user,
+                perPage: 10,
+                page: 1,
+                search: searchQuery,
+                sortKey: 'created_at',
+                direction: 'desc',
+                highlight: true,
+            }),
+
+            // Search tabs
+            db
+                .select('tabs.id', 'tabs.title', 'tabs.trigger', 'tabs.created_at')
+                .select(
+                    db.raw(
+                        '(SELECT COUNT(*) FROM tab_items WHERE tab_items.tab_id = tabs.id) as items_count',
+                    ),
+                )
+                .from('tabs')
+                .where('tabs.user_id', user.id)
+                .where((builder) => {
+                    builder
+                        .whereRaw('LOWER(tabs.title) LIKE ?', [`%${searchQuery.toLowerCase()}%`])
+                        .orWhereRaw('LOWER(tabs.trigger) LIKE ?', [
+                            `%${searchQuery.toLowerCase()}%`,
+                        ])
+                        .orWhereExists((subquery) => {
+                            subquery
+                                .select(db.raw('1'))
+                                .from('tab_items')
+                                .whereRaw('tab_items.tab_id = tabs.id')
+                                .where((itemBuilder) => {
+                                    itemBuilder
+                                        .whereRaw('LOWER(tab_items.title) LIKE ?', [
+                                            `%${searchQuery.toLowerCase()}%`,
+                                        ])
+                                        .orWhereRaw('LOWER(tab_items.url) LIKE ?', [
+                                            `%${searchQuery.toLowerCase()}%`,
+                                        ]);
+                                });
+                        });
+                })
+                .orderBy('created_at', 'desc')
+                .limit(10),
+        ]);
+
+        // Add highlighting to tabs
+        const highlightedTabs = tabsResult.map((tab) => ({
+            ...tab,
+            title: highlightSearchTerm(tab.title, searchQuery),
+            trigger: highlightSearchTerm(tab.trigger, searchQuery),
+        }));
+
+        if (isApiRequest(req)) {
+            res.json({
+                searchQuery,
+                searchType,
+                results: {
+                    bookmarks: bookmarksResult,
+                    actions: actionsResult,
+                    notes: notesResult,
+                    tabs: highlightedTabs,
+                },
+            });
+            return;
+        }
+
+        return res.render('./search/search-results.html', {
+            user: req.session?.user,
+            title: 'Global Search',
+            path: '/search',
+            layout: '../layouts/auth.html',
+            searchQuery,
+            searchType,
+            results: {
+                bookmarks: bookmarksResult,
+                actions: actionsResult,
+                notes: notesResult,
+                tabs: highlightedTabs,
+            },
+        });
+    };
+}
+
 // GET /bangs
 export function getBangsPage() {
     return async (req: Request, res: Response) => {
