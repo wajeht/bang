@@ -63,6 +63,7 @@ export async function up(knex: Knex): Promise<void> {
                         status: true,
                         default_per_page: 20,
                         created_at: true,
+                        default_reminder_timing: 'daily',
                     },
                     users: {
                         username: true,
@@ -183,6 +184,23 @@ export async function up(knex: Knex): Promise<void> {
         });
     }
 
+    if (!(await knex.schema.hasTable('reminders'))) {
+        await knex.schema.createTable('reminders', (table) => {
+            table.increments('id').primary();
+            table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE').notNullable(); // prettier-ignore
+            table.string('title').notNullable(); // description/task
+            table.text('url').nullable();
+            table.string('reminder_type').defaultTo('once'); // once or recurring
+            table.string('frequency').nullable(); // daily, weekly, biweekly, or monthly
+            table.timestamp('next_due').nullable();
+            table.boolean('is_completed').defaultTo(false).notNullable();
+            table.timestamps(true, true);
+
+            table.index(['user_id', 'next_due']); // finding due reminders
+            table.index(['next_due'], 'reminders_next_due_idx'); // cron job queries
+        });
+    }
+
     // Insert default action types
     await knex('action_types').insert([
         { name: 'search' },
@@ -193,6 +211,7 @@ export async function up(knex: Knex): Promise<void> {
 
 export async function down(knex: Knex): Promise<void> {
     for (const table of [
+        'reminders',
         'tab_items',
         'tabs',
         'notes',
