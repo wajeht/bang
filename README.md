@@ -47,6 +47,7 @@ Before you can use the Bang command from your browser's search bar, you need to 
 - `@bm [search term]` - Search your bookmarks
 - `@a [search term]` - Search your actions
 - `@n [search term]` - Search your notes
+- `!find [search term]` - Global search across all resources (bookmarks, actions, notes, tabs)
 - `!bm [url]` - Add a bookmark
 - `!bm [title] [url]` - Add a bookmark
     - `[title]` is optional, if not provided, we will auto fetch the title
