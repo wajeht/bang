@@ -1,0 +1,126 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+    <header>
+        <h2>⏰ Reminders / New</h2>
+        <p>Create a new reminder</p>
+    </header>
+
+    <form
+        method="POST"
+        action="/reminders"
+        style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+    >
+        <fieldset style="display: flex; flex-direction: column;">
+            <legend>Reminder Details</legend>
+
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+            <%- include('../../components/inputs/text.html', {
+                id: 'title',
+                name: 'title',
+                label: '📝 Title',
+                placeholder: 'Take out trash',
+                value: state.input && state.input.title ? state.input.title : '',
+                required: true,
+                helpText: 'What do you want to be reminded about?',
+                error: state.errors && state.errors.title ? state.errors.title : undefined
+            }) %>
+
+            <%- include('../../components/inputs/url.html', {
+                id: 'url',
+                name: 'url',
+                label: '🔗 URL (optional)',
+                placeholder: 'https://example.com',
+                value: state.input && state.input.url ? state.input.url : '',
+                required: false,
+                helpText: 'Optional link to open with this reminder',
+                error: state.errors && state.errors.url ? state.errors.url : undefined
+            }) %>
+
+            <%- include('../../components/inputs/select.html', {
+                id: 'reminder_type',
+                name: 'reminder_type',
+                label: '🔄 Type',
+                required: true,
+                value: state.input && state.input.reminder_type ? state.input.reminder_type : 'once',
+                options: [
+                    { value: 'once', label: 'One-time reminder' },
+                    { value: 'recurring', label: 'Recurring reminder' }
+                ],
+                helpText: 'Choose if this reminder should repeat',
+                error: state.errors && state.errors.reminder_type ? state.errors.reminder_type : undefined
+            }) %>
+
+            <%- include('../../components/inputs/select.html', {
+                id: 'frequency',
+                name: 'frequency',
+                label: '📅 Frequency',
+                required: false,
+                value: state.input && state.input.frequency ? state.input.frequency : '',
+                options: [
+                    { value: '', label: 'None (one-time only)' },
+                    { value: 'daily', label: 'Daily' },
+                    { value: 'weekly', label: 'Weekly' },
+                    { value: 'biweekly', label: 'Bi-weekly (every 2 weeks)' },
+                    { value: 'monthly', label: 'Monthly' }
+                ],
+                helpText: 'How often should this reminder repeat? (only for recurring reminders)',
+                error: state.errors && state.errors.frequency ? state.errors.frequency : undefined
+            }) %>
+
+            <%- include('../../components/inputs/date.html', {
+                id: 'next_due',
+                name: 'next_due',
+                label: '📆 Due Date',
+                value: state.input && state.input.next_due ? state.input.next_due : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                required: true,
+                helpText: 'When should this reminder be due?',
+                error: state.errors && state.errors.next_due ? state.errors.next_due : undefined
+            }) %>
+
+            <%- include('../../components/inputs/select.html', {
+                id: 'category',
+                name: 'category',
+                label: '📂 Category',
+                required: true,
+                value: state.input && state.input.category ? state.input.category : 'auto',
+                options: [
+                    { value: 'auto', label: '🤖 Auto-detect' },
+                    { value: 'task', label: '📝 Task' },
+                    { value: 'reading', label: '📖 Reading' },
+                    { value: 'link', label: '🔗 Link' }
+                ],
+                helpText: 'What type of reminder is this?',
+                error: state.errors && state.errors.category ? state.errors.category : undefined
+            }) %>
+
+        </fieldset>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" onclick="location.href='/reminders'">❌ Cancel</button>
+            <button type="submit">💾 Save</button>
+        </div>
+    </form>
+
+    <script>
+        // Show/hide frequency field based on reminder type
+        const reminderTypeSelect = document.getElementById('reminder_type');
+        const frequencySelect = document.getElementById('frequency');
+        const frequencyContainer = frequencySelect.closest('div');
+
+        function toggleFrequencyField() {
+            if (reminderTypeSelect.value === 'recurring') {
+                frequencyContainer.style.display = 'block';
+                frequencySelect.required = true;
+            } else {
+                frequencyContainer.style.display = 'none';
+                frequencySelect.required = false;
+                frequencySelect.value = '';
+            }
+        }
+
+        reminderTypeSelect.addEventListener('change', toggleFrequencyField);
+
+        // Initialize on page load
+        toggleFrequencyField();
+    </script>
+</section>
