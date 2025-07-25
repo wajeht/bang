@@ -108,9 +108,13 @@
                             <% } %>
                             <% if (state.user.column_preferences?.reminders?.next_due !== false) { %>
                                 <td style="padding: 10px;">
-                                    <time datetime="<%= reminders[i].next_due %>">
-                                        <%= reminders[i].next_due ? new Date(reminders[i].next_due).toLocaleDateString() : '-' %>
-                                    </time>
+                                    <% if (reminders[i].reminder_type === 'once') { %>
+                                        <time datetime="<%= reminders[i].next_due %>">
+                                            <%= reminders[i].next_due ? new Date(reminders[i].next_due).toLocaleDateString() : '-' %>
+                                        </time>
+                                    <% } else { %>
+                                        -
+                                    <% } %>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.reminders?.frequency !== false) { %>
