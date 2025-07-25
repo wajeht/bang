@@ -60,7 +60,6 @@ export async function seed(knex: Knex): Promise<void> {
                     reminders: {
                         title: true,
                         url: true,
-                        category: true,
                         next_due: true,
                         frequency: true,
                         status: true,
@@ -279,7 +278,6 @@ Here is the \`content\` of **note 2**.
                 user_id: user.id,
                 title: 'Weekly team standup meeting',
                 url: 'https://meet.google.com/xyz-abc-def',
-                category: 'task',
                 reminder_type: 'recurring',
                 frequency: 'weekly',
                 next_due: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -291,7 +289,6 @@ Here is the \`content\` of **note 2**.
                 user_id: user.id,
                 title: 'Read TypeScript handbook',
                 url: 'https://www.typescriptlang.org/docs/',
-                category: 'reading',
                 reminder_type: 'once',
                 frequency: null,
                 next_due: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
@@ -303,7 +300,6 @@ Here is the \`content\` of **note 2**.
                 user_id: user.id,
                 title: 'Take out trash',
                 url: null,
-                category: 'task',
                 reminder_type: 'recurring',
                 frequency: 'weekly',
                 next_due: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)
@@ -315,7 +311,6 @@ Here is the \`content\` of **note 2**.
                 user_id: user.id,
                 title: 'Check GitHub notifications',
                 url: 'https://github.com/notifications',
-                category: 'task',
                 reminder_type: 'recurring',
                 frequency: 'daily',
                 next_due: new Date().toISOString().split('T')[0], // Today

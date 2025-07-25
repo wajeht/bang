@@ -29,7 +29,6 @@
 
             <button type="button" aria-label="Create new reminder" onclick="location.href='/reminders/create'">➕</button>
 
-            <button type="button" aria-label="Filter by category" onclick="toggleCategoryFilter()">🗂️</button>
 
             <%- include('../_partials/column-settings.html') %>
         </nav>
@@ -56,9 +55,6 @@
                         <% } %>
                         <% if (state.user.column_preferences?.reminders?.url !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">🔗 URL</th>
-                        <% } %>
-                        <% if (state.user.column_preferences?.reminders?.category !== false) { %>
-                            <th scope="col" style="text-align: left; padding: 10px;">📂 Type</th>
                         <% } %>
                         <% if (state.user.column_preferences?.reminders?.next_due !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
@@ -88,7 +84,7 @@
                         <tr style="<%= reminders[i].is_completed ? 'opacity: 0.6;' : '' %>">
                             <% if (state.user.column_preferences?.reminders?.title !== false) { %>
                                 <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                    <% if (reminders[i].category === 'reading') { %>📖<% } else if (reminders[i].category === 'link') { %>🔗<% } else { %>📝<% } %>
+                                    ⏰
                                     <%= reminders[i].title %>
                                 </td>
                             <% } %>
@@ -100,17 +96,6 @@
                                         </a>
                                     <% } else { %>
                                         -
-                                    <% } %>
-                                </td>
-                            <% } %>
-                            <% if (state.user.column_preferences?.reminders?.category !== false) { %>
-                                <td style="padding: 10px;">
-                                    <% if (reminders[i].category === 'reading') { %>
-                                        📖 Reading
-                                    <% } else if (reminders[i].category === 'link') { %>
-                                        🔗 Link
-                                    <% } else { %>
-                                        📝 Task
                                     <% } %>
                                 </td>
                             <% } %>
@@ -220,22 +205,5 @@
             modal.showModal();
         }
 
-        function toggleCategoryFilter() {
-            // Simple category filter implementation
-            const url = new URL(window.location);
-            const currentCategory = url.searchParams.get('category');
-
-            if (!currentCategory) {
-                url.searchParams.set('category', 'reading');
-            } else if (currentCategory === 'reading') {
-                url.searchParams.set('category', 'task');
-            } else if (currentCategory === 'task') {
-                url.searchParams.set('category', 'link');
-            } else {
-                url.searchParams.delete('category');
-            }
-
-            window.location.href = url.toString();
-        }
     </script>
 </section>

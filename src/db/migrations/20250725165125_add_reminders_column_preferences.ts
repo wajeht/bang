@@ -18,7 +18,6 @@ export async function up(knex: Knex): Promise<void> {
                 columnPreferences.reminders = {
                     title: true,
                     url: true,
-                    category: true,
                     next_due: true,
                     frequency: true,
                     status: true,
