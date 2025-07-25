@@ -2,9 +2,11 @@ import {
     Note,
     Action,
     Bookmark,
+    Reminder,
     NotesQueryParams,
     ActionsQueryParams,
     BookmarksQueryParams,
+    RemindersQueryParams,
 } from '../type';
 import knex from 'knex';
 import path from 'node:path';
@@ -13,7 +15,7 @@ import knexConfig from './knexfile';
 import { logger } from '../utils/logger';
 import { attachPaginate } from './paginate';
 import { sqlHighlight } from '../utils/util';
-import type { Actions, Bookmarks, Notes } from '../type';
+import type { Actions, Bookmarks, Notes, Reminders } from '../type';
 
 function _createKnexInstance() {
     const db = knex(knexConfig);
@@ -518,5 +520,166 @@ export const users = {
         } catch {
             return null;
         }
+    },
+};
+
+export const reminders: Reminders = {
+    all: async ({
+        user,
+        perPage = 20,
+        page = 1,
+        search = '',
+        sortKey = 'next_due',
+        direction = 'asc',
+        highlight = false,
+    }: RemindersQueryParams) => {
+        const query = db.select(
+            'id',
+            'user_id',
+            'reminder_type',
+            'frequency',
+            'is_completed',
+            'created_at',
+            'updated_at',
+        );
+
+        if (highlight && search) {
+            query
+                .select(db.raw(`${sqlHighlight('title', search)} as title`))
+                .select(db.raw(`${sqlHighlight('url', search)} as url`))
+                .select(db.raw(`${sqlHighlight('CAST(next_due AS TEXT)', search)} as next_due`));
+        } else {
+            query.select('title').select('url').select('next_due');
+        }
+
+        query.from('reminders').where('user_id', user.id);
+
+        if (search) {
+            const searchTerms = search
+                .toLowerCase()
+                .trim()
+                .split(/\s+/)
+                .filter((term) => term.length > 0)
+                .map((term) => term.replace(/[%_]/g, '\\$&'));
+
+            query.where((q) => {
+                // Each term must match title, url, or frequency
+                searchTerms.forEach((term) => {
+                    q.andWhere((subQ) => {
+                        subQ.whereRaw('LOWER(title) LIKE ?', [`%${term}%`])
+                            .orWhereRaw('LOWER(url) LIKE ?', [`%${term}%`])
+                            .orWhereRaw('LOWER(frequency) LIKE ?', [`%${term}%`]);
+                    });
+                });
+            });
+        }
+
+        // Sort by completion status first (incomplete reminders at top)
+        query.orderBy('is_completed', 'asc');
+
+        if (['title', 'url', 'next_due', 'frequency', 'created_at'].includes(sortKey)) {
+            query.orderBy(sortKey, direction);
+        } else {
+            query.orderBy('next_due', 'asc');
+        }
+
+        return query.paginate({ perPage, currentPage: page, isLengthAware: true });
+    },
+
+    create: async (reminder: Reminder) => {
+        if (!reminder.title || !reminder.user_id || !reminder.reminder_type) {
+            throw new Error('Missing required fields to create a reminder');
+        }
+
+        const [createdReminder] = await db('reminders').insert(reminder).returning('*');
+        return createdReminder;
+    },
+
+    read: async (id: number, userId: number) => {
+        const reminder = await db
+            .select('*')
+            .from('reminders')
+            .where({ id, user_id: userId })
+            .first();
+
+        if (!reminder) {
+            return null;
+        }
+
+        return reminder;
+    },
+
+    update: async (id: number, userId: number, updates: Partial<Reminder>) => {
+        const allowedFields = [
+            'title',
+            'url',
+            'reminder_type',
+            'frequency',
+            'next_due',
+            'is_completed',
+        ];
+
+        const updateData = Object.fromEntries(
+            Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
+        );
+
+        if (Object.keys(updateData).length === 0) {
+            throw new Error('No valid fields provided for update');
+        }
+
+        const [updatedReminder] = await db('reminders')
+            .where({ id, user_id: userId })
+            .update(updateData)
+            .returning('*');
+
+        if (!updatedReminder) {
+            return null;
+        }
+
+        return updatedReminder;
+    },
+
+    delete: async (id: number, userId: number) => {
+        const rowsAffected = await db('reminders').where({ id, user_id: userId }).delete();
+        return rowsAffected > 0;
+    },
+
+    complete: async (id: number, userId: number) => {
+        const reminder = await db('reminders').where({ id, user_id: userId }).first();
+
+        if (!reminder) {
+            throw new Error('Reminder not found');
+        }
+
+        // Calculate next due date for recurring reminders
+        let nextDue = reminder.next_due;
+        if (reminder.reminder_type === 'recurring' && !reminder.is_completed) {
+            const currentDue = new Date(reminder.next_due);
+            switch (reminder.frequency) {
+                case 'daily':
+                    currentDue.setDate(currentDue.getDate() + 1);
+                    break;
+                case 'weekly':
+                    currentDue.setDate(currentDue.getDate() + 7);
+                    break;
+                case 'biweekly':
+                    currentDue.setDate(currentDue.getDate() + 14);
+                    break;
+                case 'monthly':
+                    currentDue.setMonth(currentDue.getMonth() + 1);
+                    break;
+            }
+            nextDue = currentDue;
+        }
+
+        const [updatedReminder] = await db('reminders')
+            .where({ id, user_id: userId })
+            .update({
+                is_completed: !reminder.is_completed,
+                next_due: nextDue,
+            })
+            .returning('*');
+
+        return updatedReminder;
     },
 };

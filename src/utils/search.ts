@@ -10,10 +10,10 @@ import {
 } from './util';
 import { logger } from './logger';
 import { db } from '../db/db';
-import type { Bang, Search } from '../type';
 import { UnauthorizedError } from '../error';
 import { bangs as bangsTable } from '../db/bang';
 import type { Request, Response } from 'express';
+import type { Bang, Search, ReminderTimingResult } from '../type';
 
 export const searchConfig = {
     /**
@@ -510,16 +510,10 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string): string {
 
 /**
  * Parses reminder timing from natural language
- * @param timeStr - Time string like "tomorrow", "weekly", "friday", "2024-01-15"
+ * @param timeStr - Time string like "daily", "weekly", "2024-01-15"
  * @returns Parsed timing information
  */
-export function parseReminderTiming(timeStr: string): {
-    isValid: boolean;
-    type: 'once' | 'recurring';
-    frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly' | null;
-    specificDate: string | null;
-    nextDue: Date;
-} {
+export function parseReminderTiming(timeStr: string): ReminderTimingResult {
     const now = new Date();
     const tomorrow = new Date(now);
     tomorrow.setDate(now.getDate() + 1);
@@ -1258,23 +1252,6 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 );
             }
 
-            // Auto-categorize the reminder
-            let category = 'task';
-            if (url) {
-                // Check if it looks like an article URL
-                const articleDomains = [
-                    'medium.com',
-                    'dev.to',
-                    'substack.com',
-                    'blog.',
-                    '/blog/',
-                    '/article/',
-                    '/post/',
-                ];
-                const isArticle = articleDomains.some((domain) => url.includes(domain));
-                category = isArticle ? 'reading' : 'link';
-            }
-
             try {
                 await db('reminders').insert({
                     user_id: user.id,
@@ -1282,10 +1259,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     url: url || null,
                     reminder_type: timing.type,
                     frequency: timing.frequency,
-                    specific_date: timing.specificDate,
                     next_due: timing.nextDue,
-                    category,
-                    is_active: true,
                     is_completed: false,
                 });
             } catch (error) {

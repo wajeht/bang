@@ -80,7 +80,7 @@ import {
 
 import { api } from './utils/util';
 import { search } from './utils/search';
-import { db, actions, bookmarks, notes } from './db/db';
+import { db, actions, bookmarks, notes, reminders } from './db/db';
 import { adminOnlyMiddleware, authenticationMiddleware, turnstileMiddleware } from './middleware';
 
 const router = express.Router();
@@ -158,13 +158,13 @@ router.post('/notes/:id/delete', authenticationMiddleware, deleteNoteHandler(not
 router.post('/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler(notes));
 router.get('/notes/:id/edit', authenticationMiddleware, getEditNotePageHandler(notes));
 
-router.get('/reminders', authenticationMiddleware, getRemindersHandler());
-router.post('/reminders', authenticationMiddleware, postReminderHandler());
+router.get('/reminders', authenticationMiddleware, getRemindersHandler(reminders));
+router.post('/reminders', authenticationMiddleware, postReminderHandler(reminders));
 router.get('/reminders/create', authenticationMiddleware, getReminderCreatePageHandler());
-router.get('/reminders/:id/edit', authenticationMiddleware, getEditReminderPageHandler());
-router.post('/reminders/:id/update', authenticationMiddleware, updateReminderHandler());
-router.post('/reminders/:id/delete', authenticationMiddleware, deleteReminderHandler());
-router.post('/reminders/:id/complete', authenticationMiddleware, toggleReminderCompleteHandler());
+router.get('/reminders/:id/edit', authenticationMiddleware, getEditReminderPageHandler(reminders));
+router.post('/reminders/:id/update', authenticationMiddleware, updateReminderHandler(reminders));
+router.post('/reminders/:id/delete', authenticationMiddleware, deleteReminderHandler(reminders));
+router.post('/reminders/:id/complete', authenticationMiddleware, toggleReminderCompleteHandler(reminders)); // prettier-ignore
 
 /**
  * @swagger
