@@ -183,6 +183,31 @@ pre {
 .content h6 {
     margin-top: 1.5em;
     margin-bottom: 0.5em;
+    line-height: 1.25;
+}
+
+.content h1 {
+    font-size: 2em;
+}
+
+.content h2 {
+    font-size: 1.5em;
+}
+
+.content h3 {
+    font-size: 1.25em;
+}
+
+.content h4 {
+    font-size: 1.1em;
+}
+
+.content h5 {
+    font-size: 1em;
+}
+
+.content h6 {
+    font-size: 0.9em;
 }
 
 .content h1:first-child,
@@ -196,6 +221,7 @@ pre {
 
 .content p {
     margin-bottom: 1em;
+    line-height: 1.6;
 }
 
 .content p:last-child {
@@ -206,6 +232,7 @@ pre {
 .content ol {
     margin-bottom: 1em;
     padding-left: 2em;
+    line-height: 1.6;
 }
 
 .content ul:last-child,
@@ -221,10 +248,25 @@ pre {
     margin-bottom: 0;
 }
 
+/* Nested lists */
+.content li > ul,
+.content li > ol {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+}
+
+.content ul ul,
+.content ol ol,
+.content ul ol,
+.content ol ul {
+    margin-bottom: 0;
+}
+
 .content blockquote {
     margin: 1em 0;
     padding: 0.5em 1em;
     background-color: var(--pre-background);
+    border-left: 4px solid var(--pre-border);
     font-style: italic;
 }
 
@@ -235,7 +277,99 @@ pre {
 .content hr {
     margin: 2em 0;
     border: none;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--tr-border-color);
+}
+
+/* Fix for code blocks inside content */
+.content pre {
+    margin: 1em 0;
+    overflow-x: auto;
+}
+
+.content pre:last-child {
+    margin-bottom: 0;
+}
+
+.content pre code {
+    border: none;
+    padding: 0;
+    background-color: transparent;
+    display: block;
+    font-size: 1em;
+    line-height: 1.5;
+}
+
+.content code {
+    word-break: break-word;
+    font-size: 1em;
+}
+
+/* Inline code in content */
+.content p code,
+.content li code,
+.content td code {
+    padding: 2px 4px;
+    background-color: var(--code-background);
+    border: 1px solid var(--code-border);
+    border-radius: 3px;
+    font-size: 0.95em;
+}
+
+/* Task lists */
+.content input[type='checkbox'] {
+    margin-right: 0.5em;
+}
+
+.content ul.task-list {
+    list-style: none;
+    padding-left: 1.5em;
+}
+
+/* Strong and emphasis */
+.content strong {
+    font-weight: bold;
+}
+
+.content em {
+    font-style: italic;
+}
+
+/* Tables in content */
+.content table {
+    margin: 1em 0;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.content table:last-child {
+    margin-bottom: 0;
+}
+
+.content th,
+.content td {
+    padding: 8px 12px;
+    border: 1px solid var(--tr-border-color);
+}
+
+.content th {
+    background-color: var(--sub-table-background);
+    font-weight: bold;
+}
+
+/* Links in content */
+.content a {
+    word-break: break-word;
+}
+
+/* Images in content */
+.content img {
+    margin: 1em 0;
+    max-width: 100%;
+    height: auto;
+}
+
+.content img:last-child {
+    margin-bottom: 0;
 }
 /* Only add spacing for content areas, not interfering with existing layouts */
 
@@ -251,7 +385,8 @@ pre {
     border: 1px solid var(--pre-border);
     padding: 10px;
     border-radius: 5px;
-    font-size: 0.9em;
+    font-size: 1em;
+    line-height: 1.5;
 }
 
 code {
@@ -264,7 +399,7 @@ code {
     background-color: var(--pre-background);
     height: fit-content;
     border-radius: 5px;
-    font-size: 0.9em;
+    font-size: 0.95em;
 }
 
 a {
@@ -421,4 +556,184 @@ a:hover .sort-icon {
 
 .question-mark-btn:hover {
     background-color: #efefef;
+}
+
+/* Syntax highlighting for code blocks */
+/* Base colors for syntax highlighting */
+.hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 0.5em;
+    background: var(--pre-background);
+    color: var(--text-color);
+}
+
+/* Light theme syntax highlighting */
+.hljs-comment,
+.hljs-quote {
+    color: #696969;
+    font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+    color: #0000ff;
+    font-weight: bold;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag .hljs-attr {
+    color: #008080;
+}
+
+.hljs-string,
+.hljs-doctag {
+    color: #d14;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-selector-id {
+    color: #900;
+    font-weight: bold;
+}
+
+.hljs-type,
+.hljs-class .hljs-title {
+    color: #458;
+    font-weight: bold;
+}
+
+.hljs-tag,
+.hljs-name,
+.hljs-attribute {
+    color: #000080;
+    font-weight: normal;
+}
+
+.hljs-regexp,
+.hljs-link {
+    color: #009926;
+}
+
+.hljs-symbol,
+.hljs-bullet {
+    color: #990073;
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+    color: #0086b3;
+}
+
+.hljs-meta {
+    color: #999;
+    font-weight: bold;
+}
+
+.hljs-deletion {
+    background: #fdd;
+}
+
+.hljs-addition {
+    background: #dfd;
+}
+
+.hljs-emphasis {
+    font-style: italic;
+}
+
+.hljs-strong {
+    font-weight: bold;
+}
+
+/* Dark theme syntax highlighting */
+[data-theme='dark'] .hljs {
+    color: #e0e0e0;
+}
+
+[data-theme='dark'] .hljs-comment,
+[data-theme='dark'] .hljs-quote {
+    color: #7c7c7c;
+    font-style: italic;
+}
+
+[data-theme='dark'] .hljs-keyword,
+[data-theme='dark'] .hljs-selector-tag,
+[data-theme='dark'] .hljs-subst {
+    color: #5db8fc;
+    font-weight: bold;
+}
+
+[data-theme='dark'] .hljs-number,
+[data-theme='dark'] .hljs-literal,
+[data-theme='dark'] .hljs-variable,
+[data-theme='dark'] .hljs-template-variable,
+[data-theme='dark'] .hljs-tag .hljs-attr {
+    color: #66d9ef;
+}
+
+[data-theme='dark'] .hljs-string,
+[data-theme='dark'] .hljs-doctag {
+    color: #e6db74;
+}
+
+[data-theme='dark'] .hljs-title,
+[data-theme='dark'] .hljs-section,
+[data-theme='dark'] .hljs-selector-id {
+    color: #a6e22e;
+    font-weight: bold;
+}
+
+[data-theme='dark'] .hljs-type,
+[data-theme='dark'] .hljs-class .hljs-title {
+    color: #66d9ef;
+    font-weight: bold;
+}
+
+[data-theme='dark'] .hljs-tag,
+[data-theme='dark'] .hljs-name,
+[data-theme='dark'] .hljs-attribute {
+    color: #f92672;
+    font-weight: normal;
+}
+
+[data-theme='dark'] .hljs-regexp,
+[data-theme='dark'] .hljs-link {
+    color: #ae81ff;
+}
+
+[data-theme='dark'] .hljs-symbol,
+[data-theme='dark'] .hljs-bullet {
+    color: #ae81ff;
+}
+
+[data-theme='dark'] .hljs-built_in,
+[data-theme='dark'] .hljs-builtin-name {
+    color: #66d9ef;
+}
+
+[data-theme='dark'] .hljs-meta {
+    color: #f92672;
+    font-weight: bold;
+}
+
+[data-theme='dark'] .hljs-deletion {
+    background: #75302b;
+}
+
+[data-theme='dark'] .hljs-addition {
+    background: #2b4d36;
+}
+
+[data-theme='dark'] .hljs-emphasis {
+    font-style: italic;
+}
+
+[data-theme='dark'] .hljs-strong {
+    font-weight: bold;
 }
