@@ -21,11 +21,15 @@
         } else {
             content.style.display = 'none';
             preview.style.display = 'block';
-            preview.style.padding = '5px 10px';
-            preview.style.borderRadius = '3px';
+            preview.style.padding = '15px';
+            preview.style.borderRadius = '5px';
             preview.style.borderStyle = 'solid';
-            preview.style.borderColor = '#767676';
+            preview.style.borderColor = 'var(--pre-border)';
             preview.style.borderWidth = '1px';
+            preview.style.backgroundColor = 'var(--pre-background)';
+            preview.style.minHeight = '100px';
+            preview.style.maxHeight = '400px';
+            preview.style.overflowY = 'auto';
             document.getElementById('toggle-content-btn').innerHTML = 'Edit';
         }
     }
