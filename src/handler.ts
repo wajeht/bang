@@ -35,10 +35,10 @@ import { bangs } from './db/bang';
 import { config } from './config';
 import type { Bang } from './type';
 import { logger } from './utils/logger';
-import { actionTypes } from './utils/util';
 import { searchConfig } from './utils/search';
 import type { Request, Response } from 'express';
 import { db, actions, bookmarks, notes } from './db/db';
+import { actionTypes, categorizeLinkAuto } from './utils/util';
 import { HttpError, NotFoundError, ValidationError } from './error';
 
 // GET /healthz
@@ -2573,5 +2573,246 @@ export function deleteTabItemHandler(db: Knex) {
 
         req.flash('success', 'Tab item deleted!');
         return res.redirect(`/tabs`);
+    };
+}
+
+// GET /reminders
+export function getRemindersHandler() {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const { perPage, page, search, sortKey, direction } = extractPagination(req, 'reminders');
+
+        let remindersQuery = db
+            .select('*')
+            .from('reminders')
+            .where('user_id', user.id)
+            .where('is_active', true);
+
+        if (search) {
+            remindersQuery = remindersQuery.where((builder) => {
+                builder
+                    .whereRaw('LOWER(title) LIKE ?', [`%${search.toLowerCase()}%`])
+                    .orWhereRaw('LOWER(url) LIKE ?', [`%${search.toLowerCase()}%`]);
+            });
+        }
+
+        const { data: reminders, pagination } = await remindersQuery
+            .orderBy(sortKey || 'next_due', direction || 'asc')
+            .paginate({ perPage: perPage || 20, currentPage: page, isLengthAware: true });
+
+        if (isApiRequest(req)) {
+            res.json({ data: reminders, pagination, search, sortKey, direction });
+            return;
+        }
+
+        return res.render('./reminders/reminders-get.html', {
+            user: req.session?.user,
+            title: 'Reminders',
+            path: '/reminders',
+            layout: '../layouts/auth.html',
+            reminders,
+            pagination,
+            search,
+            howToContent: await getConvertedReadmeMDToHTML(),
+            sortKey,
+            direction,
+        });
+    };
+}
+
+// POST /reminders/:id/update
+export function updateReminderHandler() {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const reminderId = parseInt(req.params.id as string);
+        const { title, url, reminder_type, frequency, specific_date, next_due } = req.body;
+
+        if (!title) {
+            throw new ValidationError({ title: 'Title is required' });
+        }
+
+        if (url && !isValidUrl(url)) {
+            throw new ValidationError({ url: 'Invalid URL format' });
+        }
+
+        const updatedReminder = await db('reminders')
+            .where({ id: reminderId, user_id: user.id })
+            .update({
+                title,
+                url: url || null,
+                reminder_type,
+                frequency: frequency || null,
+                specific_date: specific_date || null,
+                next_due: next_due || new Date(),
+                updated_at: db.fn.now(),
+            })
+            .returning('*');
+
+        if (!updatedReminder.length) {
+            throw new NotFoundError('Reminder not found');
+        }
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: 'Reminder updated successfully',
+                data: updatedReminder[0],
+            });
+            return;
+        }
+
+        req.flash('success', 'Reminder updated successfully');
+        return res.redirect('/reminders');
+    };
+}
+
+// POST /reminders/:id/delete
+export function deleteReminderHandler() {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const reminderId = parseInt(req.params.id as string);
+
+        const deleted = await db('reminders').where({ id: reminderId, user_id: user.id }).delete();
+
+        if (!deleted) {
+            throw new NotFoundError('Reminder not found');
+        }
+
+        if (isApiRequest(req)) {
+            res.status(200).json({ message: 'Reminder deleted successfully' });
+            return;
+        }
+
+        req.flash('success', 'Reminder deleted successfully');
+        return res.redirect('/reminders');
+    };
+}
+
+// POST /reminders/:id/complete
+export function toggleReminderCompleteHandler() {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const reminderId = parseInt(req.params.id as string);
+
+        const currentReminder = await db('reminders')
+            .where({ id: reminderId, user_id: user.id })
+            .first();
+
+        if (!currentReminder) {
+            throw new NotFoundError('Reminder not found');
+        }
+
+        // Calculate next due date for recurring reminders
+        let nextDue = null;
+        if (currentReminder.reminder_type === 'recurring' && !currentReminder.is_completed) {
+            const now = new Date();
+            switch (currentReminder.frequency) {
+                case 'daily':
+                    nextDue = new Date(now);
+                    nextDue.setDate(now.getDate() + 1);
+                    nextDue.setHours(9, 0, 0, 0);
+                    break;
+                case 'weekly':
+                    nextDue = new Date(now);
+                    nextDue.setDate(now.getDate() + 7);
+                    nextDue.setHours(9, 0, 0, 0);
+                    break;
+                case 'biweekly':
+                    nextDue = new Date(now);
+                    nextDue.setDate(now.getDate() + 14);
+                    nextDue.setHours(9, 0, 0, 0);
+                    break;
+                case 'monthly':
+                    nextDue = new Date(now);
+                    nextDue.setMonth(now.getMonth() + 1);
+                    nextDue.setHours(9, 0, 0, 0);
+                    break;
+            }
+        }
+
+        const updatedReminder = await db('reminders')
+            .where({ id: reminderId, user_id: user.id })
+            .update({
+                is_completed: !currentReminder.is_completed,
+                next_due: nextDue,
+                updated_at: db.fn.now(),
+            })
+            .returning('*');
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: `Reminder ${updatedReminder[0].is_completed ? 'completed' : 'reactivated'} successfully`,
+                data: updatedReminder[0],
+            });
+            return;
+        }
+
+        req.flash(
+            'success',
+            `Reminder ${updatedReminder[0].is_completed ? 'completed' : 'reactivated'} successfully`,
+        );
+        return res.redirect('/reminders');
+    };
+}
+
+// POST /reminders or POST /api/reminders
+export function postReminderHandler() {
+    return async (req: Request, res: Response) => {
+        const { title, url, reminder_type, frequency, next_due, category } = req.body;
+
+            const reminderData = {
+                user_id: req.session.user?.id,
+                title: title.trim(),
+                url: url ? url.trim() : null,
+                reminder_type,
+                frequency: reminder_type === 'recurring' ? frequency : null,
+                next_due,
+                category: category === 'auto' ? categorizeLinkAuto(url, title) : category,
+                is_completed: false,
+            };
+
+            const newReminder = await db('reminders').insert(reminderData).returning('*');
+
+            if (isApiRequest(req)) {
+                res.status(201).json({
+                    message: 'Reminder created successfully',
+                    data: newReminder[0],
+                });
+                return;
+            }
+
+            req.flash('success', 'Reminder created successfully');
+            return res.redirect('/reminders');
+    };
+}
+
+// GET /reminders/create
+export function getReminderCreatePageHandler() {
+    return async (req: Request, res: Response) => {
+        return res.render('reminders/reminders-create', {
+            title: 'Reminders / New',
+            path: '/reminders/create',
+            layout: '../layouts/auth.html',
+        });
+    };
+}
+
+// GET /reminders/:id/edit
+export function getEditReminderPageHandler() {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const reminderId = parseInt(req.params.id || '', 10);
+
+        const reminder = await db('reminders').where({ id: reminderId, user_id: user.id }).first();
+
+        if (!reminder) {
+            throw new NotFoundError('Reminder not found');
+        }
+
+        return res.render('reminders/reminders-edit', {
+            title: 'Reminders / Edit',
+            path: `/reminders/${reminderId}/edit`,
+            layout: '../layouts/auth.html',
+            reminder,
+        });
     };
 }
