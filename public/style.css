@@ -425,6 +425,7 @@ dialog {
     background-color: var(--background-color);
     color: var(--text-color);
     border: 1px solid var(--dialog-border-color);
+    min-width: 300px;
 }
 
 .home-summary-title {
@@ -463,10 +464,15 @@ summary:hover {
 table {
     table-layout: fixed;
     width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
 }
 
 th {
     border-top: 1px solid var(--tr-border-color);
+    background-color: var(--sub-table-background);
+    font-weight: 600;
+    padding: 12px;
 }
 
 td {
@@ -479,6 +485,7 @@ tr {
 
 tbody tr:hover {
     background-color: var(--tr-hover-background);
+    transition: background-color 0.2s ease;
 }
 
 /* actions column */
@@ -558,8 +565,6 @@ a:hover .sort-icon {
     background-color: #efefef;
 }
 
-/* Syntax highlighting for code blocks */
-/* Base colors for syntax highlighting */
 .hljs {
     display: block;
     overflow-x: auto;
@@ -568,7 +573,6 @@ a:hover .sort-icon {
     color: var(--text-color);
 }
 
-/* Light theme syntax highlighting */
 .hljs-comment,
 .hljs-quote {
     color: #696969;
@@ -651,7 +655,6 @@ a:hover .sort-icon {
     font-weight: bold;
 }
 
-/* Dark theme syntax highlighting */
 [data-theme='dark'] .hljs {
     color: #e0e0e0;
 }
