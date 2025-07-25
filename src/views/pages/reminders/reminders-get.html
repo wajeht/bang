@@ -209,19 +209,6 @@
     </dialog>
 
     <script>
-        function showEditReminderModal(id, title, url, type, frequency) {
-            const modal = document.getElementById('edit-reminder-modal');
-            const form = document.getElementById('edit-reminder-form');
-
-            form.action = `/reminders/${id}/update`;
-            document.getElementById('edit-title').value = title;
-            document.getElementById('edit-url').value = url;
-            document.getElementById('edit-reminder-type').value = type;
-            document.getElementById('edit-frequency').value = frequency;
-
-            modal.showModal();
-        }
-
         function showDeleteReminderModal(id, title) {
             const modal = document.getElementById('delete-reminder-modal');
             const nameElement = document.getElementById('delete-reminder-name');
