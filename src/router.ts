@@ -20,6 +20,8 @@ import {
     updateNoteHandler,
     getTabsPageHandler,
     getBookmarkHandler,
+    getRemindersHandler,
+    postReminderHandler,
     getMagicLinkHandler,
     getHowToPageHandler,
     updateActionHandler,
@@ -34,6 +36,8 @@ import {
     getAdminUsersHandler,
     postExportDataHandler,
     postImportDataHandler,
+    updateReminderHandler,
+    deleteReminderHandler,
     deleteBookmarkHandler,
     updateBookmarkHandler,
     getCollectionsHandler,
@@ -58,10 +62,13 @@ import {
     postDeleteAdminUserHandler,
     getTabItemCreatePageHandler,
     getPrivacyPolicyPageHandler,
+    getEditReminderPageHandler,
     getHomePageAndSearchHandler,
     getBookmarkCreatePageHandler,
+    getReminderCreatePageHandler,
     getTermsOfServicePageHandler,
     getSettingsAccountPageHandler,
+    toggleReminderCompleteHandler,
     postNotesRenderMarkdownHandler,
     postSettingsCreateApiKeyHandler,
     getActionssTabsCreatePageHandler,
@@ -150,6 +157,14 @@ router.post('/notes/:id/update', authenticationMiddleware, updateNoteHandler(not
 router.post('/notes/:id/delete', authenticationMiddleware, deleteNoteHandler(notes));
 router.post('/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler(notes));
 router.get('/notes/:id/edit', authenticationMiddleware, getEditNotePageHandler(notes));
+
+router.get('/reminders', authenticationMiddleware, getRemindersHandler());
+router.post('/reminders', authenticationMiddleware, postReminderHandler());
+router.get('/reminders/create', authenticationMiddleware, getReminderCreatePageHandler());
+router.get('/reminders/:id/edit', authenticationMiddleware, getEditReminderPageHandler());
+router.post('/reminders/:id/update', authenticationMiddleware, updateReminderHandler());
+router.post('/reminders/:id/delete', authenticationMiddleware, deleteReminderHandler());
+router.post('/reminders/:id/complete', authenticationMiddleware, toggleReminderCompleteHandler());
 
 /**
  * @swagger
