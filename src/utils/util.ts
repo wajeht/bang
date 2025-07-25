@@ -399,6 +399,10 @@ export function extractPagination(req: Request, pageType: PageType | 'admin') {
         defaultPerPage = user.column_preferences.tabs?.default_per_page || 10;
     }
 
+    if (pageType === 'reminders') {
+        defaultPerPage = user.column_preferences.reminders?.default_per_page || 20;
+    }
+
     if (pageType === 'admin') {
         defaultPerPage = user.column_preferences.users.default_per_page;
     }
@@ -1075,4 +1079,219 @@ export function getFaviconUrl(url: string): string {
     }
     // return `https://favicon.jaw.dev/?url=${domain}`;
     return `https://www.google.com/s2/favicons?sz=16&domain_url=${domain}`;
+}
+
+export async function sendReminderDigestEmail({
+    email,
+    username,
+    reminders,
+    date,
+}: {
+    email: string;
+    username: string;
+    reminders: Array<{
+        id: number;
+        title: string;
+        url?: string;
+        category: 'task' | 'reading' | 'link';
+        reminder_type: 'once' | 'recurring';
+        frequency?: 'daily' | 'weekly' | 'biweekly' | 'monthly';
+    }>;
+    date: string;
+}): Promise<void> {
+    if (reminders.length === 0) return;
+
+    const formatDate = new Date(date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+
+    const remindersByCategory = {
+        task: reminders.filter((r) => r.category === 'task'),
+        reading: reminders.filter((r) => r.category === 'reading'),
+        link: reminders.filter((r) => r.category === 'link'),
+    };
+
+    const formatReminderList = (categoryReminders: typeof reminders) =>
+        categoryReminders
+            .map((reminder, index) => {
+                const number = `${index + 1}.`;
+                const title = reminder.title;
+                const link = reminder.url ? `\n   Link: ${reminder.url}` : '';
+                const type =
+                    reminder.reminder_type === 'recurring' ? ` (${reminder.frequency})` : '';
+                return `   ${number} ${title}${type}${link}`;
+            })
+            .join('\n');
+
+    let emailBody = `Hello ${username},
+
+Here are your reminders for ${formatDate}:
+
+`;
+
+    if (remindersByCategory.task.length > 0) {
+        emailBody += `📝 Tasks (${remindersByCategory.task.length}):
+${formatReminderList(remindersByCategory.task)}
+
+`;
+    }
+
+    if (remindersByCategory.reading.length > 0) {
+        emailBody += `📖 Reading (${remindersByCategory.reading.length}):
+${formatReminderList(remindersByCategory.reading)}
+
+`;
+    }
+
+    if (remindersByCategory.link.length > 0) {
+        emailBody += `🔗 Links (${remindersByCategory.link.length}):
+${formatReminderList(remindersByCategory.link)}
+
+`;
+    }
+
+    emailBody += `You can manage your reminders at your Bang dashboard.
+
+--
+Bang Team
+https://github.com/wajeht/bang`;
+
+    const mailOptions = {
+        from: config.email.from,
+        to: email,
+        subject: `⏰ Daily Reminders - ${formatDate}`,
+        text: emailBody,
+    };
+
+    try {
+        if (config.app.env === 'development' && (await isMailpitRunning()) === false) {
+            logger.info(
+                `Development mode: Reminder digest email for ${email} with ${reminders.length} reminders`,
+            );
+            logger.info(`Email content:\n${emailBody}`);
+            return;
+        }
+
+        await emailTransporter.sendMail(mailOptions);
+        logger.info(`Reminder digest email sent to ${email} with ${reminders.length} reminders`);
+    } catch (error) {
+        logger.error(`Failed to send reminder digest email: %o`, { error });
+    }
+}
+
+export async function processReminderDigests(): Promise<void> {
+    try {
+        const today = new Date().toISOString().split('T')[0] || '';
+
+        // Get all reminders due today that haven't been completed
+        const dueReminders = await db
+            .select('reminders.*', 'users.email', 'users.username')
+            .from('reminders')
+            .join('users', 'reminders.user_id', 'users.id')
+            .whereRaw('reminders.next_due <= ?', [today])
+            .where('reminders.is_completed', false)
+            .orderBy('users.id')
+            .orderBy('reminders.created_at');
+
+        if (dueReminders.length === 0) {
+            logger.info('No reminders due today');
+            return;
+        }
+
+        // Group reminders by user
+        const remindersByUser = dueReminders.reduce(
+            (
+                acc: Record<number, { email: string; username: string; reminders: any[] }>,
+                reminder: any,
+            ) => {
+                const userId = reminder.user_id;
+                if (!acc[userId]) {
+                    acc[userId] = {
+                        email: reminder.email,
+                        username: reminder.username,
+                        reminders: [],
+                    };
+                }
+                acc[userId].reminders.push({
+                    id: reminder.id,
+                    title: reminder.title,
+                    url: reminder.url,
+                    category: reminder.category,
+                    reminder_type: reminder.reminder_type,
+                    frequency: reminder.frequency,
+                });
+                return acc;
+            },
+            {},
+        );
+
+        // Send digest emails to each user
+        for (const userData of Object.values(remindersByUser)) {
+            await sendReminderDigestEmail({
+                email: userData.email,
+                username: userData.username,
+                reminders: userData.reminders,
+                date: today,
+            });
+
+            // Update next_due for recurring reminders
+            for (const reminder of userData.reminders) {
+                if (reminder.reminder_type === 'recurring' && reminder.frequency) {
+                    const currentDue = new Date(today);
+                    let nextDue: Date;
+
+                    switch (reminder.frequency) {
+                        case 'daily':
+                            nextDue = new Date(currentDue.getTime() + 24 * 60 * 60 * 1000);
+                            break;
+                        case 'weekly':
+                            nextDue = new Date(currentDue.getTime() + 7 * 24 * 60 * 60 * 1000);
+                            break;
+                        case 'biweekly':
+                            nextDue = new Date(currentDue.getTime() + 14 * 24 * 60 * 60 * 1000);
+                            break;
+                        case 'monthly':
+                            nextDue = new Date(currentDue);
+                            nextDue.setMonth(nextDue.getMonth() + 1);
+                            break;
+                        default:
+                            continue; // Skip if frequency is not recognized
+                    }
+
+                    await db('reminders')
+                        .where('id', reminder.id)
+                        .update({
+                            next_due: nextDue.toISOString().split('T')[0],
+                            updated_at: db.fn.now(),
+                        });
+                } else {
+                    // Mark one-time reminders as completed
+                    await db('reminders').where('id', reminder.id).update({
+                        is_completed: true,
+                        updated_at: db.fn.now(),
+                    });
+                }
+            }
+        }
+
+        logger.info(`Processed reminder digests for ${Object.keys(remindersByUser).length} users`);
+    } catch (error) {
+        logger.error(`Failed to process reminder digests: %o`, { error });
+    }
+}
+
+export function categorizeLinkAuto(url: string | null, title: string): 'task' | 'reading' | 'link' {
+    if (url) {
+        return 'link';
+    }
+
+    const titleLower = title.toLowerCase();
+    if (titleLower.includes('read') || titleLower.includes('article')) {
+        return 'reading';
+    }
+
+    return 'task';
 }
