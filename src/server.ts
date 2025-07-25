@@ -4,7 +4,7 @@ import { logger } from './utils/logger';
 import { sendNotification } from './utils/util';
 import { createServer, closeServer } from './app';
 
-export async function run() {
+export async function main() {
     process.title = 'bang';
 
     const serverInfo = await createServer();
@@ -87,7 +87,7 @@ export async function run() {
     });
 }
 
-run().catch((error: Error) => {
+main().catch((error: Error) => {
     logger.error('Failed to start server: %o', { error });
     process.exit(1);
 });
