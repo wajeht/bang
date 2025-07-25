@@ -2588,7 +2588,7 @@ export function getRemindersHandler(reminders: Reminders) {
             perPage: perPage || 20,
             page,
             search,
-            sortKey: sortKey || 'next_due',
+            sortKey: sortKey || 'due_date',
             direction: direction || 'asc',
             highlight: !!search,
         });
@@ -2643,7 +2643,7 @@ export function updateReminderHandler(reminders: Reminders) {
             content: trimmedContent,
             reminder_type: timing.type,
             frequency: timing.frequency,
-            next_due: timing.nextDue,
+            due_date: timing.type === 'recurring' ? null : timing.nextDue,
         });
 
         if (!updatedReminder) {
@@ -2685,30 +2685,6 @@ export function deleteReminderHandler(reminders: Reminders) {
     };
 }
 
-// POST /reminders/:id/complete
-export function toggleReminderCompleteHandler(reminders: Reminders) {
-    return async (req: Request, res: Response) => {
-        const user = req.session.user as User;
-        const reminderId = parseInt(req.params.id as string);
-
-        const updatedReminder = await reminders.complete(reminderId, user.id);
-
-        if (isApiRequest(req)) {
-            res.status(200).json({
-                message: `Reminder ${updatedReminder.is_completed ? 'completed' : 'reactivated'} successfully`,
-                data: updatedReminder,
-            });
-            return;
-        }
-
-        req.flash(
-            'success',
-            `Reminder ${updatedReminder.is_completed ? 'completed' : 'reactivated'} successfully`,
-        );
-        return res.redirect('/reminders');
-    };
-}
-
 // POST /reminders or POST /api/reminders
 export function postReminderHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
@@ -2738,8 +2714,7 @@ export function postReminderHandler(reminders: Reminders) {
             content: trimmedContent,
             reminder_type: timing.type,
             frequency: timing.frequency,
-            next_due: timing.nextDue,
-            is_completed: false,
+            due_date: timing.type === 'recurring' ? null : timing.nextDue,
         });
 
         if (isApiRequest(req)) {

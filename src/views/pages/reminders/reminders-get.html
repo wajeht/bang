@@ -56,13 +56,13 @@
                         <% if (state.user.column_preferences?.reminders?.content !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">📝 Content</th>
                         <% } %>
-                        <% if (state.user.column_preferences?.reminders?.next_due !== false) { %>
+                        <% if (state.user.column_preferences?.reminders?.due_date !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
-                                <a href="/reminders?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=next_due&direction=<%= (sortKey === 'next_due' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                <a href="/reminders?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=due_date&direction=<%= (sortKey === 'due_date' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
-                                   aria-label="Sort by due date <%= (sortKey === 'next_due' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                   aria-label="Sort by due date <%= (sortKey === 'due_date' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                     ⏰ Due
-                                    <% if (sortKey === 'next_due') { %>
+                                    <% if (sortKey === 'due_date') { %>
                                         <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
                                     <% } else { %>
                                         <span class="sort-icon" aria-label="Not sorted">⏺️</span>
@@ -72,9 +72,6 @@
                         <% } %>
                         <% if (state.user.column_preferences?.reminders?.frequency !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">🔄 Frequency</th>
-                        <% } %>
-                        <% if (state.user.column_preferences?.reminders?.status !== false) { %>
-                            <th scope="col" style="text-align: left; padding: 10px;">✅ Status</th>
                         <% } %>
                         <th scope="col" style="text-align: left; padding: 10px;">🚀 Actions</th>
                     </tr>
@@ -106,11 +103,11 @@
                                     <% } %>
                                 </td>
                             <% } %>
-                            <% if (state.user.column_preferences?.reminders?.next_due !== false) { %>
+                            <% if (state.user.column_preferences?.reminders?.due_date !== false) { %>
                                 <td style="padding: 10px;">
-                                    <% if (reminders[i].reminder_type === 'once') { %>
-                                        <time datetime="<%= reminders[i].next_due %>">
-                                            <%= reminders[i].next_due ? new Date(reminders[i].next_due).toLocaleDateString() : '-' %>
+                                    <% if (reminders[i].due_date) { %>
+                                        <time datetime="<%= reminders[i].due_date %>">
+                                            <%= new Date(reminders[i].due_date).toLocaleDateString() %>
                                         </time>
                                     <% } else { %>
                                         -
@@ -119,28 +116,19 @@
                             <% } %>
                             <% if (state.user.column_preferences?.reminders?.frequency !== false) { %>
                                 <td style="padding: 10px;">
-                                    <% if (reminders[i].reminder_type === 'recurring') { %>
-                                        🔄 <%= reminders[i].frequency %>
-                                    <% } else { %>
-                                        📅 Once
-                                    <% } %>
-                                </td>
-                            <% } %>
-                            <% if (state.user.column_preferences?.reminders?.status !== false) { %>
-                                <td style="padding: 10px;">
-                                    <%= reminders[i].is_completed ? '✅ Done' : '⏳ Pending' %>
+                                    <code>
+                                        <% if (reminders[i].reminder_type === 'recurring') { %>
+                                            <%- reminders[i].frequency %>
+                                        <% } else { %>
+                                            <%- reminders[i].reminder_type %>
+                                        <% } %>
+                                    </code>
                                 </td>
                             <% } %>
                             <td style="padding: 10px;">
                                 <details style="position: relative;">
                                     <summary aria-label="Actions for reminder <%= reminders[i].title %>">Actions</summary>
                                     <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
-                                        <form method="POST" action="/reminders/<%= reminders[i].id %>/complete" style="display: inline;">
-                                            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-                                            <button type="submit" class="no-style-btn" style="text-align: left;" role="menuitem" aria-label="<%= reminders[i].is_completed ? 'Mark as pending' : 'Mark as complete' %> reminder <%= reminders[i].title %>">
-                                                <%= reminders[i].is_completed ? '⏳ Mark Pending' : '✅ Mark Complete' %>
-                                            </button>
-                                        </form>
                                         <a href="/reminders/<%= reminders[i].id %>/edit" role="menuitem" aria-label="Edit reminder <%= reminders[i].title %>">✏️ Edit</a>
                                         <button
                                             type="button"

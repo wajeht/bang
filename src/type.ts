@@ -97,9 +97,8 @@ export type ColumnPreferences = {
     reminders: {
         title: boolean;
         content: boolean;
-        next_due: boolean;
+        due_date: boolean;
         frequency: boolean;
-        status: boolean;
         default_per_page: number;
         created_at: boolean;
         default_reminder_timing: string;
@@ -204,8 +203,7 @@ export type Reminder = {
     user_id: number;
     reminder_type: ReminderType;
     frequency: ReminderFrequency | null;
-    next_due: Date | string;
-    is_completed: boolean;
+    due_date: Date | string | null;
     created_at?: string;
     updated_at?: string;
 };
@@ -272,7 +270,6 @@ export interface Reminders {
     read: (id: number, userId: number) => Promise<Reminder>;
     update: (id: number, userId: number, updates: Partial<Reminder>) => Promise<Reminder>;
     delete: (id: number, userId: number) => Promise<boolean>;
-    complete: (id: number, userId: number) => Promise<Reminder>;
 }
 
 export type LayoutOptions = {

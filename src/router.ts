@@ -68,7 +68,6 @@ import {
     getReminderCreatePageHandler,
     getTermsOfServicePageHandler,
     getSettingsAccountPageHandler,
-    toggleReminderCompleteHandler,
     postNotesRenderMarkdownHandler,
     postSettingsCreateApiKeyHandler,
     getActionssTabsCreatePageHandler,
@@ -164,7 +163,6 @@ router.get('/reminders/create', authenticationMiddleware, getReminderCreatePageH
 router.get('/reminders/:id/edit', authenticationMiddleware, getEditReminderPageHandler(reminders));
 router.post('/reminders/:id/update', authenticationMiddleware, updateReminderHandler(reminders));
 router.post('/reminders/:id/delete', authenticationMiddleware, deleteReminderHandler(reminders));
-router.post('/reminders/:id/complete', authenticationMiddleware, toggleReminderCompleteHandler(reminders)); // prettier-ignore
 
 /**
  * @swagger

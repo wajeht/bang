@@ -60,9 +60,8 @@ export async function seed(knex: Knex): Promise<void> {
                     reminders: {
                         title: true,
                         content: true,
-                        next_due: true,
+                        due_date: true,
                         frequency: true,
-                        status: true,
                         default_per_page: 20,
                         created_at: true,
                         default_reminder_timing: 'daily',
@@ -281,10 +280,9 @@ Here is the \`content\` of **note 2**.
                 content: 'https://meet.google.com/xyz-abc-def',
                 reminder_type: 'recurring',
                 frequency: 'weekly',
-                next_due: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
                     .toISOString()
                     .split('T')[0], // Next week
-                is_completed: false,
             },
             {
                 user_id: user.id,
@@ -292,10 +290,7 @@ Here is the \`content\` of **note 2**.
                 content: 'https://www.typescriptlang.org/docs/',
                 reminder_type: 'once',
                 frequency: null,
-                next_due: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-                    .toISOString()
-                    .split('T')[0], // Day after tomorrow
-                is_completed: false,
+                due_date: null,
             },
             {
                 user_id: user.id,
@@ -303,19 +298,17 @@ Here is the \`content\` of **note 2**.
                 content: null,
                 reminder_type: 'recurring',
                 frequency: 'weekly',
-                next_due: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)
+                due_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)
                     .toISOString()
                     .split('T')[0], // Tomorrow
-                is_completed: false,
             },
             {
                 user_id: user.id,
                 title: 'Check GitHub notifications',
                 content: 'https://github.com/notifications',
                 reminder_type: 'recurring',
-                frequency: 'daily',
-                next_due: new Date().toISOString().split('T')[0], // Today
-                is_completed: false,
+                frequency: 'once',
+                due_date: null,
             },
         ];
 

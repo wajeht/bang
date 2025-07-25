@@ -51,21 +51,13 @@
                 id: 'custom_date',
                 name: 'custom_date',
                 label: '📅 Custom Date',
-                value: reminder.next_due ? new Date(reminder.next_due).toISOString().split('T')[0] : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                value: reminder.due_date ? new Date(reminder.due_date).toISOString().split('T')[0] : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                 required: false,
                 helpText: 'Select a specific date (only shown when Custom Date is selected)',
                 error: undefined,
                 style: 'display: none;'
             }) %>
 
-            <%- include('../../components/inputs/checkbox.html', {
-                id: 'is_completed',
-                name: 'is_completed',
-                label: '✅ Mark as completed',
-                checked: reminder.is_completed ? true : false,
-                helpText: 'Mark this reminder as completed',
-                error: state.errors && state.errors.is_completed ? state.errors.is_completed : undefined
-            }) %>
 
         </fieldset>
 

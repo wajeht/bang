@@ -529,7 +529,7 @@ export const reminders: Reminders = {
         perPage = 20,
         page = 1,
         search = '',
-        sortKey = 'next_due',
+        sortKey = 'due_date',
         direction = 'asc',
         highlight = false,
     }: RemindersQueryParams) => {
@@ -538,7 +538,6 @@ export const reminders: Reminders = {
             'user_id',
             'reminder_type',
             'frequency',
-            'is_completed',
             'created_at',
             'updated_at',
         );
@@ -547,9 +546,9 @@ export const reminders: Reminders = {
             query
                 .select(db.raw(`${sqlHighlight('title', search)} as title`))
                 .select(db.raw(`${sqlHighlight('content', search)} as content`))
-                .select(db.raw(`${sqlHighlight('CAST(next_due AS TEXT)', search)} as next_due`));
+                .select(db.raw(`${sqlHighlight('CAST(due_date AS TEXT)', search)} as due_date`));
         } else {
-            query.select('title').select('content').select('next_due');
+            query.select('title').select('content').select('due_date');
         }
 
         query.from('reminders').where('user_id', user.id);
@@ -574,13 +573,10 @@ export const reminders: Reminders = {
             });
         }
 
-        // Sort by completion status first (incomplete reminders at top)
-        query.orderBy('is_completed', 'asc');
-
-        if (['title', 'content', 'next_due', 'frequency', 'created_at'].includes(sortKey)) {
+        if (['title', 'content', 'due_date', 'frequency', 'created_at'].includes(sortKey)) {
             query.orderBy(sortKey, direction);
         } else {
-            query.orderBy('next_due', 'asc');
+            query.orderBy('due_date', 'asc');
         }
 
         return query.paginate({ perPage, currentPage: page, isLengthAware: true });
@@ -610,14 +606,7 @@ export const reminders: Reminders = {
     },
 
     update: async (id: number, userId: number, updates: Partial<Reminder>) => {
-        const allowedFields = [
-            'title',
-            'content',
-            'reminder_type',
-            'frequency',
-            'next_due',
-            'is_completed',
-        ];
+        const allowedFields = ['title', 'content', 'reminder_type', 'frequency', 'due_date'];
 
         const updateData = Object.fromEntries(
             Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
@@ -642,44 +631,5 @@ export const reminders: Reminders = {
     delete: async (id: number, userId: number) => {
         const rowsAffected = await db('reminders').where({ id, user_id: userId }).delete();
         return rowsAffected > 0;
-    },
-
-    complete: async (id: number, userId: number) => {
-        const reminder = await db('reminders').where({ id, user_id: userId }).first();
-
-        if (!reminder) {
-            throw new Error('Reminder not found');
-        }
-
-        // Calculate next due date for recurring reminders
-        let nextDue = reminder.next_due;
-        if (reminder.reminder_type === 'recurring' && !reminder.is_completed) {
-            const currentDue = new Date(reminder.next_due);
-            switch (reminder.frequency) {
-                case 'daily':
-                    currentDue.setDate(currentDue.getDate() + 1);
-                    break;
-                case 'weekly':
-                    currentDue.setDate(currentDue.getDate() + 7);
-                    break;
-                case 'biweekly':
-                    currentDue.setDate(currentDue.getDate() + 14);
-                    break;
-                case 'monthly':
-                    currentDue.setMonth(currentDue.getMonth() + 1);
-                    break;
-            }
-            nextDue = currentDue;
-        }
-
-        const [updatedReminder] = await db('reminders')
-            .where({ id, user_id: userId })
-            .update({
-                is_completed: !reminder.is_completed,
-                next_due: nextDue,
-            })
-            .returning('*');
-
-        return updatedReminder;
     },
 };

@@ -1191,8 +1191,7 @@ export async function processReminderDigests(): Promise<void> {
             .select('reminders.*', 'users.email', 'users.username')
             .from('reminders')
             .join('users', 'reminders.user_id', 'users.id')
-            .whereRaw('reminders.next_due <= ?', [today])
-            .where('reminders.is_completed', false)
+            .whereRaw('reminders.due_date <= ?', [today])
             .orderBy('users.id')
             .orderBy('reminders.created_at');
 
@@ -1237,7 +1236,7 @@ export async function processReminderDigests(): Promise<void> {
                 date: today,
             });
 
-            // Update next_due for recurring reminders
+            // Update due_date for recurring reminders
             for (const reminder of userData.reminders) {
                 if (reminder.reminder_type === 'recurring' && reminder.frequency) {
                     const currentDue = new Date(today);
@@ -1264,15 +1263,12 @@ export async function processReminderDigests(): Promise<void> {
                     await db('reminders')
                         .where('id', reminder.id)
                         .update({
-                            next_due: nextDue.toISOString().split('T')[0],
+                            due_date: nextDue.toISOString().split('T')[0],
                             updated_at: db.fn.now(),
                         });
                 } else {
-                    // Mark one-time reminders as completed
-                    await db('reminders').where('id', reminder.id).update({
-                        is_completed: true,
-                        updated_at: db.fn.now(),
-                    });
+                    // Delete one-time reminders since they're done
+                    await db('reminders').where('id', reminder.id).delete();
                 }
             }
         }
