@@ -35,7 +35,7 @@ export const searchConfig = {
     /**
      * System-level bang commands that cannot be overridden by user-defined bangs
      */
-    systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit', '!find']),
+    systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit', '!find', '!remind']),
     /**
      * Default search providers
      */
@@ -89,6 +89,9 @@ export const searchConfig = {
         ['@t', '/tabs'],
         ['@tab', '/tabs'],
         ['@tabs', '/tabs'],
+        ['@r', '/reminders'],
+        ['@reminder', '/reminders'],
+        ['@reminders', '/reminders'],
     ]),
 } as const;
 
@@ -473,6 +476,240 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string): string {
     return redirectUrl;
 }
 
+/**
+ * Parses reminder timing from natural language
+ * @param timeStr - Time string like "tomorrow", "weekly", "friday", "2024-01-15"
+ * @returns Parsed timing information
+ */
+export function parseReminderTiming(timeStr: string): {
+    isValid: boolean;
+    type: 'once' | 'recurring';
+    frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly' | null;
+    specificDate: string | null;
+    nextDue: Date;
+} {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+    tomorrow.setHours(9, 0, 0, 0); // Default to 9 AM
+
+    // Handle recurring frequencies
+    switch (timeStr) {
+        case 'daily': {
+            const dailyNext = new Date(tomorrow);
+            return {
+                isValid: true,
+                type: 'recurring',
+                frequency: 'daily',
+                specificDate: null,
+                nextDue: dailyNext,
+            };
+        }
+
+        case 'weekly': {
+            const weeklyNext = new Date(now);
+            weeklyNext.setDate(now.getDate() + ((6 - now.getDay()) % 7 || 7)); // Next Saturday
+            weeklyNext.setHours(9, 0, 0, 0);
+            return {
+                isValid: true,
+                type: 'recurring',
+                frequency: 'weekly',
+                specificDate: null,
+                nextDue: weeklyNext,
+            };
+        }
+
+        case 'biweekly': {
+            const biweeklyNext = new Date(now);
+            biweeklyNext.setDate(now.getDate() + 14);
+            biweeklyNext.setHours(9, 0, 0, 0);
+            return {
+                isValid: true,
+                type: 'recurring',
+                frequency: 'biweekly',
+                specificDate: null,
+                nextDue: biweeklyNext,
+            };
+        }
+
+        case 'monthly': {
+            const monthlyNext = new Date(now);
+            monthlyNext.setMonth(now.getMonth() + 1, 1); // First day of next month
+            monthlyNext.setHours(9, 0, 0, 0);
+            return {
+                isValid: true,
+                type: 'recurring',
+                frequency: 'monthly',
+                specificDate: null,
+                nextDue: monthlyNext,
+            };
+        }
+    }
+
+    // Handle specific one-time dates
+    switch (timeStr) {
+        case 'today': {
+            const today = new Date(now);
+            today.setHours(9, 0, 0, 0);
+            return {
+                isValid: true,
+                type: 'once',
+                frequency: null,
+                specificDate: today.toISOString().split('T')[0] || null,
+                nextDue: today,
+            };
+        }
+
+        case 'tomorrow': {
+            return {
+                isValid: true,
+                type: 'once',
+                frequency: null,
+                specificDate: tomorrow.toISOString().split('T')[0] || null,
+                nextDue: tomorrow,
+            };
+        }
+
+        case 'tonight': {
+            const tonight = new Date(now);
+            tonight.setHours(18, 0, 0, 0); // 6 PM
+            return {
+                isValid: true,
+                type: 'once',
+                frequency: null,
+                specificDate: tonight.toISOString().split('T')[0] || null,
+                nextDue: tonight,
+            };
+        }
+
+        case 'weekend': {
+            const saturday = new Date(now);
+            saturday.setDate(now.getDate() + ((6 - now.getDay()) % 7 || 7)); // Next Saturday
+            saturday.setHours(9, 0, 0, 0);
+            return {
+                isValid: true,
+                type: 'once',
+                frequency: null,
+                specificDate: saturday.toISOString().split('T')[0] || null,
+                nextDue: saturday,
+            };
+        }
+
+        case 'later': {
+            const later = new Date(tomorrow);
+            later.setDate(tomorrow.getDate() + 1); // Day after tomorrow
+            return {
+                isValid: true,
+                type: 'once',
+                frequency: null,
+                specificDate: later.toISOString().split('T')[0] || null,
+                nextDue: later,
+            };
+        }
+    }
+
+    // Handle day names (monday, tuesday, etc.)
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayIndex = dayNames.indexOf(timeStr);
+    if (dayIndex !== -1) {
+        const targetDay = new Date(now);
+        const daysUntilTarget = (dayIndex + 7 - now.getDay()) % 7 || 7;
+        targetDay.setDate(now.getDate() + daysUntilTarget);
+        targetDay.setHours(9, 0, 0, 0);
+
+        return {
+            isValid: true,
+            type: 'once',
+            frequency: null,
+            specificDate: targetDay.toISOString().split('T')[0] || null,
+            nextDue: targetDay,
+        };
+    }
+
+    // Handle specific dates (YYYY-MM-DD, MM/DD/YYYY, etc.)
+    const datePatterns = [
+        /^(\d{4})-(\d{1,2})-(\d{1,2})$/, // YYYY-MM-DD
+        /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // MM/DD/YYYY
+        /^(\w{3})-(\d{1,2})$/, // Jan-15, Feb-20, etc.
+    ];
+
+    for (const pattern of datePatterns) {
+        const match = timeStr.match(pattern);
+        if (match) {
+            let targetDate: Date;
+
+            if (pattern === datePatterns[0] && match[1] && match[2] && match[3]) {
+                // YYYY-MM-DD
+                targetDate = new Date(
+                    parseInt(match[1]),
+                    parseInt(match[2]) - 1,
+                    parseInt(match[3]),
+                );
+            } else if (pattern === datePatterns[1] && match[1] && match[2] && match[3]) {
+                // MM/DD/YYYY
+                targetDate = new Date(
+                    parseInt(match[3]),
+                    parseInt(match[1]) - 1,
+                    parseInt(match[2]),
+                );
+            } else if (pattern === datePatterns[2] && match[1] && match[2]) {
+                // Jan-15
+                const monthMap: { [key: string]: number } = {
+                    jan: 0,
+                    feb: 1,
+                    mar: 2,
+                    apr: 3,
+                    may: 4,
+                    jun: 5,
+                    jul: 6,
+                    aug: 7,
+                    sep: 8,
+                    oct: 9,
+                    nov: 10,
+                    dec: 11,
+                };
+                const month = monthMap[match[1].toLowerCase()];
+                if (month !== undefined && match[2]) {
+                    targetDate = new Date(now.getFullYear(), month, parseInt(match[2]));
+                    // If the date has already passed this year, use next year
+                    if (targetDate < now) {
+                        targetDate.setFullYear(now.getFullYear() + 1);
+                    }
+                } else {
+                    continue;
+                }
+            } else {
+                continue;
+            }
+
+            // Validate the date
+            if (
+                targetDate &&
+                !isNaN(targetDate.getTime()) &&
+                targetDate >= new Date(now.getFullYear(), 0, 1)
+            ) {
+                targetDate.setHours(9, 0, 0, 0);
+                return {
+                    isValid: true,
+                    type: 'once',
+                    frequency: null,
+                    specificDate: targetDate.toISOString().split('T')[0] || null,
+                    nextDue: targetDate,
+                };
+            }
+        }
+    }
+
+    // Invalid format
+    return {
+        isValid: false,
+        type: 'once',
+        frequency: null,
+        specificDate: null,
+        nextDue: new Date(),
+    };
+}
+
 export async function search({ res, req, user, query }: Parameters<Search>[0]): ReturnType<Search> {
     const { commandType, trigger, triggerWithoutPrefix, url, searchTerm } = parseSearchQuery(query);
 
@@ -519,6 +756,11 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 case '@tab':
                 case '@tabs':
                     redirectPath = `/tabs?search=${encodeURIComponent(searchTerm)}`;
+                    break;
+                case '@r':
+                case '@reminder':
+                case '@reminders':
+                    redirectPath = `/reminders?search=${encodeURIComponent(searchTerm)}`;
                     break;
                 case '@u':
                 case '@user':
@@ -996,6 +1238,97 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             // Redirect to a global search page that will search across all resources
             // The search page will handle querying bookmarks, notes, bangs, and tabs
             return redirectWithCache(res, `/search?q=${encodedSearchTerm}&type=global`);
+        }
+
+        // Process reminder creation command (!remind)
+        // Format supported:
+        // 1. !remind <when> | <description>
+        // 2. !remind <when> | <description> | <url>
+        // Examples:
+        // - !remind tomorrow | take out trash
+        // - !remind weekly | check bills | https://bills.com
+        // - !remind friday | read article | https://article.com
+        if (trigger === '!remind') {
+            const reminderContent = query.slice(query.indexOf(' ') + 1).trim();
+
+            if (!reminderContent) {
+                return goBackWithValidationAlert(res, 'Reminder content is required');
+            }
+
+            // Parse the pipe-separated format: <when> | <description> [| <url>]
+            const parts = reminderContent.split('|').map((part) => part.trim());
+
+            if (parts.length < 2) {
+                return goBackWithValidationAlert(
+                    res,
+                    'Invalid format. Use: !remind <when> | <description> [| <url>]',
+                );
+            }
+
+            const whenPart = parts[0];
+            const description = parts[1];
+            const url = parts.length > 2 ? parts[2] : null;
+
+            if (!whenPart) {
+                return goBackWithValidationAlert(res, 'When is required (e.g., tomorrow, weekly)');
+            }
+
+            if (!description) {
+                return goBackWithValidationAlert(res, 'Description is required');
+            }
+
+            if (url && !isValidUrl(url)) {
+                return goBackWithValidationAlert(res, 'Invalid URL format');
+            }
+
+            // Parse the timing
+            const timing = parseReminderTiming(whenPart.toLowerCase());
+            if (!timing.isValid) {
+                return goBackWithValidationAlert(
+                    res,
+                    'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, or YYYY-MM-DD',
+                );
+            }
+
+            // Auto-categorize the reminder
+            let category = 'task';
+            if (url) {
+                // Check if it looks like an article URL
+                const articleDomains = [
+                    'medium.com',
+                    'dev.to',
+                    'substack.com',
+                    'blog.',
+                    '/blog/',
+                    '/article/',
+                    '/post/',
+                ];
+                const isArticle = articleDomains.some((domain) => url.includes(domain));
+                category = isArticle ? 'reading' : 'link';
+            }
+
+            try {
+                await db('reminders').insert({
+                    user_id: user.id,
+                    title: description,
+                    url: url || null,
+                    reminder_type: timing.type,
+                    frequency: timing.frequency,
+                    specific_date: timing.specificDate,
+                    next_due: timing.nextDue,
+                    category,
+                    is_active: true,
+                    is_completed: false,
+                });
+            } catch (error) {
+                logger.error('Database error creating reminder:', error);
+                return goBackWithValidationAlert(
+                    res,
+                    'Failed to create reminder. Please try again.',
+                );
+            }
+
+            return goBack(res);
         }
     }
 
