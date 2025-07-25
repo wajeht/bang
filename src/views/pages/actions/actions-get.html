@@ -153,12 +153,16 @@
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.url !== false) { %>
                                 <td style="padding: 10px;">
+                                    <% if (data[i].url) { %>
                                     <div style="display: flex; gap: 5px; align-items: center;">
                                         <img src= "<%- utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                         <a href="<%= data[i].url %>" style="overflow: auto; white-space: nowrap;" title="<%= data[i].url %>" target="_blank" rel="noopener noreferrer">
                                             <%- data[i].url %>
                                         </a>
                                     </div>
+                                    <% } else { %>
+                                        <span>-</span>
+                                    <% } %>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.action_type !== false) { %>
