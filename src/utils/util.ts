@@ -660,6 +660,7 @@ export async function generateUserDataExport(
         includeNotes?: boolean;
         includeUserPreferences?: boolean;
         includeTabs?: boolean;
+        includeReminders?: boolean;
     } = {},
 ): Promise<{
     exported_at: string;
@@ -668,6 +669,7 @@ export async function generateUserDataExport(
     actions?: Record<string, unknown>[];
     notes?: Record<string, unknown>[];
     tabs?: Record<string, unknown>[];
+    reminders?: Record<string, unknown>[];
     user_preferences?: Record<string, unknown>;
 }> {
     const {
@@ -676,6 +678,7 @@ export async function generateUserDataExport(
         includeNotes = true,
         includeUserPreferences = true,
         includeTabs = true,
+        includeReminders = true,
     } = options;
 
     const exportData: {
@@ -685,6 +688,7 @@ export async function generateUserDataExport(
         actions?: Record<string, unknown>[];
         notes?: Record<string, unknown>[];
         tabs?: Record<string, unknown>[];
+        reminders?: Record<string, unknown>[];
         user_preferences?: Record<string, unknown>;
     } = {
         exported_at: new Date().toISOString(),
@@ -768,6 +772,20 @@ export async function generateUserDataExport(
         }));
     };
 
+    const fetchReminders = () =>
+        includeReminders
+            ? db('reminders')
+                  .where('user_id', userId)
+                  .select(
+                      'title',
+                      'content',
+                      'reminder_type',
+                      'frequency',
+                      'due_date',
+                      'created_at',
+                  )
+            : Promise.resolve([]);
+
     const fetchUserPreferences = () =>
         includeUserPreferences
             ? db('users')
@@ -781,14 +799,21 @@ export async function generateUserDataExport(
                   .first()
             : Promise.resolve(null);
 
-    const [bookmarksResult, actionsResult, notesResult, userPreferencesResult, tabsResult] =
-        await Promise.allSettled([
-            fetchBookmarks(),
-            fetchActions(),
-            fetchNotes(),
-            fetchUserPreferences(),
-            fetchTabs(),
-        ]);
+    const [
+        bookmarksResult,
+        actionsResult,
+        notesResult,
+        userPreferencesResult,
+        tabsResult,
+        remindersResult,
+    ] = await Promise.allSettled([
+        fetchBookmarks(),
+        fetchActions(),
+        fetchNotes(),
+        fetchUserPreferences(),
+        fetchTabs(),
+        fetchReminders(),
+    ]);
 
     if (includeBookmarks) {
         if (bookmarksResult.status === 'fulfilled') {
@@ -840,6 +865,14 @@ export async function generateUserDataExport(
         }
     }
 
+    if (includeReminders) {
+        if (remindersResult.status === 'fulfilled') {
+            exportData.reminders = remindersResult.value;
+        } else {
+            logger.error('Failed to fetch reminders: %o', remindersResult.reason);
+        }
+    }
+
     return exportData;
 }
 
@@ -877,7 +910,14 @@ export async function sendDataExportEmail({
         const exportTypes: string[] = [];
 
         if (includeJson) {
-            const jsonExportData = await generateUserDataExport(userId);
+            const jsonExportData = await generateUserDataExport(userId, {
+                includeBookmarks: true,
+                includeActions: true,
+                includeNotes: true,
+                includeUserPreferences: true,
+                includeTabs: true,
+                includeReminders: true,
+            });
             const jsonBuffer = Buffer.from(JSON.stringify(jsonExportData, null, 2));
             attachments.push({
                 filename: `bang-data-export-${currentDate}.json`,
