@@ -33,7 +33,7 @@
       </div>
 
       <div id="json" style="display: flex; flex-direction: column; gap: 10px;" role="tabpanel" aria-labelledby="json-button">
-        <p>Export your bookmarks, custom actions, notes, and user preferences</p>
+        <p>Export your bookmarks, custom actions, notes, reminders, and user preferences</p>
 
         <form method="POST" action="/settings/data/export" >
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
@@ -68,6 +68,13 @@
                 label: '🔗 Include Tabs'
               }) %>
 
+              <%- include('../../components/inputs/checkbox.html', {
+                id: 'reminders-checkbox',
+                name: 'options[]',
+                value: 'reminders',
+                label: '⏰ Include Reminders'
+              }) %>
+
               <div style="display: flex; align-items: center; gap: 10px;">
                 <%- include('../../components/inputs/checkbox.html', {
                   id: 'user-preferences-checkbox',
@@ -96,7 +103,7 @@
     <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
       <legend>📥 Import Data</legend>
 
-      <p>Import your bookmarks, custom actions, notes, and user preferences</p>
+      <p>Import your bookmarks, custom actions, notes, reminders, and user preferences</p>
 
       <form method="POST" action="/settings/data/import" >
         <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
@@ -133,7 +140,7 @@
       <li><strong>Username:</strong> Your display name</li>
       <li><strong>Default Search Provider:</strong> Your preferred search engine (DuckDuckGo, Google, etc.)</li>
       <li><strong>Autocomplete Search:</strong> Whether search suggestions appear on the homepage</li>
-      <li><strong>Column Preferences:</strong> Your display settings for bookmarks, actions, and notes including:
+      <li><strong>Column Preferences:</strong> Your display settings for bookmarks, actions, notes, and reminders including:
         <ul>
           <li>Which columns to show/hide</li>
           <li>Items per page settings</li>

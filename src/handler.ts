@@ -880,6 +880,7 @@ export function postExportDataHandler() {
         const includeActions = req.body.options.includes('actions');
         const includeNotes = req.body.options.includes('notes');
         const includeTabs = req.body.options.includes('tabs');
+        const includeReminders = req.body.options.includes('reminders');
         const includeUserPreferences = req.body.options.includes('user_preferences');
 
         const exportData = await generateUserDataExport(userId, {
@@ -888,6 +889,7 @@ export function postExportDataHandler() {
             includeNotes,
             includeUserPreferences,
             includeTabs,
+            includeReminders,
         });
 
         res.setHeader(
@@ -999,6 +1001,28 @@ export function postImportDataHandler(db: Knex) {
                             await trx('tab_items').insert(tabItems);
                         }
                     }
+                }
+
+                // Import reminders
+                if (importData.reminders?.length > 0) {
+                    const reminders = importData.reminders.map(
+                        (reminder: {
+                            title: string;
+                            content?: string;
+                            reminder_type: string;
+                            frequency?: string;
+                            due_date?: string;
+                        }) => ({
+                            user_id: userId,
+                            title: reminder.title,
+                            content: reminder.content || null,
+                            reminder_type: reminder.reminder_type,
+                            frequency: reminder.frequency || null,
+                            due_date: reminder.due_date || null,
+                            created_at: db.fn.now(),
+                        }),
+                    );
+                    await trx('reminders').insert(reminders);
                 }
 
                 // Import user preferences
