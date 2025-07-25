@@ -68,6 +68,7 @@
         "jsonwebtoken": "^9.0.2",
         "knex": "^3.1.0",
         "marked": "^16.1.1",
+        "node-cron": "^4.2.1",
         "nodemailer": "^7.0.5"
     },
     "devDependencies": {
@@ -81,6 +82,7 @@
         "@types/highlight.js": "^10.1.0",
         "@types/jsonwebtoken": "^9.0.10",
         "@types/node": "^24.1.0",
+        "@types/node-cron": "^3.0.11",
         "@types/nodemailer": "^6.4.17",
         "@typescript-eslint/eslint-plugin": "^8.38.0",
         "@typescript-eslint/parser": "^8.38.0",
