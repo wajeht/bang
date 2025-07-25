@@ -1257,8 +1257,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     content: trimmedContent,
                     reminder_type: timing.type,
                     frequency: timing.frequency,
-                    next_due: timing.nextDue,
-                    is_completed: false,
+                    due_date: timing.type === 'recurring' ? null : timing.nextDue,
                 });
             } catch (error) {
                 logger.error('Database error creating reminder:', error);
