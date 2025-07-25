@@ -5,6 +5,7 @@ import {
     Search,
     Actions,
     Bookmarks,
+    Reminders,
     ApiKeyPayload,
     BookmarkToExport,
 } from './type';
@@ -37,7 +38,7 @@ import type { Bang } from './type';
 import { logger } from './utils/logger';
 import { actionTypes } from './utils/util';
 import type { Request, Response } from 'express';
-import { db, actions, bookmarks, notes } from './db/db';
+import { db, actions, bookmarks, notes, reminders } from './db/db';
 import { HttpError, NotFoundError, ValidationError } from './error';
 import { searchConfig, parseReminderTiming, reminderTimingConfig } from './utils/search';
 
@@ -2577,26 +2578,23 @@ export function deleteTabItemHandler(db: Knex) {
 }
 
 // GET /reminders
-export function getRemindersHandler() {
+export function getRemindersHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'reminders');
 
-        let remindersQuery = db.select('*').from('reminders').where('user_id', user.id);
-        if (search) {
-            remindersQuery = remindersQuery.where((builder) => {
-                builder
-                    .whereRaw('LOWER(title) LIKE ?', [`%${search.toLowerCase()}%`])
-                    .orWhereRaw('LOWER(url) LIKE ?', [`%${search.toLowerCase()}%`]);
-            });
-        }
-
-        const { data: reminders, pagination } = await remindersQuery
-            .orderBy(sortKey || 'next_due', direction || 'asc')
-            .paginate({ perPage: perPage || 20, currentPage: page, isLengthAware: true });
+        const { data: remindersData, pagination } = await reminders.all({
+            user,
+            perPage: perPage || 20,
+            page,
+            search,
+            sortKey: sortKey || 'next_due',
+            direction: direction || 'asc',
+            highlight: !!search,
+        });
 
         if (isApiRequest(req)) {
-            res.json({ data: reminders, pagination, search, sortKey, direction });
+            res.json({ data: remindersData, pagination, search, sortKey, direction });
             return;
         }
 
@@ -2605,7 +2603,7 @@ export function getRemindersHandler() {
             title: 'Reminders',
             path: '/reminders',
             layout: '../layouts/auth.html',
-            reminders,
+            reminders: remindersData,
             pagination,
             search,
             howToContent: await getConvertedReadmeMDToHTML(),
@@ -2616,7 +2614,7 @@ export function getRemindersHandler() {
 }
 
 // POST /reminders/:id/update
-export function updateReminderHandler() {
+export function updateReminderHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const reminderId = parseInt(req.params.id as string);
@@ -2643,26 +2641,22 @@ export function updateReminderHandler() {
             });
         }
 
-        const updatedReminder = await db('reminders')
-            .where({ id: reminderId, user_id: user.id })
-            .update({
-                title,
-                url: url || null,
-                reminder_type: timing.type,
-                frequency: timing.frequency,
-                next_due: timing.nextDue,
-                updated_at: db.fn.now(),
-            })
-            .returning('*');
+        const updatedReminder = await reminders.update(reminderId, user.id, {
+            title,
+            url: url || null,
+            reminder_type: timing.type,
+            frequency: timing.frequency,
+            next_due: timing.nextDue,
+        });
 
-        if (!updatedReminder.length) {
+        if (!updatedReminder) {
             throw new NotFoundError('Reminder not found');
         }
 
         if (isApiRequest(req)) {
             res.status(200).json({
                 message: 'Reminder updated successfully',
-                data: updatedReminder[0],
+                data: updatedReminder,
             });
             return;
         }
@@ -2673,12 +2667,12 @@ export function updateReminderHandler() {
 }
 
 // POST /reminders/:id/delete
-export function deleteReminderHandler() {
+export function deleteReminderHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
-        const user = req.user as User;
+        const user = req.session.user as User;
         const reminderId = parseInt(req.params.id as string);
 
-        const deleted = await db('reminders').where({ id: reminderId, user_id: user.id }).delete();
+        const deleted = await reminders.delete(reminderId, user.id);
 
         if (!deleted) {
             throw new NotFoundError('Reminder not found');
@@ -2695,74 +2689,31 @@ export function deleteReminderHandler() {
 }
 
 // POST /reminders/:id/complete
-export function toggleReminderCompleteHandler() {
+export function toggleReminderCompleteHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
-        const user = req.user as User;
+        const user = req.session.user as User;
         const reminderId = parseInt(req.params.id as string);
 
-        const currentReminder = await db('reminders')
-            .where({ id: reminderId, user_id: user.id })
-            .first();
-
-        if (!currentReminder) {
-            throw new NotFoundError('Reminder not found');
-        }
-
-        // Calculate next due date for recurring reminders
-        let nextDue = null;
-        if (currentReminder.reminder_type === 'recurring' && !currentReminder.is_completed) {
-            const now = new Date();
-            switch (currentReminder.frequency) {
-                case 'daily':
-                    nextDue = new Date(now);
-                    nextDue.setDate(now.getDate() + 1);
-                    nextDue.setHours(9, 0, 0, 0);
-                    break;
-                case 'weekly':
-                    nextDue = new Date(now);
-                    nextDue.setDate(now.getDate() + 7);
-                    nextDue.setHours(9, 0, 0, 0);
-                    break;
-                case 'biweekly':
-                    nextDue = new Date(now);
-                    nextDue.setDate(now.getDate() + 14);
-                    nextDue.setHours(9, 0, 0, 0);
-                    break;
-                case 'monthly':
-                    nextDue = new Date(now);
-                    nextDue.setMonth(now.getMonth() + 1);
-                    nextDue.setHours(9, 0, 0, 0);
-                    break;
-            }
-        }
-
-        const updatedReminder = await db('reminders')
-            .where({ id: reminderId, user_id: user.id })
-            .update({
-                is_completed: !currentReminder.is_completed,
-                next_due: nextDue,
-                updated_at: db.fn.now(),
-            })
-            .returning('*');
+        const updatedReminder = await reminders.complete(reminderId, user.id);
 
         if (isApiRequest(req)) {
             res.status(200).json({
-                message: `Reminder ${updatedReminder[0].is_completed ? 'completed' : 'reactivated'} successfully`,
-                data: updatedReminder[0],
+                message: `Reminder ${updatedReminder.is_completed ? 'completed' : 'reactivated'} successfully`,
+                data: updatedReminder,
             });
             return;
         }
 
         req.flash(
             'success',
-            `Reminder ${updatedReminder[0].is_completed ? 'completed' : 'reactivated'} successfully`,
+            `Reminder ${updatedReminder.is_completed ? 'completed' : 'reactivated'} successfully`,
         );
         return res.redirect('/reminders');
     };
 }
 
 // POST /reminders or POST /api/reminders
-export function postReminderHandler() {
+export function postReminderHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
         const { title, url, when, custom_date } = req.body;
 
@@ -2787,22 +2738,20 @@ export function postReminderHandler() {
             });
         }
 
-        const reminder = await db('reminders')
-            .insert({
-                user_id: req.session.user?.id,
-                title: title.trim(),
-                url: url ? url.trim() : null,
-                reminder_type: timing.type,
-                frequency: timing.frequency,
-                next_due: timing.nextDue,
-                is_completed: false,
-            })
-            .returning('*');
+        const reminder = await reminders.create({
+            user_id: req.session.user?.id as number,
+            title: title.trim(),
+            url: url ? url.trim() : null,
+            reminder_type: timing.type,
+            frequency: timing.frequency,
+            next_due: timing.nextDue,
+            is_completed: false,
+        });
 
         if (isApiRequest(req)) {
             res.status(201).json({
                 message: 'Reminder created successfully',
-                data: reminder[0],
+                data: reminder,
             });
             return;
         }
@@ -2825,12 +2774,12 @@ export function getReminderCreatePageHandler() {
 }
 
 // GET /reminders/:id/edit
-export function getEditReminderPageHandler() {
+export function getEditReminderPageHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const reminderId = parseInt(req.params.id || '', 10);
 
-        const reminder = await db('reminders').where({ id: reminderId, user_id: user.id }).first();
+        const reminder = await reminders.read(reminderId, user.id);
 
         if (!reminder) {
             throw new NotFoundError('Reminder not found');

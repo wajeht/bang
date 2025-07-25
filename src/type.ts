@@ -197,6 +197,37 @@ export type NotesQueryParams = {
     highlight?: boolean;
 };
 
+export type Reminder = {
+    id?: number;
+    title: string;
+    url: string | null;
+    user_id: number;
+    reminder_type: ReminderType;
+    frequency: ReminderFrequency | null;
+    next_due: Date | string;
+    is_completed: boolean;
+    created_at?: string;
+    updated_at?: string;
+};
+
+export type RemindersQueryParams = {
+    user: { id: number };
+    perPage: number;
+    page: number;
+    search: string;
+    sortKey: string | 'created_at';
+    direction: string | 'asc' | 'desc';
+    highlight?: boolean;
+};
+
+export type ReminderTimingResult = {
+    isValid: boolean;
+    type: ReminderType;
+    frequency: ReminderFrequency | null;
+    specificDate: string | null;
+    nextDue: Date;
+};
+
 export type Search = (options: {
     res: Response;
     user: User | undefined;
@@ -233,6 +264,15 @@ export interface Notes {
     read: (id: number, userId: number) => Promise<Note>;
     update: (id: number, userId: number, updates: Partial<Note>) => Promise<Note>;
     delete: (id: number, userId: number) => Promise<boolean>;
+}
+
+export interface Reminders {
+    all: (params: RemindersQueryParams) => Promise<any>;
+    create: (reminder: Reminder) => Promise<Reminder>;
+    read: (id: number, userId: number) => Promise<Reminder>;
+    update: (id: number, userId: number, updates: Partial<Reminder>) => Promise<Reminder>;
+    delete: (id: number, userId: number) => Promise<boolean>;
+    complete: (id: number, userId: number) => Promise<Reminder>;
 }
 
 export type LayoutOptions = {
