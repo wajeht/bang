@@ -22,6 +22,10 @@
               <li>
               <a style="font-weight: <%= path === '/notes' ? 'bold' : 'normal' %>; <%= path === '/notes' ? 'text-decoration: underline;' : '' %>" href="/notes" <%= path === '/notes' ? 'aria-current="page"' : '' %>>📝 Notes</a>
             </li>
+            <span aria-hidden="true" style="color: var(--link-divider-color);">|</span>
+              <li>
+              <a style="font-weight: <%= path === '/reminders' ? 'bold' : 'normal' %>; <%= path === '/reminders' ? 'text-decoration: underline;' : '' %>" href="/reminders" <%= path === '/reminders' ? 'aria-current="page"' : '' %>>⏰ Reminders</a>
+            </li>
           </ul>
       </div>
 
