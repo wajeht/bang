@@ -654,22 +654,16 @@ export function postBookmarkHandler() {
         }
 
         if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-            throw new ValidationError(
-                { pinned: 'Pinned must be a boolean or checkbox value' },
-                req,
-            );
+            throw new ValidationError({ pinned: 'Pinned must be a boolean or checkbox value' });
         }
 
         const user = req.user as User;
         const existingBookmark = await checkDuplicateBookmarkUrl(user.id, url);
 
         if (existingBookmark) {
-            throw new ValidationError(
-                {
-                    url: `URL already bookmarked as "${existingBookmark.title}". Please use a different URL or update the existing bookmark.`,
-                },
-                req,
-            );
+            throw new ValidationError({
+                url: `URL already bookmarked as "${existingBookmark.title}". Please use a different URL or update the existing bookmark.`,
+            });
         }
 
         setTimeout(
@@ -827,10 +821,9 @@ export function postSettingsAccountHandler(db: Knex) {
         }
 
         if (!Object.keys(searchConfig.defaultSearchProviders).includes(default_search_provider)) {
-            throw new ValidationError(
-                { default_search_provider: 'Invalid search provider selected' },
-                req,
-            );
+            throw new ValidationError({
+                default_search_provider: 'Invalid search provider selected',
+            });
         }
 
         let parsedAutocompleteSearchOnHomepage = false;
@@ -876,10 +869,9 @@ export function postExportDataHandler() {
         const { options } = req.body;
 
         if (!options || !Array.isArray(options) || options.length === 0) {
-            throw new ValidationError(
-                { options: 'Please select at least one data type to export' },
-                req,
-            );
+            throw new ValidationError({
+                options: 'Please select at least one data type to export',
+            });
         }
 
         const userId = (req.user as User).id;
@@ -1515,10 +1507,7 @@ export function postNoteHandler(notes: Notes) {
         }
 
         if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-            throw new ValidationError(
-                { pinned: 'Pinned must be a boolean or checkbox value' },
-                req,
-            );
+            throw new ValidationError({ pinned: 'Pinned must be a boolean or checkbox value' });
         }
 
         const user = req.user as User;
@@ -1573,10 +1562,7 @@ export function updateNoteHandler(notes: Notes) {
         }
 
         if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-            throw new ValidationError(
-                { pinned: 'Pinned must be a boolean or checkbox value' },
-                req,
-            );
+            throw new ValidationError({ pinned: 'Pinned must be a boolean or checkbox value' });
         }
 
         const user = req.user as User;
