@@ -96,6 +96,38 @@ export const searchConfig = {
 } as const;
 
 /**
+ * Reminder timing options configuration
+ * Used by both the UI handlers and the parseReminderTiming function
+ */
+export const reminderTimingConfig = {
+    /**
+     * Recurring timing options
+     */
+    recurring: [
+        { value: 'daily', text: 'Daily (recurring)' },
+        { value: 'weekly', text: 'Weekly (recurring)' },
+        { value: 'biweekly', text: 'Bi-weekly (recurring)' },
+        { value: 'monthly', text: 'Monthly (recurring)' },
+    ],
+    /**
+     * Custom date option
+     */
+    custom: [{ value: 'custom', text: 'Custom Date...' }],
+    /**
+     * Get all timing options combined for UI dropdowns
+     */
+    getAllOptions() {
+        return [...this.recurring, ...this.custom];
+    },
+    /**
+     * Get all supported timing values for validation
+     */
+    getAllValues() {
+        return this.getAllOptions().map((option) => option.value);
+    },
+} as const;
+
+/**
  * Escapes HTML characters to prevent XSS attacks
  */
 function escapeHtml(text: string): string {
@@ -544,86 +576,6 @@ export function parseReminderTiming(timeStr: string): {
                 nextDue: monthlyNext,
             };
         }
-    }
-
-    // Handle specific one-time dates
-    switch (timeStr) {
-        case 'today': {
-            const today = new Date(now);
-            today.setHours(9, 0, 0, 0);
-            return {
-                isValid: true,
-                type: 'once',
-                frequency: null,
-                specificDate: today.toISOString().split('T')[0] || null,
-                nextDue: today,
-            };
-        }
-
-        case 'tomorrow': {
-            return {
-                isValid: true,
-                type: 'once',
-                frequency: null,
-                specificDate: tomorrow.toISOString().split('T')[0] || null,
-                nextDue: tomorrow,
-            };
-        }
-
-        case 'tonight': {
-            const tonight = new Date(now);
-            tonight.setHours(18, 0, 0, 0); // 6 PM
-            return {
-                isValid: true,
-                type: 'once',
-                frequency: null,
-                specificDate: tonight.toISOString().split('T')[0] || null,
-                nextDue: tonight,
-            };
-        }
-
-        case 'weekend': {
-            const saturday = new Date(now);
-            saturday.setDate(now.getDate() + ((6 - now.getDay()) % 7 || 7)); // Next Saturday
-            saturday.setHours(9, 0, 0, 0);
-            return {
-                isValid: true,
-                type: 'once',
-                frequency: null,
-                specificDate: saturday.toISOString().split('T')[0] || null,
-                nextDue: saturday,
-            };
-        }
-
-        case 'later': {
-            const later = new Date(tomorrow);
-            later.setDate(tomorrow.getDate() + 1); // Day after tomorrow
-            return {
-                isValid: true,
-                type: 'once',
-                frequency: null,
-                specificDate: later.toISOString().split('T')[0] || null,
-                nextDue: later,
-            };
-        }
-    }
-
-    // Handle day names (monday, tuesday, etc.)
-    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const dayIndex = dayNames.indexOf(timeStr);
-    if (dayIndex !== -1) {
-        const targetDay = new Date(now);
-        const daysUntilTarget = (dayIndex + 7 - now.getDay()) % 7 || 7;
-        targetDay.setDate(now.getDate() + daysUntilTarget);
-        targetDay.setHours(9, 0, 0, 0);
-
-        return {
-            isValid: true,
-            type: 'once',
-            frequency: null,
-            specificDate: targetDay.toISOString().split('T')[0] || null,
-            nextDue: targetDay,
-        };
     }
 
     // Handle specific dates (YYYY-MM-DD, MM/DD/YYYY, etc.)
@@ -1242,12 +1194,14 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
         // Process reminder creation command (!remind)
         // Format supported:
-        // 1. !remind <when> | <description>
-        // 2. !remind <when> | <description> | <url>
+        // 1. !remind <description> (uses user's default timing)
+        // 2. !remind <when> | <description>
+        // 3. !remind <when> | <description> | <url>
         // Examples:
-        // - !remind tomorrow | take out trash
+        // - !remind take out trash (uses default timing)
+        // - !remind 2025-01-15 | take out trash
         // - !remind weekly | check bills | https://bills.com
-        // - !remind friday | read article | https://article.com
+        // - !remind daily | read article | https://article.com
         if (trigger === '!remind') {
             const reminderContent = query.slice(query.indexOf(' ') + 1).trim();
 
@@ -1255,22 +1209,36 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 return goBackWithValidationAlert(res, 'Reminder content is required');
             }
 
-            // Parse the pipe-separated format: <when> | <description> [| <url>]
-            const parts = reminderContent.split('|').map((part) => part.trim());
+            let whenPart: string;
+            let description: string;
+            let url: string | null = null;
 
-            if (parts.length < 2) {
-                return goBackWithValidationAlert(
-                    res,
-                    'Invalid format. Use: !remind <when> | <description> [| <url>]',
-                );
-            }
+            // Check if it's pipe-separated format or simple format
+            if (reminderContent.includes('|')) {
+                // Parse the pipe-separated format: <when> | <description> [| <url>]
+                const parts = reminderContent.split('|').map((part) => part.trim());
 
-            const whenPart = parts[0];
-            const description = parts[1];
-            const url = parts.length > 2 ? parts[2] : null;
+                if (parts.length < 2) {
+                    return goBackWithValidationAlert(
+                        res,
+                        'Invalid format. Use: !remind <description> or !remind <when> | <description> [| <url>]',
+                    );
+                }
 
-            if (!whenPart) {
-                return goBackWithValidationAlert(res, 'When is required (e.g., tomorrow, weekly)');
+                whenPart = parts[0] || '';
+                description = parts[1] || '';
+                url = parts.length > 2 ? parts[2] || null : null;
+
+                if (!whenPart) {
+                    return goBackWithValidationAlert(
+                        res,
+                        'When is required (e.g., daily, weekly, 2025-01-15)',
+                    );
+                }
+            } else {
+                // Simple format: !remind <description> (use user's default timing)
+                whenPart = user.column_preferences?.reminders?.default_reminder_timing || 'daily';
+                description = reminderContent;
             }
 
             if (!description) {
@@ -1286,7 +1254,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             if (!timing.isValid) {
                 return goBackWithValidationAlert(
                     res,
-                    'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, or YYYY-MM-DD',
+                    'Invalid time format. Use: daily, weekly, biweekly, monthly, or YYYY-MM-DD',
                 );
             }
 

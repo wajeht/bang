@@ -35,11 +35,11 @@ import { bangs } from './db/bang';
 import { config } from './config';
 import type { Bang } from './type';
 import { logger } from './utils/logger';
-import { searchConfig } from './utils/search';
+import { actionTypes } from './utils/util';
 import type { Request, Response } from 'express';
 import { db, actions, bookmarks, notes } from './db/db';
-import { actionTypes } from './utils/util';
 import { HttpError, NotFoundError, ValidationError } from './error';
+import { searchConfig, parseReminderTiming, reminderTimingConfig } from './utils/search';
 
 // GET /healthz
 export function getHealthzHandler(db: Knex) {
@@ -2620,7 +2620,7 @@ export function updateReminderHandler() {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const reminderId = parseInt(req.params.id as string);
-        const { title, url, reminder_type, frequency, specific_date, next_due } = req.body;
+        const { title, url, when, custom_date } = req.body;
 
         if (!title) {
             throw new ValidationError({ title: 'Title is required' });
@@ -2630,15 +2630,27 @@ export function updateReminderHandler() {
             throw new ValidationError({ url: 'Invalid URL format' });
         }
 
+        if (!when) {
+            throw new ValidationError({ when: 'When is required' });
+        }
+
+        // Parse the timing - use custom_date if when is 'custom'
+        const timeInput = when === 'custom' ? custom_date : when;
+        const timing = parseReminderTiming(timeInput.toLowerCase());
+        if (!timing.isValid) {
+            throw new ValidationError({
+                when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
+            });
+        }
+
         const updatedReminder = await db('reminders')
             .where({ id: reminderId, user_id: user.id })
             .update({
                 title,
                 url: url || null,
-                reminder_type,
-                frequency: frequency || null,
-                specific_date: specific_date || null,
-                next_due: next_due || new Date(),
+                reminder_type: timing.type,
+                frequency: timing.frequency,
+                next_due: timing.nextDue,
                 updated_at: db.fn.now(),
             })
             .returning('*');
@@ -2752,24 +2764,45 @@ export function toggleReminderCompleteHandler() {
 // POST /reminders or POST /api/reminders
 export function postReminderHandler() {
     return async (req: Request, res: Response) => {
-        const { title, url, reminder_type, frequency, next_due } = req.body;
+        const { title, url, when, custom_date } = req.body;
 
-        const reminderData = {
-            user_id: req.session.user?.id,
-            title: title.trim(),
-            url: url ? url.trim() : null,
-            reminder_type,
-            frequency: reminder_type === 'recurring' ? frequency : null,
-            next_due,
-            is_completed: false,
-        };
+        if (!title) {
+            throw new ValidationError({ title: 'Title is required' });
+        }
 
-        const newReminder = await db('reminders').insert(reminderData).returning('*');
+        if (url && !isValidUrl(url)) {
+            throw new ValidationError({ url: 'Invalid URL format' });
+        }
+
+        if (!when) {
+            throw new ValidationError({ when: 'When is required' });
+        }
+
+        // Parse the timing - use custom_date if when is 'custom'
+        const timeInput = when === 'custom' ? custom_date : when;
+        const timing = parseReminderTiming(timeInput.toLowerCase());
+        if (!timing.isValid) {
+            throw new ValidationError({
+                when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
+            });
+        }
+
+        const reminder = await db('reminders')
+            .insert({
+                user_id: req.session.user?.id,
+                title: title.trim(),
+                url: url ? url.trim() : null,
+                reminder_type: timing.type,
+                frequency: timing.frequency,
+                next_due: timing.nextDue,
+                is_completed: false,
+            })
+            .returning('*');
 
         if (isApiRequest(req)) {
             res.status(201).json({
                 message: 'Reminder created successfully',
-                data: newReminder[0],
+                data: reminder[0],
             });
             return;
         }
@@ -2786,6 +2819,7 @@ export function getReminderCreatePageHandler() {
             title: 'Reminders / New',
             path: '/reminders/create',
             layout: '../layouts/auth.html',
+            timingOptions: reminderTimingConfig.getAllOptions(),
         });
     };
 }
@@ -2807,6 +2841,7 @@ export function getEditReminderPageHandler() {
             path: `/reminders/${reminderId}/edit`,
             layout: '../layouts/auth.html',
             reminder,
+            timingOptions: reminderTimingConfig.getAllOptions(),
         });
     };
 }

@@ -285,6 +285,95 @@
         </fieldset>
       </div>
 
+      <!-- Reminders -->
+      <div style="display: flex; flex-direction: column; gap: 15px; <%= path === '/reminders' ? '' : 'display: none;' %>">
+        <% if (path === "/reminders") { %>
+            <input type="hidden" name="path" value="<%= path %>" />
+        <% } %>
+
+        <!-- Items Per Page -->
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="reminders_per_page">🔢 Items Per Page <abbr style="color: red;" title="Required">*</abbr></label>
+          <input
+            type="number"
+            id="reminders_per_page"
+            name="column_preferences[reminders][default_per_page]"
+            value="<%= state.input.reminders_per_page ?? user.column_preferences.reminders.default_per_page %>"
+            min="1"
+            required
+          >
+        </div>
+
+        <!-- Default Reminder Timing -->
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="default_reminder_timing">⏰ Default Reminder Timing <abbr style="color: red;" title="Required">*</abbr></label>
+          <select
+            id="default_reminder_timing"
+            name="column_preferences[reminders][default_reminder_timing]"
+            required
+          >
+            <option value="daily" <%= user.column_preferences.reminders.default_reminder_timing === 'daily' ? 'selected' : '' %>>Daily (recurring)</option>
+            <option value="weekly" <%= user.column_preferences.reminders.default_reminder_timing === 'weekly' ? 'selected' : '' %>>Weekly (recurring)</option>
+            <option value="biweekly" <%= user.column_preferences.reminders.default_reminder_timing === 'biweekly' ? 'selected' : '' %>>Bi-weekly (recurring)</option>
+            <option value="monthly" <%= user.column_preferences.reminders.default_reminder_timing === 'monthly' ? 'selected' : '' %>>Monthly (recurring)</option>
+          </select>
+          <small style="color: #666;">Used when creating reminders via !remind command without specifying timing</small>
+        </div>
+
+        <!-- Visible Columns -->
+        <fieldset style="border: none; padding: 0; margin: 0;">
+          <legend style="font-weight: normal;">Columns <abbr style="color: red;" title="Required">*</abbr></legend>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[reminders][title]"
+              <%= user.column_preferences?.reminders?.title !== false ? 'checked' : '' %>
+            >
+            📝 Title
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[reminders][url]"
+              <%= user.column_preferences?.reminders?.url !== false ? 'checked' : '' %>
+            >
+            🌐 URL
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[reminders][next_due]"
+              <%= user.column_preferences?.reminders?.next_due !== false ? 'checked' : '' %>
+            >
+            📅 Next Due
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[reminders][frequency]"
+              <%= user.column_preferences?.reminders?.frequency !== false ? 'checked' : '' %>
+            >
+            🔄 Frequency
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[reminders][status]"
+              <%= user.column_preferences?.reminders?.status !== false ? 'checked' : '' %>
+            >
+            ✅ Status
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[reminders][created_at]"
+              <%= user.column_preferences?.reminders?.created_at !== false ? 'checked' : '' %>
+            >
+            📅 Created At
+          </label>
+        </fieldset>
+      </div>
+
       <!-- Users -->
       <% if (state.user.is_admin) { %>
         <div style="display: flex; flex-direction: column; gap: 15px; <%= path === '/admin/users' ? '' : 'display: none;' %>">

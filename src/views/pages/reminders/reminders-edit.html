@@ -37,46 +37,26 @@
             }) %>
 
             <%- include('../../components/inputs/select.html', {
-                id: 'reminder_type',
-                name: 'reminder_type',
-                label: '🔄 Type',
+                id: 'when',
+                name: 'when',
+                label: '⏰ When',
                 required: true,
-                value: state.input && state.input.reminder_type ? state.input.reminder_type : reminder.reminder_type,
-                options: [
-                    { value: 'once', text: 'One-time reminder' },
-                    { value: 'recurring', text: 'Recurring reminder' }
-                ],
-                helpText: 'Choose if this reminder should repeat',
-                error: state.errors && state.errors.reminder_type ? state.errors.reminder_type : undefined
-            }) %>
-
-            <%- include('../../components/inputs/select.html', {
-                id: 'frequency',
-                name: 'frequency',
-                label: '📅 Frequency',
-                required: false,
-                value: state.input && state.input.frequency ? state.input.frequency : (reminder.frequency || ''),
-                options: [
-                    { value: '', text: 'None (one-time only)' },
-                    { value: 'daily', text: 'Daily' },
-                    { value: 'weekly', text: 'Weekly' },
-                    { value: 'biweekly', text: 'Bi-weekly (every 2 weeks)' },
-                    { value: 'monthly', text: 'Monthly' }
-                ],
-                helpText: 'How often should this reminder repeat? (only for recurring reminders)',
-                error: state.errors && state.errors.frequency ? state.errors.frequency : undefined
+                value: state.input && state.input.when ? state.input.when : (reminder.reminder_type === 'recurring' ? reminder.frequency : 'tomorrow'),
+                options: timingOptions,
+                helpText: 'When should you be reminded? Choose from preset options or select Custom Date for a specific date.',
+                error: state.errors && state.errors.when ? state.errors.when : undefined
             }) %>
 
             <%- include('../../components/inputs/date.html', {
-                id: 'next_due',
-                name: 'next_due',
-                label: '📆 Due Date',
-                value: state.input && state.input.next_due ? state.input.next_due : (reminder.next_due ? new Date(reminder.next_due).toISOString().split('T')[0] : ''),
-                required: true,
-                helpText: 'When should this reminder be due?',
-                error: state.errors && state.errors.next_due ? state.errors.next_due : undefined
+                id: 'custom_date',
+                name: 'custom_date',
+                label: '📅 Custom Date',
+                value: reminder.next_due ? new Date(reminder.next_due).toISOString().split('T')[0] : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                required: false,
+                helpText: 'Select a specific date (only shown when Custom Date is selected)',
+                error: undefined,
+                style: 'display: none;'
             }) %>
-
 
             <%- include('../../components/inputs/checkbox.html', {
                 id: 'is_completed',
@@ -96,25 +76,23 @@
     </form>
 
     <script>
-        // Show/hide frequency field based on reminder type
-        const reminderTypeSelect = document.getElementById('reminder_type');
-        const frequencySelect = document.getElementById('frequency');
-        const frequencyContainer = frequencySelect.closest('div');
+        const whenSelect = document.getElementById('when');
+        const customDateContainer = document.getElementById('custom_date').closest('div');
 
-        function toggleFrequencyField() {
-            if (reminderTypeSelect.value === 'recurring') {
-                frequencyContainer.style.display = 'block';
-                frequencySelect.required = true;
+        function toggleCustomDateField() {
+            if (whenSelect.value === 'custom') {
+                customDateContainer.style.display = 'block';
+                document.getElementById('custom_date').required = true;
             } else {
-                frequencyContainer.style.display = 'none';
-                frequencySelect.required = false;
-                frequencySelect.value = '';
+                customDateContainer.style.display = 'none';
+                document.getElementById('custom_date').required = false;
             }
         }
 
-        reminderTypeSelect.addEventListener('change', toggleFrequencyField);
-
+        whenSelect.addEventListener('change', toggleCustomDateField);
+        
         // Initialize on page load
-        toggleFrequencyField();
+        toggleCustomDateField();
     </script>
+
 </section>
