@@ -41,13 +41,15 @@ Before you can use the Bang command from your browser's search bar, you need to 
 - `@n`, `@note`, `@notes` - Access your notes
 - `@a`, `@action`, `@actions` - Access your actions
 - `@bm`, `@bookmark`, `@bookmarks` - Access your bookmarks
+- `@r`, `@reminders` - Access your reminders
 
 ### 🎨 Special Commands
 
 - `@bm [search term]` - Search your bookmarks
 - `@a [search term]` - Search your actions
 - `@n [search term]` - Search your notes
-- `!find [search term]` - Global search across all resources (bookmarks, actions, notes, tabs)
+- `@r [search term]` - Search your reminders
+- `!find [search term]` - Global search across all resources (bookmarks, actions, notes, tabs, reminders)
 - `!bm [url]` - Add a bookmark
 - `!bm [title] [url]` - Add a bookmark
     - `[title]` is optional, if not provided, we will auto fetch the title
@@ -82,6 +84,13 @@ Before you can use the Bang command from your browser's search bar, you need to 
     - `[content]` is required
     - eg: `!note some title | this is a note https://bang.jaw.dev`
     - eg: `!note this is a content without any title`
+- `!remind [when] | [description] [| [url]]` - Create a reminder
+    - `[when]` is required (tomorrow, weekly, friday, 2025-01-15, etc.)
+    - `[description]` is required (what you want to be reminded about)
+    - `[url]` is optional (link to open with the reminder)
+    - eg: `!remind tomorrow | take out trash`
+    - eg: `!remind weekly | water plants`
+    - eg: `!remind friday | read article | https://example.com`
 
 <!-- ends -->
 
