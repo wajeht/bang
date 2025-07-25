@@ -1,0 +1,254 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+    <header style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <h2>⏰ Reminders (<%- pagination.total %>)</h2>
+		        <%- include('../_partials/question-mark-button.html') %>
+            </div>
+            <p>Manage your reminders and reading list</p>
+        </div>
+
+        <nav style="display: flex; gap: 10px;" aria-label="Reminder management controls">
+            <% if (search) { %>
+                <button type="button" class="no-style-btn" onclick="location.href='/reminders'">❌ Clear</button>
+            <% } %>
+
+            <form method="GET" action="/reminders" style="display: flex; gap: 10px;" role="search">
+                <%- include('../../components/inputs/search.html', {
+                    id: 'search',
+                    name: 'search',
+                    label: 'Search reminders',
+                    placeholder: 'Search reminders...',
+                    value: search,
+                    required: false,
+                    helpText: 'Search for reminders by title or URL',
+                    error: state.errors && state.errors.search ? state.errors.search : undefined
+                }) %>
+                <button type="submit">🔍</button>
+            </form>
+
+            <button type="button" aria-label="Create new reminder" onclick="location.href='/reminders/create'">➕</button>
+
+            <button type="button" aria-label="Filter by category" onclick="toggleCategoryFilter()">🗂️</button>
+
+            <%- include('../_partials/column-settings.html') %>
+        </nav>
+    </header>
+
+    <section style="display: flex; flex-direction: column; gap: 10px;">
+        <% if (reminders && reminders.length > 0) { %>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
+                    <tr>
+                        <% if (state.user.column_preferences?.reminders?.title !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">
+                                <a href="/reminders?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=title&direction=<%= (sortKey === 'title' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                   aria-label="Sort by title <%= (sortKey === 'title' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                    📝 Title
+                                    <% if (sortKey === 'title') { %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                    <% } else { %>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.reminders?.url !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">🔗 URL</th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.reminders?.category !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">📂 Type</th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.reminders?.next_due !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">
+                                <a href="/reminders?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=next_due&direction=<%= (sortKey === 'next_due' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                   aria-label="Sort by due date <%= (sortKey === 'next_due' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                    ⏰ Due
+                                    <% if (sortKey === 'next_due') { %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                    <% } else { %>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.reminders?.frequency !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">🔄 Frequency</th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.reminders?.status !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">✅ Status</th>
+                        <% } %>
+                        <th scope="col" style="text-align: left; padding: 10px;">🚀 Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for (let i = 0; i < reminders.length; i++) { %>
+                        <tr style="<%= reminders[i].is_completed ? 'opacity: 0.6;' : '' %>">
+                            <% if (state.user.column_preferences?.reminders?.title !== false) { %>
+                                <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                    <% if (reminders[i].category === 'reading') { %>📖<% } else if (reminders[i].category === 'link') { %>🔗<% } else { %>📝<% } %>
+                                    <%= reminders[i].title %>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.reminders?.url !== false) { %>
+                                <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                    <% if (reminders[i].url) { %>
+                                        <a href="<%= reminders[i].url %>" target="_blank" rel="noopener noreferrer" title="<%= reminders[i].url %>">
+                                            🔗 Open
+                                        </a>
+                                    <% } else { %>
+                                        -
+                                    <% } %>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.reminders?.category !== false) { %>
+                                <td style="padding: 10px;">
+                                    <% if (reminders[i].category === 'reading') { %>
+                                        📖 Reading
+                                    <% } else if (reminders[i].category === 'link') { %>
+                                        🔗 Link
+                                    <% } else { %>
+                                        📝 Task
+                                    <% } %>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.reminders?.next_due !== false) { %>
+                                <td style="padding: 10px;">
+                                    <time datetime="<%= reminders[i].next_due %>">
+                                        <%= reminders[i].next_due ? new Date(reminders[i].next_due).toLocaleDateString() : '-' %>
+                                    </time>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.reminders?.frequency !== false) { %>
+                                <td style="padding: 10px;">
+                                    <% if (reminders[i].reminder_type === 'recurring') { %>
+                                        🔄 <%= reminders[i].frequency %>
+                                    <% } else { %>
+                                        📅 Once
+                                    <% } %>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.reminders?.status !== false) { %>
+                                <td style="padding: 10px;">
+                                    <%= reminders[i].is_completed ? '✅ Done' : '⏳ Pending' %>
+                                </td>
+                            <% } %>
+                            <td style="padding: 10px;">
+                                <details style="position: relative;">
+                                    <summary aria-label="Actions for reminder <%= reminders[i].title %>">Actions</summary>
+                                    <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                        <form method="POST" action="/reminders/<%= reminders[i].id %>/complete" style="display: inline;">
+                                            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                                            <button type="submit" class="no-style-btn" style="text-align: left;" role="menuitem" aria-label="<%= reminders[i].is_completed ? 'Mark as pending' : 'Mark as complete' %> reminder <%= reminders[i].title %>">
+                                                <%= reminders[i].is_completed ? '⏳ Mark Pending' : '✅ Mark Complete' %>
+                                            </button>
+                                        </form>
+                                        <a href="/reminders/<%= reminders[i].id %>/edit" role="menuitem" aria-label="Edit reminder <%= reminders[i].title %>">✏️ Edit</a>
+                                        <button
+                                            type="button"
+                                            class="no-style-btn"
+                                            style="text-align: left;"
+                                            onclick="showDeleteReminderModal('<%= reminders[i].id %>', '<%= reminders[i].title.replace(/'/g, '\\\'') %>')"
+                                            role="menuitem"
+                                            aria-label="Delete reminder <%= reminders[i].title %>"
+                                        >
+                                            🗑️ Delete
+                                        </button>
+                                    </div>
+                                </details>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <div style="text-align: center; padding: 20px;">
+                <% if (search) { %>
+                    <p>🔍 No reminders found matching "<%= search %>"</p>
+                    <p>Try a different search term or <a href="/reminders">view all reminders</a></p>
+                <% } else { %>
+                    <p>⏰ You haven't created any reminders yet.</p>
+                    <p>Use <code>!remind tomorrow | take out trash</code> in the search box to create a reminder!</p>
+                    <br>
+                    <details>
+                        <summary>Examples</summary>
+                        <ul style="text-align: left; display: inline-block;">
+                            <li><code>!remind tomorrow | take out trash</code></li>
+                            <li><code>!remind weekly | water plants</code></li>
+                            <li><code>!remind friday | call mom</code></li>
+                            <li><code>!remind tonight | read article | https://example.com</code></li>
+                        </ul>
+                    </details>
+                <% } %>
+            </div>
+        <% } %>
+    </section>
+
+    <%- include('../_partials/pagination.html', {
+        pagination,
+        path,
+        perPageDefault: state.user.column_preferences.reminders.default_per_page,
+        sortKey,
+        direction,
+        search
+    }) %>
+
+    <!-- Delete Reminder Modal -->
+    <dialog id="delete-reminder-modal" aria-labelledby="delete-reminder-title">
+        <h2 id="delete-reminder-title">Confirm</h2>
+        <p>Are you sure you want to delete <strong id="delete-reminder-name"></strong>?</p>
+        <form id="delete-reminder-form" method="POST">
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" onclick="document.getElementById('delete-reminder-modal').close()">❌ Cancel</button>
+                <button type="submit">🗑️ Delete</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script>
+        function showEditReminderModal(id, title, url, type, frequency) {
+            const modal = document.getElementById('edit-reminder-modal');
+            const form = document.getElementById('edit-reminder-form');
+
+            form.action = `/reminders/${id}/update`;
+            document.getElementById('edit-title').value = title;
+            document.getElementById('edit-url').value = url;
+            document.getElementById('edit-reminder-type').value = type;
+            document.getElementById('edit-frequency').value = frequency;
+
+            modal.showModal();
+        }
+
+        function showDeleteReminderModal(id, title) {
+            const modal = document.getElementById('delete-reminder-modal');
+            const nameElement = document.getElementById('delete-reminder-name');
+            const form = document.getElementById('delete-reminder-form');
+
+            nameElement.textContent = title;
+            form.action = `/reminders/${id}/delete`;
+
+            modal.showModal();
+        }
+
+        function toggleCategoryFilter() {
+            // Simple category filter implementation
+            const url = new URL(window.location);
+            const currentCategory = url.searchParams.get('category');
+
+            if (!currentCategory) {
+                url.searchParams.set('category', 'reading');
+            } else if (currentCategory === 'reading') {
+                url.searchParams.set('category', 'task');
+            } else if (currentCategory === 'task') {
+                url.searchParams.set('category', 'link');
+            } else {
+                url.searchParams.delete('category');
+            }
+
+            window.location.href = url.toString();
+        }
+    </script>
+</section>
