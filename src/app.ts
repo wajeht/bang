@@ -10,6 +10,7 @@ import {
 } from './middleware';
 import ejs from 'ejs';
 import cors from 'cors';
+import cron from 'node-cron';
 import express from 'express';
 import { router } from './router';
 import flash from 'connect-flash';
@@ -18,8 +19,8 @@ import { Server } from 'node:http';
 import compression from 'compression';
 import { AddressInfo } from 'node:net';
 import { logger } from './utils/logger';
-import { isMailpitRunning } from './utils/util';
 import { expressJSDocSwaggerHandler } from './utils/swagger';
+import { isMailpitRunning, processReminderDigests } from './utils/util';
 import { expressTemplatesReload } from '@wajeht/express-templates-reload';
 import { db, runProdMigration, checkDatabaseHealth, optimizeDatabase } from './db/db';
 
@@ -94,6 +95,25 @@ export async function createServer() {
         if (config.app.env === 'development' && (await isMailpitRunning())) {
             logger.info('Mailpit is running on http://localhost:8025');
         }
+
+        // Start reminder digest cron job - runs daily at 9:00 AM
+        cron.schedule(
+            '0 9 * * *',
+            async () => {
+                logger.info('Running scheduled reminder digest processing...');
+                try {
+                    await processReminderDigests();
+                    logger.info('Scheduled reminder digest processing completed');
+                } catch (error) {
+                    logger.error('Scheduled reminder digest processing failed: %o', { error });
+                }
+            },
+            {
+                timezone: 'UTC',
+            },
+        );
+
+        logger.info('Reminder digest cron job scheduled for 9:00 AM UTC daily');
     });
 
     server.on('error', (error: NodeJS.ErrnoException) => {
