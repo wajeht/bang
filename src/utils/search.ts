@@ -8,6 +8,7 @@ import {
     updateUserBangLastReadAt,
     checkDuplicateBookmarkUrl,
 } from './util';
+import { logger } from './logger';
 import { db } from '../db/db';
 import type { Bang, Search } from '../type';
 import { UnauthorizedError } from '../error';
@@ -91,6 +92,18 @@ export const searchConfig = {
     ]),
 } as const;
 
+/**
+ * Escapes HTML characters to prevent XSS attacks
+ */
+function escapeHtml(text: string): string {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 export function trackAnonymousUserSearch(req: Request) {
     req.session.searchCount = req.session.searchCount || 0;
     req.session.cumulativeDelay = req.session.cumulativeDelay || 0;
@@ -104,18 +117,23 @@ export function trackAnonymousUserSearch(req: Request) {
 }
 
 export function redirectWithAlert(res: Response, url: string, message?: string) {
+    const safeMessage = message ? escapeHtml(message) : '';
+    const safeUrl = escapeHtml(url);
+
     return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
 			<script>
-				${message ? `alert("${message}");` : ''}
-				window.location.href = "${url}";
+				${safeMessage ? `alert("${safeMessage}");` : ''}
+				window.location.href = "${safeUrl}";
 			</script>
 		`);
 }
 
 export function goBackWithValidationAlert(res: Response, message: string) {
+    const safeMessage = escapeHtml(message);
+
     return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
 			<script>
-				alert("${message}");
+				alert("${safeMessage}");
 				window.history.back();
 			</script>
 		`);
@@ -270,7 +288,8 @@ export function parseSearchQuery(query: string): {
             // if it throws, foundUrl becomes null
             try {
                 new URL(foundUrl);
-            } catch {
+            } catch (error) {
+                logger.warn('Invalid URL found in query: %s', foundUrl, error);
                 foundUrl = null;
             }
         }
@@ -292,7 +311,8 @@ export function parseSearchQuery(query: string): {
                         urlStart = tokenStart;
                         urlEnd = tokenStart + token.length;
                         break;
-                    } catch {
+                    } catch (error) {
+                        logger.warn('Invalid domain-like token in query: %s', token, error);
                         // next token
                     }
                 }
@@ -581,8 +601,12 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 );
 
                 return redirectWithCache(res, url);
-            } catch (_error) {
-                return redirectWithAlert(res, 'Error adding bookmark');
+            } catch (error) {
+                logger.error('Error adding bookmark:', error);
+                return goBackWithValidationAlert(
+                    res,
+                    'Failed to add bookmark. Please check the URL and try again.',
+                );
             }
         }
 
@@ -603,9 +627,18 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
             const hasSystemBangCommands = searchConfig.systemBangs.has(bangTrigger);
 
-            const existingBang = await db('bangs')
-                .where({ user_id: user.id, trigger: bangTrigger })
-                .first();
+            let existingBang;
+            try {
+                existingBang = await db('bangs')
+                    .where({ user_id: user.id, trigger: bangTrigger })
+                    .first();
+            } catch (error) {
+                logger.error('Database error checking existing bang:', error);
+                return goBackWithValidationAlert(
+                    res,
+                    'Database error occurred while checking bang',
+                );
+            }
 
             const hasExistingCustomBangCommand = !!existingBang;
 
@@ -620,10 +653,13 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     message = `${bangTrigger} trigger can only contain letters and numbers. Please enter a new trigger:`;
                 }
 
+                const safeBangUrl = escapeHtml(bangUrl);
+                const safeMessage = escapeHtml(message);
+
                 return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
                         <script>
-                            const bangUrl = "${bangUrl}";
-                            const newTrigger = prompt("${message}");
+                            const bangUrl = "${safeBangUrl}";
+                            const newTrigger = prompt("${safeMessage}");
                             if (newTrigger) {
                                 const domain = window.location.origin;
                                 window.location.href = \`\${domain}/?q=!add \${newTrigger} \${bangUrl}\`;
@@ -634,15 +670,21 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     `);
             }
 
-            const bangs = await db('bangs')
-                .insert({
-                    user_id: user.id,
-                    trigger: bangTrigger,
-                    name: 'Fetching title...',
-                    action_type_id: 2, // redirect
-                    url: bangUrl,
-                })
-                .returning('*');
+            let bangs;
+            try {
+                bangs = await db('bangs')
+                    .insert({
+                        user_id: user.id,
+                        trigger: bangTrigger,
+                        name: 'Fetching title...',
+                        action_type_id: 2, // redirect
+                        url: bangUrl,
+                    })
+                    .returning('*');
+            } catch (error) {
+                logger.error('Database error creating bang:', error);
+                return goBackWithValidationAlert(res, 'Failed to create bang. Please try again.');
+            }
 
             setTimeout(() => insertPageTitle({ actionId: bangs[0].id, url: bangUrl, req }), 0);
 
@@ -661,19 +703,27 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 return goBackWithValidationAlert(res, 'Please specify a trigger to delete');
             }
 
-            const deletedBangs = await db('bangs')
-                .where({
-                    user_id: user.id,
-                    trigger: bangToDelete,
-                })
-                .delete();
+            let deletedBangs = 0;
+            let deletedTabs = 0;
 
-            const deletedTabs = await db('tabs')
-                .where({
-                    user_id: user.id,
-                    trigger: bangToDelete,
-                })
-                .delete();
+            try {
+                deletedBangs = await db('bangs')
+                    .where({
+                        user_id: user.id,
+                        trigger: bangToDelete,
+                    })
+                    .delete();
+
+                deletedTabs = await db('tabs')
+                    .where({
+                        user_id: user.id,
+                        trigger: bangToDelete,
+                    })
+                    .delete();
+            } catch (error) {
+                logger.error('Database error deleting bang/tab:', error);
+                return goBackWithValidationAlert(res, 'Failed to delete bang. Please try again.');
+            }
 
             if (deletedBangs === 0 && deletedTabs === 0) {
                 return goBackWithValidationAlert(
@@ -711,21 +761,32 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             // Extract the old trigger, making sure it has the ! prefix
             const oldTrigger = normalizeBangTrigger(parts[0]);
 
-            const existingBang = await db('bangs')
-                .select('bangs.*')
-                .where({
-                    'bangs.user_id': user.id,
-                    'bangs.trigger': oldTrigger,
-                })
-                .first();
+            let existingBang;
+            let existingTab;
 
-            const existingTab = await db('tabs')
-                .select('tabs.*')
-                .where({
-                    'tabs.user_id': user.id,
-                    'tabs.trigger': oldTrigger,
-                })
-                .first();
+            try {
+                existingBang = await db('bangs')
+                    .select('bangs.*')
+                    .where({
+                        'bangs.user_id': user.id,
+                        'bangs.trigger': oldTrigger,
+                    })
+                    .first();
+
+                existingTab = await db('tabs')
+                    .select('tabs.*')
+                    .where({
+                        'tabs.user_id': user.id,
+                        'tabs.trigger': oldTrigger,
+                    })
+                    .first();
+            } catch (error) {
+                logger.error('Database error checking existing bang/tab:', error);
+                return goBackWithValidationAlert(
+                    res,
+                    'Database error occurred while checking bang',
+                );
+            }
 
             if (
                 (!existingBang || typeof existingBang.id === 'undefined') &&
@@ -752,21 +813,32 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 }
 
                 // Check for conflicts in both bangs and tabs
-                const conflictingBang = await db('bangs')
-                    .where({
-                        user_id: user.id,
-                        trigger: newTrigger,
-                    })
-                    .whereNot(existingBang ? { id: existingBang.id } : {}) // Exclude the current bang if it exists
-                    .first();
+                let conflictingBang;
+                let conflictingTab;
 
-                const conflictingTab = await db('tabs')
-                    .where({
-                        user_id: user.id,
-                        trigger: newTrigger,
-                    })
-                    .whereNot(existingTab ? { id: existingTab.id } : {}) // Exclude the current tab if it exists
-                    .first();
+                try {
+                    conflictingBang = await db('bangs')
+                        .where({
+                            user_id: user.id,
+                            trigger: newTrigger,
+                        })
+                        .whereNot(existingBang ? { id: existingBang.id } : {}) // Exclude the current bang if it exists
+                        .first();
+
+                    conflictingTab = await db('tabs')
+                        .where({
+                            user_id: user.id,
+                            trigger: newTrigger,
+                        })
+                        .whereNot(existingTab ? { id: existingTab.id } : {}) // Exclude the current tab if it exists
+                        .first();
+                } catch (error) {
+                    logger.error('Database error checking for conflicts:', error);
+                    return goBackWithValidationAlert(
+                        res,
+                        'Database error occurred while checking conflicts',
+                    );
+                }
 
                 if (conflictingBang || conflictingTab) {
                     return goBackWithValidationAlert(
@@ -806,24 +878,40 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
             // Update bang if it exists and has updates
             if (existingBang && Object.keys(bangUpdates).length > 0) {
-                await db('bangs').where({ id: existingBang.id }).update(bangUpdates);
+                try {
+                    await db('bangs').where({ id: existingBang.id }).update(bangUpdates);
 
-                if (bangUpdates.url) {
-                    setTimeout(
-                        () =>
-                            insertPageTitle({
-                                actionId: existingBang.id,
-                                url: bangUpdates.url || ('' as string),
-                                req,
-                            }),
-                        0,
+                    if (bangUpdates.url) {
+                        setTimeout(
+                            () =>
+                                insertPageTitle({
+                                    actionId: existingBang.id,
+                                    url: bangUpdates.url || ('' as string),
+                                    req,
+                                }),
+                            0,
+                        );
+                    }
+                } catch (error) {
+                    logger.error('Database error updating bang:', error);
+                    return goBackWithValidationAlert(
+                        res,
+                        'Failed to update bang. Please try again.',
                     );
                 }
             }
 
             // Update tab if it exists and has updates
             if (existingTab && Object.keys(tabUpdates).length > 0) {
-                await db('tabs').where({ id: existingTab.id }).update(tabUpdates);
+                try {
+                    await db('tabs').where({ id: existingTab.id }).update(tabUpdates);
+                } catch (error) {
+                    logger.error('Database error updating tab:', error);
+                    return goBackWithValidationAlert(
+                        res,
+                        'Failed to update tab. Please try again.',
+                    );
+                }
             }
 
             return goBack(res);
@@ -868,11 +956,16 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 return goBackWithValidationAlert(res, 'Title must be shorter than 255 characters');
             }
 
-            await db('notes').insert({
-                user_id: user.id,
-                title: title || 'Untitled',
-                content,
-            });
+            try {
+                await db('notes').insert({
+                    user_id: user.id,
+                    title: title || 'Untitled',
+                    content,
+                });
+            } catch (error) {
+                logger.error('Database error creating note:', error);
+                return goBackWithValidationAlert(res, 'Failed to create note. Please try again.');
+            }
 
             return goBack(res);
         }
@@ -888,11 +981,18 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
     // Process user-defined bang commands
     if (commandType === 'bang' && triggerWithoutPrefix) {
-        const customBang = await db('bangs')
-            .select('bangs.id', 'bangs.url', 'action_types.name as action_type')
-            .where({ 'bangs.user_id': user.id, 'bangs.trigger': trigger })
-            .join('action_types', 'bangs.action_type_id', 'action_types.id')
-            .first();
+        let customBang;
+
+        try {
+            customBang = await db('bangs')
+                .select('bangs.id', 'bangs.url', 'action_types.name as action_type')
+                .where({ 'bangs.user_id': user.id, 'bangs.trigger': trigger })
+                .join('action_types', 'bangs.action_type_id', 'action_types.id')
+                .first();
+        } catch (error) {
+            logger.error('Database error fetching custom bang:', error);
+            // Continue to fallback behavior instead of failing
+        }
 
         if (customBang) {
             setTimeout(
@@ -921,7 +1021,14 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         }
     }
 
-    const tab = await db.select('*').from('tabs').where({ user_id: user.id, trigger }).first();
+    let tab;
+
+    try {
+        tab = await db.select('*').from('tabs').where({ user_id: user.id, trigger }).first();
+    } catch (error) {
+        logger.error('Database error fetching tab:', error);
+        // Continue to fallback behavior
+    }
 
     // Process tab commands
     if (tab) {

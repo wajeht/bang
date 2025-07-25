@@ -203,7 +203,7 @@ describe('search', () => {
             expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
             expect(res.send).toHaveBeenCalledWith(
                 expect.stringContaining(
-                    "You've exceeded the search limit for unauthenticated users. Please log in for unlimited searches without delays.",
+                    'You&#39;ve exceeded the search limit for unauthenticated users. Please log in for unlimited searches without delays.',
                 ),
             );
             expect(res.send).toHaveBeenCalledWith(
@@ -767,7 +767,7 @@ describe('search', () => {
 
             expect(res.status).toHaveBeenCalledWith(422);
             expect(res.send).toHaveBeenCalledWith(
-                expect.stringContaining("!bm is a bang's systems command"),
+                expect.stringContaining('!bm is a bang&#39;s systems command'),
             );
         });
 
@@ -890,7 +890,11 @@ describe('search', () => {
                 query: '!bm title https://example.com',
             });
 
-            expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Error adding bookmark'));
+            expect(res.send).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    'Failed to add bookmark. Please check the URL and try again.',
+                ),
+            );
 
             vi.resetModules();
         });
@@ -1273,7 +1277,7 @@ describe('search', () => {
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.stringContaining(
-                        "Bang '!nonexistent' not found or you don\'t have permission to delete it",
+                        'Bang &#39;!nonexistent&#39; not found or you don&#39;t have permission to delete it',
                     ),
                 );
             });
@@ -1517,7 +1521,7 @@ describe('search', () => {
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.stringContaining(
-                        "!nonexistent not found or you don\'t have permission to edit it",
+                        '!nonexistent not found or you don&#39;t have permission to edit it',
                     ),
                 );
             });
@@ -1913,7 +1917,7 @@ describe('search', () => {
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
                     expect.stringContaining(
-                        'URL already bookmarked as Test "Quotes" & Special Chars. Bookmark already exists.',
+                        'URL already bookmarked as Test &quot;Quotes&quot; &amp; Special Chars. Bookmark already exists.',
                     ),
                 );
 
