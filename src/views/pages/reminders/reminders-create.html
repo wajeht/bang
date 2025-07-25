@@ -25,15 +25,15 @@
                 error: state.errors && state.errors.title ? state.errors.title : undefined
             }) %>
 
-            <%- include('../../components/inputs/url.html', {
-                id: 'url',
-                name: 'url',
-                label: '🔗 URL (optional)',
-                placeholder: 'https://example.com',
-                value: state.input && state.input.url ? state.input.url : '',
+            <%- include('../../components/inputs/textarea.html', {
+                id: 'content',
+                name: 'content',
+                label: '📝 Content (optional)',
+                placeholder: 'https://example.com or any text',
+                value: state.input && state.input.content ? state.input.content : '',
                 required: false,
-                helpText: 'Optional link to open with this reminder',
-                error: state.errors && state.errors.url ? state.errors.url : undefined
+                helpText: 'Optional content like a URL or additional notes',
+                error: state.errors && state.errors.content ? state.errors.content : undefined
             }) %>
 
             <%- include('../../components/inputs/select.html', {

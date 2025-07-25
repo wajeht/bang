@@ -57,7 +57,7 @@ export async function up(knex: Knex): Promise<void> {
                     },
                     reminders: {
                         title: true,
-                        url: true,
+                        content: true,
                         next_due: true,
                         frequency: true,
                         status: true,
@@ -189,7 +189,7 @@ export async function up(knex: Knex): Promise<void> {
             table.increments('id').primary();
             table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE').notNullable(); // prettier-ignore
             table.string('title').notNullable(); // description/task
-            table.text('url').nullable();
+            table.text('content').nullable();
             table.string('reminder_type').defaultTo('once'); // once or recurring
             table.string('frequency').nullable(); // daily, weekly, biweekly, or monthly
             table.timestamp('next_due').nullable();

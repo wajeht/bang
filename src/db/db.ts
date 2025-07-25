@@ -546,10 +546,10 @@ export const reminders: Reminders = {
         if (highlight && search) {
             query
                 .select(db.raw(`${sqlHighlight('title', search)} as title`))
-                .select(db.raw(`${sqlHighlight('url', search)} as url`))
+                .select(db.raw(`${sqlHighlight('content', search)} as content`))
                 .select(db.raw(`${sqlHighlight('CAST(next_due AS TEXT)', search)} as next_due`));
         } else {
-            query.select('title').select('url').select('next_due');
+            query.select('title').select('content').select('next_due');
         }
 
         query.from('reminders').where('user_id', user.id);
@@ -563,11 +563,11 @@ export const reminders: Reminders = {
                 .map((term) => term.replace(/[%_]/g, '\\$&'));
 
             query.where((q) => {
-                // Each term must match title, url, or frequency
+                // Each term must match title, content, or frequency
                 searchTerms.forEach((term) => {
                     q.andWhere((subQ) => {
                         subQ.whereRaw('LOWER(title) LIKE ?', [`%${term}%`])
-                            .orWhereRaw('LOWER(url) LIKE ?', [`%${term}%`])
+                            .orWhereRaw('LOWER(content) LIKE ?', [`%${term}%`])
                             .orWhereRaw('LOWER(frequency) LIKE ?', [`%${term}%`]);
                     });
                 });
@@ -577,7 +577,7 @@ export const reminders: Reminders = {
         // Sort by completion status first (incomplete reminders at top)
         query.orderBy('is_completed', 'asc');
 
-        if (['title', 'url', 'next_due', 'frequency', 'created_at'].includes(sortKey)) {
+        if (['title', 'content', 'next_due', 'frequency', 'created_at'].includes(sortKey)) {
             query.orderBy(sortKey, direction);
         } else {
             query.orderBy('next_due', 'asc');
@@ -612,7 +612,7 @@ export const reminders: Reminders = {
     update: async (id: number, userId: number, updates: Partial<Reminder>) => {
         const allowedFields = [
             'title',
-            'url',
+            'content',
             'reminder_type',
             'frequency',
             'next_due',

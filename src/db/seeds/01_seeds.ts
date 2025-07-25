@@ -59,7 +59,7 @@ export async function seed(knex: Knex): Promise<void> {
                     },
                     reminders: {
                         title: true,
-                        url: true,
+                        content: true,
                         next_due: true,
                         frequency: true,
                         status: true,
@@ -278,7 +278,7 @@ Here is the \`content\` of **note 2**.
             {
                 user_id: user.id,
                 title: 'Weekly team standup meeting',
-                url: 'https://meet.google.com/xyz-abc-def',
+                content: 'https://meet.google.com/xyz-abc-def',
                 reminder_type: 'recurring',
                 frequency: 'weekly',
                 next_due: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -289,7 +289,7 @@ Here is the \`content\` of **note 2**.
             {
                 user_id: user.id,
                 title: 'Read TypeScript handbook',
-                url: 'https://www.typescriptlang.org/docs/',
+                content: 'https://www.typescriptlang.org/docs/',
                 reminder_type: 'once',
                 frequency: null,
                 next_due: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
@@ -300,7 +300,7 @@ Here is the \`content\` of **note 2**.
             {
                 user_id: user.id,
                 title: 'Take out trash',
-                url: null,
+                content: null,
                 reminder_type: 'recurring',
                 frequency: 'weekly',
                 next_due: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)
@@ -311,7 +311,7 @@ Here is the \`content\` of **note 2**.
             {
                 user_id: user.id,
                 title: 'Check GitHub notifications',
-                url: 'https://github.com/notifications',
+                content: 'https://github.com/notifications',
                 reminder_type: 'recurring',
                 frequency: 'daily',
                 next_due: new Date().toISOString().split('T')[0], // Today

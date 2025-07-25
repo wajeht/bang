@@ -2618,21 +2618,18 @@ export function updateReminderHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const reminderId = parseInt(req.params.id as string);
-        const { title, url, when, custom_date } = req.body;
+        const { title, content, when, custom_date } = req.body;
 
         if (!title) {
             throw new ValidationError({ title: 'Title is required' });
         }
 
-        if (url && !isValidUrl(url)) {
-            throw new ValidationError({ url: 'Invalid URL format' });
-        }
+        const trimmedContent = content ? content.trim() : null;
 
         if (!when) {
             throw new ValidationError({ when: 'When is required' });
         }
 
-        // Parse the timing - use custom_date if when is 'custom'
         const timeInput = when === 'custom' ? custom_date : when;
         const timing = parseReminderTiming(timeInput.toLowerCase());
         if (!timing.isValid) {
@@ -2643,7 +2640,7 @@ export function updateReminderHandler(reminders: Reminders) {
 
         const updatedReminder = await reminders.update(reminderId, user.id, {
             title,
-            url: url || null,
+            content: trimmedContent,
             reminder_type: timing.type,
             frequency: timing.frequency,
             next_due: timing.nextDue,
@@ -2715,21 +2712,18 @@ export function toggleReminderCompleteHandler(reminders: Reminders) {
 // POST /reminders or POST /api/reminders
 export function postReminderHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
-        const { title, url, when, custom_date } = req.body;
+        const { title, content, when, custom_date } = req.body;
 
         if (!title) {
             throw new ValidationError({ title: 'Title is required' });
         }
 
-        if (url && !isValidUrl(url)) {
-            throw new ValidationError({ url: 'Invalid URL format' });
-        }
+        const trimmedContent = content ? content.trim() : null;
 
         if (!when) {
             throw new ValidationError({ when: 'When is required' });
         }
 
-        // Parse the timing - use custom_date if when is 'custom'
         const timeInput = when === 'custom' ? custom_date : when;
         const timing = parseReminderTiming(timeInput.toLowerCase());
         if (!timing.isValid) {
@@ -2741,7 +2735,7 @@ export function postReminderHandler(reminders: Reminders) {
         const reminder = await reminders.create({
             user_id: req.session.user?.id as number,
             title: title.trim(),
-            url: url ? url.trim() : null,
+            content: trimmedContent,
             reminder_type: timing.type,
             frequency: timing.frequency,
             next_due: timing.nextDue,
