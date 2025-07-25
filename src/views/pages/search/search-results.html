@@ -47,8 +47,9 @@
                         <tr>
                             <th scope="col" style="text-align: left; padding: 10px;">📂 Type</th>
                             <th scope="col" style="text-align: left; padding: 10px;">📝 Title/Name</th>
-                            <th scope="col" style="text-align: left; padding: 10px;">🔗 Trigger/URL</th>
-                            <th scope="col" style="text-align: left; padding: 10px;">📄 Content/Type</th>
+                            <th scope="col" style="text-align: left; padding: 10px;">⚡ Trigger</th>
+                            <th scope="col" style="text-align: left; padding: 10px;">🔗 URL</th>
+                            <th scope="col" style="text-align: left; padding: 10px;">📄 Details</th>
                             <th scope="col" style="text-align: left; padding: 10px;">📌 Status</th>
                             <th scope="col" style="text-align: left; padding: 10px;">📅 Created</th>
                             <th scope="col" style="text-align: left; padding: 10px;">🚀 Actions</th>
@@ -68,6 +69,7 @@
                                             <%- bookmark.title || 'Untitled' %>
                                         </div>
                                     </td>
+                                    <td style="padding: 10px;">-</td>
                                     <td style="padding: 10px;">
                                         <a href="<%= bookmark.url %>" style="overflow: auto; white-space: nowrap;" title="<%= bookmark.title %>" target="_blank" rel="noopener noreferrer">
                                             <%- bookmark.url %>
@@ -104,12 +106,12 @@
                                         <%- action.name %>
                                     </td>
                                     <td style="padding: 10px;">
-                                        <div style="display: flex; flex-direction: column; gap: 2px;">
-                                            <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%- action.trigger %></code>
-                                            <a href="<%= action.url %>" style="overflow: auto; white-space: nowrap; font-size: 0.9em;" title="<%= action.url %>" target="_blank" rel="noopener noreferrer">
-                                                <%- action.url %>
-                                            </a>
-                                        </div>
+                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%- action.trigger %></code>
+                                    </td>
+                                    <td style="padding: 10px;">
+                                        <a href="<%= action.url %>" style="overflow: auto; white-space: nowrap;" title="<%= action.url %>" target="_blank" rel="noopener noreferrer">
+                                            <%- action.url %>
+                                        </a>
                                     </td>
                                     <td style="padding: 10px;">
                                         <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%- action.action_type %></code>
@@ -150,6 +152,7 @@
                                         </a>
                                     </td>
                                     <td style="padding: 10px;">-</td>
+                                    <td style="padding: 10px;">-</td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <%- note.content ? note.content.substring(0, 100) + (note.content.length > 100 ? '...' : '') : 'No content' %>
                                     </td>
@@ -185,6 +188,7 @@
                                     <td style="padding: 10px;">
                                         <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%- tab.trigger %></code>
                                     </td>
+                                    <td style="padding: 10px;">-</td>
                                     <td style="padding: 10px;">
                                         <span style="background: var(--tag-background); color: var(--tag-color); padding: 2px 8px; border-radius: 12px; font-size: 0.8em;"><%= tab.items_count %> items</span>
                                     </td>
