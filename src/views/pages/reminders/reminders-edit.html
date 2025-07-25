@@ -43,8 +43,8 @@
                 required: true,
                 value: state.input && state.input.reminder_type ? state.input.reminder_type : reminder.reminder_type,
                 options: [
-                    { value: 'once', label: 'One-time reminder' },
-                    { value: 'recurring', label: 'Recurring reminder' }
+                    { value: 'once', text: 'One-time reminder' },
+                    { value: 'recurring', text: 'Recurring reminder' }
                 ],
                 helpText: 'Choose if this reminder should repeat',
                 error: state.errors && state.errors.reminder_type ? state.errors.reminder_type : undefined
@@ -57,11 +57,11 @@
                 required: false,
                 value: state.input && state.input.frequency ? state.input.frequency : (reminder.frequency || ''),
                 options: [
-                    { value: '', label: 'None (one-time only)' },
-                    { value: 'daily', label: 'Daily' },
-                    { value: 'weekly', label: 'Weekly' },
-                    { value: 'biweekly', label: 'Bi-weekly (every 2 weeks)' },
-                    { value: 'monthly', label: 'Monthly' }
+                    { value: '', text: 'None (one-time only)' },
+                    { value: 'daily', text: 'Daily' },
+                    { value: 'weekly', text: 'Weekly' },
+                    { value: 'biweekly', text: 'Bi-weekly (every 2 weeks)' },
+                    { value: 'monthly', text: 'Monthly' }
                 ],
                 helpText: 'How often should this reminder repeat? (only for recurring reminders)',
                 error: state.errors && state.errors.frequency ? state.errors.frequency : undefined
@@ -77,21 +77,6 @@
                 error: state.errors && state.errors.next_due ? state.errors.next_due : undefined
             }) %>
 
-            <%- include('../../components/inputs/select.html', {
-                id: 'category',
-                name: 'category',
-                label: '📂 Category',
-                required: true,
-                value: state.input && state.input.category ? state.input.category : reminder.category,
-                options: [
-                    { value: 'auto', label: '🤖 Auto-detect' },
-                    { value: 'task', label: '📝 Task' },
-                    { value: 'reading', label: '📖 Reading' },
-                    { value: 'link', label: '🔗 Link' }
-                ],
-                helpText: 'What type of reminder is this?',
-                error: state.errors && state.errors.category ? state.errors.category : undefined
-            }) %>
 
             <%- include('../../components/inputs/checkbox.html', {
                 id: 'is_completed',

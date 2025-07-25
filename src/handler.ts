@@ -38,7 +38,7 @@ import { logger } from './utils/logger';
 import { searchConfig } from './utils/search';
 import type { Request, Response } from 'express';
 import { db, actions, bookmarks, notes } from './db/db';
-import { actionTypes, categorizeLinkAuto } from './utils/util';
+import { actionTypes } from './utils/util';
 import { HttpError, NotFoundError, ValidationError } from './error';
 
 // GET /healthz
@@ -2582,12 +2582,7 @@ export function getRemindersHandler() {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'reminders');
 
-        let remindersQuery = db
-            .select('*')
-            .from('reminders')
-            .where('user_id', user.id)
-            .where('is_active', true);
-
+        let remindersQuery = db.select('*').from('reminders').where('user_id', user.id);
         if (search) {
             remindersQuery = remindersQuery.where((builder) => {
                 builder
@@ -2757,31 +2752,30 @@ export function toggleReminderCompleteHandler() {
 // POST /reminders or POST /api/reminders
 export function postReminderHandler() {
     return async (req: Request, res: Response) => {
-        const { title, url, reminder_type, frequency, next_due, category } = req.body;
+        const { title, url, reminder_type, frequency, next_due } = req.body;
 
-            const reminderData = {
-                user_id: req.session.user?.id,
-                title: title.trim(),
-                url: url ? url.trim() : null,
-                reminder_type,
-                frequency: reminder_type === 'recurring' ? frequency : null,
-                next_due,
-                category: category === 'auto' ? categorizeLinkAuto(url, title) : category,
-                is_completed: false,
-            };
+        const reminderData = {
+            user_id: req.session.user?.id,
+            title: title.trim(),
+            url: url ? url.trim() : null,
+            reminder_type,
+            frequency: reminder_type === 'recurring' ? frequency : null,
+            next_due,
+            is_completed: false,
+        };
 
-            const newReminder = await db('reminders').insert(reminderData).returning('*');
+        const newReminder = await db('reminders').insert(reminderData).returning('*');
 
-            if (isApiRequest(req)) {
-                res.status(201).json({
-                    message: 'Reminder created successfully',
-                    data: newReminder[0],
-                });
-                return;
-            }
+        if (isApiRequest(req)) {
+            res.status(201).json({
+                message: 'Reminder created successfully',
+                data: newReminder[0],
+            });
+            return;
+        }
 
-            req.flash('success', 'Reminder created successfully');
-            return res.redirect('/reminders');
+        req.flash('success', 'Reminder created successfully');
+        return res.redirect('/reminders');
     };
 }
 

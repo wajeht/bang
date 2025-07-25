@@ -1282,16 +1282,3 @@ export async function processReminderDigests(): Promise<void> {
         logger.error(`Failed to process reminder digests: %o`, { error });
     }
 }
-
-export function categorizeLinkAuto(url: string | null, title: string): 'task' | 'reading' | 'link' {
-    if (url) {
-        return 'link';
-    }
-
-    const titleLower = title.toLowerCase();
-    if (titleLower.includes('read') || titleLower.includes('article')) {
-        return 'reading';
-    }
-
-    return 'task';
-}

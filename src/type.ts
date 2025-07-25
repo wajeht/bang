@@ -37,8 +37,6 @@ export type ReminderType = 'once' | 'recurring';
 
 export type ReminderFrequency = 'daily' | 'weekly' | 'biweekly' | 'monthly';
 
-export type ReminderCategory = 'task' | 'reading' | 'link' | 'auto';
-
 export type Env = 'production' | 'development' | 'testing';
 
 export interface Api {
@@ -99,7 +97,6 @@ export type ColumnPreferences = {
     reminders: {
         title: boolean;
         url: boolean;
-        category: boolean;
         next_due: boolean;
         frequency: boolean;
         status: boolean;
