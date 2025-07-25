@@ -35,7 +35,7 @@ export const searchConfig = {
     /**
      * System-level bang commands that cannot be overridden by user-defined bangs
      */
-    systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit']),
+    systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit', '!find']),
     /**
      * Default search providers
      */
@@ -976,6 +976,26 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         // Example: !tabs
         if (trigger === '!tabs') {
             return res.redirect('/tabs/launch');
+        }
+
+        // Process global find command (!find)
+        // Format supported:
+        // 1. !find search_term
+        // Example: !find javascript
+        // Example: !find react hooks
+        if (trigger === '!find') {
+            if (!searchTerm || searchTerm.trim().length === 0) {
+                return goBackWithValidationAlert(
+                    res,
+                    'Please provide a search term for global search',
+                );
+            }
+
+            const encodedSearchTerm = encodeURIComponent(searchTerm.trim());
+
+            // Redirect to a global search page that will search across all resources
+            // The search page will handle querying bookmarks, notes, bangs, and tabs
+            return redirectWithCache(res, `/search?q=${encodedSearchTerm}&type=global`);
         }
     }
 
