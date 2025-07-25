@@ -84,13 +84,19 @@ Before you can use the Bang command from your browser's search bar, you need to 
     - `[content]` is required
     - eg: `!note some title | this is a note https://bang.jaw.dev`
     - eg: `!note this is a content without any title`
-- `!remind [when] | [description] [| [url]]` - Create a reminder
-    - `[when]` is required (tomorrow, weekly, friday, 2025-01-15, etc.)
+- `!remind [description]` - Create a reminder with your default timing
+    - `[description]` is required (what you want to be reminded about)
+    - Uses your default reminder timing preference (set in /reminders settings)
+    - eg: `!remind take out trash`
+    - eg: `!remind check email`
+- `!remind [when] | [description] [| [url]]` - Create a reminder with specific timing
+    - `[when]` is required (daily, weekly, biweekly, monthly, or YYYY-MM-DD)
     - `[description]` is required (what you want to be reminded about)
     - `[url]` is optional (link to open with the reminder)
-    - eg: `!remind tomorrow | take out trash`
+    - eg: `!remind daily | take vitamins`
     - eg: `!remind weekly | water plants`
-    - eg: `!remind friday | read article | https://example.com`
+    - eg: `!remind 2025-02-15 | valentine's day`
+    - eg: `!remind monthly | pay bills | https://bank.com`
 
 <!-- ends -->
 
