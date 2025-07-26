@@ -111,7 +111,7 @@
                                                 <%
                                                     const dueDate = new Date(reminders[i].due_date);
                                                     const dateStr = dueDate.toLocaleDateString();
-                                                    const timeStr = dueDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                                                    const timeStr = dueDate.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit', hour12: true});
                                                 %>
                                                 <%= dateStr %> at <%= timeStr %>
                                             </time>
@@ -120,7 +120,12 @@
                                         <% } %>
                                     <% } else if (reminders[i].reminder_type === 'recurring') { %>
                                         <!-- Recurring reminder: show frequency and time -->
-                                        <%= reminders[i].frequency %> at <%= user.column_preferences?.reminders?.default_reminder_time || '09:00' %>
+                                        <%
+                                            const defaultTime = state.user.column_preferences?.reminders?.default_reminder_time || '09:00';
+                                            const [hours, minutes] = defaultTime.split(':');
+                                            const hour12 = new Date(2000, 0, 1, parseInt(hours), parseInt(minutes)).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit', hour12: true});
+                                        %>
+                                        <%= reminders[i].frequency %> at <%= hour12 %>
                                     <% } else { %>
                                         -
                                     <% } %>
