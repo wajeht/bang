@@ -76,6 +76,7 @@ export async function up(knex: Knex): Promise<void> {
                 }),
             );
             table.timestamp('email_verified_at').nullable();
+            table.string('timezone').defaultTo('UTC');
             table.timestamps(true, true);
 
             table.index('api_key');
@@ -193,10 +194,11 @@ export async function up(knex: Knex): Promise<void> {
             table.string('reminder_type').defaultTo('once'); // once or recurring
             table.string('frequency').nullable(); // daily, weekly, biweekly, or monthly
             table.timestamp('due_date').nullable();
+            table.boolean('processed').defaultTo(false); // prevent duplicate processing
             table.timestamps(true, true);
 
             table.index(['user_id', 'due_date']); // finding due reminders
-            table.index(['due_date'], 'reminders_due_date_idx'); // cron job queries
+            table.index(['due_date', 'processed'], 'reminders_due_date_processed_idx'); // cron job queries
         });
     }
 

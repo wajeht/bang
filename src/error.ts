@@ -3,6 +3,35 @@ import type { Request } from 'express';
 import { logger } from './utils/logger';
 import { sendNotification } from './utils/util';
 
+export function notifyError(error: Error, req?: Request) {
+    if (config.app.env === 'production') {
+        try {
+            setTimeout(
+                () =>
+                    sendNotification({
+                        req:
+                            req ||
+                            ({
+                                method: null,
+                                path: null,
+                                url: null,
+                                headers: {},
+                                query: {},
+                                body: {},
+                            } as unknown as Request),
+                        error,
+                    }),
+                0,
+            );
+            logger.info(`Scheduled ${error.constructor.name} notification`);
+        } catch (queueError) {
+            logger.error('Failed to push error to notification queue: %o', {
+                queueError: queueError as any,
+            });
+        }
+    }
+}
+
 export class HttpError extends Error {
     statusCode: number;
     request?: Request;
@@ -13,35 +42,7 @@ export class HttpError extends Error {
         this.request = request;
         Object.setPrototypeOf(this, new.target.prototype);
 
-        if (config.app.env === 'production') {
-            try {
-                const req =
-                    this.request ||
-                    ({
-                        method: null,
-                        path: null,
-                        url: null,
-                        headers: {},
-                        query: {},
-                        body: {},
-                    } as unknown as Request);
-
-                setTimeout(
-                    () =>
-                        sendNotification({
-                            req,
-                            error: this,
-                        }),
-                    0,
-                );
-
-                logger.info(`Scheduled ${this.constructor.name} notification`);
-            } catch (queueError) {
-                logger.error('Failed to push error to notification queue: %o', {
-                    queueError: queueError as any,
-                });
-            }
-        }
+        notifyError(this, this.request);
     }
 }
 
