@@ -976,14 +976,25 @@ export function postImportDataHandler(db: Knex) {
                             .first();
 
                         if (actionType) {
-                            await trx('bangs').insert({
-                                user_id: userId,
-                                trigger: action.trigger,
-                                name: action.name,
-                                url: action.url,
-                                action_type_id: actionType.id,
-                                created_at: db.fn.now(),
-                            });
+                            // Check if action already exists for this user
+                            const existingAction = await trx('bangs')
+                                .where({
+                                    user_id: userId,
+                                    trigger: action.trigger,
+                                })
+                                .first();
+
+                            // Only insert if it doesn't already exist
+                            if (!existingAction) {
+                                await trx('bangs').insert({
+                                    user_id: userId,
+                                    trigger: action.trigger,
+                                    name: action.name,
+                                    url: action.url,
+                                    action_type_id: actionType.id,
+                                    created_at: db.fn.now(),
+                                });
+                            }
                         }
                     }
                 }
@@ -1006,15 +1017,29 @@ export function postImportDataHandler(db: Knex) {
                 // Import tabs and tab items
                 if (importData.tabs?.length > 0) {
                     for (const tabData of importData.tabs) {
-                        // Insert the tab first
-                        const [tabId] = await trx('tabs')
-                            .insert({
+                        // Check if tab already exists for this user
+                        const existingTab = await trx('tabs')
+                            .where({
                                 user_id: userId,
                                 trigger: tabData.trigger,
-                                title: tabData.title,
-                                created_at: db.fn.now(),
                             })
-                            .returning('id');
+                            .first();
+
+                        let tabId;
+                        if (!existingTab) {
+                            // Insert the tab if it doesn't exist
+                            const [newTabId] = await trx('tabs')
+                                .insert({
+                                    user_id: userId,
+                                    trigger: tabData.trigger,
+                                    title: tabData.title,
+                                    created_at: db.fn.now(),
+                                })
+                                .returning('id');
+                            tabId = newTabId;
+                        } else {
+                            tabId = existingTab.id;
+                        }
 
                         // Insert the tab items if they exist
                         if (tabData.items?.length > 0) {

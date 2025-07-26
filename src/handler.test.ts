@@ -1,7 +1,7 @@
 import { db, notes } from './db/db';
 import type { Request, Response } from 'express';
-import { getHealthzHandler, toggleNotePinHandler } from './handler';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { getHealthzHandler, toggleNotePinHandler, postImportDataHandler } from './handler';
 
 describe('Health Check Endpoint', () => {
     let req: Partial<Request>;
@@ -168,5 +168,113 @@ describe('Toggle Note Pin Handler', () => {
         await expect(handler(req as Request, res as Response)).rejects.toThrow('Note not found');
 
         await db('users').where({ id: otherUser.id }).delete();
+    });
+});
+
+describe('Import Data Handler', () => {
+    let req: Partial<Request>;
+    let res: Partial<Response>;
+    let userId: number;
+
+    beforeEach(async () => {
+        vi.resetAllMocks();
+
+        // Create a test user
+        const [user] = await db('users')
+            .insert({
+                username: 'testuser',
+                email: 'test@example.com',
+                is_admin: false,
+            })
+            .returning('*');
+
+        userId = user.id;
+
+        req = {
+            body: {},
+            session: {
+                user: { id: userId },
+            } as any,
+            flash: vi.fn(),
+        };
+
+        res = {
+            redirect: vi.fn().mockReturnThis(),
+        };
+    });
+
+    afterEach(async () => {
+        // Clean up test data
+        await db('bangs').where({ user_id: userId }).delete();
+        await db('users').where({ id: userId }).delete();
+    });
+
+    it('should handle duplicate actions gracefully', async () => {
+        // First, create an existing action
+        await db('bangs').insert({
+            user_id: userId,
+            trigger: '!test',
+            name: 'Test Action',
+            url: 'https://example.com',
+            action_type_id: 2, // redirect
+            created_at: new Date(),
+        });
+
+        // Prepare import data with the same action
+        const importData = {
+            version: '1.0',
+            actions: [
+                {
+                    trigger: '!test',
+                    name: 'Test Action Updated',
+                    url: 'https://example.com/updated',
+                    action_type: 'redirect',
+                },
+            ],
+        };
+
+        req.body = { config: JSON.stringify(importData) };
+
+        const handler = postImportDataHandler(db);
+        await handler(req as Request, res as Response);
+
+        // Verify that no duplicate was created
+        const actions = await db('bangs').where({ user_id: userId, trigger: '!test' });
+        expect(actions).toHaveLength(1);
+
+        // Verify the original action wasn't modified
+        expect(actions[0].name).toBe('Test Action');
+        expect(actions[0].url).toBe('https://example.com');
+
+        expect(req.flash).toHaveBeenCalledWith('success', 'Data imported successfully!');
+        expect(res.redirect).toHaveBeenCalledWith('/settings/data');
+    });
+
+    it('should import new actions successfully', async () => {
+        const importData = {
+            version: '1.0',
+            actions: [
+                {
+                    trigger: '!new',
+                    name: 'New Action',
+                    url: 'https://new.com',
+                    action_type: 'redirect',
+                },
+            ],
+        };
+
+        req.body = { config: JSON.stringify(importData) };
+
+        const handler = postImportDataHandler(db);
+        await handler(req as Request, res as Response);
+
+        // Verify the new action was created
+        const actions = await db('bangs').where({ user_id: userId, trigger: '!new' });
+        expect(actions).toHaveLength(1);
+        expect(actions[0].name).toBe('New Action');
+        expect(actions[0].url).toBe('https://new.com');
+
+        expect(req.flash).toHaveBeenCalledWith('success', 'Data imported successfully!');
+        expect(res.redirect).toHaveBeenCalledWith('/settings/data');
     });
 });
