@@ -511,13 +511,23 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string): string {
 /**
  * Parses reminder timing from natural language
  * @param timeStr - Time string like "daily", "weekly", "2024-01-15"
+ * @param defaultTime - Default time in HH:MM format (e.g., "09:00")
  * @returns Parsed timing information
  */
-export function parseReminderTiming(timeStr: string): ReminderTimingResult {
+export function parseReminderTiming(
+    timeStr: string,
+    defaultTime: string = '09:00',
+): ReminderTimingResult {
     const now = new Date();
+
+    // Parse the default time (HH:MM format)
+    const timeParts = defaultTime.split(':');
+    const defaultHour = timeParts[0] ? parseInt(timeParts[0], 10) : 9;
+    const defaultMinute = timeParts[1] ? parseInt(timeParts[1], 10) : 0;
+
     const tomorrow = new Date(now);
     tomorrow.setDate(now.getDate() + 1);
-    tomorrow.setHours(9, 0, 0, 0); // Default to 9 AM
+    tomorrow.setHours(defaultHour, defaultMinute, 0, 0);
 
     // Handle recurring frequencies
     switch (timeStr) {
@@ -535,7 +545,7 @@ export function parseReminderTiming(timeStr: string): ReminderTimingResult {
         case 'weekly': {
             const weeklyNext = new Date(now);
             weeklyNext.setDate(now.getDate() + ((6 - now.getDay()) % 7 || 7)); // Next Saturday
-            weeklyNext.setHours(9, 0, 0, 0);
+            weeklyNext.setHours(defaultHour, defaultMinute, 0, 0);
             return {
                 isValid: true,
                 type: 'recurring',
@@ -548,7 +558,7 @@ export function parseReminderTiming(timeStr: string): ReminderTimingResult {
         case 'biweekly': {
             const biweeklyNext = new Date(now);
             biweeklyNext.setDate(now.getDate() + 14);
-            biweeklyNext.setHours(9, 0, 0, 0);
+            biweeklyNext.setHours(defaultHour, defaultMinute, 0, 0);
             return {
                 isValid: true,
                 type: 'recurring',
@@ -561,7 +571,7 @@ export function parseReminderTiming(timeStr: string): ReminderTimingResult {
         case 'monthly': {
             const monthlyNext = new Date(now);
             monthlyNext.setMonth(now.getMonth() + 1, 1); // First day of next month
-            monthlyNext.setHours(9, 0, 0, 0);
+            monthlyNext.setHours(defaultHour, defaultMinute, 0, 0);
             return {
                 isValid: true,
                 type: 'recurring',
@@ -634,7 +644,7 @@ export function parseReminderTiming(timeStr: string): ReminderTimingResult {
                 !isNaN(targetDate.getTime()) &&
                 targetDate >= new Date(now.getFullYear(), 0, 1)
             ) {
-                targetDate.setHours(9, 0, 0, 0);
+                targetDate.setHours(defaultHour, defaultMinute, 0, 0);
                 return {
                     isValid: true,
                     type: 'once',
@@ -1242,7 +1252,9 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             const trimmedContent = content ? content.trim() : null;
 
             // Parse the timing
-            const timing = parseReminderTiming(whenPart.toLowerCase());
+            const defaultTime =
+                user.column_preferences?.reminders?.default_reminder_time || '09:00';
+            const timing = parseReminderTiming(whenPart.toLowerCase(), defaultTime);
             if (!timing.isValid) {
                 return goBackWithValidationAlert(
                     res,

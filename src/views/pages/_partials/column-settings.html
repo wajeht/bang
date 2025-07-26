@@ -320,6 +320,19 @@
           <small style="color: #666;">Used when creating reminders via !remind command without specifying timing</small>
         </div>
 
+        <!-- Default Reminder Time -->
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <label for="default_reminder_time">🕘 Default Reminder Time <abbr style="color: red;" title="Required">*</abbr></label>
+          <input
+            type="time"
+            id="default_reminder_time"
+            name="column_preferences[reminders][default_reminder_time]"
+            value="<%= state.input.default_reminder_time ?? user.column_preferences.reminders.default_reminder_time %>"
+            required
+          >
+          <small style="color: #666;">Time of day for reminders (24-hour format)</small>
+        </div>
+
         <!-- Visible Columns -->
         <fieldset style="border: none; padding: 0; margin: 0;">
           <legend style="font-weight: normal;">Columns <abbr style="color: red;" title="Required">*</abbr></legend>

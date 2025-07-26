@@ -1416,6 +1416,68 @@ export function postSettingsDisplayHandler(db: Knex) {
             }
         }
 
+        // reminders
+        if (column_preferences.reminders) {
+            if (typeof column_preferences.reminders !== 'object') {
+                throw new ValidationError({ reminders: 'Reminders must be an object' });
+            }
+
+            column_preferences.reminders.title = column_preferences.reminders.title === 'on';
+            column_preferences.reminders.content = column_preferences.reminders.content === 'on';
+            column_preferences.reminders.due_date = column_preferences.reminders.due_date === 'on';
+            column_preferences.reminders.frequency =
+                column_preferences.reminders.frequency === 'on';
+            column_preferences.reminders.created_at =
+                column_preferences.reminders.created_at === 'on';
+
+            column_preferences.reminders.default_per_page = parseInt(
+                column_preferences.reminders.default_per_page,
+                10,
+            );
+
+            if (
+                isNaN(column_preferences.reminders.default_per_page) ||
+                column_preferences.reminders.default_per_page < 1
+            ) {
+                throw new ValidationError({
+                    reminders: 'Reminders per page must be greater than 0',
+                });
+            }
+
+            // Validate default_reminder_timing
+            if (column_preferences.reminders.default_reminder_timing) {
+                const validTimings = ['daily', 'weekly', 'biweekly', 'monthly'];
+                if (!validTimings.includes(column_preferences.reminders.default_reminder_timing)) {
+                    throw new ValidationError({
+                        reminders:
+                            'Invalid reminder timing. Must be daily, weekly, biweekly, or monthly',
+                    });
+                }
+            }
+
+            // Validate default_reminder_time (HH:MM format)
+            if (column_preferences.reminders.default_reminder_time) {
+                const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                if (!timeRegex.test(column_preferences.reminders.default_reminder_time)) {
+                    throw new ValidationError({
+                        reminders: 'Invalid reminder time format. Must be HH:MM (24-hour format)',
+                    });
+                }
+            }
+
+            if (
+                !column_preferences.reminders.title &&
+                !column_preferences.reminders.content &&
+                !column_preferences.reminders.due_date &&
+                !column_preferences.reminders.frequency &&
+                !column_preferences.reminders.created_at
+            ) {
+                throw new ValidationError({
+                    reminders: 'At least one reminder column must be enabled',
+                });
+            }
+        }
+
         const user = req.user as User;
         const { path } = req.body;
 
@@ -2655,7 +2717,8 @@ export function updateReminderHandler(reminders: Reminders) {
         }
 
         const timeInput = when === 'custom' ? custom_date : when;
-        const timing = parseReminderTiming(timeInput.toLowerCase());
+        const defaultTime = user.column_preferences?.reminders?.default_reminder_time || '09:00';
+        const timing = parseReminderTiming(timeInput.toLowerCase(), defaultTime);
         if (!timing.isValid) {
             throw new ValidationError({
                 when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
@@ -2725,7 +2788,9 @@ export function postReminderHandler(reminders: Reminders) {
         }
 
         const timeInput = when === 'custom' ? custom_date : when;
-        const timing = parseReminderTiming(timeInput.toLowerCase());
+        const defaultTime =
+            req.session.user?.column_preferences?.reminders?.default_reminder_time || '09:00';
+        const timing = parseReminderTiming(timeInput.toLowerCase(), defaultTime);
         if (!timing.isValid) {
             throw new ValidationError({
                 when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
