@@ -62,7 +62,7 @@ export async function seed(knex: Knex): Promise<void> {
                         content: true,
                         due_date: true,
                         frequency: true,
-                        default_per_page: 20,
+                        default_per_page: 10,
                         created_at: true,
                         default_reminder_timing: 'daily',
                         default_reminder_time: '09:00',
