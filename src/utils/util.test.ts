@@ -312,6 +312,7 @@ describe('extractUser', () => {
                 },
             }),
             email_verified_at: null,
+            timezone: 'UTC',
             created_at: expect.any(String),
             updated_at: expect.any(String),
         });
