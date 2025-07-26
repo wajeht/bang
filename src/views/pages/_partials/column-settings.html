@@ -358,16 +358,14 @@
               name="column_preferences[reminders][due_date]"
               <%= user.column_preferences?.reminders?.due_date !== false ? 'checked' : '' %>
             >
-            📅 Next Due
+            📅 Schedule
           </label>
-          <label style="display: flex; align-items: center; gap: 10px;">
-            <input
-              type="checkbox"
-              name="column_preferences[reminders][frequency]"
-              <%= user.column_preferences?.reminders?.frequency !== false ? 'checked' : '' %>
-            >
-            🔄 Frequency
-          </label>
+          <!-- Keep frequency field for backend compatibility but hide from UI since it's now part of Schedule -->
+          <input
+            type="hidden"
+            name="column_preferences[reminders][frequency]"
+            value="<%= user.column_preferences?.reminders?.frequency !== false ? 'on' : '' %>"
+          >
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"

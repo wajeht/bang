@@ -2704,7 +2704,7 @@ export function updateReminderHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const reminderId = parseInt(req.params.id as string);
-        const { title, content, when, custom_date } = req.body;
+        const { title, content, when, custom_date, custom_time } = req.body;
 
         if (!title) {
             throw new ValidationError({ title: 'Title is required' });
@@ -2716,12 +2716,32 @@ export function updateReminderHandler(reminders: Reminders) {
             throw new ValidationError({ when: 'When is required' });
         }
 
+        if (custom_time) {
+            const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+            if (!timeRegex.test(custom_time)) {
+                throw new ValidationError({
+                    custom_time: 'Invalid time format. Must be HH:MM (24-hour format)',
+                });
+            }
+        }
+
         const timeInput = when === 'custom' ? custom_date : when;
-        const defaultTime = user.column_preferences?.reminders?.default_reminder_time || '09:00';
-        const timing = parseReminderTiming(timeInput.toLowerCase(), defaultTime);
+        // Use custom_time only if "custom" date is selected and custom_time is provided
+        // Otherwise use user's default time
+        const timeToUse =
+            when === 'custom' && custom_time
+                ? custom_time
+                : user.column_preferences?.reminders?.default_reminder_time || '09:00';
+        const timing = parseReminderTiming(timeInput.toLowerCase(), timeToUse);
         if (!timing.isValid) {
             throw new ValidationError({
                 when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
+            });
+        }
+
+        if (timing.type === 'once' && !timing.nextDue) {
+            throw new ValidationError({
+                when: 'One-time reminders must have a specific date. Please select a date.',
             });
         }
 
@@ -2775,7 +2795,7 @@ export function deleteReminderHandler(reminders: Reminders) {
 // POST /reminders or POST /api/reminders
 export function postReminderHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
-        const { title, content, when, custom_date } = req.body;
+        const { title, content, when, custom_date, custom_time } = req.body;
 
         if (!title) {
             throw new ValidationError({ title: 'Title is required' });
@@ -2787,13 +2807,32 @@ export function postReminderHandler(reminders: Reminders) {
             throw new ValidationError({ when: 'When is required' });
         }
 
+        if (custom_time) {
+            const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+            if (!timeRegex.test(custom_time)) {
+                throw new ValidationError({
+                    custom_time: 'Invalid time format. Must be HH:MM (24-hour format)',
+                });
+            }
+        }
+
         const timeInput = when === 'custom' ? custom_date : when;
-        const defaultTime =
-            req.session.user?.column_preferences?.reminders?.default_reminder_time || '09:00';
-        const timing = parseReminderTiming(timeInput.toLowerCase(), defaultTime);
+        // Use custom_time only if "custom" date is selected and custom_time is provided
+        // Otherwise use user's default time
+        const timeToUse =
+            when === 'custom' && custom_time
+                ? custom_time
+                : req.session.user?.column_preferences?.reminders?.default_reminder_time || '09:00';
+        const timing = parseReminderTiming(timeInput.toLowerCase(), timeToUse);
         if (!timing.isValid) {
             throw new ValidationError({
                 when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
+            });
+        }
+
+        if (timing.type === 'once' && !timing.nextDue) {
+            throw new ValidationError({
+                when: 'One-time reminders must have a specific date. Please select a date.',
             });
         }
 
@@ -2826,6 +2865,7 @@ export function getReminderCreatePageHandler() {
             title: 'Reminders / New',
             path: '/reminders/create',
             layout: '../layouts/auth.html',
+            user: req.session?.user,
             timingOptions: reminderTimingConfig.getAllOptions(),
         });
     };
@@ -2847,6 +2887,7 @@ export function getEditReminderPageHandler(reminders: Reminders) {
             title: 'Reminders / Edit',
             path: `/reminders/${reminderId}/edit`,
             layout: '../layouts/auth.html',
+            user: req.session?.user,
             reminder,
             timingOptions: reminderTimingConfig.getAllOptions(),
         });
