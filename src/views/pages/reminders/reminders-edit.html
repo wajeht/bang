@@ -58,6 +58,16 @@
                 style: 'display: none;'
             }) %>
 
+            <div id="custom_time_container" style="display: none; flex-direction: column; gap: 5px;">
+                <label for="custom_time">🕘 Custom Time</label>
+                <input
+                    type="time"
+                    id="custom_time"
+                    name="custom_time"
+                    value="<%= state.input && state.input.custom_time ? state.input.custom_time : (reminder.due_date ? new Date(reminder.due_date).toTimeString().slice(0,5) : (user.column_preferences?.reminders?.default_reminder_time || '09:00')) %>"
+                >
+                <small style="color: #666;">Time for this specific reminder (overrides your default time)</small>
+            </div>
 
         </fieldset>
 
@@ -70,21 +80,23 @@
     <script>
         const whenSelect = document.getElementById('when');
         const customDateContainer = document.getElementById('custom_date').closest('div');
+        const customTimeContainer = document.getElementById('custom_time_container');
 
-        function toggleCustomDateField() {
+        function toggleCustomFields() {
             if (whenSelect.value === 'custom') {
                 customDateContainer.style.display = 'block';
+                customTimeContainer.style.display = 'flex';
                 document.getElementById('custom_date').required = true;
             } else {
                 customDateContainer.style.display = 'none';
+                customTimeContainer.style.display = 'none';
                 document.getElementById('custom_date').required = false;
             }
         }
 
-        whenSelect.addEventListener('change', toggleCustomDateField);
-        
-        // Initialize on page load
-        toggleCustomDateField();
+        whenSelect.addEventListener('change', toggleCustomFields);
+
+        toggleCustomFields();
     </script>
 
 </section>
