@@ -509,14 +509,47 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string): string {
 }
 
 /**
+ * Converts a date from user timezone to UTC
+ * @param date - Date in user timezone
+ * @param userTimezone - User's timezone (e.g., "America/New_York")
+ * @returns Date in UTC
+ */
+function convertToUTC(date: Date, userTimezone: string): Date {
+    if (userTimezone === 'UTC') return date;
+
+    // Create a date string in the user's timezone
+    const userDateStr = date
+        .toLocaleString('en-CA', {
+            timeZone: userTimezone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+        })
+        .replace(', ', 'T');
+
+    // Parse as if it were UTC, then adjust for timezone offset
+    const utcDate = new Date(userDateStr + 'Z');
+    const userDate = new Date(userDateStr);
+    const offset = userDate.getTime() - utcDate.getTime();
+
+    return new Date(date.getTime() - offset);
+}
+
+/**
  * Parses reminder timing from natural language
  * @param timeStr - Time string like "daily", "weekly", "2024-01-15"
  * @param defaultTime - Default time in HH:MM format (e.g., "09:00")
- * @returns Parsed timing information
+ * @param userTimezone - User's timezone (e.g., "America/New_York")
+ * @returns Parsed timing information with UTC dates
  */
 export function parseReminderTiming(
     timeStr: string,
     defaultTime: string = '09:00',
+    userTimezone: string = 'UTC',
 ): ReminderTimingResult {
     const now = new Date();
 
@@ -538,7 +571,7 @@ export function parseReminderTiming(
                 type: 'recurring',
                 frequency: 'daily',
                 specificDate: null,
-                nextDue: dailyNext,
+                nextDue: convertToUTC(dailyNext, userTimezone),
             };
         }
 
@@ -551,7 +584,7 @@ export function parseReminderTiming(
                 type: 'recurring',
                 frequency: 'weekly',
                 specificDate: null,
-                nextDue: weeklyNext,
+                nextDue: convertToUTC(weeklyNext, userTimezone),
             };
         }
 
@@ -564,7 +597,7 @@ export function parseReminderTiming(
                 type: 'recurring',
                 frequency: 'biweekly',
                 specificDate: null,
-                nextDue: biweeklyNext,
+                nextDue: convertToUTC(biweeklyNext, userTimezone),
             };
         }
 
@@ -577,7 +610,7 @@ export function parseReminderTiming(
                 type: 'recurring',
                 frequency: 'monthly',
                 specificDate: null,
-                nextDue: monthlyNext,
+                nextDue: convertToUTC(monthlyNext, userTimezone),
             };
         }
     }
@@ -645,12 +678,13 @@ export function parseReminderTiming(
                 targetDate >= new Date(now.getFullYear(), 0, 1)
             ) {
                 targetDate.setHours(defaultHour, defaultMinute, 0, 0);
+                const utcDate = convertToUTC(targetDate, userTimezone);
                 return {
                     isValid: true,
                     type: 'once',
                     frequency: null,
                     specificDate: targetDate.toISOString().split('T')[0] || null,
-                    nextDue: targetDate,
+                    nextDue: utcDate,
                 };
             }
         }
@@ -1254,7 +1288,11 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             // Parse the timing
             const defaultTime =
                 user.column_preferences?.reminders?.default_reminder_time || '09:00';
-            const timing = parseReminderTiming(whenPart.toLowerCase(), defaultTime);
+            const timing = parseReminderTiming(
+                whenPart.toLowerCase(),
+                defaultTime,
+                user.timezone || 'UTC',
+            );
             if (!timing.isValid) {
                 return goBackWithValidationAlert(
                     res,

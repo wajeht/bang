@@ -1,7 +1,6 @@
 import { config } from './config';
-import type { Request } from 'express';
 import { logger } from './utils/logger';
-import { sendNotification } from './utils/util';
+import { notifyError } from './error';
 import { createServer, closeServer } from './app';
 
 export async function main() {
@@ -43,17 +42,10 @@ export async function main() {
 
         if (config.app.env === 'production') {
             try {
-                setTimeout(
-                    () =>
-                        sendNotification({
-                            req: {} as Request,
-                            error,
-                        }),
-                    0,
-                );
-            } catch (error) {
+                notifyError(error);
+            } catch (notificationError) {
                 logger.error(`Failed to send uncaught exception notification: %o`, {
-                    error: error as Error,
+                    error: notificationError as Error,
                 });
             }
         }
@@ -67,17 +59,10 @@ export async function main() {
 
             if (config.app.env === 'production') {
                 try {
-                    setTimeout(
-                        () =>
-                            sendNotification({
-                                req: {} as Request,
-                                error: reason,
-                            }),
-                        0,
-                    );
-                } catch (error) {
+                    notifyError(reason);
+                } catch (notificationError) {
                     logger.error(`Failed to send unhandled rejection notification: %o`, {
-                        error: error as Error,
+                        error: notificationError as Error,
                     });
                 }
             }

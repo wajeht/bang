@@ -800,8 +800,13 @@ export function postSettingsCreateApiKeyHandler(db: Knex, api: Api) {
 // POST /settings/account
 export function postSettingsAccountHandler(db: Knex) {
     return async (req: Request, res: Response) => {
-        const { username, email, default_search_provider, autocomplete_search_on_homepage } =
-            req.body;
+        const {
+            username,
+            email,
+            default_search_provider,
+            autocomplete_search_on_homepage,
+            timezone,
+        } = req.body;
 
         if (!username) {
             throw new ValidationError({ username: 'Username is required' });
@@ -827,6 +832,29 @@ export function postSettingsAccountHandler(db: Knex) {
             });
         }
 
+        if (!timezone) {
+            throw new ValidationError({ timezone: 'Timezone is required' });
+        }
+
+        // Validate timezone
+        const validTimezones = [
+            'UTC',
+            'America/New_York',
+            'America/Chicago',
+            'America/Denver',
+            'America/Los_Angeles',
+            'Europe/London',
+            'Europe/Paris',
+            'Europe/Berlin',
+            'Asia/Tokyo',
+            'Asia/Shanghai',
+            'Asia/Kolkata',
+            'Australia/Sydney',
+        ];
+        if (!validTimezones.includes(timezone)) {
+            throw new ValidationError({ timezone: 'Invalid timezone selected' });
+        }
+
         let parsedAutocompleteSearchOnHomepage = false;
         if (autocomplete_search_on_homepage === undefined) {
             parsedAutocompleteSearchOnHomepage = false;
@@ -844,6 +872,7 @@ export function postSettingsAccountHandler(db: Knex) {
                 username,
                 default_search_provider,
                 autocomplete_search_on_homepage: parsedAutocompleteSearchOnHomepage,
+                timezone,
             })
             .where({ id: (req.user as User).id });
 
@@ -2732,7 +2761,11 @@ export function updateReminderHandler(reminders: Reminders) {
             when === 'custom' && custom_time
                 ? custom_time
                 : user.column_preferences?.reminders?.default_reminder_time || '09:00';
-        const timing = parseReminderTiming(timeInput.toLowerCase(), timeToUse);
+        const timing = parseReminderTiming(
+            timeInput.toLowerCase(),
+            timeToUse,
+            user.timezone || 'UTC',
+        );
         if (!timing.isValid) {
             throw new ValidationError({
                 when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
@@ -2823,7 +2856,11 @@ export function postReminderHandler(reminders: Reminders) {
             when === 'custom' && custom_time
                 ? custom_time
                 : req.session.user?.column_preferences?.reminders?.default_reminder_time || '09:00';
-        const timing = parseReminderTiming(timeInput.toLowerCase(), timeToUse);
+        const timing = parseReminderTiming(
+            timeInput.toLowerCase(),
+            timeToUse,
+            req.session.user?.timezone || 'UTC',
+        );
         if (!timing.isValid) {
             throw new ValidationError({
                 when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',

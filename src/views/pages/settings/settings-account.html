@@ -69,6 +69,33 @@
         error: state.errors && state.errors.default_search_provider ? state.errors.default_search_provider : undefined
       }) %>
 
+      <%- include('../../components/inputs/select.html', {
+        id: 'timezone',
+        name: 'timezone',
+        label: '🌍 Timezone',
+        options: [
+          { value: 'UTC', text: 'UTC (Coordinated Universal Time)' },
+          { value: 'America/New_York', text: 'Eastern Time (US & Canada)' },
+          { value: 'America/Chicago', text: 'Central Time (US & Canada)' },
+          { value: 'America/Denver', text: 'Mountain Time (US & Canada)' },
+          { value: 'America/Los_Angeles', text: 'Pacific Time (US & Canada)' },
+          { value: 'Europe/London', text: 'London (GMT/BST)' },
+          { value: 'Europe/Paris', text: 'Paris (CET/CEST)' },
+          { value: 'Europe/Berlin', text: 'Berlin (CET/CEST)' },
+          { value: 'Asia/Tokyo', text: 'Tokyo (JST)' },
+          { value: 'Asia/Shanghai', text: 'Shanghai (CST)' },
+          { value: 'Asia/Kolkata', text: 'India (IST)' },
+          { value: 'Australia/Sydney', text: 'Sydney (AEST/AEDT)' }
+        ].map(tz => ({
+          value: tz.value,
+          text: tz.text,
+          selected: (state.input && state.input.timezone ? state.input.timezone : (user.timezone || 'UTC')) === tz.value
+        })),
+        required: true,
+        helpText: 'Your timezone for reminder scheduling and date display',
+        error: state.errors && state.errors.timezone ? state.errors.timezone : undefined
+      }) %>
+
       <%- include('../../components/inputs/checkbox.html', {
         id: 'autocomplete_search_on_homepage',
         name: 'autocomplete_search_on_homepage',

@@ -130,6 +130,7 @@ export type User = {
     column_preferences: ColumnPreferences;
     email_verified_at: string | null;
     autocomplete_search_on_homepage: boolean;
+    timezone: string;
 };
 
 export type BookmarkToExport = {

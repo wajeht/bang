@@ -1224,26 +1224,31 @@ https://github.com/wajeht/bang`;
 
 export async function processReminderDigests(): Promise<void> {
     try {
-        const today = new Date().toISOString().split('T')[0] || '';
+        const now = new Date();
+        const next15Min = new Date(now.getTime() + 15 * 60 * 1000);
 
-        // Get all reminders due today that haven't been completed
+        // Get all reminders due in the next 15 minutes that haven't been processed
         const dueReminders = await db
-            .select('reminders.*', 'users.email', 'users.username')
+            .select('reminders.*', 'users.email', 'users.username', 'users.timezone')
             .from('reminders')
             .join('users', 'reminders.user_id', 'users.id')
-            .whereRaw('reminders.due_date <= ?', [today])
+            .whereBetween('reminders.due_date', [now.toISOString(), next15Min.toISOString()])
+            .where('reminders.processed', false)
             .orderBy('users.id')
             .orderBy('reminders.created_at');
 
         if (dueReminders.length === 0) {
-            logger.info('No reminders due today');
+            logger.info('No reminders due in the next 15 minutes');
             return;
         }
 
         // Group reminders by user
         const remindersByUser = dueReminders.reduce(
             (
-                acc: Record<number, { email: string; username: string; reminders: any[] }>,
+                acc: Record<
+                    number,
+                    { email: string; username: string; timezone: string; reminders: any[] }
+                >,
                 reminder: any,
             ) => {
                 const userId = reminder.user_id;
@@ -1251,16 +1256,17 @@ export async function processReminderDigests(): Promise<void> {
                     acc[userId] = {
                         email: reminder.email,
                         username: reminder.username,
+                        timezone: reminder.timezone || 'UTC',
                         reminders: [],
                     };
                 }
                 acc[userId].reminders.push({
                     id: reminder.id,
                     title: reminder.title,
-                    url: reminder.url,
-                    category: reminder.category,
+                    content: reminder.content,
                     reminder_type: reminder.reminder_type,
                     frequency: reminder.frequency,
+                    due_date: reminder.due_date,
                 });
                 return acc;
             },
@@ -1273,13 +1279,14 @@ export async function processReminderDigests(): Promise<void> {
                 email: userData.email,
                 username: userData.username,
                 reminders: userData.reminders,
-                date: today,
+                date: now.toISOString().split('T')[0] || '',
             });
 
-            // Update due_date for recurring reminders
+            // Process each reminder
             for (const reminder of userData.reminders) {
                 if (reminder.reminder_type === 'recurring' && reminder.frequency) {
-                    const currentDue = new Date(today);
+                    // Calculate next due date for recurring reminders
+                    const currentDue = new Date(reminder.due_date);
                     let nextDue: Date;
 
                     switch (reminder.frequency) {
@@ -1300,16 +1307,25 @@ export async function processReminderDigests(): Promise<void> {
                             continue; // Skip if frequency is not recognized
                     }
 
-                    await db('reminders')
-                        .where('id', reminder.id)
-                        .update({
-                            due_date: nextDue.toISOString().split('T')[0],
-                            updated_at: db.fn.now(),
-                        });
+                    // Update recurring reminder with next due date and mark as processed
+                    await db('reminders').where('id', reminder.id).update({
+                        due_date: nextDue.toISOString(),
+                        processed: false, // Reset for next occurrence
+                        updated_at: db.fn.now(),
+                    });
                 } else {
                     // Delete one-time reminders since they're done
                     await db('reminders').where('id', reminder.id).delete();
                 }
+            }
+
+            // Mark all processed reminders as processed (for any that weren't deleted)
+            const reminderIds = userData.reminders
+                .filter((r) => r.reminder_type === 'recurring')
+                .map((r) => r.id);
+
+            if (reminderIds.length > 0) {
+                await db('reminders').whereIn('id', reminderIds).update({ processed: true });
             }
         }
 

@@ -24,15 +24,40 @@ import { isMailpitRunning, processReminderDigests } from './utils/util';
 import { expressTemplatesReload } from '@wajeht/express-templates-reload';
 import { db, runProdMigration, checkDatabaseHealth, optimizeDatabase } from './db/db';
 
+async function initDatabase() {
+    await checkDatabaseHealth();
+    await optimizeDatabase();
+    await runProdMigration();
+    logger.info('Database migrations completed successfully');
+}
+
+function setupCronJobs() {
+    // Check for due reminders every 15 minutes
+    cron.schedule(
+        '*/15 * * * *',
+        async () => {
+            logger.info('Checking for due reminders...');
+            try {
+                await processReminderDigests();
+                logger.info('Reminder check completed');
+            } catch (error) {
+                logger.error('Reminder check failed: %o', { error });
+            }
+        },
+        {
+            timezone: 'UTC',
+        },
+    );
+
+    logger.info('Reminder check scheduled every 15 minutes');
+}
+
 export async function createServer() {
     const app = express();
 
     if (config.app.env === 'production') {
         try {
-            await checkDatabaseHealth();
-            await optimizeDatabase();
-            await runProdMigration();
-            logger.info('Database migrations completed successfully');
+            await initDatabase();
         } catch (error) {
             logger.error('Database connection or migration error: %o', { error: error as any });
             throw error;
@@ -96,24 +121,7 @@ export async function createServer() {
             logger.info('Mailpit is running on http://localhost:8025');
         }
 
-        // Start reminder digest cron job - runs daily at 9:00 AM
-        cron.schedule(
-            '0 9 * * *',
-            async () => {
-                logger.info('Running scheduled reminder digest processing...');
-                try {
-                    await processReminderDigests();
-                    logger.info('Scheduled reminder digest processing completed');
-                } catch (error) {
-                    logger.error('Scheduled reminder digest processing failed: %o', { error });
-                }
-            },
-            {
-                timezone: 'UTC',
-            },
-        );
-
-        logger.info('Reminder digest cron job scheduled for 9:00 AM UTC daily');
+        setupCronJobs();
     });
 
     server.on('error', (error: NodeJS.ErrnoException) => {
