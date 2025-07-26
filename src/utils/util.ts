@@ -795,6 +795,7 @@ export async function generateUserDataExport(
                       'default_search_provider',
                       'autocomplete_search_on_homepage',
                       'column_preferences',
+                      'timezone',
                   )
                   .first()
             : Promise.resolve(null);

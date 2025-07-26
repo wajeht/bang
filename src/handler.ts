@@ -1076,19 +1076,44 @@ export function postImportDataHandler(db: Knex) {
                                 ? userPrefs.column_preferences
                                 : JSON.stringify(userPrefs.column_preferences);
                     }
+                    if (userPrefs.timezone) {
+                        // Validate timezone before importing
+                        const validTimezones = [
+                            'UTC',
+                            'America/New_York',
+                            'America/Chicago',
+                            'America/Denver',
+                            'America/Los_Angeles',
+                            'Europe/London',
+                            'Europe/Paris',
+                            'Europe/Berlin',
+                            'Asia/Tokyo',
+                            'Asia/Shanghai',
+                            'Asia/Kolkata',
+                            'Australia/Sydney',
+                        ];
+                        if (validTimezones.includes(userPrefs.timezone)) {
+                            updateData.timezone = userPrefs.timezone;
+                        }
+                    }
 
                     if (Object.keys(updateData).length > 0) {
                         await trx('users').where('id', userId).update(updateData);
 
                         // Update session with new preferences
-                        if (req.session?.user && updateData.column_preferences) {
-                            try {
-                                req.session.user.column_preferences =
-                                    typeof updateData.column_preferences === 'string'
-                                        ? JSON.parse(updateData.column_preferences)
-                                        : updateData.column_preferences;
-                            } catch (error) {
-                                // Handle parsing error gracefully
+                        if (req.session?.user) {
+                            if (updateData.column_preferences) {
+                                try {
+                                    req.session.user.column_preferences =
+                                        typeof updateData.column_preferences === 'string'
+                                            ? JSON.parse(updateData.column_preferences)
+                                            : updateData.column_preferences;
+                                } catch (error) {
+                                    // Handle parsing error gracefully
+                                }
+                            }
+                            if (updateData.timezone) {
+                                req.session.user.timezone = updateData.timezone;
                             }
                         }
                     }
