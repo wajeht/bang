@@ -58651,7 +58651,7 @@ export const bangs: Record<string, any> = {
         s: 'Super Mario Wiki',
         d: 'www.mariowiki.com',
         t: 'mario',
-        u: 'https://www.mariowiki.com/{{{s}}}',
+        u: 'https://www.mariowiki.com/index.php?title=Special:Search&search={{{s}}}&go=Go',
         c: 'Entertainment',
         sc: 'Games (specific)',
     },
