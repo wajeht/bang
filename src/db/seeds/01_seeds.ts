@@ -281,9 +281,7 @@ Here is the \`content\` of **note 2**.
                 content: 'https://meet.google.com/xyz-abc-def',
                 reminder_type: 'recurring',
                 frequency: 'weekly',
-                due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                    .toISOString()
-                    .split('T')[0], // Next week
+                due_date: null, // Recurring reminders should NOT have due_date
             },
             {
                 user_id: user.id,
@@ -291,25 +289,37 @@ Here is the \`content\` of **note 2**.
                 content: 'https://www.typescriptlang.org/docs/',
                 reminder_type: 'once',
                 frequency: null,
-                due_date: null,
+                due_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+                    .toISOString()
+                    .replace('T', ' ')
+                    .slice(0, 19), // 3 days from now with time
             },
             {
                 user_id: user.id,
                 title: 'Take out trash',
                 content: null,
-                reminder_type: 'recurring',
-                frequency: 'weekly',
+                reminder_type: 'once',
+                frequency: null,
                 due_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)
                     .toISOString()
-                    .split('T')[0], // Tomorrow
+                    .replace('T', ' ')
+                    .slice(0, 19), // Tomorrow with time
             },
             {
                 user_id: user.id,
                 title: 'Check GitHub notifications',
                 content: 'https://github.com/notifications',
                 reminder_type: 'recurring',
-                frequency: 'once',
-                due_date: null,
+                frequency: 'daily',
+                due_date: null, // Recurring reminders should NOT have due_date
+            },
+            {
+                user_id: user.id,
+                title: 'asdf',
+                content: null,
+                reminder_type: 'recurring',
+                frequency: 'daily',
+                due_date: null, // Recurring reminders should NOT have due_date
             },
         ];
 
