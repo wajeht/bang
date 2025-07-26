@@ -70,6 +70,9 @@
                                 </a>
                             </th>
                         <% } %>
+                        <% if (state.user.column_preferences?.reminders?.created_at !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">📅 Created At</th>
+                        <% } %>
                         <th scope="col" style="text-align: left; padding: 10px;">🚀 Actions</th>
                     </tr>
                 </thead>
@@ -121,6 +124,13 @@
                                     <% } else { %>
                                         -
                                     <% } %>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.reminders?.created_at !== false) { %>
+                                <td style="padding: 10px;">
+                                    <time datetime="<%= reminders[i].created_at %>">
+                                        <%= new Date(reminders[i].created_at).toLocaleString() %>
+                                    </time>
                                 </td>
                             <% } %>
                             <td style="padding: 10px;">
