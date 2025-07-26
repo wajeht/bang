@@ -102,6 +102,7 @@ export type ColumnPreferences = {
         default_per_page: number;
         created_at: boolean;
         default_reminder_timing: string;
+        default_reminder_time: string;
     };
     users: {
         username: boolean;
