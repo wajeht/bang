@@ -60,8 +60,8 @@
                             <th scope="col" style="text-align: left; padding: 10px;">
                                 <a href="/reminders?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=due_date&direction=<%= (sortKey === 'due_date' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
-                                   aria-label="Sort by due date <%= (sortKey === 'due_date' && direction === 'asc') ? 'descending' : 'ascending' %>">
-                                    ⏰ Due
+                                   aria-label="Sort by schedule <%= (sortKey === 'due_date' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                    📅 Schedule
                                     <% if (sortKey === 'due_date') { %>
                                         <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
                                     <% } else { %>
@@ -69,9 +69,6 @@
                                     <% } %>
                                 </a>
                             </th>
-                        <% } %>
-                        <% if (state.user.column_preferences?.reminders?.frequency !== false) { %>
-                            <th scope="col" style="text-align: left; padding: 10px;">🔄 Frequency</th>
                         <% } %>
                         <th scope="col" style="text-align: left; padding: 10px;">🚀 Actions</th>
                     </tr>
@@ -105,24 +102,26 @@
                             <% } %>
                             <% if (state.user.column_preferences?.reminders?.due_date !== false) { %>
                                 <td style="padding: 10px;">
-                                    <% if (reminders[i].due_date) { %>
-                                        <time datetime="<%= reminders[i].due_date %>">
-                                            <%= new Date(reminders[i].due_date).toLocaleDateString() %>
-                                        </time>
+                                    <% if (reminders[i].reminder_type === 'once') { %>
+                                        <!-- One-time reminder: MUST show specific date and time -->
+                                        <% if (reminders[i].due_date) { %>
+                                            <time datetime="<%= reminders[i].due_date %>">
+                                                <%
+                                                    const dueDate = new Date(reminders[i].due_date);
+                                                    const dateStr = dueDate.toLocaleDateString();
+                                                    const timeStr = dueDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                                                %>
+                                                <%= dateStr %> at <%= timeStr %>
+                                            </time>
+                                        <% } else { %>
+                                            <span style="color: #e74c3c;">⚠️ Invalid: once reminder without date</span>
+                                        <% } %>
+                                    <% } else if (reminders[i].reminder_type === 'recurring') { %>
+                                        <!-- Recurring reminder: show frequency and time -->
+                                        <%= reminders[i].frequency %> at <%= user.column_preferences?.reminders?.default_reminder_time || '09:00' %>
                                     <% } else { %>
                                         -
                                     <% } %>
-                                </td>
-                            <% } %>
-                            <% if (state.user.column_preferences?.reminders?.frequency !== false) { %>
-                                <td style="padding: 10px;">
-                                    <code>
-                                        <% if (reminders[i].reminder_type === 'recurring') { %>
-                                            <%- reminders[i].frequency %>
-                                        <% } else { %>
-                                            <%- reminders[i].reminder_type %>
-                                        <% } %>
-                                    </code>
                                 </td>
                             <% } %>
                             <td style="padding: 10px;">
