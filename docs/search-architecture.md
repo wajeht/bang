@@ -1,10 +1,10 @@
-# 🔧 Command Architecture for Bangs System
+# ⚡️ Command Architecture for Bangs System
 
 This document outlines the command structure and usage patterns for the Bangs system. Each command supports natural input with flexible parsing for URLs, dates, and content.
 
 ---
 
-## 🛠️ 1. Actions (`!a`)
+## 🚀️ 1. Actions (`!a`)
 
 Create custom triggers (bangs) that redirect to specific URLs.
 
@@ -23,7 +23,7 @@ Create custom triggers (bangs) that redirect to specific URLs.
 
 ---
 
-## 🔖 2. Bookmarks (`!bm`)
+## ⭐️ 2. Bookmarks (`!bm`)
 
 Save URLs for quick access.
 
