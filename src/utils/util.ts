@@ -1115,7 +1115,7 @@ export function getFaviconUrl(url: string): string {
     try {
         domain = new URL(url).hostname;
     } catch (error) {
-        logger.error(`[getFaviconUrl]: error getting favicon url, %o`, { error });
+        // logger.error(`[getFaviconUrl]: error getting favicon url, %o`, { error });
         domain = url;
     }
     // return `https://favicon.jaw.dev/?url=${domain}`;
