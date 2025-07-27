@@ -266,6 +266,7 @@ describe('search', () => {
 
     describe('authenticated', () => {
         beforeAll(async () => {
+            await db('reminders').del();
             await db('bookmarks').del();
             await db('bangs').del();
             await db('action_types').del();
@@ -303,6 +304,7 @@ describe('search', () => {
         });
 
         afterAll(async () => {
+            await db('reminders').del();
             await db('bookmarks').del();
             await db('bangs').del();
             await db('action_types').del();
@@ -457,7 +459,7 @@ describe('search', () => {
             expect(mockInsertBookmark).toHaveBeenCalledWith({
                 url: 'https://example.com',
                 title: 'My Bookmark',
-                userId: testUser.id,
+                userId: 1,
             });
 
             expect(res.set).toHaveBeenCalledWith(
@@ -1999,6 +2001,320 @@ describe('search', () => {
                 expect(res.redirect).toHaveBeenCalledWith('https://existing.com');
 
                 vi.restoreAllMocks();
+            });
+        });
+
+        describe('!remind command', () => {
+            const testUserWithPreferences = {
+                id: testUser.id,
+                username: 'Test User',
+                email: 'test@example.com',
+                is_admin: false,
+                default_search_provider: 'duckduckgo',
+                column_preferences: {
+                    reminders: {
+                        default_reminder_timing: 'weekly',
+                        default_reminder_time: '10:00',
+                    },
+                },
+                timezone: 'America/New_York',
+            } as User;
+
+            beforeEach(async () => {
+                // Clean up any existing reminders before each test
+                await db('reminders').where({ user_id: testUser.id }).delete();
+            });
+
+            afterEach(async () => {
+                // Clean up reminders after each test
+                await db('reminders').where({ user_id: testUser.id }).delete();
+            });
+            it('should create reminder with default timing (simple format)', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUserWithPreferences,
+                    query: '!remind take out trash',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('window.history.back()'),
+                );
+
+                const createdReminder = await db('reminders')
+                    .where({ user_id: testUser.id, title: 'take out trash' })
+                    .first();
+                expect(createdReminder).toBeDefined();
+                expect(createdReminder.reminder_type).toBe('recurring');
+                expect(createdReminder.frequency).toBe('weekly');
+            });
+
+            it('should create reminder with timing keyword (space-separated format)', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUserWithPreferences,
+                    query: '!remind daily google.com',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('window.history.back()'),
+                );
+
+                const createdReminder = await db('reminders')
+                    .where({ user_id: testUser.id, title: 'google.com' })
+                    .first();
+                expect(createdReminder).toBeDefined();
+                expect(createdReminder.reminder_type).toBe('recurring');
+                expect(createdReminder.frequency).toBe('daily');
+                expect(createdReminder.content).toBeNull();
+            });
+
+            it('should create reminder with pipe-separated format', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUserWithPreferences,
+                    query: '!remind weekly | check bills | https://bank.com',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('window.history.back()'),
+                );
+
+                const createdReminder = await db('reminders')
+                    .where({ user_id: testUser.id, title: 'check bills' })
+                    .first();
+                expect(createdReminder).toBeDefined();
+                expect(createdReminder.reminder_type).toBe('recurring');
+                expect(createdReminder.frequency).toBe('weekly');
+                expect(createdReminder.content).toBe('https://bank.com');
+            });
+
+            it('should create reminder with specific date', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUserWithPreferences,
+                    query: '!remind 2025-12-25 | christmas reminder',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('window.history.back()'),
+                );
+
+                const createdReminder = await db('reminders')
+                    .where({ user_id: testUser.id, title: 'christmas reminder' })
+                    .first();
+                expect(createdReminder).toBeDefined();
+                expect(createdReminder.reminder_type).toBe('once');
+                expect(createdReminder.frequency).toBeNull();
+                expect(createdReminder.due_date).toBeDefined();
+            });
+
+            it('should handle all timing keywords', async () => {
+                const timingKeywords = ['daily', 'weekly', 'biweekly', 'monthly'];
+
+                for (const timing of timingKeywords) {
+                    const req = {} as Request;
+                    const res = {
+                        set: vi.fn().mockReturnThis(),
+                        status: vi.fn().mockReturnThis(),
+                        send: vi.fn(),
+                    } as unknown as Response;
+
+                    await search({
+                        req,
+                        res,
+                        user: testUserWithPreferences,
+                        query: `!remind ${timing} test ${timing} reminder`,
+                    });
+
+                    expect(res.status).toHaveBeenCalledWith(200);
+
+                    const createdReminder = await db('reminders')
+                        .where({ user_id: testUser.id, title: `test ${timing} reminder` })
+                        .first();
+                    expect(createdReminder).toBeDefined();
+                    expect(createdReminder.frequency).toBe(timing);
+                }
+            });
+
+            it('should reject reminder with no content', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUserWithPreferences,
+                    query: '!remind',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Reminder content is required'),
+                );
+            });
+
+            it('should reject reminder with empty description', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUserWithPreferences,
+                    query: '!remind daily |',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Description is required'),
+                );
+            });
+
+            it('should reject reminder with invalid timing', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUserWithPreferences,
+                    query: '!remind invalid-timing | test reminder',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Invalid time format'),
+                );
+            });
+
+            it('should handle user without preferences (fallback to defaults)', async () => {
+                const userWithoutPrefs = {
+                    id: 1,
+                    username: 'Test User',
+                    email: 'test@example.com',
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                    column_preferences: null,
+                    timezone: null,
+                } as unknown as User;
+
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: userWithoutPrefs,
+                    query: '!remind test reminder without prefs',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+
+                const createdReminder = await db('reminders')
+                    .where({ user_id: 1, title: 'test reminder without prefs' })
+                    .first();
+                expect(createdReminder).toBeDefined();
+                expect(createdReminder.frequency).toBe('daily'); // Default fallback
+            });
+
+            it('should handle reminder with URL in content', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUserWithPreferences,
+                    query: '!remind daily check website https://example.com',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+
+                const createdReminder = await db('reminders')
+                    .where({ user_id: 1, title: 'check website https://example.com' })
+                    .first();
+                expect(createdReminder).toBeDefined();
+                expect(createdReminder.frequency).toBe('daily');
+            });
+
+            it('should handle reminder with special characters', async () => {
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: testUserWithPreferences,
+                    query: '!remind daily | special chars: !@#$%^&*() | content with symbols',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+
+                const createdReminder = await db('reminders')
+                    .where({ user_id: 1, title: 'special chars: !@#$%^&*()' })
+                    .first();
+                expect(createdReminder).toBeDefined();
+                expect(createdReminder.content).toBe('content with symbols');
             });
         });
     });

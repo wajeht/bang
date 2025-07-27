@@ -89,6 +89,11 @@ Before you can use the Bang command from your browser's search bar, you need to 
     - Uses your default reminder timing preference (set in /reminders settings)
     - eg: `!remind take out trash`
     - eg: `!remind check email`
+- `!remind [when] [description]` - Create a reminder with timing keyword
+    - `[when]` is required (daily, weekly, biweekly, monthly, or YYYY-MM-DD)
+    - `[description]` is required (what you want to be reminded about)
+    - eg: `!remind daily google.com`
+    - eg: `!remind weekly water plants`
 - `!remind [when] | [description] [| [content]]` - Create a reminder with specific timing
     - `[when]` is required (daily, weekly, biweekly, monthly, or YYYY-MM-DD)
     - `[description]` is required (what you want to be reminded about)

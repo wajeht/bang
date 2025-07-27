@@ -540,6 +540,53 @@ function convertToUTC(date: Date, userTimezone: string): Date {
 }
 
 /**
+ * Parses reminder content into timing, description, and optional content
+ * @param reminderContent - The full reminder content after "!remind "
+ * @param user - User object with preferences
+ * @returns Parsed reminder components
+ */
+function parseReminderContent(
+    reminderContent: string,
+    user: { column_preferences?: { reminders?: { default_reminder_timing?: string } } },
+): {
+    when: string;
+    description: string;
+    content: string | null;
+} {
+    const validTimingKeywords = ['daily', 'weekly', 'biweekly', 'monthly'];
+    const datePattern = /^(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/\d{4}|\w{3}-\d{1,2})$/;
+
+    // Pipe-separated format: !remind when | description [| content]
+    if (reminderContent.includes('|')) {
+        const parts = reminderContent.split('|').map((part) => part.trim());
+        return {
+            when: parts[0] || '',
+            description: parts[1] || '',
+            content: parts.length > 2 ? parts[2] || null : null,
+        };
+    }
+
+    // Space-separated with timing keyword: !remind daily description
+    const words = reminderContent.split(' ');
+    const firstWord = words[0]?.toLowerCase() || '';
+
+    if (validTimingKeywords.includes(firstWord) || datePattern.test(firstWord)) {
+        return {
+            when: firstWord,
+            description: words.slice(1).join(' '),
+            content: null,
+        };
+    }
+
+    // Simple format: !remind description (uses user's default timing)
+    return {
+        when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
+        description: reminderContent,
+        content: null,
+    };
+}
+
+/**
  * Parses reminder timing from natural language
  * @param timeStr - Time string like "daily", "weekly", "2024-01-15"
  * @param defaultTime - Default time in HH:MM format (e.g., "09:00")
@@ -1231,68 +1278,38 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         }
 
         // Process reminder creation command (!remind)
-        // Format supported:
+        // Formats supported:
         // 1. !remind <description> (uses user's default timing)
-        // 2. !remind <when> | <description>
-        // 3. !remind <when> | <description> | <content>
-        // Examples:
-        // - !remind take out trash (uses default timing)
-        // - !remind 2025-01-15 | take out trash
-        // - !remind weekly | check bills | https://bills.com
-        // - !remind daily | read article | https://article.com
+        // 2. !remind <when> <description> (when = daily, weekly, etc. or date)
+        // 3. !remind <when> | <description> [| <content>] (pipe-separated)
         if (trigger === '!remind') {
-            const reminderContent = query.slice(query.indexOf(' ') + 1).trim();
+            const spaceIndex = query.indexOf(' ');
+
+            if (spaceIndex === -1) {
+                return goBackWithValidationAlert(res, 'Reminder content is required');
+            }
+
+            const reminderContent = query.slice(spaceIndex + 1).trim();
 
             if (!reminderContent) {
                 return goBackWithValidationAlert(res, 'Reminder content is required');
             }
 
-            let whenPart: string;
-            let description: string;
-            let content: string | null = null;
-
-            // Check if it's pipe-separated format or simple format
-            if (reminderContent.includes('|')) {
-                // Parse the pipe-separated format: <when> | <description> [| <content>]
-                const parts = reminderContent.split('|').map((part) => part.trim());
-
-                if (parts.length < 2) {
-                    return goBackWithValidationAlert(
-                        res,
-                        'Invalid format. Use: !remind <description> or !remind <when> | <description> [| <content>]',
-                    );
-                }
-
-                whenPart = parts[0] || '';
-                description = parts[1] || '';
-                content = parts.length > 2 ? parts[2] || null : null;
-
-                if (!whenPart) {
-                    return goBackWithValidationAlert(
-                        res,
-                        'When is required (e.g., daily, weekly, 2025-01-15)',
-                    );
-                }
-            } else {
-                // Simple format: !remind <description> (use user's default timing)
-                whenPart = user.column_preferences?.reminders?.default_reminder_timing || 'daily';
-                description = reminderContent;
-            }
+            const { when, description, content } = parseReminderContent(reminderContent, user);
 
             if (!description) {
                 return goBackWithValidationAlert(res, 'Description is required');
             }
 
-            const trimmedContent = content ? content.trim() : null;
-
             // Parse the timing
             const defaultTime =
                 user.column_preferences?.reminders?.default_reminder_time || '09:00';
             const timing = parseReminderTiming(
-                whenPart.toLowerCase(),
+                when.toLowerCase(),
                 defaultTime,
                 user.timezone || 'UTC',
             );
+
             if (!timing.isValid) {
                 return goBackWithValidationAlert(
                     res,
@@ -1304,7 +1321,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 await db('reminders').insert({
                     user_id: user.id,
                     title: description,
-                    content: trimmedContent,
+                    content: content || null,
                     reminder_type: timing.type,
                     frequency: timing.frequency,
                     due_date: timing.type === 'recurring' ? null : timing.nextDue,
