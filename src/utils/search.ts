@@ -1302,13 +1302,8 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             }
 
             // Parse the timing
-            const defaultTime =
-                user.column_preferences?.reminders?.default_reminder_time || '09:00';
-            const timing = parseReminderTiming(
-                when.toLowerCase(),
-                defaultTime,
-                user.timezone || 'UTC',
-            );
+            const defaultTime = user.column_preferences?.reminders?.default_reminder_time || '09:00'; // prettier-ignore
+            const timing = parseReminderTiming(when.toLowerCase(), defaultTime, user.timezone || 'UTC'); // prettier-ignore
 
             if (!timing.isValid) {
                 return goBackWithValidationAlert(
