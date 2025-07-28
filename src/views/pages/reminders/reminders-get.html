@@ -54,7 +54,18 @@
                             </th>
                         <% } %>
                         <% if (state.user.column_preferences?.reminders?.content !== false) { %>
-                            <th scope="col" style="text-align: left; padding: 10px;">📝 Content</th>
+                            <th scope="col" style="text-align: left; padding: 10px;">
+                                <a href="/reminders?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=content&direction=<%= (sortKey === 'content' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                   aria-label="Sort by content <%= (sortKey === 'content' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                    📝 Content
+                                    <% if (sortKey === 'content') { %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                    <% } else { %>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                                    <% } %>
+                                </a>
+                            </th>
                         <% } %>
                         <% if (state.user.column_preferences?.reminders?.due_date !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
@@ -71,7 +82,18 @@
                             </th>
                         <% } %>
                         <% if (state.user.column_preferences?.reminders?.created_at !== false) { %>
-                            <th scope="col" style="text-align: left; padding: 10px;">📅 Created At</th>
+                            <th scope="col" style="text-align: left; padding: 10px;">
+                                <a href="/reminders?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                   aria-label="Sort by created date <%= (sortKey === 'created_at' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                    📅 Created At
+                                    <% if (sortKey === 'created_at') { %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                    <% } else { %>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                                    <% } %>
+                                </a>
+                            </th>
                         <% } %>
                         <th scope="col" style="text-align: left; padding: 10px;">🚀 Actions</th>
                     </tr>
