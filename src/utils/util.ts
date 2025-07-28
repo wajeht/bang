@@ -1181,7 +1181,6 @@ export async function sendReminderDigestEmail({
         id: number;
         title: string;
         url?: string;
-        category: 'task' | 'reading' | 'link';
         reminder_type: 'once' | 'recurring';
         frequency?: 'daily' | 'weekly' | 'biweekly' | 'monthly';
     }>;
@@ -1196,52 +1195,23 @@ export async function sendReminderDigestEmail({
         day: 'numeric',
     });
 
-    const remindersByCategory = {
-        task: reminders.filter((r) => r.category === 'task'),
-        reading: reminders.filter((r) => r.category === 'reading'),
-        link: reminders.filter((r) => r.category === 'link'),
-    };
+    const formatReminderList = reminders
+        .map((reminder, index) => {
+            const number = `${index + 1}.`;
+            const title = reminder.title;
+            const link = reminder.url && reminder.url !== 'null' ? ` - ${reminder.url}` : '';
+            const type = reminder.reminder_type === 'recurring' ? ` (${reminder.frequency})` : '';
+            return `   ${number} ${title}${type}${link}`;
+        })
+        .join('\n');
 
-    const formatReminderList = (categoryReminders: typeof reminders) =>
-        categoryReminders
-            .map((reminder, index) => {
-                const number = `${index + 1}.`;
-                const title = reminder.title;
-                const link = reminder.url ? `\n   Link: ${reminder.url}` : '';
-                const type =
-                    reminder.reminder_type === 'recurring' ? ` (${reminder.frequency})` : '';
-                return `   ${number} ${title}${type}${link}`;
-            })
-            .join('\n');
-
-    let emailBody = `Hello ${username},
+    const emailBody = `Hello ${username},
 
 Here are your reminders for ${formatDate}:
 
-`;
+${formatReminderList}
 
-    if (remindersByCategory.task.length > 0) {
-        emailBody += `📝 Tasks (${remindersByCategory.task.length}):
-${formatReminderList(remindersByCategory.task)}
-
-`;
-    }
-
-    if (remindersByCategory.reading.length > 0) {
-        emailBody += `📖 Reading (${remindersByCategory.reading.length}):
-${formatReminderList(remindersByCategory.reading)}
-
-`;
-    }
-
-    if (remindersByCategory.link.length > 0) {
-        emailBody += `🔗 Links (${remindersByCategory.link.length}):
-${formatReminderList(remindersByCategory.link)}
-
-`;
-    }
-
-    emailBody += `You can manage your reminders at your Bang dashboard.
+You can manage your reminders at your Bang dashboard.
 
 --
 Bang Team
@@ -1276,11 +1246,15 @@ export async function processReminderDigests(): Promise<void> {
         const next15Min = new Date(now.getTime() + 15 * 60 * 1000);
 
         // Get all reminders due in the next 15 minutes that haven't been processed
+        // Convert to database format (YYYY-MM-DD HH:MM:SS)
+        const nowFormatted = now.toISOString().replace('T', ' ').slice(0, 19);
+        const next15MinFormatted = next15Min.toISOString().replace('T', ' ').slice(0, 19);
+
         const dueReminders = await db
             .select('reminders.*', 'users.email', 'users.username', 'users.timezone')
             .from('reminders')
             .join('users', 'reminders.user_id', 'users.id')
-            .whereBetween('reminders.due_date', [now.toISOString(), next15Min.toISOString()])
+            .whereBetween('reminders.due_date', [nowFormatted, next15MinFormatted])
             .where('reminders.processed', false)
             .orderBy('users.id')
             .orderBy('reminders.created_at');
@@ -1311,7 +1285,7 @@ export async function processReminderDigests(): Promise<void> {
                 acc[userId].reminders.push({
                     id: reminder.id,
                     title: reminder.title,
-                    content: reminder.content,
+                    url: reminder.content, // Map content to url for email compatibility
                     reminder_type: reminder.reminder_type,
                     frequency: reminder.frequency,
                     due_date: reminder.due_date,

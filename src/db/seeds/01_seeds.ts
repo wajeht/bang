@@ -274,25 +274,44 @@ Here is the \`content\` of **note 2**.
 
         await knex('tab_items').insert(tabItems);
 
+        const now = new Date();
+        const dueNow = new Date(now.getTime() + 5 * 60 * 1000) // 5 minutes from now
+            .toISOString()
+            .replace('T', ' ')
+            .slice(0, 19);
+
+        const dueSoon = new Date(now.getTime() + 10 * 60 * 1000) // 10 minutes from now
+            .toISOString()
+            .replace('T', ' ')
+            .slice(0, 19);
+
         const reminders = [
+            {
+                user_id: user.id,
+                title: 'Daily Spotify Playlist',
+                content: 'https://open.spotify.com/playlist/439CHTNOfML7B0xTbMU7ta',
+                reminder_type: 'recurring',
+                frequency: 'daily',
+                due_date: dueNow, // Due in 5 minutes - will be processed
+                processed: false,
+            },
             {
                 user_id: user.id,
                 title: 'Weekly team standup meeting',
                 content: 'https://meet.google.com/xyz-abc-def',
                 reminder_type: 'recurring',
                 frequency: 'weekly',
-                due_date: null, // Recurring reminders should NOT have due_date
+                due_date: dueSoon, // Due in 10 minutes - will be processed
+                processed: false,
             },
             {
                 user_id: user.id,
-                title: 'Read TypeScript handbook',
-                content: 'https://www.typescriptlang.org/docs/',
+                title: 'Untitled',
+                content: 'https://github.com/anthropics/claude-code',
                 reminder_type: 'once',
                 frequency: null,
-                due_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
-                    .toISOString()
-                    .replace('T', ' ')
-                    .slice(0, 19), // 3 days from now with time
+                due_date: dueNow, // Due in 5 minutes - will be processed
+                processed: false,
             },
             {
                 user_id: user.id,
@@ -300,10 +319,8 @@ Here is the \`content\` of **note 2**.
                 content: null,
                 reminder_type: 'once',
                 frequency: null,
-                due_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)
-                    .toISOString()
-                    .replace('T', ' ')
-                    .slice(0, 19), // Tomorrow with time
+                due_date: dueSoon, // Due in 10 minutes - will be processed
+                processed: false,
             },
             {
                 user_id: user.id,
@@ -311,15 +328,20 @@ Here is the \`content\` of **note 2**.
                 content: 'https://github.com/notifications',
                 reminder_type: 'recurring',
                 frequency: 'daily',
-                due_date: null, // Recurring reminders should NOT have due_date
+                due_date: dueNow, // Due in 5 minutes - will be processed
+                processed: false,
             },
             {
                 user_id: user.id,
-                title: 'asdf',
-                content: null,
-                reminder_type: 'recurring',
-                frequency: 'daily',
-                due_date: null, // Recurring reminders should NOT have due_date
+                title: 'Future reminder',
+                content: "This should not appear in today's digest",
+                reminder_type: 'once',
+                frequency: null,
+                due_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+                    .toISOString()
+                    .replace('T', ' ')
+                    .slice(0, 19), // 3 days from now - will NOT be processed
+                processed: false,
             },
         ];
 
