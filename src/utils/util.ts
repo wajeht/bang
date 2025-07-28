@@ -722,11 +722,10 @@ export async function generateUserDataExport(
                       'bangs.trigger',
                       'bangs.name',
                       'bangs.url',
-                      'action_types.name as action_type',
+                      'bangs.action_type',
                       'bangs.created_at',
                   )
                   .from('bangs')
-                  .join('action_types', 'bangs.action_type_id', 'action_types.id')
                   .where('bangs.user_id', userId)
             : Promise.resolve([]);
 
@@ -975,9 +974,9 @@ As requested, we have prepared your data export from Bang before proceeding with
 Attached to this email you will find:
 ${attachmentsList}
 
-Your account will be deleted shortly. This action cannot be undone.
+Your account has been deleted as requested. This action cannot be undone.
 
-If you change your mind about deleting your account, please contact us immediately.
+We hope Bang was useful to you. If you ever want to return, you can always create a new account.
 
 Thank you for using Bang!
 
