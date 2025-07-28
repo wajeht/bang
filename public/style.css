@@ -465,7 +465,7 @@ table {
     table-layout: fixed;
     width: 100%;
     border-collapse: collapse;
-    overflow: hidden;
+    overflow: visible;
 }
 
 th {
@@ -492,6 +492,18 @@ tbody tr:hover {
 td:last-child {
     overflow: visible !important;
     position: relative;
+}
+
+/* Fix dropdown z-index and sticky headers */
+details div[style*='position: absolute'] {
+    z-index: 500 !important;
+}
+
+thead {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    background: var(--background-color) !important;
 }
 
 .no-style-btn:hover {

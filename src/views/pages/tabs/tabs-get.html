@@ -211,33 +211,39 @@
                           <% if (tabs[i].items && tabs[i].items.length > 0) { %>
                             <style>
                               .sub-table {
-
                                 border: none !important;
+                              }
 
-                                tbody tr:hover {
-                                  background-color: none !important;
-                                }
+                              .sub-table tbody tr:hover {
+                                background-color: none !important;
+                              }
 
-                                th {
-                                  border-top: none !important;
-                                  border-bottom: 1px dashed var(--link-divider-color) !important;
-                                }
+                              .sub-table th {
+                                border-top: none !important;
+                                border-bottom: 1px dashed var(--link-divider-color) !important;
+                              }
 
-                                tr {
-                                  border-bottom: 1px dashed var(--link-divider-color) !important;
-                                }
+                              .sub-table tr {
+                                border-bottom: 1px dashed var(--link-divider-color) !important;
+                              }
 
-                                tr:last-child td {
-                                  border-bottom: none !important;
-                                }
-                                td {
-                                  border-bottom: 1px dashed var(--link-divider-color) !important;
-                                }
+                              .sub-table tr:last-child td {
+                                border-bottom: none !important;
+                              }
 
-                                thead {
-                                  border-bottom: none !important;
-                                }
+                              .sub-table td {
+                                border-bottom: 1px dashed var(--link-divider-color) !important;
+                              }
 
+                              .sub-table thead {
+                                border-bottom: none !important;
+                                position: static !important;
+                                z-index: auto !important;
+                              }
+
+                              /* Fix dropdown z-index for sub-table */
+                              .sub-table details div[style*="position: absolute"] {
+                                z-index: 600 !important;
                               }
                             </style>
                             <table class="sub-table" style="width: 100%; table-layout: fixed;">
