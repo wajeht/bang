@@ -52,6 +52,18 @@
             </p>
           </fieldset>
 
+          <fieldset style="margin: 15px 0;">
+            <legend>⚠️ Confirmation Required</legend>
+            <%- include('../../components/inputs/text.html', {
+              id: 'delete-account-confirmation',
+              name: 'confirmation',
+              label: 'To confirm account deletion, type DELETE ACCOUNT below:',
+              placeholder: 'Type DELETE ACCOUNT to confirm',
+              required: true,
+              style: 'width: 100%;'
+            }) %>
+          </fieldset>
+
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
             <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
             <button type="submit">🗑️ Delete Account</button>
@@ -121,6 +133,18 @@
             </p>
           </fieldset>
 
+          <fieldset id="bulk-delete-confirmation" style="margin: 15px 0; display: none;">
+            <legend>⚠️ Confirmation Required</legend>
+            <%- include('../../components/inputs/text.html', {
+              id: 'bulk-delete-confirmation-input',
+              name: 'confirmation',
+              label: 'To confirm bulk deletion, type DELETE DATA below:',
+              placeholder: 'Type DELETE DATA to confirm',
+              required: false,
+              style: 'width: 100%;'
+            }) %>
+          </fieldset>
+
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
             <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
             <button type="submit">🗑️ Delete Selected Data</button>
@@ -132,3 +156,44 @@
   </fieldset>
 
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const bulkDeleteModal = document.getElementById('bulk-delete-modal');
+  const confirmationFieldset = document.getElementById('bulk-delete-confirmation');
+  const confirmationInput = document.getElementById('bulk-delete-confirmation-input');
+  const submitButton = bulkDeleteModal.querySelector('button[type="submit"]');
+
+  const checkboxes = [
+    'delete-actions-checkbox',
+    'delete-tabs-checkbox',
+    'delete-bookmarks-checkbox',
+    'delete-notes-checkbox',
+    'delete-reminders-checkbox',
+    'delete-api-keys-checkbox'
+  ].map(id => document.getElementById(id));
+
+  function updateConfirmationVisibility() {
+    const allSelected = checkboxes.every(checkbox => checkbox.checked);
+
+    if (allSelected) {
+      confirmationFieldset.style.display = 'block';
+      confirmationInput.setAttribute('required', 'true');
+      submitButton.disabled = false;
+    } else {
+      confirmationFieldset.style.display = 'none';
+      confirmationInput.removeAttribute('required');
+      confirmationInput.value = '';
+      submitButton.disabled = false;
+    }
+  }
+
+  checkboxes.forEach(checkbox => {
+    if (checkbox) {
+      checkbox.addEventListener('change', updateConfirmationVisibility);
+    }
+  });
+
+  updateConfirmationVisibility();
+});
+</script>
