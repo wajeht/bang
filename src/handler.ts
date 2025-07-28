@@ -1292,14 +1292,18 @@ export function postBulkDeleteSettingsDangerZoneHandler(db: Knex) {
 
                 // Build success message
                 const deletedItems = [];
-                if (deleteCounts.actions > 0) deletedItems.push(`${deleteCounts.actions} actions`);
-                if (deleteCounts.tabs > 0) deletedItems.push(`${deleteCounts.tabs} tabs`);
-                if (deleteCounts.bookmarks > 0)
+                if (deleteCounts.actions && deleteCounts.actions > 0)
+                    deletedItems.push(`${deleteCounts.actions} actions`);
+                if (deleteCounts.tabs && deleteCounts.tabs > 0)
+                    deletedItems.push(`${deleteCounts.tabs} tabs`);
+                if (deleteCounts.bookmarks && deleteCounts.bookmarks > 0)
                     deletedItems.push(`${deleteCounts.bookmarks} bookmarks`);
-                if (deleteCounts.notes > 0) deletedItems.push(`${deleteCounts.notes} notes`);
-                if (deleteCounts.reminders > 0)
+                if (deleteCounts.notes && deleteCounts.notes > 0)
+                    deletedItems.push(`${deleteCounts.notes} notes`);
+                if (deleteCounts.reminders && deleteCounts.reminders > 0)
                     deletedItems.push(`${deleteCounts.reminders} reminders`);
-                if (deleteCounts.api_keys > 0) deletedItems.push('API keys');
+                if (deleteCounts.api_keys && deleteCounts.api_keys > 0)
+                    deletedItems.push('API keys');
 
                 if (deletedItems.length > 0) {
                     req.flash('success', `🗑️ Successfully deleted: ${deletedItems.join(', ')}`);
