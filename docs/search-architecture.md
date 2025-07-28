@@ -272,27 +272,22 @@ Search across all data types.
 ### Go to Sections
 
 ```
-@bm    → Bookmarks
-@n     → Notes
-@r     → Reminders
 @a     → Actions
 @b     → Bangs
+@bm    → Bookmarks
 @t     → Tabs
-@s     → Settings
+@n     → Notes
+@r     → Reminders
+@u     → Users
 ```
 
 ### Filtered Views
 
 ```
-@bm <query> → Search bookmarks
-@n <query>  → Search notes
 @a <query>  → Search actions
-```
-
-#### Examples
-
-```
-@bm youtube
-@n gym
-@a rr
+@b <query>  → Search bangs
+@bm <query> → Search bookmarks
+@t <query>  → Search tabs
+@n <query>  → Search notes
+@u <query>  → Search settings users
 ```
