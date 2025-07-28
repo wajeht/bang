@@ -3,20 +3,27 @@
   <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
     <div style="display: flex; flex-direction: column; gap: 5px;">
       <h2 style="margin: 0;">⚠️ Danger Zone</h2>
-      <p>The following actions are destructive and cannot be reversed.</p>
+      <p>These actions permanently delete your data and cannot be undone.</p>
     </div>
   </header>
 
-  <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
-    <legend>⚠️ Destructive Actions</legend>
+  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+    <legend>🗑️ Bulk Delete Data</legend>
+    <p>Permanently delete selected data types</p>
+    <button type="button" onclick="document.getElementById('bulk-delete-modal').showModal()" aria-label="Bulk delete data">🗑️ Bulk Delete Data</button>
+  </fieldset>
 
+  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+    <legend>☠️ Delete Account</legend>
+    <p>Delete your account and all data permanently</p>
     <button type="button" onclick="document.getElementById('delete-users-<%= user.id %>-modal').showModal()" aria-label="Delete your account">🗑️ Delete my account</button>
 
     <dialog id="delete-users-<%= user.id %>-modal" aria-labelledby="delete-user-<%= user.id %>-title">
       <h2 id="delete-user-<%= user.id %>-title">Confirm Account Deletion</h2>
       <div style="margin-bottom: 20px;">
         <p><strong>Are you sure you want to delete your account?</strong></p>
-        <p style="margin-top: 15px;">Before deletion, you can optionally receive an export of your data via email:</p>
+        <p style="color: #d73502; margin-top: 10px;">⚠️ <strong>Warning:</strong> Deleted data cannot be recovered!</p>
+        <p style="margin-top: 15px;">Export your data before deletion (optional):</p>
 
         <form method="POST" action="/settings/danger-zone/delete">
           <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
@@ -52,6 +59,76 @@
         </form>
       </div>
     </dialog>
+
+    <dialog id="bulk-delete-modal" aria-labelledby="bulk-delete-title">
+      <h2 id="bulk-delete-title">Bulk Delete Data</h2>
+      <div style="margin-bottom: 20px;">
+        <p><strong>Choose which data to permanently delete:</strong></p>
+        <p style="color: #d73502; margin-top: 10px;">⚠️ <strong>Warning:</strong> Deleted data cannot be recovered!</p>
+
+        <form method="POST" action="/settings/danger-zone/bulk-delete">
+          <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+
+          <fieldset style="margin: 15px 0;">
+            <legend>🗑️ Select Data Types to Delete</legend>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <%- include('../../components/inputs/checkbox.html', {
+                id: 'delete-actions-checkbox',
+                name: 'delete_options[]',
+                value: 'actions',
+                label: '⚡ Delete all actions'
+              }) %>
+
+              <%- include('../../components/inputs/checkbox.html', {
+                id: 'delete-tabs-checkbox',
+                name: 'delete_options[]',
+                value: 'tabs',
+                label: '📑 Delete all tabs'
+              }) %>
+
+              <%- include('../../components/inputs/checkbox.html', {
+                id: 'delete-bookmarks-checkbox',
+                name: 'delete_options[]',
+                value: 'bookmarks',
+                label: '🔖 Delete all bookmarks'
+              }) %>
+
+              <%- include('../../components/inputs/checkbox.html', {
+                id: 'delete-notes-checkbox',
+                name: 'delete_options[]',
+                value: 'notes',
+                label: '📝 Delete all notes'
+              }) %>
+
+              <%- include('../../components/inputs/checkbox.html', {
+                id: 'delete-reminders-checkbox',
+                name: 'delete_options[]',
+                value: 'reminders',
+                label: '⏰ Delete all reminders'
+              }) %>
+
+              <%- include('../../components/inputs/checkbox.html', {
+                id: 'delete-api-keys-checkbox',
+                name: 'delete_options[]',
+                value: 'api_keys',
+                label: '🔑 Delete all API keys'
+              }) %>
+            </div>
+
+            <p style="margin-top: 10px;">
+              <em>Only selected items will be deleted. Your account remains active.</em>
+            </p>
+          </fieldset>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+            <button type="submit">🗑️ Delete Selected Data</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
   </fieldset>
 
 </section>
