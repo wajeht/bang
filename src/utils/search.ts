@@ -1,6 +1,7 @@
 import {
     addHttps,
     isValidUrl,
+    isUrlLike,
     insertBookmark,
     insertPageTitle,
     normalizeBangTrigger,
@@ -556,29 +557,170 @@ function parseReminderContent(
     const validTimingKeywords = ['daily', 'weekly', 'biweekly', 'monthly'];
     const datePattern = /^(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/\d{4}|\w{3}-\d{1,2})$/;
 
-    // Pipe-separated format: !remind when | description [| content]
     if (reminderContent.includes('|')) {
         const parts = reminderContent.split('|').map((part) => part.trim());
-        return {
-            when: parts[0] || '',
-            description: parts[1] || '',
-            content: parts.length > 2 ? parts[2] || null : null,
-        };
+        const firstPart = parts[0] || '';
+
+        const firstWord = firstPart.split(' ')[0]?.toLowerCase() || '';
+        const isValidTiming =
+            validTimingKeywords.includes(firstWord) || datePattern.test(firstWord);
+
+        if (isValidTiming) {
+            const remainingFirstPart = firstPart.split(' ').slice(1).join(' ').trim();
+
+            if (remainingFirstPart) {
+                return {
+                    when: firstWord,
+                    description: remainingFirstPart,
+                    content: parts[1] || null,
+                };
+            } else {
+                return {
+                    when: firstWord,
+                    description: parts[1] || '',
+                    content: parts.length > 2 ? parts[2] || null : null,
+                };
+            }
+        } else {
+            return {
+                when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
+                description: firstPart,
+                content: parts[1] || null,
+            };
+        }
     }
 
-    // Space-separated with timing keyword: !remind daily description
     const words = reminderContent.split(' ');
     const firstWord = words[0]?.toLowerCase() || '';
 
     if (validTimingKeywords.includes(firstWord) || datePattern.test(firstWord)) {
+        const remainingText = words.slice(1).join(' ');
+
+        const urlMatch = remainingText.match(/(https?:\/\/[^\s]+)/);
+
+        if (urlMatch) {
+            const url = urlMatch[0];
+            const urlStartIndex = remainingText.indexOf(url);
+            const description = remainingText.slice(0, urlStartIndex).trim();
+
+            if (!description) {
+                return {
+                    when: firstWord,
+                    description: url,
+                    content: null,
+                };
+            }
+
+            return {
+                when: firstWord,
+                description: description,
+                content: url,
+            };
+        }
+
+        const remainingWords = words.slice(1);
+        let urlIndex = -1;
+        for (let i = 0; i < remainingWords.length; i++) {
+            const word = remainingWords[i];
+            if (word && isUrlLike(word)) {
+                urlIndex = i;
+                break;
+            }
+        }
+
+        if (urlIndex !== -1) {
+            const description = remainingWords.slice(0, urlIndex).join(' ');
+            const url = remainingWords[urlIndex] || '';
+
+            if (!description) {
+                return {
+                    when: firstWord,
+                    description: url,
+                    content: null,
+                };
+            }
+
+            return {
+                when: firstWord,
+                description: description,
+                content: url,
+            };
+        }
+
         return {
             when: firstWord,
-            description: words.slice(1).join(' '),
+            description: remainingText,
             content: null,
         };
     }
 
-    // Simple format: !remind description (uses user's default timing)
+    if (isUrlLike(reminderContent.trim())) {
+        return {
+            when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
+            description: 'Untitled',
+            content: reminderContent.trim(),
+        };
+    }
+
+    const urlMatch = reminderContent.match(/(https?:\/\/[^\s]+)/);
+
+    if (urlMatch) {
+        const url = urlMatch[0];
+        const urlStartIndex = reminderContent.indexOf(url);
+        const description = reminderContent.slice(0, urlStartIndex).trim();
+
+        if (!description) {
+            return {
+                when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
+                description: url,
+                content: null,
+            };
+        }
+
+        return {
+            when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
+            description: description,
+            content: url,
+        };
+    }
+
+    const words2 = reminderContent.split(' ');
+    let urlIndex = -1;
+    for (let i = 0; i < words2.length; i++) {
+        const word = words2[i];
+        if (word && isUrlLike(word)) {
+            urlIndex = i;
+            break;
+        }
+    }
+
+    if (urlIndex !== -1) {
+        const description = words2.slice(0, urlIndex).join(' ');
+        const url = words2[urlIndex] || '';
+
+        if (!description && words2.length === 1) {
+            return {
+                when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
+                description: 'Untitled',
+                content: url,
+            };
+        }
+
+        if (!description) {
+            return {
+                when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
+                description: url,
+                content: null,
+            };
+        }
+
+        return {
+            when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
+            description: description,
+            content: url,
+        };
+    }
+
     return {
         when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
         description: reminderContent,
@@ -1313,14 +1455,24 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             }
 
             try {
-                await db('reminders').insert({
-                    user_id: user.id,
-                    title: description,
-                    content: content || null,
-                    reminder_type: timing.type,
-                    frequency: timing.frequency,
-                    due_date: timing.type === 'recurring' ? null : timing.nextDue,
-                });
+                const [createdReminder] = await db('reminders')
+                    .insert({
+                        user_id: user.id,
+                        title: description,
+                        content: content || null,
+                        reminder_type: timing.type,
+                        frequency: timing.frequency,
+                        due_date: timing.type === 'recurring' ? null : timing.nextDue,
+                    })
+                    .returning('id');
+
+                if (description === 'Untitled' && content && isValidUrl(content)) {
+                    setTimeout(
+                        () =>
+                            insertPageTitle({ reminderId: createdReminder.id, url: content, req }),
+                        0,
+                    );
+                }
             } catch (error) {
                 logger.error('Database error creating reminder:', error);
                 return goBackWithValidationAlert(
