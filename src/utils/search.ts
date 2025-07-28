@@ -602,8 +602,8 @@ function parseReminderContent(
     if (validTimingKeywords.includes(firstWord) || datePattern.test(firstWord)) {
         const remainingText = words.slice(1).join(' ');
 
-        // Look for URLs with protocols in the remaining text
-        const urlMatch = remainingText.match(/(https?:\/\/[^\s]+)/);
+        // Look for URLs with protocols or www prefix in the remaining text
+        const urlMatch = remainingText.match(/(https?:\/\/[^\s]+|www\.[^\s]+)/i);
 
         if (urlMatch) {
             const url = urlMatch[0];
@@ -671,8 +671,8 @@ function parseReminderContent(
         };
     }
 
-    // Look for URLs with protocols in simple format
-    const urlMatch = reminderContent.match(/(https?:\/\/[^\s]+)/);
+    // Look for URLs with protocols or www prefix in simple format
+    const urlMatch = reminderContent.match(/(https?:\/\/[^\s]+|www\.[^\s]+)/i);
 
     if (urlMatch) {
         const url = urlMatch[0];

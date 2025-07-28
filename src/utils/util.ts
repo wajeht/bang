@@ -1138,14 +1138,28 @@ export function getFaviconUrl(url: string): string {
 export function isUrlLike(str: string): boolean {
     if (!str || typeof str !== 'string') return false;
 
-    if (isValidUrl(str)) return true;
+    const trimmed = str.trim();
 
-    const domainPattern =
-        /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+    // Check for protocol URLs first (handles mixed case)
+    if (isValidUrl(trimmed)) return true;
 
-    if (domainPattern.test(str.trim())) {
+    // Check for www.* patterns (case insensitive)
+    if (/^www\./i.test(trimmed)) {
         try {
-            new URL(`https://${str.trim()}`);
+            new URL(`https://${trimmed}`);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    // Check for domain-like patterns (e.g., google.com, Google.COM)
+    const domainPattern =
+        /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/i;
+
+    if (domainPattern.test(trimmed)) {
+        try {
+            new URL(`https://${trimmed}`);
             return true;
         } catch {
             return false;

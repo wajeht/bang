@@ -16,6 +16,7 @@ vi.mock('./utils/util', () => ({
         verify: vi.fn(),
     },
     getFaviconUrl: vi.fn((url) => url),
+    isUrlLike: vi.fn((str) => str && str.includes('.')),
     sendNotificationQueue: {
         push: vi.fn(),
     },

@@ -55,15 +55,24 @@ describe.concurrent('isUrlLike', () => {
     it('should return true for valid full URLs', () => {
         expect(isUrlLike('https://example.com')).toBeTruthy();
         expect(isUrlLike('http://example.com')).toBeTruthy();
+        expect(isUrlLike('HTTP://EXAMPLE.COM')).toBeTruthy();
+        expect(isUrlLike('HTTPS://EXAMPLE.COM')).toBeTruthy();
         expect(isUrlLike('https://sub.example.com')).toBeTruthy();
         expect(isUrlLike('https://example.com/path?query=param')).toBeTruthy();
     });
 
     it('should return true for domain-like patterns', () => {
         expect(isUrlLike('google.com')).toBeTruthy();
+        expect(isUrlLike('google.coM')).toBeTruthy();
         expect(isUrlLike('example.org')).toBeTruthy();
         expect(isUrlLike('sub.domain.co.uk')).toBeTruthy();
         expect(isUrlLike('github.io')).toBeTruthy();
+    });
+
+    it('should return true for www patterns', () => {
+        expect(isUrlLike('www.google.com')).toBeTruthy();
+        expect(isUrlLike('www.Google.COM')).toBeTruthy();
+        expect(isUrlLike('WWW.example.org')).toBeTruthy();
     });
 
     it('should return false for invalid domain patterns', () => {
