@@ -11,11 +11,13 @@ Create custom triggers (bangs) that redirect to specific URLs.
 ### Syntax
 
 #### Quick Action
+
 ```
 !a <trigger> <url>
 ```
 
 #### Examples
+
 ```
 !a !test https://test.jaw.dev
 !a !test test.jaw.dev
@@ -24,6 +26,7 @@ Create custom triggers (bangs) that redirect to specific URLs.
 ```
 
 #### Action with Title
+
 ```
 !a <trigger> <title> <url>
 ```
@@ -46,11 +49,13 @@ Save URLs for quick access.
 ### Quick Bookmark
 
 #### Syntax
+
 ```
 !bm <url>
 ```
 
 #### Examples
+
 ```
 !bm https://test.jaw.dev
 !bm test.jaw.dev
@@ -61,11 +66,13 @@ Save URLs for quick access.
 ### Bookmark with Title
 
 #### Syntax
+
 ```
 !bm <title> <url>
 ```
 
 #### Examples
+
 ```
 !bm hardcoded title https://test.jaw.dev
 !bm hardcoded title test.jaw.dev
@@ -82,11 +89,13 @@ Capture quick notes.
 ### Quick Note
 
 #### Syntax
+
 ```
 !n <content>
 ```
 
 #### Example
+
 ```
 !n I'm going to the gym
 ```
@@ -94,11 +103,13 @@ Capture quick notes.
 ### Note with Title
 
 #### Syntax
+
 ```
 !n <title> | <content>
 ```
 
 #### Examples
+
 ```
 !n Gym | I'm going to the gym
 !n Gym | I'm going to the gym at 5pm
@@ -113,11 +124,13 @@ Create personal reminders with or without time.
 ### Quick Reminder
 
 #### Syntax
+
 ```
 !r <title>
 ```
 
 #### Example
+
 ```
 !r I'm going to the gym
 ```
@@ -125,11 +138,13 @@ Create personal reminders with or without time.
 ### Reminder with Timing
 
 #### Syntax
+
 ```
 !r <when> | <title>
 ```
 
 #### Examples
+
 ```
 !r 2025-07-26 | I'm going to the gym
 !r daily | I'm going to the gym
@@ -140,11 +155,13 @@ Create personal reminders with or without time.
 ### Detailed Reminder with Title
 
 #### Syntax
+
 ```
 !r <when> | <title> | <content>
 ```
 
 #### Examples
+
 ```
 !r Gym | Go to the gym at 5pm (will use default timing)
 !r 2025-07-26 | Gym | Go to the gym at 5pm
@@ -161,36 +178,43 @@ Create personal reminders with or without time.
 Search across all data types.
 
 ### Search Everything
+
 ```
 !s <query>
 ```
 
 ### Search Bookmarks
+
 ```
 !sbm <query>
 ```
 
 ### Search Notes
+
 ```
 !sn <query>
 ```
 
 ### Search Actions
+
 ```
 !sa <query>
 ```
 
 ### Search Bangs
+
 ```
 !sb <query>
 ```
 
 ### Search Tabs
+
 ```
 !st <query>
 ```
 
 #### Example
+
 ```
 !sbm bangs
 ```
@@ -202,11 +226,13 @@ Search across all data types.
 ### Edit Action Trigger
 
 #### Syntax
+
 ```
 !e <old_trigger> <new_trigger>
 ```
 
 #### Example
+
 ```
 !e !rr !rh
 ```
@@ -214,11 +240,13 @@ Search across all data types.
 ### Edit Action URL
 
 #### Syntax
+
 ```
 !e <trigger> <new_url>
 ```
 
 #### Example
+
 ```
 !e !rr https://newurl.com
 ```
@@ -226,11 +254,13 @@ Search across all data types.
 ### Delete Action
 
 #### Syntax
+
 ```
 !d <trigger>
 ```
 
 #### Example
+
 ```
 !d !rr
 ```
@@ -240,6 +270,7 @@ Search across all data types.
 ## 🧭 7. Navigation
 
 ### Go to Sections
+
 ```
 @bm    → Bookmarks
 @n     → Notes
@@ -251,6 +282,7 @@ Search across all data types.
 ```
 
 ### Filtered Views
+
 ```
 @bm <query> → Search bookmarks
 @n <query>  → Search notes
@@ -258,6 +290,7 @@ Search across all data types.
 ```
 
 #### Examples
+
 ```
 @bm youtube
 @n gym
