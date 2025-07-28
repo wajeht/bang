@@ -1211,6 +1211,111 @@ export function postDeleteSettingsDangerZoneHandler(db: Knex) {
     };
 }
 
+// POST /settings/danger-zone/bulk-delete
+export function postBulkDeleteSettingsDangerZoneHandler(db: Knex) {
+    return async (req: Request, res: Response) => {
+        const user = req.session.user;
+
+        if (!user) {
+            throw new NotFoundError('User not found');
+        }
+
+        const deleteOptions = req.body.delete_options || [];
+        const deleteActions = Array.isArray(deleteOptions)
+            ? deleteOptions.includes('actions')
+            : deleteOptions === 'actions';
+        const deleteTabs = Array.isArray(deleteOptions)
+            ? deleteOptions.includes('tabs')
+            : deleteOptions === 'tabs';
+        const deleteBookmarks = Array.isArray(deleteOptions)
+            ? deleteOptions.includes('bookmarks')
+            : deleteOptions === 'bookmarks';
+        const deleteNotes = Array.isArray(deleteOptions)
+            ? deleteOptions.includes('notes')
+            : deleteOptions === 'notes';
+        const deleteReminders = Array.isArray(deleteOptions)
+            ? deleteOptions.includes('reminders')
+            : deleteOptions === 'reminders';
+        const deleteApiKeys = Array.isArray(deleteOptions)
+            ? deleteOptions.includes('api_keys')
+            : deleteOptions === 'api_keys';
+
+        if (
+            !deleteActions &&
+            !deleteTabs &&
+            !deleteBookmarks &&
+            !deleteNotes &&
+            !deleteReminders &&
+            !deleteApiKeys
+        ) {
+            req.flash('error', 'Please select at least one data type to delete');
+            return res.redirect('/settings/danger-zone');
+        }
+
+        try {
+            await db.transaction(async (trx) => {
+                const deleteCounts: { [key: string]: number } = {};
+
+                if (deleteActions) {
+                    const count = await trx('bangs').where({ user_id: user.id }).delete();
+                    deleteCounts.actions = count;
+                }
+
+                if (deleteTabs) {
+                    const count = await trx('tabs').where({ user_id: user.id }).delete();
+                    deleteCounts.tabs = count;
+                }
+
+                if (deleteBookmarks) {
+                    const count = await trx('bookmarks').where({ user_id: user.id }).delete();
+                    deleteCounts.bookmarks = count;
+                }
+
+                if (deleteNotes) {
+                    const count = await trx('notes').where({ user_id: user.id }).delete();
+                    deleteCounts.notes = count;
+                }
+
+                if (deleteReminders) {
+                    const count = await trx('reminders').where({ user_id: user.id }).delete();
+                    deleteCounts.reminders = count;
+                }
+
+                if (deleteApiKeys) {
+                    await trx('users').where({ id: user.id }).update({
+                        api_key: null,
+                        api_key_version: 0,
+                        api_key_created_at: null,
+                    });
+                    deleteCounts.api_keys = 1; // Always 1 since it's per user
+                }
+
+                // Build success message
+                const deletedItems = [];
+                if (deleteCounts.actions > 0) deletedItems.push(`${deleteCounts.actions} actions`);
+                if (deleteCounts.tabs > 0) deletedItems.push(`${deleteCounts.tabs} tabs`);
+                if (deleteCounts.bookmarks > 0)
+                    deletedItems.push(`${deleteCounts.bookmarks} bookmarks`);
+                if (deleteCounts.notes > 0) deletedItems.push(`${deleteCounts.notes} notes`);
+                if (deleteCounts.reminders > 0)
+                    deletedItems.push(`${deleteCounts.reminders} reminders`);
+                if (deleteCounts.api_keys > 0) deletedItems.push('API keys');
+
+                if (deletedItems.length > 0) {
+                    req.flash('success', `🗑️ Successfully deleted: ${deletedItems.join(', ')}`);
+                } else {
+                    req.flash('info', 'No data was deleted (selected types may have been empty)');
+                }
+            });
+        } catch (error) {
+            logger.error('Bulk delete error: %o', error);
+            req.flash('error', 'Failed to delete data. Please try again.');
+        }
+
+        return res.redirect('/settings/danger-zone');
+    };
+}
+
 // GET /settings/data/export
 export async function getExportAllDataHandler(req: Request, res: Response) {
     const userId = (req.user as User).id;
