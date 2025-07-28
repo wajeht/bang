@@ -255,7 +255,8 @@ export function postActionHandler(actions: Actions) {
             name: name.trim(),
             trigger: formattedTrigger.toLowerCase(),
             url,
-            actionType,
+            action_type: actionType,
+            actionType: actionType,
             user_id: user.id,
         });
 
@@ -405,7 +406,8 @@ export function updateActionHandler(actions: Actions) {
             trigger: formattedTrigger,
             name: name.trim(),
             url,
-            actionType,
+            action_type: actionType,
+            actionType: actionType,
         });
 
         if (isApiRequest(req)) {
