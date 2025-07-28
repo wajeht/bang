@@ -2078,12 +2078,12 @@ describe('search', () => {
                 );
 
                 const createdReminder = await db('reminders')
-                    .where({ user_id: testUser.id, title: 'google.com' })
+                    .where({ user_id: testUser.id, title: 'Untitled' })
                     .first();
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.reminder_type).toBe('recurring');
                 expect(createdReminder.frequency).toBe('daily');
-                expect(createdReminder.content).toBeNull();
+                expect(createdReminder.content).toBe('google.com');
             });
 
             it('should create reminder with pipe-separated format', async () => {
@@ -2315,11 +2315,11 @@ describe('search', () => {
                 expect(res.status).toHaveBeenCalledWith(200);
 
                 const createdReminder = await db('reminders')
-                    .where({ user_id: 1, title: 'google.com' })
+                    .where({ user_id: 1, title: 'Untitled' })
                     .first();
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('daily');
-                expect(createdReminder.content).toBeNull();
+                expect(createdReminder.content).toBe('google.com');
             });
 
             it('should detect URL as description without pipe (weekly timing)', async () => {
@@ -2340,11 +2340,11 @@ describe('search', () => {
                 expect(res.status).toHaveBeenCalledWith(200);
 
                 const createdReminder = await db('reminders')
-                    .where({ user_id: 1, title: 'https://example.com' })
+                    .where({ user_id: 1, title: 'Untitled' })
                     .first();
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('weekly');
-                expect(createdReminder.content).toBeNull();
+                expect(createdReminder.content).toBe('https://example.com');
             });
 
             it('should detect URL as description with default timing', async () => {

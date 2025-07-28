@@ -613,8 +613,8 @@ function parseReminderContent(
             if (!description) {
                 return {
                     when: firstWord,
-                    description: url,
-                    content: null,
+                    description: 'Untitled',
+                    content: url,
                 };
             }
 
@@ -643,8 +643,8 @@ function parseReminderContent(
             if (!description) {
                 return {
                     when: firstWord,
-                    description: url,
-                    content: null,
+                    description: 'Untitled',
+                    content: url,
                 };
             }
 
@@ -682,8 +682,8 @@ function parseReminderContent(
         if (!description) {
             return {
                 when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
-                description: url,
-                content: null,
+                description: 'Untitled',
+                content: url,
             };
         }
 
@@ -721,8 +721,8 @@ function parseReminderContent(
         if (!description) {
             return {
                 when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
-                description: url,
-                content: null,
+                description: 'Untitled',
+                content: url,
             };
         }
 
