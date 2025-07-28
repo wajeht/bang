@@ -557,10 +557,12 @@ function parseReminderContent(
     const validTimingKeywords = ['daily', 'weekly', 'biweekly', 'monthly'];
     const datePattern = /^(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/\d{4}|\w{3}-\d{1,2})$/;
 
+    // Handle pipe-separated format: !remind [timing] description | content
     if (reminderContent.includes('|')) {
         const parts = reminderContent.split('|').map((part) => part.trim());
         const firstPart = parts[0] || '';
 
+        // Check if first word is a timing keyword
         const firstWord = firstPart.split(' ')[0]?.toLowerCase() || '';
         const isValidTiming =
             validTimingKeywords.includes(firstWord) || datePattern.test(firstWord);
@@ -569,12 +571,14 @@ function parseReminderContent(
             const remainingFirstPart = firstPart.split(' ').slice(1).join(' ').trim();
 
             if (remainingFirstPart) {
+                // Format: !remind daily description | content
                 return {
                     when: firstWord,
                     description: remainingFirstPart,
                     content: parts[1] || null,
                 };
             } else {
+                // Format: !remind daily | description [| content]
                 return {
                     when: firstWord,
                     description: parts[1] || '',
@@ -582,6 +586,7 @@ function parseReminderContent(
                 };
             }
         } else {
+            // No timing keyword, use default timing
             return {
                 when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
                 description: firstPart,
@@ -590,12 +595,14 @@ function parseReminderContent(
         }
     }
 
+    // Handle space-separated format with timing keyword: !remind daily description
     const words = reminderContent.split(' ');
     const firstWord = words[0]?.toLowerCase() || '';
 
     if (validTimingKeywords.includes(firstWord) || datePattern.test(firstWord)) {
         const remainingText = words.slice(1).join(' ');
 
+        // Look for URLs with protocols in the remaining text
         const urlMatch = remainingText.match(/(https?:\/\/[^\s]+)/);
 
         if (urlMatch) {
@@ -618,6 +625,7 @@ function parseReminderContent(
             };
         }
 
+        // Look for domain-like patterns (e.g., google.com)
         const remainingWords = words.slice(1);
         let urlIndex = -1;
         for (let i = 0; i < remainingWords.length; i++) {
@@ -654,6 +662,7 @@ function parseReminderContent(
         };
     }
 
+    // Handle URL-only input (for automatic title fetching)
     if (isUrlLike(reminderContent.trim())) {
         return {
             when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
@@ -662,6 +671,7 @@ function parseReminderContent(
         };
     }
 
+    // Look for URLs with protocols in simple format
     const urlMatch = reminderContent.match(/(https?:\/\/[^\s]+)/);
 
     if (urlMatch) {
@@ -684,6 +694,7 @@ function parseReminderContent(
         };
     }
 
+    // Look for domain-like patterns in simple format
     const words2 = reminderContent.split(' ');
     let urlIndex = -1;
     for (let i = 0; i < words2.length; i++) {
@@ -698,6 +709,7 @@ function parseReminderContent(
         const description = words2.slice(0, urlIndex).join(' ');
         const url = words2[urlIndex] || '';
 
+        // Single URL word - set up for title fetching
         if (!description && words2.length === 1) {
             return {
                 when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
