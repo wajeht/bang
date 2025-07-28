@@ -1173,6 +1173,13 @@ export function postDeleteSettingsDangerZoneHandler(db: Knex) {
             throw new NotFoundError('User not found');
         }
 
+        const confirmation = req.body.confirmation?.trim();
+        if (confirmation !== 'DELETE ACCOUNT') {
+            throw new ValidationError({
+                confirmation: 'You must type "DELETE ACCOUNT" to confirm account deletion',
+            });
+        }
+
         const exportOptions = req.body.export_options || [];
         const includeJson = Array.isArray(exportOptions)
             ? exportOptions.includes('json')
@@ -1240,6 +1247,25 @@ export function postBulkDeleteSettingsDangerZoneHandler(db: Knex) {
             ? deleteOptions.includes('api_keys')
             : deleteOptions === 'api_keys';
 
+        // Check if all options are selected - if so, require confirmation
+        const allOptionsSelected =
+            deleteActions &&
+            deleteTabs &&
+            deleteBookmarks &&
+            deleteNotes &&
+            deleteReminders &&
+            deleteApiKeys;
+
+        if (allOptionsSelected) {
+            const confirmation = req.body.confirmation?.trim();
+            if (confirmation !== 'DELETE DATA') {
+                throw new ValidationError({
+                    confirmation:
+                        'You must type "DELETE DATA" to confirm bulk deletion of all data',
+                });
+            }
+        }
+
         if (
             !deleteActions &&
             !deleteTabs &&
@@ -1290,25 +1316,35 @@ export function postBulkDeleteSettingsDangerZoneHandler(db: Knex) {
                     deleteCounts.api_keys = 1; // Always 1 since it's per user
                 }
 
-                // Build success message
-                const deletedItems = [];
-                if (deleteCounts.actions && deleteCounts.actions > 0)
-                    deletedItems.push(`${deleteCounts.actions} actions`);
-                if (deleteCounts.tabs && deleteCounts.tabs > 0)
-                    deletedItems.push(`${deleteCounts.tabs} tabs`);
-                if (deleteCounts.bookmarks && deleteCounts.bookmarks > 0)
-                    deletedItems.push(`${deleteCounts.bookmarks} bookmarks`);
-                if (deleteCounts.notes && deleteCounts.notes > 0)
-                    deletedItems.push(`${deleteCounts.notes} notes`);
-                if (deleteCounts.reminders && deleteCounts.reminders > 0)
-                    deletedItems.push(`${deleteCounts.reminders} reminders`);
-                if (deleteCounts.api_keys && deleteCounts.api_keys > 0)
-                    deletedItems.push('API keys');
+                const processedItems = [];
+                if (deleteActions) {
+                    const count = deleteCounts.actions ?? 0;
+                    processedItems.push(count > 0 ? `${count} actions` : '0 actions');
+                }
+                if (deleteTabs) {
+                    const count = deleteCounts.tabs ?? 0;
+                    processedItems.push(count > 0 ? `${count} tabs` : '0 tabs');
+                }
+                if (deleteBookmarks) {
+                    const count = deleteCounts.bookmarks ?? 0;
+                    processedItems.push(count > 0 ? `${count} bookmarks` : '0 bookmarks');
+                }
+                if (deleteNotes) {
+                    const count = deleteCounts.notes ?? 0;
+                    processedItems.push(count > 0 ? `${count} notes` : '0 notes');
+                }
+                if (deleteReminders) {
+                    const count = deleteCounts.reminders ?? 0;
+                    processedItems.push(count > 0 ? `${count} reminders` : '0 reminders');
+                }
+                if (deleteApiKeys) {
+                    processedItems.push('API keys');
+                }
 
-                if (deletedItems.length > 0) {
-                    req.flash('success', `🗑️ Successfully deleted: ${deletedItems.join(', ')}`);
+                if (processedItems.length > 0) {
+                    req.flash('success', `🗑️ Successfully processed: ${processedItems.join(', ')}`);
                 } else {
-                    req.flash('info', 'No data was deleted (selected types may have been empty)');
+                    req.flash('info', 'No data types were selected for deletion');
                 }
             });
         } catch (error) {
