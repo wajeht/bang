@@ -4,6 +4,7 @@ import {
     getApiKey,
     isApiRequest,
     getFaviconUrl,
+    isUrlLike,
     highlightSearchTerm,
     verifyTurnstileToken,
 } from './utils/util';
@@ -218,6 +219,7 @@ export function setupAppLocals(req: Request, res: Response) {
     res.locals.utils = {
         nl2br,
         getFaviconUrl,
+        isUrlLike,
         highlightSearchTerm,
     };
 }

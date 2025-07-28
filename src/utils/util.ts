@@ -88,18 +88,21 @@ export async function insertBookmark({
 export async function insertPageTitle({
     bookmarkId,
     actionId,
+    reminderId,
     url,
     req,
 }: {
     bookmarkId?: number;
     actionId?: number;
+    reminderId?: number;
     url: string;
     req?: Request;
 }): Promise<void> {
-    if ((bookmarkId && actionId) || (!bookmarkId && !actionId)) {
+    const idCount = [bookmarkId, actionId, reminderId].filter((id) => id !== undefined).length;
+    if (idCount !== 1) {
         throw new HttpError(
             500,
-            'You must pass in exactly one id: either bookmarkId or actionId',
+            'You must pass in exactly one id: either bookmarkId, actionId, or reminderId',
             req,
         );
     }
@@ -123,6 +126,16 @@ export async function insertPageTitle({
                 .update({ name: title, updated_at: db.fn.now() });
         } catch (error) {
             logger.error(`[insertPageTitle]: error updating bangs name, %o`, { error });
+        }
+    }
+
+    if (reminderId) {
+        try {
+            await db('reminders')
+                .where({ id: reminderId })
+                .update({ title, updated_at: db.fn.now() });
+        } catch (error) {
+            logger.error(`[insertPageTitle]: error updating reminder title, %o`, { error });
         }
     }
 }
@@ -1120,6 +1133,26 @@ export function getFaviconUrl(url: string): string {
     }
     // return `https://favicon.jaw.dev/?url=${domain}`;
     return `https://www.google.com/s2/favicons?sz=16&domain_url=${domain}`;
+}
+
+export function isUrlLike(str: string): boolean {
+    if (!str || typeof str !== 'string') return false;
+
+    if (isValidUrl(str)) return true;
+
+    const domainPattern =
+        /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+
+    if (domainPattern.test(str.trim())) {
+        try {
+            new URL(`https://${str.trim()}`);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    return false;
 }
 
 export async function sendReminderDigestEmail({

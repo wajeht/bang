@@ -5,6 +5,7 @@ import {
     addHttps,
     getApiKey,
     isValidUrl,
+    isUrlLike,
     expectJson,
     extractUser,
     isApiRequest,
@@ -47,6 +48,46 @@ describe.concurrent('isValidUrl', () => {
         expect(isValidUrl(undefined)).toBeFalsy();
         // @ts-ignore to simulate incorrect input
         expect(isValidUrl(123)).toBeFalsy();
+    });
+});
+
+describe.concurrent('isUrlLike', () => {
+    it('should return true for valid full URLs', () => {
+        expect(isUrlLike('https://example.com')).toBeTruthy();
+        expect(isUrlLike('http://example.com')).toBeTruthy();
+        expect(isUrlLike('https://sub.example.com')).toBeTruthy();
+        expect(isUrlLike('https://example.com/path?query=param')).toBeTruthy();
+    });
+
+    it('should return true for domain-like patterns', () => {
+        expect(isUrlLike('google.com')).toBeTruthy();
+        expect(isUrlLike('example.org')).toBeTruthy();
+        expect(isUrlLike('sub.domain.co.uk')).toBeTruthy();
+        expect(isUrlLike('github.io')).toBeTruthy();
+    });
+
+    it('should return false for invalid domain patterns', () => {
+        expect(isUrlLike('not-a-url')).toBeFalsy();
+        expect(isUrlLike('example')).toBeFalsy();
+        expect(isUrlLike('example.')).toBeFalsy();
+        expect(isUrlLike('.com')).toBeFalsy();
+        expect(isUrlLike('')).toBeFalsy();
+        expect(isUrlLike('just text')).toBeFalsy();
+    });
+
+    it('should return false for non-string inputs', () => {
+        // @ts-ignore to simulate incorrect input
+        expect(isUrlLike(null)).toBeFalsy();
+        // @ts-ignore to simulate incorrect input
+        expect(isUrlLike(undefined)).toBeFalsy();
+        // @ts-ignore to simulate incorrect input
+        expect(isUrlLike(123)).toBeFalsy();
+    });
+
+    it('should handle edge cases', () => {
+        expect(isUrlLike(' google.com ')).toBeTruthy();
+        expect(isUrlLike('a.b')).toBeFalsy();
+        expect(isUrlLike('localhost')).toBeFalsy();
     });
 });
 
