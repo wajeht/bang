@@ -32,20 +32,22 @@ test.describe('Actions', () => {
         await expect(page.locator('table')).toContainText('!testaction');
     });
 
-    test('can search and use actions', async ({ page }) => {
+    test('can search and use actions', async ({ page, baseURL }) => {
         await page.goto('/actions/create');
 
         await page.getByLabel('⚡ Trigger').fill('testsearch');
         await page.getByLabel('📝 Name').fill('Test Search Action');
-        await page.getByLabel('🌐 URL').fill('https://example.com/search?q={{{s}}}');
+        await page.getByLabel('🌐 URL').fill(`${baseURL}/search/results?q={{{s}}}`);
         await page.getByLabel('🏷️ Action Type').selectOption('search');
         await page.getByRole('button', { name: '💾 Save' }).click();
+
+        await expect(page).toHaveURL('/actions');
+        await expect(page.locator('body')).toContainText('Action !testsearch created successfully');
 
         await page.goto('/');
 
         await page.getByRole('searchbox').fill('!testsearch hello world');
-        await page.getByRole('button', { name: 'Submit search' }).click();
-
-        await expect(page).toHaveURL('https://example.com/search?q=hello%20world');
+        await page.getByRole('searchbox').press('Enter');
+        await expect(page).toHaveURL(`${baseURL}/search/results?q=hello%20world`);
     });
 });
