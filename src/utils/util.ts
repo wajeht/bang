@@ -229,7 +229,7 @@ export function isValidUrl(url: string): boolean {
         new URL(url);
         return true;
     } catch (error) {
-        logger.error(`[isValidUrl]: Not a valid url, %o`, { error });
+        // logger.error(`[isValidUrl]: Not a valid url, %o`, { error });
         return false;
     }
 }
