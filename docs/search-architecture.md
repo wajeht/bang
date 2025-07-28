@@ -213,6 +213,12 @@ Search across all data types.
 !st <query>
 ```
 
+### Search Users
+
+```
+!su <query>
+```
+
 #### Example
 
 ```
@@ -289,5 +295,5 @@ Search across all data types.
 @bm <query> → Search bookmarks
 @t <query>  → Search tabs
 @n <query>  → Search notes
-@u <query>  → Search settings users
+@u <query>  → Search users
 ```
