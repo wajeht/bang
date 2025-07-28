@@ -84,15 +84,6 @@ export async function up(knex: Knex): Promise<void> {
         });
     }
 
-    if (!(await knex.schema.hasTable('action_types'))) {
-        await knex.schema.createTable('action_types', (table) => {
-            table.increments('id').primary();
-            table.string('name').unique().notNullable();
-            table.string('description');
-            table.timestamps(true, true);
-        });
-    }
-
     if (!(await knex.schema.hasTable('bookmarks'))) {
         await knex.schema.createTable('bookmarks', (table) => {
             table.increments('id').primary();
@@ -123,7 +114,7 @@ export async function up(knex: Knex): Promise<void> {
                 .onDelete('CASCADE');
             table.string('trigger').notNullable();
             table.string('name').notNullable();
-            table.integer('action_type_id').unsigned().references('id').inTable('action_types');
+            table.string('action_type').notNullable().defaultTo('redirect');
             table.text('url').notNullable();
             table.timestamps(true, true);
             table.timestamp('last_read_at').nullable();
@@ -134,7 +125,7 @@ export async function up(knex: Knex): Promise<void> {
             table.index(['user_id', 'trigger']);
             table.index(['trigger'], 'bangs_trigger_idx');
             table.index(['user_id', 'created_at'], 'bangs_user_created_idx');
-            table.index(['action_type_id'], 'bangs_action_type_idx');
+            table.index(['action_type'], 'bangs_action_type_idx');
             table.index(['user_id', 'usage_count'], 'bangs_user_usage_idx');
             table.index(['user_id', 'trigger', 'last_read_at'], 'bangs_user_trigger_last_read_idx');
         });
@@ -201,13 +192,6 @@ export async function up(knex: Knex): Promise<void> {
             table.index(['due_date', 'processed'], 'reminders_due_date_processed_idx'); // cron job queries
         });
     }
-
-    // Insert default action types
-    await knex('action_types').insert([
-        { name: 'search' },
-        { name: 'redirect' },
-        { name: 'bookmark' },
-    ]);
 }
 
 export async function down(knex: Knex): Promise<void> {
@@ -218,7 +202,6 @@ export async function down(knex: Knex): Promise<void> {
         'notes',
         'bangs',
         'bookmarks',
-        'action_types',
         'users',
         'sessions',
     ]) {

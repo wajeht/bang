@@ -80,34 +80,12 @@ export async function seed(knex: Knex): Promise<void> {
             })
             .returning('*');
 
-        let actionTypes = await knex('action_types').select('*');
-
-        if (actionTypes.length === 0) {
-            logger.info('No action types found. Creating them now...');
-
-            await knex('action_types').insert([
-                { name: 'search', description: 'Search action' },
-                { name: 'redirect', description: 'Redirect action' },
-                { name: 'bookmark', description: 'Bookmark action' },
-            ]);
-
-            actionTypes = await knex('action_types').select('*');
-        }
-
-        const searchType = actionTypes.find((type) => type.name === 'search');
-        const redirectType = actionTypes.find((type) => type.name === 'redirect');
-        const bookmarkType = actionTypes.find((type) => type.name === 'bookmark');
-
-        if (!searchType || !redirectType || !bookmarkType) {
-            throw new Error('Required action types not found');
-        }
-
         const bangs = [
             {
                 user_id: user.id,
                 trigger: '!g',
                 name: 'Google Search',
-                action_type_id: searchType.id,
+                action_type: 'search',
                 last_read_at: null,
                 url: 'https://www.google.com/search?q={query}',
             },
@@ -115,7 +93,7 @@ export async function seed(knex: Knex): Promise<void> {
                 user_id: user.id,
                 trigger: '!ddg',
                 name: 'DuckDuckGo Search',
-                action_type_id: searchType.id,
+                action_type: 'search',
                 last_read_at: null,
                 url: 'https://duckduckgo.com/?q={query}',
             },
@@ -123,7 +101,7 @@ export async function seed(knex: Knex): Promise<void> {
                 user_id: user.id,
                 trigger: '!gh',
                 name: 'GitHub',
-                action_type_id: redirectType.id,
+                action_type: 'redirect',
                 last_read_at: null,
                 url: 'https://github.com',
             },
@@ -131,7 +109,7 @@ export async function seed(knex: Knex): Promise<void> {
                 user_id: user.id,
                 trigger: '!yt',
                 name: 'YouTube Search',
-                action_type_id: searchType.id,
+                action_type: 'search',
                 last_read_at: null,
                 url: 'https://www.youtube.com/results?search_query={query}',
             },
@@ -139,7 +117,7 @@ export async function seed(knex: Knex): Promise<void> {
                 user_id: user.id,
                 trigger: '!maps',
                 name: 'Google Maps',
-                action_type_id: searchType.id,
+                action_type: 'search',
                 last_read_at: null,
                 url: 'https://www.google.com/maps/search/{query}',
             },
@@ -147,7 +125,7 @@ export async function seed(knex: Knex): Promise<void> {
                 user_id: user.id,
                 trigger: '!w',
                 name: 'Wikipedia',
-                action_type_id: searchType.id,
+                action_type: 'search',
                 url: 'https://en.wikipedia.org/wiki/Special:Search/{query}',
             },
         ];

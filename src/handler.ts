@@ -336,13 +336,12 @@ export function getActionssTabsCreatePageHandler() {
 export function getEditActionPageHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const action = await db
-            .select('bangs.*', 'action_types.name as action_type')
+            .select('bangs.*')
             .from('bangs')
             .where({
                 'bangs.id': req.params.id,
                 'bangs.user_id': (req.user as User).id,
             })
-            .join('action_types', 'bangs.action_type_id', 'action_types.id')
             .first();
 
         if (!action) {
@@ -971,11 +970,7 @@ export function postImportDataHandler(db: Knex) {
                 // Import actions
                 if (importData.actions?.length > 0) {
                     for (const action of importData.actions) {
-                        const actionType = await trx('action_types')
-                            .where('name', action.action_type)
-                            .first();
-
-                        if (actionType) {
+                        if (['search', 'redirect'].includes(action.action_type)) {
                             // Check if action already exists for this user
                             const existingAction = await trx('bangs')
                                 .where({
@@ -991,7 +986,7 @@ export function postImportDataHandler(db: Knex) {
                                     trigger: action.trigger,
                                     name: action.name,
                                     url: action.url,
-                                    action_type_id: actionType.id,
+                                    action_type: action.action_type,
                                     created_at: db.fn.now(),
                                 });
                             }
@@ -1224,13 +1219,12 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
             .select('username', 'email', 'default_search_provider', 'created_at')
             .first(),
         db('bangs')
-            .join('action_types', 'bangs.action_type_id', 'action_types.id')
             .where('bangs.user_id', userId)
             .select(
                 'bangs.trigger',
                 'bangs.name',
                 'bangs.url',
-                'action_types.name as action_type',
+                'bangs.action_type',
                 'bangs.created_at',
             ),
         db('bookmarks').where('user_id', userId).select('title', 'url', 'created_at'),

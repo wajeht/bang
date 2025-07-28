@@ -216,7 +216,7 @@ describe('Import Data Handler', () => {
             trigger: '!test',
             name: 'Test Action',
             url: 'https://example.com',
-            action_type_id: 2, // redirect
+            action_type: 'redirect',
             created_at: new Date(),
         });
 

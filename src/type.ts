@@ -27,7 +27,7 @@ export type DefaultSearchProviders = 'duckduckgo' | 'google' | 'yahoo' | 'bing';
 
 export type PageType = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders';
 
-export type ActionTypes = 'bookmark' | 'redirect' | 'search';
+export type ActionTypes = 'redirect' | 'search';
 
 export type ApiKeyPayload = { userId: number; apiKeyVersion: number };
 
@@ -145,7 +145,7 @@ export type Action = {
     name: string;
     trigger: string;
     url: string;
-    action_type_id?: number;
+    action_type: ActionTypes;
     user_id: number;
     created_at?: string;
 };
@@ -244,9 +244,9 @@ export type Pagination = {
 
 export interface Actions {
     all: (params: ActionsQueryParams) => Promise<any>;
-    create: (action: Action & { actionType: string }) => Promise<Action>;
-    read: (id: number, userId: number) => Promise<Action & { action_type: string }>;
-    update: (id: number, userId: number, updates: Partial<Action> & { actionType: string }) => Promise<Action>; // prettier-ignore
+    create: (action: Action & { actionType: ActionTypes }) => Promise<Action>;
+    read: (id: number, userId: number) => Promise<Action>;
+    update: (id: number, userId: number, updates: Partial<Action> & { actionType: ActionTypes }) => Promise<Action>; // prettier-ignore
     delete: (id: number, userId: number) => Promise<boolean>;
 }
 

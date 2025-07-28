@@ -133,7 +133,7 @@ export const actions: Actions = {
         const query = db.select(
             'bangs.id',
             'bangs.user_id',
-            'bangs.action_type_id',
+            'bangs.action_type',
             'bangs.created_at',
             'bangs.updated_at',
             'bangs.last_read_at',
@@ -145,19 +145,16 @@ export const actions: Actions = {
                 .select(db.raw(`${sqlHighlight('bangs.name', search)} as name`))
                 .select(db.raw(`${sqlHighlight('bangs.trigger', search)} as trigger`))
                 .select(db.raw(`${sqlHighlight('bangs.url', search)} as url`))
-                .select(db.raw(`${sqlHighlight('action_types.name', search)} as action_type`));
+                .select(db.raw(`${sqlHighlight('bangs.action_type', search)} as action_type`));
         } else {
             query
                 .select('bangs.name')
                 .select('bangs.trigger')
                 .select('bangs.url')
-                .select('action_types.name as action_type');
+                .select('bangs.action_type');
         }
 
-        query
-            .from('bangs')
-            .join('action_types', 'bangs.action_type_id', 'action_types.id')
-            .where('bangs.user_id', user.id);
+        query.from('bangs').where('bangs.user_id', user.id);
 
         if (search) {
             const searchTerms = search
@@ -190,11 +187,7 @@ export const actions: Actions = {
                 'usage_count',
             ].includes(sortKey)
         ) {
-            if (sortKey === 'action_type') {
-                query.orderBy('action_types.name', direction);
-            } else {
-                query.orderBy(`bangs.${sortKey}`, direction);
-            }
+            query.orderBy(`bangs.${sortKey}`, direction);
         } else {
             query.orderBy('bangs.created_at', 'desc');
         }
@@ -213,19 +206,14 @@ export const actions: Actions = {
             throw new Error('Missing required fields to create an action');
         }
 
-        const actionTypeRecord = await db('action_types')
-            .where({ name: action.actionType })
-            .first();
-
-        if (!actionTypeRecord) {
+        if (!['search', 'redirect'].includes(action.actionType)) {
             throw new Error('Invalid action type');
         }
 
-        action.action_type_id = actionTypeRecord.id;
+        const { actionType, ...rest } = action;
+        const actionData = { ...rest, action_type: actionType };
 
-        const { actionType: _actionType, ...rest } = action;
-
-        const [createdAction] = await db('bangs').insert(rest).returning('*');
+        const [createdAction] = await db('bangs').insert(actionData).returning('*');
         return createdAction;
     },
 
@@ -236,12 +224,11 @@ export const actions: Actions = {
                 'bangs.name',
                 'bangs.trigger',
                 'bangs.url',
-                'action_types.name as action_type',
+                'bangs.action_type',
                 'bangs.created_at',
                 'bangs.last_read_at',
             )
             .from('bangs')
-            .join('action_types', 'bangs.action_type_id', 'action_types.id')
             .where({ 'bangs.id': id, 'bangs.user_id': userId })
             .first();
 
@@ -266,15 +253,11 @@ export const actions: Actions = {
             throw new Error('No valid fields provided for update');
         }
 
-        const actionTypeRecord = await db('action_types')
-            .where({ name: updates.actionType })
-            .first();
-
-        if (!actionTypeRecord) {
+        if (!['search', 'redirect'].includes(updates.actionType)) {
             throw new Error('Invalid action type');
         }
 
-        updateData.action_type_id = actionTypeRecord.id;
+        updateData.action_type = updates.actionType;
 
         const { actionType: _actionType, ...rest } = updateData;
 

@@ -1110,7 +1110,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                         user_id: user.id,
                         trigger: bangTrigger,
                         name: 'Fetching title...',
-                        action_type_id: 2, // redirect
+                        action_type: 'redirect',
                         url: bangUrl,
                     })
                     .returning('*');
@@ -1503,9 +1503,8 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
         try {
             customBang = await db('bangs')
-                .select('bangs.id', 'bangs.url', 'action_types.name as action_type')
+                .select('bangs.id', 'bangs.url', 'bangs.action_type')
                 .where({ 'bangs.user_id': user.id, 'bangs.trigger': trigger })
-                .join('action_types', 'bangs.action_type_id', 'action_types.id')
                 .first();
         } catch (error) {
             logger.error('Database error fetching custom bang:', error);

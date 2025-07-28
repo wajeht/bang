@@ -269,7 +269,6 @@ describe('search', () => {
             await db('reminders').del();
             await db('bookmarks').del();
             await db('bangs').del();
-            await db('action_types').del();
             await db('users').del();
 
             await db('users').insert({
@@ -280,24 +279,19 @@ describe('search', () => {
                 default_search_provider: 'duckduckgo',
             });
 
-            await db('action_types').insert([
-                { id: 1, name: 'search' },
-                { id: 2, name: 'redirect' },
-            ]);
-
             await db('bangs').insert([
                 {
                     user_id: 1,
                     trigger: '!custom',
                     name: 'Custom Search',
-                    action_type_id: 1,
+                    action_type: 'search',
                     url: 'https://example.com/search?q={{{s}}}',
                 },
                 {
                     user_id: 1,
                     trigger: '!mysite',
                     name: 'My Site',
-                    action_type_id: 2,
+                    action_type: 'redirect',
                     url: 'https://mysite.com',
                 },
             ]);
@@ -307,7 +301,6 @@ describe('search', () => {
             await db('reminders').del();
             await db('bookmarks').del();
             await db('bangs').del();
-            await db('action_types').del();
             await db('users').del();
         });
 
@@ -601,7 +594,7 @@ describe('search', () => {
                 user_id: 1,
                 trigger: '!querytest',
                 name: 'Query Test Search',
-                action_type_id: 1,
+                action_type: 'search',
                 url: 'https://query-example.com/search?q={query}',
             });
 
@@ -635,7 +628,7 @@ describe('search', () => {
                 user_id: 1,
                 trigger: '!stest',
                 name: 'S Test Search',
-                action_type_id: 1,
+                action_type: 'search',
                 url: 'https://s-example.com/search?q={{{s}}}',
             });
 
@@ -1194,7 +1187,7 @@ describe('search', () => {
                     user_id: 1,
                     trigger: '!deleteme',
                     name: 'Delete Test',
-                    action_type_id: 2,
+                    action_type: 'redirect',
                     url: 'https://delete-test.com',
                 });
             });
@@ -1235,7 +1228,7 @@ describe('search', () => {
                     user_id: 1,
                     trigger: '!deleteme2',
                     name: 'Delete Test 2',
-                    action_type_id: 2,
+                    action_type: 'redirect',
                     url: 'https://delete-test2.com',
                 });
 
@@ -1379,7 +1372,7 @@ describe('search', () => {
                         user_id: 1,
                         trigger: '!editme',
                         name: 'Edit Test',
-                        action_type_id: 2,
+                        action_type: 'redirect',
                         url: 'https://edit-test.com',
                     },
                     {
@@ -1387,7 +1380,7 @@ describe('search', () => {
                         user_id: 1,
                         trigger: '!existing',
                         name: 'Existing Bang',
-                        action_type_id: 2,
+                        action_type: 'redirect',
                         url: 'https://existing.com',
                     },
                 ]);
