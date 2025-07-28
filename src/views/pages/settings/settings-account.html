@@ -113,10 +113,12 @@
     <legend>🔑 API Key <% if (user.api_key_version > 0) { %>(v<%= user.api_key_version %>)<% } %></legend>
 
     <% if (user.api_key) { %>
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; min-width: 0; flex-wrap: wrap;">
-          <button type="button" onclick="viewApiKey()" class="no-style-btn" id="view-or-hide-button" aria-describedby="api-key-display" style="flex-shrink: 0;">👁️ View</button>
-          <button type="button" onclick="copyApiKey()" class="no-style-btn" style="flex-shrink: 0;">📋 Copy</button>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; min-width: 0; flex-wrap: wrap;">
           <a href="/api-docs" target="_blank" rel="noopener noreferrer" style="flex-shrink: 0;">📃 Docs</a>
+          <div style="display: flex; gap: 10px">
+            <button type="button" onclick="viewApiKey()" class="no-style-btn" id="view-or-hide-button" aria-describedby="api-key-display" style="flex-shrink: 0;">👁️ View</button>
+            <button type="button" onclick="copyApiKey()" class="no-style-btn" style="flex-shrink: 0;">📋 Copy</button>
+          </div>
       </div>
     <% } %>
 
