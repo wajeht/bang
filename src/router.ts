@@ -75,6 +75,7 @@ import {
     getBookmarksTabsCreatePageHandler,
     getBookmarkActionCreatePageHandler,
     postDeleteSettingsDangerZoneHandler,
+    postBulkDeleteSettingsDangerZoneHandler,
 } from './handler';
 
 import { api } from './utils/util';
@@ -126,6 +127,7 @@ router.post('/settings/data/export', authenticationMiddleware, postExportDataHan
 router.get('/settings/danger-zone', authenticationMiddleware, getSettingsDangerZonePageHandler());
 router.post('/settings/create-api-key', authenticationMiddleware, postSettingsCreateApiKeyHandler(db, api)); // prettier-ignore
 router.post('/settings/danger-zone/delete', authenticationMiddleware, postDeleteSettingsDangerZoneHandler(db)); // prettier-ignore
+router.post('/settings/danger-zone/bulk-delete', authenticationMiddleware, postBulkDeleteSettingsDangerZoneHandler(db)); // prettier-ignore
 
 router.get('/actions', authenticationMiddleware, getActionsHandler(actions));
 router.post('/actions', authenticationMiddleware, postActionHandler(actions));
