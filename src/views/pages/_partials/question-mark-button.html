@@ -1,4 +1,4 @@
-<button class="question-mark-btn" onclick="document.getElementById('question-mark-btn-dialog').showModal()" aria-label="Show help information">?</button>
+<button class="question-mark-btn" onclick="const dialog = document.getElementById('question-mark-btn-dialog'); dialog.showModal(); dialog.scrollTop = 0;" aria-label="Show help information">?</button>
 
 <dialog id="question-mark-btn-dialog" aria-labelledby="help-title">
     <header>
