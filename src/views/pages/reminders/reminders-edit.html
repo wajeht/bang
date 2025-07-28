@@ -41,8 +41,11 @@
                 name: 'when',
                 label: '⏰ When',
                 required: true,
-                value: state.input && state.input.when ? state.input.when : (reminder.reminder_type === 'recurring' ? reminder.frequency : 'tomorrow'),
-                options: timingOptions,
+                options: timingOptions.map(option => ({
+                    value: option.value,
+                    text: option.text,
+                    selected: (state.input && state.input.when ? state.input.when : (reminder.reminder_type === 'recurring' ? reminder.frequency : 'custom')) === option.value
+                })),
                 helpText: 'When should you be reminded? Choose from preset options or select Custom Date for a specific date.',
                 error: state.errors && state.errors.when ? state.errors.when : undefined
             }) %>
