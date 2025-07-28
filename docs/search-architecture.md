@@ -9,16 +9,32 @@ This document outlines the command structure and usage patterns for the Bangs sy
 Create custom triggers (bangs) that redirect to specific URLs.
 
 ### Syntax
+
+#### Quick Action
 ```
 !a <trigger> <url>
 ```
 
-### Examples
+#### Examples
 ```
-!a !rr https://bangs.jaw.dev
-!a !rr bangs.jaw.dev
-!a !rr http://bangs.jaw.dev
-!a !rr www.bangs.jaw.dev
+!a !test https://test.jaw.dev
+!a !test test.jaw.dev
+!a !test http://test.jaw.dev
+!a !test www.test.jaw.dev
+```
+
+#### Action with Title
+```
+!a <trigger> <title> <url>
+```
+
+#### Examples
+
+```
+!a !test test https://test.jaw.dev
+!a !test test test.jaw.dev
+!a !test test http://test.jaw.dev
+!a !test test www.test.jaw.dev
 ```
 
 ---
@@ -36,10 +52,10 @@ Save URLs for quick access.
 
 #### Examples
 ```
-!bm https://bangs.jaw.dev
-!bm bangs.jaw.dev
-!bm http://bangs.jaw.dev
-!bm www.bangs.jaw.dev
+!bm https://test.jaw.dev
+!bm test.jaw.dev
+!bm http://test.jaw.dev
+!bm www.test.jaw.dev
 ```
 
 ### Bookmark with Title
@@ -51,10 +67,10 @@ Save URLs for quick access.
 
 #### Examples
 ```
-!bm Richard Hendricks https://bangs.jaw.dev
-!bm Richard Hendricks bangs.jaw.dev
-!bm Richard Hendricks http://bangs.jaw.dev
-!bm Richard Hendricks www.bangs.jaw.dev
+!bm hardcoded title https://test.jaw.dev
+!bm hardcoded title test.jaw.dev
+!bm hardcoded title http://test.jaw.dev
+!bm hardcoded title www.test.jaw.dev
 ```
 
 ---
@@ -98,7 +114,7 @@ Create personal reminders with or without time.
 
 #### Syntax
 ```
-!r <description>
+!r <title>
 ```
 
 #### Example
@@ -110,7 +126,7 @@ Create personal reminders with or without time.
 
 #### Syntax
 ```
-!r <when> | <description>
+!r <when> | <title>
 ```
 
 #### Examples
@@ -130,9 +146,12 @@ Create personal reminders with or without time.
 
 #### Examples
 ```
+!r Gym | Go to the gym at 5pm (will use default timing)
 !r 2025-07-26 | Gym | Go to the gym at 5pm
-!r tomorrow | Meeting | https://zoom.us/meeting123
-!r weekly | Review | Check weekly metrics
+!r 2025-07-26 Gym | Go to the gym at 5pm
+!r tomorrow | Meeting https://zoom.us/meeting123
+!r tomorrow Meeting https://zoom.us/meeting123 (notice no pipe operator when there is a URL)
+!r weekly Review Check weekly metrics
 ```
 
 ---
