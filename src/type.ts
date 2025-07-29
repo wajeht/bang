@@ -198,6 +198,36 @@ export type NotesQueryParams = {
     highlight?: boolean;
 };
 
+export type Tab = {
+    id?: number;
+    title: string;
+    trigger: string;
+    user_id: number;
+    created_at?: string;
+    updated_at?: string;
+    items_count?: number;
+    items?: TabItem[];
+};
+
+export type TabItem = {
+    id?: number;
+    tab_id: number;
+    title: string;
+    url: string;
+    created_at?: string;
+    updated_at?: string;
+};
+
+export type TabsQueryParams = {
+    user: { id: number };
+    perPage: number;
+    page: number;
+    search: string;
+    sortKey: string | 'created_at';
+    direction: string | 'asc' | 'desc';
+    highlight?: boolean;
+};
+
 export type Reminder = {
     id?: number;
     title: string;
@@ -263,6 +293,14 @@ export interface Notes {
     create: (note: Note) => Promise<Note>;
     read: (id: number, userId: number) => Promise<Note>;
     update: (id: number, userId: number, updates: Partial<Note>) => Promise<Note>;
+    delete: (id: number, userId: number) => Promise<boolean>;
+}
+
+export interface Tabs {
+    all: (params: TabsQueryParams) => Promise<any>;
+    create: (tab: Tab) => Promise<Tab>;
+    read: (id: number, userId: number) => Promise<Tab>;
+    update: (id: number, userId: number, updates: Partial<Tab>) => Promise<Tab>;
     delete: (id: number, userId: number) => Promise<boolean>;
 }
 
