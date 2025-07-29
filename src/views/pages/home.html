@@ -5,7 +5,7 @@
       const highlightedName = highlight(action.name, query);
       return `
       <li data-type="action" data-trigger="${action.trigger}" style="padding: 5px 10px; cursor: pointer;">
-        <span style="font-weight: bold;">${highlightedTrigger}</span> - ⚡ ${highlightedName}
+        <span style="font-weight: bold;">${highlightedTrigger}</span> - 🚀 ${highlightedName}
       </li>
     `;
     };
@@ -16,7 +16,7 @@
         const highlightedUrl = highlight(action.url, query);
         return `
         <li data-type="action" data-trigger="${action.trigger}" style="padding: 5px 10px; cursor: pointer; display: flex;">
-          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">⚡ ${highlightedName} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${highlightedUrl}</span></span>
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">🚀 ${highlightedName} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${highlightedUrl}</span></span>
           <code>action</code>
         </li>
       `;
@@ -27,7 +27,7 @@
         const pinnedIndicator = bookmark.pinned ? '📌 ' : '';
         return `
         <li data-type="bookmark" data-url="${bookmark.url}" style="padding: 5px 10px; cursor: pointer; display: flex;">
-          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">${pinnedIndicator}🔖 ${highlightedTitle} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${highlightedUrl}</span></span>
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">${pinnedIndicator}⭐️ ${highlightedTitle} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${highlightedUrl}</span></span>
           <code>bookmark</code>
         </li>
       `;
@@ -39,6 +39,27 @@
         <li data-type="note" data-id="${note.id}" style="padding: 5px 10px; cursor: pointer; display: flex;">
           <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">📝 ${highlightedTitle} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${highlightedContent}</span></span>
           <code>note</code>
+        </li>
+      `;
+      },
+      tab: (tab, query) => {
+        const highlightedTitle = highlight(tab.title, query);
+        const highlightedTrigger = highlight(tab.trigger, query);
+        return `
+        <li data-type="tab" data-trigger="${tab.trigger}" style="padding: 5px 10px; cursor: pointer; display: flex;">
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">🔗 ${highlightedTitle} - <span style="font-style: italic; font-size: medium; font-weight: normal;">${highlightedTrigger}</span></span>
+          <code>tab</code>
+        </li>
+      `;
+      },
+      reminder: (reminder, query) => {
+        const highlightedTitle = highlight(reminder.title, query);
+        const highlightedContent = reminder.content ? highlight(reminder.content, query) : '';
+        const contentDisplay = highlightedContent ? ` - <span style="font-style: italic; font-size: medium; font-weight: normal;">${highlightedContent}</span>` : '';
+        return `
+        <li data-type="reminder" data-id="${reminder.id}" style="padding: 5px 10px; cursor: pointer; display: flex;">
+          <span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">⏰ ${highlightedTitle}${contentDisplay}</span>
+          <code>reminder</code>
         </li>
       `;
       }
@@ -60,11 +81,13 @@
         return {
           actions: data.actions.data,
           bookmarks: data.bookmarks.data,
-          notes: data.notes.data
+          notes: data.notes.data,
+          tabs: data.tabs.data,
+          reminders: data.reminders.data
         };
       } catch (error) {
         console.error('Error fetching actions and bookmarks:', error);
-        return { actions: [], bookmarks: [], notes: [] };
+        return { actions: [], bookmarks: [], notes: [], tabs: [], reminders: [] };
       }
     }
 
@@ -128,6 +151,10 @@
               submitBang(selectedItem.dataset.trigger, input, dropdown);
             } else if (selectedItem.dataset.type === 'note') {
               window.location.href = `/notes/${selectedItem.dataset.id}`;
+            } else if (selectedItem.dataset.type === 'tab') {
+              submitBang(selectedItem.dataset.trigger, input, dropdown);
+            } else if (selectedItem.dataset.type === 'reminder') {
+              window.location.href = `/reminders/${selectedItem.dataset.id}`;
             } else {
               window.location.href = selectedItem.dataset.url;
             }
@@ -182,8 +209,24 @@
             )
             .map(note => ({...note, type: 'note', text: note.title})); // 'text' for sorting remains title for consistency
 
+        // filter tabs by title OR trigger
+        const tabMatches = data.tabs
+            .filter(tab =>
+                tab.title.toLowerCase().includes(lowerValue) ||
+                tab.trigger.toLowerCase().includes(lowerValue)
+            )
+            .map(tab => ({...tab, type: 'tab', text: tab.title}));
+
+        // filter reminders by title OR content
+        const reminderMatches = data.reminders
+            .filter(reminder =>
+                reminder.title.toLowerCase().includes(lowerValue) ||
+                (reminder.content && reminder.content.toLowerCase().includes(lowerValue))
+            )
+            .map(reminder => ({...reminder, type: 'reminder', text: reminder.title}));
+
         // Combine all matches and sort by relevance
-        const allMatches = [...actionMatches, ...bookmarkMatches, ...noteMatches]
+        const allMatches = [...actionMatches, ...bookmarkMatches, ...noteMatches, ...tabMatches, ...reminderMatches]
           .sort((a, b) => {
             // First priority: pinned items (notes and bookmarks)
             const aPinned = a.pinned || false;
@@ -210,6 +253,8 @@
             case 'action': return searchTemplate.action(match, lowerValue);
             case 'bookmark': return searchTemplate.bookmark(match, lowerValue);
             case 'note': return searchTemplate.note(match, lowerValue);
+            case 'tab': return searchTemplate.tab(match, lowerValue);
+            case 'reminder': return searchTemplate.reminder(match, lowerValue);
           }
         }).join('');
       }
@@ -226,6 +271,10 @@
           submitBang(item.dataset.trigger, input, dropdown);
         } else if (item.dataset.type === 'note') {
           window.location.href = `/notes/${item.dataset.id}`;
+        } else if (item.dataset.type === 'tab') {
+          submitBang(item.dataset.trigger, input, dropdown);
+        } else if (item.dataset.type === 'reminder') {
+          window.location.href = `/reminders/${item.dataset.id}`;
         } else {
           window.location.href = item.dataset.url;
         }
