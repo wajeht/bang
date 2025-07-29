@@ -32,9 +32,8 @@ async function initDatabase() {
 }
 
 function setupCronJobs() {
-    // Check for due reminders every 15 minutes
     cron.schedule(
-        '*/15 * * * *',
+        '*/15 * * * *', // every 15 minutes
         async () => {
             logger.info('Checking for due reminders...');
             try {
