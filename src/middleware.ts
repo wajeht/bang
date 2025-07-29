@@ -375,7 +375,7 @@ export function layoutMiddleware(options: LayoutOptions = {}) {
         ...options,
     };
 
-    return (req: any, res: any, next: any) => {
+    return (_req: any, res: any, next: any) => {
         const originalRender = res.render;
 
         res.render = function (
