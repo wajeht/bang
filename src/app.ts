@@ -6,6 +6,8 @@ import {
     sessionMiddleware,
     notFoundMiddleware,
     rateLimitMiddleware,
+    staticAssetsMiddleware,
+    cacheControlMiddleware,
     appLocalStateMiddleware,
 } from './middleware';
 import ejs from 'ejs';
@@ -83,7 +85,8 @@ export async function createServer() {
         .use(rateLimitMiddleware())
         .use(express.json({ limit: '10mb' }))
         .use(express.urlencoded({ extended: true, limit: '10mb' })) // to be able to handle export/import data
-        .use(express.static('./public', { maxAge: '30d', etag: true, lastModified: true }))
+        .use(staticAssetsMiddleware())
+        .use(cacheControlMiddleware())
         .engine('html', ejs.renderFile)
         .set('view engine', 'html')
         .set('view cache', config.app.env === 'production')

@@ -9,6 +9,7 @@ import {
     verifyTurnstileToken,
 } from './utils/util';
 import helmet from 'helmet';
+import express from 'express';
 import { config } from './config';
 import { db, users } from './db/db';
 import { csrfSync } from 'csrf-sync';
@@ -436,4 +437,47 @@ export async function turnstileMiddleware(req: Request, _res: Response, next: Ne
     } catch (error) {
         next(error);
     }
+}
+
+export function cacheControlMiddleware() {
+    return (req: Request, res: Response, next: NextFunction) => {
+        if (req.path.startsWith('/api/')) {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            return next();
+        }
+
+        if (
+            req.path.includes('/login') ||
+            req.path.includes('/dashboard') ||
+            req.path.includes('/admin') ||
+            req.method !== 'GET'
+        ) {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            return next();
+        }
+
+        if (req.method === 'GET' && !req.user) {
+            res.setHeader('Cache-Control', 'public, max-age=300'); // 5 minutes for public pages
+        }
+
+        next();
+    };
+}
+
+export function staticAssetsMiddleware() {
+    return express.static('./public', {
+        maxAge: '365d', // 1 year
+        etag: true,
+        lastModified: true,
+        immutable: true,
+        setHeaders: (res, path) => {
+            if (path.match(/\.(css|js|png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf)$/)) {
+                res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+            }
+        },
+    });
 }
