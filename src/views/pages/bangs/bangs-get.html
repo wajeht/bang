@@ -148,7 +148,7 @@
                              <!-- URL (u) -->
                              <td style="padding: 10px; white-space: nowrap; overflow: auto;">
                                 <div style="display: flex; gap: 5px; align-items: center;">
-                                    <img src= "<%- utils.getFaviconUrl(data[i].u) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                    <img loading="lazy" src= "<%- utils.getFaviconUrl(data[i].u) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                     <a href="<%- data[i].u.replace('{{{s}}}', '') %>" style="overflow: auto; white-space: nowrap;" title="<%- data[i].u %>" target="_blank" rel="noopener noreferrer">
                                         <%- data[i].u %>
                                     </a>
