@@ -6,6 +6,7 @@ import {
     Actions,
     Bookmarks,
     Reminders,
+    Tabs,
     ApiKeyPayload,
     BookmarkToExport,
 } from './type';
@@ -38,7 +39,7 @@ import type { Bang } from './type';
 import { logger } from './utils/logger';
 import { actionTypes } from './utils/util';
 import type { Request, Response } from 'express';
-import { db, actions, bookmarks, notes } from './db/db';
+import { db, actions, bookmarks, notes, reminders, tabs } from './db/db';
 import { HttpError, NotFoundError, ValidationError } from './error';
 import { searchConfig, parseReminderTiming, reminderTimingConfig } from './utils/search';
 
@@ -1397,47 +1398,76 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
 }
 
 // GET /api/collections
-export async function getCollectionsHandler(req: Request, res: Response) {
-    const user = req.user as User;
-    const actionsParams = extractPagination(req, 'actions');
-    const bookmarksParams = extractPagination(req, 'bookmarks');
-    const notesParams = extractPagination(req, 'notes');
+export function getCollectionsHandler(
+    actions: Actions,
+    bookmarks: Bookmarks,
+    notes: Notes,
+    tabs: Tabs,
+    reminders: Reminders,
+) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const actionsParams = extractPagination(req, 'actions');
+        const bookmarksParams = extractPagination(req, 'bookmarks');
+        const notesParams = extractPagination(req, 'notes');
+        const tabsParams = extractPagination(req, 'tabs');
+        const remindersParams = extractPagination(req, 'reminders');
 
-    const [actionsResult, bookmarksResult, notesResult] = await Promise.all([
-        actions.all({
-            user,
-            perPage: actionsParams.perPage,
-            page: actionsParams.page,
-            search: actionsParams.search,
-            sortKey: actionsParams.sortKey,
-            direction: actionsParams.direction,
-        }),
-        bookmarks.all({
-            user,
-            perPage: bookmarksParams.perPage,
-            page: bookmarksParams.page,
-            search: bookmarksParams.search,
-            sortKey: bookmarksParams.sortKey,
-            direction: bookmarksParams.direction,
-        }),
-        notes.all({
-            user,
-            perPage: notesParams.perPage,
-            page: notesParams.page,
-            search: notesParams.search,
-            sortKey: notesParams.sortKey,
-            direction: notesParams.direction,
-        }),
-    ]);
+        const [actionsResult, bookmarksResult, notesResult, tabsResult, remindersResult] =
+            await Promise.all([
+                actions.all({
+                    user,
+                    perPage: actionsParams.perPage,
+                    page: actionsParams.page,
+                    search: actionsParams.search,
+                    sortKey: actionsParams.sortKey,
+                    direction: actionsParams.direction,
+                }),
+                bookmarks.all({
+                    user,
+                    perPage: bookmarksParams.perPage,
+                    page: bookmarksParams.page,
+                    search: bookmarksParams.search,
+                    sortKey: bookmarksParams.sortKey,
+                    direction: bookmarksParams.direction,
+                }),
+                notes.all({
+                    user,
+                    perPage: notesParams.perPage,
+                    page: notesParams.page,
+                    search: notesParams.search,
+                    sortKey: notesParams.sortKey,
+                    direction: notesParams.direction,
+                }),
+                tabs.all({
+                    user,
+                    perPage: tabsParams.perPage,
+                    page: tabsParams.page,
+                    search: tabsParams.search,
+                    sortKey: tabsParams.sortKey,
+                    direction: tabsParams.direction,
+                }),
+                reminders.all({
+                    user,
+                    perPage: remindersParams.perPage,
+                    page: remindersParams.page,
+                    search: remindersParams.search,
+                    sortKey: remindersParams.sortKey,
+                    direction: remindersParams.direction,
+                }),
+            ]);
 
-    res.json({
-        actions: actionsResult,
-        bookmarks: bookmarksResult,
-        notes: notesResult,
-        search: actionsParams.search, // or bookmarksParams.search, the same search for both
-        sortKey: actionsParams.sortKey, // or bookmarksParams.sortKey, the same sortKey for both
-        direction: actionsParams.direction, // or bookmarksParams.direction, the same direction for both
-    });
+        res.json({
+            actions: actionsResult,
+            bookmarks: bookmarksResult,
+            notes: notesResult,
+            tabs: tabsResult,
+            reminders: remindersResult,
+            search: actionsParams.search, // or bookmarksParams.search, the same search for both
+            sortKey: actionsParams.sortKey, // or bookmarksParams.sortKey, the same sortKey for both
+            direction: actionsParams.direction, // or bookmarksParams.direction, the same direction for both
+        });
+    };
 }
 
 // POST /settings/display
@@ -2393,98 +2423,25 @@ export function getBangsPage() {
 }
 
 // GET /tabs or GET /api/tabs
-export function getTabsPageHandler(db: Knex) {
+export function getTabsPageHandler(tabs: Tabs) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'tabs');
 
-        let tabsQuery = db
-            .select('tabs.id', 'tabs.user_id', 'tabs.created_at', 'tabs.updated_at')
-            .select(
-                db.raw(
-                    '(SELECT COUNT(*) FROM tab_items WHERE tab_items.tab_id = tabs.id) as items_count',
-                ),
-            )
-            .from('tabs')
-            .where('tabs.user_id', user.id);
-
-        if (!isApiRequest(req) && search) {
-            tabsQuery = tabsQuery
-                .select(db.raw(`${sqlHighlight('tabs.title', search)} as title`))
-                .select(db.raw(`${sqlHighlight('tabs.trigger', search)} as trigger`));
-        } else {
-            tabsQuery = tabsQuery.select('tabs.title').select('tabs.trigger');
-        }
-
-        if (search) {
-            tabsQuery = tabsQuery.where((builder) => {
-                builder
-                    .whereRaw('LOWER(tabs.title) LIKE ?', [`%${search.toLowerCase()}%`])
-                    .orWhereRaw('LOWER(tabs.trigger) LIKE ?', [`%${search.toLowerCase()}%`])
-                    .orWhereExists((subquery) => {
-                        subquery
-                            .select(db.raw('1'))
-                            .from('tab_items')
-                            .whereRaw('tab_items.tab_id = tabs.id')
-                            .where((itemBuilder) => {
-                                itemBuilder
-                                    .whereRaw('LOWER(tab_items.title) LIKE ?', [
-                                        `%${search.toLowerCase()}%`,
-                                    ])
-                                    .orWhereRaw('LOWER(tab_items.url) LIKE ?', [
-                                        `%${search.toLowerCase()}%`,
-                                    ]);
-                            });
-                    });
-            });
-        }
-
-        const { data: tabs, pagination } = await tabsQuery
-            .orderBy(sortKey || 'created_at', direction || 'desc')
-            .paginate({ perPage, currentPage: page, isLengthAware: true });
-
-        const tabIds = tabs.map((tab) => tab.id);
-        let itemsQuery = db
-            .select('id', 'tab_id', 'created_at', 'updated_at')
-            .from('tab_items')
-            .whereIn('tab_id', tabIds);
-
-        if (!isApiRequest(req) && search) {
-            itemsQuery = itemsQuery
-                .select(db.raw(`${sqlHighlight('tab_items.title', search)} as title`))
-                .select(db.raw(`${sqlHighlight('tab_items.url', search)} as url`));
-        } else {
-            itemsQuery = itemsQuery
-                .select('tab_items.title as title')
-                .select('tab_items.url as url');
-        }
-
-        if (search) {
-            itemsQuery = itemsQuery.where((builder) => {
-                builder
-                    .whereRaw('LOWER(tab_items.title) LIKE ?', [`%${search.toLowerCase()}%`])
-                    .orWhereRaw('LOWER(tab_items.url) LIKE ?', [`%${search.toLowerCase()}%`]);
-            });
-        }
-
-        const allItems = await itemsQuery.orderBy('created_at', 'asc');
-
-        // Group items by tab_id
-        const itemsByTab = allItems.reduce((acc, item) => {
-            if (!acc[item.tab_id]) acc[item.tab_id] = [];
-            acc[item.tab_id].push(item);
-            return acc;
-        }, {});
-
-        // Assign items to tabs
-        for (const tab of tabs) {
-            tab.items = itemsByTab[tab.id] || [];
-        }
+        const { data: tabsData, pagination } = await tabs.all({
+            user,
+            perPage,
+            page,
+            search,
+            sortKey,
+            direction,
+            highlight: !isApiRequest(req),
+        });
 
         if (isApiRequest(req)) {
             res.status(200).json({
                 message: 'Tabs retrieved successfully',
-                data: tabs,
+                data: tabsData,
                 pagination,
                 search,
                 sortKey,
@@ -2498,7 +2455,7 @@ export function getTabsPageHandler(db: Knex) {
             path: '/tabs',
             layout: '../layouts/auth.html',
             howToContent: await getConvertedReadmeMDToHTML(),
-            tabs,
+            tabs: tabsData,
             user,
             pagination,
             search,
@@ -2509,7 +2466,7 @@ export function getTabsPageHandler(db: Knex) {
 }
 
 // POST /tabs or POST /api/tabs
-export function postTabsPageHandler(db: Knex) {
+export function postTabsPageHandler(tabs: Tabs) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
 
@@ -2529,7 +2486,7 @@ export function postTabsPageHandler(db: Knex) {
             throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
         }
 
-        const existingTrigger = await db('tabs')
+        const existingTab = await db('tabs')
             .where({
                 trigger: formattedTrigger,
                 user_id: user.id,
@@ -2547,11 +2504,11 @@ export function postTabsPageHandler(db: Knex) {
             });
         }
 
-        if (existingTrigger) {
+        if (existingTab) {
             throw new ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        await db('tabs').insert({
+        await tabs.create({
             user_id: user.id,
             title,
             trigger: formattedTrigger,
@@ -2580,9 +2537,14 @@ export function getTabCreatePageHandler() {
 }
 
 // GET /tabs/:id/edit
-export function getTabEditPageHandler(db: Knex) {
+export function getTabEditPageHandler(tabs: Tabs) {
     return async (req: Request, res: Response) => {
-        const tab = await db('tabs').where({ id: req.params.id }).first();
+        const user = req.user as User;
+        const tab = await tabs.read(parseInt(req.params.id as string), user.id);
+
+        if (!tab) {
+            throw new NotFoundError('Tab group not found');
+        }
 
         return res.render('./tabs/tabs-edit.html', {
             title: 'Tabs / Edit',
@@ -2595,13 +2557,12 @@ export function getTabEditPageHandler(db: Knex) {
 }
 
 // POST /tabs/:id/update or PATCH /api/tabs/:id
-export function updateTabHandler(db: Knex) {
+export function updateTabHandler(tabs: Tabs) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
-
         const { title, trigger } = req.body;
 
-        const tab = await db('tabs').where({ id: req.params.id }).first();
+        const tab = await tabs.read(parseInt(req.params.id as string), user.id);
 
         if (!tab) {
             throw new NotFoundError('Tab group not found');
@@ -2632,7 +2593,7 @@ export function updateTabHandler(db: Knex) {
             });
         }
 
-        const existingTrigger = await db('tabs')
+        const existingTab = await db('tabs')
             .where({
                 trigger: formattedTrigger,
                 user_id: user.id,
@@ -2640,12 +2601,11 @@ export function updateTabHandler(db: Knex) {
             .whereNot({ id: tab.id })
             .first();
 
-        if (existingTrigger) {
+        if (existingTab) {
             throw new ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        await db('tabs').where({ id: req.params.id }).update({
-            user_id: user.id,
+        await tabs.update(parseInt(req.params.id as string), user.id, {
             title,
             trigger: formattedTrigger,
         });
@@ -2656,39 +2616,39 @@ export function updateTabHandler(db: Knex) {
 }
 
 // GET /tabs/:id/launch
-export function getTabsLaunchHandler(db: Knex) {
+export function getTabsLaunchHandler(tabs: Tabs) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const id = req.params.id;
 
-        const tabGroup = await db('tabs').where({ user_id: user.id, id }).first();
+        const tabGroup = await tabs.read(parseInt(id as string), user.id);
 
         if (!tabGroup) {
             throw new NotFoundError('Tab group not found');
         }
-
-        const tabs = await db('tab_items')
-            .where({ tab_id: tabGroup.id })
-            .orderBy('created_at', 'asc');
 
         return res.render('tabs/tabs-launch.html', {
             title: `Tabs Launch: ${tabGroup.title}`,
             path: `/tabs/${id}/launch`,
             layout: '../layouts/auth.html',
             tabGroup,
-            tabs,
+            tabs: tabGroup.items || [],
             user,
         });
     };
 }
 
 // POST /tabs/:id/delete or DELETE /api/tabs/:id
-export function deleteTabHandler(db: Knex) {
+export function deleteTabHandler(tabs: Tabs) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
         const tabId = parseInt(req.params.id as unknown as string);
 
-        await db('tabs').where({ user_id: user.id, id: tabId }).delete();
+        const deleted = await tabs.delete(tabId, user.id);
+
+        if (!deleted) {
+            throw new NotFoundError('Tab group not found');
+        }
 
         if (isApiRequest(req)) {
             res.status(200).json({ message: 'Tab group deleted successfully' });
