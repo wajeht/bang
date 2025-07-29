@@ -81,7 +81,7 @@ import {
 
 import { api } from './utils/util';
 import { search } from './utils/search';
-import { db, actions, bookmarks, notes, reminders } from './db/db';
+import { db, actions, bookmarks, notes, reminders, tabs } from './db/db';
 import { adminOnlyMiddleware, authenticationMiddleware, turnstileMiddleware } from './middleware';
 
 const router = express.Router();
@@ -99,13 +99,13 @@ router.get('/search', authenticationMiddleware, getSearchHandler(actions, bookma
 router.get('/auth/magic/:token', getMagicLinkHandler());
 router.post('/login', turnstileMiddleware, postLoginHandler());
 
-router.get('/tabs', authenticationMiddleware, getTabsPageHandler(db));
-router.post('/tabs', authenticationMiddleware, postTabsPageHandler(db));
-router.get('/tabs/:id/launch', authenticationMiddleware, getTabsLaunchHandler(db));
+router.get('/tabs', authenticationMiddleware, getTabsPageHandler(tabs));
+router.post('/tabs', authenticationMiddleware, postTabsPageHandler(tabs));
+router.get('/tabs/:id/launch', authenticationMiddleware, getTabsLaunchHandler(tabs));
 router.get('/tabs/create', authenticationMiddleware, getTabCreatePageHandler());
-router.post('/tabs/:id/delete', authenticationMiddleware, deleteTabHandler(db));
-router.get('/tabs/:id/edit', authenticationMiddleware, getTabEditPageHandler(db));
-router.post('/tabs/:id/update', authenticationMiddleware, updateTabHandler(db));
+router.post('/tabs/:id/delete', authenticationMiddleware, deleteTabHandler(tabs));
+router.get('/tabs/:id/edit', authenticationMiddleware, getTabEditPageHandler(tabs));
+router.post('/tabs/:id/update', authenticationMiddleware, updateTabHandler(tabs));
 router.post('/tabs/delete-all', authenticationMiddleware, deleteAllTabsHandler(db));
 
 router.get('/tabs/:id/items/create', authenticationMiddleware, getTabItemCreatePageHandler(db));
@@ -385,7 +385,7 @@ router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHand
  * @return {object} 200 - success response - application/json
  * @return {object} 400 - Bad request response - application/json
  */
-router.get('/api/collections', authenticationMiddleware, getCollectionsHandler);
+router.get('/api/collections', authenticationMiddleware, getCollectionsHandler(actions, bookmarks, notes, tabs, reminders)); // prettier-ignore
 
 /**
  * A note
@@ -553,7 +553,7 @@ router.post('/api/bookmarks/:id/pin', authenticationMiddleware, toggleBookmarkPi
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.post('/api/tabs', authenticationMiddleware, postTabsPageHandler(db));
+router.post('/api/tabs', authenticationMiddleware, postTabsPageHandler(tabs));
 
 /**
  *
@@ -568,7 +568,7 @@ router.post('/api/tabs', authenticationMiddleware, postTabsPageHandler(db));
  * @return {object} 400 - Bad request response - application/json
  *
  */
-router.get('/api/tabs', authenticationMiddleware, getTabsPageHandler(db));
+router.get('/api/tabs', authenticationMiddleware, getTabsPageHandler(tabs));
 
 /**
  *
@@ -588,7 +588,7 @@ router.get('/api/tabs', authenticationMiddleware, getTabsPageHandler(db));
  * @return {object} 404 - Not found response - application/json
  *
  */
-router.patch('/api/tabs/:id', authenticationMiddleware, updateTabHandler(db));
+router.patch('/api/tabs/:id', authenticationMiddleware, updateTabHandler(tabs));
 
 /**
  *
@@ -606,7 +606,7 @@ router.patch('/api/tabs/:id', authenticationMiddleware, updateTabHandler(db));
  * @return {object} 404 - Not found response - application/json
  *
  */
-router.delete('/api/tabs/:id', authenticationMiddleware, deleteTabHandler(db));
+router.delete('/api/tabs/:id', authenticationMiddleware, deleteTabHandler(tabs));
 
 /**
  *
