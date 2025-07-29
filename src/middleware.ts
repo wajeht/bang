@@ -439,73 +439,6 @@ export async function turnstileMiddleware(req: Request, _res: Response, next: Ne
     }
 }
 
-export function cacheControlMiddleware() {
-    return (req: Request, res: Response, next: NextFunction) => {
-        const path = req.path;
-        const method = req.method;
-
-        if (path.startsWith('/api/')) {
-            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-            res.setHeader('Pragma', 'no-cache');
-            res.setHeader('Expires', '0');
-            return next();
-        }
-
-        if (
-            path === '/login' ||
-            path === '/logout' ||
-            path.startsWith('/auth/') ||
-            path === '/search' ||
-            method !== 'GET'
-        ) {
-            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-            res.setHeader('Pragma', 'no-cache');
-            res.setHeader('Expires', '0');
-            return next();
-        }
-
-        if (
-            path.startsWith('/settings') ||
-            path.startsWith('/admin') ||
-            path.startsWith('/tabs') ||
-            path.startsWith('/actions') ||
-            path.startsWith('/bookmarks') ||
-            path.startsWith('/notes') ||
-            path.startsWith('/reminders')
-        ) {
-            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-            res.setHeader('Pragma', 'no-cache');
-            res.setHeader('Expires', '0');
-            return next();
-        }
-
-        if (
-            (path === '/' ||
-                path === '/bangs' ||
-                path === '/how-to' ||
-                path === '/privacy-policy' ||
-                path === '/terms-of-service') &&
-            method === 'GET' &&
-            !req.user &&
-            !req.session?.user
-        ) {
-            res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300'); // 5 minutes
-            return next();
-        }
-
-        if (path === '/healthz') {
-            res.setHeader('Cache-Control', 'public, max-age=60'); // 1 minute
-            return next();
-        }
-
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-
-        next();
-    };
-}
-
 export function staticAssetsMiddleware() {
     return express.static('./public', {
         maxAge: '365d', // 1 year
@@ -513,34 +446,10 @@ export function staticAssetsMiddleware() {
         lastModified: true,
         immutable: true,
         setHeaders: (res, path, stat) => {
-            if (path.match(/\.(css|js|png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|eot)$/)) {
+            if (path.match(/\.(css|js|png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|eot|txt)$/)) {
                 res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
                 res.setHeader('Vary', 'Accept-Encoding');
             }
         },
     });
-}
-
-export function conditionalCacheMiddleware() {
-    return (req: Request, res: Response, next: NextFunction) => {
-        const originalRender = res.render.bind(res);
-
-        res.render = function (view: string, options?: any, callback?: any): void {
-            if (req.user || req.session?.user) {
-                res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-                res.setHeader('Pragma', 'no-cache');
-                res.setHeader('Expires', '0');
-            }
-
-            if (typeof options === 'function') {
-                originalRender(view, options);
-            } else if (callback) {
-                originalRender(view, options, callback);
-            } else {
-                originalRender(view, options);
-            }
-        } as any;
-
-        next();
-    };
 }

@@ -7,9 +7,7 @@ import {
     notFoundMiddleware,
     rateLimitMiddleware,
     staticAssetsMiddleware,
-    cacheControlMiddleware,
     appLocalStateMiddleware,
-    conditionalCacheMiddleware,
 } from './middleware';
 import ejs from 'ejs';
 import cors from 'cors';
@@ -86,7 +84,6 @@ export async function createServer() {
         .use(rateLimitMiddleware())
         .use(express.json({ limit: '10mb' }))
         .use(express.urlencoded({ extended: true, limit: '10mb' }))
-        .use(cacheControlMiddleware())
         .use(staticAssetsMiddleware())
         .engine('html', ejs.renderFile)
         .set('view engine', 'html')
@@ -100,7 +97,6 @@ export async function createServer() {
         )
         .use(...csrfMiddleware)
         .use(appLocalStateMiddleware)
-        .use(conditionalCacheMiddleware())
         .use(router);
 
     expressJSDocSwaggerHandler(app);
