@@ -66,10 +66,20 @@ push_db() {
     fi
 
     echo "Pushing database files to production..."
-    rsync -avz "$LOCAL_DIR"/*.sqlite* "$PRODUCTION_SSH_URL:$REMOTE_DIR/"
-
-    echo "✨ Database files synchronized to production"
-    echo "A backup was created at $BACKUP_DIR"
+    if rsync -avz "$LOCAL_DIR"/*.sqlite* "$PRODUCTION_SSH_URL:$REMOTE_DIR/"; then
+        echo "✨ Database files synchronized to production"
+        echo "A backup was created at $BACKUP_DIR"
+    else
+        echo "❌ Failed to sync database files to production"
+        echo "Trying with scp as fallback..."
+        if scp "$LOCAL_DIR"/*.sqlite* "$PRODUCTION_SSH_URL:$REMOTE_DIR/"; then
+            echo "✨ Database files synchronized to production using scp"
+            echo "A backup was created at $BACKUP_DIR"
+        else
+            echo "❌ Both rsync and scp failed. Please check your SSH connection."
+            exit 1
+        fi
+    fi
 }
 
 main() {
