@@ -109701,7 +109701,7 @@ export const bangs: Record<string, any> = {
         s: 'Baseball-Reference',
         d: 'www.baseball-reference.com',
         t: 'baseball',
-        u: 'https://www.baseball-reference.com/pl/player_search.cgi?search={{{s}}}',
+        u: 'https://www.baseball-reference.com/search/search.fcgi?hint=&search={{{s}}}',
         c: 'Research',
         sc: 'Reference',
     },
