@@ -38,7 +38,7 @@ pull_db() {
 push_db() {
     echo "🚀 Pushing database to production..."
 
-    if [[ ! -f "$LOCAL_DIR"/*.sqlite ]]; then
+    if ! ls "$LOCAL_DIR"/*.sqlite 1> /dev/null 2>&1; then
         echo "Error: No local database files found in $LOCAL_DIR"
         exit 1
     fi
