@@ -31,7 +31,7 @@ lint:
 	@docker compose -f docker-compose.dev.yml exec bang npm run lint
 
 deploy:
-	@./deploy.sh
+	@./scripts/deploy.sh
 
 shell:
 	@docker compose -f docker-compose.dev.yml exec bang sh
