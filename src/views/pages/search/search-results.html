@@ -6,7 +6,8 @@
                 const totalResults = (results.bookmarks.data ? results.bookmarks.data.length : 0) +
                                    (results.actions.data ? results.actions.data.length : 0) +
                                    (results.notes.data ? results.notes.data.length : 0) +
-                                   (results.tabs ? results.tabs.length : 0);
+                                   (results.tabs ? results.tabs.length : 0) +
+                                   (results.reminders.data ? results.reminders.data.length : 0);
                 %>
                 <h2>🔍 Global Search Results (<%= totalResults %>)</h2>
             </div>
@@ -30,7 +31,7 @@
                     placeholder: 'Search across all resources...',
                     value: searchQuery,
                     required: false,
-                    helpText: 'Search bookmarks, actions, notes, and tabs',
+                    helpText: 'Search bookmarks, actions, notes, tabs, and reminders',
                     error: undefined
                 }) %>
                 <input type="hidden" name="type" value="global" />
@@ -64,14 +65,12 @@
                                         <a href="/bookmarks">⭐️ Bookmark</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <div style="display: flex; align-items: center; gap: 5px;">
-                                            <img src="<%- utils.getFaviconUrl(bookmark.url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                            <%- bookmark.title || 'Untitled' %>
-                                        </div>
+                                        <%- bookmark.title || 'Untitled' %>
                                     </td>
                                     <td style="padding: 10px;">-</td>
                                     <td style="padding: 10px;">
-                                        <a href="<%= bookmark.url %>" style="overflow: auto; white-space: nowrap;" title="<%= bookmark.title %>" target="_blank" rel="noopener noreferrer">
+                                        <a href="<%= bookmark.url %>" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= bookmark.title %>" target="_blank" rel="noopener noreferrer">
+                                            <img src="<%- utils.getFaviconUrl(bookmark.url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                             <%- bookmark.url %>
                                         </a>
                                     </td>
@@ -109,7 +108,8 @@
                                         <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%- action.trigger %></code>
                                     </td>
                                     <td style="padding: 10px;">
-                                        <a href="<%= action.url %>" style="overflow: auto; white-space: nowrap;" title="<%= action.url %>" target="_blank" rel="noopener noreferrer">
+                                        <a href="<%= action.url %>" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= action.url %>" target="_blank" rel="noopener noreferrer">
+                                            <img src="<%- utils.getFaviconUrl(action.url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                             <%- action.url %>
                                         </a>
                                     </td>
@@ -208,6 +208,59 @@
                                 </tr>
                             <% }); %>
                         <% } %>
+
+                        <!-- Reminders -->
+                        <% if (results.reminders.data && results.reminders.data.length > 0) { %>
+                            <% results.reminders.data.forEach(function(reminder) { %>
+                                <tr>
+                                    <td style="padding: 10px;">
+                                        <a href="/reminders">⏰ Reminder</a>
+                                    </td>
+                                    <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                        <a href="/reminders/<%= reminder.id %>" title="<%= reminder.title %>">
+                                            <%- reminder.title %>
+                                        </a>
+                                    </td>
+                                    <td style="padding: 10px;">-</td>
+                                    <td style="padding: 10px;">
+                                        <% if (reminder.content && reminder.content.startsWith('http')) { %>
+                                            <a href="<%= reminder.content %>" target="_blank" rel="noopener noreferrer" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= reminder.content %>">
+                                                <img src="<%- utils.getFaviconUrl(reminder.content) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                                <%- reminder.content %>
+                                            </a>
+                                        <% } else { %>
+                                            -
+                                        <% } %>
+                                    </td>
+                                    <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                        <% if (reminder.content && !reminder.content.startsWith('http')) { %>
+                                            <%- reminder.content.substring(0, 100) + (reminder.content.length > 100 ? '...' : '') %>
+                                        <% } else { %>
+                                            <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%= reminder.frequency || 'once' %></code>
+                                        <% } %>
+                                    </td>
+                                    <td style="padding: 10px;">
+                                        <% if (reminder.due_date) { %>
+                                            ⏰ <%= new Date(reminder.due_date).toLocaleDateString() %>
+                                        <% } else { %>
+                                            -
+                                        <% } %>
+                                    </td>
+                                    <td style="padding: 10px;">
+                                        <time datetime="<%= reminder.created_at %>"><%= new Date(reminder.created_at).toLocaleDateString() %></time>
+                                    </td>
+                                    <td style="padding: 10px;">
+                                        <details style="position: relative;">
+                                            <summary aria-label="Actions for reminder <%= reminder.title %>">Actions</summary>
+                                            <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                                <a href="/reminders/<%= reminder.id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
+                                                <a href="/reminders/<%= reminder.id %>" style="display: inline-flex; align-items: center;" role="menuitem">👁️ View</a>
+                                            </div>
+                                        </details>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } %>
                     </tbody>
                 </table>
             <% } else { %>
@@ -222,16 +275,11 @@
                         <li>⚡️ Action names, triggers, and URLs</li>
                         <li>📝 Note titles and content</li>
                         <li>📂 Tab names, triggers, and item content</li>
+                        <li>⏰ Reminder titles and content</li>
                     </ul>
                 </div>
             <% } %>
         </section>
-
-        <% if (totalResults > 0) { %>
-            <section style="text-align: center; padding: 20px; color: var(--text-secondary);">
-                Found <%= totalResults %> result<%= totalResults === 1 ? '' : 's' %> across your resources
-            </section>
-        <% } %>
 
     <% } else { %>
         <section style="text-align: center; padding: 40px;">
@@ -245,6 +293,7 @@
                 <li>⚡️ Actions (names, triggers, and URLs)</li>
                 <li>📝 Notes (titles and content)</li>
                 <li>📂 Tabs (names, triggers, and items)</li>
+                <li>⏰ Reminders (titles and content)</li>
             </ul>
             <p style="color: var(--text-secondary);">
                 Use <code>!find [search term]</code> from the browser address bar for quick access
