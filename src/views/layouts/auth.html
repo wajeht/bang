@@ -13,7 +13,7 @@
 
 		<%- include('./_partials/footer.html') %>
 
-		<% if (['/actions', '/bangs', '/bookmarks'].includes(path) || path.startsWith('/notes')) { %>
+		<% if (['/actions', '/bangs', '/bookmarks', '/tabs'].includes(path) || path.startsWith('/notes') || path.startsWith('/search')) { %>
 			<%- include('./_partials/scroll-to-top.html') %>
 		<% } %>
 	</body>
