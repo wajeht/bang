@@ -27,6 +27,7 @@
 
         <form method="POST" action="/settings/danger-zone/delete">
           <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+          <input type="hidden" name="form_type" value="delete_account" />
 
           <fieldset style="margin: 15px 0;">
             <legend>📧 Email Export Options (Optional)</legend>
@@ -60,7 +61,9 @@
               label: 'To confirm account deletion, type DELETE ACCOUNT below:',
               placeholder: 'Type DELETE ACCOUNT to confirm',
               required: true,
-              style: 'width: 100%;'
+              style: 'width: 100%;',
+              value: state.input && state.input.confirmation ? state.input.confirmation : '',
+              error: state.errors && state.errors.confirmation ? state.errors.confirmation : undefined
             }) %>
           </fieldset>
 
@@ -80,6 +83,7 @@
 
         <form method="POST" action="/settings/danger-zone/bulk-delete">
           <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+          <input type="hidden" name="form_type" value="bulk_delete" />
 
           <fieldset style="margin: 15px 0;">
             <legend>🗑️ Select Data Types to Delete</legend>
@@ -89,44 +93,54 @@
                 id: 'delete-actions-checkbox',
                 name: 'delete_options[]',
                 value: 'actions',
-                label: '⚡ Delete all actions'
+                label: '⚡ Delete all actions',
+                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('actions') : state.input.delete_options === 'actions')
               }) %>
 
               <%- include('../../components/inputs/checkbox.html', {
                 id: 'delete-tabs-checkbox',
                 name: 'delete_options[]',
                 value: 'tabs',
-                label: '📑 Delete all tabs'
+                label: '📑 Delete all tabs',
+                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('tabs') : state.input.delete_options === 'tabs')
               }) %>
 
               <%- include('../../components/inputs/checkbox.html', {
                 id: 'delete-bookmarks-checkbox',
                 name: 'delete_options[]',
                 value: 'bookmarks',
-                label: '🔖 Delete all bookmarks'
+                label: '🔖 Delete all bookmarks',
+                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('bookmarks') : state.input.delete_options === 'bookmarks')
               }) %>
 
               <%- include('../../components/inputs/checkbox.html', {
                 id: 'delete-notes-checkbox',
                 name: 'delete_options[]',
                 value: 'notes',
-                label: '📝 Delete all notes'
+                label: '📝 Delete all notes',
+                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('notes') : state.input.delete_options === 'notes')
               }) %>
 
               <%- include('../../components/inputs/checkbox.html', {
                 id: 'delete-reminders-checkbox',
                 name: 'delete_options[]',
                 value: 'reminders',
-                label: '⏰ Delete all reminders'
+                label: '⏰ Delete all reminders',
+                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('reminders') : state.input.delete_options === 'reminders')
               }) %>
 
               <%- include('../../components/inputs/checkbox.html', {
                 id: 'delete-api-keys-checkbox',
                 name: 'delete_options[]',
                 value: 'api_keys',
-                label: '🔑 Delete all API keys'
+                label: '🔑 Delete all API keys',
+                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('api_keys') : state.input.delete_options === 'api_keys')
               }) %>
             </div>
+
+            <% if (state.errors && state.errors.delete_options) { %>
+              <small style="color: red; margin-top: 8px; display: block;" role="alert"><%= state.errors.delete_options %></small>
+            <% } %>
 
             <p style="margin-top: 10px;">
               <em>Only selected items will be deleted. Your account remains active.</em>
@@ -141,7 +155,9 @@
               label: 'To confirm bulk deletion, type DELETE DATA below:',
               placeholder: 'Type DELETE DATA to confirm',
               required: false,
-              style: 'width: 100%;'
+              style: 'width: 100%;',
+              value: state.input && state.input.confirmation ? state.input.confirmation : '',
+              error: state.errors && state.errors.confirmation ? state.errors.confirmation : undefined
             }) %>
           </fieldset>
 
@@ -163,6 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const confirmationFieldset = document.getElementById('bulk-delete-confirmation');
   const confirmationInput = document.getElementById('bulk-delete-confirmation-input');
   const submitButton = bulkDeleteModal.querySelector('button[type="submit"]');
+  const deleteAccountModal = document.getElementById('delete-users-<%= user.id %>-modal');
 
   const checkboxes = [
     'delete-actions-checkbox',
@@ -195,5 +212,16 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   updateConfirmationVisibility();
+
+  const state = getAppLocalState();
+
+  if (state.errors && Object.keys(state.errors).length > 0) {
+    if (state.input && state.input.form_type === 'bulk_delete') {
+      bulkDeleteModal.showModal();
+      updateConfirmationVisibility();
+    } else if (state.input && state.input.form_type === 'delete_account') {
+      deleteAccountModal.showModal();
+    }
+  }
 });
 </script>

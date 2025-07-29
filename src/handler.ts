@@ -1274,8 +1274,9 @@ export function postBulkDeleteSettingsDangerZoneHandler(db: Knex) {
             !deleteReminders &&
             !deleteApiKeys
         ) {
-            req.flash('error', 'Please select at least one data type to delete');
-            return res.redirect('/settings/danger-zone');
+            throw new ValidationError({
+                delete_options: 'Please select at least one data type to delete',
+            });
         }
 
         try {
