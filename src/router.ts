@@ -20,6 +20,7 @@ import {
     updateNoteHandler,
     getTabsPageHandler,
     getBookmarkHandler,
+    getReminderHandler,
     getRemindersHandler,
     postReminderHandler,
     getMagicLinkHandler,
@@ -606,5 +607,168 @@ router.patch('/api/tabs/:id', authenticationMiddleware, updateTabHandler(db));
  *
  */
 router.delete('/api/tabs/:id', authenticationMiddleware, deleteTabHandler(db));
+
+/**
+ *
+ * A tab item
+ * @typedef {object} TabItem
+ * @property {string} id - tab item id
+ * @property {string} tab_id - parent tab id
+ * @property {string} title.required - tab item title
+ * @property {string} url.required - tab item url
+ * @property {string} created_at - creation timestamp
+ * @property {string} updated_at - last update timestamp
+ *
+ */
+
+/**
+ *
+ * POST /api/tabs/{id}/items
+ *
+ * @tags Tab Items
+ * @summary create a tab item
+ *
+ * @security BearerAuth
+ *
+ * @param {string} id.path.required - tab id
+ * @param {TabItem} request.body.required - tab item info
+ *
+ * @return {object} 201 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ *
+ */
+router.post('/api/tabs/:id/items', authenticationMiddleware, postTabItemCreateHandler(db));
+
+/**
+ *
+ * PATCH /api/tabs/{id}/items/{itemId}
+ *
+ * @tags Tab Items
+ * @summary update a tab item
+ *
+ * @security BearerAuth
+ *
+ * @param {string} id.path.required - tab id
+ * @param {string} itemId.path.required - tab item id
+ * @param {TabItem} request.body.required - tab item info
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
+ *
+ */
+router.patch('/api/tabs/:id/items/:itemId', authenticationMiddleware, postTabItemUpdateHandler(db)); // prettier-ignore
+
+/**
+ *
+ * DELETE /api/tabs/{id}/items/{itemId}
+ *
+ * @tags Tab Items
+ * @summary delete a tab item
+ *
+ * @security BearerAuth
+ *
+ * @param {string} id.path.required - tab id
+ * @param {string} itemId.path.required - tab item id
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
+ *
+ */
+router.delete('/api/tabs/:id/items/:itemId', authenticationMiddleware, deleteTabItemHandler(db));
+
+/**
+ * A reminder
+ * @typedef {object} Reminder
+ * @property {string} id - reminder id
+ * @property {string} title.required - reminder title
+ * @property {string} content - reminder content
+ * @property {string} reminder_type.required - reminder type
+ * @property {string} frequency - reminder frequency
+ * @property {string} due_date - reminder due date
+ * @property {string} created_at - creation timestamp
+ * @property {string} updated_at - last update timestamp
+ */
+
+/**
+ * GET /api/reminders
+ *
+ * @tags Reminders
+ * @summary Get all reminders
+ *
+ * @security BearerAuth
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ */
+router.get('/api/reminders', authenticationMiddleware, getRemindersHandler(reminders));
+
+/**
+ * GET /api/reminders/{id}
+ *
+ * @tags Reminders
+ * @summary Get a specific reminder
+ *
+ * @security BearerAuth
+ *
+ * @param {string} id.path.required - reminder id
+ *
+ * @return {Reminder} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
+ *
+ */
+router.get('/api/reminders/:id', authenticationMiddleware, getReminderHandler(reminders));
+
+/**
+ * POST /api/reminders
+ *
+ * @tags Reminders
+ * @summary Create a new reminder
+ *
+ * @security BearerAuth
+ *
+ * @param {Reminder} request.body.required - reminder info
+ *
+ * @return {object} 201 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ *
+ */
+router.post('/api/reminders', authenticationMiddleware, postReminderHandler(reminders));
+
+/**
+ * PATCH /api/reminders/{id}
+ *
+ * @tags Reminders
+ * @summary Update a reminder
+ *
+ * @security BearerAuth
+ *
+ * @param {string} id.path.required - reminder id
+ * @param {Reminder} request.body.required - reminder info
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 400 - Bad request response - application/json
+ * @return {object} 404 - Not found response - application/json
+ *
+ */
+router.patch('/api/reminders/:id', authenticationMiddleware, updateReminderHandler(reminders));
+
+/**
+ * DELETE /api/reminders/{id}
+ *
+ * @tags Reminders
+ * @summary Delete a reminder
+ *
+ * @security BearerAuth
+ *
+ * @param {string} id.path.required - reminder id
+ *
+ * @return {object} 200 - success response - application/json
+ * @return {object} 404 - Not found response - application/json
+ *
+ */
+router.delete('/api/reminders/:id', authenticationMiddleware, deleteReminderHandler(reminders));
 
 export { router };
