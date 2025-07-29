@@ -90,11 +90,8 @@
           const urlParams = new URLSearchParams(window.location.search);
           const state = JSON.parse(`<%- JSON.stringify(state) %>`);
 
-          if (urlParams.get('modal') === 'login') {
-            document.getElementById('login-dialog').showModal()
-            urlParams.delete('modal');
-            const newUrl = `${window.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
-            history.replaceState({}, document.title, newUrl);
+          if (state.errors?.email) {
+            document.getElementById('login-dialog').showModal();
           }
 
           // auto pre-fill the email if the user is logged in before and the email is in local storage

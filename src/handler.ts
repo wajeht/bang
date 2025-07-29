@@ -2163,14 +2163,15 @@ export function getMagicLinkHandler() {
         const decoded = magicLink.verify(token!);
 
         if (!decoded || !decoded.email) {
-            req.flash('error', 'Magic link has expired or is invalid. Please request a new one.');
-            return res.redirect('/?modal=login');
+            throw new ValidationError({
+                email: 'Magic link has expired or is invalid. Please request a new one.',
+            });
         }
 
         const user = await db('users').where({ email: decoded.email }).first();
 
         if (!user) {
-            throw new NotFoundError('User not found');
+            throw new ValidationError({ email: 'User not found' });
         }
 
         await db('users').where({ id: user.id }).update({ email_verified_at: db.fn.now() });
