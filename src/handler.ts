@@ -38,7 +38,7 @@ import type { Bang } from './type';
 import { logger } from './utils/logger';
 import { actionTypes } from './utils/util';
 import type { Request, Response } from 'express';
-import { db, actions, bookmarks, notes, reminders } from './db/db';
+import { db, actions, bookmarks, notes } from './db/db';
 import { HttpError, NotFoundError, ValidationError } from './error';
 import { searchConfig, parseReminderTiming, reminderTimingConfig } from './utils/search';
 
@@ -2738,7 +2738,7 @@ export function getTabItemCreatePageHandler(db: Knex) {
     };
 }
 
-// POST /tabs/:id/items/:itemId/update
+// POST /tabs/:id/items/:itemId/update or PATCH /api/tabs/:id/items/:itemId
 export function postTabItemUpdateHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
@@ -2822,7 +2822,7 @@ export function getTabItemEditPageHandler(db: Knex) {
     };
 }
 
-// POST /tabs/:id/items/create
+// POST /tabs/:id/items/create or POST /api/tabs/:id/items
 export function postTabItemCreateHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
@@ -2863,7 +2863,7 @@ export function postTabItemCreateHandler(db: Knex) {
     };
 }
 
-// POST /tabs/:id/items/:itemId/delete
+// POST /tabs/:id/items/:itemId/delete or DELETE /api/tabs/:id/items/:itemId
 export function deleteTabItemHandler(db: Knex) {
     return async (req: Request, res: Response) => {
         const tabId = parseInt(req.params.id as unknown as string);
@@ -2884,7 +2884,7 @@ export function deleteTabItemHandler(db: Knex) {
     };
 }
 
-// GET /reminders
+// GET /reminders or GET /api/reminders
 export function getRemindersHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
@@ -2906,7 +2906,7 @@ export function getRemindersHandler(reminders: Reminders) {
         }
 
         return res.render('./reminders/reminders-get.html', {
-            user: req.session?.user,
+            user: req.user,
             title: 'Reminders',
             path: '/reminders',
             layout: '../layouts/auth.html',
@@ -2920,7 +2920,7 @@ export function getRemindersHandler(reminders: Reminders) {
     };
 }
 
-// POST /reminders/:id/update
+// POST /reminders/:id/update or PATCH /api/reminders/:id
 export function updateReminderHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
         const user = req.user as User;
@@ -2952,12 +2952,8 @@ export function updateReminderHandler(reminders: Reminders) {
         const timeToUse =
             when === 'custom' && custom_time
                 ? custom_time
-                : user.column_preferences?.reminders?.default_reminder_time || '09:00';
-        const timing = parseReminderTiming(
-            timeInput.toLowerCase(),
-            timeToUse,
-            user.timezone || 'UTC',
-        );
+                : user.column_preferences?.reminders?.default_reminder_time;
+        const timing = parseReminderTiming(timeInput.toLowerCase(), timeToUse, user.timezone);
         if (!timing.isValid) {
             throw new ValidationError({
                 when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
@@ -2995,10 +2991,10 @@ export function updateReminderHandler(reminders: Reminders) {
     };
 }
 
-// POST /reminders/:id/delete
+// POST /reminders/:id/delete or DELETE /api/reminders/:id
 export function deleteReminderHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
-        const user = req.session.user as User;
+        const user = req.user as User;
         const reminderId = parseInt(req.params.id as string);
 
         const deleted = await reminders.delete(reminderId, user.id);
@@ -3021,6 +3017,7 @@ export function deleteReminderHandler(reminders: Reminders) {
 export function postReminderHandler(reminders: Reminders) {
     return async (req: Request, res: Response) => {
         const { title, content, when, custom_date, custom_time } = req.body;
+        const user = req.user as User;
 
         if (!title) {
             throw new ValidationError({ title: 'Title is required' });
@@ -3047,12 +3044,8 @@ export function postReminderHandler(reminders: Reminders) {
         const timeToUse =
             when === 'custom' && custom_time
                 ? custom_time
-                : req.session.user?.column_preferences?.reminders?.default_reminder_time || '09:00';
-        const timing = parseReminderTiming(
-            timeInput.toLowerCase(),
-            timeToUse,
-            req.session.user?.timezone || 'UTC',
-        );
+                : req.user?.column_preferences?.reminders?.default_reminder_time;
+        const timing = parseReminderTiming(timeInput.toLowerCase(), timeToUse, user.timezone);
         if (!timing.isValid) {
             throw new ValidationError({
                 when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
@@ -3066,7 +3059,7 @@ export function postReminderHandler(reminders: Reminders) {
         }
 
         const reminder = await reminders.create({
-            user_id: req.session.user?.id as number,
+            user_id: user.id,
             title: title.trim(),
             content: trimmedContent,
             reminder_type: timing.type,
@@ -3097,6 +3090,31 @@ export function getReminderCreatePageHandler() {
             user: req.session?.user,
             timingOptions: reminderTimingConfig.getAllOptions(),
         });
+    };
+}
+
+// GET /reminders/:id or GET /api/reminders/:id
+export function getReminderHandler(reminders: Reminders) {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+        const reminder = await reminders.read(
+            parseInt(req.params.id as unknown as string),
+            user.id,
+        );
+
+        if (!reminder) {
+            throw new NotFoundError('Reminder not found');
+        }
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: 'Reminder retrieved successfully',
+                data: reminder,
+            });
+            return;
+        }
+
+        throw new NotFoundError('Reminder page does not exist');
     };
 }
 
