@@ -17,7 +17,6 @@ import {
     expectJson,
     isValidUrl,
     isApiRequest,
-    sqlHighlight,
     isValidEmail,
     insertBookmark,
     extractPagination,
@@ -33,13 +32,13 @@ import {
     generateBookmarkHtmlExport,
 } from './utils/util';
 import { Knex } from 'knex';
+import { db } from './db/db';
 import { bangs } from './db/bang';
 import { config } from './config';
 import type { Bang } from './type';
 import { logger } from './utils/logger';
 import { actionTypes } from './utils/util';
 import type { Request, Response } from 'express';
-import { db, actions, bookmarks, notes, reminders, tabs } from './db/db';
 import { HttpError, NotFoundError, ValidationError } from './error';
 import { searchConfig, parseReminderTiming, reminderTimingConfig } from './utils/search';
 
