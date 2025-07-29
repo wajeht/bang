@@ -1,12 +1,12 @@
 import {
     Api,
     User,
+    Tabs,
     Notes,
     Search,
     Actions,
     Bookmarks,
     Reminders,
-    Tabs,
     ApiKeyPayload,
     BookmarkToExport,
 } from './type';

@@ -1,6 +1,6 @@
 import { config } from './config';
-import { logger } from './utils/logger';
 import { notifyError } from './error';
+import { logger } from './utils/logger';
 import { createServer, closeServer } from './app';
 
 export async function main() {

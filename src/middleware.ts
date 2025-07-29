@@ -2,9 +2,9 @@ import {
     api,
     nl2br,
     getApiKey,
+    isUrlLike,
     isApiRequest,
     getFaviconUrl,
-    isUrlLike,
     highlightSearchTerm,
     verifyTurnstileToken,
 } from './utils/util';
