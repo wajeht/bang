@@ -2931,7 +2931,7 @@ export function updateReminderHandler(reminders: Reminders) {
             content: trimmedContent,
             reminder_type: timing.type,
             frequency: timing.frequency,
-            due_date: timing.type === 'recurring' ? null : timing.nextDue,
+            due_date: timing.nextDue,
         });
 
         if (!updatedReminder) {
@@ -3024,7 +3024,7 @@ export function postReminderHandler(reminders: Reminders) {
             content: trimmedContent,
             reminder_type: timing.type,
             frequency: timing.frequency,
-            due_date: timing.type === 'recurring' ? null : timing.nextDue,
+            due_date: timing.nextDue,
         });
 
         if (isApiRequest(req)) {
