@@ -95,9 +95,9 @@ router.get('/terms-of-service', getTermsOfServicePageHandler());
 
 router.get('/logout', getLogoutHandler());
 router.post('/search', postSearchHandler(search));
-router.get('/search', authenticationMiddleware, getSearchHandler(actions, bookmarks, notes, db));
 router.get('/auth/magic/:token', getMagicLinkHandler());
 router.post('/login', turnstileMiddleware, postLoginHandler());
+router.get('/search', authenticationMiddleware, getSearchHandler(actions, bookmarks, notes, reminders, tabs, db)); // prettier-ignore
 
 router.get('/tabs', authenticationMiddleware, getTabsPageHandler(tabs));
 router.post('/tabs', authenticationMiddleware, postTabsPageHandler(tabs));
