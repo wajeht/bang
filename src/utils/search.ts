@@ -1474,7 +1474,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                         content: content || null,
                         reminder_type: timing.type,
                         frequency: timing.frequency,
-                        due_date: timing.type === 'recurring' ? null : timing.nextDue,
+                        due_date: timing.nextDue,
                     })
                     .returning('id');
 
