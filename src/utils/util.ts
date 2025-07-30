@@ -613,7 +613,7 @@ export async function sendMagicLinkEmail({
     const magicLink = `${req.protocol}://${req.get('host')}/auth/magic/${token}`;
 
     const mailOptions = {
-        from: config.email.from,
+        from: `Bang <${config.email.from}>`,
         to: email,
         subject: '🔗 Your Bang Magic Link',
         text: `Your Bang Magic Link
@@ -964,7 +964,7 @@ export async function sendDataExportEmail({
             .join('\n');
 
         const mailOptions = {
-            from: config.email.from,
+            from: `Bang <${config.email.from}>`,
             to: email,
             subject: '📦 Your Bang Data Export - Account Deletion',
             text: `Hello ${username},
@@ -1217,7 +1217,7 @@ Bang Team
 https://github.com/wajeht/bang`;
 
     const mailOptions = {
-        from: config.email.from,
+        from: `Bang <${config.email.from}>`,
         to: email,
         subject: `⏰ Daily Reminders - ${formatDate}`,
         text: emailBody,
