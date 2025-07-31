@@ -1326,7 +1326,7 @@ export async function processReminderDigests(): Promise<void> {
                             continue; // Skip if frequency is not recognized
                     }
 
-                    // Update recurring reminder with next due date and mark as processed
+                    // Update recurring reminder with next due date and reset processed flag
                     await db('reminders').where('id', reminder.id).update({
                         due_date: nextDue.toISOString(),
                         processed: false, // Reset for next occurrence

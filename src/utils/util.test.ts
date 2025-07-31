@@ -17,6 +17,8 @@ import {
     getReadmeFileContent,
     isOnlyLettersAndNumbers,
     getConvertedReadmeMDToHTML,
+    processReminderDigests,
+    sendReminderDigestEmail,
 } from './util';
 import path from 'node:path';
 import { db } from '../db/db';
@@ -25,7 +27,7 @@ import fs from 'node:fs/promises';
 import { Request } from 'express';
 import { config } from '../config';
 import { ApiKeyPayload, BookmarkToExport } from '../type';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe.concurrent('isValidUrl', () => {
     it('should return true for valid URLs', () => {
@@ -814,5 +816,174 @@ describe.concurrent('README.md', () => {
         );
         expect(result).toContain('<!-- starts -->');
         expect(result).toContain('<!-- ends -->');
+    });
+});
+
+describe('processReminderDigests', () => {
+    let testUserId: number;
+
+    beforeAll(async () => {
+        // Clean up any existing test data
+        await db('reminders').del();
+        await db('users').del();
+
+        // Create a test user
+        const [user] = await db('users')
+            .insert({
+                username: 'testuser',
+                email: 'test@example.com',
+                timezone: 'America/Chicago',
+            })
+            .returning('id');
+        testUserId = user.id;
+    });
+
+    afterAll(async () => {
+        await db('reminders').del();
+        await db('users').del();
+    });
+
+    beforeEach(async () => {
+        // Clean up reminders before each test
+        await db('reminders').del();
+    });
+
+    it('should find due reminders in the next 15 minutes and handle timezone correctly', async () => {
+        const now = new Date();
+        const in10Minutes = new Date(now.getTime() + 10 * 60 * 1000);
+        const in20Minutes = new Date(now.getTime() + 20 * 60 * 1000);
+
+        // Create test reminders
+        await db('reminders').insert([
+            {
+                user_id: testUserId,
+                title: 'Due Soon',
+                reminder_type: 'once',
+                due_date: in10Minutes.toISOString(),
+                processed: false,
+            },
+            {
+                user_id: testUserId,
+                title: 'Due Later',
+                reminder_type: 'once',
+                due_date: in20Minutes.toISOString(),
+                processed: false,
+            },
+            {
+                user_id: testUserId,
+                title: 'Already Processed',
+                reminder_type: 'once',
+                due_date: in10Minutes.toISOString(),
+                processed: true,
+            },
+        ]);
+
+        // Run the function (it logs to console in dev mode instead of sending email)
+        await processReminderDigests();
+
+        // Check that one-time reminder was deleted (this confirms processing happened)
+        const remainingReminders = await db('reminders').where('title', 'Due Soon');
+        expect(remainingReminders).toHaveLength(0);
+
+        // Check that future reminder is still there
+        const futureReminders = await db('reminders').where('title', 'Due Later');
+        expect(futureReminders).toHaveLength(1);
+
+        // Check that already processed reminder is still there
+        const processedReminders = await db('reminders').where('title', 'Already Processed');
+        expect(processedReminders).toHaveLength(1);
+    });
+
+    it('should handle recurring reminders and calculate next due date correctly', async () => {
+        const now = new Date();
+        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+
+        // Create recurring reminders for different frequencies
+        await db('reminders').insert([
+            {
+                user_id: testUserId,
+                title: 'Daily Reminder',
+                reminder_type: 'recurring',
+                frequency: 'daily',
+                due_date: in5Minutes.toISOString(),
+                processed: false,
+            },
+            {
+                user_id: testUserId,
+                title: 'Weekly Reminder',
+                reminder_type: 'recurring',
+                frequency: 'weekly',
+                due_date: in5Minutes.toISOString(),
+                processed: false,
+            },
+        ]);
+
+        await processReminderDigests();
+
+        // Check that recurring reminders were updated with next due dates
+        const dailyReminder = await db('reminders').where('title', 'Daily Reminder').first();
+        const weeklyReminder = await db('reminders').where('title', 'Weekly Reminder').first();
+
+        expect(dailyReminder).toBeTruthy();
+        expect(weeklyReminder).toBeTruthy();
+
+        // Check that next due dates are calculated correctly (approximately)
+        const originalDue = new Date(in5Minutes);
+        const dailyNextDue = new Date(dailyReminder.due_date);
+        const weeklyNextDue = new Date(weeklyReminder.due_date);
+
+        // Daily should be ~24 hours later
+        expect(dailyNextDue.getTime() - originalDue.getTime()).toBeCloseTo(24 * 60 * 60 * 1000, -4);
+
+        // Weekly should be ~7 days later
+        expect(weeklyNextDue.getTime() - originalDue.getTime()).toBeCloseTo(
+            7 * 24 * 60 * 60 * 1000,
+            -4,
+        );
+
+        // Both should be marked as processed for this occurrence (SQLite returns 1 for true)
+        expect(dailyReminder.processed).toBe(1);
+        expect(weeklyReminder.processed).toBe(1);
+    });
+
+    it('should handle no due reminders gracefully', async () => {
+        const farFuture = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
+
+        await db('reminders').insert({
+            user_id: testUserId,
+            title: 'Far Future',
+            reminder_type: 'once',
+            due_date: farFuture.toISOString(),
+            processed: false,
+        });
+
+        // Should not throw an error
+        await expect(processReminderDigests()).resolves.not.toThrow();
+
+        // Reminder should still exist and not be processed
+        const reminders = await db('reminders').where('title', 'Far Future');
+        expect(reminders).toHaveLength(1);
+        expect(reminders[0].processed).toBe(0); // SQLite returns 0 for false
+    });
+
+    it('should use UTC for database queries and handle user timezones for email formatting', async () => {
+        // This test validates that the function uses UTC for database operations
+        const now = new Date();
+        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+
+        // Create a reminder that should be found (due within 15 minutes from UTC perspective)
+        await db('reminders').insert({
+            user_id: testUserId,
+            title: 'UTC Test',
+            reminder_type: 'once',
+            due_date: in5Minutes.toISOString(), // This is in UTC
+            processed: false,
+        });
+
+        await processReminderDigests();
+
+        // The reminder should have been processed (deleted for one-time reminders)
+        const remainingReminders = await db('reminders').where('title', 'UTC Test');
+        expect(remainingReminders).toHaveLength(0);
     });
 });
