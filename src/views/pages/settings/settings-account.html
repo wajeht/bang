@@ -145,7 +145,11 @@
     <% } %>
 
     <% if (user.api_key_created_at) { %>
-      <small style="color: #bbb;">Created: <time datetime="<%= user.api_key_created_at %>"><%= new Date(user.api_key_created_at).toLocaleString() %></time></small>
+      <small style="color: #bbb;">Created:
+        <time datetime="<%= user.api_key_created_at %>">
+          <%= utils.formatDateInTimezone(user.api_key_created_at, state.user.timezone).fullString %>
+        </time>
+      </small>
     <% } %>
   </fieldset>
 
