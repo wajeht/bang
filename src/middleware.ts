@@ -6,11 +6,13 @@ import {
     isApiRequest,
     getFaviconUrl,
     highlightSearchTerm,
+    formatDateInTimezone,
     verifyTurnstileToken,
 } from './utils/util';
 import helmet from 'helmet';
 import express from 'express';
 import { config } from './config';
+import dayjs from './utils/dayjs';
 import { db, users } from './db/db';
 import { csrfSync } from 'csrf-sync';
 import session from 'express-session';
@@ -202,7 +204,7 @@ export function setupAppLocals(req: Request, res: Response) {
         cloudflare_turnstile_site_key: config.cloudflare.turnstileSiteKey,
         env: config.app.env,
         user: req.user ?? req.session?.user,
-        copyRightYear: new Date().getFullYear(),
+        copyRightYear: dayjs().year(),
         input: (req.session?.input as Record<string, string>) || {},
         errors: (req.session?.errors as Record<string, string>) || {},
         flash: {
@@ -222,6 +224,7 @@ export function setupAppLocals(req: Request, res: Response) {
         getFaviconUrl,
         isUrlLike,
         highlightSearchTerm,
+        formatDateInTimezone,
     };
 }
 
