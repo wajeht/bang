@@ -5,9 +5,9 @@
                 <% if (note.pinned) { %>📌<% } %> <%= note.title %>
             </h2>
             <div style="display: flex; gap: 15px;">
-                <div>📅 Created: <time datetime="<%= note.created_at %>"><%= new Date(note.created_at).toLocaleDateString() %></time></div>
+                <div>📅 Created: <time datetime="<%= note.created_at %>"><%= utils.formatDateInTimezone(note.created_at, state.user.timezone).fullString %></time></div>
                 <% if (note.updated_at && note.updated_at !== note.created_at) { %>
-                    <div>🔄 Updated: <time datetime="<%= note.updated_at %>"><%= new Date(note.updated_at).toLocaleDateString() %></time></div>
+                    <div>🔄 Updated: <time datetime="<%= note.updated_at %>"><%= utils.formatDateInTimezone(note.updated_at, state.user.timezone).fullString %></time></div>
                 <% } %>
             </div>
         </div>
