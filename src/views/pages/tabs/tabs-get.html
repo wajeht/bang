@@ -99,8 +99,8 @@
         </form>
 
         <button type="button" aria-label="Create new tab group" onclick="location.href='/tabs/create'">➕</button>
-        <button type="button" aria-label="Delete all tab groups" onclick="document.getElementById('delete-all-tabs-modal').showModal()">🗑️</button>
-		    <%- include('../_partials/column-settings.html') %>
+        <!-- <button type="button" aria-label="Delete all tab groups" onclick="document.getElementById('delete-all-tabs-modal').showModal()">🗑️</button> -->
+        <%- include('../_partials/column-settings.html') %>
       </div>
   </header>
 
@@ -347,17 +347,17 @@
       search
   }) %>
 
-  <dialog id="delete-all-tabs-modal" aria-labelledby="delete-all-tabs-title">
-    <h2 id="delete-all-tabs-title">Confirm</h2>
-    <p>Are you sure you want to delete all tab groups and its items?</p>
-    <form action="/tabs/delete-all" method="POST">
-      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-        <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-        <button type="submit">🗑️ Delete</button>
-      </div>
-    </form>
-  </dialog>
+  <!-- <dialog id="delete-all-tabs-modal" aria-labelledby="delete-all-tabs-title"> -->
+  <!--   <h2 id="delete-all-tabs-title">Confirm</h2> -->
+  <!--   <p>Are you sure you want to delete all tab groups and its items?</p> -->
+  <!--   <form action="/tabs/delete-all" method="POST"> -->
+  <!--     <input type="hidden" name="csrfToken" value="<%= csrfToken %>" /> -->
+  <!--     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;"> -->
+  <!--       <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button> -->
+  <!--       <button type="submit">🗑️ Delete</button> -->
+  <!--     </div> -->
+  <!--   </form> -->
+  <!-- </dialog> -->
 
   <dialog id="delete-tab-modal" aria-labelledby="delete-tab-title">
     <h2 id="delete-tab-title">Confirm</h2>
