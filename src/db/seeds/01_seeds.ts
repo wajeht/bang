@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { Knex } from 'knex';
 import path from 'node:path';
+import dayjs from '../../utils/dayjs';
 import { logger } from '../../utils/logger';
 
 const env = dotenv.config({
@@ -26,6 +27,7 @@ export async function seed(knex: Knex): Promise<void> {
                 is_admin: true,
                 autocomplete_search_on_homepage: true,
                 default_search_provider: 'duckduckgo',
+                timezone: 'America/Chicago',
                 column_preferences: JSON.stringify({
                     bookmarks: {
                         title: true,
@@ -252,16 +254,14 @@ Here is the \`content\` of **note 2**.
 
         await knex('tab_items').insert(tabItems);
 
-        const now = new Date();
-        const dueNow = new Date(now.getTime() + 5 * 60 * 1000) // 5 minutes from now
-            .toISOString()
-            .replace('T', ' ')
-            .slice(0, 19);
+        const now = dayjs();
+        const dueNow = now
+            .add(5, 'minute') // 5 minutes from now
+            .format('YYYY-MM-DD HH:mm:ss');
 
-        const dueSoon = new Date(now.getTime() + 10 * 60 * 1000) // 10 minutes from now
-            .toISOString()
-            .replace('T', ' ')
-            .slice(0, 19);
+        const dueSoon = now
+            .add(10, 'minute') // 10 minutes from now
+            .format('YYYY-MM-DD HH:mm:ss');
 
         const reminders = [
             {
@@ -315,10 +315,7 @@ Here is the \`content\` of **note 2**.
                 content: "This should not appear in today's digest",
                 reminder_type: 'once',
                 frequency: null,
-                due_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
-                    .toISOString()
-                    .replace('T', ' ')
-                    .slice(0, 19), // 3 days from now - will NOT be processed
+                due_date: dayjs().add(3, 'day').format('YYYY-MM-DD HH:mm:ss'), // 3 days from now - will NOT be processed
                 processed: false,
             },
         ];
