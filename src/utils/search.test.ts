@@ -874,10 +874,11 @@ describe('search', () => {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
+                redirect: vi.fn(),
             } as unknown as Response;
 
             vi.mocked(isValidUrl).mockReturnValue(true);
-            vi.mocked(insertBookmark).mockRejectedValue(new Error('Database error'));
+            vi.mocked(checkDuplicateBookmarkUrl).mockRejectedValue(new Error('Database error'));
 
             await search({
                 req,
