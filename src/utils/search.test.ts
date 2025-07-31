@@ -11,6 +11,7 @@ import {
     insertPageTitle,
     checkDuplicateBookmarkUrl,
 } from '../utils/util';
+import dayjs from './dayjs';
 import { db } from '../db/db';
 import { User } from '../type';
 import { config } from '../config';
@@ -1332,8 +1333,8 @@ describe('search', () => {
                     user_id: 1,
                     trigger: '!tabonly',
                     title: 'Tab Only Test',
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                    created_at: dayjs().toDate(),
+                    updated_at: dayjs().toDate(),
                 });
 
                 const req = {} as Request;
@@ -1700,8 +1701,8 @@ describe('search', () => {
                     user_id: 1,
                     trigger: '!edittab',
                     title: 'Edit Tab Test',
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                    created_at: dayjs().toDate(),
+                    updated_at: dayjs().toDate(),
                 });
 
                 const req = {} as Request;
@@ -1801,8 +1802,8 @@ describe('search', () => {
                     user_id: 1,
                     title: 'Existing Bookmark',
                     url: 'https://existing.com',
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                    created_at: dayjs().toDate(),
+                    updated_at: dayjs().toDate(),
                 });
             });
 
@@ -1824,7 +1825,7 @@ describe('search', () => {
                     user_id: 1,
                     title: 'Existing Bookmark',
                     url: 'https://existing.com',
-                    created_at: new Date().toISOString(),
+                    created_at: dayjs().toISOString(),
                 });
 
                 await search({
@@ -1859,7 +1860,7 @@ describe('search', () => {
                     user_id: 1,
                     title: 'Existing Bookmark',
                     url: 'https://existing.com',
-                    created_at: new Date().toISOString(),
+                    created_at: dayjs().toISOString(),
                 });
 
                 await search({
@@ -1899,7 +1900,7 @@ describe('search', () => {
                     user_id: 1,
                     title: 'Test "Quotes" & Special Chars',
                     url: 'https://existing.com',
-                    created_at: new Date().toISOString(),
+                    created_at: dayjs().toISOString(),
                 });
 
                 await search({
