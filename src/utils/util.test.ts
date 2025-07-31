@@ -823,11 +823,9 @@ describe('processReminderDigests', () => {
     let testUserId: number;
 
     beforeAll(async () => {
-        // Clean up any existing test data
         await db('reminders').del();
         await db('users').del();
 
-        // Create a test user
         const [user] = await db('users')
             .insert({
                 username: 'testuser',
@@ -844,7 +842,6 @@ describe('processReminderDigests', () => {
     });
 
     beforeEach(async () => {
-        // Clean up reminders before each test
         await db('reminders').del();
     });
 
@@ -853,7 +850,6 @@ describe('processReminderDigests', () => {
         const in10Minutes = new Date(now.getTime() + 10 * 60 * 1000);
         const in20Minutes = new Date(now.getTime() + 20 * 60 * 1000);
 
-        // Create test reminders
         await db('reminders').insert([
             {
                 user_id: testUserId,
@@ -878,7 +874,6 @@ describe('processReminderDigests', () => {
             },
         ]);
 
-        // Run the function (it logs to console in dev mode instead of sending email)
         await processReminderDigests();
 
         // Check that one-time reminder was deleted (this confirms processing happened)
