@@ -8,6 +8,7 @@ import type {
     PaginateArrayOptions,
     TurnstileVerifyResponse,
 } from '../type';
+import dayjs from './dayjs';
 import http from 'node:http';
 import path from 'node:path';
 import { db } from '../db/db';
@@ -704,7 +705,7 @@ export async function generateUserDataExport(
         reminders?: Record<string, unknown>[];
         user_preferences?: Record<string, unknown>;
     } = {
-        exported_at: new Date().toISOString(),
+        exported_at: dayjs().toISOString(),
         version: '1.0',
     };
 
@@ -918,7 +919,7 @@ export async function sendDataExportEmail({
         }
 
         const userId = (req.user as User).id;
-        const currentDate = new Date().toISOString().split('T')[0];
+        const currentDate = dayjs().format('YYYY-MM-DD');
         const attachments: Attachment[] = [];
         const exportTypes: string[] = [];
 
@@ -1187,12 +1188,7 @@ export async function sendReminderDigestEmail({
 }): Promise<void> {
     if (reminders.length === 0) return;
 
-    const formatDate = new Date(date).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
+    const formatDate = dayjs(date).format('dddd, MMMM D, YYYY');
 
     const formatReminderList = reminders
         .map((reminder, index) => {
@@ -1241,8 +1237,8 @@ https://github.com/wajeht/bang`;
 
 export async function processReminderDigests(): Promise<void> {
     try {
-        const now = new Date();
-        const next15Min = new Date(now.getTime() + 15 * 60 * 1000);
+        const now = dayjs();
+        const next15Min = now.add(15, 'minute');
 
         // Get all reminders due in the next 15 minutes that haven't been processed
         // Convert to database format (YYYY-MM-DD HH:MM:SS)
@@ -1307,21 +1303,21 @@ export async function processReminderDigests(): Promise<void> {
             for (const reminder of userData.reminders) {
                 if (reminder.reminder_type === 'recurring' && reminder.frequency) {
                     // Calculate next due date for recurring reminders
-                    const currentDue = new Date(reminder.due_date);
+                    const currentDue = dayjs(reminder.due_date);
                     let nextDue: Date;
 
                     switch (reminder.frequency) {
                         case 'daily':
-                            nextDue = new Date(currentDue.getTime() + 24 * 60 * 60 * 1000);
+                            nextDue = currentDue.add(1, 'day').toDate();
                             break;
                         case 'weekly':
-                            nextDue = new Date(currentDue.getTime() + 7 * 24 * 60 * 60 * 1000);
+                            nextDue = currentDue.add(1, 'week').toDate();
                             break;
                         case 'biweekly':
-                            nextDue = new Date(currentDue.getTime() + 14 * 24 * 60 * 60 * 1000);
+                            nextDue = currentDue.add(2, 'week').toDate();
                             break;
                         case 'monthly':
-                            nextDue = new Date(currentDue);
+                            nextDue = currentDue.toDate();
                             nextDue.setMonth(nextDue.getMonth() + 1);
                             break;
                         default:
@@ -1353,5 +1349,79 @@ export async function processReminderDigests(): Promise<void> {
         logger.info(`Processed reminder digests for ${Object.keys(remindersByUser).length} users`);
     } catch (error) {
         logger.error(`Failed to process reminder digests: %o`, { error });
+    }
+}
+
+/**
+ * Format a UTC date string for display in a specific timezone
+ * @param utcDateString - ISO date string in UTC
+ * @param timezone - Target timezone (e.g., 'America/Chicago')
+ * @returns Formatted date and time string
+ */
+export function formatDateInTimezone(
+    utcDateString: string | Date,
+    timezone: string = 'UTC',
+): {
+    dateString: string;
+    timeString: string;
+    fullString: string;
+} {
+    try {
+        let dayjsDate;
+
+        if (typeof utcDateString === 'string') {
+            // Handle database format "2025-07-31 03:55:07" as UTC
+            if (!utcDateString.includes('T') && !utcDateString.endsWith('Z')) {
+                // Database format: "2025-07-31 03:55:07" -> treat as UTC
+                dayjsDate = dayjs.utc(utcDateString.replace(' ', 'T'));
+            } else {
+                dayjsDate = dayjs.utc(utcDateString);
+            }
+        } else {
+            dayjsDate = dayjs.utc(utcDateString);
+        }
+
+        // Convert to target timezone
+        const localDate = dayjsDate.tz(timezone);
+
+        const dateString = localDate.format('M/D/YYYY');
+        const timeString = localDate.format('h:mm A');
+        const fullString = localDate.format('M/D/YYYY, h:mm A');
+
+        return { dateString, timeString, fullString };
+    } catch (_error) {
+        // Fallback to basic formatting
+        const date = dayjs(utcDateString);
+        const jsDate = date.toDate();
+        const dateString = jsDate.toLocaleDateString('en-US');
+        const timeString = jsDate.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        });
+        const fullString = jsDate.toLocaleString('en-US');
+
+        return { dateString, timeString, fullString };
+    }
+}
+
+/**
+ * Convert a local time string and timezone to UTC
+ * @param localDateTimeString - Local date/time string
+ * @param timezone - Source timezone
+ * @returns UTC ISO string
+ */
+export function convertToUTC(localDateTimeString: string, timezone: string = 'UTC'): string {
+    try {
+        if (timezone === 'UTC') {
+            return dayjs.utc(localDateTimeString).toISOString();
+        }
+
+        // Parse as local time in the specified timezone, then convert to UTC
+        const localTime = dayjs.tz(localDateTimeString, timezone);
+        return localTime.utc().toISOString();
+    } catch (error) {
+        // Fallback: assume input is already UTC
+        return dayjs.utc(localDateTimeString).toISOString();
     }
 }
