@@ -140,11 +140,9 @@
                                         <% if (reminders[i].due_date) { %>
                                             <time datetime="<%= reminders[i].due_date %>">
                                                 <%
-                                                    const dueDate = new Date(reminders[i].due_date);
-                                                    const dateStr = dueDate.toLocaleDateString();
-                                                    const timeStr = dueDate.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit', hour12: true});
+                                                    const formatted = utils.formatDateInTimezone(reminders[i].due_date, state.user.timezone);
                                                 %>
-                                                <%= dateStr %> at <%= timeStr %>
+                                                <%= formatted.dateString %> at <%= formatted.timeString %>
                                             </time>
                                         <% } else { %>
                                             <span style="color: #e74c3c;">⚠️ Invalid: once reminder without date</span>
@@ -154,9 +152,12 @@
                                         <%
                                             const defaultTime = state.user.column_preferences?.reminders?.default_reminder_time || '09:00';
                                             const [hours, minutes] = defaultTime.split(':');
-                                            const hour12 = new Date(2000, 0, 1, parseInt(hours), parseInt(minutes)).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit', hour12: true});
+                                            // Create a dummy date with the default time to format it in user's timezone
+                                            const dummyDate = new Date();
+                                            dummyDate.setUTCHours(parseInt(hours), parseInt(minutes), 0, 0);
+                                            const timeFormatted = utils.formatDateInTimezone(dummyDate, state.user.timezone);
                                         %>
-                                        <%= reminders[i].frequency %> at <%= hour12 %>
+                                        <%= reminders[i].frequency %> at <%= timeFormatted.timeString %>
                                     <% } else { %>
                                         -
                                     <% } %>
@@ -165,7 +166,7 @@
                             <% if (state.user.column_preferences?.reminders?.created_at !== false) { %>
                                 <td style="padding: 10px;">
                                     <time datetime="<%= reminders[i].created_at %>">
-                                        <%= new Date(reminders[i].created_at).toLocaleString() %>
+                                        <%= utils.formatDateInTimezone(reminders[i].created_at, state.user.timezone).fullString %>
                                     </time>
                                 </td>
                             <% } %>
