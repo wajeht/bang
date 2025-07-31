@@ -33,6 +33,7 @@ import {
 } from './utils/util';
 import { Knex } from 'knex';
 import { db } from './db/db';
+import dayjs from './utils/dayjs';
 import { bangs } from './db/bang';
 import { config } from './config';
 import type { Bang } from './type';
@@ -745,7 +746,7 @@ export function getExportBookmarksHandler(db: Knex) {
 
         res.setHeader(
             'Content-Disposition',
-            `attachment; filename=bookmarks-${new Date().toISOString().split('T')[0]}.html`,
+            `attachment; filename=bookmarks-${dayjs().format('YYYY-MM-DD')}.html`,
         )
             .setHeader('Content-Type', 'text/html; charset=UTF-8')
             .send(htmlExport);
@@ -867,7 +868,7 @@ export function postSettingsAccountHandler(db: Knex) {
             parsedAutocompleteSearchOnHomepage = true;
         }
 
-        await db('users')
+        const updatedUser = await db('users')
             .update({
                 email,
                 username,
@@ -875,7 +876,17 @@ export function postSettingsAccountHandler(db: Knex) {
                 autocomplete_search_on_homepage: parsedAutocompleteSearchOnHomepage,
                 timezone,
             })
-            .where({ id: (req.user as User).id });
+            .where({ id: (req.user as User).id })
+            .returning('*');
+
+        if (req.session?.user) {
+            req.session.user = updatedUser[0] as User;
+            req.session.save();
+        }
+
+        if (req.user) {
+            req.user = updatedUser[0] as User;
+        }
 
         req.flash('success', '🔄 updated!');
         return res.redirect('/settings/account');
@@ -1384,10 +1395,10 @@ export async function getExportAllDataHandler(req: Request, res: Response) {
         bangs,
         bookmarks,
         notes,
-        exported_at: new Date().toISOString(),
+        exported_at: dayjs().toISOString(),
     };
 
-    const currentDate = new Date().toISOString().split('T')[0];
+    const currentDate = dayjs().format('YYYY-MM-DD');
     const filename = `bang-data-export-${currentDate}.json`;
 
     return res
