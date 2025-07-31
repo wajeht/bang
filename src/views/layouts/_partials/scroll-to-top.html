@@ -1,9 +1,6 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const button = document.getElementById('scroll-top-button');
-
-    button.style.visibility = 'hidden';
-    button.style.opacity = '0';
     button.style.transition = 'visibility 0s, opacity 0.3s ease-in-out';
 
     window.addEventListener('scroll', function () {
@@ -32,7 +29,7 @@
 <button
   id="scroll-top-button"
   title="scroll to top"
-  style="position: fixed; bottom: 1rem; right: 1rem; z-index: 4;"
+  style="position: fixed; bottom: 1rem; right: 1rem; z-index: 4; visibility: hidden; opacity: 0; transition: visibility 0s, opacity 0.3s ease-in-out;"
 >
     ↑
 </button>
