@@ -181,7 +181,11 @@
                           <td style="padding: 10px;"><%= tabs[i].items.length %></td>
                           <% } %>
                           <% if (user.column_preferences?.tabs?.created_at !== false) { %>
-                          <td style="padding: 10px;"><time datetime="<%= tabs[i].created_at %>"><%= new Date(tabs[i].created_at).toLocaleString() %></time></td>
+                          <td style="padding: 10px;">
+                            <time datetime="<%= tabs[i].created_at %>">
+                                <%= utils.formatDateInTimezone(tabs[i].created_at, state.user.timezone).fullString %>
+                            </time>
+                          </td>
                           <% } %>
                           <td style="padding: 10px;">
                             <details style="position: relative; display: inline-flex; align-items: center;">
@@ -287,7 +291,9 @@
                                     <% } %>
                                     <% if (user.column_preferences?.tabs?.created_at !== false) { %>
                                      <td style="padding: 10px;">
-                                       <time datetime="<%= tabs[i].items[j].created_at %>"><%= new Date(tabs[i].items[j].created_at).toLocaleString() %></time>
+                                       <time datetime="<%= tabs[i].items[j].created_at %>">
+                                         <%= utils.formatDateInTimezone(tabs[i].items[j].created_at, state.user.timezone).fullString %>
+                                       </time>
                                      </td>
                                      <% } %>
                                     <td style="padding: 10px;">
