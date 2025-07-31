@@ -1750,6 +1750,8 @@ export function postSettingsDisplayHandler(db: Knex) {
 
         req.session.user!.column_preferences = column_preferences;
 
+        req.user!.column_preferences = column_preferences;
+
         req.flash('success', 'Column settings updated');
 
         return res.redirect(path);

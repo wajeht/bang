@@ -152,9 +152,9 @@
                                         <%
                                             const defaultTime = state.user.column_preferences?.reminders?.default_reminder_time || '09:00';
                                             const [hours, minutes] = defaultTime.split(':');
-                                            // Create a dummy date with the default time to format it in user's timezone
+                                            // Create a dummy date with the default time in local timezone
                                             const dummyDate = new Date();
-                                            dummyDate.setUTCHours(parseInt(hours), parseInt(minutes), 0, 0);
+                                            dummyDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
                                             const timeFormatted = utils.formatDateInTimezone(dummyDate, state.user.timezone);
                                         %>
                                         <%= reminders[i].frequency %> at <%= timeFormatted.timeString %>
