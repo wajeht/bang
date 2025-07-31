@@ -1237,13 +1237,14 @@ https://github.com/wajeht/bang`;
 
 export async function processReminderDigests(): Promise<void> {
     try {
-        const now = dayjs();
+        // Use UTC time for database queries since due_date is stored in UTC
+        const now = dayjs.utc();
         const next15Min = now.add(15, 'minute');
 
         // Get all reminders due in the next 15 minutes that haven't been processed
-        // Convert to database format (YYYY-MM-DD HH:MM:SS)
-        const nowFormatted = now.toISOString().replace('T', ' ').slice(0, 19);
-        const next15MinFormatted = next15Min.toISOString().replace('T', ' ').slice(0, 19);
+        // Use UTC ISO format for database comparison
+        const nowFormatted = now.toISOString();
+        const next15MinFormatted = next15Min.toISOString();
 
         const dueReminders = await db
             .select('reminders.*', 'users.email', 'users.username', 'users.timezone')
@@ -1292,33 +1293,34 @@ export async function processReminderDigests(): Promise<void> {
 
         // Send digest emails to each user
         for (const userData of Object.values(remindersByUser)) {
+            // Use user's timezone for email date formatting
+            const userNow = now.tz(userData.timezone);
             await sendReminderDigestEmail({
                 email: userData.email,
                 username: userData.username,
                 reminders: userData.reminders,
-                date: now.toISOString().split('T')[0] || '',
+                date: userNow.format('YYYY-MM-DD'),
             });
 
             // Process each reminder
             for (const reminder of userData.reminders) {
                 if (reminder.reminder_type === 'recurring' && reminder.frequency) {
-                    // Calculate next due date for recurring reminders
-                    const currentDue = dayjs(reminder.due_date);
-                    let nextDue: Date;
+                    // Calculate next due date for recurring reminders using UTC
+                    const currentDue = dayjs.utc(reminder.due_date);
+                    let nextDue: dayjs.Dayjs;
 
                     switch (reminder.frequency) {
                         case 'daily':
-                            nextDue = currentDue.add(1, 'day').toDate();
+                            nextDue = currentDue.add(1, 'day');
                             break;
                         case 'weekly':
-                            nextDue = currentDue.add(1, 'week').toDate();
+                            nextDue = currentDue.add(1, 'week');
                             break;
                         case 'biweekly':
-                            nextDue = currentDue.add(2, 'week').toDate();
+                            nextDue = currentDue.add(2, 'week');
                             break;
                         case 'monthly':
-                            nextDue = currentDue.toDate();
-                            nextDue.setMonth(nextDue.getMonth() + 1);
+                            nextDue = currentDue.add(1, 'month');
                             break;
                         default:
                             continue; // Skip if frequency is not recognized
