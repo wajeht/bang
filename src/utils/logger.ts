@@ -1,15 +1,11 @@
+import dayjs from './dayjs';
 import { styleText, format } from 'node:util';
 import type { Logger as LoggerType } from '../type';
 
 function getFormattedTimestamp() {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const seconds = now.getSeconds();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const formattedHours = hours % 12 || 12;
-    const formattedTime = `${formattedHours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${ampm}`;
-    const formattedDate = now.toISOString().split('T')[0];
+    const now = dayjs();
+    const formattedTime = now.format('h:mm:ss A');
+    const formattedDate = now.format('YYYY-MM-DD');
     return `[${formattedDate} ${formattedTime}]`;
 }
 
