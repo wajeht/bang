@@ -9,8 +9,9 @@ import {
     updateUserBangLastReadAt,
     checkDuplicateBookmarkUrl,
 } from './util';
-import { logger } from './logger';
+import dayjs from './dayjs';
 import { db } from '../db/db';
+import { logger } from './logger';
 import { UnauthorizedError } from '../error';
 import { bangs as bangsTable } from '../db/bang';
 import type { Request, Response } from 'express';
@@ -407,7 +408,7 @@ export function redirectWithCache(
 ): void {
     res.set({
         'Cache-Control': `public, max-age=${cacheDuration * 60}`,
-        Expires: new Date(Date.now() + cacheDuration * 60 * 1000).toUTCString(),
+        Expires: dayjs().add(cacheDuration, 'minute').toDate().toUTCString(),
     });
     res.redirect(url);
 }
@@ -533,11 +534,27 @@ function convertToUTC(date: Date, userTimezone: string): Date {
         .replace(', ', 'T');
 
     // Parse as if it were UTC, then adjust for timezone offset
-    const utcDate = new Date(userDateStr + 'Z');
-    const userDate = new Date(userDateStr);
-    const offset = userDate.getTime() - utcDate.getTime();
+    const utcDate = dayjs(userDateStr + 'Z');
+    const userDate = dayjs(userDateStr);
+    const offset = userDate.valueOf() - utcDate.valueOf();
 
-    return new Date(date.getTime() - offset);
+    return dayjs(date).subtract(offset, 'millisecond').toDate();
+}
+
+/**
+ * Converts a Date object representing time in user's timezone to UTC
+ * This properly handles the case where the Date was created as local time
+ * but represents a time in the user's timezone
+ */
+function convertUserTimeToUTC(localDate: Date, userTimezone: string): Date {
+    if (userTimezone === 'UTC') return localDate;
+
+    // Use dayjs to properly handle timezone conversion
+    // Interpret the local date components as being in the user's timezone
+    const userDateTime = dayjs.tz(localDate, userTimezone);
+
+    // Convert to UTC and return as Date object
+    return userDateTime.utc().toDate();
 }
 
 /**
@@ -752,66 +769,79 @@ export function parseReminderTiming(
     defaultTime: string = '09:00',
     userTimezone: string = 'UTC',
 ): ReminderTimingResult {
-    const now = new Date();
+    const now = dayjs();
 
     // Parse the default time (HH:MM format)
     const timeParts = defaultTime.split(':');
     const defaultHour = timeParts[0] ? parseInt(timeParts[0], 10) : 9;
     const defaultMinute = timeParts[1] ? parseInt(timeParts[1], 10) : 0;
 
-    const tomorrow = new Date(now);
-    tomorrow.setDate(now.getDate() + 1);
-    tomorrow.setHours(defaultHour, defaultMinute, 0, 0);
+    const tomorrow = now
+        .add(1, 'day')
+        .hour(defaultHour)
+        .minute(defaultMinute)
+        .second(0)
+        .millisecond(0);
 
     // Handle recurring frequencies
     switch (timeStr) {
         case 'daily': {
-            const dailyNext = new Date(tomorrow);
+            const dailyNext = tomorrow;
             return {
                 isValid: true,
                 type: 'recurring',
                 frequency: 'daily',
                 specificDate: null,
-                nextDue: convertToUTC(dailyNext, userTimezone),
+                nextDue: convertToUTC(dailyNext.toDate(), userTimezone),
             };
         }
 
         case 'weekly': {
-            const weeklyNext = new Date(now);
-            weeklyNext.setDate(now.getDate() + ((6 - now.getDay()) % 7 || 7)); // Next Saturday
-            weeklyNext.setHours(defaultHour, defaultMinute, 0, 0);
+            const weeklyNext = now
+                .add((6 - now.day()) % 7 || 7, 'day')
+                .hour(defaultHour)
+                .minute(defaultMinute)
+                .second(0)
+                .millisecond(0);
             return {
                 isValid: true,
                 type: 'recurring',
                 frequency: 'weekly',
                 specificDate: null,
-                nextDue: convertToUTC(weeklyNext, userTimezone),
+                nextDue: convertToUTC(weeklyNext.toDate(), userTimezone),
             };
         }
 
         case 'biweekly': {
-            const biweeklyNext = new Date(now);
-            biweeklyNext.setDate(now.getDate() + 14);
-            biweeklyNext.setHours(defaultHour, defaultMinute, 0, 0);
+            const biweeklyNext = now
+                .add(14, 'day')
+                .hour(defaultHour)
+                .minute(defaultMinute)
+                .second(0)
+                .millisecond(0);
             return {
                 isValid: true,
                 type: 'recurring',
                 frequency: 'biweekly',
                 specificDate: null,
-                nextDue: convertToUTC(biweeklyNext, userTimezone),
+                nextDue: convertToUTC(biweeklyNext.toDate(), userTimezone),
             };
         }
 
         case 'monthly': {
-            const monthlyNext = new Date(now);
-            monthlyNext.setMonth(now.getMonth() + 1, 1); // First day of next month
-            monthlyNext.setHours(defaultHour, defaultMinute, 0, 0);
+            const monthlyNext = now
+                .add(1, 'month')
+                .date(1)
+                .hour(defaultHour)
+                .minute(defaultMinute)
+                .second(0)
+                .millisecond(0);
             return {
                 isValid: true,
                 type: 'recurring',
                 frequency: 'monthly',
                 specificDate: null,
-                nextDue: convertToUTC(monthlyNext, userTimezone),
+                nextDue: convertToUTC(monthlyNext.toDate(), userTimezone),
             };
         }
     }
@@ -830,18 +860,18 @@ export function parseReminderTiming(
 
             if (pattern === datePatterns[0] && match[1] && match[2] && match[3]) {
                 // YYYY-MM-DD
-                targetDate = new Date(
-                    parseInt(match[1]),
-                    parseInt(match[2]) - 1,
-                    parseInt(match[3]),
-                );
+                targetDate = dayjs()
+                    .year(parseInt(match[1]))
+                    .month(parseInt(match[2]) - 1)
+                    .date(parseInt(match[3]))
+                    .toDate();
             } else if (pattern === datePatterns[1] && match[1] && match[2] && match[3]) {
                 // MM/DD/YYYY
-                targetDate = new Date(
-                    parseInt(match[3]),
-                    parseInt(match[1]) - 1,
-                    parseInt(match[2]),
-                );
+                targetDate = dayjs()
+                    .year(parseInt(match[3]))
+                    .month(parseInt(match[1]) - 1)
+                    .date(parseInt(match[2]))
+                    .toDate();
             } else if (pattern === datePatterns[2] && match[1] && match[2]) {
                 // Jan-15
                 const monthMap: { [key: string]: number } = {
@@ -860,11 +890,20 @@ export function parseReminderTiming(
                 };
                 const month = monthMap[match[1].toLowerCase()];
                 if (month !== undefined && match[2]) {
-                    targetDate = new Date(now.getFullYear(), month, parseInt(match[2]));
+                    let targetDayjs = dayjs()
+                        .year(now.year())
+                        .month(month)
+                        .date(parseInt(match[2]))
+                        .hour(0)
+                        .minute(0)
+                        .second(0)
+                        .millisecond(0);
+
                     // If the date has already passed this year, use next year
-                    if (targetDate < now) {
-                        targetDate.setFullYear(now.getFullYear() + 1);
+                    if (targetDayjs.isBefore(now)) {
+                        targetDayjs = targetDayjs.add(1, 'year');
                     }
+                    targetDate = targetDayjs.toDate();
                 } else {
                     continue;
                 }
@@ -876,10 +915,12 @@ export function parseReminderTiming(
             if (
                 targetDate &&
                 !isNaN(targetDate.getTime()) &&
-                targetDate >= new Date(now.getFullYear(), 0, 1)
+                targetDate >= dayjs().year(now.year()).month(0).date(1).toDate()
             ) {
                 targetDate.setHours(defaultHour, defaultMinute, 0, 0);
-                const utcDate = convertToUTC(targetDate, userTimezone);
+
+                // Convert from user's timezone to UTC for database storage
+                const utcDate = convertUserTimeToUTC(targetDate, userTimezone);
                 return {
                     isValid: true,
                     type: 'once',
@@ -897,7 +938,7 @@ export function parseReminderTiming(
         type: 'once',
         frequency: null,
         specificDate: null,
-        nextDue: new Date(),
+        nextDue: dayjs().toDate(),
     };
 }
 
