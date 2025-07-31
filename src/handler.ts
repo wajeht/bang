@@ -1742,15 +1742,29 @@ export function postSettingsDisplayHandler(db: Knex) {
         const user = req.user as User;
         const { path } = req.body;
 
+        // Merge submitted preferences with existing user preferences to preserve unmodified sections
+        const updatedPreferences = { ...user.column_preferences } as any;
+        Object.keys(column_preferences).forEach((section) => {
+            if (
+                column_preferences[section as keyof typeof column_preferences] &&
+                typeof column_preferences[section as keyof typeof column_preferences] === 'object'
+            ) {
+                updatedPreferences[section] = {
+                    ...updatedPreferences[section],
+                    ...column_preferences[section as keyof typeof column_preferences],
+                };
+            }
+        });
+
         await db('users')
             .where('id', user.id)
             .update({
-                column_preferences: JSON.stringify(column_preferences),
+                column_preferences: JSON.stringify(updatedPreferences),
             });
 
-        req.session.user!.column_preferences = column_preferences;
+        req.session.user!.column_preferences = updatedPreferences;
 
-        req.user!.column_preferences = column_preferences;
+        req.user!.column_preferences = updatedPreferences;
 
         req.flash('success', 'Column settings updated');
 
