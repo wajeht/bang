@@ -1,3 +1,4 @@
+import dayjs from './utils/dayjs';
 import { db, notes } from './db/db';
 import type { Request, Response } from 'express';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -217,7 +218,7 @@ describe('Import Data Handler', () => {
             name: 'Test Action',
             url: 'https://example.com',
             action_type: 'redirect',
-            created_at: new Date(),
+            created_at: dayjs().toDate(),
         });
 
         // Prepare import data with the same action
