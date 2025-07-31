@@ -173,12 +173,18 @@
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.created_at !== false) { %>
-                                <td style="padding: 10px;"><time datetime="<%= data[i].created_at %>"><%= new Date(data[i].created_at).toLocaleString() %></time></td>
+                                <td style="padding: 10px;">
+                                    <time datetime="<%= data[i].created_at %>">
+                                        <%= utils.formatDateInTimezone(data[i].created_at, state.user.timezone).fullString %>
+                                    </time>
+                                </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.last_read_at !== false) { %>
                                 <td style="padding: 10px;">
                                     <% if (data[i].last_read_at) { %>
-                                        <time datetime="<%= data[i].last_read_at %>"><%= new Date(data[i].last_read_at).toLocaleString() %></time>
+                                        <time datetime="<%= data[i].last_read_at %>">
+                                            <%= utils.formatDateInTimezone(data[i].last_read_at, state.user.timezone).fullString %>
+                                        </time>
                                     <% } else { %>
                                         <span>-</span>
                                     <% } %>
