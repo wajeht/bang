@@ -35,7 +35,7 @@
         </details>
       <% } else { %>
         <div style="position: absolute; right: 0; margin-right: 1rem;">
-          <a href="#" onclick="document.getElementById('login-dialog').showModal(); return false;">🔑 Login</a>
+          <a href="#" id="auth-link" onclick="document.getElementById('login-dialog').showModal(); return false;">🔑 Login</a>
         </div>
       <% } %>
     </header>
@@ -50,7 +50,7 @@
 
     <% if (!state.user) { %>
       <dialog id="login-dialog" style="width: 450px;">
-        <h2>🔑 Login</h2>
+        <h2 id="login-dialog-auth-heading">🔑 Login</h2>
         <p>Enter your email address and we'll send you a magic link to log in.</p>
 
         <form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
@@ -89,6 +89,19 @@
           const emailInput = document.getElementById('email-input');
           const urlParams = new URLSearchParams(window.location.search);
           const state = JSON.parse(`<%- JSON.stringify(state) %>`);
+          const localStorageData = getLocalStorageData();
+          const authLink = document.getElementById("auth-link");
+          const loginDialogAuthHeading = document.getElementById("login-dialog-auth-heading");
+
+          if (localStorageData.user?.email){
+            if (authLink.textContent !== "🔑 Login" && loginDialogAuthHeading.textContent !== "🔑 Login") {
+                authLink.textContent = "🔑 Login";
+                loginDialogAuthHeading.textContent = "🔑 Login"
+            }
+          } else {
+            authLink.textContent = "🔑 Signup";
+            loginDialogAuthHeading.textContent = "🔑 Signup"
+          }
 
           if (urlParams.get('modal') === 'login') {
             document.getElementById('login-dialog').showModal()
@@ -102,7 +115,6 @@
           }
 
           // auto pre-fill the email if the user is logged in before and the email is in local storage
-          const localStorageData = getLocalStorageData();
           if (!state.errors?.email && localStorageData.user?.email) {
               emailInput.value = localStorageData.user.email;
           }
