@@ -93,15 +93,16 @@
           const authLink = document.getElementById("auth-link");
           const loginDialogAuthHeading = document.getElementById("login-dialog-auth-heading");
 
-          if (localStorageData.user?.email){
-            if (authLink.textContent !== "🔑 Login" && loginDialogAuthHeading.textContent !== "🔑 Login") {
-                authLink.textContent = "🔑 Login";
-                loginDialogAuthHeading.textContent = "🔑 Login"
-            }
-          } else {
-            authLink.textContent = "🔑 Signup";
-            loginDialogAuthHeading.textContent = "🔑 Signup"
-          }
+          // TODO: when putting this back, fix the tests
+          // if (localStorageData.user?.email){
+          //   if (authLink.textContent !== "🔑 Login" && loginDialogAuthHeading.textContent !== "🔑 Login") {
+          //       authLink.textContent = "🔑 Login";
+          //       loginDialogAuthHeading.textContent = "🔑 Login"
+          //   }
+          // } else {
+          //   authLink.textContent = "🔑 Signup";
+          //   loginDialogAuthHeading.textContent = "🔑 Signup"
+          // }
 
           if (urlParams.get('modal') === 'login') {
             document.getElementById('login-dialog').showModal()

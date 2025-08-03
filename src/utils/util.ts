@@ -1251,7 +1251,7 @@ export async function processReminderDigests(): Promise<void> {
             .from('reminders')
             .join('users', 'reminders.user_id', 'users.id')
             .whereBetween('reminders.due_date', [nowFormatted, next15MinFormatted])
-            .where('reminders.processed', false)
+            .where('reminders.processed', 0)
             .orderBy('users.id')
             .orderBy('reminders.created_at');
 
