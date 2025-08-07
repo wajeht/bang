@@ -19,6 +19,7 @@ import {
     getConvertedReadmeMDToHTML,
     processReminderDigests,
     sendReminderDigestEmail,
+    formatDateInTimezone,
 } from './util';
 import path from 'node:path';
 import { db } from '../db/db';
@@ -816,6 +817,114 @@ describe.concurrent('README.md', () => {
         );
         expect(result).toContain('<!-- starts -->');
         expect(result).toContain('<!-- ends -->');
+    });
+});
+
+describe('formatDateInTimezone', () => {
+    it('should format UTC date to specified timezone with all properties', () => {
+        // Test with UTC date string
+        const utcDate = '2025-08-07 19:48:54';
+        const result = formatDateInTimezone(utcDate, 'America/Chicago');
+
+        expect(result).toHaveProperty('dateString');
+        expect(result).toHaveProperty('timeString');
+        expect(result).toHaveProperty('fullString');
+        expect(result).toHaveProperty('dateInputValue');
+        expect(result).toHaveProperty('timeInputValue');
+
+        // Chicago is UTC-5 in summer, so 19:48 UTC = 14:48 (2:48 PM) Chicago
+        expect(result.dateString).toBe('8/7/2025');
+        expect(result.timeString).toBe('2:48 PM');
+        expect(result.fullString).toBe('8/7/2025, 2:48 PM');
+        expect(result.dateInputValue).toBe('2025-08-07');
+        expect(result.timeInputValue).toBe('14:48');
+    });
+
+    it('should handle ISO date strings with timezone conversion', () => {
+        const isoDate = '2025-01-15T10:30:00Z';
+        const result = formatDateInTimezone(isoDate, 'America/New_York');
+
+        // New York is UTC-5 in winter, so 10:30 UTC = 05:30 (5:30 AM) New York
+        expect(result.dateString).toBe('1/15/2025');
+        expect(result.timeString).toBe('5:30 AM');
+        expect(result.fullString).toBe('1/15/2025, 5:30 AM');
+        expect(result.dateInputValue).toBe('2025-01-15');
+        expect(result.timeInputValue).toBe('05:30');
+    });
+
+    it('should handle Date objects', () => {
+        const date = new Date('2025-12-25T18:00:00Z');
+        const result = formatDateInTimezone(date, 'Europe/London');
+
+        // London is UTC+0 in winter, so 18:00 UTC = 18:00 (6:00 PM) London
+        expect(result.dateString).toBe('12/25/2025');
+        expect(result.timeString).toBe('6:00 PM');
+        expect(result.fullString).toBe('12/25/2025, 6:00 PM');
+        expect(result.dateInputValue).toBe('2025-12-25');
+        expect(result.timeInputValue).toBe('18:00');
+    });
+
+    it('should default to UTC when no timezone is provided', () => {
+        const utcDate = '2025-06-15 09:15:00';
+        const result = formatDateInTimezone(utcDate);
+
+        expect(result.dateString).toBe('6/15/2025');
+        expect(result.timeString).toBe('9:15 AM');
+        expect(result.fullString).toBe('6/15/2025, 9:15 AM');
+        expect(result.dateInputValue).toBe('2025-06-15');
+        expect(result.timeInputValue).toBe('09:15');
+    });
+
+    it('should handle midnight correctly', () => {
+        const midnightUTC = '2025-03-01T00:00:00Z';
+        const result = formatDateInTimezone(midnightUTC, 'America/Los_Angeles');
+
+        // LA is UTC-8 in winter, so midnight UTC = 4:00 PM previous day in LA
+        expect(result.dateString).toBe('2/28/2025');
+        expect(result.timeString).toBe('4:00 PM');
+        expect(result.dateInputValue).toBe('2025-02-28');
+        expect(result.timeInputValue).toBe('16:00');
+    });
+
+    it('should handle noon correctly', () => {
+        const noonUTC = '2025-07-15T12:00:00Z';
+        const result = formatDateInTimezone(noonUTC, 'Asia/Tokyo');
+
+        // Tokyo is UTC+9, so noon UTC = 9:00 PM Tokyo
+        expect(result.dateString).toBe('7/15/2025');
+        expect(result.timeString).toBe('9:00 PM');
+        expect(result.dateInputValue).toBe('2025-07-15');
+        expect(result.timeInputValue).toBe('21:00');
+    });
+
+    it('should handle invalid date gracefully with fallback', () => {
+        const invalidDate = 'invalid-date';
+        const result = formatDateInTimezone(invalidDate, 'America/Chicago');
+
+        // Should still return all properties even with fallback
+        expect(result).toHaveProperty('dateString');
+        expect(result).toHaveProperty('timeString');
+        expect(result).toHaveProperty('fullString');
+        expect(result).toHaveProperty('dateInputValue');
+        expect(result).toHaveProperty('timeInputValue');
+    });
+
+    it('should format time inputs correctly for single-digit hours', () => {
+        // Test 1:05 AM
+        const earlyMorning = '2025-04-10T06:05:00Z';
+        const result1 = formatDateInTimezone(earlyMorning, 'America/New_York');
+
+        // NYC is UTC-4 in April, so 6:05 UTC = 2:05 AM NYC
+        expect(result1.timeString).toBe('2:05 AM');
+        expect(result1.timeInputValue).toBe('02:05');
+
+        // Test 9:30 AM
+        const morning = '2025-04-10T13:30:00Z';
+        const result2 = formatDateInTimezone(morning, 'America/New_York');
+
+        // 13:30 UTC = 9:30 AM NYC
+        expect(result2.timeString).toBe('9:30 AM');
+        expect(result2.timeInputValue).toBe('09:30');
     });
 });
 

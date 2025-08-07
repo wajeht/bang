@@ -26,6 +26,8 @@ vi.mock('./utils/util', () => ({
         dateString: '1/1/2024',
         timeString: '12:00 PM',
         fullString: '1/1/2024, 12:00 PM',
+        dateInputValue: '2024-01-01',
+        timeInputValue: '12:00',
     })),
 }));
 
