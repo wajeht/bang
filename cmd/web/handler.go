@@ -7,10 +7,6 @@ import (
 	"github.com/wajeht/bang/assets"
 )
 
-func (app *application) handleHome(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("ok"))
-}
-
 func (app *application) handleRobots(w http.ResponseWriter, r *http.Request) {
 	f, err := assets.EmbeddedFiles.Open("static/robots.txt")
 	if err != nil {
@@ -32,4 +28,20 @@ func (app *application) handleFavicon(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "image/x-icon")
 	io.Copy(w, f)
+}
+
+func (app *application) handleHome(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("home"))
+}
+
+func (app *application) handleAbout(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("about"))
+}
+
+func (app *application) handlePrivacyPolicy(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("privacy"))
+}
+
+func (app *application) handleTermsOfService(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("terms"))
 }

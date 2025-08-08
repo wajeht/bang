@@ -17,6 +17,12 @@ func (app *application) routes() http.Handler {
 
 	mux.HandleFunc("GET /robots.txt", app.handleRobots)
 
+	mux.HandleFunc("GET /privacy-policy", app.handlePrivacyPolicy)
+
+	mux.HandleFunc("GET /terms-of-service", app.handleTermsOfService)
+
+	mux.HandleFunc("GET /about", app.handleAbout)
+
 	mux.HandleFunc("GET /{$}", app.handleHome)
 
 	return mux
