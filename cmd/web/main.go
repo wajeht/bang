@@ -45,6 +45,21 @@ func run(logger *slog.Logger) error {
 
 	cfg.app.url = env.GetString("APP_URL", "http://localhost")
 	cfg.app.port = env.GetInt("APP_PORT", 80)
+	cfg.app.env = env.GetString("APP_ENV", "development")
+	cfg.app.adminEmail = env.GetString("APP_ADMIN_EMAIL", "admin@localhost")
+
+	cfg.email.host = env.GetString("EMAIL_HOST", "mailpit")
+	cfg.email.port = env.GetInt("EMAIL_HOST", 1025)
+	cfg.email.secure = env.GetBool("EMAIL_SECURE", false)
+	cfg.email.username = env.GetString("EMAIL_USERNAME", "username")
+	cfg.email.password = env.GetString("EMAIL_PASSWORD", "password")
+	cfg.email.fromEmail = env.GetString("EMAIL_FROM", "noreply@localhost")
+
+	cfg.notify.url = env.GetString("NOTIFY_URL", "localhost")
+	cfg.notify.xApiKey = env.GetString("NOTIFY_X_API_KEY", "x-api-key")
+
+	cfg.cloudflare.turnSiteSecretKey = env.GetString("CLOUDFLARE_TURNSTILE_SITE_KEY", "site-key")
+	cfg.cloudflare.turnSiteSecretKey = env.GetString("CLOUDFLARE_TURNSTILE_SECRET_KEY", "secret-key")
 
 	app := &application{
 		config: cfg,
