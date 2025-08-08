@@ -40,17 +40,6 @@ type application struct {
 	wg     sync.WaitGroup
 }
 
-func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-
-	err := run(logger)
-	if err != nil {
-		trace := string(debug.Stack())
-		logger.Error(err.Error(), "trace", trace)
-		os.Exit(1)
-	}
-}
-
 func run(logger *slog.Logger) error {
 	var cfg config
 
@@ -63,4 +52,15 @@ func run(logger *slog.Logger) error {
 	}
 
 	return app.serveHTTP()
+}
+
+func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	err := run(logger)
+	if err != nil {
+		trace := string(debug.Stack())
+		logger.Error(err.Error(), "trace", trace)
+		os.Exit(1)
+	}
 }
