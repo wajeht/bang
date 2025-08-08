@@ -2949,7 +2949,8 @@ export function updateReminderHandler(reminders: Reminders) {
             content: trimmedContent,
             reminder_type: timing.type,
             frequency: timing.frequency,
-            due_date: timing.nextDue,
+            due_date:
+                timing.nextDue instanceof Date ? timing.nextDue.toISOString() : timing.nextDue,
         });
 
         if (!updatedReminder) {
@@ -3042,7 +3043,8 @@ export function postReminderHandler(reminders: Reminders) {
             content: trimmedContent,
             reminder_type: timing.type,
             frequency: timing.frequency,
-            due_date: timing.nextDue,
+            due_date:
+                timing.nextDue instanceof Date ? timing.nextDue.toISOString() : timing.nextDue,
         });
 
         if (isApiRequest(req)) {
