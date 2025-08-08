@@ -520,8 +520,6 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string): string {
     return redirectUrl;
 }
 
-// Removed duplicate timezone helpers; use utilities in src/utils/util.ts when needed
-
 /**
  * Parses reminder content into timing, description, and optional content
  * @param reminderContent - The full reminder content after "!remind "
