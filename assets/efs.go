@@ -4,5 +4,5 @@ import (
 	"embed"
 )
 
-//go:embed "templates" "static" "posts"
+//go:embed templates/* static/* posts/*
 var EmbeddedFiles embed.FS
