@@ -415,11 +415,26 @@ export function redirectWithCache(
     res: Response,
     url: string,
     cacheDuration: number = searchConfig.redirectWithCacheDuration,
+    cacheType: 'public' | 'private' | 'no-store' = 'private',
+    varyHeaders?: string[],
 ): void {
-    res.set({
-        'Cache-Control': `public, max-age=${cacheDuration * 60}`,
-        Expires: dayjs().add(cacheDuration, 'minute').toDate().toUTCString(),
-    });
+    if (cacheType === 'no-store') {
+        res.set({
+            'Cache-Control': 'no-store',
+        });
+    } else {
+        const headers: Record<string, string> = {
+            'Cache-Control': `${cacheType}, max-age=${cacheDuration * 60}`,
+            Expires: dayjs().add(cacheDuration, 'minute').toDate().toUTCString(),
+        };
+
+        // Add Vary header to indicate cache should vary based on these headers
+        if (varyHeaders && varyHeaders.length > 0) {
+            headers['Vary'] = varyHeaders.join(', ');
+        }
+
+        res.set(headers);
+    }
     res.redirect(url);
 }
 
@@ -479,15 +494,33 @@ export async function handleAnonymousSearch(
         if (bang) {
             // Handle search queries with bang (e.g., "!g python")
             if (searchTerm) {
-                return redirectWithCache(res, getBangRedirectUrl(bang, searchTerm));
+                return redirectWithCache(
+                    res,
+                    getBangRedirectUrl(bang, searchTerm),
+                    searchConfig.redirectWithCacheDuration,
+                    'private',
+                    ['Cookie'], // Vary by Cookie to handle user-specific results
+                );
             }
 
             // Handle bang-only queries (e.g., "!g") - redirects to service homepage
             if (isValidUrl(bang.u)) {
-                return redirectWithCache(res, getBangRedirectUrl(bang, ''));
+                return redirectWithCache(
+                    res,
+                    getBangRedirectUrl(bang, ''),
+                    searchConfig.redirectWithCacheDuration,
+                    'public',
+                );
             }
         }
     }
+
+    // Check if this is an unknown bang
+    const parsedQuery = parseSearchQuery(query);
+    const isUnknownBang =
+        parsedQuery.commandType === 'bang' &&
+        parsedQuery.triggerWithoutPrefix &&
+        !searchConfig.bangs[parsedQuery.triggerWithoutPrefix];
 
     return redirectWithCache(
         res,
@@ -495,6 +528,9 @@ export async function handleAnonymousSearch(
             '{{{s}}}',
             encodeURIComponent(query),
         ),
+        isUnknownBang ? 0 : searchConfig.redirectWithCacheDuration,
+        isUnknownBang ? 'no-store' : 'private',
+        isUnknownBang ? undefined : ['Cookie'],
     );
 }
 
@@ -928,7 +964,12 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         if (!searchTerm) {
             const directPath = searchConfig.directCommands.get(trigger ?? '');
             if (directPath) {
-                return redirectWithCache(res, directPath);
+                return redirectWithCache(
+                    res,
+                    directPath,
+                    searchConfig.redirectWithCacheDuration,
+                    'private',
+                );
             }
         }
 
@@ -978,7 +1019,12 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             }
 
             if (redirectPath) {
-                return redirectWithCache(res, redirectPath);
+                return redirectWithCache(
+                    res,
+                    redirectPath,
+                    searchConfig.redirectWithCacheDuration,
+                    'private',
+                );
             }
         }
     }
@@ -1047,7 +1093,12 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     0,
                 );
 
-                return redirectWithCache(res, url);
+                return redirectWithCache(
+                    res,
+                    url,
+                    searchConfig.redirectWithCacheDuration,
+                    'no-store',
+                );
             } catch (error) {
                 logger.error('Error adding bookmark:', error);
                 return goBackWithValidationAlert(
@@ -1443,7 +1494,12 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
             // Redirect to a global search page that will search across all resources
             // The search page will handle querying bookmarks, notes, bangs, and tabs
-            return redirectWithCache(res, `/search?q=${encodedSearchTerm}&type=global`);
+            return redirectWithCache(
+                res,
+                `/search?q=${encodedSearchTerm}&type=global`,
+                searchConfig.redirectWithCacheDuration,
+                'private',
+            );
         }
 
         // Process reminder creation command (!remind)
@@ -1543,15 +1599,30 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     url = url.replace('{{{s}}}', encodeURIComponent(searchTerm ?? ''));
                 }
 
-                return redirectWithCache(res, url);
+                return redirectWithCache(
+                    res,
+                    url,
+                    searchConfig.redirectWithCacheDuration,
+                    'no-store', // Don't cache custom bang searches to avoid conflicts
+                );
             }
 
             if (customBang.action_type === 'redirect') {
-                return redirectWithCache(res, customBang.url);
+                return redirectWithCache(
+                    res,
+                    customBang.url,
+                    searchConfig.redirectWithCacheDuration,
+                    'no-store', // Don't cache custom bang redirects to avoid conflicts
+                );
             }
 
             if (customBang.action_type === 'bookmark') {
-                return redirectWithCache(res, `/bookmarks#${customBang.id}`);
+                return redirectWithCache(
+                    res,
+                    `/bookmarks#${customBang.id}`,
+                    searchConfig.redirectWithCacheDuration,
+                    'private',
+                );
             }
         }
     }
@@ -1567,7 +1638,13 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
     // Process tab commands
     if (tab) {
-        return redirectWithCache(res, `/tabs/${tab.id}/launch`);
+        return redirectWithCache(
+            res,
+            `/tabs/${tab.id}/launch`,
+            searchConfig.redirectWithCacheDuration,
+            'private',
+            ['Cookie'], // Vary by Cookie for user-specific tabs
+        );
     }
 
     // Process system-defined bang commands
@@ -1576,12 +1653,23 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         if (bang) {
             // Handle search queries with bang (e.g., "!g python")
             if (searchTerm) {
-                return redirectWithCache(res, getBangRedirectUrl(bang, searchTerm));
+                return redirectWithCache(
+                    res,
+                    getBangRedirectUrl(bang, searchTerm),
+                    searchConfig.redirectWithCacheDuration,
+                    'private',
+                    ['Cookie'], // Vary by Cookie to handle user-specific results
+                );
             }
 
             // Handle bang-only queries (e.g., "!g") - redirects to service homepage
             if (isValidUrl(bang.u)) {
-                return redirectWithCache(res, getBangRedirectUrl(bang, ''));
+                return redirectWithCache(
+                    res,
+                    getBangRedirectUrl(bang, ''),
+                    searchConfig.redirectWithCacheDuration,
+                    'public',
+                );
             }
         }
     }
@@ -1599,5 +1687,18 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         ].replace('{{{s}}}', encodeURIComponent(triggerWithoutPrefix));
     }
 
-    return redirectWithCache(res, searchUrl);
+    // Check if this is an unknown bang that fell through (not in system bangs)
+    const isUnknownBang =
+        commandType === 'bang' &&
+        !searchTerm &&
+        triggerWithoutPrefix &&
+        !searchConfig.bangs[triggerWithoutPrefix];
+
+    return redirectWithCache(
+        res,
+        searchUrl,
+        isUnknownBang ? 0 : searchConfig.redirectWithCacheDuration,
+        isUnknownBang ? 'no-store' : 'private',
+        isUnknownBang ? undefined : ['Cookie'],
+    );
 }
