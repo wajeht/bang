@@ -4,25 +4,31 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+
+	"github.com/wajeht/bang/internal/env"
 )
 
-type app struct {
-	baseUrl  string
-	httpPort int
-}
-
-type email struct {
-	host     string
-	port     int
-	secure   bool
-	user     string
-	password string
-	from     string
-}
-
 type config struct {
-	app   app
-	email email
+	app struct {
+		baseUrl  string
+		httpPort int
+	}
+	email struct {
+		host     string
+		port     int
+		secure   bool
+		user     string
+		password string
+		from     string
+	}
+	notify struct {
+		url     string
+		xApiKey string
+	}
+	cloudflare struct {
+		turnSiteSiteKey   string
+		turnSiteSecretKey string
+	}
 }
 
 type application struct {
@@ -35,8 +41,16 @@ func main() {
 	fmt.Println("bang")
 }
 
-func run(logger  *slog.Logger) error {
+func run(logger *slog.Logger) error {
 	var cfg config
 
 	cfg.app.baseUrl = env.GetString("BASE_URL", "http://localhsot")
+	cfg.app.httpPort = env.GetInt("HTTP_PORT", 80)
+
+	app := &application{
+		config: cfg,
+		logger: logger,
+	}
+
+	return app.serveHTTP()
 }
