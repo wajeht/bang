@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
+	"os"
+	"runtime/debug"
 	"sync"
 
 	"github.com/wajeht/bang/internal/env"
@@ -40,13 +41,20 @@ type application struct {
 }
 
 func main() {
-	fmt.Println("bang")
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	err := run(logger)
+	if err != nil {
+		trace := string(debug.Stack())
+		logger.Error(err.Error(), "trace", trace)
+		os.Exit(1)
+	}
 }
 
 func run(logger *slog.Logger) error {
 	var cfg config
 
-	cfg.app.url = env.GetString("APP_URL", "http://localhsot")
+	cfg.app.url = env.GetString("APP_URL", "http://localhost")
 	cfg.app.port = env.GetInt("APP_PORT", 80)
 
 	app := &application{

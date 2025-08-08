@@ -13,11 +13,11 @@ func (app *application) routes() http.Handler {
 
 	mux.Handle("GET /static/", app.neuter(fileServer))
 
-	mux.HandleFunc("GET /favicon.ico", app.HanldeFavicon)
+	mux.HandleFunc("GET /favicon.ico", app.handleFavicon)
 
-	mux.HandleFunc("GET /robots.txt", app.HandleRobots)
+	mux.HandleFunc("GET /robots.txt", app.handleRobots)
 
-	mux.HandleFunc("GET /{$}", app.HanldeHome)
+	mux.HandleFunc("GET /{$}", app.handleHome)
 
 	return mux
 }
