@@ -10,16 +10,18 @@ import (
 
 type config struct {
 	app struct {
-		baseUrl  string
-		httpPort int
+		url        string
+		env        string
+		port       int
+		adminEmail string
 	}
 	email struct {
-		host     string
-		port     int
-		secure   bool
-		user     string
-		password string
-		from     string
+		host      string
+		port      int
+		secure    bool
+		username  string
+		password  string
+		fromEmail string
 	}
 	notify struct {
 		url     string
@@ -44,8 +46,8 @@ func main() {
 func run(logger *slog.Logger) error {
 	var cfg config
 
-	cfg.app.baseUrl = env.GetString("BASE_URL", "http://localhsot")
-	cfg.app.httpPort = env.GetInt("HTTP_PORT", 80)
+	cfg.app.url = env.GetString("APP_URL", "http://localhsot")
+	cfg.app.port = env.GetInt("APP_PORT", 80)
 
 	app := &application{
 		config: cfg,

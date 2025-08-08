@@ -8,7 +8,7 @@ import (
 
 func (app *application) serveHTTP() error {
 	srv := &http.Server{
-		Addr:     fmt.Sprintf(":%d", app.config.app.httpPort),
+		Addr:     fmt.Sprintf(":%d", app.config.app.port),
 		Handler:  app.routes(),
 		ErrorLog: slog.NewLogLogger(app.logger.Handler(), slog.LevelWarn),
 	}
