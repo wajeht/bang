@@ -169,6 +169,41 @@ fieldset {
     border-radius: 4px;
 }
 
+/* Webkit scrollbar styling for Safari/Chrome */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background-color);
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--text-muted-color);
+    border-radius: 6px;
+    border: 2px solid var(--background-color);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-color);
+}
+
+/* Dark mode scrollbar */
+[data-theme='dark'] ::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+    border: 2px solid #1a1a1a;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+    background: #6a6a6a;
+}
+
 legend {
     font-weight: bold;
     padding: 0 0.5em;
