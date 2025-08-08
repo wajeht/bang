@@ -31,6 +31,10 @@ export const searchConfig = {
      */
     delayIncrement: 5000,
     /**
+     * Maximum cumulative delay for anonymous users (in milliseconds)
+     */
+    maxCumulativeDelayMs: 60000,
+    /**
      * Cache duration for redirects (in minutes)
      */
     redirectWithCacheDuration: 60,
@@ -94,6 +98,9 @@ export const searchConfig = {
         ['@r', '/reminders'],
         ['@reminder', '/reminders'],
         ['@reminders', '/reminders'],
+        ['@u', '/admin/users'],
+        ['@user', '/admin/users'],
+        ['@users', '/admin/users'],
     ]),
 } as const;
 
@@ -150,6 +157,9 @@ export function trackAnonymousUserSearch(req: Request) {
     // delay penalty if search limit is exceeded
     if (req.session.searchCount > searchConfig.searchLimit) {
         req.session.cumulativeDelay += searchConfig.delayIncrement;
+        if (req.session.cumulativeDelay > searchConfig.maxCumulativeDelayMs) {
+            req.session.cumulativeDelay = searchConfig.maxCumulativeDelayMs;
+        }
     }
 }
 
@@ -511,53 +521,6 @@ export function getBangRedirectUrl(bang: Bang, searchTerm: string): string {
 }
 
 /**
- * Converts a date from user timezone to UTC
- * @param date - Date in user timezone
- * @param userTimezone - User's timezone (e.g., "America/New_York")
- * @returns Date in UTC
- */
-function convertToUTC(date: Date, userTimezone: string): Date {
-    if (userTimezone === 'UTC') return date;
-
-    // Create a date string in the user's timezone
-    const userDateStr = date
-        .toLocaleString('en-CA', {
-            timeZone: userTimezone,
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false,
-        })
-        .replace(', ', 'T');
-
-    // Parse as if it were UTC, then adjust for timezone offset
-    const utcDate = dayjs(userDateStr + 'Z');
-    const userDate = dayjs(userDateStr);
-    const offset = userDate.valueOf() - utcDate.valueOf();
-
-    return dayjs(date).subtract(offset, 'millisecond').toDate();
-}
-
-/**
- * Converts a Date object representing time in user's timezone to UTC
- * This properly handles the case where the Date was created as local time
- * but represents a time in the user's timezone
- */
-function convertUserTimeToUTC(localDate: Date, userTimezone: string): Date {
-    if (userTimezone === 'UTC') return localDate;
-
-    // Use dayjs to properly handle timezone conversion
-    // Interpret the local date components as being in the user's timezone
-    const userDateTime = dayjs.tz(localDate, userTimezone);
-
-    // Convert to UTC and return as Date object
-    return userDateTime.utc().toDate();
-}
-
-/**
  * Parses reminder content into timing, description, and optional content
  * @param reminderContent - The full reminder content after "!remind "
  * @param user - User object with preferences
@@ -797,7 +760,7 @@ export function parseReminderTiming(
 
         case 'weekly': {
             const weeklyNext = nowInUserTz
-                .add((6 - nowInUserTz.day()) % 7 || 7, 'day')
+                .add(7, 'day')
                 .hour(defaultHour)
                 .minute(defaultMinute)
                 .second(0)
@@ -828,9 +791,12 @@ export function parseReminderTiming(
         }
 
         case 'monthly': {
-            const monthlyNext = nowInUserTz
-                .add(1, 'month')
-                .date(1)
+            // same day next month if possible; otherwise clamp to end of month
+            const currentDay = nowInUserTz.date();
+            let monthlyNext = nowInUserTz.add(1, 'month');
+            const endOfMonthDay = monthlyNext.endOf('month').date();
+            monthlyNext = monthlyNext
+                .date(Math.min(currentDay, endOfMonthDay))
                 .hour(defaultHour)
                 .minute(defaultMinute)
                 .second(0)
@@ -1098,9 +1064,16 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         // Example: !add !custom https://custom-search.com
         // Example: !add custom https://custom-search.com
         if (trigger === '!add') {
-            const [, rawTrigger, bangUrl] = query.split(' ');
+            const rest = query.slice('!add'.length).trim();
+            const firstSpaceIdx = rest.indexOf(' ');
+            if (firstSpaceIdx === -1) {
+                return goBackWithValidationAlert(res, 'Invalid trigger or empty URL');
+            }
 
-            if (!rawTrigger || !bangUrl?.length) {
+            const rawTrigger = rest.slice(0, firstSpaceIdx).trim();
+            const bangUrl = rest.slice(firstSpaceIdx + 1).trim();
+
+            if (!rawTrigger || !bangUrl) {
                 return goBackWithValidationAlert(res, 'Invalid trigger or empty URL');
             }
 
@@ -1223,16 +1196,10 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         // 3. !edit !oldTrigger !newTrigger url (change both)
         // Example: !edit !old !new https://example.com
         if (trigger === '!edit') {
-            const parts = query.split(' ').slice(1); // Remove the !edit part
+            const rest = query.slice('!edit'.length).trim();
+            const tokens = rest.split(/\s+/); // normalize whitespace
 
-            if (parts.length < 2) {
-                return goBackWithValidationAlert(
-                    res,
-                    'Invalid format. Use: !edit !trigger !newTrigger or !edit !trigger newUrl',
-                );
-            }
-
-            if (!parts[0]) {
+            if (tokens.length < 2 || !tokens[0]) {
                 return goBackWithValidationAlert(
                     res,
                     'Invalid format. Use: !edit !trigger !newTrigger or !edit !trigger newUrl',
@@ -1240,7 +1207,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             }
 
             // Extract the old trigger, making sure it has the ! prefix
-            const oldTrigger = normalizeBangTrigger(parts[0]);
+            const oldTrigger = normalizeBangTrigger(tokens[0]);
 
             let existingBang;
             let existingTab;
@@ -1283,8 +1250,8 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             const tabUpdates: Record<string, string> = {};
 
             // Handle new trigger (if provided and starts with !)
-            if (parts.length >= 2 && parts[1] && parts[1].startsWith('!')) {
-                const newTrigger = parts[1];
+            if (tokens.length >= 2 && tokens[1] && tokens[1].startsWith('!')) {
+                const newTrigger = tokens[1];
 
                 if (searchConfig.systemBangs.has(newTrigger)) {
                     return goBackWithValidationAlert(
@@ -1338,9 +1305,9 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 bangUpdates.trigger = newTrigger;
                 tabUpdates.trigger = newTrigger;
 
-                // URL is the third part if it exists (only for bangs)
-                if (parts.length >= 3) {
-                    const newUrl = parts[2];
+                // URL is the third token if it exists (only for bangs)
+                if (tokens.length >= 3) {
+                    const newUrl = tokens.slice(2).join(' ').trim();
                     if (newUrl && isValidUrl(newUrl)) {
                         bangUpdates.url = newUrl;
                     } else {
@@ -1349,7 +1316,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 }
             } else {
                 // Only URL update (only for bangs)
-                const newUrl = parts[1];
+                const newUrl = tokens.slice(1).join(' ').trim();
                 if (newUrl && isValidUrl(newUrl)) {
                     bangUpdates.url = newUrl;
                 } else {

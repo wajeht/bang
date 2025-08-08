@@ -1251,7 +1251,7 @@ export async function processReminderDigests(): Promise<void> {
             .from('reminders')
             .join('users', 'reminders.user_id', 'users.id')
             .whereBetween('reminders.due_date', [nowFormatted, next15MinFormatted])
-            .where('reminders.processed', false)
+            .where('reminders.processed', 0)
             .orderBy('users.id')
             .orderBy('reminders.created_at');
 
@@ -1355,9 +1355,9 @@ export async function processReminderDigests(): Promise<void> {
 }
 
 /**
- * Format a UTC date string for display in a specific timezone
- * @param utcDateString - ISO date string in UTC
- * @param timezone - Target timezone (e.g., 'America/Chicago')
+ * Format a UTC date string to a specific timezone
+ * @param utcDateString - UTC date string from database
+ * @param timezone - Target timezone (e.g., 'America/New_York')
  * @returns Formatted date and time string
  */
 export function formatDateInTimezone(
@@ -1367,6 +1367,8 @@ export function formatDateInTimezone(
     dateString: string;
     timeString: string;
     fullString: string;
+    dateInputValue: string;
+    timeInputValue: string;
 } {
     try {
         let dayjsDate;
@@ -1389,8 +1391,10 @@ export function formatDateInTimezone(
         const dateString = localDate.format('M/D/YYYY');
         const timeString = localDate.format('h:mm A');
         const fullString = localDate.format('M/D/YYYY, h:mm A');
+        const dateInputValue = localDate.format('YYYY-MM-DD');
+        const timeInputValue = localDate.format('HH:mm');
 
-        return { dateString, timeString, fullString };
+        return { dateString, timeString, fullString, dateInputValue, timeInputValue };
     } catch (_error) {
         // Fallback to basic formatting
         const date = dayjs(utcDateString);
@@ -1401,9 +1405,11 @@ export function formatDateInTimezone(
             minute: '2-digit',
             hour12: true,
         });
-        const fullString = jsDate.toLocaleString('en-US');
+        const fullString = `${dateString}, ${timeString}`;
+        const dateInputValue = date.format('YYYY-MM-DD');
+        const timeInputValue = date.format('HH:mm');
 
-        return { dateString, timeString, fullString };
+        return { dateString, timeString, fullString, dateInputValue, timeInputValue };
     }
 }
 
