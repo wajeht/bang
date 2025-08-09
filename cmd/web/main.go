@@ -14,7 +14,6 @@ type config struct {
 		url        string
 		env        string
 		port       int
-		adminEmail string
 	}
 	email struct {
 		host      string
@@ -23,6 +22,7 @@ type config struct {
 		username  string
 		password  string
 		fromEmail string
+		adminEmail string
 	}
 	notify struct {
 		url     string
@@ -46,7 +46,6 @@ func run(logger *slog.Logger) error {
 	cfg.app.url = env.GetString("APP_URL", "http://localhost")
 	cfg.app.port = env.GetInt("APP_PORT", 80)
 	cfg.app.env = env.GetString("APP_ENV", "development")
-	cfg.app.adminEmail = env.GetString("APP_ADMIN_EMAIL", "admin@localhost")
 
 	cfg.email.host = env.GetString("EMAIL_HOST", "mailpit")
 	cfg.email.port = env.GetInt("EMAIL_HOST", 1025)
@@ -54,6 +53,7 @@ func run(logger *slog.Logger) error {
 	cfg.email.username = env.GetString("EMAIL_USERNAME", "username")
 	cfg.email.password = env.GetString("EMAIL_PASSWORD", "password")
 	cfg.email.fromEmail = env.GetString("EMAIL_FROM", "noreply@localhost")
+	cfg.email.adminEmail = env.GetString("EMAIL_ADMIN_EMAIL", "admin@localhost")
 
 	cfg.notify.url = env.GetString("NOTIFY_URL", "localhost")
 	cfg.notify.xApiKey = env.GetString("NOTIFY_X_API_KEY", "x-api-key")
