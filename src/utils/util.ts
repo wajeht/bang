@@ -1215,7 +1215,7 @@ https://github.com/wajeht/bang`;
     const mailOptions = {
         from: `Bang <${config.email.from}>`,
         to: email,
-        subject: `⏰ Daily Reminders - ${formatDate}`,
+        subject: `⏰ Reminders - ${formatDate}`,
         text: emailBody,
     };
 
