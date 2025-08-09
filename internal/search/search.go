@@ -6,9 +6,10 @@ import (
 )
 
 type search struct {
-	w     http.ResponseWriter
-	r     *http.Request
-	query string
+	W     http.ResponseWriter
+	R     *http.Request
+	Query string
+	User  *string
 }
 
 func Search(search search) {

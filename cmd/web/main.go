@@ -11,17 +11,17 @@ import (
 
 type config struct {
 	app struct {
-		url        string
-		env        string
-		port       int
+		url  string
+		env  string
+		port int
 	}
 	email struct {
-		host      string
-		port      int
-		secure    bool
-		username  string
-		password  string
-		fromEmail string
+		host       string
+		port       int
+		secure     bool
+		username   string
+		password   string
+		fromEmail  string
 		adminEmail string
 	}
 	notify struct {
