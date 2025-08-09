@@ -73,6 +73,7 @@
         "nodemailer": "^7.0.5"
     },
     "devDependencies": {
+        "@eslint/js": "^9.33.0",
         "@playwright/test": "^1.54.2",
         "@types/compression": "^1.8.1",
         "@types/connect-flash": "^0.0.40",
@@ -80,21 +81,25 @@
         "@types/ejs": "^3.1.5",
         "@types/express": "^5.0.3",
         "@types/express-session": "^1.18.2",
-        "@types/highlight.js": "^10.1.0",
         "@types/jsonwebtoken": "^9.0.10",
-        "@types/node": "^24.2.0",
+        "@types/node": "^24.2.1",
         "@types/node-cron": "^3.0.11",
         "@types/nodemailer": "^6.4.17",
-        "@typescript-eslint/eslint-plugin": "^8.39.0",
-        "@typescript-eslint/parser": "^8.39.0",
         "@vitest/coverage-v8": "^3.2.4",
         "@wajeht/express-templates-reload": "^2.0.3",
+        "eslint": "^9.33.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.4",
         "eslint-plugin-security": "^3.0.1",
         "prettier": "^3.6.2",
         "tsx": "^4.20.3",
         "typescript": "^5.9.2",
+        "typescript-eslint": "^8.39.0",
         "vitest": "^3.2.4"
+    },
+    "overrides": {
+        "glob": "^10.4.5",
+        "rimraf": "^6.0.1",
+        "inflight": "npm:@isaacs/inflight@^1.0.1"
     }
 }
