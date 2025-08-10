@@ -530,7 +530,7 @@ summary:hover {
 }
 
 .no-style-btn {
-    background: none;
+    background: none !important;
     border: none;
     color: var(--link-color);
     text-decoration: none;
