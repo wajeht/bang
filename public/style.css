@@ -117,6 +117,15 @@ select {
     padding: 5px 10px;
 }
 
+button {
+    border: 1px solid var(--tr-border-color);
+    border-radius: 4px;
+}
+
+button:hover {
+    background: #e5e5e5;
+}
+
 /* Safari and cross-browser input fixes */
 input[type='text'],
 input[type='email'],
