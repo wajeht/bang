@@ -530,7 +530,7 @@ export function getBookmarksHandler(bookmarks: Bookmarks) {
             user: req.session?.user,
             title: 'Bookmarks',
             path: '/bookmarks',
-            layout: '../layouts/auth',
+            layout: '../layouts/auth.html',
             howToContent: await getConvertedReadmeMDToHTML(),
             data,
             search,
@@ -1838,7 +1838,7 @@ export function getNotesHandler(notes: Notes) {
             user: req.session?.user,
             title: 'Notes',
             path: '/notes',
-            layout: '../layouts/auth',
+            layout: '../layouts/auth.html',
             howToContent: await getConvertedReadmeMDToHTML(),
             data: markdownRemovedData,
             search,
@@ -1855,7 +1855,7 @@ export function getNoteCreatePageHandler() {
         return res.render('./notes/notes-create.html', {
             title: 'Notes / Create',
             path: '/notes/create',
-            layout: '../layouts/auth',
+            layout: '../layouts/auth.html',
         });
     };
 }
@@ -1909,7 +1909,7 @@ export function getEditNotePageHandler(notes: Notes) {
         return res.render('./notes/notes-edit.html', {
             title: 'Notes / Edit',
             path: '/notes/edit',
-            layout: '../layouts/auth',
+            layout: '../layouts/auth.html',
             note,
         });
     };
@@ -2005,7 +2005,7 @@ export function getNoteHandler(notes: Notes, log: typeof logger) {
         return res.render('./notes/notes-show.html', {
             title: `Notes / ${note.title}`,
             path: `/notes/${note.id}`,
-            layout: '../layouts/auth',
+            layout: '../layouts/auth.html',
             note,
         });
     };
