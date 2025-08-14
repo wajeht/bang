@@ -314,7 +314,6 @@
           >
             <option value="daily" <%= user.column_preferences.reminders.default_reminder_timing === 'daily' ? 'selected' : '' %>>Daily (recurring)</option>
             <option value="weekly" <%= user.column_preferences.reminders.default_reminder_timing === 'weekly' ? 'selected' : '' %>>Weekly (recurring)</option>
-            <option value="biweekly" <%= user.column_preferences.reminders.default_reminder_timing === 'biweekly' ? 'selected' : '' %>>Bi-weekly (recurring)</option>
             <option value="monthly" <%= user.column_preferences.reminders.default_reminder_timing === 'monthly' ? 'selected' : '' %>>Monthly (recurring)</option>
           </select>
           <small style="color: #666;">Used when creating reminders via !remind command without specifying timing</small>
