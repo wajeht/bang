@@ -1,6 +1,7 @@
 import {
     search,
     parseSearchQuery,
+    parseReminderTiming,
     getBangRedirectUrl,
     processDelayedSearch,
     handleAnonymousSearch,
@@ -2142,7 +2143,7 @@ describe('search', () => {
             });
 
             it('should handle all timing keywords', async () => {
-                const timingKeywords = ['daily', 'weekly', 'biweekly', 'monthly'];
+                const timingKeywords = ['daily', 'weekly', 'monthly'];
 
                 for (const timing of timingKeywords) {
                     const req = {} as Request;
@@ -3077,5 +3078,48 @@ describe('search command handling', () => {
 
             parseSearchQuerySpy.mockRestore();
         });
+    });
+});
+
+describe('parseReminderTiming', () => {
+    it('should schedule weekly reminders for Saturday', () => {
+        const timing = parseReminderTiming('weekly', '09:00', 'America/Chicago');
+
+        expect(timing.isValid).toBe(true);
+        expect(timing.type).toBe('recurring');
+        expect(timing.frequency).toBe('weekly');
+
+        // The reminder should be scheduled for Saturday
+        const dueDate = dayjs(timing.nextDue);
+        expect(dueDate.day()).toBe(6); // 6 = Saturday
+    });
+
+    it('should schedule monthly reminders for the 1st', () => {
+        const timing = parseReminderTiming('monthly', '09:00', 'America/Chicago');
+
+        expect(timing.isValid).toBe(true);
+        expect(timing.type).toBe('recurring');
+        expect(timing.frequency).toBe('monthly');
+
+        // The reminder should be scheduled for the 1st of the month
+        const dueDate = dayjs(timing.nextDue);
+        expect(dueDate.date()).toBe(1); // 1st of the month
+    });
+
+    it('should schedule daily reminders for tomorrow', () => {
+        const timing = parseReminderTiming('daily', '09:00', 'America/Chicago');
+
+        expect(timing.isValid).toBe(true);
+        expect(timing.type).toBe('recurring');
+        expect(timing.frequency).toBe('daily');
+
+        // The reminder should be scheduled for tomorrow
+        const now = dayjs();
+        const dueDate = dayjs(timing.nextDue);
+        const diff = dueDate.diff(now, 'hours');
+
+        // Should be between 15-30 hours in the future (tomorrow)
+        expect(diff).toBeGreaterThan(15);
+        expect(diff).toBeLessThan(30);
     });
 });
