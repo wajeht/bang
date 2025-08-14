@@ -15,11 +15,10 @@ import {
     extractReadmeUsage,
     highlightSearchTerm,
     getReadmeFileContent,
+    formatDateInTimezone,
+    processReminderDigests,
     isOnlyLettersAndNumbers,
     getConvertedReadmeMDToHTML,
-    processReminderDigests,
-    sendReminderDigestEmail,
-    formatDateInTimezone,
 } from './util';
 import path from 'node:path';
 import { db } from '../db/db';
@@ -965,21 +964,18 @@ describe('processReminderDigests', () => {
                 title: 'Due Soon',
                 reminder_type: 'once',
                 due_date: in10Minutes.toISOString(),
-                processed: false,
             },
             {
                 user_id: testUserId,
                 title: 'Due Later',
                 reminder_type: 'once',
                 due_date: in20Minutes.toISOString(),
-                processed: false,
             },
             {
                 user_id: testUserId,
-                title: 'Already Processed',
+                title: 'Already Due',
                 reminder_type: 'once',
-                due_date: in10Minutes.toISOString(),
-                processed: true,
+                due_date: new Date(now.getTime() - 20 * 60 * 1000).toISOString(), // 20 minutes ago
             },
         ]);
 
@@ -993,9 +989,9 @@ describe('processReminderDigests', () => {
         const futureReminders = await db('reminders').where('title', 'Due Later');
         expect(futureReminders).toHaveLength(1);
 
-        // Check that already processed reminder is still there
-        const processedReminders = await db('reminders').where('title', 'Already Processed');
-        expect(processedReminders).toHaveLength(1);
+        // Check that past due reminder is still there (not processed since it's outside the window)
+        const pastDueReminders = await db('reminders').where('title', 'Already Due');
+        expect(pastDueReminders).toHaveLength(1);
     });
 
     it('should handle recurring reminders and calculate next due date correctly', async () => {
@@ -1010,7 +1006,6 @@ describe('processReminderDigests', () => {
                 reminder_type: 'recurring',
                 frequency: 'daily',
                 due_date: in5Minutes.toISOString(),
-                processed: false,
             },
             {
                 user_id: testUserId,
@@ -1018,7 +1013,6 @@ describe('processReminderDigests', () => {
                 reminder_type: 'recurring',
                 frequency: 'weekly',
                 due_date: in5Minutes.toISOString(),
-                processed: false,
             },
         ]);
 
@@ -1045,9 +1039,7 @@ describe('processReminderDigests', () => {
             -4,
         );
 
-        // Both should be marked as processed for this occurrence (SQLite returns 1 for true)
-        expect(dailyReminder.processed).toBe(1);
-        expect(weeklyReminder.processed).toBe(1);
+        // Recurring reminders should have their due dates updated
     });
 
     it('should handle no due reminders gracefully', async () => {
@@ -1058,16 +1050,14 @@ describe('processReminderDigests', () => {
             title: 'Far Future',
             reminder_type: 'once',
             due_date: farFuture.toISOString(),
-            processed: false,
         });
 
         // Should not throw an error
         await expect(processReminderDigests()).resolves.not.toThrow();
 
-        // Reminder should still exist and not be processed
+        // Reminder should still exist (not processed since it's not due)
         const reminders = await db('reminders').where('title', 'Far Future');
         expect(reminders).toHaveLength(1);
-        expect(reminders[0].processed).toBe(0); // SQLite returns 0 for false
     });
 
     it('should use UTC for database queries and handle user timezones for email formatting', async () => {
@@ -1081,7 +1071,6 @@ describe('processReminderDigests', () => {
             title: 'UTC Test',
             reminder_type: 'once',
             due_date: in5Minutes.toISOString(), // This is in UTC
-            processed: false,
         });
 
         await processReminderDigests();
@@ -1089,5 +1078,51 @@ describe('processReminderDigests', () => {
         // The reminder should have been processed (deleted for one-time reminders)
         const remainingReminders = await db('reminders').where('title', 'UTC Test');
         expect(remainingReminders).toHaveLength(0);
+    });
+
+    it('should allow daily reminders to be processed multiple times', async () => {
+        const now = new Date();
+        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+
+        // Create a daily recurring reminder
+        await db('reminders').insert({
+            user_id: testUserId,
+            title: 'Multi-Day Daily Reminder',
+            reminder_type: 'recurring',
+            frequency: 'daily',
+            due_date: in5Minutes.toISOString(),
+        });
+
+        // First processing
+        await processReminderDigests();
+
+        let reminder = await db('reminders').where('title', 'Multi-Day Daily Reminder').first();
+        expect(reminder).toBeTruthy();
+
+        // After first processing, the reminder should have been updated to tomorrow
+        const firstDue = new Date(reminder.due_date);
+
+        // Since the reminder was already processed and moved to next day,
+        // it won't be due for processing until tomorrow.
+        // To test multiple processing, we need to manually update it to be due again
+        const nowAgain = new Date();
+        const in5MinutesAgain = new Date(nowAgain.getTime() + 5 * 60 * 1000);
+
+        await db('reminders')
+            .where('title', 'Multi-Day Daily Reminder')
+            .update({ due_date: in5MinutesAgain.toISOString() });
+
+        // Second processing
+        await processReminderDigests();
+
+        reminder = await db('reminders').where('title', 'Multi-Day Daily Reminder').first();
+        expect(reminder).toBeTruthy();
+
+        // Verify the due date was updated to the following day from the second processing
+        const updatedDue = new Date(reminder.due_date);
+        expect(updatedDue.getTime() - in5MinutesAgain.getTime()).toBeCloseTo(
+            24 * 60 * 60 * 1000,
+            -4,
+        );
     });
 });

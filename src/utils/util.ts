@@ -1241,7 +1241,7 @@ export async function processReminderDigests(): Promise<void> {
         const now = dayjs.utc();
         const next15Min = now.add(15, 'minute');
 
-        // Get all reminders due in the next 15 minutes that haven't been processed
+        // Get all reminders due in the next 15 minutes
         // Use UTC ISO format for database comparison
         const nowFormatted = now.toISOString();
         const next15MinFormatted = next15Min.toISOString();
@@ -1251,7 +1251,6 @@ export async function processReminderDigests(): Promise<void> {
             .from('reminders')
             .join('users', 'reminders.user_id', 'users.id')
             .whereBetween('reminders.due_date', [nowFormatted, next15MinFormatted])
-            .where('reminders.processed', 0)
             .orderBy('users.id')
             .orderBy('reminders.created_at');
 
@@ -1326,25 +1325,15 @@ export async function processReminderDigests(): Promise<void> {
                             continue; // Skip if frequency is not recognized
                     }
 
-                    // Update recurring reminder with next due date and reset processed flag
+                    // Update recurring reminder with next due date
                     await db('reminders').where('id', reminder.id).update({
                         due_date: nextDue.toISOString(),
-                        processed: false, // Reset for next occurrence
                         updated_at: db.fn.now(),
                     });
                 } else {
                     // Delete one-time reminders since they're done
                     await db('reminders').where('id', reminder.id).delete();
                 }
-            }
-
-            // Mark all processed reminders as processed (for any that weren't deleted)
-            const reminderIds = userData.reminders
-                .filter((r) => r.reminder_type === 'recurring')
-                .map((r) => r.id);
-
-            if (reminderIds.length > 0) {
-                await db('reminders').whereIn('id', reminderIds).update({ processed: true });
             }
         }
 

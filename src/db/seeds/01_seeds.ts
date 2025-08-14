@@ -270,8 +270,7 @@ Here is the \`content\` of **note 2**.
                 content: 'https://open.spotify.com/playlist/439CHTNOfML7B0xTbMU7ta',
                 reminder_type: 'recurring',
                 frequency: 'daily',
-                due_date: dueNow, // Due in 5 minutes - will be processed
-                processed: false,
+                due_date: dueNow, // Due in 5 minutes
             },
             {
                 user_id: user.id,
@@ -279,8 +278,7 @@ Here is the \`content\` of **note 2**.
                 content: 'https://meet.google.com/xyz-abc-def',
                 reminder_type: 'recurring',
                 frequency: 'weekly',
-                due_date: dueSoon, // Due in 10 minutes - will be processed
-                processed: false,
+                due_date: dueSoon, // Due in 10 minutes
             },
             {
                 user_id: user.id,
@@ -288,8 +286,7 @@ Here is the \`content\` of **note 2**.
                 content: 'https://github.com/anthropics/claude-code',
                 reminder_type: 'once',
                 frequency: null,
-                due_date: dueNow, // Due in 5 minutes - will be processed
-                processed: false,
+                due_date: dueNow, // Due in 5 minutes
             },
             {
                 user_id: user.id,
@@ -297,8 +294,7 @@ Here is the \`content\` of **note 2**.
                 content: null,
                 reminder_type: 'once',
                 frequency: null,
-                due_date: dueSoon, // Due in 10 minutes - will be processed
-                processed: false,
+                due_date: dueSoon, // Due in 10 minutes
             },
             {
                 user_id: user.id,
@@ -306,8 +302,7 @@ Here is the \`content\` of **note 2**.
                 content: 'https://github.com/notifications',
                 reminder_type: 'recurring',
                 frequency: 'daily',
-                due_date: dueNow, // Due in 5 minutes - will be processed
-                processed: false,
+                due_date: dueNow, // Due in 5 minutes
             },
             {
                 user_id: user.id,
@@ -315,8 +310,7 @@ Here is the \`content\` of **note 2**.
                 content: "This should not appear in today's digest",
                 reminder_type: 'once',
                 frequency: null,
-                due_date: dayjs().add(3, 'day').format('YYYY-MM-DD HH:mm:ss'), // 3 days from now - will NOT be processed
-                processed: false,
+                due_date: dayjs().add(3, 'day').format('YYYY-MM-DD HH:mm:ss'), // 3 days from now
             },
         ];
 
