@@ -35,7 +35,7 @@ export type MagicLinkPayload = { email: string; exp?: number };
 
 export type ReminderType = 'once' | 'recurring';
 
-export type ReminderFrequency = 'daily' | 'weekly' | 'biweekly' | 'monthly';
+export type ReminderFrequency = 'daily' | 'weekly' | 'monthly';
 
 export type Env = 'production' | 'development' | 'testing';
 
