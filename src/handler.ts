@@ -1711,11 +1711,10 @@ export function postSettingsDisplayHandler(db: Knex) {
 
             // Validate default_reminder_timing
             if (column_preferences.reminders.default_reminder_timing) {
-                const validTimings = ['daily', 'weekly', 'biweekly', 'monthly'];
+                const validTimings = ['daily', 'weekly', 'monthly'];
                 if (!validTimings.includes(column_preferences.reminders.default_reminder_timing)) {
                     throw new ValidationError({
-                        reminders:
-                            'Invalid reminder timing. Must be daily, weekly, biweekly, or monthly',
+                        reminders: 'Invalid reminder timing. Must be daily, weekly, or monthly',
                     });
                 }
             }
