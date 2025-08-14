@@ -782,6 +782,10 @@ export function postSettingsCreateApiKeyHandler(db: Knex, api: Api) {
             throw new NotFoundError('User not found');
         }
 
+        // Convert SQLite integer values to booleans
+        user.is_admin = Boolean(user.is_admin);
+        user.autocomplete_search_on_homepage = Boolean(user.autocomplete_search_on_homepage);
+
         const newKeyVersion = (user.api_key_version || 0) + 1;
 
         const payload: ApiKeyPayload = { userId: user.id, apiKeyVersion: newKeyVersion };
@@ -2159,6 +2163,12 @@ export function postLoginHandler() {
 
         let user = await db('users').where({ email }).first();
 
+        if (user) {
+            // Convert SQLite integer values to booleans
+            user.is_admin = Boolean(user.is_admin);
+            user.autocomplete_search_on_homepage = Boolean(user.autocomplete_search_on_homepage);
+        }
+
         if (!user) {
             const username = email.split('@')[0];
             [user] = await db('users')
@@ -2168,6 +2178,14 @@ export function postLoginHandler() {
                     is_admin: config.app.adminEmail === email,
                 })
                 .returning('*');
+
+            // Convert SQLite integer values to booleans for newly created user
+            if (user) {
+                user.is_admin = Boolean(user.is_admin);
+                user.autocomplete_search_on_homepage = Boolean(
+                    user.autocomplete_search_on_homepage,
+                );
+            }
         }
 
         const token = magicLink.generate({ email });
@@ -2196,6 +2214,12 @@ export function getMagicLinkHandler() {
         }
 
         const user = await db('users').where({ email: decoded.email }).first();
+
+        if (user) {
+            // Convert SQLite integer values to booleans
+            user.is_admin = Boolean(user.is_admin);
+            user.autocomplete_search_on_homepage = Boolean(user.autocomplete_search_on_homepage);
+        }
 
         if (!user) {
             throw new ValidationError({ email: 'User not found' });
