@@ -183,13 +183,11 @@ export async function up(knex: Knex): Promise<void> {
             table.string('title').notNullable(); // description/task
             table.text('content').nullable();
             table.string('reminder_type').defaultTo('once'); // once or recurring
-            table.string('frequency').nullable(); // daily, weekly, biweekly, or monthly
+            table.string('frequency').nullable(); // daily, weekly, or monthly
             table.timestamp('due_date').nullable();
-            table.boolean('processed').defaultTo(false); // prevent duplicate processing
             table.timestamps(true, true);
 
             table.index(['user_id', 'due_date']); // finding due reminders
-            table.index(['due_date', 'processed'], 'reminders_due_date_processed_idx'); // cron job queries
         });
     }
 }
