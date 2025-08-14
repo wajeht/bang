@@ -115,7 +115,6 @@ export const reminderTimingConfig = {
     recurring: [
         { value: 'daily', text: 'Daily (recurring)' },
         { value: 'weekly', text: 'Weekly (recurring)' },
-        { value: 'biweekly', text: 'Bi-weekly (recurring)' },
         { value: 'monthly', text: 'Monthly (recurring)' },
     ],
     /**
@@ -570,7 +569,7 @@ function parseReminderContent(
     description: string;
     content: string | null;
 } {
-    const validTimingKeywords = ['daily', 'weekly', 'biweekly', 'monthly'];
+    const validTimingKeywords = ['daily', 'weekly', 'monthly'];
     const datePattern = /^(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/\d{4}|\w{3}-\d{1,2})$/;
 
     // Handle pipe-separated format: !remind [timing] description | content
@@ -795,54 +794,58 @@ export function parseReminderTiming(
         }
 
         case 'weekly': {
-            const weeklyNext = nowInUserTz
-                .add(7, 'day')
+            // Always schedule weekly reminders for Saturday
+            let nextSaturday = nowInUserTz.day(6); // 6 = Saturday
+
+            // If today is Saturday and we haven't passed the reminder time yet,
+            // schedule for today. Otherwise, schedule for next Saturday.
+            if (
+                nextSaturday.isBefore(nowInUserTz) ||
+                (nextSaturday.isSame(nowInUserTz, 'day') &&
+                    nowInUserTz.hour() >= defaultHour &&
+                    nowInUserTz.minute() > defaultMinute)
+            ) {
+                nextSaturday = nextSaturday.add(1, 'week');
+            }
+
+            nextSaturday = nextSaturday
                 .hour(defaultHour)
                 .minute(defaultMinute)
                 .second(0)
                 .millisecond(0);
+
             return {
                 isValid: true,
                 type: 'recurring',
                 frequency: 'weekly',
                 specificDate: null,
-                nextDue: weeklyNext.utc().toDate(),
-            };
-        }
-
-        case 'biweekly': {
-            const biweeklyNext = nowInUserTz
-                .add(14, 'day')
-                .hour(defaultHour)
-                .minute(defaultMinute)
-                .second(0)
-                .millisecond(0);
-            return {
-                isValid: true,
-                type: 'recurring',
-                frequency: 'biweekly',
-                specificDate: null,
-                nextDue: biweeklyNext.utc().toDate(),
+                nextDue: nextSaturday.utc().toDate(),
             };
         }
 
         case 'monthly': {
-            // same day next month if possible; otherwise clamp to end of month
-            const currentDay = nowInUserTz.date();
-            let monthlyNext = nowInUserTz.add(1, 'month');
-            const endOfMonthDay = monthlyNext.endOf('month').date();
-            monthlyNext = monthlyNext
-                .date(Math.min(currentDay, endOfMonthDay))
-                .hour(defaultHour)
-                .minute(defaultMinute)
-                .second(0)
-                .millisecond(0);
+            // Always schedule monthly reminders for the 1st of the month
+            let nextFirst = nowInUserTz.date(1);
+
+            // If today is the 1st and we haven't passed the reminder time yet,
+            // schedule for today. Otherwise, schedule for the 1st of next month.
+            if (
+                nextFirst.isBefore(nowInUserTz) ||
+                (nextFirst.isSame(nowInUserTz, 'day') &&
+                    nowInUserTz.hour() >= defaultHour &&
+                    nowInUserTz.minute() > defaultMinute)
+            ) {
+                nextFirst = nextFirst.add(1, 'month');
+            }
+
+            nextFirst = nextFirst.hour(defaultHour).minute(defaultMinute).second(0).millisecond(0);
+
             return {
                 isValid: true,
                 type: 'recurring',
                 frequency: 'monthly',
                 specificDate: null,
-                nextDue: monthlyNext.utc().toDate(),
+                nextDue: nextFirst.utc().toDate(),
             };
         }
     }
@@ -1533,7 +1536,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             if (!timing.isValid) {
                 return goBackWithValidationAlert(
                     res,
-                    'Invalid time format. Use: daily, weekly, biweekly, monthly, or YYYY-MM-DD',
+                    'Invalid time format. Use: daily, weekly, monthly, or YYYY-MM-DD',
                 );
             }
 
