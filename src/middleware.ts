@@ -128,7 +128,7 @@ export async function adminOnlyMiddleware(req: Request, _res: Response, next: Ne
             throw new UnauthorizedError('Unauthorized', req);
         }
 
-        if ((!req.session.user as unknown as User).is_admin === false) {
+        if ((!req.session?.user as unknown as User).is_admin === false) {
             throw new UnauthorizedError('Unauthorized', req);
         }
 
