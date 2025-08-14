@@ -22,6 +22,7 @@ import {
 } from './util';
 import path from 'node:path';
 import { db } from '../db/db';
+import dayjs from '../utils/dayjs';
 import jwt from 'jsonwebtoken';
 import fs from 'node:fs/promises';
 import { Request } from 'express';
@@ -1033,11 +1034,15 @@ describe('processReminderDigests', () => {
         // Daily should be ~24 hours later
         expect(dailyNextDue.getTime() - originalDue.getTime()).toBeCloseTo(24 * 60 * 60 * 1000, -4);
 
-        // Weekly should be ~7 days later
-        expect(weeklyNextDue.getTime() - originalDue.getTime()).toBeCloseTo(
-            7 * 24 * 60 * 60 * 1000,
-            -4,
-        );
+        // Weekly should be scheduled for next Saturday after processing
+        const weeklyDue = dayjs(weeklyReminder.due_date);
+        expect(weeklyDue.day()).toBe(6); // 6 = Saturday
+
+        // Since the reminder is processed and moved to the next occurrence,
+        // it should be approximately 7 days in the future (next Saturday)
+        const weeklyDiff = weeklyNextDue.getTime() - originalDue.getTime();
+        expect(weeklyDiff).toBeGreaterThan(6 * 24 * 60 * 60 * 1000); // More than 6 days
+        expect(weeklyDiff).toBeLessThanOrEqual(14 * 24 * 60 * 60 * 1000); // Less than 14 days
 
         // Recurring reminders should have their due dates updated
     });
@@ -1078,6 +1083,86 @@ describe('processReminderDigests', () => {
         // The reminder should have been processed (deleted for one-time reminders)
         const remainingReminders = await db('reminders').where('title', 'UTC Test');
         expect(remainingReminders).toHaveLength(0);
+    });
+
+    it('should schedule weekly reminders for Saturday and monthly for the 1st', async () => {
+        const now = new Date();
+        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+
+        // Create weekly and monthly reminders
+        await db('reminders').insert([
+            {
+                user_id: testUserId,
+                title: 'Weekly Report',
+                reminder_type: 'recurring',
+                frequency: 'weekly',
+                due_date: in5Minutes.toISOString(),
+            },
+            {
+                user_id: testUserId,
+                title: 'Monthly Review',
+                reminder_type: 'recurring',
+                frequency: 'monthly',
+                due_date: in5Minutes.toISOString(),
+            },
+        ]);
+
+        await processReminderDigests();
+
+        // Check that reminders were rescheduled
+        const weeklyReminder = await db('reminders').where('title', 'Weekly Report').first();
+        const monthlyReminder = await db('reminders').where('title', 'Monthly Review').first();
+
+        expect(weeklyReminder).toBeTruthy();
+        expect(monthlyReminder).toBeTruthy();
+
+        // Weekly reminder should be scheduled for next Saturday
+        const weeklyDue = dayjs(weeklyReminder.due_date);
+        expect(weeklyDue.day()).toBe(6); // 6 = Saturday
+
+        // Monthly reminder should be scheduled for the 1st of next month
+        const monthlyDue = dayjs(monthlyReminder.due_date);
+        expect(monthlyDue.date()).toBe(1); // 1st of the month
+    });
+
+    it('should create new weekly reminders on Saturday and monthly on the 1st', async () => {
+        const now = new Date();
+        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+
+        // Create weekly and monthly reminders
+        await db('reminders').insert([
+            {
+                user_id: testUserId,
+                title: 'Weekly Report',
+                reminder_type: 'recurring',
+                frequency: 'weekly',
+                due_date: in5Minutes.toISOString(),
+            },
+            {
+                user_id: testUserId,
+                title: 'Monthly Review',
+                reminder_type: 'recurring',
+                frequency: 'monthly',
+                due_date: in5Minutes.toISOString(),
+            },
+        ]);
+
+        await processReminderDigests();
+
+        // Check that reminders were rescheduled
+        const weeklyReminder = await db('reminders').where('title', 'Weekly Report').first();
+        const monthlyReminder = await db('reminders').where('title', 'Monthly Review').first();
+
+        expect(weeklyReminder).toBeTruthy();
+        expect(monthlyReminder).toBeTruthy();
+
+        // Weekly reminder should be scheduled for next Saturday
+        const weeklyDue = dayjs(weeklyReminder.due_date);
+        expect(weeklyDue.day()).toBe(6); // 6 = Saturday
+
+        // Monthly reminder should be scheduled for the 1st of next month
+        const monthlyDue = dayjs(monthlyReminder.due_date);
+        expect(monthlyDue.date()).toBe(1); // 1st of the month
     });
 
     it('should allow daily reminders to be processed multiple times', async () => {

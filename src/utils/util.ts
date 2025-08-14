@@ -1182,7 +1182,7 @@ export async function sendReminderDigestEmail({
         title: string;
         url?: string;
         reminder_type: 'once' | 'recurring';
-        frequency?: 'daily' | 'weekly' | 'biweekly' | 'monthly';
+        frequency?: 'daily' | 'weekly' | 'monthly';
     }>;
     date: string;
 }): Promise<void> {
@@ -1304,8 +1304,10 @@ export async function processReminderDigests(): Promise<void> {
             // Process each reminder
             for (const reminder of userData.reminders) {
                 if (reminder.reminder_type === 'recurring' && reminder.frequency) {
-                    // Calculate next due date for recurring reminders using UTC
-                    const currentDue = dayjs.utc(reminder.due_date);
+                    // Calculate next due date for recurring reminders
+                    // Use user's timezone for proper day/time calculations
+                    const userTz = userData.timezone || 'UTC';
+                    const currentDue = dayjs.tz(reminder.due_date, 'UTC').tz(userTz);
                     let nextDue: dayjs.Dayjs;
 
                     switch (reminder.frequency) {
@@ -1313,21 +1315,24 @@ export async function processReminderDigests(): Promise<void> {
                             nextDue = currentDue.add(1, 'day');
                             break;
                         case 'weekly':
+                            // Always move to next Saturday
                             nextDue = currentDue.add(1, 'week');
-                            break;
-                        case 'biweekly':
-                            nextDue = currentDue.add(2, 'week');
+                            // Ensure it's still on Saturday (in case of DST changes)
+                            if (nextDue.day() !== 6) {
+                                nextDue = nextDue.day(6); // Force to Saturday
+                            }
                             break;
                         case 'monthly':
-                            nextDue = currentDue.add(1, 'month');
+                            // Always move to the 1st of next month
+                            nextDue = currentDue.add(1, 'month').date(1);
                             break;
                         default:
                             continue; // Skip if frequency is not recognized
                     }
 
-                    // Update recurring reminder with next due date
+                    // Update recurring reminder with next due date (convert back to UTC)
                     await db('reminders').where('id', reminder.id).update({
-                        due_date: nextDue.toISOString(),
+                        due_date: nextDue.utc().toISOString(),
                         updated_at: db.fn.now(),
                     });
                 } else {
