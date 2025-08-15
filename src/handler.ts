@@ -2659,7 +2659,7 @@ export function updateTabHandler(tabs: Tabs) {
 // GET /tabs/:id/launch
 export function getTabsLaunchHandler(tabs: Tabs) {
     return async (req: Request, res: Response) => {
-        const user = req.user as User;
+        const user = req.session.user as User;
         const id = req.params.id;
 
         const tabGroup = await tabs.read(parseInt(id as string), user.id);
@@ -2704,7 +2704,7 @@ export function deleteTabHandler(tabs: Tabs) {
 // POST /tabs/delete-all
 export function deleteAllTabsHandler(db: Knex) {
     return async (req: Request, res: Response) => {
-        const user = req.user as User;
+        const user = req.session.user as User;
 
         await db('tabs').where({ user_id: user.id }).delete();
 
@@ -2721,7 +2721,7 @@ export function deleteAllTabsHandler(db: Knex) {
 // GET /tabs/:id/items/create
 export function getTabItemCreatePageHandler(db: Knex) {
     return async (req: Request, res: Response) => {
-        const user = req.user as User;
+        const user = req.session.user as User;
         const tabId = req.params.id;
         const tab = await db('tabs').where({ id: tabId, user_id: user.id }).first();
 
@@ -2867,12 +2867,15 @@ export function postTabItemCreateHandler(db: Knex) {
 // POST /tabs/:id/items/:itemId/delete or DELETE /api/tabs/:id/items/:itemId
 export function deleteTabItemHandler(db: Knex) {
     return async (req: Request, res: Response) => {
+        const user = req.user as User;
         const tabId = parseInt(req.params.id as unknown as string);
         const itemId = parseInt(req.params.itemId as unknown as string);
 
+        // TODO: narrow it down to user tabs and tab_itmes
+
         await db.transaction(async (trx) => {
             await trx('tab_items').where({ id: itemId, tab_id: tabId }).delete();
-            await trx('tabs').where({ id: tabId }).update({ updated_at: db.fn.now() });
+            await trx('tabs').where({ id: tabId, user_id: user.id }).update({ updated_at: db.fn.now() });
         });
 
         if (isApiRequest(req)) {
