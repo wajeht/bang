@@ -24,7 +24,7 @@ import {
     getRemindersHandler,
     postReminderHandler,
     getMagicLinkHandler,
-    getHowToPageHandler,
+    getAboutPageHandler,
     updateActionHandler,
     deleteActionHandler,
     getBookmarksHandler,
@@ -87,7 +87,7 @@ import { adminOnlyMiddleware, authenticationMiddleware, turnstileMiddleware } fr
 const router = express.Router();
 
 router.get('/bangs', getBangsPage());
-router.get('/how-to', getHowToPageHandler());
+router.get('/about', getAboutPageHandler());
 router.get('/healthz', getHealthzHandler(db));
 router.get('/', getHomePageAndSearchHandler(search));
 router.get('/privacy-policy', getPrivacyPolicyPageHandler());

@@ -77,12 +77,12 @@ export function getPrivacyPolicyPageHandler() {
     };
 }
 
-// GET /how-to
-export function getHowToPageHandler() {
+// GET /about
+export function getAboutPageHandler() {
     return async (_req: Request, res: Response) => {
-        return res.render('how-to.html', {
-            path: '/how-to',
-            title: 'How To',
+        return res.render('about.html', {
+            path: '/about',
+            title: 'About',
             howToContent: await getConvertedReadmeMDToHTML(),
         });
     };
