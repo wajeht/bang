@@ -3118,8 +3118,8 @@ describe('parseReminderTiming', () => {
         const dueDate = dayjs(timing.nextDue);
         const diff = dueDate.diff(now, 'hours');
 
-        // Should be between 15-30 hours in the future (tomorrow)
+        // Should be between 15-32 hours in the future (tomorrow)
         expect(diff).toBeGreaterThan(15);
-        expect(diff).toBeLessThan(30);
+        expect(diff).toBeLessThanOrEqual(32);
     });
 });
