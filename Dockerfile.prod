@@ -2,23 +2,40 @@ FROM node:22-alpine AS build
 
 WORKDIR /usr/src/app
 
+# Copy only package files first for better layer caching
 COPY package*.json ./
 
-RUN npm ci
+# Use npm ci with cache mount and parallel jobs
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --prefer-offline --no-audit --no-fund
 
-COPY ./ ./
+# Copy source files (excluding unnecessary files)
+COPY tsconfig*.json ./
+COPY src ./src
+COPY public ./public
 
+# Build with TypeScript incremental compilation
 RUN npm run build
 
 FROM node:22-alpine
 
-RUN apk update && apk add --no-cache curl
-
-RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+# Combine RUN commands and use --no-cache flag
+RUN apk add --no-cache curl && \
+    addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
 
 WORKDIR /usr/src/app
 
-COPY --chown=nodejs:nodejs --from=build /usr/src/app ./
+# Copy only production dependencies and built files
+COPY --chown=nodejs:nodejs package*.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --only=production --prefer-offline --no-audit --no-fund && \
+    npm cache clean --force
+
+# Copy built application
+COPY --chown=nodejs:nodejs --from=build /usr/src/app/dist ./dist
+COPY --chown=nodejs:nodejs --from=build /usr/src/app/public ./public
+COPY --chown=nodejs:nodejs --from=build /usr/src/app/src/views ./src/views
 
 USER nodejs
 
