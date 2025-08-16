@@ -62,6 +62,7 @@ import {
     postSettingsDisplayHandler,
     postDeleteAdminUserHandler,
     getEditReminderPageHandler,
+    postRecalculateRemindersHandler,
     getTabItemCreatePageHandler,
     getPrivacyPolicyPageHandler,
     getHomePageAndSearchHandler,
@@ -162,6 +163,7 @@ router.get('/notes/:id/edit', authenticationMiddleware, getEditNotePageHandler(n
 
 router.get('/reminders', authenticationMiddleware, getRemindersHandler(reminders));
 router.post('/reminders', authenticationMiddleware, postReminderHandler(reminders));
+router.post('/reminders/recalculate', authenticationMiddleware, postRecalculateRemindersHandler());
 router.get('/reminders/create', authenticationMiddleware, getReminderCreatePageHandler());
 router.get('/reminders/:id/edit', authenticationMiddleware, getEditReminderPageHandler(reminders));
 router.post('/reminders/:id/update', authenticationMiddleware, updateReminderHandler(reminders));
