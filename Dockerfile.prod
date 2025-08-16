@@ -5,9 +5,8 @@ WORKDIR /usr/src/app
 # Copy only package files first for better layer caching
 COPY package*.json ./
 
-# Use npm ci with cache mount and parallel jobs
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --prefer-offline --no-audit --no-fund
+# Use npm ci with optimized flags (no BuildKit required)
+RUN npm ci --no-audit --no-fund
 
 # Copy source files (excluding unnecessary files)
 COPY tsconfig*.json ./
@@ -28,8 +27,7 @@ WORKDIR /usr/src/app
 
 # Copy only production dependencies and built files
 COPY --chown=nodejs:nodejs package*.json ./
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --only=production --prefer-offline --no-audit --no-fund && \
+RUN npm ci --only=production --no-audit --no-fund && \
     npm cache clean --force
 
 # Copy built application
