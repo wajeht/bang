@@ -1984,8 +1984,22 @@ export function getNoteHandler(notes: Notes, log: typeof logger) {
                 return `<pre><code>${text}</code></pre>`;
             };
 
-            marked.setOptions({ renderer });
-            content = marked(note.content) as string;
+            marked.setOptions({
+                renderer,
+                breaks: true, // Enable line breaks (requires gfm)
+                gfm: true, // Enable GitHub Flavored Markdown for better code blocks, tables, etc.
+                pedantic: false, // Don't conform to original markdown.pl bugs
+                silent: false, // Show errors if rendering fails (helpful for debugging)
+            });
+
+            // First escape HTML tags that look like Vue/React syntax
+            const escapedContent = note.content
+                .replace(/<script/g, '&lt;script')
+                .replace(/<\/script>/g, '&lt;/script&gt;')
+                .replace(/<template/g, '&lt;template')
+                .replace(/<\/template>/g, '&lt;/template&gt;');
+
+            content = marked(escapedContent) as string;
         } catch (_error) {
             content = '';
             log.error(`cannot parse content into markdown`, { error: _error });
