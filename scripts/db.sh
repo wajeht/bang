@@ -28,7 +28,7 @@ pull_db() {
     DB_FILE=$(ls "$LOCAL_DIR"/*.sqlite | head -n 1) # Get the first SQLite file
     if [[ -f "$DB_FILE" ]]; then
         echo "Updating migration filenames in the database..."
-        sqlite3 "$DB_FILE" "UPDATE knex_migrations SET name = REPLACE(name, '.js', '.ts') WHERE name LIKE '%.js';"
+        sqlite3 "$DB_FILE" "UPDATE knex_migrations SET name = REPLACE(name, '.js', '') WHERE name LIKE '%.js';"
         echo "✅ Migration filenames updated."
     else
         echo "⚠️ No SQLite database file found in $LOCAL_DIR"
