@@ -29,10 +29,7 @@
 
             <button type="button" aria-label="Create new reminder" onclick="location.href='/reminders/create'">➕</button>
 
-            <form method="POST" action="/reminders/recalculate" style="display: inline;">
-                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-                <button type="submit" aria-label="Recalculate recurring reminders" title="Recalculate all recurring reminders from today">🔄</button>
-            </form>
+            <button type="button" aria-label="Recalculate recurring reminders" title="Recalculate all recurring reminders from today" onclick="showRecalculateModal()">🔄</button>
 
             <%- include('../_partials/column-settings.html') %>
         </nav>
@@ -255,6 +252,20 @@
         </form>
     </dialog>
 
+    <!-- Recalculate Reminders Modal -->
+    <dialog id="recalculate-modal" aria-labelledby="recalculate-title">
+        <h2 id="recalculate-title">Recalculate Recurring Reminders</h2>
+        <p>This will recalculate all your recurring reminders (daily, weekly, monthly) to start from today's date.</p>
+        <p><strong>Note:</strong> This will update the due dates for all recurring reminders. One-time reminders will not be affected.</p>
+        <form method="POST" action="/reminders/recalculate">
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" onclick="document.getElementById('recalculate-modal').close()">❌ Cancel</button>
+                <button type="submit">🔄 Recalculate</button>
+            </div>
+        </form>
+    </dialog>
+
     <script>
         function showDeleteReminderModal(id, title) {
             const modal = document.getElementById('delete-reminder-modal');
@@ -267,5 +278,9 @@
             modal.showModal();
         }
 
+        function showRecalculateModal() {
+            const modal = document.getElementById('recalculate-modal');
+            modal.showModal();
+        }
     </script>
 </section>
