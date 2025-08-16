@@ -12,6 +12,7 @@ RUN npm ci --no-audit --no-fund
 COPY tsconfig*.json ./
 COPY src ./src
 COPY public ./public
+COPY README.md ./
 
 # Build with TypeScript incremental compilation
 RUN npm run build
@@ -34,6 +35,7 @@ RUN npm ci --only=production --no-audit --no-fund && \
 COPY --chown=nodejs:nodejs --from=build /usr/src/app/dist ./dist
 COPY --chown=nodejs:nodejs --from=build /usr/src/app/public ./public
 COPY --chown=nodejs:nodejs --from=build /usr/src/app/src/views ./src/views
+COPY --chown=nodejs:nodejs --from=build /usr/src/app/README.md ./
 
 USER nodejs
 
