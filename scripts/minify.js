@@ -8,7 +8,7 @@ const viewsDir = path.join(__dirname, '..', 'src', 'views');
 
 function getAllJsFiles(dir, files = []) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
-    
+
     for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory()) {
@@ -17,13 +17,13 @@ function getAllJsFiles(dir, files = []) {
             files.push(fullPath);
         }
     }
-    
+
     return files;
 }
 
 function getAllHtmlFiles(dir, files = []) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
-    
+
     for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory()) {
@@ -32,23 +32,23 @@ function getAllHtmlFiles(dir, files = []) {
             files.push(fullPath);
         }
     }
-    
+
     return files;
 }
 
 async function minifyJavaScript() {
     console.log('Minifying JavaScript files...');
-    
+
     const jsFiles = getAllJsFiles(distDir);
     console.log(`Found ${jsFiles.length} JavaScript files`);
-    
+
     let totalOriginalSize = 0;
     let totalMinifiedSize = 0;
-    
+
     for (const file of jsFiles) {
         const originalSize = fs.statSync(file).size;
         totalOriginalSize += originalSize;
-        
+
         try {
             await build({
                 entryPoints: [file],
@@ -60,12 +60,12 @@ async function minifyJavaScript() {
                 target: 'node22',
                 platform: 'node',
                 format: 'cjs',
-                logLevel: 'error'
+                logLevel: 'error',
             });
-            
+
             const minifiedSize = fs.statSync(file).size;
             totalMinifiedSize += minifiedSize;
-            
+
             const reduction = ((1 - minifiedSize / originalSize) * 100).toFixed(1);
             console.log(`✓ ${path.relative(distDir, file)} (${reduction}% smaller)`);
         } catch (error) {
@@ -73,7 +73,7 @@ async function minifyJavaScript() {
             process.exit(1);
         }
     }
-    
+
     const totalReduction = ((1 - totalMinifiedSize / totalOriginalSize) * 100).toFixed(1);
     console.log(`\nJavaScript minification complete!`);
     console.log(`Total size reduction: ${totalReduction}%`);
@@ -84,13 +84,13 @@ async function minifyJavaScript() {
 
 async function minifyHtmlFiles() {
     console.log('Minifying HTML files...');
-    
+
     const htmlFiles = getAllHtmlFiles(viewsDir);
     console.log(`Found ${htmlFiles.length} HTML files`);
-    
+
     let totalOriginalSize = 0;
     let totalMinifiedSize = 0;
-    
+
     const minifyOptions = {
         collapseWhitespace: true,
         removeComments: true,
@@ -107,23 +107,23 @@ async function minifyHtmlFiles() {
         removeAttributeQuotes: false, // Keep quotes for EJS compatibility
         keepClosingSlash: true,
         ignoreCustomFragments: [
-            /<%[\s\S]*?%>/,     // EJS tags
-            /<\?[\s\S]*?\?>/,   // PHP-style tags (sometimes used in templates)
-        ]
+            /<%[\s\S]*?%>/, // EJS tags
+            /<\?[\s\S]*?\?>/, // PHP-style tags (sometimes used in templates)
+        ],
     };
-    
+
     for (const file of htmlFiles) {
         const originalContent = fs.readFileSync(file, 'utf8');
         const originalSize = Buffer.byteLength(originalContent, 'utf8');
         totalOriginalSize += originalSize;
-        
+
         try {
             const minifiedContent = await minifyHtml(originalContent, minifyOptions);
             fs.writeFileSync(file, minifiedContent, 'utf8');
-            
+
             const minifiedSize = Buffer.byteLength(minifiedContent, 'utf8');
             totalMinifiedSize += minifiedSize;
-            
+
             const reduction = ((1 - minifiedSize / originalSize) * 100).toFixed(1);
             console.log(`✓ ${path.relative(viewsDir, file)} (${reduction}% smaller)`);
         } catch (error) {
@@ -131,7 +131,7 @@ async function minifyHtmlFiles() {
             // Don't exit on HTML minification errors, just skip the file
         }
     }
-    
+
     const totalReduction = ((1 - totalMinifiedSize / totalOriginalSize) * 100).toFixed(1);
     console.log(`\nHTML minification complete!`);
     console.log(`Total size reduction: ${totalReduction}%`);
@@ -142,7 +142,7 @@ async function minifyHtmlFiles() {
 
 async function minifyAll() {
     console.log('Starting minification process...\n');
-    
+
     try {
         await minifyJavaScript();
         await minifyHtmlFiles();
