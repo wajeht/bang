@@ -3157,7 +3157,6 @@ export function postRecalculateRemindersHandler() {
         const user = req.user as User;
 
         try {
-            // Get all recurring reminders for the user
             const recurringReminders = await db('reminders')
                 .where({
                     user_id: user.id,
@@ -3170,19 +3169,15 @@ export function postRecalculateRemindersHandler() {
                 return res.redirect('/reminders');
             }
 
-            // Get user's default reminder time or use 9 AM
-            const defaultTime =
-                user.column_preferences?.reminders?.default_reminder_time || '09:00';
+            const defaultTime = user.column_preferences?.reminders?.default_reminder_time || '09:00'; // prettier-ignore
             const userTimezone = user.timezone || 'UTC';
 
             let updatedCount = 0;
 
             for (const reminder of recurringReminders) {
-                // Parse the reminder timing based on today's date
                 const timing = parseReminderTiming(reminder.frequency, defaultTime, userTimezone);
 
                 if (timing.isValid && timing.nextDue) {
-                    // Update the reminder with the recalculated due date
                     await db('reminders')
                         .where('id', reminder.id)
                         .update({
