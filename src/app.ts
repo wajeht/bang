@@ -22,7 +22,6 @@ import { AddressInfo } from 'node:net';
 import { logger } from './utils/logger';
 import { expressJSDocSwaggerHandler } from './utils/swagger';
 import { isMailpitRunning, processReminderDigests } from './utils/util';
-import { expressTemplatesReload } from '@wajeht/express-templates-reload';
 import { db, runProdMigration, checkDatabaseHealth, optimizeDatabase } from './db/db';
 
 async function initDatabase() {
@@ -65,14 +64,19 @@ export async function createServer() {
     }
 
     if (config.app.env === 'development') {
-        expressTemplatesReload({
-            app,
-            watch: [
-                { path: './public', extensions: ['.css', '.js'] },
-                { path: './src/views', extensions: ['.html'] },
-            ],
-            options: { quiet: true },
-        });
+        try {
+            const { expressTemplatesReload } = await import('@wajeht/express-templates-reload');
+            expressTemplatesReload({
+                app,
+                watch: [
+                    { path: './public', extensions: ['.css', '.js'] },
+                    { path: './src/views', extensions: ['.html'] },
+                ],
+                options: { quiet: true },
+            });
+        } catch (error) {
+            logger.warn('Express templates reload not available in production');
+        }
     }
 
     app.set('trust proxy', 1)
@@ -135,11 +139,9 @@ export async function createServer() {
             case 'EACCES':
                 logger.error(`${bind} requires elevated privileges`);
                 process.exit(1);
-                break;
             case 'EADDRINUSE':
                 logger.error(`${bind} is already in use`);
                 process.exit(1);
-                break;
             default:
                 throw error;
         }
