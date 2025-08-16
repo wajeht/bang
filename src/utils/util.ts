@@ -1190,33 +1190,62 @@ export async function sendReminderDigestEmail({
 
     const formatDate = dayjs(date).format('dddd, MMMM D, YYYY');
 
-    const formatReminderList = reminders
+    // Determine the frequency type for the header
+    const frequencies = new Set(
+        reminders.filter((r) => r.reminder_type === 'recurring').map((r) => r.frequency),
+    );
+    let reminderTypeText = 'reminders';
+    if (frequencies.size === 1 && reminders.every((r) => r.reminder_type === 'recurring')) {
+        const freq = Array.from(frequencies)[0];
+        reminderTypeText = `${freq} reminders`;
+    } else if (frequencies.size > 0) {
+        reminderTypeText = 'reminders';
+    }
+
+    // HTML version with clickable links
+    const formatReminderListHTML = reminders
         .map((reminder, index) => {
-            const number = `${index + 1}.`;
+            const number = index + 1;
             const title = reminder.title;
-            const link = reminder.url && reminder.url !== 'null' ? ` - ${reminder.url}` : '';
-            const type = reminder.reminder_type === 'recurring' ? ` (${reminder.frequency})` : '';
-            return `   ${number} ${title}${type}${link}`;
+
+            if (reminder.url && reminder.url !== 'null') {
+                return `   <li><a href="${reminder.url}">${title}</a></li>`;
+            } else {
+                return `   <li>${title}</li>`;
+            }
         })
         .join('\n');
 
-    const emailBody = `Hello ${username},
-
-Here are your reminders for ${formatDate}:
-
-${formatReminderList}
-
-You can manage your reminders at your Bang dashboard.
-
---
-Bang Team
-https://github.com/wajeht/bang`;
+    const emailBodyHTML = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <p>Hello ${username},</p>
+    
+    <p>Here are your ${reminderTypeText} for ${formatDate}:</p>
+    
+    <ol>
+${formatReminderListHTML}
+    </ol>
+    
+    <p>You can manage your reminders at your Bang dashboard.</p>
+    
+    <p>
+        --<br>
+        Bang Team<br>
+        <a href="https://github.com/wajeht/bang">https://github.com/wajeht/bang</a>
+    </p>
+</body>
+</html>`;
 
     const mailOptions = {
         from: `Bang <${config.email.from}>`,
         to: email,
         subject: `⏰ Reminders - ${formatDate}`,
-        text: emailBody,
+        html: emailBodyHTML,
     };
 
     try {
@@ -1224,7 +1253,7 @@ https://github.com/wajeht/bang`;
             logger.info(
                 `Development mode: Reminder digest email for ${email} with ${reminders.length} reminders`,
             );
-            logger.info(`Email content:\n${emailBody}`);
+            logger.info(`Email content:\n${emailBodyHTML}`);
             return;
         }
 
