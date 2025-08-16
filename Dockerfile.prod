@@ -8,15 +8,19 @@ COPY package*.json ./
 # Install all dependencies including dev for build tools
 RUN npm ci --no-audit --no-fund
 
-# Copy source files (excluding unnecessary files)
+# Copy only TypeScript config first (changes less frequently)
 COPY tsconfig*.json ./
+
+# Copy source files
 COPY src ./src
 COPY public ./public
 COPY scripts ./scripts
 COPY README.md ./
 
 # Build with TypeScript incremental compilation (excluding tests) and minify
-RUN npm run build:prod
+RUN npm run build:prod && \
+    rm -rf src/tests src/**/*.test.* && \
+    find dist -name "*.map" -delete
 
 FROM node:22-alpine
 
