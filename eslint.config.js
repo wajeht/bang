@@ -19,7 +19,7 @@ module.exports = tseslint.config(
             '**/*.test.mts',
             'src/db/bang.ts',
             'src/tests/**/*',
-            'scripts/load-test.ts',
+            'scripts/**/*',
             'eslint.config.js',
         ],
     },
@@ -33,6 +33,10 @@ module.exports = tseslint.config(
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'module',
+            parserOptions: {
+                tsconfigRootDir: __dirname,
+                project: './tsconfig.json',
+            },
             globals: {
                 console: 'readonly',
                 process: 'readonly',
