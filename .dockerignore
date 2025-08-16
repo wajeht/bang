@@ -12,7 +12,6 @@ coverage
 .idea
 *.log
 *.md
-!README.md
 .DS_Store
 Thumbs.db
 .dockerignore
