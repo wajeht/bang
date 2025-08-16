@@ -359,6 +359,14 @@
             >
             📅 Schedule
           </label>
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="checkbox"
+              name="column_preferences[reminders][next_due]"
+              <%= user.column_preferences?.reminders?.next_due !== false ? 'checked' : '' %>
+            >
+            ⏳ Next Due
+          </label>
           <!-- Keep frequency field for backend compatibility but hide from UI since it's now part of Schedule -->
           <input
             type="hidden"
