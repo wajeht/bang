@@ -22,7 +22,7 @@ vi.mock('./utils/util', () => ({
     },
     highlightSearchTerm: vi.fn((text, _term) => text),
     nl2br: vi.fn((text) => text),
-    formatDateInTimezone: vi.fn((date, _timezone) => ({
+    formatDateInTimezone: vi.fn((_date, _timezone) => ({
         dateString: '1/1/2024',
         timeString: '12:00 PM',
         fullString: '1/1/2024, 12:00 PM',
