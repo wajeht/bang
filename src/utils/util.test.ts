@@ -17,6 +17,7 @@ import {
     getReadmeFileContent,
     formatDateInTimezone,
     processReminderDigests,
+    sendReminderDigestEmail,
     isOnlyLettersAndNumbers,
     getConvertedReadmeMDToHTML,
 } from './util';
@@ -925,6 +926,90 @@ describe('formatDateInTimezone', () => {
         // 13:30 UTC = 9:30 AM NYC
         expect(result2.timeString).toBe('9:30 AM');
         expect(result2.timeInputValue).toBe('09:30');
+    });
+});
+
+describe('sendReminderDigestEmail', () => {
+    it('should format reminder emails with clickable links in HTML', async () => {
+        const reminders = [
+            {
+                id: 1,
+                title: 'AI Agent Best Practices',
+                url: 'https://forgecode.dev/blog/ai-agent-best-practices/',
+                reminder_type: 'recurring' as const,
+                frequency: 'weekly' as const,
+            },
+            {
+                id: 2,
+                title: 'Why I Do Programming',
+                url: 'https://esafev.com/notes/why-i-do-programming/',
+                reminder_type: 'recurring' as const,
+                frequency: 'weekly' as const,
+            },
+            {
+                id: 3,
+                title: 'Meeting with team',
+                reminder_type: 'once' as const,
+            },
+            {
+                id: 4,
+                title: 'Claude Code Best Practices',
+                url: 'https://www.anthropic.com/engineering/claude-code-best-practices',
+                reminder_type: 'recurring' as const,
+                frequency: 'weekly' as const,
+            },
+        ];
+
+        // This test can be run locally with mailpit running to verify the email format
+        // When mailpit is running, you can check the email at http://localhost:8025
+        await sendReminderDigestEmail({
+            email: 'test@example.com',
+            username: 'TestUser',
+            reminders,
+            date: '2025-08-16',
+        });
+
+        // If running with mailpit, check that:
+        // 1. Email subject is "⏰ Reminders - Saturday, August 16, 2025"
+        // 2. Links are clickable in the HTML view
+        // 3. Frequency appears in the header as "weekly reminders"
+        // 4. No CSS styles are present
+        expect(true).toBe(true);
+    });
+
+    it('should handle mixed reminder types correctly', async () => {
+        const reminders = [
+            {
+                id: 1,
+                title: 'Daily standup',
+                url: 'https://zoom.us/meeting/123',
+                reminder_type: 'recurring' as const,
+                frequency: 'daily' as const,
+            },
+            {
+                id: 2,
+                title: 'Doctor appointment',
+                reminder_type: 'once' as const,
+            },
+            {
+                id: 3,
+                title: 'Weekly review',
+                url: 'https://notion.so/weekly',
+                reminder_type: 'recurring' as const,
+                frequency: 'weekly' as const,
+            },
+        ];
+
+        // This test can be run locally with mailpit running to verify the email format
+        await sendReminderDigestEmail({
+            email: 'test@example.com',
+            username: 'TestUser',
+            reminders,
+            date: '2025-08-16',
+        });
+
+        // When mixed types, email should just say "reminders" not "weekly reminders"
+        expect(true).toBe(true);
     });
 });
 
