@@ -29,6 +29,10 @@
 
             <button type="button" aria-label="Create new reminder" onclick="location.href='/reminders/create'">➕</button>
 
+            <form method="POST" action="/reminders/recalculate" style="display: inline;">
+                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                <button type="submit" aria-label="Recalculate recurring reminders" title="Recalculate all recurring reminders from today">🔄</button>
+            </form>
 
             <%- include('../_partials/column-settings.html') %>
         </nav>
@@ -73,6 +77,20 @@
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
                                    aria-label="Sort by schedule <%= (sortKey === 'due_date' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                     📅 Schedule
+                                    <% if (sortKey === 'due_date') { %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                    <% } else { %>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.reminders?.next_due !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">
+                                <a href="/reminders?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=due_date&direction=<%= (sortKey === 'due_date' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                   aria-label="Sort by next due <%= (sortKey === 'due_date' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                    ⏳ Next Due
                                     <% if (sortKey === 'due_date') { %>
                                         <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
                                     <% } else { %>
@@ -154,6 +172,20 @@
                                         <% } else { %>
                                             -
                                         <% } %>
+                                    <% } else { %>
+                                        -
+                                    <% } %>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.reminders?.next_due !== false) { %>
+                                <td style="padding: 10px;">
+                                    <% if (reminders[i].due_date) { %>
+                                        <time datetime="<%= reminders[i].due_date %>">
+                                            <%
+                                                const formatted = utils.formatDateInTimezone(reminders[i].due_date, state.user.timezone);
+                                            %>
+                                            <%= formatted.dateString %> at <%= formatted.timeString %>
+                                        </time>
                                     <% } else { %>
                                         -
                                     <% } %>
