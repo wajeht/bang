@@ -14,8 +14,8 @@ COPY src ./src
 COPY public ./public
 COPY README.md ./
 
-# Build with TypeScript incremental compilation
-RUN npm run build
+# Build with TypeScript incremental compilation (excluding tests)
+RUN npm run build:prod
 
 FROM node:22-alpine
 
