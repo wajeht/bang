@@ -1690,6 +1690,7 @@ export function postSettingsDisplayHandler(db: Knex) {
             column_preferences.reminders.title = column_preferences.reminders.title === 'on';
             column_preferences.reminders.content = column_preferences.reminders.content === 'on';
             column_preferences.reminders.due_date = column_preferences.reminders.due_date === 'on';
+            column_preferences.reminders.next_due = column_preferences.reminders.next_due === 'on';
             column_preferences.reminders.frequency =
                 column_preferences.reminders.frequency === 'on';
             column_preferences.reminders.created_at =
@@ -1733,6 +1734,7 @@ export function postSettingsDisplayHandler(db: Knex) {
                 !column_preferences.reminders.title &&
                 !column_preferences.reminders.content &&
                 !column_preferences.reminders.due_date &&
+                !column_preferences.reminders.next_due &&
                 !column_preferences.reminders.frequency &&
                 !column_preferences.reminders.created_at
             ) {
@@ -2875,7 +2877,9 @@ export function deleteTabItemHandler(db: Knex) {
 
         await db.transaction(async (trx) => {
             await trx('tab_items').where({ id: itemId, tab_id: tabId }).delete();
-            await trx('tabs').where({ id: tabId, user_id: user.id }).update({ updated_at: db.fn.now() });
+            await trx('tabs')
+                .where({ id: tabId, user_id: user.id })
+                .update({ updated_at: db.fn.now() });
         });
 
         if (isApiRequest(req)) {
@@ -3144,5 +3148,60 @@ export function getEditReminderPageHandler(reminders: Reminders) {
             reminder,
             timingOptions: reminderTimingConfig.getAllOptions(),
         });
+    };
+}
+
+// POST /reminders/recalculate
+export function postRecalculateRemindersHandler() {
+    return async (req: Request, res: Response) => {
+        const user = req.user as User;
+
+        try {
+            // Get all recurring reminders for the user
+            const recurringReminders = await db('reminders')
+                .where({
+                    user_id: user.id,
+                    reminder_type: 'recurring',
+                })
+                .whereNotNull('frequency');
+
+            if (recurringReminders.length === 0) {
+                req.flash('info', 'No recurring reminders found to recalculate');
+                return res.redirect('/reminders');
+            }
+
+            // Get user's default reminder time or use 9 AM
+            const defaultTime =
+                user.column_preferences?.reminders?.default_reminder_time || '09:00';
+            const userTimezone = user.timezone || 'UTC';
+
+            let updatedCount = 0;
+
+            for (const reminder of recurringReminders) {
+                // Parse the reminder timing based on today's date
+                const timing = parseReminderTiming(reminder.frequency, defaultTime, userTimezone);
+
+                if (timing.isValid && timing.nextDue) {
+                    // Update the reminder with the recalculated due date
+                    await db('reminders')
+                        .where('id', reminder.id)
+                        .update({
+                            due_date:
+                                timing.nextDue instanceof Date
+                                    ? timing.nextDue.toISOString()
+                                    : timing.nextDue,
+                            updated_at: db.fn.now(),
+                        });
+                    updatedCount++;
+                }
+            }
+
+            req.flash('success', `Successfully recalculated ${updatedCount} recurring reminders`);
+        } catch (error) {
+            logger.error('Failed to recalculate reminders: %o', { error });
+            req.flash('error', 'Failed to recalculate reminders. Please try again.');
+        }
+
+        return res.redirect('/reminders');
     };
 }
