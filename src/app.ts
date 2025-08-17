@@ -13,7 +13,7 @@ import ejs from 'ejs';
 import cors from 'cors';
 import cron from 'node-cron';
 import express from 'express';
-import { router } from './router';
+import { router } from './routes';
 import flash from 'connect-flash';
 import { config } from './config';
 import { Server } from 'node:http';
