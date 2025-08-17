@@ -23,15 +23,6 @@ import type { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
 
-export function rateLimitHandler() {
-    return async (req: Request, res: Response) => {
-        if (isApiRequest(req)) {
-            return res.json({ message: 'Too many requests, please try again later.' });
-        }
-        return res.status(429).render('./rate-limit.html');
-    };
-}
-
 export function notFoundMiddleware() {
     return (req: Request, _res: Response, _next: NextFunction) => {
         throw new NotFoundError(
@@ -379,7 +370,12 @@ export function rateLimitMiddleware() {
         max: 100, // Limit each IP to 100 requests per windowMs
         standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-        handler: rateLimitHandler(),
+        handler: async (req: Request, res: Response) => {
+            if (isApiRequest(req)) {
+                return res.json({ message: 'Too many requests, please try again later.' });
+            }
+            return res.status(429).render('./rate-limit.html');
+        },
         skip: (_req: Request, _res: Response) => config.app.env !== 'production',
     });
 }
