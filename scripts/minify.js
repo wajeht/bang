@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const distDir = path.join(__dirname, '..', 'dist');
-const viewsDir = path.join(__dirname, '..', 'src', 'views');
+const viewsDir = path.join(__dirname, '..', 'src', 'routes');
 const publicDir = path.join(__dirname, '..', 'public');
 
 function getAllJsFiles(dir, files = []) {

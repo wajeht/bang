@@ -1,0 +1,187 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+  <header style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h2>👥 Users (<%- pagination.total %>)</h2>
+      <p>Manage application users</p>
+    </div>
+
+    <nav style="display: flex; gap: 10px;" aria-label="User management controls">
+      <% if (search) { %>
+        <button class="no-style-btn" type="button" onclick="location.href='/admin/users'">❌ Clear</button>
+      <% } %>
+
+      <form method="GET" style="display: flex; gap: 10px;" role="search">
+        <%- include('../_components/inputs/search.html', {
+          id: 'search-input',
+          name: 'search',
+          label: 'Search users',
+          placeholder: 'Search users...',
+          value: search,
+          required: false,
+          helpText: 'Search for users by username or email',
+          error: state.errors && state.errors.search ? state.errors.search : undefined
+        }) %>
+        <button type="submit">🔍</button>
+      </form>
+
+      <%- include('../_components/column-settings.html') %>
+
+    </nav>
+  </header>
+
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <% if (data && data.length > 0) { %>
+      <table style="width: 100%; border-collapse: collapse;">
+        <caption style="position: absolute; left: -10000px;"><%= data.length %> users found</caption>
+        <thead>
+          <tr>
+            <% if (state.user.column_preferences?.users?.username !== false) { %>
+            <th scope="col" style="text-align: left; padding: 10px;">
+              <a href="/admin/users?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=username&direction=<%= (sortKey === 'username' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                👤 Username
+                <% if (sortKey === 'username') { %>
+                  <%= direction === 'asc' ? '🔼' : '🔽' %>
+                <% } else { %>
+                  <span class="sort-icon">⏺️</span>
+                <% } %>
+              </a>
+            </th>
+            <% } %>
+            <% if (state.user.column_preferences?.users?.email !== false) { %>
+            <th scope="col" style="text-align: left; padding: 10px;">
+              <a href="/admin/users?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=email&direction=<%= (sortKey === 'email' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                📧 Email
+                <% if (sortKey === 'email') { %>
+                  <%= direction === 'asc' ? '🔼' : '🔽' %>
+                <% } else { %>
+                  <span class="sort-icon">⏺️</span>
+                <% } %>
+              </a>
+            </th>
+            <% } %>
+            <% if (state.user.column_preferences?.users?.is_admin !== false) { %>
+            <th scope="col" style="text-align: left; padding: 10px;">
+              <a href="/admin/users?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=is_admin&direction=<%= (sortKey === 'is_admin' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                👑 Admin
+                <% if (sortKey === 'is_admin') { %>
+                  <%= direction === 'asc' ? '🔼' : '🔽' %>
+                <% } else { %>
+                  <span class="sort-icon">⏺️</span>
+                <% } %>
+              </a>
+            </th>
+            <% } %>
+            <% if (state.user.column_preferences?.users?.email_verified_at !== false) { %>
+            <th scope="col" style="text-align: left; padding: 10px;">
+              <a href="/admin/users?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=email_verified_at&direction=<%= (sortKey === 'email_verified_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                ✅ Email Verified
+                <% if (sortKey === 'email_verified_at') { %>
+                  <%= direction === 'asc' ? '🔼' : '🔽' %>
+                <% } else { %>
+                  <span class="sort-icon">⏺️</span>
+                <% } %>
+              </a>
+            </th>
+            <% } %>
+            <% if (state.user.column_preferences?.users?.created_at !== false) { %>
+            <th scope="col" style="text-align: left; padding: 10px;">
+              <a href="/admin/users?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                📅 Created
+                <% if (sortKey === 'created_at') { %>
+                  <%= direction === 'asc' ? '🔼' : '🔽' %>
+                <% } else { %>
+                  <span class="sort-icon">⏺️</span>
+                <% } %>
+              </a>
+            </th>
+            <% } %>
+            <th scope="col" style="text-align: left; padding: 10px;">🚀 Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% data.forEach(function(user) { %>
+            <tr>
+              <% if (state.user.column_preferences?.users?.username !== false) { %>
+                <td style="padding: 10px;"><%- utils.highlightSearchTerm(user.username, search) %></td>
+              <% } %>
+              <% if (state.user.column_preferences?.users?.email !== false) { %>
+                <td style="padding: 10px;"><%- utils.highlightSearchTerm(user.email, search) %></td>
+              <% } %>
+              <% if (state.user.column_preferences?.users?.is_admin !== false) { %>
+                <td style="padding: 10px;"><%= user.is_admin ? '✅' : '❌' %></td>
+              <% } %>
+              <% if (state.user.column_preferences?.users?.email_verified_at !== false) { %>
+                <td style="padding: 10px;"><%= user.email_verified_at ? '✅' : '❌' %></td>
+              <% } %>
+              <% if (state.user.column_preferences?.users?.created_at !== false) { %>
+                <td style="padding: 10px;">
+                  <time datetime="<%= user.created_at %>">
+                    <%= utils.formatDateInTimezone(user.created_at, state.user.timezone).fullString %>
+                  </time>
+                </td>
+              <% } %>
+              <td style="padding: 10px;">
+                <div style="display: flex; gap: 10px;">
+                  <button
+                      type="button"
+                      class="no-style-btn"
+                      onclick="showDeleteUserModal('<%= user.id %>', '<%= (user.username || 'Unknown User').replace(/'/g, '\\\'') %>')"
+                      aria-label="Delete user <%= user.username %>"
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <div style="text-align: center; padding: 20px;">
+        <% if (search) { %>
+          <p>🔍 No users found matching "<%= search %>"</p>
+          <p>Try a different search term or <a href="/admin/users">view all users</a></p>
+        <% } else { %>
+          <p>📭 No users found.</p>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+
+  <%- include('../_components/pagination.html', {
+    pagination,
+    path,
+    perPageDefault: state.user.column_preferences.users.default_per_page,
+    sortKey,
+    direction,
+    search,
+  }) %>
+
+  <dialog id="delete-user-modal" aria-labelledby="delete-user-title">
+    <h2 id="delete-user-title">Confirm</h2>
+    <p>Are you sure you want to delete user <strong id="delete-user-name"></strong>?</p>
+    <form id="delete-user-form" method="POST">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button type="button" onclick="document.getElementById('delete-user-modal').close()">❌ Cancel</button>
+        <button type="submit">🗑️ Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    function showDeleteUserModal(userId, username) {
+      const modal = document.getElementById('delete-user-modal');
+      const nameElement = document.getElementById('delete-user-name');
+      const form = document.getElementById('delete-user-form');
+      nameElement.textContent = username;
+      form.action = `/admin/users/${userId}/delete`;
+      modal.showModal();
+    }
+  </script>
+</section>

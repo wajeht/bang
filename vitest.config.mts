@@ -9,6 +9,7 @@ export default defineConfig({
         exclude: [
             'node_modules',
             './src/tests/browser',
+            '**/*.browser-test.ts',
             './dist',
             './public',
             './test-results',

@@ -8,12 +8,12 @@ import {
     rateLimitMiddleware,
     staticAssetsMiddleware,
     appLocalStateMiddleware,
-} from './middleware';
+} from './routes/middleware';
 import ejs from 'ejs';
 import cors from 'cors';
 import cron from 'node-cron';
 import express from 'express';
-import { router } from './routes';
+import { router } from './routes/routes';
 import flash from 'connect-flash';
 import { config } from './config';
 import { Server } from 'node:http';
@@ -69,8 +69,8 @@ export async function createServer() {
             expressTemplatesReload({
                 app,
                 watch: [
-                    { path: './public', extensions: ['.css', '.js'] },
-                    { path: './src/views', extensions: ['.html'] },
+                    { path: './src/public', extensions: ['.css', '.js'] },
+                    { path: './src/routes', extensions: ['.html'] },
                 ],
                 options: { quiet: true },
             });
@@ -92,11 +92,11 @@ export async function createServer() {
         .engine('html', ejs.renderFile)
         .set('view engine', 'html')
         .set('view cache', config.app.env === 'production')
-        .set('views', './src/views/pages')
+        .set('views', './src/routes')
         .use(
             layoutMiddleware({
-                defaultLayout: '../layouts/public.html',
-                layoutsDir: '../layouts',
+                defaultLayout: '_layouts/public.html',
+                layoutsDir: '_layouts',
             }),
         )
         .use(...csrfMiddleware)

@@ -1,0 +1,124 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+    <header>
+        <h2>⏰ Reminders / <%= reminder.id %> / Edit</h2>
+        <p>Edit your reminder</p>
+    </header>
+
+    <form
+        method="POST"
+        action="/reminders/<%= reminder.id %>/update"
+        style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+    >
+        <fieldset style="display: flex; flex-direction: column;">
+            <legend>Edit <%= reminder.title %></legend>
+
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+            <%- include('../_components/inputs/text.html', {
+                id: 'title',
+                name: 'title',
+                label: '📝 Title',
+                placeholder: 'Take out trash',
+                value: state.input && state.input.title ? state.input.title : reminder.title,
+                required: true,
+                helpText: 'What do you want to be reminded about?',
+                error: state.errors && state.errors.title ? state.errors.title : undefined
+            }) %>
+
+            <%- include('../_components/inputs/textarea.html', {
+                id: 'content',
+                name: 'content',
+                label: '📝 Content (optional)',
+                placeholder: 'https://example.com or any text',
+                value: state.input && state.input.content ? state.input.content : (reminder.content || ''),
+                required: false,
+                helpText: 'Optional content like a URL or additional notes',
+                error: state.errors && state.errors.content ? state.errors.content : undefined
+            }) %>
+
+            <%- include('../_components/inputs/select.html', {
+                id: 'when',
+                name: 'when',
+                label: '⏰ When',
+                required: true,
+                options: timingOptions.map(option => ({
+                    value: option.value,
+                    text: option.text,
+                    selected: (state.input && state.input.when ? state.input.when : (reminder.reminder_type === 'recurring' ? reminder.frequency : 'custom')) === option.value
+                })),
+                helpText: 'When should you be reminded? Choose from preset options or select Custom Date for a specific date.',
+                error: state.errors && state.errors.when ? state.errors.when : undefined
+            }) %>
+
+            <%
+                // Convert UTC due_date to user's timezone for display
+                let customDateValue = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                let customTimeValue = state.user.column_preferences?.reminders?.default_reminder_time || '09:00';
+                
+                if (reminder.due_date) {
+                    // Get formatted date/time in user's timezone
+                    const formatted = utils.formatDateInTimezone(reminder.due_date, state.user.timezone);
+                    customDateValue = formatted.dateInputValue;
+                    customTimeValue = formatted.timeInputValue;
+                }
+            %>
+            <%- include('../_components/inputs/date.html', {
+                id: 'custom_date',
+                name: 'custom_date',
+                label: '📅 Custom Date',
+                value: customDateValue,
+                required: false,
+                helpText: 'Select a specific date (only shown when Custom Date is selected)',
+                error: undefined,
+                style: 'display: none;'
+            }) %>
+
+            <div id="custom_time_container" style="display: none; flex-direction: column; gap: 5px;">
+                <label for="custom_time">🕘 Custom Time</label>
+                <input
+                    type="time"
+                    id="custom_time"
+                    name="custom_time"
+                    value="<%= state.input && state.input.custom_time ? state.input.custom_time : customTimeValue %>"
+                >
+                <small style="color: #666;">Time for this specific reminder (overrides your default time)</small>
+            </div>
+
+        </fieldset>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" onclick="location.href='/reminders'">❌ Cancel</button>
+            <button type="submit">💾 Save</button>
+        </div>
+    </form>
+
+    <script>
+        const whenSelect = document.getElementById('when');
+        const customDateContainer = document.getElementById('custom_date').closest('div');
+        const customTimeContainer = document.getElementById('custom_time_container');
+
+        function toggleCustomFields() {
+            if (whenSelect.value === 'custom') {
+                customDateContainer.style.display = 'block';
+                customTimeContainer.style.display = 'flex';
+                document.getElementById('custom_date').required = true;
+            } else {
+                customDateContainer.style.display = 'none';
+                customTimeContainer.style.display = 'none';
+                document.getElementById('custom_date').required = false;
+            }
+        }
+
+        whenSelect.addEventListener('change', toggleCustomFields);
+
+        // Initial toggle based on current value
+        toggleCustomFields();
+        
+        // If reminder has a custom date (not recurring), ensure custom fields are shown
+        <% if (reminder.reminder_type === 'one-time' || (reminder.reminder_type === 'recurring' && reminder.frequency === 'custom')) { %>
+            whenSelect.value = 'custom';
+            toggleCustomFields();
+        <% } %>
+    </script>
+
+</section>

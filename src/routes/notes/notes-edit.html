@@ -1,0 +1,56 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+    <header>
+        <h2>📝 Notes / <%= note.id %> / Edit</h2>
+        <p>Edit your note</p>
+    </header>
+
+    <form
+        method="POST"
+        action="/notes/<%= note.id %>/update"
+        style="display: flex; flex-direction: column; gap: 10px;"
+    >
+        <fieldset style="display: flex; flex-direction: column;">
+            <legend>Edit <%= note.title %></legend>
+
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+            <%- include('../_components/inputs/text.html', {
+                id: 'title',
+                name: 'title',
+                label: '📝 Title',
+                placeholder: 'My Note Title',
+                value: state.input && state.input.title ? state.input.title : note.title,
+                required: true,
+                helpText: 'A descriptive title for your note',
+                error: state.errors && state.errors.title ? state.errors.title : undefined
+            }) %>
+
+            <%- include('./notes-textarea.html', {
+                id: 'content',
+                name: 'content',
+                label: '📄 Content',
+                placeholder: 'Note content...',
+                value: state.input && state.input.content ? state.input.content : note.content,
+                style: 'min-height: 200px; resize: vertical;',
+                required: true,
+                helpText: 'The content of your note (supports Markdown)',
+                error: state.errors && state.errors.content ? state.errors.content : undefined
+            }) %>
+
+            <%- include('../_components/inputs/checkbox.html', {
+                id: 'pinned',
+                name: 'pinned',
+                label: '📌 Pin this note',
+                checked: note.pinned ? true : false,
+                helpText: 'Pinned notes appear at the top of your notes list',
+                error: state.errors && state.errors.pinned ? state.errors.pinned : undefined
+            }) %>
+
+        </fieldset>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" onclick="location.href='/notes'">❌ Cancel</button>
+            <button type="submit">💾 Save</button>
+        </div>
+    </form>
+</section>

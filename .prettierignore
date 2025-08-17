@@ -22,6 +22,4 @@ db.sqlite-wal
 ./src/db/db.sqlite
 ./public/js/*
 /public/js/*
-src/views/components/*
-src/views/layouts/*
-src/views/pages/*
+src/routes/**/*.html

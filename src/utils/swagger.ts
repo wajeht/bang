@@ -1,7 +1,7 @@
 import { Application } from 'express';
 import type { Options } from 'express-jsdoc-swagger';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
-import { authenticationMiddleware } from '../middleware';
+import { authenticationMiddleware } from '../routes/middleware';
 
 const swaggerConfig = {
     info: {
