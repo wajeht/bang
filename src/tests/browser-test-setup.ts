@@ -1,4 +1,4 @@
-import { db } from '../../db/db';
+import { db } from '../db/db';
 
 async function globalSetup() {
     console.log('Setting up test database...');

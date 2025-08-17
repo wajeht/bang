@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginUser, cleanupTestData } from '../../tests/browser/browser-test-utils';
+import { loginUser, cleanupTestData } from '../../tests/browser-test-utils';
 
 test.describe('Actions', () => {
     test.afterEach(async () => {

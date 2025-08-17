@@ -15,9 +15,9 @@ export default defineConfig({
     testDir: './src/routes',
     testMatch: '**/*.browser-test.ts',
     /* Global setup file to run database migrations */
-    globalSetup: './src/tests/browser/browser-test-setup.ts',
+    globalSetup: './src/tests/browser-test-setup.ts',
     /* Global teardown file to cleanup resources */
-    globalTeardown: './src/tests/browser/browser-test-teardown.ts',
+    globalTeardown: './src/tests/browser-test-teardown.ts',
     /* Run tests in files in parallel */
     fullyParallel: false,
     /* Fail the build on CI if you accidentally left test.only in the source code. */

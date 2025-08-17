@@ -1,5 +1,5 @@
-import { db } from '../../db/db';
-import { magicLink } from '../../utils/util';
+import { db } from '../db/db';
+import { magicLink } from '../utils/util';
 import { Page, expect } from '@playwright/test';
 
 export async function ensureTestUserExists(email: string = 'test@example.com') {
