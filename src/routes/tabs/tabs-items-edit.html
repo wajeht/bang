@@ -1,0 +1,45 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+  <header>
+      <h2>🔗 Edit Tab item <%= tabItem.title %></h2>
+      <p>Edit the details of this tab item</p>
+  </header>
+
+  <form
+    method="POST"
+    action="/tabs/<%= tabItem.tab_id %>/items/<%= tabItem.id %>/update"
+    style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+  >
+    <fieldset style="display: flex; flex-direction: column;">
+      <legend>Edit Tab Item Details</legend>
+
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+      <%- include('../_components/inputs/text.html', {
+        id: 'title',
+        name: 'title',
+        label: '📝 Tab Item Title',
+        placeholder: 'e.g., Google',
+        value: state.input && state.input.title ? state.input.title : tabItem.title,
+        required: true,
+        helpText: 'Give your tab item a descriptive name',
+        error: state.errors && state.errors.title ? state.errors.title : undefined
+      }) %>
+
+      <%- include('../_components/inputs/url.html', {
+        id: 'url',
+        name: 'url',
+        label: '🌐 URL',
+        placeholder: 'https://example.com',
+        value: state.input && state.input.url ? state.input.url : tabItem.url,
+        required: true,
+        helpText: 'Enter the full website address, including https:// or http://',
+        error: state.errors && state.errors.url ? state.errors.url : undefined
+      }) %>
+    </fieldset>
+
+    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+      <button type="button" onclick="location.href='/tabs'">❌ Cancel</button>
+      <button type="submit">💾 Save</button>
+    </div>
+  </form>
+</section>

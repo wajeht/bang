@@ -1224,15 +1224,15 @@ export async function sendReminderDigestEmail({
 </head>
 <body>
     <p>Hello ${username},</p>
-    
+
     <p>Here are your ${reminderTypeText} for ${formatDate}:</p>
-    
+
     <ol>
 ${formatReminderListHTML}
     </ol>
-    
+
     <p>You can manage your reminders at your Bang dashboard.</p>
-    
+
     <p>
         --<br>
         Bang Team<br>

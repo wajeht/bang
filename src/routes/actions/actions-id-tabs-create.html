@@ -1,0 +1,49 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+    <header>
+        <h2>⚡ Actions / <%= action.id %> / Tabs / Create</h2>
+        <p>Create a new tab for action <%= action.id %></p>
+    </header>
+
+    <form
+        method="POST"
+        action="/actions/<%= action.id %>/tabs"
+        style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+    >
+        <fieldset style="display: flex; flex-direction: column;">
+            <legend>Create tab for <%= action.name %></legend>
+
+            <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+
+            <% if (tabs && tabs.length > 0) { %>
+                <%- include('../_components/inputs/select.html', {
+                    id: 'tab_id',
+                    name: 'tab_id',
+                    label: '️🔗 Tab Group',
+                    options: tabs.map(t => ({
+                        value: t.id,
+                        text: t.title,
+                    })),
+                    required: true,
+                    helpText: 'Select the tab group to add this action to',
+                    error: state.errors && state.errors.tab_id ? state.errors.tab_id : undefined
+                }) %>
+            <% } else { %>
+                <%- include('../_components/inputs/text.html', {
+                    id: 'disabled_tab',
+                    name: 'disabled_tab',
+                    value: 'No tab groups available',
+                    label: 'Tab Group',
+                    disabled: true,
+                    required: true,
+                }) %>
+                <a href='/tabs/create'>Create a tab group</a>
+            <% } %>
+
+        </fieldset>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+            <button type="button" onclick="location.href='/actions'">❌ Cancel</button>
+            <button type="submit">💾 Save</button>
+        </div>
+    </form>
+</section>

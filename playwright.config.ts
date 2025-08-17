@@ -12,7 +12,8 @@ import { defineConfig, devices } from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-    testDir: './src/tests/browser',
+    testDir: './src/routes',
+    testMatch: '**/*.browser-test.ts',
     /* Global setup file to run database migrations */
     globalSetup: './src/tests/browser/browser-test-setup.ts',
     /* Global teardown file to cleanup resources */

@@ -1,0 +1,156 @@
+<script>
+  function showExportDataTab(language, event) {
+    document.querySelectorAll('#html, #json').forEach(tab => {
+      tab.style.display = 'none';
+    });
+
+    document.getElementById(language).style.display = 'flex';
+
+    if (event.target.id === 'json-button') {
+        document.getElementById('json-button').style.fontWeight = 'bold';
+        document.getElementById('html-button').style.fontWeight = '';
+    } else {
+        document.getElementById('json-button').style.fontWeight = '';
+        document.getElementById('html-button').style.fontWeight = 'bold';
+    }
+  }
+</script>
+
+<section style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
+
+  <header style="display: flex; flex-direction: column; gap: 5px;">
+    <h2 style="margin: 0;">📊 Data</h2>
+    <p>Import and Export your data</p>
+  </header>
+
+  <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
+    <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
+      <legend>📤 Export Data</legend>
+
+      <div style="display: flex; gap: 5px;" role="tablist" aria-label="Export format">
+        <button id="json-button" style="width: 100%; font-weight: bold;" onclick="showExportDataTab('json', event)" role="tab" aria-selected="true" aria-controls="json">📄 JSON</button>
+        <button id="html-button" style="width: 100%;" onclick="showExportDataTab('html', event)" role="tab" aria-selected="false" aria-controls="html">📝 HTML</button>
+      </div>
+
+      <div id="json" style="display: flex; flex-direction: column; gap: 10px;" role="tabpanel" aria-labelledby="json-button">
+        <p>Export your bookmarks, custom actions, notes, reminders, and user preferences</p>
+
+        <form method="POST" action="/settings/data/export" >
+          <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+          <fieldset style="border: none; padding: 0; margin: 0;">
+            <legend>Select data to export <abbr style="color: red;" title="Required">*</abbr></legend>
+            <div style="display: flex; flex-direction: column;">
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'bookmarks-checkbox',
+                name: 'options[]',
+                value: 'bookmarks',
+                label: '🔖 Include Bookmarks'
+              }) %>
+
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'actions-checkbox',
+                name: 'options[]',
+                value: 'actions',
+                label: '⚡ Include Actions'
+              }) %>
+
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'notes-checkbox',
+                name: 'options[]',
+                value: 'notes',
+                label: '📝 Include Notes'
+              }) %>
+
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'tabs-checkbox',
+                name: 'options[]',
+                value: 'tabs',
+                label: '🔗 Include Tabs'
+              }) %>
+
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'reminders-checkbox',
+                name: 'options[]',
+                value: 'reminders',
+                label: '⏰ Include Reminders'
+              }) %>
+
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <%- include('../_components/inputs/checkbox.html', {
+                  id: 'user-preferences-checkbox',
+                  name: 'options[]',
+                  value: 'user_preferences',
+                  label: '⚙️ Include User Preferences'
+                }) %>
+                <button type="button" style="margin-bottom: 10px;" class="question-mark-btn" onclick="document.getElementById('user-preferences-help-dialog').showModal()" aria-label="Show user preferences help information">?</button>
+              </div>
+
+              <% if (state.errors && state.errors.options) { %>
+                <small style="color: red;" role="alert"><%= state.errors.options %></small>
+              <% } %>
+              <button type="submit">⬇️ Export</button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+
+      <div id="html" style="display: none; flex-direction: column; gap: 10px;" role="tabpanel" aria-labelledby="html-button">
+        <p>Export your bookmarks to import to browsers</p>
+        <button type="button" onclick="location.href='/bookmarks/export'">⬇️ Export</button>
+      </div>
+    </fieldset>
+
+    <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
+      <legend>📥 Import Data</legend>
+
+      <p>Import your bookmarks, custom actions, notes, reminders, and user preferences</p>
+
+      <form method="POST" action="/settings/data/import" >
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+        <fieldset style="border: none; padding: 0; margin: 0;">
+          <legend>Configuration Data</legend>
+          <div style="display: flex; flex-direction: column;">
+            <%- include('../_components/inputs/textarea.html', {
+              id: 'config-textarea',
+              name: 'config',
+              label: 'JSON Configuration',
+              placeholder: 'Paste your JSON configuration here',
+              value: state.input && state.input.config ? state.input.config : '',
+              rows: 10,
+              style: 'width: 100%;',
+              required: true,
+              helpText: 'Paste the JSON data exported from Bang',
+              error: state.errors && state.errors.config ? state.errors.config : undefined
+            }) %>
+            <button type="submit">⬆️ Import</button>
+          </div>
+        </fieldset>
+      </form>
+    </fieldset>
+  </div>
+</section>
+
+<dialog id="user-preferences-help-dialog" aria-labelledby="user-preferences-help-title">
+  <header>
+    <h1 id="user-preferences-help-title">User Preferences</h1>
+  </header>
+  <div class="content">
+    <p>User preferences include the following settings from your account:</p>
+    <ul>
+      <li><strong>Username:</strong> Your display name</li>
+      <li><strong>Default Search Provider:</strong> Your preferred search engine (DuckDuckGo, Google, etc.)</li>
+      <li><strong>Autocomplete Search:</strong> Whether search suggestions appear on the homepage</li>
+      <li><strong>Column Preferences:</strong> Your display settings for bookmarks, actions, notes, and reminders including:
+        <ul>
+          <li>Which columns to show/hide</li>
+          <li>Items per page settings</li>
+          <li>View type preferences (table/card view for notes)</li>
+        </ul>
+      </li>
+    </ul>
+    <p><strong>Note:</strong> Sensitive information like API keys and email addresses are not included in exports for security reasons.</p>
+  </div>
+  <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+    <button type="button" onclick="this.closest('dialog').close()">❌ Close</button>
+  </div>
+</dialog>

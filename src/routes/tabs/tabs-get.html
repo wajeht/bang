@@ -1,0 +1,386 @@
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchParam = urlParams.get('search');
+    if (searchParam && searchParam.trim() !== '') {
+      const allDetailsRows = document.querySelectorAll('[id^="details-"]');
+      allDetailsRows.forEach(row => {
+        row.style.display = 'table-row';
+      });
+    }
+
+    const toggleButtons = document.querySelectorAll('.toggle-details-btn');
+    toggleButtons.forEach(button => {
+      button.addEventListener('click', function(event) {
+        event.stopPropagation(); // Prevent row click from triggering
+        const tabId = this.dataset.tabId;
+        const detailsRow = document.getElementById('details-' + tabId);
+        if (detailsRow.style.display === 'none') {
+          detailsRow.style.display = 'table-row';
+        } else {
+          detailsRow.style.display = 'none';
+        }
+      });
+    });
+
+    const groupRows = document.querySelectorAll('.tab-group-row');
+    groupRows.forEach(row => {
+      row.addEventListener('click', function(event) {
+        const target = event.target;
+        if (target.closest('a, button, details, summary')) {
+          return;
+        }
+
+        const tabId = row.dataset.tabId;
+        const detailsRow = document.getElementById('details-' + tabId);
+        if (detailsRow.style.display === 'none') {
+          detailsRow.style.display = 'table-row';
+        } else {
+          detailsRow.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  function toggleAddItemForm(tabId) {
+    var form = document.getElementById('add-item-form-' + tabId);
+    if (form.style.display === 'none' || !form.style.display) {
+      form.style.display = 'flex';
+    } else {
+      form.style.display = 'none';
+    }
+  }
+
+  function showDeleteTabModal(tabId, tabTitle) {
+    const modal = document.getElementById('delete-tab-modal');
+    const nameElement = document.getElementById('delete-tab-name');
+    const form = document.getElementById('delete-tab-form');
+    nameElement.textContent = tabTitle;
+    form.action = `/tabs/${tabId}/delete`;
+    modal.showModal();
+  }
+
+  function showDeleteItemModal(tabId, itemId, itemTitle) {
+    const modal = document.getElementById('delete-item-modal');
+    const nameElement = document.getElementById('delete-item-name');
+    const form = document.getElementById('delete-item-form');
+    nameElement.textContent = itemTitle;
+    form.action = `/tabs/${tabId}/items/${itemId}/delete`;
+    modal.showModal();
+  }
+</script>
+
+<section style="display: flex; flex-direction: column; gap: 30px;">
+  <header style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <h2>🔗 Tab Groups (<%- pagination.total %>)</h2>
+            <%- include('../_components/question-mark-button.html') %>
+          </div>
+          <p>Manage your saved tab groups <span style="color: red">(using Tabs requires you to have popup allowed/redirect on <code>https://bang.jaw.dev</code> )</span></p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <% if (search) { %>
+            <button type="button" class="no-style-btn" onclick="location.href='/tabs'">❌ Clear</button>
+        <% } %>
+
+        <form method="GET" action="/tabs" style="display: flex; gap: 10px;" role="search">
+            <%- include('../_components/inputs/search.html', {
+                id: 'search',
+                name: 'search',
+                label: 'Search tab groups',
+                placeholder: 'Search tab groups...',
+                value: search,
+                required: false,
+                helpText: 'Search for tab groups by title, trigger, or tab items',
+                error: state.errors && state.errors.search ? state.errors.search : undefined
+            }) %>
+            <button type="submit">🔍</button>
+        </form>
+
+        <button type="button" aria-label="Create new tab group" onclick="location.href='/tabs/create'">➕</button>
+        <!-- <button type="button" aria-label="Delete all tab groups" onclick="document.getElementById('delete-all-tabs-modal').showModal()">🗑️</button> -->
+        <%- include('../_components/column-settings.html') %>
+      </div>
+  </header>
+
+  <section style="display: flex; flex-direction: column; gap: 10px;">
+      <% if (tabs && tabs.length > 0) { %>
+          <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+              <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
+                  <tr>
+                      <% if (user.column_preferences?.tabs?.title !== false) { %>
+                      <th scope="col" style="text-align: left; padding: 10px;">
+                          <a href="/tabs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=title&direction=<%= (sortKey === 'title' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                             style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                             aria-label="Sort by title <%= (sortKey === 'title' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                              🏷️ Group
+                              <% if (sortKey === 'title') { %>
+                                  <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                              <% } else { %>
+                                  <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                              <% } %>
+                          </a>
+                      </th>
+                      <% } %>
+                      <% if (user.column_preferences?.tabs?.trigger !== false) { %>
+                      <th scope="col" style="text-align: left; padding: 10px;">
+                          <a href="/tabs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=trigger&direction=<%= (sortKey === 'trigger' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                             style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                             aria-label="Sort by trigger <%= (sortKey === 'trigger' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                              🔥 Trigger
+                              <% if (sortKey === 'trigger') { %>
+                                  <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                              <% } else { %>
+                                  <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                              <% } %>
+                          </a>
+                      </th>
+                      <% } %>
+                      <% if (user.column_preferences?.tabs?.items_count !== false) { %>
+                      <th scope="col" style="text-align: left; padding: 10px;">
+                          <a href="/tabs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=items_count&direction=<%= (sortKey === 'items_count' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                             style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                             aria-label="Sort by items count <%= (sortKey === 'items_count' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                              🗂️ Items
+                              <% if (sortKey === 'items_count') { %>
+                                  <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                              <% } else { %>
+                                  <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                              <% } %>
+                          </a>
+                      </th>
+                      <% } %>
+                      <% if (user.column_preferences?.tabs?.created_at !== false) { %>
+                      <th scope="col" style="text-align: left; padding: 10px;">
+                          <a href="/tabs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                             style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                             aria-label="Sort by created date <%= (sortKey === 'created_at' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                              📅 Created At
+                              <% if (sortKey === 'created_at') { %>
+                                  <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                              <% } else { %>
+                                  <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                              <% } %>
+                          </a>
+                      </th>
+                      <% } %>
+                      <th style="text-align: left; padding: 10px;">🚀 Actions</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <% for (let i = 0; i < tabs.length; i++) { %>
+                      <tr class="tab-group-row" data-tab-id="<%= tabs[i].id %>" style="cursor: pointer;">
+                          <% if (user.column_preferences?.tabs?.title !== false) { %>
+                          <td style="padding: 10px;"><%- tabs[i].title %></td>
+                          <% } %>
+                          <% if (user.column_preferences?.tabs?.trigger !== false) { %>
+                          <td style="padding: 10px;"><code><%- tabs[i].trigger %></code></td>
+                          <% } %>
+                          <% if (user.column_preferences?.tabs?.items_count !== false) { %>
+                          <td style="padding: 10px;"><%= tabs[i].items.length %></td>
+                          <% } %>
+                          <% if (user.column_preferences?.tabs?.created_at !== false) { %>
+                          <td style="padding: 10px;">
+                            <time datetime="<%= tabs[i].created_at %>">
+                                <%= utils.formatDateInTimezone(tabs[i].created_at, state.user.timezone).fullString %>
+                            </time>
+                          </td>
+                          <% } %>
+                          <td style="padding: 10px;">
+                            <details style="position: relative; display: inline-flex; align-items: center;">
+                              <summary>Actions</summary>
+                              <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 200px; gap: 10px;" role="menu">
+                                <a href="/tabs/<%= tabs[i].id %>/items/create" class="no-style-btn" style="display: inline-flex; align-items: center;" role="menuitem">➕ Add Item</a>
+                                <button class="no-style-btn toggle-details-btn" data-tab-id="<%= tabs[i].id %>" style="display: inline-flex; align-items: center;">👁️ View Items</button>
+                                <a href="/tabs/<%= tabs[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit Group</a>
+                                <% if (tabs[i].items.length > 0) { %>
+                                  <a href="/tabs/<%= tabs[i].id %>/launch" style="display: inline-flex; align-items: center;" role="menuitem">🚀 Launch Group</a>
+                                <% } %>
+                                <button
+                                    type="button"
+                                    class="no-style-btn"
+                                    style="text-align: left;"
+                                    onclick="showDeleteTabModal('<%= tabs[i].id %>', '<%= (tabs[i].title || 'Untitled').replace(/'/g, '\\\'') %>')"
+                                    role="menuitem"
+                                >
+                                    🗑️ Delete Group
+                                </button>
+                              </div>
+                            </details>
+                          </td>
+                      </tr>
+                      <tr id="details-<%= tabs[i].id %>" style="display: none; background: var(--sub-table-background);">
+                        <td colspan="<%= (user.column_preferences?.tabs?.title !== false ? 1 : 0) + (user.column_preferences?.tabs?.trigger !== false ? 1 : 0) + (user.column_preferences?.tabs?.items_count !== false ? 1 : 0) + (user.column_preferences?.tabs?.created_at !== false ? 1 : 0) + 1 %>">
+                          <% if (tabs[i].items && tabs[i].items.length > 0) { %>
+                            <style>
+                              .sub-table {
+                                border: none !important;
+                              }
+
+                              .sub-table tbody tr:hover {
+                                background-color: none !important;
+                              }
+
+                              .sub-table th {
+                                border-top: none !important;
+                                border-bottom: 1px dashed var(--link-divider-color) !important;
+                              }
+
+                              .sub-table tr {
+                                border-bottom: 1px dashed var(--link-divider-color) !important;
+                              }
+
+                              .sub-table tr:last-child td {
+                                border-bottom: none !important;
+                              }
+
+                              .sub-table td {
+                                border-bottom: 1px dashed var(--link-divider-color) !important;
+                              }
+
+                              .sub-table thead {
+                                border-bottom: none !important;
+                                position: static !important;
+                                z-index: auto !important;
+                              }
+
+                              /* Fix dropdown z-index for sub-table */
+                              .sub-table details div[style*="position: absolute"] {
+                                z-index: 600 !important;
+                              }
+                            </style>
+                            <table class="sub-table" style="width: 100%; table-layout: fixed;">
+                              <thead>
+                                <tr>
+                                  <% if (user.column_preferences?.tabs?.title !== false) { %>
+                                  <th style="text-align: left; padding: 10px;">📝 Tab Items</th>
+                                  <% } %>
+                                  <% if (user.column_preferences?.tabs?.trigger !== false) { %>
+                                  <th style="text-align: left; padding: 10px;">🌐 URL</th>
+                                  <% } %>
+                                  <% if (user.column_preferences?.tabs?.items_count !== false) { %>
+                                  <th style="text-align: left; padding: 10px;"></th>
+                                  <% } %>
+                                  <% if (user.column_preferences?.tabs?.created_at !== false) { %>
+                                  <th style="text-align: left; padding: 10px;">📅 Created At</th>
+                                  <% } %>
+                                  <th style="text-align: left; padding: 10px;">🚀 Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <% for (let j = 0; j < tabs[i].items.length; j++) { %>
+                                  <tr>
+                                    <% if (user.column_preferences?.tabs?.title !== false) { %>
+                                     <td style="padding: 10px;">
+                                       <div style="font-weight: 500;"><%- tabs[i].items[j].title %></div>
+                                     </td>
+                                     <% } %>
+                                     <% if (user.column_preferences?.tabs?.trigger !== false) { %>
+                                     <td style="padding: 10px;">
+                                        <div style="display: flex; gap: 5px; align-items: center;">
+                                            <img loading="lazy" src= "<%- utils.getFaviconUrl(tabs[i].items[j].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                            <a href="<%= tabs[i].items[j].url %>" style="overflow: auto; white-space: nowrap;" title="<%= tabs[i].items[j].url %>" target="_blank" rel="noopener noreferrer">
+                                                <%- tabs[i].items[j].url %>
+                                            </a>
+                                        </div>
+                                     </td>
+                                     <% } %>
+                                    <% if (user.column_preferences?.tabs?.items_count !== false) { %>
+                                    <td style="padding: 10px;"></td>
+                                    <% } %>
+                                    <% if (user.column_preferences?.tabs?.created_at !== false) { %>
+                                     <td style="padding: 10px;">
+                                       <time datetime="<%= tabs[i].items[j].created_at %>">
+                                         <%= utils.formatDateInTimezone(tabs[i].items[j].created_at, state.user.timezone).fullString %>
+                                       </time>
+                                     </td>
+                                     <% } %>
+                                    <td style="padding: 10px;">
+                                      <details style="position: relative; display: inline-flex; align-items: center;">
+                                        <summary>Actions</summary>
+                                        <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 200px; gap: 10px;" role="menu">
+                                          <a href="/tabs/<%= tabs[i].id %>/items/<%= tabs[i].items[j].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit <%- tabs[i].items[j].id %></a>
+                                          <button
+                                              type="button"
+                                              class="no-style-btn"
+                                              style="text-align: left;"
+                                              onclick="showDeleteItemModal('<%= tabs[i].id %>', '<%= tabs[i].items[j].id %>', '<%= (tabs[i].items[j].title || 'Untitled').replace(/'/g, '\\\'') %>')"
+                                              role="menuitem"
+                                          >
+                                              🗑️ Delete <%- tabs[i].items[j].id %>
+                                          </button>
+                                        </div>
+                                      </details>
+                                    </td>
+                                  </tr>
+                                <% } %>
+                              </tbody>
+                            </table>
+                          <% } else { %>
+                            <div style="text-align: center; padding: 20px;">📭 No tab items in this group yet.</div>
+                          <% } %>
+                        </td>
+                      </tr>
+                  <% } %>
+              </tbody>
+          </table>
+      <% } else { %>
+          <div style="text-align: center; padding: 20px;">
+              <% if (search) { %>
+                  <p>🔍 No tab groups found matching "<%= search %>"</p>
+                  <p>Try a different search term or <a href="/tabs">view all tab groups</a></p>
+              <% } else { %>
+                  <p>📭 You haven't created any tab groups yet.</p>
+                  <p>Use <code>!tab [title] [url]</code> in the search box to create a tab! or <a href="/tabs/create">click here</a> to create a tab group!</p>
+              <% } %>
+          </div>
+      <% } %>
+  </section>
+
+  <%- include('../_components/pagination.html', {
+      pagination,
+      path: '/tabs',
+      perPageDefault: pagination.perPage,
+      sortKey,
+      direction,
+      search
+  }) %>
+
+  <!-- <dialog id="delete-all-tabs-modal" aria-labelledby="delete-all-tabs-title"> -->
+  <!--   <h2 id="delete-all-tabs-title">Confirm</h2> -->
+  <!--   <p>Are you sure you want to delete all tab groups and its items?</p> -->
+  <!--   <form action="/tabs/delete-all" method="POST"> -->
+  <!--     <input type="hidden" name="csrfToken" value="<%= csrfToken %>" /> -->
+  <!--     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;"> -->
+  <!--       <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button> -->
+  <!--       <button type="submit">🗑️ Delete</button> -->
+  <!--     </div> -->
+  <!--   </form> -->
+  <!-- </dialog> -->
+
+  <dialog id="delete-tab-modal" aria-labelledby="delete-tab-title">
+    <h2 id="delete-tab-title">Confirm</h2>
+    <p>Are you sure you want to delete <strong id="delete-tab-name"></strong>?</p>
+    <form id="delete-tab-form" method="POST">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button type="button" onclick="document.getElementById('delete-tab-modal').close()">❌ Cancel</button>
+        <button type="submit">🗑️ Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="delete-item-modal" aria-labelledby="delete-item-title">
+    <h2 id="delete-item-title">Confirm</h2>
+    <p>Are you sure you want to delete <strong id="delete-item-name"></strong>?</p>
+    <form id="delete-item-form" method="POST">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button type="button" onclick="document.getElementById('delete-item-modal').close()">❌ Cancel</button>
+        <button type="submit">🗑️ Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+</section>

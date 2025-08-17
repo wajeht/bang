@@ -1,0 +1,208 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+    <header style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <h2>⭐️ Bookmarks (<%- pagination.total %>)</h2>
+		        <%- include('../_components/question-mark-button.html') %>
+            </div>
+            <p>Manage your saved bookmarks</p>
+        </div>
+
+        <nav style="display: flex; gap: 10px;" aria-label="Bookmark management controls">
+            <% if (search) { %>
+                <button type="button" class="no-style-btn" onclick="location.href='/bookmarks'">❌ Clear</button>
+            <% } %>
+
+            <form method="GET" action="/bookmarks" style="display: flex; gap: 10px;" role="search">
+                <%- include('../_components/inputs/search.html', {
+                    id: 'search',
+                    name: 'search',
+                    label: 'Search bookmarks',
+                    placeholder: 'Search bookmarks...',
+                    value: search,
+                    required: false,
+                    helpText: 'Search for bookmarks by title or URL',
+                    error: state.errors && state.errors.search ? state.errors.search : undefined
+                }) %>
+                <button type="submit">🔍</button>
+            </form>
+
+            <button type="button" aria-label="Create new bookmark" onclick="location.href='/bookmarks/create'">➕</button>
+
+		    <%- include('../_components/column-settings.html') %>
+        </nav>
+    </header>
+
+    <section style="display: flex; flex-direction: column; gap: 10px;">
+        <% if (data && data.length > 0) { %>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
+                    <tr>
+                        <% if (state.user.column_preferences?.bookmarks?.title !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">
+                                <a href="/bookmarks?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=title&direction=<%= (sortKey === 'title' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                    aria-label="Sort by title <%= (sortKey === 'title' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                    🔖 Title
+                                    <% if (sortKey === 'title') { %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                    <% } else { %>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.bookmarks?.url !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">
+                                <a href="/bookmarks?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=url&direction=<%= (sortKey === 'url' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                    aria-label="Sort by URL <%= (sortKey === 'url' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                    🌐 URL
+                                    <% if (sortKey === 'url') { %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                    <% } else { %>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.bookmarks?.pinned !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">
+                                <a href="/bookmarks?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=pinned&direction=<%= (sortKey === 'pinned' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                    aria-label="Sort by pinned status <%= (sortKey === 'pinned' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                    📌 Pinned
+                                    <% if (sortKey === 'pinned') { %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                    <% } else { %>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.bookmarks?.created_at !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">
+                                <a href="/bookmarks?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                   aria-label="Sort by created date <%= (sortKey === 'created_at' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                    📅 Created
+                                    <% if (sortKey === 'created_at') { %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                    <% } else { %>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
+                        <th scope="col" style="text-align: left; padding: 10px;">🚀 Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for (let i = 0; i < data.length; i++) { %>
+                        <tr>
+                            <% if (state.user.column_preferences?.bookmarks?.title !== false) { %>
+                                <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                    <% if (data[i].pinned) { %>📌<% } %>
+                                    <%- data[i].title || 'Untitled' %>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.bookmarks?.url !== false) { %>
+                                <td style="padding: 10px;">
+                                    <div style="display: flex; gap: 5px; align-items: center;">
+                                        <img loading="lazy" src= "<%- utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                        <a href="<%= data[i].url %>" style="overflow: auto; white-space: nowrap;" title="<%= data[i].title %>" target="_blank" rel="noopener noreferrer">
+                                            <%- data[i].url %>
+                                        </a>
+                                    </div>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.bookmarks?.pinned !== false) { %>
+                                <td style="padding: 10px;">
+                                    <%= data[i].pinned ? '📌 Yes' : '📍 No' %>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.bookmarks?.created_at !== false) { %>
+                                <td style="padding: 10px;">
+                                    <time datetime="<%= data[i].created_at %>">
+                                        <%= utils.formatDateInTimezone(data[i].created_at, state.user.timezone).fullString %>
+                                    </time>
+                                </td>
+                            <% } %>
+                            <td style="padding: 10px;">
+                                <details style="position: relative;">
+                                    <summary aria-label="Actions for <%= data[i].title || 'Untitled' %>">Actions</summary>
+                                    <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                        <form method="POST" action="/bookmarks/<%= data[i].id %>/pin" style="display: inline;">
+                                            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                                            <button type="submit" class="no-style-btn" style="text-align: left;" role="menuitem" aria-label="<%= data[i].pinned ? 'Unpin' : 'Pin' %> bookmark <%= data[i].title || 'Untitled' %>">
+                                                <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
+                                            </button>
+                                        </form>
+                                        <a href="/bookmarks/<%= data[i].id %>/tabs/create" style="display: inline-flex; align-items: center;" role="menuitem">🔗 Tab</a>
+                                        <a href="/bookmarks/<%= data[i].id %>/actions/create" style="display: inline-flex; align-items: center;" role="menuitem">⚡️ Bang</a>
+                                        <a href="/bookmarks/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
+
+                                        <button
+                                            type="button"
+                                            class="no-style-btn"
+                                            style="text-align: left;"
+                                            onclick="showDeleteBookmarkModal('<%= data[i].id %>', '<%= (data[i].title || 'Untitled').replace(/'/g, '\\\'') %>')"
+                                            role="menuitem"
+                                        >
+                                            🗑️ Delete
+                                        </button>
+                                    </div>
+                                </details>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <div style="text-align: center; padding: 20px;">
+                <% if (search) { %>
+                    <p>🔍 No bookmarks found matching "<%= search %>"</p>
+                    <p>Try a different search term or <a href="/bookmarks">view all bookmarks</a></p>
+                <% } else { %>
+                    <p>📭 You haven't created any bookmarks yet.</p>
+                    <p>Use <code>!bm [title] [url]</code> in the search box to create a bookmark! or <a href="/bookmarks/create">click here</a> to create a bookmark!</p>
+                <% } %>
+            </div>
+        <% } %>
+    </section>
+
+    <%- include('../_components/pagination.html', {
+        pagination,
+        path,
+        perPageDefault: state.user.column_preferences.bookmarks.default_per_page,
+        sortKey,
+        direction,
+        search
+    }) %>
+
+    <dialog id="delete-bookmark-modal" aria-labelledby="delete-bookmark-title">
+        <h2 id="delete-bookmark-title">Confirm</h2>
+        <p>Are you sure you want to delete <strong id="delete-bookmark-name"></strong>?</p>
+        <form id="delete-bookmark-form" method="POST">
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" onclick="document.getElementById('delete-bookmark-modal').close()">❌ Cancel</button>
+                <button type="submit">🗑️ Delete</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script>
+        function showDeleteBookmarkModal(bookmarkId, bookmarkTitle) {
+            const modal = document.getElementById('delete-bookmark-modal');
+            const nameElement = document.getElementById('delete-bookmark-name');
+            const form = document.getElementById('delete-bookmark-form');
+
+            nameElement.textContent = bookmarkTitle;
+            form.action = `/bookmarks/${bookmarkId}/delete`;
+
+            modal.showModal();
+        }
+    </script>
+
+</section>

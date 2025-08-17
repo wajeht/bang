@@ -1,0 +1,227 @@
+<section style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
+
+  <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <h2 style="margin: 0;">⚠️ Danger Zone</h2>
+      <p>These actions permanently delete your data and cannot be undone.</p>
+    </div>
+  </header>
+
+  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+    <legend>🗑️ Bulk Delete Data</legend>
+    <p>Permanently delete selected data types</p>
+    <button type="button" onclick="document.getElementById('bulk-delete-modal').showModal()" aria-label="Bulk delete data">🗑️ Bulk Delete Data</button>
+  </fieldset>
+
+  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+    <legend>☠️ Delete Account</legend>
+    <p>Delete your account and all data permanently</p>
+    <button type="button" onclick="document.getElementById('delete-users-<%= user.id %>-modal').showModal()" aria-label="Delete your account">🗑️ Delete my account</button>
+
+    <dialog id="delete-users-<%= user.id %>-modal" aria-labelledby="delete-user-<%= user.id %>-title">
+      <h2 id="delete-user-<%= user.id %>-title">Confirm Account Deletion</h2>
+      <div style="margin-bottom: 20px;">
+        <p><strong>Are you sure you want to delete your account?</strong></p>
+        <p style="color: #d73502; margin-top: 10px;">⚠️ <strong>Warning:</strong> Deleted data cannot be recovered!</p>
+        <p style="margin-top: 15px;">Export your data before deletion (optional):</p>
+
+        <form method="POST" action="/settings/danger-zone/delete">
+          <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+          <input type="hidden" name="form_type" value="delete_account" />
+
+          <fieldset style="margin: 15px 0;">
+            <legend>📧 Email Export Options (Optional)</legend>
+
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'json-export-checkbox',
+                name: 'export_options[]',
+                value: 'json',
+                label: '📦 Send complete JSON export (bookmarks, actions, notes, reminders, preferences)'
+              }) %>
+
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'html-export-checkbox',
+                name: 'export_options[]',
+                value: 'html',
+                label: '🔖 Send HTML bookmarks file (compatible with browsers)'
+              }) %>
+            </div>
+
+            <p style="margin-top: 10px;">
+              <em>If no options are selected, your account will be deleted without sending any exports.</em>
+            </p>
+          </fieldset>
+
+          <fieldset style="margin: 15px 0;">
+            <legend>⚠️ Confirmation Required</legend>
+            <%- include('../_components/inputs/text.html', {
+              id: 'delete-account-confirmation',
+              name: 'confirmation',
+              label: 'To confirm account deletion, type DELETE ACCOUNT below:',
+              placeholder: 'Type DELETE ACCOUNT to confirm',
+              required: true,
+              style: 'width: 100%;',
+              value: state.input && state.input.confirmation ? state.input.confirmation : '',
+              error: state.errors && state.errors.confirmation ? state.errors.confirmation : undefined
+            }) %>
+          </fieldset>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+            <button type="submit">🗑️ Delete Account</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <dialog id="bulk-delete-modal" aria-labelledby="bulk-delete-title">
+      <h2 id="bulk-delete-title">Bulk Delete Data</h2>
+      <div style="margin-bottom: 20px;">
+        <p><strong>Choose which data to permanently delete:</strong></p>
+        <p style="color: #d73502; margin-top: 10px;">⚠️ <strong>Warning:</strong> Deleted data cannot be recovered!</p>
+
+        <form method="POST" action="/settings/danger-zone/bulk-delete">
+          <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+          <input type="hidden" name="form_type" value="bulk_delete" />
+
+          <fieldset style="margin: 15px 0;">
+            <legend>🗑️ Select Data Types to Delete</legend>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'delete-actions-checkbox',
+                name: 'delete_options[]',
+                value: 'actions',
+                label: '⚡ Delete all actions',
+                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('actions') : state.input.delete_options === 'actions')
+              }) %>
+
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'delete-tabs-checkbox',
+                name: 'delete_options[]',
+                value: 'tabs',
+                label: '📑 Delete all tabs',
+                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('tabs') : state.input.delete_options === 'tabs')
+              }) %>
+
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'delete-bookmarks-checkbox',
+                name: 'delete_options[]',
+                value: 'bookmarks',
+                label: '🔖 Delete all bookmarks',
+                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('bookmarks') : state.input.delete_options === 'bookmarks')
+              }) %>
+
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'delete-notes-checkbox',
+                name: 'delete_options[]',
+                value: 'notes',
+                label: '📝 Delete all notes',
+                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('notes') : state.input.delete_options === 'notes')
+              }) %>
+
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'delete-reminders-checkbox',
+                name: 'delete_options[]',
+                value: 'reminders',
+                label: '⏰ Delete all reminders',
+                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('reminders') : state.input.delete_options === 'reminders')
+              }) %>
+
+              <%- include('../_components/inputs/checkbox.html', {
+                id: 'delete-api-keys-checkbox',
+                name: 'delete_options[]',
+                value: 'api_keys',
+                label: '🔑 Delete all API keys',
+                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('api_keys') : state.input.delete_options === 'api_keys')
+              }) %>
+            </div>
+
+            <% if (state.errors && state.errors.delete_options) { %>
+              <small style="color: red; margin-top: 8px; display: block;" role="alert"><%= state.errors.delete_options %></small>
+            <% } %>
+
+            <p style="margin-top: 10px;">
+              <em>Only selected items will be deleted. Your account remains active.</em>
+            </p>
+          </fieldset>
+
+          <fieldset id="bulk-delete-confirmation" style="margin: 15px 0; display: none;">
+            <legend>⚠️ Confirmation Required</legend>
+            <%- include('../_components/inputs/text.html', {
+              id: 'bulk-delete-confirmation-input',
+              name: 'confirmation',
+              label: 'To confirm bulk deletion, type DELETE DATA below:',
+              placeholder: 'Type DELETE DATA to confirm',
+              required: false,
+              style: 'width: 100%;',
+              value: state.input && state.input.confirmation ? state.input.confirmation : '',
+              error: state.errors && state.errors.confirmation ? state.errors.confirmation : undefined
+            }) %>
+          </fieldset>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
+            <button type="submit">🗑️ Delete Selected Data</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+  </fieldset>
+
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const bulkDeleteModal = document.getElementById('bulk-delete-modal');
+  const confirmationFieldset = document.getElementById('bulk-delete-confirmation');
+  const confirmationInput = document.getElementById('bulk-delete-confirmation-input');
+  const submitButton = bulkDeleteModal.querySelector('button[type="submit"]');
+  const deleteAccountModal = document.getElementById('delete-users-<%= user.id %>-modal');
+
+  const checkboxes = [
+    'delete-actions-checkbox',
+    'delete-tabs-checkbox',
+    'delete-bookmarks-checkbox',
+    'delete-notes-checkbox',
+    'delete-reminders-checkbox',
+    'delete-api-keys-checkbox'
+  ].map(id => document.getElementById(id));
+
+  function updateConfirmationVisibility() {
+    const allSelected = checkboxes.every(checkbox => checkbox.checked);
+
+    if (allSelected) {
+      confirmationFieldset.style.display = 'block';
+      confirmationInput.setAttribute('required', 'true');
+      submitButton.disabled = false;
+    } else {
+      confirmationFieldset.style.display = 'none';
+      confirmationInput.removeAttribute('required');
+      confirmationInput.value = '';
+      submitButton.disabled = false;
+    }
+  }
+
+  checkboxes.forEach(checkbox => {
+    if (checkbox) {
+      checkbox.addEventListener('change', updateConfirmationVisibility);
+    }
+  });
+
+  updateConfirmationVisibility();
+
+  const state = getAppLocalState();
+
+  if (state.errors && Object.keys(state.errors).length > 0) {
+    if (state.input && state.input.form_type === 'bulk_delete') {
+      bulkDeleteModal.showModal();
+      updateConfirmationVisibility();
+    } else if (state.input && state.input.form_type === 'delete_account') {
+      deleteAccountModal.showModal();
+    }
+  }
+});
+</script>
