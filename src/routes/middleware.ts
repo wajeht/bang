@@ -21,7 +21,7 @@ import rateLimit from 'express-rate-limit';
 import type { LayoutOptions, User } from '../type';
 import type { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
-import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from '../error';
+import { HttpError, NotFoundError, UnauthorizedError, ValidationError, ForbiddenError } from '../error';
 
 export function notFoundMiddleware() {
     return (req: Request, _res: Response, _next: NextFunction) => {
@@ -124,11 +124,11 @@ export function errorMiddleware() {
 export async function adminOnlyMiddleware(req: Request, _res: Response, next: NextFunction) {
     try {
         if (!req.user || !req.user.is_admin) {
-            throw new UnauthorizedError('Unauthorized', req);
+            throw new ForbiddenError('Access denied - Admin privileges required', req);
         }
 
         if (!req.session?.user || !req.session.user.is_admin) {
-            throw new UnauthorizedError('Unauthorized', req);
+            throw new ForbiddenError('Access denied - Admin privileges required', req);
         }
 
         next();

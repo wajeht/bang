@@ -54,7 +54,7 @@ function setupCronJobs() {
 export async function createServer() {
     const app = express();
 
-    if (config.app.env === 'production') {
+    if (config.app.env === 'production' || config.app.env === 'testing') {
         try {
             await initDatabase();
         } catch (error) {

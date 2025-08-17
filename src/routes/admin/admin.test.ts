@@ -1,17 +1,27 @@
+import request from 'supertest';
 import { db } from '../../db/db';
-import type { Request, Response } from 'express';
-import { adminOnlyMiddleware } from '../middleware';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { Server } from 'node:http';
+import { createServer, closeServer } from '../../app';
+import { createAuthenticatedAgent, cleanupTestData } from '../../tests/api-test-utils';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 
-describe('Admin Routes Security', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
+describe('Admin Routes API Tests', () => {
+    let app: any;
+    let server: Server;
     let adminUserId: number;
     let regularUserId: number;
 
-    beforeEach(async () => {
-        vi.resetAllMocks();
+    beforeAll(async () => {
+        const serverInfo = await createServer();
+        app = serverInfo.app;
+        server = serverInfo.server;
+    });
 
+    afterAll(async () => {
+        await closeServer({ server });
+    });
+
+    beforeEach(async () => {
         await db('users').where('email', 'admin@example.com').delete();
         await db('users').where('email', 'regular@example.com').delete();
 
@@ -36,120 +46,49 @@ describe('Admin Routes Security', () => {
             .returning('*');
 
         regularUserId = regularUser.id;
-
-        res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn().mockReturnThis(),
-            render: vi.fn().mockReturnThis(),
-            redirect: vi.fn().mockReturnThis(),
-        };
     });
 
     afterEach(async () => {
-        if (adminUserId) {
-            await db('users').where({ id: adminUserId }).delete();
-        }
-        if (regularUserId) {
-            await db('users').where({ id: regularUserId }).delete();
-        }
-        vi.clearAllMocks();
+        await cleanupTestData();
     });
 
     describe('GET /admin/users', () => {
-        it('should allow admin user to access admin users page', async () => {
-            req = {
-                user: {
-                    id: adminUserId,
-                    is_admin: true,
-                    column_preferences: {
-                        users: {
-                            default_per_page: 10,
-                        },
-                    },
-                } as any,
-                query: {},
-                flash: vi.fn(),
-                session: {
-                    user: {
-                        id: adminUserId,
-                        is_admin: true,
-                        column_preferences: {
-                            users: {
-                                default_per_page: 10,
-                            },
-                        },
-                    },
-                } as any,
-            };
+        it('should return 302 redirect when accessing admin without authentication', async () => {
+            const response = await request(app).get('/admin/users');
 
-            // Test implementation would use the actual handler from admin.ts
-            expect(req.user?.is_admin).toBe(true);
+            expect(response.status).toBe(302);
+            expect(response.headers.location).toContain('/?modal=login');
         });
 
-        it('should throw error when non-admin tries to access admin page', async () => {
-            req = {
-                user: {
-                    id: regularUserId,
-                    is_admin: false,
-                    column_preferences: {
-                        users: {
-                            default_per_page: 10,
-                        },
-                    },
-                } as any,
-                query: {},
-                flash: vi.fn(),
-                session: {
-                    user: {
-                        id: regularUserId,
-                        is_admin: false,
-                        column_preferences: {
-                            users: {
-                                default_per_page: 10,
-                            },
-                        },
-                    },
-                } as any,
-            };
+        it('should return 403 when non-admin user tries to access admin page', async () => {
+            const { agent } = await createAuthenticatedAgent(app, 'regular@example.com', false);
 
-            // Test implementation would use the actual handler from admin.ts
-            expect(req.user?.is_admin).toBe(false);
+            const response = await agent.get('/admin/users');
+
+            // Non-admin users should get a 403 Forbidden
+            expect(response.status).toBe(403);
+        });
+
+        it('should return 200 when admin user accesses admin page', async () => {
+            const { agent } = await createAuthenticatedAgent(app, 'admin@example.com', true);
+
+            const response = await agent.get('/admin/users');
+
+            expect(response.status).toBe(200);
+            expect(response.type).toMatch(/html/);
         });
 
         it('should handle pagination parameters correctly', async () => {
-            req = {
-                user: {
-                    id: adminUserId,
-                    is_admin: true,
-                    column_preferences: {
-                        users: {
-                            default_per_page: 10,
-                        },
-                    },
-                } as any,
-                query: {
-                    page: '2',
-                    perPage: '10',
-                    search: 'test',
-                },
-                flash: vi.fn(),
-                session: {
-                    user: {
-                        id: adminUserId,
-                        is_admin: true,
-                        column_preferences: {
-                            users: {
-                                default_per_page: 10,
-                            },
-                        },
-                    },
-                } as any,
-            };
+            const { agent } = await createAuthenticatedAgent(app, 'admin@example.com', true);
 
-            // Test implementation would use the actual handler from admin.ts
-            expect(req.query?.page).toBe('2');
-            expect(req.query?.perPage).toBe('10');
-            expect(req.query?.search).toBe('test');
+            const response = await agent.get('/admin/users').query({
+                page: 2,
+                perPage: 10,
+                search: 'test',
+            });
+
+            expect(response.status).toBe(200);
+            expect(response.type).toMatch(/html/);
         });
     });
 
@@ -176,39 +115,41 @@ describe('Admin Routes Security', () => {
         });
 
         it('should allow admin to delete a user', async () => {
-            req = {
-                user: { id: adminUserId, is_admin: true } as any,
-                params: { id: targetUserId.toString() },
-                flash: vi.fn(),
-            };
+            const { agent, csrfToken } = await createAuthenticatedAgent(app, 'admin@example.com', true);
 
-            // Test implementation would use the actual handler from admin.ts
-            const userExists = await db('users').where({ id: targetUserId }).first();
-            expect(userExists).toBeDefined();
+            const response = await agent
+                .post(`/admin/users/${targetUserId}/delete`)
+                .send({ csrfToken });
+
+            expect(response.status).toBe(302);
+            expect(response.headers.location).toBe('/admin/users');
+
+            const deletedUser = await db('users').where({ id: targetUserId }).first();
+            expect(deletedUser).toBeUndefined();
         });
 
         it('should prevent admin from deleting themselves', async () => {
-            req = {
-                user: { id: adminUserId, is_admin: true } as any,
-                params: { id: adminUserId.toString() },
-                flash: vi.fn(),
-            };
+            const { agent, user, csrfToken } = await createAuthenticatedAgent(app, 'admin@example.com', true);
 
-            // Test implementation would use the actual handler from admin.ts
-            const adminUser = await db('users').where({ id: adminUserId }).first();
+            const response = await agent
+                .post(`/admin/users/${user.id}/delete`)
+                .send({ csrfToken });
+
+            expect(response.status).toBe(302);
+            expect(response.headers.location).toBe('/admin/users');
+
+            const adminUser = await db('users').where({ id: user.id }).first();
             expect(adminUser).toBeDefined();
         });
 
         it('should handle non-existent user gracefully', async () => {
-            req = {
-                user: { id: adminUserId, is_admin: true } as any,
-                params: { id: '99999' },
-                flash: vi.fn(),
-            };
+            const { agent, csrfToken } = await createAuthenticatedAgent(app, 'admin@example.com', true);
 
-            // Test implementation would use the actual handler from admin.ts
-            const nonExistentUser = await db('users').where({ id: 99999 }).first();
-            expect(nonExistentUser).toBeUndefined();
+            const response = await agent
+                .post('/admin/users/99999/delete')
+                .send({ csrfToken });
+
+            expect(response.status).toBe(404);
         });
 
         it('should delete all user data when deleting a user', async () => {
@@ -232,74 +173,22 @@ describe('Admin Routes Security', () => {
                 action_type: 'redirect',
             });
 
-            req = {
-                user: { id: adminUserId, is_admin: true } as any,
-                params: { id: targetUserId.toString() },
-                flash: vi.fn(),
-            };
+            const { agent, csrfToken } = await createAuthenticatedAgent(app, 'admin@example.com', true);
 
-            // Test implementation would use the actual handler from admin.ts
-            // For now, just verify the data was created
+            const response = await agent
+                .post(`/admin/users/${targetUserId}/delete`)
+                .send({ csrfToken });
+
+            expect(response.status).toBe(302);
+
             const userBookmarks = await db('bookmarks').where({ user_id: targetUserId });
             const userNotes = await db('notes').where({ user_id: targetUserId });
             const userActions = await db('bangs').where({ user_id: targetUserId });
 
-            expect(userBookmarks).toHaveLength(1);
-            expect(userNotes).toHaveLength(1);
-            expect(userActions).toHaveLength(1);
-        });
-    });
-
-    describe('Admin middleware integration', () => {
-        it('should verify adminOnlyMiddleware blocks non-admin users', async () => {
-            req = {
-                user: { id: regularUserId, is_admin: false } as any,
-                session: {
-                    user: { id: regularUserId, is_admin: false },
-                } as any,
-            };
-
-            const next = vi.fn();
-
-            await adminOnlyMiddleware(req as Request, res as Response, next);
-
-            expect(next).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    message: 'Unauthorized',
-                }),
-            );
-        });
-
-        it('should verify adminOnlyMiddleware allows admin users', async () => {
-            req = {
-                user: { id: adminUserId, is_admin: true } as any,
-                session: {
-                    user: { id: adminUserId, is_admin: true },
-                } as any,
-            };
-
-            const next = vi.fn();
-
-            await adminOnlyMiddleware(req as Request, res as Response, next);
-
-            expect(next).toHaveBeenCalledWith();
-        });
-
-        it('should verify authentication is required before admin check', async () => {
-            req = {
-                // No user object - simulating unauthenticated request
-                session: {} as any,
-            };
-
-            const next = vi.fn();
-
-            await adminOnlyMiddleware(req as Request, res as Response, next);
-
-            expect(next).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    message: 'Unauthorized',
-                }),
-            );
+            // All user data should be deleted due to CASCADE
+            expect(userBookmarks).toHaveLength(0);
+            expect(userNotes).toHaveLength(0);
+            expect(userActions).toHaveLength(0);
         });
     });
 });

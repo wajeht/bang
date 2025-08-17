@@ -141,3 +141,5 @@ NetrwTreeListing
 .cursorrules
 .vscode
 .claude
+
+:memory:testdb

@@ -93,10 +93,10 @@ if (
     knexConfig = {
         ...knexConfig,
         connection: {
-            filename: ':memory:',
+            filename: ':memory:testdb',
         },
     };
-    logger.info('Using in-memory database for testing');
+    logger.info('Using named in-memory database for testing');
 }
 
 export default knexConfig;
