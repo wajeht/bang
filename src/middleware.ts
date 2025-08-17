@@ -18,11 +18,19 @@ import { csrfSync } from 'csrf-sync';
 import session from 'express-session';
 import { logger } from './utils/logger';
 import rateLimit from 'express-rate-limit';
-import { rateLimitHandler } from './handler';
 import type { LayoutOptions, User } from './type';
 import type { NextFunction, Request, Response } from 'express';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 import { HttpError, NotFoundError, UnauthorizedError, ValidationError } from './error';
+
+export function rateLimitHandler() {
+    return async (req: Request, res: Response) => {
+        if (isApiRequest(req)) {
+            return res.json({ message: 'Too many requests, please try again later.' });
+        }
+        return res.status(429).render('./rate-limit.html');
+    };
+}
 
 export function notFoundMiddleware() {
     return (req: Request, _res: Response, _next: NextFunction) => {
