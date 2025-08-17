@@ -19,7 +19,7 @@ const swaggerConfig = {
         version: '0.0.1',
     },
     baseDir: './src',
-    filesPattern: ['./**/router.ts'],
+    filesPattern: ['**/routes/*.ts'],
     swaggerUIPath: '/api-docs',
     exposeSwaggerUI: true,
     notRequiredAsNullable: false,
