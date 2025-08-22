@@ -76,61 +76,51 @@
 	<!-- Styles and Scripts -->
 	<link rel="stylesheet" href="/style.css?v=<%- state.version.style %>">
 	<% if (state.env === 'production') { %>
+		<script defer data-domain="bang.jaw.dev" src="https://plausible.jaw.dev/js/script.js"></script>
 		<script>
 			if (HTMLScriptElement.supports && HTMLScriptElement.supports("speculationrules")) {
 				const specScript = document.createElement("script");
 				specScript.type = "speculationrules";
 				const specRules = {
-					"prefetch": [
-						// Primary navigation - immediate prefetch for instant loading
-						{
-							"urls": ["/actions", "/bookmarks", "/notes", "/tabs", "/reminders"],
-							"eagerness": "immediate",
-							"requires": ["anonymous-client-ip-when-cross-origin"]
-						},
-						// Secondary pages - eager prefetch
-						{
-							"urls": ["/settings", "/bangs", "/about"],
-							"eagerness": "eager"
-						},
-						// Document-based prefetch for detail pages
+					"prerender": [
 						{
 							"where": {
 								"and": [
-									{ "href_matches": "/(actions|bookmarks|notes|reminders|tabs)/*" },
-									{ "not": { "href_matches": "*/delete" } },
-									{ "not": { "href_matches": "*/update" } },
-									{ "not": { "href_matches": "*/edit" } },
-									{ "not": { "href_matches": "*/create" } },
+									{ "href_matches": "/*" },
 									{ "not": { "href_matches": "/logout" } },
 									{ "not": { "href_matches": "/login" } },
-									{ "not": { "selector_matches": ".no-prefetch" } },
-									{ "not": { "selector_matches": "[rel~=nofollow]" } }
-								]
-							},
-							"eagerness": "moderate"
-						}
-					],
-					"prerender": [
-						// Prerender main navigation pages for truly instant navigation
-						{
-							"urls": ["/actions", "/bookmarks", "/notes", "/tabs", "/reminders"],
-							"eagerness": "eager"
-						},
-						// Static pages - moderate prerender
-						{
-							"where": {
-								"and": [
-									{ "href_matches": "/(about|privacy-policy|terms-of-service|bangs)" },
+									{ "not": { "href_matches": "/admin/*" } },
+									{ "not": { "href_matches": "/api/*" } },
 									{ "not": { "selector_matches": ".no-prerender" } },
 									{ "not": { "selector_matches": "[rel~=nofollow]" } }
 								]
 							},
 							"eagerness": "moderate"
 						}
+					],
+					"prefetch": [
+						{
+							"urls": ["/actions", "/bookmarks", "/reminders", "/tabs", "/notes"],
+							"eagerness": "eager"
+						},
+						{
+							"urls": ["/settings", "/about", "/bangs"],
+							"eagerness": "moderate"
+						},
+						{
+							"where": {
+								"or": [
+									{ "href_matches": "/actions/*" },
+									{ "href_matches": "/bookmarks/*" },
+									{ "href_matches": "/notes/*" },
+									{ "href_matches": "/reminders/*" },
+									{ "href_matches": "/tabs/*" }
+								]
+							},
+							"eagerness": "conservative"
+						}
 					]
 				};
-
 				specScript.textContent = JSON.stringify(specRules);
 				document.head.appendChild(specScript);
 				console.log('Speculation rules added!');
@@ -138,7 +128,6 @@
 				console.log('Speculation rules are not supported for your browser!');
 			}
 		</script>
-		<script defer data-domain="bang.jaw.dev" src="https://plausible.jaw.dev/js/script.js"></script>
 	<% } %>
 	<script type="application/json" id="app-state"><%- JSON.stringify(state) %></script>
 	<script defer src="/script.js?v=<%- state.version.script %>"></script>
