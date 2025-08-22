@@ -73,6 +73,25 @@
 		}
 	</script>
 
+<script type="speculationrules">
+  {
+    "prerender": [
+      {
+        "where": {
+          "and": [
+            { "href_matches": "/*" },
+            { "not": { "href_matches": "/logout" } },
+            { "not": { "href_matches": "/login" } },
+            { "not": { "selector_matches": ".no-prerender" } },
+            { "not": { "selector_matches": "[rel~=nofollow]" } }
+          ]
+        }
+      }
+    ],
+    "prefetch": []
+  }
+</script>
+
 	<!-- Styles and Scripts -->
   <link rel="stylesheet" href="/style.css?v=<%- state.version.style %>">
 	<% if (state.env === 'production') { %>
