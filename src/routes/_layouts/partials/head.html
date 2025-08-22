@@ -84,16 +84,16 @@
 				specScript.type = "speculationrules";
 				const specRules = {
 					"prefetch": [
-						// Primary navigation - MDN recommends moderate over eager
+						// Primary navigation - immediate prefetch for instant loading
 						{
 							"urls": ["/actions", "/bookmarks", "/notes", "/tabs", "/reminders"],
-							"eagerness": "moderate",
+							"eagerness": "immediate",
 							"requires": ["anonymous-client-ip-when-cross-origin"]
 						},
-						// Secondary pages - conservative prefetch
+						// Secondary pages - eager prefetch
 						{
 							"urls": ["/settings", "/bangs", "/about"],
-							"eagerness": "conservative"
+							"eagerness": "eager"
 						},
 						// Document-based prefetch for detail pages
 						{
@@ -110,11 +110,16 @@
 									{ "not": { "selector_matches": "[rel~=nofollow]" } }
 								]
 							},
-							"eagerness": "conservative"
+							"eagerness": "moderate"
 						}
 					],
 					"prerender": [
-						// MDN: Be very conservative with prerendering - only static pages
+						// Prerender main navigation pages for truly instant navigation
+						{
+							"urls": ["/actions", "/bookmarks", "/notes", "/tabs", "/reminders"],
+							"eagerness": "eager"
+						},
+						// Static pages - moderate prerender
 						{
 							"where": {
 								"and": [
@@ -123,7 +128,7 @@
 									{ "not": { "selector_matches": "[rel~=nofollow]" } }
 								]
 							},
-							"eagerness": "conservative"
+							"eagerness": "moderate"
 						}
 					]
 				};
