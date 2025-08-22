@@ -77,53 +77,68 @@
 	<link rel="stylesheet" href="/style.css?v=<%- state.version.style %>">
 	<% if (state.env === 'production') { %>
 		<script defer data-domain="bang.jaw.dev" src="https://plausible.jaw.dev/js/script.js"></script>
+
 		<script>
 			if (HTMLScriptElement.supports && HTMLScriptElement.supports("speculationrules")) {
 				const specScript = document.createElement("script");
 				specScript.type = "speculationrules";
 				const specRules = {
-					"prerender": [
+					"prefetch": [
+						// Primary navigation - MDN recommends moderate over eager
+						{
+							"urls": ["/actions", "/bookmarks", "/notes", "/tabs", "/reminders"],
+							"eagerness": "moderate",
+							"requires": ["anonymous-client-ip-when-cross-origin"]
+						},
+						// Secondary pages - conservative prefetch
+						{
+							"urls": ["/settings", "/bangs", "/about"],
+							"eagerness": "conservative"
+						},
+						// Document-based prefetch for detail pages
 						{
 							"where": {
 								"and": [
-									{ "href_matches": "/*" },
+									{ "href_matches": "/(actions|bookmarks|notes|reminders|tabs)/*" },
+									{ "not": { "href_matches": "*/delete" } },
+									{ "not": { "href_matches": "*/update" } },
+									{ "not": { "href_matches": "*/edit" } },
+									{ "not": { "href_matches": "*/create" } },
 									{ "not": { "href_matches": "/logout" } },
 									{ "not": { "href_matches": "/login" } },
-									{ "not": { "href_matches": "/admin/*" } },
-									{ "not": { "href_matches": "/api/*" } },
-									{ "not": { "selector_matches": ".no-prerender" } },
+									{ "not": { "selector_matches": ".no-prefetch" } },
 									{ "not": { "selector_matches": "[rel~=nofollow]" } }
 								]
 							},
-							"eagerness": "moderate"
+							"eagerness": "conservative"
 						}
 					],
-					"prefetch": [
-						{
-							"urls": ["/actions", "/bookmarks", "/reminders", "/tabs", "/notes"],
-							"eagerness": "eager"
-						},
-						{
-							"urls": ["/settings", "/about", "/bangs"],
-							"eagerness": "moderate"
-						},
+					"prerender": [
+						// MDN: Be very conservative with prerendering - only static pages
 						{
 							"where": {
-								"or": [
-									{ "href_matches": "/actions/*" },
-									{ "href_matches": "/bookmarks/*" },
-									{ "href_matches": "/notes/*" },
-									{ "href_matches": "/reminders/*" },
-									{ "href_matches": "/tabs/*" }
+								"and": [
+									{ "href_matches": "/(about|privacy-policy|terms-of-service|bangs)" },
+									{ "not": { "selector_matches": ".no-prerender" } },
+									{ "not": { "selector_matches": "[rel~=nofollow]" } }
 								]
 							},
 							"eagerness": "conservative"
 						}
 					]
 				};
+
 				specScript.textContent = JSON.stringify(specRules);
 				document.head.appendChild(specScript);
-				console.log('Speculation rules added');
+			} else {
+				// Fallback for older browsers
+				const pages = ['/actions', '/bookmarks', '/notes', '/tabs', '/reminders'];
+				pages.forEach(url => {
+					const link = document.createElement('link');
+					link.rel = 'prefetch';
+					link.href = url;
+					document.head.appendChild(link);
+				});
 			}
 		</script>
 	<% } %>
