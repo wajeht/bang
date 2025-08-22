@@ -73,47 +73,54 @@
 		}
 	</script>
 
-<script type="speculationrules">
-  {
-    "prerender": [
-      {
-        "where": {
-          "and": [
-            { "href_matches": "/*" },
-            { "not": { "href_matches": "/logout" } },
-            { "not": { "href_matches": "/login" } },
-            { "not": { "href_matches": "/admin/*" } },
-            { "not": { "href_matches": "/api/*" } },
-            { "not": { "selector_matches": ".no-prerender" } },
-            { "not": { "selector_matches": "[rel~=nofollow]" } }
-          ]
-        },
-        "eagerness": "moderate"
-      }
-    ],
-    "prefetch": [
-      {
-        "urls": ["/actions", "/bookmarks", "/reminders", "/tabs", "/notes"],
-        "eagerness": "eager"
-      },
-      {
-        "urls": ["/settings", "/about", "/bangs"],
-        "eagerness": "moderate"
-      },
-      {
-        "where": {
-          "or": [
-            { "href_matches": "/actions/*" },
-            { "href_matches": "/bookmarks/*" },
-            { "href_matches": "/notes/*" },
-            { "href_matches": "/reminders/*" },
-            { "href_matches": "/tabs/*" }
-          ]
-        },
-        "eagerness": "conservative"
-      }
-    ]
-  }
+<script>
+	if (HTMLScriptElement.supports && HTMLScriptElement.supports("speculationrules")) {
+		const specScript = document.createElement("script");
+		specScript.type = "speculationrules";
+		const specRules = {
+			"prerender": [
+				{
+					"where": {
+						"and": [
+							{ "href_matches": "/*" },
+							{ "not": { "href_matches": "/logout" } },
+							{ "not": { "href_matches": "/login" } },
+							{ "not": { "href_matches": "/admin/*" } },
+							{ "not": { "href_matches": "/api/*" } },
+							{ "not": { "selector_matches": ".no-prerender" } },
+							{ "not": { "selector_matches": "[rel~=nofollow]" } }
+						]
+					},
+					"eagerness": "moderate"
+				}
+			],
+			"prefetch": [
+				{
+					"urls": ["/actions", "/bookmarks", "/reminders", "/tabs", "/notes"],
+					"eagerness": "eager"
+				},
+				{
+					"urls": ["/settings", "/about", "/bangs"],
+					"eagerness": "moderate"
+				},
+				{
+					"where": {
+						"or": [
+							{ "href_matches": "/actions/*" },
+							{ "href_matches": "/bookmarks/*" },
+							{ "href_matches": "/notes/*" },
+							{ "href_matches": "/reminders/*" },
+							{ "href_matches": "/tabs/*" }
+						]
+					},
+					"eagerness": "conservative"
+				}
+			]
+		};
+		specScript.textContent = JSON.stringify(specRules);
+		document.head.appendChild(specScript);
+		console.log('Speculation rules added');
+	}
 </script>
 
 	<!-- Styles and Scripts -->
