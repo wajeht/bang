@@ -58,7 +58,7 @@ describe('search', () => {
                     Vary: 'Cookie', // Vary by Cookie for user-specific results
                 }),
             );
-            expect(res.redirect).toHaveBeenCalledWith('https://google.com/search?q=python');
+            expect(res.redirect).toHaveBeenCalledWith('https://www.google.com/search?q=python');
             expect(req.session.searchCount).toBe(1);
             expect(req.session.user).toBeUndefined();
         });
@@ -86,7 +86,7 @@ describe('search', () => {
                     'Cache-Control': 'public, max-age=3600',
                 }),
             );
-            expect(res.redirect).toHaveBeenCalledWith('https://google.com');
+            expect(res.redirect).toHaveBeenCalledWith('https://www.google.com');
             expect(req.session.searchCount).toBe(1);
             expect(req.session.user).toBeUndefined();
 
