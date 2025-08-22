@@ -137,6 +137,13 @@ src/scratch.js
 db.sqlite
 db.sqlite-shm
 db.sqlite-wal
+# Test database files
+src/db/sqlite/test-*.sqlite
+src/db/sqlite/test-*.sqlite-shm
+src/db/sqlite/test-*.sqlite-wal
+src/db/sqlite/test.sqlite
+src/db/sqlite/test.sqlite-shm
+src/db/sqlite/test.sqlite-wal
 NetrwTreeListing
 .cursorrules
 .vscode

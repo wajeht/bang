@@ -10,7 +10,7 @@ import {
     RemindersQueryParams,
     BookmarksQueryParams,
 } from '../type';
-import knex from 'knex';
+import knex, { Knex } from 'knex';
 import path from 'node:path';
 import { config } from '../config';
 import knexConfig from './knexfile';
@@ -19,10 +19,15 @@ import { attachPaginate } from './paginate';
 import { sqlHighlight } from '../utils/util';
 import type { Actions, Bookmarks, Notes, Reminders, Tabs } from '../type';
 
+let _db: Knex | null = null;
+
 function _createKnexInstance() {
-    const db = knex(knexConfig);
+    if (_db) {
+        return _db;
+    }
+    _db = knex(knexConfig);
     attachPaginate();
-    return db;
+    return _db;
 }
 
 export const db = _createKnexInstance();

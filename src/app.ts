@@ -51,7 +51,7 @@ function setupCronJobs() {
     logger.info('Reminder check scheduled every 15 minutes');
 }
 
-export async function createServer() {
+export async function createApp() {
     const app = express();
 
     if (config.app.env === 'production') {
@@ -107,6 +107,12 @@ export async function createServer() {
 
     app.use(notFoundMiddleware());
     app.use(errorMiddleware());
+
+    return app;
+}
+
+export async function createServer() {
+    const app = await createApp();
 
     const server: Server = app.listen(config.app.port);
 

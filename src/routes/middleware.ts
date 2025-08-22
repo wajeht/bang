@@ -254,8 +254,13 @@ export const csrfMiddleware = (() => {
 
     return [
         (req: Request, res: Response, next: NextFunction) => {
-            // Skip CSRF protection for API requests (they use API keys)
-            if (isApiRequest(req)) {
+            // Skip CSRF protection for API routes
+            if (req.path.startsWith('/api/')) {
+                return next();
+            }
+
+            // Skip CSRF protection if API key is provided
+            if (getApiKey(req)) {
                 return next();
             }
 

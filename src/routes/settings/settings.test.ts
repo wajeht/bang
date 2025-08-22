@@ -1,243 +1,395 @@
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import request from 'supertest';
 import { db } from '../../db/db';
-import dayjs from '../../utils/dayjs';
-import type { Request, Response } from 'express';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { createApp } from '../../app';
+import {
+    authenticateAgent,
+    cleanupTestData,
+    cleanupTestDatabase,
+    createUnauthenticatedAgent,
+} from '../../tests/api-test-utils';
 
-describe('Import Data Handler', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
-    let userId: number;
+describe('Settings Routes', () => {
+    let app: any;
+
+    beforeAll(async () => {
+        await db.migrate.latest();
+    });
 
     beforeEach(async () => {
-        vi.resetAllMocks();
-
-        // Create a test user
-        const [user] = await db('users')
-            .insert({
-                username: 'testuser',
-                email: 'test@example.com',
-                is_admin: false,
-            })
-            .returning('*');
-
-        userId = user.id;
-
-        req = {
-            body: {},
-            session: {
-                user: { id: userId },
-            } as any,
-            flash: vi.fn(),
-        };
-
-        res = {
-            redirect: vi.fn().mockReturnThis(),
-        };
+        app = await createApp();
     });
 
     afterEach(async () => {
-        // Clean up test data
-        await db('bangs').where({ user_id: userId }).delete();
-        await db('users').where({ id: userId }).delete();
+        await cleanupTestData();
     });
 
-    it('should handle duplicate actions gracefully', async () => {
-        // First, create an existing action
-        await db('bangs').insert({
-            user_id: userId,
-            trigger: '!test',
-            name: 'Test Action',
-            url: 'https://example.com',
-            action_type: 'redirect',
-            created_at: dayjs().toDate(),
+    afterAll(async () => {
+        await cleanupTestDatabase();
+    });
+
+    describe('GET /settings', () => {
+        it('should require authentication', async () => {
+            await request(app).get('/settings').expect(302).expect('Location', '/?modal=login');
         });
 
-        // Prepare import data with the same action
-        const importData = {
-            version: '1.0',
-            actions: [
-                {
-                    trigger: '!test',
-                    name: 'Test Action Updated',
-                    url: 'https://example.com/updated',
-                    action_type: 'redirect',
-                },
-            ],
-        };
+        it('should redirect to account page for authenticated users', async () => {
+            const { agent } = await authenticateAgent(app);
 
-        req.body = { config: JSON.stringify(importData) };
-
-        // Test implementation would use the actual handler from settings.ts
-        // Verify that no duplicate was created
-        const actions = await db('bangs').where({ user_id: userId, trigger: '!test' });
-        expect(actions).toHaveLength(1);
-
-        // Verify the original action wasn't modified
-        expect(actions[0].name).toBe('Test Action');
-        expect(actions[0].url).toBe('https://example.com');
+            await agent.get('/settings').expect(302).expect('Location', '/settings/account');
+        });
     });
 
-    it('should import new actions successfully', async () => {
-        const importData = {
-            version: '1.0',
-            actions: [
-                {
-                    trigger: '!new',
-                    name: 'New Action',
-                    url: 'https://new.com',
-                    action_type: 'redirect',
-                },
-            ],
-        };
+    describe('GET /settings/account', () => {
+        it('should require authentication', async () => {
+            await request(app)
+                .get('/settings/account')
+                .expect(302)
+                .expect('Location', '/?modal=login');
+        });
 
-        req.body = { config: JSON.stringify(importData) };
+        it('should render account settings page for authenticated users', async () => {
+            const { agent } = await authenticateAgent(app);
 
-        // Test implementation would use the actual handler from settings.ts
-        expect(req.flash).toBeDefined();
-        expect(res.redirect).toBeDefined();
+            const response = await agent.get('/settings/account').expect(200);
+
+            expect(response.text).toContain('Settings Account');
+            expect(response.text).toContain('test');
+        });
     });
-});
 
-describe('Reminder Column Preferences', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
-    let userId: number;
+    describe('GET /settings/data', () => {
+        it('should require authentication', async () => {
+            await request(app)
+                .get('/settings/data')
+                .expect(302)
+                .expect('Location', '/?modal=login');
+        });
 
-    beforeEach(async () => {
-        vi.resetAllMocks();
+        it('should render data settings page for authenticated users', async () => {
+            const { agent } = await authenticateAgent(app);
 
-        // Create a test user with all required column preferences
-        const [user] = await db('users')
-            .insert({
-                username: 'testuser',
-                email: 'test@example.com',
+            const response = await agent.get('/settings/data').expect(200);
+
+            expect(response.text).toContain('Settings Data');
+        });
+    });
+
+    describe('GET /settings/danger-zone', () => {
+        it('should require authentication', async () => {
+            await request(app)
+                .get('/settings/danger-zone')
+                .expect(302)
+                .expect('Location', '/?modal=login');
+        });
+
+        it('should render danger zone page for authenticated users', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const response = await agent.get('/settings/danger-zone').expect(200);
+
+            expect(response.text).toContain('Settings Danger Zone');
+        });
+    });
+
+    describe('POST /settings/account', () => {
+        it('should require authentication', async () => {
+            const agent = await createUnauthenticatedAgent(app);
+            await agent
+                .post('/settings/account')
+                .send({
+                    username: 'newuser',
+                    email: 'new@example.com',
+                })
+                .expect(302)
+                .expect('Location', '/?modal=login');
+        });
+
+        it('should update user account settings', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await agent
+                .post('/settings/account')
+                .send({
+                    username: 'updateduser',
+                    email: user.email,
+                    default_search_provider: 'google',
+                    autocomplete_search_on_homepage: 'on',
+                    timezone: 'UTC',
+                })
+                .expect(302);
+
+            // Verify user was updated
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.username).toBe('updateduser');
+            expect(updatedUser.default_search_provider).toBe('google');
+            expect(updatedUser.autocomplete_search_on_homepage).toBe(1); // SQLite stores boolean as 1/0
+        });
+
+        it('should allow updating profile while keeping same username', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await agent
+                .post('/settings/account')
+                .send({
+                    username: user.username, // Keep same username
+                    email: user.email, // Keep same email
+                    default_search_provider: 'google',
+                    autocomplete_search_on_homepage: 'on',
+                    timezone: 'America/New_York',
+                })
+                .expect(302);
+
+            // Verify other fields were updated
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.username).toBe(user.username); // Username unchanged
+            expect(updatedUser.email).toBe(user.email); // Email unchanged
+            expect(updatedUser.default_search_provider).toBe('google');
+            expect(updatedUser.timezone).toBe('America/New_York');
+        });
+
+        it('should validate email format', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            // Validation errors redirect back with error in session
+            await agent
+                .post('/settings/account')
+                .send({
+                    username: user.username,
+                    email: 'invalid-email',
+                    default_search_provider: 'duckduckgo',
+                    timezone: 'UTC',
+                })
+                .expect(302);
+        });
+
+        it('should prevent duplicate usernames', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            // Create another user
+            await db('users').insert({
+                username: 'existinguser',
+                email: 'existing@example.com',
                 is_admin: false,
-                column_preferences: JSON.stringify({
-                    bookmarks: {
-                        title: true,
-                        url: true,
-                        created_at: true,
-                        pinned: true,
-                        default_per_page: 10,
+                default_search_provider: 'duckduckgo',
+            });
+
+            // Duplicate usernames cause validation error and redirect
+            await agent
+                .post('/settings/account')
+                .send({
+                    username: 'existinguser',
+                    email: 'test@example.com',
+                    default_search_provider: 'duckduckgo',
+                    timezone: 'UTC',
+                })
+                .expect(302);
+        });
+    });
+
+    describe('POST /settings/display', () => {
+        it('should require authentication', async () => {
+            const agent = await createUnauthenticatedAgent(app);
+            await agent
+                .post('/settings/display')
+                .send({
+                    column_preferences: {},
+                })
+                .expect(302)
+                .expect('Location', '/?modal=login');
+        });
+
+        it('should update column preferences', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const columnPreferences = {
+                bookmarks: {
+                    title: 'on',
+                    url: 'on',
+                    created_at: 'on',
+                    pinned: 'on',
+                    default_per_page: '20',
+                },
+                actions: {
+                    name: 'on',
+                    trigger: 'on',
+                    url: 'on',
+                    action_type: 'on',
+                    default_per_page: '20',
+                },
+                tabs: {
+                    title: 'on',
+                    url: 'on',
+                    created_at: 'on',
+                    default_per_page: '20',
+                },
+                notes: {
+                    title: 'on',
+                    content: 'on',
+                    created_at: 'on',
+                    default_per_page: '20',
+                },
+                reminders: {
+                    title: 'on',
+                    content: 'on',
+                    due_date: 'on',
+                    created_at: 'on',
+                    default_per_page: '20',
+                },
+            };
+
+            await agent
+                .post('/settings/display')
+                .send({
+                    column_preferences: columnPreferences,
+                })
+                .expect(302);
+
+            // Verify preferences were updated
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            const preferences = JSON.parse(updatedUser.column_preferences);
+            expect(preferences.bookmarks.title).toBe(true);
+            expect(preferences.bookmarks.url).toBe(true);
+            expect(preferences.actions.name).toBe(true);
+            expect(preferences.actions.trigger).toBe(true);
+        });
+
+        it('should handle reminder preferences with timing settings', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const columnPreferences = {
+                bookmarks: {
+                    title: 'on',
+                    url: 'on',
+                    created_at: 'off',
+                    pinned: 'off',
+                    default_per_page: '10',
+                },
+                actions: {
+                    name: 'on',
+                    trigger: 'on',
+                    url: 'off',
+                    action_type: 'off',
+                    default_per_page: '10',
+                },
+                tabs: {
+                    title: 'on',
+                    url: 'on',
+                    created_at: 'off',
+                    default_per_page: '10',
+                },
+                notes: {
+                    title: 'on',
+                    content: 'on',
+                    created_at: 'off',
+                    default_per_page: '10',
+                },
+                reminders: {
+                    title: 'on',
+                    content: 'on',
+                    due_date: 'on',
+                    created_at: 'off',
+                    default_per_page: '10',
+                    default_reminder_timing: 'weekly',
+                    default_reminder_time: '14:30',
+                },
+            };
+
+            await agent
+                .post('/settings/display')
+                .send({
+                    column_preferences: columnPreferences,
+                })
+                .expect(302);
+
+            // Verify reminder preferences were updated
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            const preferences = JSON.parse(updatedUser.column_preferences);
+            expect(preferences.reminders.title).toBe(true);
+            expect(preferences.reminders.default_reminder_timing).toBe('weekly');
+            expect(preferences.reminders.default_reminder_time).toBe('14:30');
+        });
+    });
+
+    describe('POST /settings/data/import', () => {
+        it('should require authentication', async () => {
+            const agent = await createUnauthenticatedAgent(app);
+            await agent
+                .post('/settings/data/import')
+                .send({
+                    config: JSON.stringify({
+                        version: '1.0',
+                        actions: [],
+                    }),
+                })
+                .expect(302)
+                .expect('Location', '/?modal=login');
+        });
+
+        it('should import new actions successfully', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const importData = {
+                version: '1.0',
+                actions: [
+                    {
+                        trigger: '!test',
+                        name: 'Test Action',
+                        url: 'https://test.com',
+                        action_type: 'redirect',
                     },
-                    actions: {
-                        name: true,
-                        trigger: true,
-                        url: true,
-                        action_type: true,
-                        created_at: true,
-                        last_read_at: true,
-                        usage_count: true,
-                        default_per_page: 10,
+                ],
+            };
+
+            await agent
+                .post('/settings/data/import')
+                .send({
+                    config: JSON.stringify(importData),
+                })
+                .expect(302);
+
+            // Verify action was imported
+            const actions = await db('bangs').where({ user_id: user.id });
+            expect(actions).toHaveLength(1);
+            expect(actions[0].name).toBe('Test Action');
+            expect(actions[0].trigger).toBe('!test');
+        });
+
+        it('should handle duplicate actions gracefully', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            // Create existing action
+            await db('bangs').insert({
+                user_id: user.id,
+                trigger: '!test',
+                name: 'Existing Action',
+                url: 'https://existing.com',
+                action_type: 'redirect',
+            });
+
+            const importData = {
+                version: '1.0',
+                actions: [
+                    {
+                        trigger: '!test',
+                        name: 'Duplicate Action',
+                        url: 'https://duplicate.com',
+                        action_type: 'redirect',
                     },
-                    notes: {
-                        title: true,
-                        content: true,
-                        created_at: true,
-                        pinned: true,
-                        default_per_page: 10,
-                    },
-                    reminders: {
-                        title: true,
-                        content: true,
-                        due_date: true,
-                        next_due: false,
-                        created_at: true,
-                        default_per_page: 20,
-                        default_reminder_timing: 'daily',
-                        default_reminder_time: '09:00',
-                    },
-                    users: {
-                        username: true,
-                        email: true,
-                        is_admin: true,
-                        email_verified_at: true,
-                        created_at: true,
-                        default_per_page: 10,
-                    },
-                }),
-            })
-            .returning('*');
+                ],
+            };
 
-        userId = user.id;
-        user.column_preferences = JSON.parse(user.column_preferences as any);
+            await agent
+                .post('/settings/data/import')
+                .send({
+                    config: JSON.stringify(importData),
+                })
+                .expect(302);
 
-        req = {
-            user: user as any,
-            body: {},
-            flash: vi.fn(),
-            session: {
-                user: user as any,
-                save: vi.fn(),
-            } as any,
-        };
-
-        res = {
-            redirect: vi.fn().mockReturnThis(),
-        };
-    });
-
-    afterEach(async () => {
-        await db('users').where({ id: userId }).delete();
-    });
-
-    it('should update reminder column preferences including next_due', async () => {
-        req.body = {
-            type: 'reminders',
-            columns: ['title', 'content', 'due_date', 'next_due', 'created_at'],
-            default_reminder_time: '14:30',
-        };
-
-        // Test implementation would use the actual handler from settings.ts
-        // Check database was updated
-        const updatedUser = await db('users').where({ id: userId }).first();
-        expect(updatedUser).toBeDefined();
-    });
-
-    it('should validate that at least one reminder column is enabled', async () => {
-        req.body = {
-            type: 'reminders',
-            columns: [],
-            default_reminder_time: '09:00',
-        };
-
-        // Test implementation would use the actual handler from settings.ts
-        expect(req.body.columns).toHaveLength(0);
-    });
-
-    it('should validate reminder timing options', async () => {
-        req.body = {
-            type: 'reminders',
-            columns: ['title', 'content'],
-            default_reminder_timing: 'invalid_timing',
-            default_reminder_time: '09:00',
-        };
-
-        // Test implementation would use the actual handler from settings.ts
-        expect(req.body.default_reminder_timing).toBe('invalid_timing');
-    });
-
-    it('should validate reminder time format', async () => {
-        req.body = {
-            type: 'reminders',
-            columns: ['title', 'content'],
-            default_reminder_timing: 'daily',
-            default_reminder_time: '25:99', // Invalid time
-        };
-
-        // Test implementation would use the actual handler from settings.ts
-        expect(req.body.default_reminder_time).toBe('25:99');
-    });
-
-    it('should handle toggling next_due column off', async () => {
-        req.body = {
-            type: 'reminders',
-            columns: ['title', 'content', 'due_date', 'created_at'],
-            default_reminder_time: '09:00',
-        };
-
-        // Test implementation would use the actual handler from settings.ts
-        const updatedUser = await db('users').where({ id: userId }).first();
-        expect(updatedUser).toBeDefined();
+            // Verify no duplicate was created
+            const actions = await db('bangs').where({ user_id: user.id, trigger: '!test' });
+            expect(actions).toHaveLength(1);
+            expect(actions[0].name).toBe('Existing Action'); // Original should remain
+        });
     });
 });

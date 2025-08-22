@@ -365,11 +365,34 @@ export function getApiKey(req: Request): string | undefined {
 }
 
 export function isApiRequest(req: Request): boolean {
-    return !!getApiKey(req) || req.path.startsWith('/api/') || expectJson(req);
+    // Explicitly API routes always return true
+    if (req.path.startsWith('/api/')) {
+        return true;
+    }
+
+    // If an API key is provided, it's an API request
+    if (getApiKey(req)) {
+        return true;
+    }
+
+    // For non-API routes, only treat as API if both:
+    // 1. Accept header prefers JSON
+    // 2. Content-Type is JSON (for POST/PUT requests)
+    const acceptsJson = req.header('Accept')?.includes('application/json');
+    const sendsJson = req.header('Content-Type')?.includes('application/json');
+
+    // Only treat as API request if it's explicitly asking for JSON response
+    // AND sending JSON data (for requests with body)
+    if (req.method === 'GET' || req.method === 'HEAD') {
+        return acceptsJson === true;
+    }
+
+    // For POST/PUT/DELETE, require both JSON content-type and accept header
+    return acceptsJson === true && sendsJson === true;
 }
 
 export function expectJson(req: Request): boolean {
-    return req.header('Content-Type') === 'application/json';
+    return req.header('Content-Type')?.includes('application/json') || false;
 }
 
 export async function extractUser(req: Request): Promise<User> {

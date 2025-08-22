@@ -123,6 +123,29 @@ export function createSettingsRouter(db: Knex) {
                 parsedAutocompleteSearchOnHomepage = true;
             }
 
+            // Check if username is being changed and if it's already taken by another user
+            const currentUserId = (req.user as User).id;
+            if (username !== (req.user as User).username) {
+                const existingUser = await db('users')
+                    .where({ username })
+                    .whereNot({ id: currentUserId })
+                    .first();
+                if (existingUser) {
+                    throw new ValidationError({ username: 'Username is already taken' });
+                }
+            }
+
+            // Check if email is being changed and if it's already taken by another user
+            if (email !== (req.user as User).email) {
+                const existingUser = await db('users')
+                    .where({ email })
+                    .whereNot({ id: currentUserId })
+                    .first();
+                if (existingUser) {
+                    throw new ValidationError({ email: 'Email address is already in use' });
+                }
+            }
+
             const updatedUser = await db('users')
                 .update({
                     email,
@@ -131,7 +154,7 @@ export function createSettingsRouter(db: Knex) {
                     autocomplete_search_on_homepage: parsedAutocompleteSearchOnHomepage,
                     timezone,
                 })
-                .where({ id: (req.user as User).id })
+                .where({ id: currentUserId })
                 .returning('*');
 
             if (req.session?.user) {

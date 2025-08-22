@@ -1,60 +1,82 @@
-import type { Request, Response } from 'express';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import request from 'supertest';
+import { db } from '../../db/db';
+import { createApp } from '../../app';
+import {
+    authenticateAgent,
+    cleanupTestData,
+    cleanupTestDatabase,
+} from '../../tests/api-test-utils';
 
-describe('Health Check Endpoint', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
+describe('General Routes', () => {
+    let app: any;
 
-    beforeEach(() => {
-        vi.resetAllMocks();
-
-        req = {
-            headers: {},
-            header: vi.fn().mockImplementation((name) => {
-                if (name === 'Content-Type') {
-                    return req.headers?.['content-type'];
-                }
-                if (name === 'Accept') {
-                    return req.headers?.['accept'];
-                }
-                return undefined;
-            }),
-        };
-
-        res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn().mockReturnThis(),
-            setHeader: vi.fn().mockReturnThis(),
-            send: vi.fn().mockReturnThis(),
-        };
+    beforeAll(async () => {
+        await db.migrate.latest();
     });
 
-    afterEach(() => {
-        vi.clearAllMocks();
+    beforeEach(async () => {
+        app = await createApp();
     });
 
-    it('should return 200 status when database is connected (JSON response)', async () => {
-        req = {
-            headers: {
-                'content-type': 'application/json',
-                accept: 'application/json',
-            },
-            header: vi.fn().mockImplementation((name) => {
-                if (name === 'Content-Type') {
-                    return 'application/json';
-                }
-                return undefined;
-            }),
-        };
-
-        // Test would need to be updated to use the actual route handler from general.ts
-        // For now, we're preserving the test structure
-        expect(true).toBe(true);
+    afterEach(async () => {
+        await cleanupTestData();
     });
 
-    it('should return 200 status when database is connected (HTML response)', async () => {
-        // Test would need to be updated to use the actual route handler from general.ts
-        // For now, we're preserving the test structure
-        expect(true).toBe(true);
+    afterAll(async () => {
+        await cleanupTestDatabase();
+    });
+
+    describe('GET /', () => {
+        it('should return home page', async () => {
+            const response = await request(app).get('/').expect(200);
+
+            expect(response.text).toContain('Bang');
+        });
+
+        it('should show home page for authenticated users', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const response = await agent.get('/').expect(200);
+            expect(response.text).toContain('Bang');
+        });
+    });
+
+    describe('GET /healthz', () => {
+        it('should return 200 status when database is connected (JSON response)', async () => {
+            const response = await request(app)
+                .get('/healthz')
+                .set('Content-Type', 'application/json')
+                .expect(200);
+
+            expect(response.headers['content-type']).toMatch(/application\/json/);
+            expect(response.body).toHaveProperty('status', 'ok');
+            expect(response.body).toHaveProperty('database', 'connected');
+        });
+
+        it('should return 200 status when database is connected (HTML response)', async () => {
+            const response = await request(app)
+                .get('/healthz')
+                .set('Accept', 'text/html')
+                .expect(200);
+
+            expect(response.text).toContain('ok');
+        });
+    });
+
+    describe('GET /search', () => {
+        it('should redirect to search results', async () => {
+            await request(app).get('/search').query({ q: 'test query' }).expect(302);
+        });
+
+        it('should handle empty search query', async () => {
+            await request(app).get('/search').expect(302);
+        });
+    });
+
+    describe('Error handling', () => {
+        it('should return 404 for non-existent routes', async () => {
+            await request(app).get('/non-existent-route').expect(404);
+        });
     });
 });

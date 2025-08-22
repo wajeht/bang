@@ -7,7 +7,7 @@ dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')), quiet: tru
 export const config = {
     app: {
         port: parseInt(process.env.APP_PORT || '80', 10),
-        env: (process.env.APP_ENV as Env) || 'development',
+        env: (process.env.APP_ENV || process.env.NODE_ENV || 'development') as Env,
         appUrl: process.env.APP_URL || 'localhost',
         adminEmail: process.env.APP_ADMIN_EMAIL || '',
         secretSalt: process.env.APP_SECRET_SALT || 'bang',
