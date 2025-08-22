@@ -130,7 +130,9 @@
 
 				specScript.textContent = JSON.stringify(specRules);
 				document.head.appendChild(specScript);
-				console.log('Speculation rules added');
+				console.log('Speculation rules added!');
+			} else {
+				console.log('Speculation rules are not supported for your browser!');
 			}
 		</script>
 	<% } %>
