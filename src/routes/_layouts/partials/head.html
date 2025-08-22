@@ -130,6 +130,7 @@
 
 				specScript.textContent = JSON.stringify(specRules);
 				document.head.appendChild(specScript);
+				console.log('Speculation rules added');
 			} else {
 				// Fallback for older browsers
 				const pages = ['/actions', '/bookmarks', '/notes', '/tabs', '/reminders'];
