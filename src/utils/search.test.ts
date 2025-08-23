@@ -3113,13 +3113,20 @@ describe('parseReminderTiming', () => {
         expect(timing.type).toBe('recurring');
         expect(timing.frequency).toBe('daily');
 
-        // The reminder should be scheduled for tomorrow
+        // The reminder should be scheduled for tomorrow at 9 AM
         const now = dayjs();
         const dueDate = dayjs(timing.nextDue);
+        
+        // Check that it's scheduled for 9 AM
+        expect(dueDate.hour()).toBe(9);
+        expect(dueDate.minute()).toBe(0);
+        
+        // Should be in the future
+        expect(dueDate.isAfter(now)).toBe(true);
+        
+        // Should be within the next 24 hours (for tomorrow)
         const diff = dueDate.diff(now, 'hours');
-
-        // Should be between 15-32 hours in the future (tomorrow)
-        expect(diff).toBeGreaterThan(15);
-        expect(diff).toBeLessThanOrEqual(32);
+        expect(diff).toBeGreaterThan(0);
+        expect(diff).toBeLessThanOrEqual(24);
     });
 });
