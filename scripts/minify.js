@@ -117,7 +117,13 @@ async function minifyHtmlFiles() {
         removeStyleLinkTypeAttributes: true,
         useShortDoctype: true,
         minifyCSS: true,
-        minifyJS: false, // Disabled to preserve inline script functionality
+        minifyJS: {
+            compress: false,
+            mangle: false,
+            output: {
+                comments: false,
+            }
+        },
         conservativeCollapse: true, // Preserve single spaces for EJS
         preserveLineBreaks: false,
         removeEmptyAttributes: true,
