@@ -51,6 +51,17 @@ export async function optimizeDatabase() {
     }
 }
 
+export async function inittializeDatabase() {
+    try {
+        await checkDatabaseHealth();
+        await optimizeDatabase();
+        await runProductionMigration();
+        logger.info('Database migrations completed successfully');
+    } catch (error: any) {
+        logger.error('Error while initalizing databse: %o', { error });
+    }
+}
+
 export async function checkDatabaseHealth() {
     try {
         const [walMode] = await db.raw('PRAGMA journal_mode');

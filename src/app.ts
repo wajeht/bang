@@ -18,22 +18,11 @@ import { config } from './config';
 import compression from 'compression';
 import { logger } from './utils/logger';
 import { router } from './routes/routes';
+import { inittializeDatabase } from './db/db';
 import { processReminderDigests } from './utils/mail';
 import { expressJSDocSwaggerHandler } from './utils/swagger';
-import { runProductionMigration, checkDatabaseHealth, optimizeDatabase } from './db/db';
 
-async function inittializeDatabase() {
-    try {
-        await checkDatabaseHealth();
-        await optimizeDatabase();
-        await runProductionMigration();
-        logger.info('Database migrations completed successfully');
-    } catch (error: any) {
-        logger.error('Error while initalizing databse: %o', { error });
-    }
-}
-
-export function createCronJobs() {
+export function setupCronJobs() {
     cron.schedule(
         '*/15 * * * *', // every 15 minutes
         async () => {

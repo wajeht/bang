@@ -5,7 +5,7 @@ import { notifyError } from './error';
 import { AddressInfo } from 'node:net';
 import { logger } from './utils/logger';
 import { isMailpitRunning } from './utils/mail';
-import { createApp, createCronJobs } from './app';
+import { createApp, setupCronJobs } from './app';
 
 export async function createServer() {
     const app = await createApp();
@@ -27,7 +27,7 @@ export async function createServer() {
             logger.info('Mailpit is running on http://localhost:8025');
         }
 
-        createCronJobs();
+        setupCronJobs();
     });
 
     server.on('error', (error: NodeJS.ErrnoException) => {
