@@ -41,7 +41,7 @@
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
                             <h3>
                                 <% if (data[i].pinned) { %>📌<% } %>
-                                <a href="/notes/<%- data[i].id %>" title="<%= data[i].title %>"><%- data[i].title %></a>
+                                <a href="/notes/<%- data[i].id %>" title="<%= utils.stripHtmlTags(data[i].title) %>"><%- data[i].title %></a>
                             </h3>
                         <% } %>
                         <% if (state.user.column_preferences?.notes?.content !== false) { %>
@@ -64,7 +64,7 @@
                             <nav style="display: flex; gap: 10px; align-items: center;">
                                 <form method="POST" action="/notes/<%= data[i].id %>/pin" style="display: inline;">
                                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-                                    <button type="submit" class="no-style-btn" aria-label="<%= data[i].pinned ? 'Unpin' : 'Pin' %> note <%= data[i].title %>">
+                                    <button type="submit" class="no-style-btn" aria-label="<%= data[i].pinned ? 'Unpin' : 'Pin' %> note <%= utils.stripHtmlTags(data[i].title) %>">
                                         <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
                                     </button>
                                 </form>
@@ -72,8 +72,8 @@
                                 <button
                                     type="button"
                                     class="no-style-btn"
-                                    onclick="showDeleteNoteModal('<%= data[i].id %>', '<%= (data[i].title).replace(/'/g, '\\\'') %>')"
-                                    aria-label="Delete note <%= data[i].title %>"
+                                    onclick="showDeleteNoteModal('<%= data[i].id %>', '<%= utils.stripHtmlTags(data[i].title).replace(/'/g, '\\\'') %>')"
+                                    aria-label="Delete note <%= utils.stripHtmlTags(data[i].title) %>"
                                 >
                                     🗑️ Delete
                                 </button>
@@ -166,7 +166,7 @@
                                 <% if (state.user.column_preferences?.notes?.title !== false) { %>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <% if (data[i].pinned) { %>📌<% } %>
-                                        <a href="/notes/<%= data[i].id %>" title="<%= data[i].title %>">
+                                        <a href="/notes/<%= data[i].id %>" title="<%= utils.stripHtmlTags(data[i].title) %>">
                                             <% if (search && data[i].title) { %>
                                         <%- data[i].title %>
                                     <% } else { %>
@@ -198,11 +198,11 @@
                                 <% } %>
                                 <td style="padding: 10px;">
                                     <details style="position: relative;">
-                                        <summary aria-label="Actions for note <%= data[i].title %>">Actions</summary>
+                                        <summary aria-label="Actions for note <%= utils.stripHtmlTags(data[i].title) %>">Actions</summary>
                                         <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
                                             <form method="POST" action="/notes/<%= data[i].id %>/pin" style="display: inline;">
                                                 <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-                                                <button type="submit" class="no-style-btn" style="text-align: left;" role="menuitem" aria-label="<%= data[i].pinned ? 'Unpin' : 'Pin' %> note <%= data[i].title %>">
+                                                <button type="submit" class="no-style-btn" style="text-align: left;" role="menuitem" aria-label="<%= data[i].pinned ? 'Unpin' : 'Pin' %> note <%= utils.stripHtmlTags(data[i].title) %>">
                                                     <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
                                                 </button>
                                             </form>
@@ -211,9 +211,9 @@
                                                 type="button"
                                                 class="no-style-btn"
                                                 style="text-align: left;"
-                                                onclick="showDeleteNoteModal('<%= data[i].id %>', '<%= (data[i].title).replace(/'/g, '\\\'') %>')"
+                                                onclick="showDeleteNoteModal('<%= data[i].id %>', '<%= utils.stripHtmlTags(data[i].title).replace(/'/g, '\\\'') %>')"
                                                 role="menuitem"
-                                                aria-label="Delete note <%= data[i].title %>"
+                                                aria-label="Delete note <%= utils.stripHtmlTags(data[i].title) %>"
                                             >
                                                 🗑️ Delete
                                             </button>

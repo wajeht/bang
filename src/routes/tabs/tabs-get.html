@@ -201,7 +201,7 @@
                                     type="button"
                                     class="no-style-btn"
                                     style="text-align: left;"
-                                    onclick="showDeleteTabModal('<%= tabs[i].id %>', '<%= (tabs[i].title || 'Untitled').replace(/'/g, '\\\'') %>')"
+                                    onclick="showDeleteTabModal('<%= tabs[i].id %>', '<%= utils.stripHtmlTags(tabs[i].title || 'Untitled').replace(/'/g, '\\\'') %>')"
                                     role="menuitem"
                                 >
                                     🗑️ Delete Group
@@ -280,7 +280,7 @@
                                      <td style="padding: 10px;">
                                         <div style="display: flex; gap: 5px; align-items: center;">
                                             <img loading="lazy" src= "<%- utils.getFaviconUrl(tabs[i].items[j].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                            <a href="<%= tabs[i].items[j].url %>" style="overflow: auto; white-space: nowrap;" title="<%= tabs[i].items[j].url %>" target="_blank" rel="noopener noreferrer">
+                                            <a href="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" target="_blank" rel="noopener noreferrer">
                                                 <%- tabs[i].items[j].url %>
                                             </a>
                                         </div>
@@ -305,7 +305,7 @@
                                               type="button"
                                               class="no-style-btn"
                                               style="text-align: left;"
-                                              onclick="showDeleteItemModal('<%= tabs[i].id %>', '<%= tabs[i].items[j].id %>', '<%= (tabs[i].items[j].title || 'Untitled').replace(/'/g, '\\\'') %>')"
+                                              onclick="showDeleteItemModal('<%= tabs[i].id %>', '<%= tabs[i].items[j].id %>', '<%= utils.stripHtmlTags(tabs[i].items[j].title || 'Untitled').replace(/'/g, '\\\'') %>')"
                                               role="menuitem"
                                           >
                                               🗑️ Delete <%- tabs[i].items[j].id %>

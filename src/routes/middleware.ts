@@ -5,6 +5,7 @@ import {
     isUrlLike,
     isApiRequest,
     getFaviconUrl,
+    stripHtmlTags,
     highlightSearchTerm,
     formatDateInTimezone,
     verifyTurnstileToken,
@@ -223,6 +224,7 @@ export function setupAppLocals(req: Request, res: Response) {
         nl2br,
         getFaviconUrl,
         isUrlLike,
+        stripHtmlTags,
         highlightSearchTerm,
         formatDateInTimezone,
     };

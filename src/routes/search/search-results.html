@@ -69,8 +69,8 @@
                                     </td>
                                     <td style="padding: 10px;">-</td>
                                     <td style="padding: 10px;">
-                                        <a href="<%= bookmark.url %>" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= bookmark.title %>" target="_blank" rel="noopener noreferrer">
-                                            <img loading="lazy" src="<%- utils.getFaviconUrl(bookmark.url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                        <a href="<%= utils.stripHtmlTags(bookmark.url) %>" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= utils.stripHtmlTags(bookmark.title) %>" target="_blank" rel="noopener noreferrer">
+                                            <img loading="lazy" src="<%- utils.getFaviconUrl(utils.stripHtmlTags(bookmark.url)) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                             <%- bookmark.url %>
                                         </a>
                                     </td>
@@ -83,10 +83,10 @@
                                     </td>
                                     <td style="padding: 10px;">
                                         <details style="position: relative;">
-                                            <summary aria-label="Actions for <%= bookmark.title || 'Untitled' %>">Actions</summary>
+                                            <summary aria-label="Actions for <%= utils.stripHtmlTags(bookmark.title) || 'Untitled' %>">Actions</summary>
                                             <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
                                                 <a href="/bookmarks/<%= bookmark.id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
-                                                <a href="<%= bookmark.url %>" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;" role="menuitem">🔗 Visit</a>
+                                                <a href="<%= utils.stripHtmlTags(bookmark.url) %>" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;" role="menuitem">🔗 Visit</a>
                                             </div>
                                         </details>
                                     </td>
@@ -108,8 +108,8 @@
                                         <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%- action.trigger %></code>
                                     </td>
                                     <td style="padding: 10px;">
-                                        <a href="<%= action.url %>" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= action.url %>" target="_blank" rel="noopener noreferrer">
-                                            <img loading="lazy" src="<%- utils.getFaviconUrl(action.url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                        <a href="<%= utils.stripHtmlTags(action.url) %>" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= utils.stripHtmlTags(action.url) %>" target="_blank" rel="noopener noreferrer">
+                                            <img loading="lazy" src="<%- utils.getFaviconUrl(utils.stripHtmlTags(action.url)) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                             <%- action.url %>
                                         </a>
                                     </td>
@@ -128,10 +128,10 @@
                                     </td>
                                     <td style="padding: 10px;">
                                         <details style="position: relative;">
-                                            <summary aria-label="Actions for <%= action.name %>">Actions</summary>
+                                            <summary aria-label="Actions for <%= utils.stripHtmlTags(action.name) %>">Actions</summary>
                                             <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
                                                 <a href="/actions/<%= action.id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
-                                                <a href="<%= action.url %>" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;" role="menuitem">🔗 Visit</a>
+                                                <a href="<%= utils.stripHtmlTags(action.url) %>" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;" role="menuitem">🔗 Visit</a>
                                             </div>
                                         </details>
                                     </td>
@@ -147,7 +147,7 @@
                                         <a href="/notes">📝 Note</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <a href="/notes/<%= note.id %>" title="<%= note.title %>">
+                                        <a href="/notes/<%= note.id %>" title="<%= utils.stripHtmlTags(note.title) %>">
                                             <%- note.title %>
                                         </a>
                                     </td>
@@ -164,7 +164,7 @@
                                     </td>
                                     <td style="padding: 10px;">
                                         <details style="position: relative;">
-                                            <summary aria-label="Actions for note <%= note.title %>">Actions</summary>
+                                            <summary aria-label="Actions for note <%= utils.stripHtmlTags(note.title) %>">Actions</summary>
                                             <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
                                                 <a href="/notes/<%= note.id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                                 <a href="/notes/<%= note.id %>" style="display: inline-flex; align-items: center;" role="menuitem">👁️ View</a>
@@ -198,7 +198,7 @@
                                     </td>
                                     <td style="padding: 10px;">
                                         <details style="position: relative;">
-                                            <summary aria-label="Actions for tab <%= tab.title %>">Actions</summary>
+                                            <summary aria-label="Actions for tab <%= utils.stripHtmlTags(tab.title) %>">Actions</summary>
                                             <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
                                                 <a href="/tabs/<%= tab.id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                                 <a href="/tabs/<%= tab.id %>/launch" style="display: inline-flex; align-items: center;" role="menuitem">🚀 Launch</a>
@@ -217,15 +217,15 @@
                                         <a href="/reminders">⏰ Reminder</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <a href="/reminders/<%= reminder.id %>" title="<%= reminder.title %>">
+                                        <a href="/reminders/<%= reminder.id %>" title="<%= utils.stripHtmlTags(reminder.title) %>">
                                             <%- reminder.title %>
                                         </a>
                                     </td>
                                     <td style="padding: 10px;">-</td>
                                     <td style="padding: 10px;">
                                         <% if (reminder.content && reminder.content.startsWith('http')) { %>
-                                            <a href="<%= reminder.content %>" target="_blank" rel="noopener noreferrer" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= reminder.content %>">
-                                                <img loading="lazy" src="<%- utils.getFaviconUrl(reminder.content) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                            <a href="<%= utils.stripHtmlTags(reminder.content) %>" target="_blank" rel="noopener noreferrer" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= utils.stripHtmlTags(reminder.content) %>">
+                                                <img loading="lazy" src="<%- utils.getFaviconUrl(utils.stripHtmlTags(reminder.content)) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                                 <%- reminder.content %>
                                             </a>
                                         <% } else { %>
@@ -251,7 +251,7 @@
                                     </td>
                                     <td style="padding: 10px;">
                                         <details style="position: relative;">
-                                            <summary aria-label="Actions for reminder <%= reminder.title %>">Actions</summary>
+                                            <summary aria-label="Actions for reminder <%= utils.stripHtmlTags(reminder.title) %>">Actions</summary>
                                             <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
                                                 <a href="/reminders/<%= reminder.id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                                 <a href="/reminders/<%= reminder.id %>" style="display: inline-flex; align-items: center;" role="menuitem">👁️ View</a>

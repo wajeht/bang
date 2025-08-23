@@ -130,8 +130,8 @@
                   <button
                       type="button"
                       class="no-style-btn"
-                      onclick="showDeleteUserModal('<%= user.id %>', '<%= (user.username || 'Unknown User').replace(/'/g, '\\\'') %>')"
-                      aria-label="Delete user <%= user.username %>"
+                      onclick="showDeleteUserModal('<%= user.id %>', '<%= utils.stripHtmlTags(user.username || 'Unknown User').replace(/'/g, '\\\'') %>')"
+                      aria-label="Delete user <%= utils.stripHtmlTags(user.username) %>"
                   >
                     🗑️ Delete
                   </button>

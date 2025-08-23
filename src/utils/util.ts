@@ -508,25 +508,36 @@ export function sqlHighlight(columnName: string, searchTerm: string | null | und
         const titleWord = escapedWord.charAt(0).toUpperCase() + escapedWord.slice(1).toLowerCase();
 
         // Apply REPLACE operations, avoiding duplicates
-        sql = `REPLACE(${sql}, '${escapedWord}', X'3C' || 'mark' || X'3E' || '${escapedWord}' || X'3C' || '/mark' || X'3E')`;
+        sql = `REPLACE(${sql}, '${escapedWord}', X'3C' || 'mark' || X'3E' || '${escapedWord}' || X'3C2F' || 'mark' || X'3E')`;
 
         // Only do lowercase if different from original
         if (lowerWord !== escapedWord) {
-            sql = `REPLACE(${sql}, '${lowerWord}', X'3C' || 'mark' || X'3E' || '${lowerWord}' || X'3C' || '/mark' || X'3E')`;
+            sql = `REPLACE(${sql}, '${lowerWord}', X'3C' || 'mark' || X'3E' || '${lowerWord}' || X'3C2F' || 'mark' || X'3E')`;
         }
 
         // Only do uppercase if different from original and lowercase
         if (upperWord !== escapedWord && upperWord !== lowerWord) {
-            sql = `REPLACE(${sql}, '${upperWord}', X'3C' || 'mark' || X'3E' || '${upperWord}' || X'3C' || '/mark' || X'3E')`;
+            sql = `REPLACE(${sql}, '${upperWord}', X'3C' || 'mark' || X'3E' || '${upperWord}' || X'3C2F' || 'mark' || X'3E')`;
         }
 
         // Only do title case if different from all others
         if (titleWord !== escapedWord && titleWord !== lowerWord && titleWord !== upperWord) {
-            sql = `REPLACE(${sql}, '${titleWord}', X'3C' || 'mark' || X'3E' || '${titleWord}' || X'3C' || '/mark' || X'3E')`;
+            sql = `REPLACE(${sql}, '${titleWord}', X'3C' || 'mark' || X'3E' || '${titleWord}' || X'3C2F' || 'mark' || X'3E')`;
         }
     }
 
     return sql;
+}
+
+export function stripHtmlTags(text: string | null | undefined): string {
+    if (!text) return '';
+    return String(text)
+        .replace(/<[^>]*>/g, '') // Remove HTML tags
+        .replace(/\s+/g, ' ') // Normalize multiple whitespace to single space
+        .replace(/\s*\.\s*/g, '.') // Remove spaces around dots (for URLs like "bang. jaw .dev")
+        .replace(/\s*\/\s*/g, '/') // Remove spaces around slashes
+        .replace(/\s*:\s*/g, ':') // Remove spaces around colons
+        .trim(); // Remove leading/trailing whitespace
 }
 
 export function nl2br(str: string): string {

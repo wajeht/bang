@@ -121,7 +121,7 @@
                                     <% if (reminders[i].title && utils.isUrlLike(reminders[i].title)) { %>
                                         <div style="display: flex; gap: 5px; align-items: center;">
                                             <img loading="lazy" src="<%- utils.getFaviconUrl(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                            <a href="<%= reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title %>" style="overflow: auto; white-space: nowrap;" title="<%= reminders[i].title %>" target="_blank" rel="noopener noreferrer">
+                                            <a href="<%= utils.stripHtmlTags(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
                                                 <%- reminders[i].title %>
                                             </a>
                                         </div>
@@ -136,7 +136,7 @@
                                         <% if (utils.isUrlLike(reminders[i].content)) { %>
                                             <div style="display: flex; gap: 5px; align-items: center;">
                                                 <img loading="lazy" src="<%- utils.getFaviconUrl(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                                <a href="<%= reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content %>" style="overflow: auto; white-space: nowrap;" title="<%= reminders[i].title %>" target="_blank" rel="noopener noreferrer">
+                                                <a href="<%= utils.stripHtmlTags(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
                                                     <%- reminders[i].content %>
                                                 </a>
                                             </div>
@@ -197,16 +197,16 @@
                             <% } %>
                             <td style="padding: 10px;">
                                 <details style="position: relative;">
-                                    <summary aria-label="Actions for reminder <%= reminders[i].title %>">Actions</summary>
+                                    <summary aria-label="Actions for reminder <%= utils.stripHtmlTags(reminders[i].title) %>">Actions</summary>
                                     <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
-                                        <a href="/reminders/<%= reminders[i].id %>/edit" role="menuitem" aria-label="Edit reminder <%= reminders[i].title %>">✏️ Edit</a>
+                                        <a href="/reminders/<%= reminders[i].id %>/edit" role="menuitem" aria-label="Edit reminder <%= utils.stripHtmlTags(reminders[i].title) %>">✏️ Edit</a>
                                         <button
                                             type="button"
                                             class="no-style-btn"
                                             style="text-align: left;"
-                                            onclick="showDeleteReminderModal('<%= reminders[i].id %>', '<%= reminders[i].title.replace(/'/g, '\\\'') %>')"
+                                            onclick="showDeleteReminderModal('<%= reminders[i].id %>', '<%= utils.stripHtmlTags(reminders[i].title).replace(/'/g, '\\\'') %>')"
                                             role="menuitem"
-                                            aria-label="Delete reminder <%= reminders[i].title %>"
+                                            aria-label="Delete reminder <%= utils.stripHtmlTags(reminders[i].title) %>"
                                         >
                                             🗑️ Delete
                                         </button>
