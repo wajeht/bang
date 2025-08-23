@@ -22,6 +22,7 @@ vi.mock('../utils/util', () => ({
     },
     highlightSearchTerm: vi.fn((text, _term) => text),
     nl2br: vi.fn((text) => text),
+    stripHtmlTags: vi.fn((text) => text?.replace(/<[^>]*>/g, '') || ''),
     formatDateInTimezone: vi.fn((_date, _timezone) => ({
         dateString: '1/1/2024',
         timeString: '12:00 PM',
