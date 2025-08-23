@@ -42,9 +42,6 @@ export function errorMiddleware() {
             request: {
                 url: req.url,
                 method: req.method,
-                headers: req.headers,
-                query: req.query,
-                body: req.body,
                 userId: req.user?.id || req.session?.user?.id,
             },
         });
@@ -364,7 +361,13 @@ export async function authenticationMiddleware(req: Request, res: Response, next
 
         next();
     } catch (error) {
-        logger.error(`Authentication error: %o`, { error: error as any });
+        logger.error(`Authentication error: ${(error as Error).message}`, {
+            error: {
+                name: (error as Error).name,
+                message: (error as Error).message,
+                stack: (error as Error).stack,
+            }
+        });
         next(error);
     }
 }
