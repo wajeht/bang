@@ -80,7 +80,7 @@
 	<script type="application/json" id="app-state"><%- JSON.stringify(state) %></script>
 
 	<!-- 5. Deferred scripts -->
-	<% if (state.env === 'production') { %>
+	<% if (state.env === 'testing') { %>
 		<script>
 			if (HTMLScriptElement.supports && HTMLScriptElement.supports("speculationrules")) {
 				const specScript = document.createElement("script");
@@ -137,6 +137,8 @@
 				console.log('Speculation rules are not supported for your browser!');
 			}
 		</script>
+	<% } %>
+	<% if (state.env === 'testing') { %>
 		<script defer data-domain="bang.jaw.dev" src="https://plausible.jaw.dev/js/script.js"></script>
 	<% } %>
 	<script defer src="/script.js?v=<%- state.version.script %>"></script>
