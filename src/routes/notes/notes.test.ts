@@ -462,8 +462,9 @@ describe('Notes Routes', () => {
                 .send({ content: '# Heading\n\n**Bold text**' })
                 .expect(200);
             
-            expect(response.body.html).toContain('<h1>Heading</h1>');
-            expect(response.body.html).toContain('<strong>Bold text</strong>');
+            // The API returns rendered HTML in the 'content' field
+            expect(response.body.content).toContain('<h1>Heading</h1>');
+            expect(response.body.content).toContain('<strong>Bold text</strong>');
         });
 
         it('should handle empty markdown', async () => {

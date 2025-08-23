@@ -3118,8 +3118,15 @@ describe('parseReminderTiming', () => {
         const dueDate = dayjs(timing.nextDue);
         const diff = dueDate.diff(now, 'hours');
 
-        // Should be between 15-32 hours in the future (tomorrow)
-        expect(diff).toBeGreaterThan(15);
-        expect(diff).toBeLessThanOrEqual(32);
+        // Daily reminders should be at least a few hours in the future
+        // If it's before 9 AM and we're scheduling for today at 9 AM, that's still valid
+        // If it's after 9 AM, it should be scheduled for tomorrow
+        expect(diff).toBeGreaterThan(0);
+        expect(diff).toBeLessThanOrEqual(32); // Should not be more than 32 hours away
+        
+        // The due date should be either today (if current time < 9 AM) or tomorrow
+        const isToday = dueDate.isSame(now, 'day');
+        const isTomorrow = dueDate.isSame(now.add(1, 'day'), 'day');
+        expect(isToday || isTomorrow).toBe(true);
     });
 });
