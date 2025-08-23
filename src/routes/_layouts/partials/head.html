@@ -124,6 +124,12 @@
 				specScript.textContent = JSON.stringify(specRules);
 				document.head.appendChild(specScript);
 				console.log('Speculation rules added!');
+
+				if (document.prerendering) {
+					document.addEventListener("prerenderingchange", () => {
+						console.log('Page activated from prerender!');
+					}, { once: true });
+				}
 			} else {
 				console.log('Speculation rules are not supported for your browser!');
 			}
