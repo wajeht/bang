@@ -368,7 +368,7 @@ export async function authenticationMiddleware(req: Request, res: Response, next
                 name: (error as Error).name,
                 message: (error as Error).message,
                 stack: (error as Error).stack,
-            }
+            },
         });
         next(error);
     }

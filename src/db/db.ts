@@ -83,7 +83,7 @@ export async function checkDatabaseHealth() {
     }
 }
 
-export async function runProdMigration(force: boolean = false) {
+export async function runProductionMigration(force: boolean = false) {
     try {
         if (config.app.env !== 'production' && force !== true) {
             logger.info('cannot run auto database migration on non production');

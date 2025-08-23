@@ -13,25 +13,27 @@ import ejs from 'ejs';
 import cors from 'cors';
 import cron from 'node-cron';
 import express from 'express';
-import { router } from './routes/routes';
 import flash from 'connect-flash';
 import { config } from './config';
-import { Server } from 'node:http';
 import compression from 'compression';
-import { AddressInfo } from 'node:net';
 import { logger } from './utils/logger';
+import { router } from './routes/routes';
+import { processReminderDigests } from './utils/util';
 import { expressJSDocSwaggerHandler } from './utils/swagger';
-import { isMailpitRunning, processReminderDigests } from './utils/util';
-import { db, runProdMigration, checkDatabaseHealth, optimizeDatabase } from './db/db';
+import { runProductionMigration, checkDatabaseHealth, optimizeDatabase } from './db/db';
 
-async function initDatabase() {
-    await checkDatabaseHealth();
-    await optimizeDatabase();
-    await runProdMigration();
-    logger.info('Database migrations completed successfully');
+async function inittializeDatabase() {
+    try {
+        await checkDatabaseHealth();
+        await optimizeDatabase();
+        await runProductionMigration();
+        logger.info('Database migrations completed successfully');
+    } catch (error: any) {
+        logger.error('Error while initalizing databse: %o', { error });
+    }
 }
 
-function setupCronJobs() {
+export function createCronJobs() {
     cron.schedule(
         '*/15 * * * *', // every 15 minutes
         async () => {
@@ -39,7 +41,7 @@ function setupCronJobs() {
             try {
                 await processReminderDigests();
                 logger.info('Reminder check completed');
-            } catch (error) {
+            } catch (error: any) {
                 logger.error('Reminder check failed: %o', { error });
             }
         },
@@ -56,7 +58,7 @@ export async function createApp() {
 
     if (config.app.env === 'production') {
         try {
-            await initDatabase();
+            await inittializeDatabase();
         } catch (error) {
             logger.error('Database connection or migration error: %o', { error: error as any });
             throw error;
@@ -109,85 +111,4 @@ export async function createApp() {
     app.use(errorMiddleware());
 
     return app;
-}
-
-export async function createServer() {
-    const app = await createApp();
-
-    const server: Server = app.listen(config.app.port);
-
-    server.timeout = 120000; // 2 minutes
-    server.keepAliveTimeout = 65000; // 65 seconds
-    server.headersTimeout = 66000; // slightly higher than keepAliveTimeout
-    server.requestTimeout = 120000; // same as timeout
-
-    server.on('listening', async () => {
-        const addr: string | AddressInfo | null = server.address();
-        const bind: string = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port; // prettier-ignore
-
-        logger.info(`Server is listening on ${bind}`);
-
-        if (config.app.env === 'development' && (await isMailpitRunning())) {
-            logger.info('Mailpit is running on http://localhost:8025');
-        }
-
-        setupCronJobs();
-    });
-
-    server.on('error', (error: NodeJS.ErrnoException) => {
-        if (error.syscall !== 'listen') {
-            throw error;
-        }
-
-        const bind: string = typeof config.app.port === 'string' ? 'Pipe ' + config.app.port : 'Port ' + config.app.port; // prettier-ignore
-
-        switch (error.code) {
-            case 'EACCES':
-                logger.error(`${bind} requires elevated privileges`);
-                process.exit(1);
-                break;
-            case 'EADDRINUSE':
-                logger.error(`${bind} is already in use`);
-                process.exit(1);
-                break;
-            default:
-                throw error;
-        }
-    });
-
-    return { app, server };
-}
-
-export async function closeServer({ server }: { server: Server }) {
-    logger.info('Shutting down server gracefully...');
-
-    let shutdownComplete = false;
-
-    server.keepAliveTimeout = 0;
-    server.headersTimeout = 0;
-    server.timeout = 1;
-
-    server.close(async () => {
-        logger.info('HTTP server closed.');
-
-        try {
-            await db.destroy();
-            logger.info('[closeServer]: Database connection closed.');
-
-            shutdownComplete = true;
-            logger.info('[closeServer]: All connections closed successfully.');
-        } catch (error) {
-            logger.error(`[closeServer]: Error during shutdown: %o`, { error: error as any });
-            throw error;
-        }
-    });
-
-    setTimeout(() => {
-        if (!shutdownComplete) {
-            logger.error(
-                '[closeServer]: Could not close connections in time, forcefully shutting down',
-            );
-            process.exit(1);
-        }
-    }, 10000);
 }
