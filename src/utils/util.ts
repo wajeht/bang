@@ -602,15 +602,19 @@ export async function getConvertedReadmeMDToHTML(): Promise<string> {
             const { marked } = await import('marked');
             const html = await marked(usage);
             
-            const { minify: minifyHtml } = await import('html-minifier-terser');
-            const minifiedHtml = await minifyHtml(html as string, {
-                collapseWhitespace: true,
-                removeComments: true,
-                removeRedundantAttributes: true,
-                removeEmptyAttributes: true,
-            });
-            
-            cachedReadMeMdHTML = Promise.resolve(minifiedHtml);
+            try {
+                const { minify: minifyHtml } = await import('html-minifier-terser');
+                const minifiedHtml = await minifyHtml(html as string, {
+                    collapseWhitespace: true,
+                    removeComments: true,
+                    removeRedundantAttributes: true,
+                    removeEmptyAttributes: true,
+                });
+                cachedReadMeMdHTML = Promise.resolve(minifiedHtml);
+            } catch (minifyError) {
+                logger.error(`Failed to minify HTML, using original: %o`, { error: minifyError });
+                cachedReadMeMdHTML = Promise.resolve(html as string);
+            }
         }
         return cachedReadMeMdHTML;
     } catch (error) {
