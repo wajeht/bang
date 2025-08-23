@@ -57,7 +57,6 @@ describe('Notes Routes', () => {
         it('should return notes as JSON', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
-            // Create a test note
             await db('notes').insert({
                 user_id: user.id,
                 title: 'Test Note',
@@ -123,7 +122,6 @@ describe('Notes Routes', () => {
         it('should validate required fields', async () => {
             const { agent } = await authenticateAgent(app);
 
-            // When validation fails, it redirects back with error in session
             await agent
                 .post('/notes')
                 .type('form')
@@ -147,10 +145,8 @@ describe('Notes Routes', () => {
                 })
                 .expect(201);
 
-            // API only returns a success message, not the created note
             expect(response.body.message).toContain('created successfully');
 
-            // Verify note was created in database
             const note = await db('notes').where({ user_id: user.id, title: 'API Note' }).first();
             expect(note).toBeDefined();
             expect(note.content).toBe('API content');
@@ -189,7 +185,6 @@ describe('Notes Routes', () => {
         it('should not allow viewing notes from other users', async () => {
             const { agent } = await authenticateAgent(app);
 
-            // Create note for another user
             const [otherUser] = await db('users')
                 .insert({
                     username: 'otheruser',
@@ -280,7 +275,6 @@ describe('Notes Routes', () => {
         it('should not allow updating notes from other users', async () => {
             const { agent } = await authenticateAgent(app);
 
-            // Create note for another user
             const [otherUser] = await db('users')
                 .insert({
                     username: 'otheruser2',
@@ -299,18 +293,13 @@ describe('Notes Routes', () => {
                 })
                 .returning('*');
 
-            // Trying to update another user's note should redirect or return error
             const response = await agent.post(`/notes/${note.id}/update`).type('form').send({
                 title: 'Hacked Title',
                 content: 'Hacked content',
             });
 
-            // Could be 302 redirect, 403 forbidden, 404 not found, or 500 if there's an error
-            // The route handler has a bug where it doesn't handle non-existent/unauthorized notes properly
-            // It tries to read properties of null, causing a 500 error
             expect([302, 403, 404, 500].includes(response.status)).toBe(true);
 
-            // Verify note wasn't changed
             const unchangedNote = await db('notes').where({ id: note.id }).first();
             expect(unchangedNote.title).toBe('Other User Note');
         });
@@ -348,7 +337,6 @@ describe('Notes Routes', () => {
         it('should not allow deleting notes from other users', async () => {
             const { agent } = await authenticateAgent(app);
 
-            // Create note for another user
             const [otherUser] = await db('users')
                 .insert({
                     username: 'otheruser3',
@@ -369,7 +357,6 @@ describe('Notes Routes', () => {
 
             await agent.post(`/notes/${note.id}/delete`).type('form').send({}).expect(404);
 
-            // Verify note still exists
             const stillExists = await db('notes').where({ id: note.id }).first();
             expect(stillExists).toBeDefined();
         });
@@ -398,13 +385,11 @@ describe('Notes Routes', () => {
                 })
                 .returning('*');
 
-            // Pin the note
             await agent.post(`/notes/${note.id}/pin`).type('form').send({}).expect(302);
 
             let updatedNote = await db('notes').where({ id: note.id }).first();
             expect(updatedNote.pinned).toBe(1);
 
-            // Unpin the note
             await agent.post(`/notes/${note.id}/pin`).type('form').send({}).expect(302);
 
             updatedNote = await db('notes').where({ id: note.id }).first();
@@ -414,7 +399,6 @@ describe('Notes Routes', () => {
         it('should not allow pinning notes from other users', async () => {
             const { agent } = await authenticateAgent(app);
 
-            // Create note for another user
             const [otherUser] = await db('users')
                 .insert({
                     username: 'otheruser4',
@@ -435,7 +419,6 @@ describe('Notes Routes', () => {
 
             await agent.post(`/notes/${note.id}/pin`).type('form').send({}).expect(404);
 
-            // Verify pin status didn't change
             const unchangedNote = await db('notes').where({ id: note.id }).first();
             expect(unchangedNote.pinned).toBe(0);
         });
@@ -459,7 +442,6 @@ describe('Notes Routes', () => {
                 .send({ content: '# Heading\n\n**Bold text**' })
                 .expect(200);
 
-            // The API returns rendered HTML in the 'content' field
             expect(response.body.content).toContain('<h1>Heading</h1>');
             expect(response.body.content).toContain('<strong>Bold text</strong>');
         });
@@ -467,10 +449,8 @@ describe('Notes Routes', () => {
         it('should handle empty markdown', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            // Empty content likely returns validation error
             const response = await agent.post('/api/notes/render-markdown').send({ content: '' });
 
-            // If empty content is not allowed, expect 422
             if (response.status === 422) {
                 expect(response.body.message).toContain('Validation');
             } else {

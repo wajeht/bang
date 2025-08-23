@@ -1,6 +1,5 @@
 import {
     cleanupTestData,
-    authenticateAgent,
     cleanupTestDatabase,
     authenticateApiAgent,
 } from '../../tests/api-test-utils';
@@ -36,7 +35,6 @@ describe('Actions API', () => {
         it('should return actions for authenticated user', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
-            // Create test data
             await db('bangs').insert({
                 name: 'Google Search',
                 trigger: 'g',
@@ -80,7 +78,7 @@ describe('Actions API', () => {
         });
 
         it('should create a new action', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent } = await authenticateApiAgent(app);
 
             const actionData = {
                 name: 'Test Action',

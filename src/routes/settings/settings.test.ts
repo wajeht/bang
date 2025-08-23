@@ -119,11 +119,10 @@ describe('Settings Routes', () => {
                 })
                 .expect(302);
 
-            // Verify user was updated
             const updatedUser = await db('users').where({ id: user.id }).first();
             expect(updatedUser.username).toBe('updateduser');
             expect(updatedUser.default_search_provider).toBe('google');
-            expect(updatedUser.autocomplete_search_on_homepage).toBe(1); // SQLite stores boolean as 1/0
+            expect(updatedUser.autocomplete_search_on_homepage).toBe(1);
         });
 
         it('should allow updating profile while keeping same username', async () => {
@@ -132,18 +131,17 @@ describe('Settings Routes', () => {
             await agent
                 .post('/settings/account')
                 .send({
-                    username: user.username, // Keep same username
-                    email: user.email, // Keep same email
+                    username: user.username,
+                    email: user.email,
                     default_search_provider: 'google',
                     autocomplete_search_on_homepage: 'on',
                     timezone: 'America/New_York',
                 })
                 .expect(302);
 
-            // Verify other fields were updated
             const updatedUser = await db('users').where({ id: user.id }).first();
-            expect(updatedUser.username).toBe(user.username); // Username unchanged
-            expect(updatedUser.email).toBe(user.email); // Email unchanged
+            expect(updatedUser.username).toBe(user.username);
+            expect(updatedUser.email).toBe(user.email);
             expect(updatedUser.default_search_provider).toBe('google');
             expect(updatedUser.timezone).toBe('America/New_York');
         });
@@ -151,7 +149,6 @@ describe('Settings Routes', () => {
         it('should validate email format', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            // Validation errors redirect back with error in session
             await agent
                 .post('/settings/account')
                 .send({
@@ -166,7 +163,6 @@ describe('Settings Routes', () => {
         it('should prevent duplicate usernames', async () => {
             const { agent } = await authenticateAgent(app);
 
-            // Create another user
             await db('users').insert({
                 username: 'existinguser',
                 email: 'existing@example.com',
@@ -174,7 +170,6 @@ describe('Settings Routes', () => {
                 default_search_provider: 'duckduckgo',
             });
 
-            // Duplicate usernames cause validation error and redirect
             await agent
                 .post('/settings/account')
                 .send({
@@ -245,7 +240,6 @@ describe('Settings Routes', () => {
                 })
                 .expect(302);
 
-            // Verify preferences were updated
             const updatedUser = await db('users').where({ id: user.id }).first();
             const preferences = JSON.parse(updatedUser.column_preferences);
             expect(preferences.bookmarks.title).toBe(true);
@@ -302,7 +296,6 @@ describe('Settings Routes', () => {
                 })
                 .expect(302);
 
-            // Verify reminder preferences were updated
             const updatedUser = await db('users').where({ id: user.id }).first();
             const preferences = JSON.parse(updatedUser.column_preferences);
             expect(preferences.reminders.title).toBe(true);
@@ -348,7 +341,6 @@ describe('Settings Routes', () => {
                 })
                 .expect(302);
 
-            // Verify action was imported
             const actions = await db('bangs').where({ user_id: user.id });
             expect(actions).toHaveLength(1);
             expect(actions[0].name).toBe('Test Action');
@@ -358,7 +350,6 @@ describe('Settings Routes', () => {
         it('should handle duplicate actions gracefully', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            // Create existing action
             await db('bangs').insert({
                 user_id: user.id,
                 trigger: '!test',
@@ -386,10 +377,9 @@ describe('Settings Routes', () => {
                 })
                 .expect(302);
 
-            // Verify no duplicate was created
             const actions = await db('bangs').where({ user_id: user.id, trigger: '!test' });
             expect(actions).toHaveLength(1);
-            expect(actions[0].name).toBe('Existing Action'); // Original should remain
+            expect(actions[0].name).toBe('Existing Action');
         });
     });
 });

@@ -237,10 +237,12 @@ export const csrfMiddleware = (() => {
             if (req.body && req.body.csrfToken) {
                 return req.body.csrfToken;
             }
+
             // For AJAX requests, check headers
             if (req.headers['x-csrf-token']) {
                 return req.headers['x-csrf-token'] as string;
             }
+
             // Fallback to query parameter
             return req.query.csrfToken as string;
         },
@@ -466,7 +468,7 @@ export function staticAssetsMiddleware() {
         etag: true,
         lastModified: true,
         immutable: true,
-        setHeaders: (res, path, stat) => {
+        setHeaders: (res, path, _stat) => {
             if (path.match(/\.(css|js|png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|eot|txt)$/)) {
                 res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
                 res.setHeader('Vary', 'Accept-Encoding');

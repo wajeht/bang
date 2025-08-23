@@ -45,10 +45,7 @@ describe('Admin Routes', () => {
 
             const { agent } = await authenticateAgent(app, 'admin@example.com');
 
-            const response = await agent
-                .get('/admin')
-                .expect(302)
-                .expect('Location', '/admin/users');
+            await agent.get('/admin').expect(302).expect('Location', '/admin/users');
         });
     });
 

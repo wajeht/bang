@@ -58,7 +58,6 @@ describe('Reminders Routes', () => {
         it('should return reminders as JSON', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
-            // Create a test reminder
             await db('reminders').insert({
                 user_id: user.id,
                 title: 'Test Reminder',
@@ -112,7 +111,6 @@ describe('Reminders Routes', () => {
         it('should create a new reminder with specific date', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            // Use a valid date format that parseReminderTiming accepts
             const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD');
 
             const response = await agent.post('/reminders').type('form').send({
@@ -184,14 +182,13 @@ describe('Reminders Routes', () => {
                 when: 'daily',
             });
 
-            // Title is required, should redirect back with errors in session
             expect(response.status).toBe(302);
         });
     });
 
     describe('POST /api/reminders', () => {
         it('should create a new reminder via API', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent } = await authenticateApiAgent(app);
 
             const response = await agent.post('/api/reminders').send({
                 title: 'API Reminder',
@@ -247,7 +244,6 @@ describe('Reminders Routes', () => {
         it('should not allow viewing reminders from other users', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            // Create reminder for another user
             const [otherUser] = await db('users')
                 .insert({
                     username: 'otheruser',
@@ -349,7 +345,6 @@ describe('Reminders Routes', () => {
         it('should not allow updating reminders from other users', async () => {
             const { agent } = await authenticateAgent(app);
 
-            // Create reminder for another user
             const [otherUser] = await db('users')
                 .insert({
                     username: 'otheruser2',
@@ -379,7 +374,6 @@ describe('Reminders Routes', () => {
                 })
                 .expect(404);
 
-            // Verify reminder wasn't changed
             const unchangedReminder = await db('reminders').where({ id: reminder.id }).first();
             expect(unchangedReminder.title).toBe('Other User Reminder');
         });
@@ -418,7 +412,6 @@ describe('Reminders Routes', () => {
         it('should not allow deleting reminders from other users', async () => {
             const { agent } = await authenticateAgent(app);
 
-            // Create reminder for another user
             const [otherUser] = await db('users')
                 .insert({
                     username: 'otheruser3',
@@ -460,7 +453,6 @@ describe('Reminders Routes', () => {
         it('should recalculate all reminders for user', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            // Create reminders with different frequencies
             await db('reminders').insert([
                 {
                     user_id: user.id,
@@ -480,17 +472,14 @@ describe('Reminders Routes', () => {
 
             await agent.post('/reminders/recalculate').type('form').send({}).expect(302);
 
-            // Check that reminders were recalculated
             const reminders = await db('reminders').where({ user_id: user.id });
 
             const dailyReminder = reminders.find((r) => r.title === 'Daily Reminder');
             const weeklyReminder = reminders.find((r) => r.title === 'Weekly Reminder');
 
-            // Check that reminders still exist (recalculation logic is app-specific)
             expect(dailyReminder).toBeDefined();
             expect(weeklyReminder).toBeDefined();
-            // The actual recalculation logic depends on the app's business rules
-            // Just verify the reminders were processed
+
             expect(dailyReminder.due_date).toBeDefined();
             expect(weeklyReminder.due_date).toBeDefined();
         });
