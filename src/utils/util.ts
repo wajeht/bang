@@ -600,7 +600,33 @@ export async function getConvertedReadmeMDToHTML(): Promise<string> {
             const content = await getReadmeFileContent();
             const usage = extractReadmeUsage(content);
             const { marked } = await import('marked');
-            cachedReadMeMdHTML = Promise.resolve(marked(usage));
+            const html = await marked(usage);
+            
+            const { minify: minifyHtml } = await import('html-minifier-terser');
+            const minifiedHtml = await minifyHtml(html as string, {
+                collapseWhitespace: true,
+                removeComments: true,
+                removeOptionalTags: false,
+                removeRedundantAttributes: true,
+                removeScriptTypeAttributes: true,
+                removeStyleLinkTypeAttributes: true,
+                useShortDoctype: true,
+                minifyCSS: true,
+                minifyJS: {
+                    compress: false,
+                    mangle: false,
+                    output: {
+                        comments: false,
+                    }
+                },
+                conservativeCollapse: true,
+                preserveLineBreaks: false,
+                removeEmptyAttributes: true,
+                removeAttributeQuotes: false,
+                keepClosingSlash: true,
+            });
+            
+            cachedReadMeMdHTML = Promise.resolve(minifiedHtml);
         }
         return cachedReadMeMdHTML;
     } catch (error) {
