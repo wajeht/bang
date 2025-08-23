@@ -1120,7 +1120,8 @@ describe('processReminderDigests', () => {
         expect(dailyNextDue.getTime() - originalDue.getTime()).toBeCloseTo(24 * 60 * 60 * 1000, -4);
 
         // Weekly should be scheduled for next Saturday after processing
-        const weeklyDue = dayjs(weeklyReminder.due_date);
+        // Parse the UTC date and convert to test user's timezone to check the day
+        const weeklyDue = dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
         expect(weeklyDue.day()).toBe(6); // 6 = Saturday
 
         // Since the reminder is processed and moved to the next occurrence,
@@ -1202,7 +1203,8 @@ describe('processReminderDigests', () => {
         expect(monthlyReminder).toBeTruthy();
 
         // Weekly reminder should be scheduled for next Saturday
-        const weeklyDue = dayjs(weeklyReminder.due_date);
+        // Parse the UTC date and convert to test user's timezone to check the day
+        const weeklyDue = dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
         expect(weeklyDue.day()).toBe(6); // 6 = Saturday
 
         // Monthly reminder should be scheduled for the 1st of next month
@@ -1242,7 +1244,8 @@ describe('processReminderDigests', () => {
         expect(monthlyReminder).toBeTruthy();
 
         // Weekly reminder should be scheduled for next Saturday
-        const weeklyDue = dayjs(weeklyReminder.due_date);
+        // Parse the UTC date and convert to test user's timezone to check the day
+        const weeklyDue = dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
         expect(weeklyDue.day()).toBe(6); // 6 = Saturday
 
         // Monthly reminder should be scheduled for the 1st of next month
