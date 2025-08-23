@@ -16,8 +16,6 @@ import {
     highlightSearchTerm,
     getReadmeFileContent,
     formatDateInTimezone,
-    processReminderDigests,
-    sendReminderDigestEmail,
     isOnlyLettersAndNumbers,
     getConvertedReadmeMDToHTML,
 } from './util';
@@ -29,6 +27,7 @@ import fs from 'node:fs/promises';
 import { Request } from 'express';
 import { config } from '../config';
 import { ApiKeyPayload, BookmarkToExport } from '../type';
+import { processReminderDigests, sendReminderDigestEmail } from './mail';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe.concurrent('isValidUrl', () => {

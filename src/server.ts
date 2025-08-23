@@ -4,7 +4,7 @@ import { Server } from 'node:http';
 import { notifyError } from './error';
 import { AddressInfo } from 'node:net';
 import { logger } from './utils/logger';
-import { isMailpitRunning } from './utils/util';
+import { isMailpitRunning } from './utils/mail';
 import { createApp, createCronJobs } from './app';
 
 export async function createServer() {

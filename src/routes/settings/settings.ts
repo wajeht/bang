@@ -3,10 +3,11 @@ import { api } from '../../utils/util';
 import { logger } from '../../utils/logger';
 import { searchConfig } from '../../utils/search';
 import type { User, ApiKeyPayload } from '../../type';
+import { sendDataExportEmail } from '../../utils/mail';
 import express, { type Request, type Response } from 'express';
 import { authenticationMiddleware } from '../../routes/middleware';
 import { HttpError, NotFoundError, ValidationError } from '../../error';
-import { isValidEmail, generateUserDataExport, sendDataExportEmail } from '../../utils/util';
+import { isValidEmail, generateUserDataExport } from '../../utils/util';
 
 export function createSettingsRouter(db: Knex) {
     const router = express.Router();

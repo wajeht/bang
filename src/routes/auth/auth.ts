@@ -3,8 +3,9 @@ import type { Knex } from 'knex';
 import { config } from '../../config';
 import type { Request, Response } from 'express';
 import { turnstileMiddleware } from '../middleware';
+import { sendMagicLinkEmail } from '../../utils/mail';
 import { HttpError, ValidationError } from '../../error';
-import { isValidEmail, magicLink, sendMagicLinkEmail } from '../../utils/util';
+import { isValidEmail, magicLink } from '../../utils/util';
 
 export function createAuthRouter(db: Knex) {
     const router = express.Router();
