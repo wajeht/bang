@@ -606,24 +606,8 @@ export async function getConvertedReadmeMDToHTML(): Promise<string> {
             const minifiedHtml = await minifyHtml(html as string, {
                 collapseWhitespace: true,
                 removeComments: true,
-                removeOptionalTags: false,
                 removeRedundantAttributes: true,
-                removeScriptTypeAttributes: true,
-                removeStyleLinkTypeAttributes: true,
-                useShortDoctype: true,
-                minifyCSS: true,
-                minifyJS: {
-                    compress: false,
-                    mangle: false,
-                    output: {
-                        comments: false,
-                    }
-                },
-                conservativeCollapse: true,
-                preserveLineBreaks: false,
                 removeEmptyAttributes: true,
-                removeAttributeQuotes: false,
-                keepClosingSlash: true,
             });
             
             cachedReadMeMdHTML = Promise.resolve(minifiedHtml);
