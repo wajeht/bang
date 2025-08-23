@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+    cleanupTestData,
+    authenticateAgent,
+    cleanupTestDatabase,
+} from '../../tests/api-test-utils';
 import request from 'supertest';
 import { db } from '../../db/db';
 import { createApp } from '../../app';
-import {
-    authenticateAgent,
-    cleanupTestData,
-    cleanupTestDatabase,
-} from '../../tests/api-test-utils';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 describe('General Routes', () => {
     let app: any;

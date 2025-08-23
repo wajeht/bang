@@ -3116,15 +3116,15 @@ describe('parseReminderTiming', () => {
         // The reminder should be scheduled for tomorrow at 9 AM
         const now = dayjs();
         const dueDate = dayjs(timing.nextDue);
-        
+
         // Check that it's scheduled for 9 AM in Chicago time (not UTC)
         const dueDateChicago = dueDate.tz('America/Chicago');
         expect(dueDateChicago.hour()).toBe(9);
         expect(dueDateChicago.minute()).toBe(0);
-        
+
         // Should be in the future
         expect(dueDate.isAfter(now)).toBe(true);
-        
+
         // Should be within the next 24 hours (for tomorrow)
         const diff = dueDate.diff(now, 'hours');
         expect(diff).toBeGreaterThan(0);

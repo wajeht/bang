@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+    cleanupTestData,
+    authenticateAgent,
+    cleanupTestDatabase,
+    authenticateApiAgent,
+} from '../../tests/api-test-utils';
 import request from 'supertest';
 import { db } from '../../db/db';
 import { createApp } from '../../app';
-import {
-    authenticateAgent,
-    authenticateApiAgent,
-    cleanupTestData,
-    cleanupTestDatabase,
-} from '../../tests/api-test-utils';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 describe('Actions API', () => {
     let app: any;

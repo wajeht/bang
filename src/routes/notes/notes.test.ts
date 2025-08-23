@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+    cleanupTestData,
+    authenticateAgent,
+    cleanupTestDatabase,
+    authenticateApiAgent,
+    createUnauthenticatedAgent,
+} from '../../tests/api-test-utils';
 import request from 'supertest';
 import { db } from '../../db/db';
 import { createApp } from '../../app';
-import {
-    authenticateAgent,
-    authenticateApiAgent,
-    cleanupTestData,
-    cleanupTestDatabase,
-    createUnauthenticatedAgent,
-} from '../../tests/api-test-utils';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 describe('Notes Routes', () => {
     let app: any;
@@ -300,14 +300,11 @@ describe('Notes Routes', () => {
                 .returning('*');
 
             // Trying to update another user's note should redirect or return error
-            const response = await agent
-                .post(`/notes/${note.id}/update`)
-                .type('form')
-                .send({
-                    title: 'Hacked Title',
-                    content: 'Hacked content',
-                });
-            
+            const response = await agent.post(`/notes/${note.id}/update`).type('form').send({
+                title: 'Hacked Title',
+                content: 'Hacked content',
+            });
+
             // Could be 302 redirect, 403 forbidden, 404 not found, or 500 if there's an error
             // The route handler has a bug where it doesn't handle non-existent/unauthorized notes properly
             // It tries to read properties of null, causing a 500 error
@@ -461,7 +458,7 @@ describe('Notes Routes', () => {
                 .post('/api/notes/render-markdown')
                 .send({ content: '# Heading\n\n**Bold text**' })
                 .expect(200);
-            
+
             // The API returns rendered HTML in the 'content' field
             expect(response.body.content).toContain('<h1>Heading</h1>');
             expect(response.body.content).toContain('<strong>Bold text</strong>');
@@ -471,9 +468,7 @@ describe('Notes Routes', () => {
             const { agent } = await authenticateApiAgent(app);
 
             // Empty content likely returns validation error
-            const response = await agent
-                .post('/api/notes/render-markdown')
-                .send({ content: '' });
+            const response = await agent.post('/api/notes/render-markdown').send({ content: '' });
 
             // If empty content is not allowed, expect 422
             if (response.status === 422) {
