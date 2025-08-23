@@ -3113,20 +3113,21 @@ describe('parseReminderTiming', () => {
         expect(timing.type).toBe('recurring');
         expect(timing.frequency).toBe('daily');
 
-        // The reminder should be scheduled for tomorrow
+        // The reminder should be scheduled for tomorrow at 9 AM
         const now = dayjs();
         const dueDate = dayjs(timing.nextDue);
-        const diff = dueDate.diff(now, 'hours');
-
-        // Daily reminders should be at least a few hours in the future
-        // If it's before 9 AM and we're scheduling for today at 9 AM, that's still valid
-        // If it's after 9 AM, it should be scheduled for tomorrow
-        expect(diff).toBeGreaterThan(0);
-        expect(diff).toBeLessThanOrEqual(32); // Should not be more than 32 hours away
         
-        // The due date should be either today (if current time < 9 AM) or tomorrow
-        const isToday = dueDate.isSame(now, 'day');
-        const isTomorrow = dueDate.isSame(now.add(1, 'day'), 'day');
-        expect(isToday || isTomorrow).toBe(true);
+        // Check that it's scheduled for 9 AM in Chicago time (not UTC)
+        const dueDateChicago = dueDate.tz('America/Chicago');
+        expect(dueDateChicago.hour()).toBe(9);
+        expect(dueDateChicago.minute()).toBe(0);
+        
+        // Should be in the future
+        expect(dueDate.isAfter(now)).toBe(true);
+        
+        // Should be within the next 24 hours (for tomorrow)
+        const diff = dueDate.diff(now, 'hours');
+        expect(diff).toBeGreaterThan(0);
+        expect(diff).toBeLessThanOrEqual(24);
     });
 });

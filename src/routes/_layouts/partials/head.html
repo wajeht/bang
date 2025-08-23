@@ -13,13 +13,6 @@
 	<meta name="author" content="wajeht">
 	<meta name="robots" content="noindex, nofollow">
 
-	<!-- Preload and Preconnect -->
-	<link rel="preload" href="/style.css?v=<%- state.version.style %>" as="style">
-
-	<% if (state.env === 'production') { %>
-	    <link rel="preconnect" href="https://plausible.jaw.dev">
-	<% } %>
-
 	<!-- Open Graph -->
 	<meta property="og:type" content="website">
 	<meta property="og:url" content="https://bang.jaw.dev/">
@@ -43,6 +36,7 @@
 	<!-- SEO -->
 	<link rel="canonical" href="https://bang.jaw.dev/">
 
+	<!-- 1. Critical inline script (theme detection - must run immediately) -->
 	<script>
 		window.getLocalStorageData = function() {
 			try {
@@ -73,11 +67,24 @@
 		}
 	</script>
 
-	<!-- Styles and Scripts -->
-  <link rel="stylesheet" href="/style.css?v=<%- state.version.style %>">
+	<!-- 2. Preload and Preconnect -->
+	<link rel="preload" href="/style.css?v=<%- state.version.style %>" as="style">
+	<% if (state.env === 'production') { %>
+		<link rel="preconnect" href="https://plausible.jaw.dev">
+	<% } %>
+
+	<!-- 3. Stylesheets -->
+	<link rel="stylesheet" href="/style.css?v=<%- state.version.style %>">
+
+	<!-- 4. Application state (needed by scripts) -->
+	<script type="application/json" id="app-state"><%- JSON.stringify(state) %></script>
+
+	<!-- 5. Deferred scripts -->
+	<% if (state.env !== 'testing') { %>
+		<%- include('./speculation-rules.html') %>
+	<% } %>
 	<% if (state.env === 'production') { %>
 		<script defer data-domain="bang.jaw.dev" src="https://plausible.jaw.dev/js/script.js"></script>
-  <% } %>
-	<script type="application/json" id="app-state"><%- JSON.stringify(state) %></script>
+	<% } %>
 	<script defer src="/script.js?v=<%- state.version.script %>"></script>
 </head>
