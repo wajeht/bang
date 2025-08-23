@@ -80,65 +80,10 @@
 	<script type="application/json" id="app-state"><%- JSON.stringify(state) %></script>
 
 	<!-- 5. Deferred scripts -->
-	<% if (state.env === 'testing') { %>
-		<script>
-			if (HTMLScriptElement.supports && HTMLScriptElement.supports("speculationrules")) {
-				const specScript = document.createElement("script");
-				specScript.type = "speculationrules";
-				const specRules = {
-					"prerender": [
-						{
-							"where": {
-								"and": [
-									{ "href_matches": "/*" },
-									{ "not": { "href_matches": "/logout" } },
-									{ "not": { "href_matches": "/login" } },
-									{ "not": { "href_matches": "/admin/*" } },
-									{ "not": { "href_matches": "/api/*" } },
-									{ "not": { "selector_matches": ".no-prerender" } },
-									{ "not": { "selector_matches": "[rel~=nofollow]" } }
-								]
-							},
-							"eagerness": "moderate"
-						}
-					],
-					"prefetch": [
-						{
-							"urls": ["/actions", "/bookmarks", "/reminders", "/tabs", "/notes"],
-							"eagerness": "eager"
-						},
-						{
-							"urls": ["/settings", "/about", "/bangs"],
-							"eagerness": "moderate"
-						},
-						{
-							"where": {
-								"or": [
-									{ "href_matches": "/actions/*" },
-									{ "href_matches": "/bookmarks/*" },
-									{ "href_matches": "/notes/*" },
-									{ "href_matches": "/reminders/*" },
-									{ "href_matches": "/tabs/*" }
-								]
-							},
-							"eagerness": "conservative"
-						}
-					]
-				};
-				specScript.textContent = JSON.stringify(specRules);
-				document.head.appendChild(specScript);
-				console.log('Speculation rules added!');
-				if (document.prerendering) {
-					document.addEventListener("prerenderingchange", () => {
-						console.log('Page activated from prerender!');
-					}, { once: true });
-				}
-			} else {
-				console.log('Speculation rules are not supported for your browser!');
-			}
-		</script>
+	<% if (state.env !== 'testing') { %>
+		<%- include('./speculation-rules.html') %>
 	<% } %>
-	<% if (state.env === 'testing') { %>
+	<% if (state.env === 'production') { %>
 		<script defer data-domain="bang.jaw.dev" src="https://plausible.jaw.dev/js/script.js"></script>
 	<% } %>
 	<script defer src="/script.js?v=<%- state.version.script %>"></script>
