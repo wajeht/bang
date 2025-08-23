@@ -1348,7 +1348,9 @@ export async function processReminderDigests(): Promise<void> {
                             nextDue = currentDue.add(1, 'week');
                             // Ensure it's still on Saturday (in case of DST changes)
                             if (nextDue.day() !== 6) {
-                                nextDue = nextDue.day(6); // Force to Saturday
+                                // Find the next Saturday from current position
+                                const daysUntilSaturday = (6 - nextDue.day() + 7) % 7;
+                                nextDue = nextDue.add(daysUntilSaturday, 'day');
                             }
                             break;
                         case 'monthly':
