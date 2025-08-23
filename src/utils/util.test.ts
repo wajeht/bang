@@ -1208,7 +1208,8 @@ describe('processReminderDigests', () => {
         expect(weeklyDue.day()).toBe(6); // 6 = Saturday
 
         // Monthly reminder should be scheduled for the 1st of next month
-        const monthlyDue = dayjs(monthlyReminder.due_date);
+        // Parse the UTC date and convert to test user's timezone to check the date
+        const monthlyDue = dayjs.tz(monthlyReminder.due_date, 'UTC').tz('America/Chicago');
         expect(monthlyDue.date()).toBe(1); // 1st of the month
     });
 
@@ -1249,7 +1250,8 @@ describe('processReminderDigests', () => {
         expect(weeklyDue.day()).toBe(6); // 6 = Saturday
 
         // Monthly reminder should be scheduled for the 1st of next month
-        const monthlyDue = dayjs(monthlyReminder.due_date);
+        // Parse the UTC date and convert to test user's timezone to check the date
+        const monthlyDue = dayjs.tz(monthlyReminder.due_date, 'UTC').tz('America/Chicago');
         expect(monthlyDue.date()).toBe(1); // 1st of the month
     });
 
