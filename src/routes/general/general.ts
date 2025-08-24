@@ -1,16 +1,10 @@
-import {
-    paginate,
-    expectJson,
-    extractPagination,
-    highlightSearchTerm,
-    getConvertedReadmeMDToHTML,
-} from '../../utils/util';
 import type { Knex } from 'knex';
 import { bangs } from '../../db/bang';
 import { search } from '../../utils/search';
 import express, { type Request, type Response } from 'express';
 import { authenticationMiddleware } from '../../routes/middleware';
 import type { Bang, User, Actions, Bookmarks, Notes, Tabs, Reminders } from '../../type';
+import { paginate, expectJson, extractPagination, highlightSearchTerm } from '../../utils/util';
 
 export function createGeneralRouter(
     db: Knex,

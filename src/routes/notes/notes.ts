@@ -1,15 +1,10 @@
-import {
-    isApiRequest,
-    extractPagination,
-    getConvertedReadmeMDToHTML,
-    convertMarkdownToPlainText,
-} from '../../utils/util';
 import express from 'express';
 import { logger } from '../../utils/logger';
 import type { User, Notes } from '../../type';
 import type { Request, Response } from 'express';
 import { authenticationMiddleware } from '../middleware';
 import { NotFoundError, ValidationError } from '../../error';
+import { isApiRequest, extractPagination, convertMarkdownToPlainText } from '../../utils/util';
 
 export function createNotesRouter(notes: Notes) {
     const router = express.Router();

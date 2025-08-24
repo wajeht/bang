@@ -4,7 +4,6 @@ import {
     extractPagination,
     normalizeBangTrigger,
     isOnlyLettersAndNumbers,
-    getConvertedReadmeMDToHTML,
 } from '../../utils/util';
 import express from 'express';
 import type { Knex } from 'knex';

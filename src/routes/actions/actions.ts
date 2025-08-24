@@ -6,7 +6,6 @@ import {
     extractPagination,
     normalizeBangTrigger,
     isOnlyLettersAndNumbers,
-    getConvertedReadmeMDToHTML,
 } from '../../utils/util';
 import type { Knex } from 'knex';
 import type { User, Actions } from '../../type';

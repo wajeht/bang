@@ -12,12 +12,9 @@ import {
     fetchPageTitle,
     insertBookmark,
     extractPagination,
-    extractReadmeUsage,
     highlightSearchTerm,
-    getReadmeFileContent,
     formatDateInTimezone,
     isOnlyLettersAndNumbers,
-    getConvertedReadmeMDToHTML,
 } from './util';
 import path from 'node:path';
 import { db } from '../db/db';
@@ -639,70 +636,6 @@ describe.concurrent('nl2br', () => {
     });
 });
 
-describe.concurrent('extractReadmeUsage', () => {
-    it('should extract content between start and end markers', () => {
-        const readmeContent = `
-# README
-
-Some intro text
-
-<!-- starts -->
-This is the usage content
-that should be extracted
-<!-- ends -->
-
-Some other content
-        `;
-
-        const result = extractReadmeUsage(readmeContent);
-        expect(result).toBe('This is the usage content\nthat should be extracted');
-    });
-
-    it('should return empty string if start marker is not found', () => {
-        const readmeContent = `
-# README
-Some content without start marker
-<!-- ends -->
-        `;
-
-        const result = extractReadmeUsage(readmeContent);
-        expect(result).toBe('');
-    });
-
-    it('should return empty string if end marker is not found', () => {
-        const readmeContent = `
-# README
-<!-- starts -->
-Some content without end marker
-        `;
-
-        const result = extractReadmeUsage(readmeContent);
-        expect(result).toBe('');
-    });
-
-    it('should return empty string if end marker comes before start marker', () => {
-        const readmeContent = `
-# README
-<!-- ends -->
-Some content
-<!-- starts -->
-        `;
-
-        const result = extractReadmeUsage(readmeContent);
-        expect(result).toBe('');
-    });
-
-    it('should handle empty content between markers', () => {
-        const readmeContent = `
-# README
-<!-- starts --><!-- ends -->
-        `;
-
-        const result = extractReadmeUsage(readmeContent);
-        expect(result).toBe('');
-    });
-});
-
 describe.concurrent('isOnlyLettersAndNumbers', () => {
     it('should return true for strings with only letters and numbers', () => {
         expect(isOnlyLettersAndNumbers('abc123')).toBe(true);
@@ -727,23 +660,6 @@ describe.concurrent('isOnlyLettersAndNumbers', () => {
     it('should return false for strings with unicode characters', () => {
         expect(isOnlyLettersAndNumbers('abc123ñ')).toBe(false);
         expect(isOnlyLettersAndNumbers('abc123é')).toBe(false);
-    });
-});
-
-describe('getReadmeFileContent', () => {
-    it('should return empty string if README.md does not exist', async () => {
-        const result = await getReadmeFileContent();
-        expect(typeof result).toBe('string');
-    });
-});
-
-describe('getConvertedReadmeMDToHTML', () => {
-    it('should return cached HTML on subsequent calls', async () => {
-        const result1 = await getConvertedReadmeMDToHTML();
-        const result2 = await getConvertedReadmeMDToHTML();
-
-        expect(typeof result1).toBe('string');
-        expect(result1).toBe(result2);
     });
 });
 

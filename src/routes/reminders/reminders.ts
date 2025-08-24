@@ -4,8 +4,8 @@ import type { User, Reminders } from '../../type';
 import type { Request, Response } from 'express';
 import { authenticationMiddleware } from '../middleware';
 import { NotFoundError, ValidationError } from '../../error';
+import { isApiRequest, extractPagination } from '../../utils/util';
 import { parseReminderTiming, reminderTimingConfig } from '../../utils/search';
-import { isApiRequest, extractPagination, getConvertedReadmeMDToHTML } from '../../utils/util';
 
 export function createRemindersRouter(db: Knex, reminders: Reminders) {
     const router = express.Router();

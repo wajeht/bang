@@ -5,7 +5,6 @@ import {
     insertBookmark,
     extractPagination,
     checkDuplicateBookmarkUrl,
-    getConvertedReadmeMDToHTML,
     generateBookmarkHtmlExport,
 } from '../../utils/util';
 import type { Knex } from 'knex';

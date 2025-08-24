@@ -10,18 +10,14 @@ import type {
 } from '../type';
 import dayjs from './dayjs';
 import http from 'node:http';
-import path from 'node:path';
 import { db } from '../db/db';
 import https from 'node:https';
 import jwt from 'jsonwebtoken';
 import { logger } from './logger';
-import fs from 'node:fs/promises';
 import { config } from '../config';
-import nodemailer from 'nodemailer';
 import { bookmarks } from '../db/db';
 import type { Request } from 'express';
 import type { Bookmark } from '../type';
-import type { Attachment } from 'nodemailer/lib/mailer';
 import { HttpError, NotFoundError, ValidationError } from '../error';
 
 export const actionTypes = ['search', 'redirect'] as const;
@@ -565,49 +561,6 @@ export function nl2br(str: string): string {
 
 export function isOnlyLettersAndNumbers(str: string): boolean {
     return /^[a-zA-Z0-9]+$/.test(str);
-}
-
-export async function getReadmeFileContent(): Promise<string> {
-    try {
-        const readmeFilepath = path.resolve(path.join(process.cwd(), 'README.md'));
-        return await fs.readFile(readmeFilepath, { encoding: 'utf8' });
-    } catch (error: unknown) {
-        logger.error(`Failed to get readme file content: %o`, { error });
-        return '';
-    }
-}
-
-export function extractReadmeUsage(readmeFileContent: string): string {
-    if (!readmeFileContent) return '';
-
-    const start = '<!-- starts -->';
-    const end = '<!-- ends -->';
-
-    const startIndex = readmeFileContent.indexOf(start);
-    const endIndex = readmeFileContent.indexOf(end);
-
-    if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-        return '';
-    }
-
-    return readmeFileContent.slice(startIndex + start.length, endIndex).trim();
-}
-
-let cachedReadMeMdHTML: Promise<string> | undefined;
-export async function getConvertedReadmeMDToHTML(): Promise<string> {
-    try {
-        if (!cachedReadMeMdHTML) {
-            const readmeHtmlPath = path.resolve(
-                path.join(process.cwd(), 'src', 'routes', '_components', 'readme-usage.html'),
-            );
-            const html = await fs.readFile(readmeHtmlPath, { encoding: 'utf8' });
-            cachedReadMeMdHTML = Promise.resolve(html);
-        }
-        return cachedReadMeMdHTML;
-    } catch (error) {
-        logger.error(`Failed to get converted readme md to html: %o`, { error });
-        return '';
-    }
 }
 
 export async function convertMarkdownToPlainText(
