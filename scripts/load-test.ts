@@ -109,14 +109,9 @@ async function createUsers(): Promise<Array<{ user: User; apiKey: string }>> {
     console.log(`📝 Creating ${CONFIG.users} test users...`);
     const users = [];
 
-    // Get action types for bangs
-    const actionTypes = await db('action_types').select('*');
-    const searchType = actionTypes.find((type) => type.name === 'search');
-    const redirectType = actionTypes.find((type) => type.name === 'redirect');
-
-    if (!searchType || !redirectType) {
-        throw new Error('Required action types not found');
-    }
+    // Action types are now simple strings in the schema
+    const searchType = 'search';
+    const redirectType = 'redirect';
 
     for (let i = 0; i < CONFIG.users; i++) {
         const email = `load-test-${i}@bang.local`;
@@ -142,42 +137,42 @@ async function createUsers(): Promise<Array<{ user: User; apiKey: string }>> {
                         user_id: user.id,
                         trigger: '!g',
                         name: 'Google Search',
-                        action_type_id: searchType.id,
+                        action_type: searchType,
                         url: 'https://www.google.com/search?q={query}',
                     },
                     {
                         user_id: user.id,
                         trigger: '!ddg',
                         name: 'DuckDuckGo Search',
-                        action_type_id: searchType.id,
+                        action_type: searchType,
                         url: 'https://duckduckgo.com/?q={query}',
                     },
                     {
                         user_id: user.id,
                         trigger: '!gh',
                         name: 'GitHub',
-                        action_type_id: redirectType.id,
+                        action_type: redirectType,
                         url: 'https://github.com',
                     },
                     {
                         user_id: user.id,
                         trigger: '!yt',
                         name: 'YouTube Search',
-                        action_type_id: searchType.id,
+                        action_type: searchType,
                         url: 'https://www.youtube.com/results?search_query={query}',
                     },
                     {
                         user_id: user.id,
                         trigger: '!maps',
                         name: 'Google Maps',
-                        action_type_id: searchType.id,
+                        action_type: searchType,
                         url: 'https://www.google.com/maps/search/{query}',
                     },
                     {
                         user_id: user.id,
                         trigger: '!w',
                         name: 'Wikipedia',
-                        action_type_id: searchType.id,
+                        action_type: searchType,
                         url: 'https://en.wikipedia.org/wiki/Special:Search/{query}',
                     },
                 ];
@@ -342,12 +337,14 @@ async function main() {
     console.log('─'.repeat(50));
     console.log('');
 
-    results.forEach((r) => {
-        const icon = r.success === 100 ? '✅' : '❌';
-        console.log(
-            `${icon} ${r.name.padEnd(18)}: ${r.success.toFixed(1)}% - ${r.rps.toFixed(1)} req/s`,
-        );
-    });
+    const testResults = results.map(r => ({
+        Test: r.name,
+        'Success %': r.success.toFixed(1),
+        'Req/sec': r.rps.toFixed(1),
+        'Total Reqs': r.total,
+        Status: r.success === 100 ? '✅ Pass' : '❌ Fail'
+    }));
+    console.table(testResults);
 
     await cleanup();
     console.log('');
