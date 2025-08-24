@@ -21,7 +21,7 @@ const swaggerConfig = {
     baseDir: './src',
     filesPattern: [
         '**/routes/**/*.ts',
-        '**/routes/**/*.ts'
+        '**/routes/**/*.js'
     ],
     swaggerUIPath: '/api-docs',
     exposeSwaggerUI: true,
