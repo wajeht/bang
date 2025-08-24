@@ -42,6 +42,9 @@ COPY --chown=nodejs:nodejs --from=build /usr/src/app/public ./public
 COPY --chown=nodejs:nodejs --from=build /usr/src/app/src/routes ./src/routes
 COPY --chown=nodejs:nodejs --from=build /usr/src/app/README.md ./
 
+# Display directory structure excluding node_modules
+RUN ls -d */ | grep -v node_modules | xargs -I {} tree {}
+
 USER nodejs
 
 EXPOSE 80
