@@ -33,7 +33,11 @@ function getAllJsFiles(dir: string, files: string[] = []): string[] {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory()) {
             getAllJsFiles(fullPath, files);
-        } else if (entry.name.endsWith('.js') && !entry.name.endsWith('.min.js')) {
+        } else if (
+            entry.name.endsWith('.js') &&
+            !entry.name.endsWith('.min.js') &&
+            !entry.name.endsWith('.svg')
+        ) {
             files.push(fullPath);
         }
     }
@@ -48,7 +52,7 @@ function getAllHtmlFiles(dir: string, files: string[] = []): string[] {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory()) {
             getAllHtmlFiles(fullPath, files);
-        } else if (entry.name.endsWith('.html')) {
+        } else if (entry.name.endsWith('.html') && !entry.name.endsWith('.svg')) {
             files.push(fullPath);
         }
     }
@@ -63,7 +67,11 @@ function getAllCssFiles(dir: string, files: string[] = []): string[] {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory()) {
             getAllCssFiles(fullPath, files);
-        } else if (entry.name.endsWith('.css') && !entry.name.endsWith('.min.css')) {
+        } else if (
+            entry.name.endsWith('.css') &&
+            !entry.name.endsWith('.min.css') &&
+            !entry.name.endsWith('.svg')
+        ) {
             files.push(fullPath);
         }
     }
@@ -239,7 +247,7 @@ async function minifyHtmlFiles(): Promise<MinificationSummary> {
         removeEmptyAttributes: true,
         removeAttributeQuotes: false,
         keepClosingSlash: true,
-        ignoreCustomFragments: [/<%[\s\S]*?%>/, /<\?[\s\S]*?\?>/],
+        ignoreCustomFragments: [/<%[\s\S]*?%>/, /<\?[\s\S]*?\?>/, /<svg[\s\S]*?<\/svg>/],
     };
 
     for (const file of htmlFiles) {
@@ -314,7 +322,7 @@ async function minifyCssFiles(): Promise<MinificationSummary> {
             },
             2: {
                 all: false,
-            }
+            },
         },
         format: {
             breaks: {
@@ -326,15 +334,15 @@ async function minifyCssFiles(): Promise<MinificationSummary> {
                 afterRuleBegins: false,
                 afterRuleEnds: true,
                 beforeBlockEnds: true,
-                betweenSelectors: true
+                betweenSelectors: true,
             },
             indentBy: 4,
             indentWith: 'space',
             spaces: {
                 aroundSelectorRelation: true,
                 beforeBlockBegins: true,
-                beforeValue: true
-            }
+                beforeValue: true,
+            },
         },
         sourceMap: false,
     });
