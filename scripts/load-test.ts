@@ -337,12 +337,12 @@ async function main() {
     console.log('─'.repeat(50));
     console.log('');
 
-    const testResults = results.map(r => ({
+    const testResults = results.map((r) => ({
         Test: r.name,
         'Success %': r.success.toFixed(1),
         'Req/sec': r.rps.toFixed(1),
         'Total Reqs': r.total,
-        Status: r.success === 100 ? '✅ Pass' : '❌ Fail'
+        Status: r.success === 100 ? '✅ Pass' : '❌ Fail',
     }));
     console.table(testResults);
 

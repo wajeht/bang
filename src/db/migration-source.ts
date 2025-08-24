@@ -18,7 +18,12 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
                 .map((dirent) => dirent.name)
                 .sort();
 
-            logger.info('Found migrations: %o', migrations);
+            const migrationList = migrations.map((name, index) => ({
+                order: index + 1,
+                filename: name,
+                name: path.parse(name).name,
+            }));
+            logger.table(migrationList);
             return migrations;
         } catch (error) {
             logger.error('Error reading migrations directory: %o', error);

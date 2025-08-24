@@ -381,10 +381,10 @@ export async function processReminderDigests(): Promise<void> {
             }
         }
 
-        const userSummary = Object.values(remindersByUser).map(userData => ({
+        const userSummary = Object.values(remindersByUser).map((userData) => ({
             email: userData.email,
             username: userData.username,
-            reminderCount: userData.reminders.length
+            reminderCount: userData.reminders.length,
         }));
         logger.table(userSummary);
         logger.info(`Processed reminder digests for ${Object.keys(remindersByUser).length} users`);
