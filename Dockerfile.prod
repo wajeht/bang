@@ -39,7 +39,6 @@ RUN npm ci --only=production --no-audit --no-fund && \
 # Copy built application
 COPY --chown=nodejs:nodejs --from=build /usr/src/app/dist ./dist
 COPY --chown=nodejs:nodejs --from=build /usr/src/app/public ./public
-COPY --chown=nodejs:nodejs --from=build /usr/src/app/dist/src/routes ./src/routes
 COPY --chown=nodejs:nodejs --from=build /usr/src/app/README.md ./
 
 # Display directory structure excluding node_modules
