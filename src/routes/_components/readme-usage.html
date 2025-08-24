@@ -1,0 +1,113 @@
+<h3>🔍 Setup Custom Search Engine in Your Browser</h3>
+<p>Before you can use the Bang command from your browser&#39;s search bar, you need to add the Bang URL as a custom search engine. Follow these steps:</p>
+<ol>
+<li><p>In your browser settings, add a new search engine:</p>
+<ul>
+<li><strong>Name</strong>: Whatever you prefer (e.g., &quot;Bang&quot;)</li>
+<li><strong>Shortcut</strong>: <code>bd</code> (or any keyword you prefer)</li>
+<li><strong>URL</strong>: <code>http://bang.jaw.dev/?q=%s</code></li>
+</ul>
+</li>
+<li><p>Now you can use Bang directly from your browser&#39;s address bar:
+<code>!bm https://bang.jaw.dev</code></p>
+</li>
+</ol>
+<h3>⚙️ How to Add Custom Search Engine</h3>
+<ul>
+<li><strong>Chrome</strong>: Settings → Search Engines → Manage Search Engines → Add</li>
+<li><strong>Firefox</strong>: Bookmarks → Manage Bookmarks → Right-click → New Bookmark → Add %s in URL</li>
+<li><strong>Edge</strong>: Settings → Privacy, search, and services → Address bar and search → Manage search engines → Add</li>
+</ul>
+<h3>🎯 Default Commands</h3>
+<ul>
+<li><code>@data</code> - Access data</li>
+<li><code>@admin</code> - Access admin</li>
+<li><code>@api</code> - Access API docs</li>
+<li><code>@b</code>, <code>@bangs</code> - Go to home page</li>
+<li><code>@s</code>, <code>@settings</code> - Access settings</li>
+<li><code>@t</code>, <code>@tab</code>, <code>@tabs</code> - Access your tabs</li>
+<li><code>@n</code>, <code>@note</code>, <code>@notes</code> - Access your notes</li>
+<li><code>@a</code>, <code>@action</code>, <code>@actions</code> - Access your actions</li>
+<li><code>@bm</code>, <code>@bookmark</code>, <code>@bookmarks</code> - Access your bookmarks</li>
+<li><code>@r</code>, <code>@reminders</code> - Access your reminders</li>
+</ul>
+<h3>🎨 Special Commands</h3>
+<ul>
+<li><code>@bm [search term]</code> - Search your bookmarks</li>
+<li><code>@a [search term]</code> - Search your actions</li>
+<li><code>@n [search term]</code> - Search your notes</li>
+<li><code>@r [search term]</code> - Search your reminders</li>
+<li><code>!find [search term]</code> - Global search across all resources (bookmarks, actions, notes, tabs, reminders)</li>
+<li><code>!bm [url]</code> - Add a bookmark</li>
+<li><code>!bm [title] [url]</code> - Add a bookmark<ul>
+<li><code>[title]</code> is optional, if not provided, we will auto fetch the title</li>
+<li><code>[url]</code> is required</li>
+<li>eg: <code>!bm this title can be super long https://bang.jaw.dev</code></li>
+</ul>
+</li>
+<li><code>!add [trigger] [url]</code> - Create a custom bang<ul>
+<li><code>[trigger]</code> is required</li>
+<li><code>[url]</code> is required</li>
+<li>eg: <code>!add jaw https://bang.jaw.dev</code></li>
+</ul>
+</li>
+<li><code>!del [trigger]</code> - Delete a custom bang or tab<ul>
+<li><code>[trigger]</code> is required (the bang/tab trigger to delete)</li>
+<li>Works with both bangs and tabs - will delete from both if they exist</li>
+<li>eg: <code>!del jaw</code> or <code>!del !jaw</code></li>
+</ul>
+</li>
+<li><code>!edit [trigger] [new-trigger]</code> - Change a bang&#39;s or tab&#39;s trigger<ul>
+<li><code>[trigger]</code> is required (the current bang/tab trigger)</li>
+<li><code>[new-trigger]</code> is required (the new trigger name)</li>
+<li>Works with both bangs and tabs - will update whichever exists</li>
+<li>eg: <code>!edit jaw !newjaw</code></li>
+</ul>
+</li>
+<li><code>!edit [trigger] [url]</code> - Change a bang&#39;s URL<ul>
+<li><code>[trigger]</code> is required (the bang trigger to edit)</li>
+<li><code>[url]</code> is required (the new URL)</li>
+<li>Note: URL editing only applies to bangs, not tabs</li>
+<li>eg: <code>!edit jaw https://new-url.com</code></li>
+</ul>
+</li>
+<li><code>!edit [trigger] [new-trigger] [url]</code> - Change both trigger and URL<ul>
+<li><code>[trigger]</code> is required (the current bang trigger)</li>
+<li><code>[new-trigger]</code> is required (the new trigger name)</li>
+<li><code>[url]</code> is required (the new URL)</li>
+<li>Note: URL editing only applies to bangs, not tabs</li>
+<li>eg: <code>!edit jaw !newjaw https://new-url.com</code></li>
+</ul>
+</li>
+<li><code>!note [title] | [content]</code> - Create a note<ul>
+<li><code>[title]</code> is optional, if not provided, we will use it as <code>Untitled</code></li>
+<li><code>[content]</code> is required</li>
+<li>eg: <code>!note some title | this is a note https://bang.jaw.dev</code></li>
+<li>eg: <code>!note this is a content without any title</code></li>
+</ul>
+</li>
+<li><code>!remind [description]</code> - Create a reminder with your default timing<ul>
+<li><code>[description]</code> is required (what you want to be reminded about)</li>
+<li>Uses your default reminder timing preference (set in /reminders settings)</li>
+<li>eg: <code>!remind take out trash</code></li>
+<li>eg: <code>!remind check email</code></li>
+</ul>
+</li>
+<li><code>!remind [when] [description]</code> - Create a reminder with timing keyword<ul>
+<li><code>[when]</code> is required (daily, weekly, biweekly, monthly, or YYYY-MM-DD)</li>
+<li><code>[description]</code> is required (what you want to be reminded about)</li>
+<li>eg: <code>!remind daily google.com</code></li>
+<li>eg: <code>!remind weekly water plants</code></li>
+</ul>
+</li>
+<li><code>!remind [when] | [description] [| [content]]</code> - Create a reminder with specific timing<ul>
+<li><code>[when]</code> is required (daily, weekly, biweekly, monthly, or YYYY-MM-DD)</li>
+<li><code>[description]</code> is required (what you want to be reminded about)</li>
+<li><code>[content]</code> is optional (URL or any additional text/notes)</li>
+<li>eg: <code>!remind daily | take vitamins</code></li>
+<li>eg: <code>!remind weekly | water plants</code></li>
+<li>eg: <code>!remind 2025-02-15 | valentine&#39;s day</code></li>
+<li>eg: <code>!remind monthly | pay bills | https://bank.com</code></li>
+</ul>
+</li>
+</ul>

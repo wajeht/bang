@@ -23,14 +23,14 @@ async function extractReadmeUsage() {
         const { marked } = require('marked');
         const html = await marked(usageContent);
 
-        // Ensure src/routes directory exists
-        const routesDir = path.join(__dirname, '..', 'src', 'routes');
-        if (!fs.existsSync(routesDir)) {
-            fs.mkdirSync(routesDir, { recursive: true });
+        // Ensure src/routes/_components directory exists
+        const componentsDir = path.join(__dirname, '..', 'src', 'routes', '_components');
+        if (!fs.existsSync(componentsDir)) {
+            fs.mkdirSync(componentsDir, { recursive: true });
         }
 
         // Write HTML file
-        const outputPath = path.join(routesDir, 'readme-usage.html');
+        const outputPath = path.join(componentsDir, 'readme-usage.html');
         fs.writeFileSync(outputPath, html, 'utf8');
 
         console.log(`✓ Extracted README usage to ${outputPath}`);

@@ -598,7 +598,7 @@ export async function getConvertedReadmeMDToHTML(): Promise<string> {
     try {
         if (!cachedReadMeMdHTML) {
             const readmeHtmlPath = path.resolve(
-                path.join(__dirname, '..', 'routes', 'readme-usage.html'),
+                path.join(__dirname, '..', 'routes', '_components', 'readme-usage.html'),
             );
             const html = await fs.readFile(readmeHtmlPath, { encoding: 'utf8' });
             cachedReadMeMdHTML = Promise.resolve(html);
