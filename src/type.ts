@@ -333,6 +333,7 @@ export type Logger = {
     error: (message: string, ...args: unknown[]) => void;
     warn: (message: string, ...args: unknown[]) => void;
     info: (message: string, ...args: unknown[]) => void;
+    table: (tabularData: any, properties?: readonly string[]) => void;
 };
 
 export type PaginateArrayOptions = {

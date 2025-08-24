@@ -85,7 +85,7 @@ export async function checkDatabaseHealth() {
                       : 'FULL',
         };
 
-        logger.info(`Database health check: %o`, { healthInfo });
+        logger.table(healthInfo);
 
         return true;
     } catch (error) {

@@ -85,4 +85,9 @@ export const logger: LoggerType = {
             );
         }
     },
+    table(tabularData: any, properties?: readonly string[]) {
+        const timestamp = getFormattedTimestamp();
+        console.log(`${styleText('dim', timestamp)} ${styleText('cyan', 'TABLE:')}`);
+        console.table(tabularData, properties);
+    },
 };
