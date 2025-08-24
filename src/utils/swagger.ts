@@ -5,7 +5,7 @@ import { authenticationMiddleware } from '../routes/middleware';
 
 const swaggerConfig = {
     info: {
-        title: 'bang',
+        title: 'Bang',
         description: `your personal command center for blazingly fast web navigation`,
         termsOfService: `/terms-of-service`,
         contact: {
