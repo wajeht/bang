@@ -125,7 +125,9 @@ function printMinificationTable(summaries: MinificationSummary[]): void {
 }
 
 async function minifyJavaScript(): Promise<MinificationSummary> {
-    const jsFiles = getAllJsFiles(distDir);
+    const distJsFiles = getAllJsFiles(distDir);
+    const publicJsFiles = getAllJsFiles(publicDir);
+    const jsFiles = [...distJsFiles, ...publicJsFiles];
     const results: MinificationResult[] = [];
     let totalOriginalSize = 0;
     let totalMinifiedSize = 0;
@@ -137,34 +139,59 @@ async function minifyJavaScript(): Promise<MinificationSummary> {
         totalOriginalSize += originalSize;
 
         try {
-            await build({
-                entryPoints: [file],
-                outfile: file,
-                allowOverwrite: true,
-                minify: true,
-                keepNames: true,
-                sourcemap: false,
-                target: 'node22',
-                platform: 'node',
-                format: 'cjs',
-                logLevel: 'error',
-            });
+            const isBrowserFile = file.startsWith(publicDir);
+            
+            if (isBrowserFile) {
+                // Browser-specific settings for public files
+                await build({
+                    entryPoints: [file],
+                    outfile: file,
+                    allowOverwrite: true,
+                    minify: false,
+                    keepNames: true,
+                    sourcemap: false,
+                    target: 'es2020',
+                    platform: 'browser',
+                    format: 'iife',
+                    logLevel: 'error',
+                    minifyWhitespace: true,
+                    minifyIdentifiers: false,
+                    minifySyntax: false,
+                    legalComments: 'none',
+                });
+            } else {
+                // Node.js settings for server files
+                await build({
+                    entryPoints: [file],
+                    outfile: file,
+                    allowOverwrite: true,
+                    minify: true,
+                    keepNames: true,
+                    sourcemap: false,
+                    target: 'node22',
+                    platform: 'node',
+                    format: 'cjs',
+                    logLevel: 'error',
+                });
+            }
 
             const minifiedSize = fs.statSync(file).size;
             totalMinifiedSize += minifiedSize;
 
             const reduction = ((1 - minifiedSize / originalSize) * 100).toFixed(1);
 
+            const baseDir = file.startsWith(publicDir) ? publicDir : distDir;
             results.push({
-                file: path.relative(distDir, file),
+                file: path.relative(baseDir, file),
                 originalSize,
                 minifiedSize,
                 reduction,
                 status: 'success',
             });
         } catch (error) {
+            const baseDir = file.startsWith(publicDir) ? publicDir : distDir;
             results.push({
-                file: path.relative(distDir, file),
+                file: path.relative(baseDir, file),
                 originalSize,
                 minifiedSize: originalSize,
                 reduction: '0.0',
