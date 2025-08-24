@@ -308,15 +308,11 @@ async function minifyCssFiles(): Promise<MinificationSummary> {
     const cleanCSS = new CleanCSS({
         level: {
             1: {
-                all: true,
+                all: false,
+                removeWhitespace: true,
                 specialComments: '0',
             },
-            2: {
-                all: true,
-                restructureRules: true,
-            },
         },
-        compatibility: '*',
         sourceMap: false,
     });
 
