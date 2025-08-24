@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { marked } from 'marked';
+import { logger } from '../src/utils/logger';
 
 interface ExtractionResult {
     success: boolean;
@@ -73,43 +74,48 @@ async function extractReadmeUsage(): Promise<ExtractionResult> {
 }
 
 function printExtractionTable(result: ExtractionResult): void {
-    console.log('\n' + '='.repeat(60));
-    console.log('README EXTRACTION SUMMARY');
-    console.log('='.repeat(60));
+    logger.info('\n📖 README EXTRACTION SUMMARY');
 
     if (result.success && result.outputPath) {
-        console.log('STATUS:'.padEnd(20) + '✅ SUCCESS');
-        console.log('OUTPUT FILE:'.padEnd(20) + path.relative(process.cwd(), result.outputPath));
-        console.log('MARKDOWN SIZE:'.padEnd(20) + `${result.usageLength} characters`);
-        console.log('HTML SIZE:'.padEnd(20) + `${result.htmlLength} characters`);
-        console.log(
-            'COMPRESSION:'.padEnd(20) +
-                `${((result.htmlLength! / result.usageLength! - 1) * 100).toFixed(1)}%`,
-        );
-    } else {
-        console.log('STATUS:'.padEnd(20) + '❌ FAILED');
-        console.log('ERROR:'.padEnd(20) + result.error);
-    }
+        const tableData = [
+            {
+                Status: '✅ SUCCESS',
+                'Output File': path.relative(process.cwd(), result.outputPath),
+                'Markdown Size': `${result.usageLength} characters`,
+                'HTML Size': `${result.htmlLength} characters`,
+                'Size Change': `${((result.htmlLength! / result.usageLength! - 1) * 100).toFixed(1)}%`,
+            },
+        ];
 
-    console.log('='.repeat(60));
+        logger.table(tableData);
+    } else {
+        const tableData = [
+            {
+                Status: '❌ FAILED',
+                Error: result.error || 'Unknown error',
+            },
+        ];
+
+        logger.table(tableData);
+    }
 }
 
 async function main(): Promise<void> {
-    console.log('🔍 Extracting README usage section...\n');
+    logger.info('🔍 Extracting README usage section...');
 
     const result = await extractReadmeUsage();
 
     printExtractionTable(result);
 
     if (!result.success) {
-        console.error('\n❌ README extraction failed!');
+        logger.error('❌ README extraction failed!');
         process.exit(1);
     } else {
-        console.log('\n✅ README extraction completed successfully!');
+        logger.info('✅ README extraction completed successfully!');
     }
 }
 
 main().catch((error) => {
-    console.error('❌ Unexpected error:', error);
+    logger.error('❌ Unexpected error: %o', error);
     process.exit(1);
 });

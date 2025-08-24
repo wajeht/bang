@@ -3,6 +3,7 @@ import { minify as minifyHtml } from 'html-minifier-terser';
 import CleanCSS from 'clean-css';
 import fs from 'fs';
 import path from 'path';
+import { logger } from '../src/utils/logger';
 
 const distDir = path.join(__dirname, '..', 'dist');
 const viewsDir = path.join(__dirname, '..', 'src', 'routes');
@@ -71,46 +72,37 @@ function getAllCssFiles(dir: string, files: string[] = []): string[] {
 }
 
 function printMinificationTable(summaries: MinificationSummary[]): void {
-    console.log('\n' + '='.repeat(80));
-    console.log('MINIFICATION SUMMARY');
-    console.log('='.repeat(80));
+    logger.info('\n🎯 MINIFICATION SUMMARY');
 
     for (const summary of summaries) {
         if (summary.results.length === 0) continue;
 
-        console.log(`\n${summary.type.toUpperCase()} FILES:`);
-        console.log('-'.repeat(80));
-        console.log(
-            'FILE'.padEnd(50) + 'ORIGINAL'.padEnd(10) + 'MINIFIED'.padEnd(10) + 'SAVED'.padEnd(10),
+        logger.info(`\n📁 ${summary.type.toUpperCase()} FILES:`);
+
+        const tableData = summary.results.map((result) => ({
+            Status: result.status === 'success' ? '✅' : '❌',
+            File: result.file.length > 40 ? '...' + result.file.slice(-37) : result.file,
+            'Original (KB)': (result.originalSize / 1024).toFixed(1) + ' KB',
+            'Minified (KB)': (result.minifiedSize / 1024).toFixed(1) + ' KB',
+            'Saved (%)': result.reduction + '%',
+            Error: result.error || '',
+        }));
+
+        logger.table(tableData, [
+            'Status',
+            'File',
+            'Original (KB)',
+            'Minified (KB)',
+            'Saved (%)',
+            'Error',
+        ]);
+
+        logger.info(
+            `📊 TOTAL ${summary.type.toUpperCase()}: ${(summary.totalOriginalSize / 1024).toFixed(1)} KB → ${(summary.totalMinifiedSize / 1024).toFixed(1)} KB (${summary.totalReduction}% reduction)`,
         );
-        console.log('-'.repeat(80));
-
-        for (const result of summary.results) {
-            const fileName = result.file.length > 47 ? '...' + result.file.slice(-44) : result.file;
-            const originalKB = (result.originalSize / 1024).toFixed(1) + ' KB';
-            const minifiedKB = (result.minifiedSize / 1024).toFixed(1) + ' KB';
-            const saved = result.reduction + '%';
-
-            const status = result.status === 'success' ? '✓' : '✗';
-            const line = `${status} ${fileName.padEnd(47)} ${originalKB.padEnd(9)} ${minifiedKB.padEnd(9)} ${saved}`;
-
-            if (result.status === 'success') {
-                console.log(line);
-            } else {
-                console.log(`${line} (${result.error})`);
-            }
-        }
-
-        console.log('-'.repeat(80));
-        console.log(
-            `TOTAL ${summary.type.toUpperCase()}:`.padEnd(50) +
-                `${(summary.totalOriginalSize / 1024).toFixed(1)} KB`.padEnd(10) +
-                `${(summary.totalMinifiedSize / 1024).toFixed(1)} KB`.padEnd(10) +
-                `${summary.totalReduction}%`,
-        );
-        console.log(`FILES PROCESSED: ${summary.results.length}`);
-        console.log(
-            `TOTAL SAVED: ${((summary.totalOriginalSize - summary.totalMinifiedSize) / 1024).toFixed(1)} KB`,
+        logger.info(`📈 FILES PROCESSED: ${summary.results.length}`);
+        logger.info(
+            `💾 SPACE SAVED: ${((summary.totalOriginalSize - summary.totalMinifiedSize) / 1024).toFixed(1)} KB`,
         );
     }
 
@@ -118,17 +110,18 @@ function printMinificationTable(summaries: MinificationSummary[]): void {
     const grandTotalMinified = summaries.reduce((sum, s) => sum + s.totalMinifiedSize, 0);
     const grandTotalReduction = ((1 - grandTotalMinified / grandTotalOriginal) * 100).toFixed(1);
 
-    console.log('\n' + '='.repeat(80));
-    console.log(
-        'GRAND TOTAL:'.padEnd(50) +
-            `${(grandTotalOriginal / 1024).toFixed(1)} KB`.padEnd(10) +
-            `${(grandTotalMinified / 1024).toFixed(1)} KB`.padEnd(10) +
-            `${grandTotalReduction}%`,
-    );
-    console.log(
-        `TOTAL SPACE SAVED: ${((grandTotalOriginal - grandTotalMinified) / 1024).toFixed(1)} KB`,
-    );
-    console.log('='.repeat(80));
+    logger.info('\n🎉 GRAND TOTAL SUMMARY:');
+    const grandTotalData = [
+        {
+            'Total Original (KB)': (grandTotalOriginal / 1024).toFixed(1) + ' KB',
+            'Total Minified (KB)': (grandTotalMinified / 1024).toFixed(1) + ' KB',
+            'Total Reduction (%)': grandTotalReduction + '%',
+            'Total Saved (KB)':
+                ((grandTotalOriginal - grandTotalMinified) / 1024).toFixed(1) + ' KB',
+        },
+    ];
+
+    logger.table(grandTotalData);
 }
 
 async function minifyJavaScript(): Promise<MinificationSummary> {
@@ -137,7 +130,7 @@ async function minifyJavaScript(): Promise<MinificationSummary> {
     let totalOriginalSize = 0;
     let totalMinifiedSize = 0;
 
-    console.log(`Processing ${jsFiles.length} JavaScript files...`);
+    logger.info(`🔄 Processing ${jsFiles.length} JavaScript files...`);
 
     for (const file of jsFiles) {
         const originalSize = fs.statSync(file).size;
@@ -199,7 +192,7 @@ async function minifyHtmlFiles(): Promise<MinificationSummary> {
     let totalOriginalSize = 0;
     let totalMinifiedSize = 0;
 
-    console.log(`Processing ${htmlFiles.length} HTML files...`);
+    logger.info(`🔄 Processing ${htmlFiles.length} HTML files...`);
 
     const minifyOptions = {
         collapseWhitespace: true,
@@ -276,7 +269,7 @@ async function minifyCssFiles(): Promise<MinificationSummary> {
     let totalOriginalSize = 0;
     let totalMinifiedSize = 0;
 
-    console.log(`Processing ${cssFiles.length} CSS files...`);
+    logger.info(`🔄 Processing ${cssFiles.length} CSS files...`);
 
     if (cssFiles.length === 0) {
         return {
@@ -339,7 +332,7 @@ async function minifyCssFiles(): Promise<MinificationSummary> {
             });
 
             if (output.warnings.length > 0) {
-                console.warn(`⚠ Warnings for ${path.relative(publicDir, file)}:`, output.warnings);
+                logger.warn(`⚠ Warnings for ${path.relative(publicDir, file)}:`, output.warnings);
             }
         } catch (error) {
             results.push({
@@ -366,7 +359,7 @@ async function minifyCssFiles(): Promise<MinificationSummary> {
 }
 
 async function minifyAll(): Promise<void> {
-    console.log('🚀 Starting minification process...\n');
+    logger.info('🚀 Starting minification process...');
 
     try {
         const [jsSummary, htmlSummary, cssSummary] = await Promise.all([
@@ -382,13 +375,13 @@ async function minifyAll(): Promise<void> {
         );
 
         if (hasErrors) {
-            console.log('\n⚠️  Some files failed to minify, but the process completed.');
+            logger.warn('⚠️  Some files failed to minify, but the process completed.');
             process.exit(1);
         } else {
-            console.log('\n✅ All minification completed successfully!');
+            logger.info('✅ All minification completed successfully!');
         }
     } catch (error) {
-        console.error('❌ Minification failed:', error);
+        logger.error('❌ Minification failed: %o', error);
         process.exit(1);
     }
 }
