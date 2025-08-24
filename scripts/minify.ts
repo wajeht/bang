@@ -142,22 +142,19 @@ async function minifyJavaScript(): Promise<MinificationSummary> {
             const isBrowserFile = file.startsWith(publicDir);
 
             if (isBrowserFile) {
-                // Browser-specific settings for public files
+                // Use esbuild but preserve global functions for HTML onclick handlers
                 await build({
                     entryPoints: [file],
                     outfile: file,
                     allowOverwrite: true,
-                    minify: false,
+                    minify: true,
+                    minifyIdentifiers: false,
+                    minifySyntax: false,
                     keepNames: true,
                     sourcemap: false,
                     target: 'es2020',
                     platform: 'browser',
-                    format: 'iife',
                     logLevel: 'error',
-                    minifyWhitespace: true,
-                    minifyIdentifiers: false,
-                    minifySyntax: false,
-                    legalComments: 'none',
                 });
             } else {
                 // Node.js settings for server files
