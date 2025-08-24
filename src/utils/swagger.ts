@@ -24,7 +24,7 @@ const swaggerConfig = {
     exposeSwaggerUI: true,
     notRequiredAsNullable: false,
     swaggerUiOptions: {
-        customSiteTitle: `your personal command center for blazingly fast web navigation`,
+        customSiteTitle: `Bang - your personal command center for blazingly fast web navigation`,
         customfavIcon: '/favicon.ico',
     },
     security: {
