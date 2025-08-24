@@ -74,8 +74,15 @@
     async function getActionsAndBookmarks() {
       try {
         const response = await fetch('/api/collections?per_page=999999999999', {
-          headers: { 'Content-Type': 'application/json' },
-          cache: 'default'
+          headers: { 'Content-Type': 'application/json' }
+          // CACHING NOTE: No cache headers needed here!
+          // The browser automatically respects the Cache-Control headers
+          // sent by the server (max-age=60, stale-while-revalidate=300)
+          // This means:
+          // - First fetch: Goes to server, browser caches response
+          // - Next 60 seconds: Browser serves from cache without network request
+          // - After 60 seconds: Browser serves stale cache AND fetches fresh data
+          // - After 5 minutes: Browser always fetches fresh data
         });
         const data = await response.json();
         return {
@@ -168,12 +175,19 @@
       }
     }
 
-    function handleInputChange(e, data, dropdown, input, selectedIndex) {
+    async function handleInputChange(e, data, dropdown, input, selectedIndex, ensureDataLoaded) {
       const value = e.target.value.trim();
 
       if (!value) {
         dropdown.style.display = 'none';
         return -1;
+      }
+
+      // IMPORTANT: Wait for data if still loading
+      // This handles the edge case where user types immediately after focusing
+      // The function will wait for the fetch to complete before proceeding
+      if (!data.actions) {
+        data = await ensureDataLoaded();
       }
 
       const lowerValue = value.toLowerCase();
@@ -296,17 +310,51 @@
       const input = document.getElementById('q');
       const dropdown = document.getElementById('bangsDropdown');
       let data = {};
-
-      setTimeout(async () => data = await getActionsAndBookmarks(), 0);
-
+      let dataPromise = null;
       let selectedIndex = -1;
+
+      // Function to ensure data is loaded before use
+      // This prevents race conditions where user types before data is ready
+      const ensureDataLoaded = async () => {
+        if (!dataPromise) {
+          dataPromise = getActionsAndBookmarks();
+        }
+        if (!data.actions) {
+          data = await dataPromise;
+        }
+        return data;
+      };
+
+      // PERFORMANCE OPTIMIZATION: Lazy load collections data
+      // Instead of fetching on page load (which slows initial render),
+      // we only fetch when user shows intent to search by focusing the input
+      const startDataLoad = () => {
+        if (!dataPromise) {
+          dataPromise = getActionsAndBookmarks().then(result => {
+            data = result;
+            return result;
+          }).catch(error => {
+            // Handle fetch failure gracefully
+            console.error('Failed to load collections:', error);
+            data = { actions: [], bookmarks: [], notes: [], tabs: [], reminders: [] };
+            return data;
+          });
+        }
+      };
+
+      // Start loading on focus (when user clicks input)
+      input.addEventListener('focus', startDataLoad, { once: true });
+      
+      // ADDITIONAL OPTIMIZATION: Start preloading on hover
+      // Many users hover before clicking, giving us extra time to load
+      input.addEventListener('mouseenter', startDataLoad, { once: true });
 
       input.addEventListener('keydown', (e) =>
         selectedIndex = handleKeyboardNavigation(e, dropdown, input, selectedIndex)
       );
 
-      input.addEventListener('input', (e) =>
-        selectedIndex = handleInputChange(e, data, dropdown, input, selectedIndex)
+      input.addEventListener('input', async (e) =>
+        selectedIndex = await handleInputChange(e, data, dropdown, input, selectedIndex, ensureDataLoaded)
       );
 
       // Use capturing for document click to improve performance

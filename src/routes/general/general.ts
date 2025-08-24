@@ -192,6 +192,20 @@ export function createGeneralRouter(
                     }),
                 ]);
 
+            // CACHING STRATEGY: Browser-based HTTP caching
+            // This eliminates the need for complex client-side cache management
+            res.set({
+                // Cache-Control header breakdown:
+                // - 'private': Cache only in user's browser, not in shared proxies
+                // - 'max-age=60': Cache is fresh for 60 seconds (1 minute)
+                // - 'stale-while-revalidate=300': After 60s, browser can use stale cache
+                //   while fetching fresh data in background for up to 300s (5 minutes)
+                'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
+
+                // Vary header ensures different encodings (gzip, br) are cached separately
+                Vary: 'Accept-Encoding',
+            });
+
             res.json({
                 actions: actionsResult,
                 bookmarks: bookmarksResult,

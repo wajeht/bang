@@ -220,7 +220,6 @@ legend {
     border-radius: 2px;
 }
 
-
 [data-theme='dark'] button {
     background-color: var(--button-background);
     color: var(--button-text);
