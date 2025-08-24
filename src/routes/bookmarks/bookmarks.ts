@@ -68,7 +68,6 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
             title: 'Bookmarks',
             path: '/bookmarks',
             layout: '_layouts/auth.html',
-            howToContent: await getConvertedReadmeMDToHTML(),
             data,
             search,
             pagination,

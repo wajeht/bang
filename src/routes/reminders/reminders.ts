@@ -144,7 +144,6 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
             reminders: remindersData,
             pagination,
             search,
-            howToContent: await getConvertedReadmeMDToHTML(),
             sortKey,
             direction,
         });

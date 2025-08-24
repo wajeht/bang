@@ -67,7 +67,6 @@ export function createActionsRouter(db: Knex, actions: Actions) {
             path: '/actions',
             title: 'Actions',
             layout: '_layouts/auth.html',
-            howToContent: await getConvertedReadmeMDToHTML(),
             data,
             pagination,
             search,

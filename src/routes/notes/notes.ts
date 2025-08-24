@@ -69,7 +69,6 @@ export function createNotesRouter(notes: Notes) {
             title: 'Notes',
             path: '/notes',
             layout: '_layouts/auth.html',
-            howToContent: await getConvertedReadmeMDToHTML(),
             data: markdownRemovedData,
             search,
             pagination,

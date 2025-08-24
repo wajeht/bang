@@ -52,7 +52,6 @@ export function createGeneralRouter(
         return res.render('general/about.html', {
             path: '/about',
             title: 'About',
-            howToContent: await getConvertedReadmeMDToHTML(),
         });
     });
 
@@ -115,7 +114,6 @@ export function createGeneralRouter(
 
         return res.render('general/bangs-get.html', {
             layout: '_layouts/auth.html',
-            howToContent: await getConvertedReadmeMDToHTML(),
             user: req.session.user,
             path: req.path,
             data: highlightedData,

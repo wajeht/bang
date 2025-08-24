@@ -196,7 +196,6 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
             title: 'Tabs',
             path: '/tabs',
             layout: '_layouts/auth.html',
-            howToContent: await getConvertedReadmeMDToHTML(),
             tabs: tabsData,
             user,
             pagination,
