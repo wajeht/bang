@@ -122,7 +122,7 @@ async function minifyHtmlFiles() {
             mangle: false,
             output: {
                 comments: false,
-            }
+            },
         },
         conservativeCollapse: true, // Preserve single spaces for EJS
         preserveLineBreaks: false,

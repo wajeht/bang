@@ -597,24 +597,11 @@ let cachedReadMeMdHTML: Promise<string> | undefined;
 export async function getConvertedReadmeMDToHTML(): Promise<string> {
     try {
         if (!cachedReadMeMdHTML) {
-            const content = await getReadmeFileContent();
-            const usage = extractReadmeUsage(content);
-            const { marked } = await import('marked');
-            const html = await marked(usage);
-            
-            try {
-                const { minify: minifyHtml } = await import('html-minifier-terser');
-                const minifiedHtml = await minifyHtml(html as string, {
-                    collapseWhitespace: true,
-                    removeComments: true,
-                    removeRedundantAttributes: true,
-                    removeEmptyAttributes: true,
-                });
-                cachedReadMeMdHTML = Promise.resolve(minifiedHtml);
-            } catch (minifyError) {
-                logger.error(`Failed to minify HTML, using original: %o`, { error: minifyError });
-                cachedReadMeMdHTML = Promise.resolve(html as string);
-            }
+            const readmeHtmlPath = path.resolve(
+                path.join(__dirname, '..', 'routes', 'readme-usage.html'),
+            );
+            const html = await fs.readFile(readmeHtmlPath, { encoding: 'utf8' });
+            cachedReadMeMdHTML = Promise.resolve(html);
         }
         return cachedReadMeMdHTML;
     } catch (error) {
