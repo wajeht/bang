@@ -222,9 +222,9 @@ async function minifyHtmlFiles(): Promise<MinificationSummary> {
         collapseWhitespace: true,
         removeComments: true,
         removeOptionalTags: false,
-        removeRedundantAttributes: true,
-        removeScriptTypeAttributes: true,
-        removeStyleLinkTypeAttributes: true,
+        removeRedundantAttributes: false,
+        removeScriptTypeAttributes: false,
+        removeStyleLinkTypeAttributes: false,
         useShortDoctype: true,
         minifyCSS: true,
         minifyJS: {
@@ -234,7 +234,7 @@ async function minifyHtmlFiles(): Promise<MinificationSummary> {
                 comments: false,
             },
         },
-        conservativeCollapse: true,
+        conservativeCollapse: false,
         preserveLineBreaks: false,
         removeEmptyAttributes: true,
         removeAttributeQuotes: false,
@@ -309,9 +309,32 @@ async function minifyCssFiles(): Promise<MinificationSummary> {
         level: {
             1: {
                 all: false,
-                removeWhitespace: true,
+                removeWhitespace: false,
                 specialComments: '0',
             },
+            2: {
+                all: false,
+            }
+        },
+        format: {
+            breaks: {
+                afterAtRule: true,
+                afterBlockBegins: true,
+                afterBlockEnds: true,
+                afterComment: true,
+                afterProperty: false,
+                afterRuleBegins: false,
+                afterRuleEnds: true,
+                beforeBlockEnds: true,
+                betweenSelectors: true
+            },
+            indentBy: 4,
+            indentWith: 'space',
+            spaces: {
+                aroundSelectorRelation: true,
+                beforeBlockBegins: true,
+                beforeValue: true
+            }
         },
         sourceMap: false,
     });
