@@ -20,7 +20,9 @@ COPY README.md ./
 # Build with TypeScript incremental compilation (excluding tests) and minify
 RUN npm run build:prod && \
     rm -rf src/tests src/**/*.test.* && \
-    find dist -name "*.map" -delete
+    find dist -name "*.map" -delete && \
+    find src/routes -name "*.ts" -delete && \
+    find src/routes -name "*.js" -delete
 
 FROM node:22-alpine
 
@@ -39,6 +41,7 @@ RUN npm ci --only=production --no-audit --no-fund && \
 # Copy built application
 COPY --chown=nodejs:nodejs --from=build /usr/src/app/dist ./dist
 COPY --chown=nodejs:nodejs --from=build /usr/src/app/public ./public
+COPY --chown=nodejs:nodejs --from=build /usr/src/app/src/routes ./src/routes
 COPY --chown=nodejs:nodejs --from=build /usr/src/app/README.md ./
 
 # Display directory structure excluding node_modules

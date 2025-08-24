@@ -12,8 +12,8 @@
         "build:server:prod": "tsc -p tsconfig.prod.json",
         "build": "npm run extract:readme && npm run build:server",
         "build:prod": "npm run extract:readme && npm run build:server:prod && npm run minify",
-        "extract:readme": "node scripts/extract-readme.js",
-        "minify": "node scripts/minify.js",
+        "extract:readme": "tsx scripts/extract-readme.ts",
+        "minify": "tsx scripts/minify.ts",
         "build:bang": "rm -rf ./src/db/bang.ts && tsx ./src/utils/banger.mts ./src/db/bang.ts",
         "build:bang:custom": "rm -rf ./src/db/bang.ts && tsx ./src/utils/banger.mts",
         "update:deps": "npx npm-check -u",
@@ -79,6 +79,7 @@
     "devDependencies": {
         "@eslint/js": "^9.34.0",
         "@playwright/test": "^1.55.0",
+        "@types/clean-css": "^4.2.11",
         "@types/compression": "^1.8.1",
         "@types/connect-flash": "^0.0.40",
         "@types/cors": "^2.8.19",
