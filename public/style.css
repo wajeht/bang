@@ -26,12 +26,12 @@ html {
     --sub-table-background: #f8f9fa;
     --tr-border-color: #ddd;
     --aside-border-color: #ddd;
-    --dialog-border-color: #646464;
+    --dialog-border-color: #aaa;
     --fieldset-border-color: #ddd;
-    --summary-content-border-color: #646464;
+    --summary-content-border-color: #ddd;
     --link-divider-color: #ddd;
     --card-border-color: #ddd;
-    --toast-border-color: #646464;
+    --toast-border-color: #bbb;
     --tr-hover-background: #fafafa;
 }
 
