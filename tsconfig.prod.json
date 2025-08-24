@@ -3,10 +3,16 @@
     "exclude": [
         "node_modules",
         "**/*.test.ts",
+        "**/*.test.mts",
+        "**/*.test.mjs",
+        "**/*.test.js",
         "**/*.spec.ts",
         "src/tests/**/*",
+        "scripts/load-test.ts",
         "dist",
         "coverage",
+        "public",
+        "test",
         "vitest.config.ts"
     ]
 }
