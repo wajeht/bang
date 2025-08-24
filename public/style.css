@@ -646,7 +646,7 @@ a:hover .sort-icon {
 }
 
 .question-mark-btn {
-    border: 0.5px solid;
+    border: 1px solid var(--tr-border-color);
     border-radius: 50%;
     width: 24px;
     height: 24px;
