@@ -115842,6 +115842,14 @@ export const bangs: Record<string, any> = {
         c: 'Tech',
         sc: 'Downloads (apps)',
     },
+    zed: {
+        s: 'Zed Docs',
+        t: 'zed',
+        d: 'zed.dev',
+        u: 'https://zed.dev/docs/?search={{{s}}}',
+        c: 'Tech',
+        sc: 'Programming',
+    },
     libro: {
         s: 'Libro.fm',
         d: 'libro.fm',
