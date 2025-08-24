@@ -140,7 +140,7 @@ async function minifyJavaScript(): Promise<MinificationSummary> {
 
         try {
             const isBrowserFile = file.startsWith(publicDir);
-            
+
             if (isBrowserFile) {
                 // Browser-specific settings for public files
                 await build({
