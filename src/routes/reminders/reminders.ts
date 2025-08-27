@@ -1,10 +1,16 @@
+import {
+    isValidUrl,
+    isApiRequest,
+    insertBookmark,
+    extractPagination,
+    checkDuplicateBookmarkUrl,
+} from '../../utils/util';
 import express from 'express';
 import type { Knex } from 'knex';
 import type { User, Reminders } from '../../type';
 import type { Request, Response } from 'express';
 import { authenticationMiddleware } from '../middleware';
 import { NotFoundError, ValidationError } from '../../error';
-import { isApiRequest, extractPagination } from '../../utils/util';
 import { parseReminderTiming, reminderTimingConfig } from '../../utils/search';
 
 export function createRemindersRouter(db: Knex, reminders: Reminders) {
@@ -58,6 +64,99 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
                 reminder,
                 timingOptions: reminderTimingConfig.getAllOptions(),
             });
+        },
+    );
+
+    router.get(
+        '/reminders/:id/bookmarks/create',
+        authenticationMiddleware,
+        async (req: Request, res: Response) => {
+            const user = req.session.user as User;
+            const reminderId = parseInt(req.params.id || '', 10);
+
+            const reminder = await reminders.read(reminderId, user.id);
+
+            if (!reminder) {
+                throw new NotFoundError('Reminder not found');
+            }
+
+            return res.render('reminders/reminders-id-bookmarks-create.html', {
+                title: `Reminders / ${reminderId} / Bookmarks / Create`,
+                path: `/reminders/${reminderId}/bookmarks/create`,
+                layout: '_layouts/auth.html',
+                user: req.session?.user,
+                reminder,
+            });
+        },
+    );
+
+    router.post(
+        '/reminders/:id/bookmarks',
+        authenticationMiddleware,
+        async (req: Request, res: Response) => {
+            const user = req.session.user as User;
+            const reminderId = parseInt(req.params.id || '', 10);
+            const { url, title, pinned, delete_reminder } = req.body;
+
+            const reminder = await reminders.read(reminderId, user.id);
+
+            if (!reminder) {
+                throw new NotFoundError('Reminder not found');
+            }
+
+            if (!title) {
+                throw new ValidationError({ title: 'Title is required' });
+            }
+
+            if (!url) {
+                throw new ValidationError({ url: 'URL is required' });
+            }
+
+            if (!isValidUrl(url)) {
+                throw new ValidationError({ url: 'Invalid URL format' });
+            }
+
+            if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
+                throw new ValidationError({ pinned: 'Pinned must be a boolean or checkbox value' });
+            }
+
+            const existingBookmark = await checkDuplicateBookmarkUrl(user.id, url);
+
+            if (existingBookmark) {
+                throw new ValidationError({
+                    url: `URL already bookmarked as "${existingBookmark.title}". Please use a different URL or update the existing bookmark.`,
+                });
+            }
+
+            setTimeout(
+                () =>
+                    insertBookmark({
+                        url,
+                        userId: user.id,
+                        title,
+                        pinned: pinned === 'on' || pinned === true,
+                        req,
+                    }),
+                0,
+            );
+
+            // Delete reminder if requested
+            if (delete_reminder === 'on' || delete_reminder === true) {
+                await reminders.delete(reminderId, user.id);
+            }
+
+            const successMessage =
+                delete_reminder === 'on' || delete_reminder === true
+                    ? `Bookmark ${title} created successfully and reminder deleted!`
+                    : `Bookmark ${title} created successfully!`;
+
+            if (isApiRequest(req)) {
+                res.status(201).json({ message: successMessage });
+                return;
+            }
+
+            req.flash('success', successMessage);
+            return res.redirect('/reminders');
         },
     );
 
