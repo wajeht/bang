@@ -4,6 +4,7 @@ import { logger } from './logger';
 import { config } from '../config';
 import type { User } from '../type';
 import nodemailer from 'nodemailer';
+import { styleText } from 'node:util';
 import type { Request } from 'express';
 import type { Attachment } from 'nodemailer/lib/mailer';
 import { generateUserDataExport, generateBookmarkHtmlExport } from './util';
@@ -20,6 +21,109 @@ export const emailTransporter = nodemailer.createTransport({
               }
             : undefined,
 });
+
+async function sendEmailWithFallback(mailOptions: any, emailType: string): Promise<void> {
+    if (config.app.env === 'development' && (await isMailpitRunning()) === false) {
+        logEmailToConsole(mailOptions, emailType);
+        return;
+    }
+
+    await emailTransporter.sendMail(mailOptions);
+}
+
+function logEmailToConsole(mailOptions: any, emailType: string): void {
+    const timestamp = dayjs().format('h:mm:ss A');
+    const divider = styleText('dim', '─'.repeat(70));
+    const doubleDivider = styleText('dim', '═'.repeat(70));
+
+    console.log('\n' + doubleDivider);
+    console.log(
+        styleText('cyan', '📧 EMAIL PREVIEW') +
+            ' ' +
+            styleText('magenta', `[${emailType}]`) +
+            ' ' +
+            styleText('dim', `@ ${timestamp}`),
+    );
+    console.log(doubleDivider);
+
+    // Email headers
+    console.log(styleText('yellow', '  From:    ') + styleText('white', mailOptions.from));
+    console.log(styleText('yellow', '  To:      ') + styleText('white', mailOptions.to));
+    console.log(styleText('yellow', '  Subject: ') + styleText('white', mailOptions.subject));
+
+    // Attachments if any
+    if (mailOptions.attachments && mailOptions.attachments.length > 0) {
+        console.log(divider);
+        console.log(styleText('blue', '📎 Attachments:'));
+        mailOptions.attachments.forEach((att: any, index: number) => {
+            console.log(
+                styleText('dim', `  ${index + 1}. `) +
+                    styleText('white', att.filename) +
+                    styleText('dim', ` (${att.contentType})`),
+            );
+        });
+    }
+
+    console.log(divider);
+    console.log(styleText('green', '✉️  Message Body:'));
+    console.log(divider);
+
+    // Format the content - handle both text and HTML
+    let content = mailOptions.text || '';
+
+    // If it's HTML, strip basic tags for console display
+    if (mailOptions.html && !mailOptions.text) {
+        content = mailOptions.html
+            .replace(/<[^>]*>/g, '') // Remove HTML tags
+            .replace(/&nbsp;/g, ' ') // Replace nbsp
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .trim();
+    }
+
+    const lines = content.split('\n');
+    lines.forEach((line: string) => {
+        const trimmedLine = line.trim();
+
+        if (trimmedLine.includes('http://') || trimmedLine.includes('https://')) {
+            // Highlight full URLs in cyan with underline effect
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const highlightedLine = line.replace(urlRegex, (url: string) =>
+                styleText('cyan', styleText('underline', url)),
+            );
+            console.log('  ' + highlightedLine);
+        } else if (trimmedLine.startsWith('--') || trimmedLine.includes('Bang Team')) {
+            // Make signature section dimmer
+            console.log(styleText('dim', '  ' + line));
+        } else if (trimmedLine.includes('Click this link') || trimmedLine.includes('Magic Link')) {
+            // Highlight important phrases
+            console.log(styleText('bold', '  ' + line));
+        } else if (line === '') {
+            // Empty lines
+            console.log();
+        } else {
+            // Regular text
+            console.log('  ' + line);
+        }
+    });
+
+    console.log(divider);
+    console.log(
+        styleText('yellow', '⚠️  Mailpit not running') +
+            ' - ' +
+            styleText('red', 'Email NOT sent') +
+            ' ' +
+            styleText('dim', '(Development mode)'),
+    );
+
+    // Add a tip about starting Mailpit
+    console.log(
+        styleText('dim', '💡 Tip: Start Mailpit with ') +
+            styleText('cyan', 'docker compose up -d mailpit'),
+    );
+    console.log(doubleDivider + '\n');
+}
 
 export async function isMailpitRunning(): Promise<boolean> {
     try {
@@ -63,10 +167,7 @@ https://github.com/wajeht/bang`,
     };
 
     try {
-        if (config.app.env === 'development' && (await isMailpitRunning()) === false) {
-            logger.info(`We are on dev mode and mailpit is not running, magic link: ${magicLink}`);
-        }
-        await emailTransporter.sendMail(mailOptions);
+        await sendEmailWithFallback(mailOptions, 'Magic Link');
         logger.info(`Magic link sent to ${email}`);
     } catch (error) {
         logger.error(`Failed to send magic link email: %o`, { error });
@@ -161,14 +262,7 @@ https://github.com/wajeht/bang`,
             attachments,
         };
 
-        if (config.app.env === 'development' && (await isMailpitRunning()) === false) {
-            logger.info(
-                `We are on dev mode and mailpit is not running. Data export email would be sent to ${email} with ${attachments.length} attachment(s).`,
-            );
-            return;
-        }
-
-        await emailTransporter.sendMail(mailOptions);
+        await sendEmailWithFallback(mailOptions, 'Data Export');
         logger.info(
             `Data export email sent to ${email} before account deletion with ${attachments.length} attachment(s)`,
         );
@@ -257,15 +351,7 @@ ${formatReminderListHTML}
     };
 
     try {
-        if (config.app.env === 'development' && (await isMailpitRunning()) === false) {
-            logger.info(
-                `Development mode: Reminder digest email for ${email} with ${reminders.length} reminders`,
-            );
-            logger.info(`Email content:\n${emailBodyHTML}`);
-            return;
-        }
-
-        await emailTransporter.sendMail(mailOptions);
+        await sendEmailWithFallback({ ...mailOptions, text: emailBodyHTML }, 'Reminder Digest');
         logger.info(`Reminder digest email sent to ${email} with ${reminders.length} reminders`);
     } catch (error) {
         logger.error(`Failed to send reminder digest email: %o`, { error });
