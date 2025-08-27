@@ -140,6 +140,10 @@ export async function cleanupTestData() {
                         .whereIn('user_id', userIds)
                         .del()
                         .catch(() => {}),
+                    trx('reminders')
+                        .whereIn('user_id', userIds)
+                        .del()
+                        .catch(() => {}),
                     trx('sessions')
                         .where('sess', 'like', '%test@example.com%')
                         .del()
