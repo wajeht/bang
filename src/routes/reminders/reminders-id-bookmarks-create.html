@@ -1,0 +1,63 @@
+<section style="display: flex; flex-direction: column; gap: 30px;">
+    <header>
+        <h2>⭐️ Create Bookmark from Reminder</h2>
+        <p>Convert your reminder into a bookmark for quick access</p>
+    </header>
+
+    <form
+        method="POST"
+        action="/reminders/<%= reminder.id %>/bookmarks"
+        style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+    >
+        <fieldset style="display: flex; flex-direction: column;">
+            <legend>Bookmark Details</legend>
+
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+            <%- include('../_components/inputs/text.html', {
+                id: 'title',
+                name: 'title',
+                label: '📝 Name',
+                placeholder: 'e.g., My Search Engine',
+                value: state.input?.title || reminder.title || '',
+                helpText: 'Give your bookmark a memorable name',
+                error: state.errors?.title
+            }) %>
+
+            <%- include('../_components/inputs/url.html', {
+                id: 'url',
+                name: 'url',
+                label: '🌐 URL',
+                placeholder: 'https://bang.jaw.dev/',
+                value: state.input?.url || reminder.content || '',
+                required: true,
+                helpText: 'Enter the full website address, including https:// or http://',
+                error: state.errors?.url
+            }) %>
+
+            <%- include('../_components/inputs/checkbox.html', {
+                id: 'pinned',
+                name: 'pinned',
+                label: '📌 Pin this bookmark',
+                checked: state.input?.pinned === 'on',
+                helpText: 'Pinned bookmarks appear at the top of your bookmarks list',
+                error: state.errors?.pinned
+            }) %>
+
+            <%- include('../_components/inputs/checkbox.html', {
+                id: 'delete_reminder',
+                name: 'delete_reminder',
+                label: '🗑️ Delete reminder after creating bookmark',
+                checked: state.input?.delete_reminder === 'on',
+                helpText: 'Remove the original reminder once the bookmark is created',
+                error: state.errors?.delete_reminder
+            }) %>
+
+        </fieldset>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" onclick="location.href='/reminders'">❌ Cancel</button>
+            <button type="submit">💾 Save Bookmark</button>
+        </div>
+    </form>
+</section>
