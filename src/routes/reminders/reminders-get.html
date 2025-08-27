@@ -199,6 +199,13 @@
                                 <details style="position: relative;">
                                     <summary aria-label="Actions for reminder <%= utils.stripHtmlTags(reminders[i].title) %>">Actions</summary>
                                     <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                        <a
+                                            href="/reminders/<%= reminders[i].id %>/bookmarks/create"
+                                            role="menuitem"
+                                            aria-label="Create bookmark from reminder <%= utils.stripHtmlTags(reminders[i].title) %>"
+                                        >
+                                            ⭐️ Bookmark
+                                        </a>
                                         <a href="/reminders/<%= reminders[i].id %>/edit" role="menuitem" aria-label="Edit reminder <%= utils.stripHtmlTags(reminders[i].title) %>">✏️ Edit</a>
                                         <button
                                             type="button"
