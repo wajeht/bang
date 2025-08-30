@@ -113972,6 +113972,14 @@ export const bangs: Record<string, any> = {
         c: 'Tech',
         sc: 'Sysadmin',
     },
+    nls: {
+        s: 'National Library of Scotland=Leabharlann Nàiseanta na h-Alba',
+        d: 'search.nls.uk',
+        t: 'nls',
+        u: 'https://search.nls.uk/discovery/search?query=any,contains,{{{s}}}&tab=MainCatalogue&search_scope=MainCatalogue&vid=44NLS_INST:44NLS_VU1&offset=0',
+        c: 'Research',
+        sc: 'Academic',
+    },
     nlwc: {
         s: 'Llyfrgell Genedlaethol Cymru = The National Library of Wales',
         d: 'discover.library.wales',
