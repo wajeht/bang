@@ -344,6 +344,7 @@ describe('extractUser', () => {
             api_key: null,
             api_key_created_at: null,
             api_key_version: 0,
+            hidden_items_password: null,
             column_preferences: JSON.stringify({
                 bookmarks: {
                     title: true,
