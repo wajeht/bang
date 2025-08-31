@@ -55,10 +55,21 @@ Before you can use the Bang command from your browser's search bar, you need to 
     - `[title]` is optional, if not provided, we will auto fetch the title
     - `[url]` is required
     - eg: `!bm this title can be super long https://bang.jaw.dev`
+- `!bm --hide [url]` - Add a hidden bookmark (requires global password)
+- `!bm --hide [title] [url]` - Add a hidden bookmark with title
+    - `--hide` flag makes the bookmark hidden (only visible after password verification)
+    - Requires global password to be set in settings
+    - eg: `!bm --hide https://private-site.com`
+    - eg: `!bm --hide Private Site https://private-site.com`
 - `!add [trigger] [url]` - Create a custom bang
     - `[trigger]` is required
     - `[url]` is required
     - eg: `!add jaw https://bang.jaw.dev`
+- `!add --hide [trigger] [url]` - Create a hidden custom bang (requires global password)
+    - `--hide` flag makes the action hidden (only visible after password verification)
+    - Only redirect-type actions can be hidden
+    - Requires global password to be set in settings
+    - eg: `!add --hide private https://private-service.com`
 - `!del [trigger]` - Delete a custom bang or tab
     - `[trigger]` is required (the bang/tab trigger to delete)
     - Works with both bangs and tabs - will delete from both if they exist
@@ -84,6 +95,11 @@ Before you can use the Bang command from your browser's search bar, you need to 
     - `[content]` is required
     - eg: `!note some title | this is a note https://bang.jaw.dev`
     - eg: `!note this is a content without any title`
+- `!note --hide [title] | [content]` - Create a hidden note (requires global password)
+    - `--hide` flag makes the note hidden (only visible after password verification)
+    - Requires global password to be set in settings
+    - eg: `!note --hide Private Note | sensitive information here`
+    - eg: `!note --hide this is hidden content without title`
 - `!remind [description]` - Create a reminder with your default timing
     - `[description]` is required (what you want to be reminded about)
     - Uses your default reminder timing preference (set in /reminders settings)
