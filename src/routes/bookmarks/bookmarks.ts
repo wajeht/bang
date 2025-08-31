@@ -55,6 +55,7 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
             sortKey,
             direction,
             highlight: !isApiRequest(req),
+            excludeHidden: true,
         });
 
         if (isApiRequest(req)) {
@@ -206,7 +207,7 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
     router.post('/api/bookmarks', authenticationMiddleware, postBookmarkHandler);
     router.post('/bookmarks', authenticationMiddleware, postBookmarkHandler);
     async function postBookmarkHandler(req: Request, res: Response) {
-        const { url, title, pinned } = req.body;
+        const { url, title, pinned, hidden } = req.body;
 
         if (!title) {
             throw new ValidationError({ title: 'Title is required' });
@@ -224,7 +225,19 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
             throw new ValidationError({ pinned: 'Pinned must be a boolean or checkbox value' });
         }
 
+        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+            throw new ValidationError({ hidden: 'Hidden must be a boolean or checkbox value' });
+        }
+
         const user = req.user as User;
+
+        if (hidden === 'on' || hidden === true) {
+            if (!user.hidden_items_password) {
+                throw new ValidationError({
+                    hidden: 'You must set a global password in settings before hiding items',
+                });
+            }
+        }
         const existingBookmark = await checkDuplicateBookmarkUrl(user.id, url);
 
         if (existingBookmark) {
@@ -240,6 +253,7 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
                     userId: (req.user as User).id,
                     title,
                     pinned: pinned === 'on' || pinned === true,
+                    hidden: hidden === 'on' || hidden === true,
                     req,
                 }),
             0,
@@ -274,7 +288,7 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
     router.patch('/api/bookmarks/:id', authenticationMiddleware, updateBookmarkHandler);
     router.post('/bookmarks/:id/update', authenticationMiddleware, updateBookmarkHandler);
     async function updateBookmarkHandler(req: Request, res: Response) {
-        const { url, title, pinned } = req.body;
+        const { url, title, pinned, hidden } = req.body;
 
         if (!title) {
             throw new ValidationError({ title: 'Title is required' });
@@ -292,15 +306,27 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
             throw new ValidationError({ pinned: 'Pinned must be a boolean or checkbox value' });
         }
 
-        const updatedBookmark = await bookmarks.update(
-            req.params.id as unknown as number,
-            (req.user as User).id,
-            {
-                url,
-                title,
-                pinned: pinned === 'on' || pinned === true,
-            },
-        );
+        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+            throw new ValidationError({ hidden: 'Hidden must be a boolean or checkbox value' });
+        }
+
+        const user = req.user as User;
+        const bookmarkId = req.params.id as unknown as number;
+
+        if (hidden === 'on' || hidden === true) {
+            if (!user.hidden_items_password) {
+                throw new ValidationError({
+                    hidden: 'You must set a global password in settings before hiding items',
+                });
+            }
+        }
+
+        const updatedBookmark = await bookmarks.update(bookmarkId, user.id, {
+            url,
+            title,
+            pinned: pinned === 'on' || pinned === true,
+            hidden: hidden === 'on' || hidden === true,
+        });
 
         if (isApiRequest(req)) {
             res.status(200).json({
