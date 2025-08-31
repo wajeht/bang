@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import express from 'express';
 import type { Knex } from 'knex';
 import { config } from '../../config';
@@ -151,7 +152,6 @@ export function createAuthRouter(db: Knex) {
             `);
         }
 
-        const bcrypt = await import('bcrypt');
         const isValid = await bcrypt.compare(password, user.hidden_items_password);
 
         if (!isValid) {

@@ -533,7 +533,6 @@ export function createSettingsRouter(db: Knex) {
                     });
                 }
 
-                const bcrypt = await import('bcrypt');
                 const isValid = await bcrypt.compare(currentPassword, user.hidden_items_password);
 
                 if (!isValid) {
@@ -558,7 +557,6 @@ export function createSettingsRouter(db: Knex) {
                     throw new ValidationError({ currentPassword: 'Current password is required' });
                 }
 
-                const bcrypt = await import('bcrypt');
                 const isValid = await bcrypt.compare(currentPassword, user.hidden_items_password);
 
                 if (!isValid) {
@@ -574,22 +572,21 @@ export function createSettingsRouter(db: Knex) {
                 }
             }
 
-
             if (newPassword && newPassword.length < 4) {
                 throw new ValidationError({
                     newPassword: 'Password must be at least 4 characters',
                 });
             }
 
-
             if (user.hidden_items_password && newPassword !== confirmPassword) {
                 throw new ValidationError({ confirmPassword: 'Passwords do not match' });
             }
 
-            const bcrypt = await import('bcrypt');
             const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-            await db('users').where({ id: user.id }).update({ hidden_items_password: hashedPassword });
+            await db('users')
+                .where({ id: user.id })
+                .update({ hidden_items_password: hashedPassword });
 
             req.flash(
                 'success',
