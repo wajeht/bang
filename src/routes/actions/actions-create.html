@@ -58,8 +58,20 @@
                 })),
                 required: true,
                 helpText: 'Select the type of action to perform',
-                error: state.errors && state.errors.actionType ? state.errors.actionType : undefined
+                error: state.errors && state.errors.actionType ? state.errors.actionType : undefined,
+                onchange: "var hiddenCheckbox = document.getElementById('hidden-section'); if(this.value === 'redirect') { hiddenCheckbox.style.display = 'block'; } else { hiddenCheckbox.style.display = 'none'; document.getElementById('hidden').checked = false; }"
             }) %>
+
+            <div id="hidden-section" style="display: <%= (state.input && state.input.actionType === 'redirect') || (!state.input || !state.input.actionType) ? 'block' : 'none' %>;">
+                <%- include('../_components/inputs/checkbox.html', {
+                    id: 'hidden',
+                    name: 'hidden',
+                    label: '🔒 Hide this action',
+                    checked: state.input && state.input.hidden === 'on' ? true : false,
+                    helpText: 'Hidden redirect actions are excluded from searches and require your global password to view',
+                    error: state.errors && state.errors.hidden ? state.errors.hidden : undefined
+                }) %>
+            </div>
         </fieldset>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
