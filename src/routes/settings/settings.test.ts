@@ -381,5 +381,219 @@ describe('Settings Routes', () => {
             expect(actions).toHaveLength(1);
             expect(actions[0].name).toBe('Existing Action');
         });
+
+        it('should import hidden items when user has global password', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('users')
+                .where({ id: user.id })
+                .update({ hidden_items_password: 'hashed_password' });
+
+            const importData = {
+                version: '1.0',
+                bookmarks: [
+                    {
+                        title: 'Public Bookmark',
+                        url: 'https://public.com',
+                        hidden: false,
+                    },
+                    {
+                        title: 'Hidden Bookmark',
+                        url: 'https://secret.com',
+                        hidden: true,
+                    },
+                ],
+                notes: [
+                    {
+                        title: 'Public Note',
+                        content: 'Public content',
+                        hidden: false,
+                    },
+                    {
+                        title: 'Hidden Note',
+                        content: 'Secret content',
+                        hidden: true,
+                    },
+                ],
+                actions: [
+                    {
+                        trigger: '!public',
+                        name: 'Public Action',
+                        url: 'https://public-action.com',
+                        action_type: 'redirect',
+                        hidden: false,
+                    },
+                    {
+                        trigger: '!hidden',
+                        name: 'Hidden Action',
+                        url: 'https://secret-action.com',
+                        action_type: 'redirect',
+                        hidden: true,
+                    },
+                ],
+            };
+
+            await agent
+                .post('/settings/data/import')
+                .send({
+                    config: JSON.stringify(importData),
+                })
+                .expect(302);
+
+            const bookmarks = await db('bookmarks').where({ user_id: user.id }).orderBy('title');
+            expect(bookmarks).toHaveLength(2);
+            expect(bookmarks[0].title).toBe('Hidden Bookmark');
+            expect(bookmarks[0].hidden).toBe(1);
+            expect(bookmarks[1].title).toBe('Public Bookmark');
+            expect(bookmarks[1].hidden).toBe(0);
+
+            const notes = await db('notes').where({ user_id: user.id }).orderBy('title');
+            expect(notes).toHaveLength(2);
+            expect(notes[0].title).toBe('Hidden Note');
+            expect(notes[0].hidden).toBe(1);
+            expect(notes[1].title).toBe('Public Note');
+            expect(notes[1].hidden).toBe(0);
+
+            const actions = await db('bangs').where({ user_id: user.id }).orderBy('trigger');
+            expect(actions).toHaveLength(2);
+            expect(actions[0].trigger).toBe('!hidden');
+            expect(actions[0].hidden).toBe(1);
+            expect(actions[1].trigger).toBe('!public');
+            expect(actions[1].hidden).toBe(0);
+        });
+
+        it('should set hidden to false if not specified in import', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const importData = {
+                version: '1.0',
+                bookmarks: [
+                    {
+                        title: 'No Hidden Field',
+                        url: 'https://example.com',
+                    },
+                ],
+                notes: [
+                    {
+                        title: 'No Hidden Field Note',
+                        content: 'Some content',
+                    },
+                ],
+                actions: [
+                    {
+                        trigger: '!nohidden',
+                        name: 'No Hidden Field Action',
+                        url: 'https://example.com',
+                        action_type: 'redirect',
+                    },
+                ],
+            };
+
+            await agent
+                .post('/settings/data/import')
+                .send({
+                    config: JSON.stringify(importData),
+                })
+                .expect(302);
+
+            const bookmarks = await db('bookmarks').where({ user_id: user.id });
+            expect(bookmarks[0].hidden).toBe(0);
+
+            const notes = await db('notes').where({ user_id: user.id });
+            expect(notes[0].hidden).toBe(0);
+
+            const actions = await db('bangs').where({ user_id: user.id });
+            expect(actions[0].hidden).toBe(0);
+        });
+    });
+
+    describe('POST /settings/data/export', () => {
+        it('should export data including hidden field', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('users')
+                .where({ id: user.id })
+                .update({ hidden_items_password: 'hashed_password' });
+
+            await db('bookmarks').insert([
+                {
+                    user_id: user.id,
+                    title: 'Public Bookmark',
+                    url: 'https://public.com',
+                    hidden: false,
+                },
+                {
+                    user_id: user.id,
+                    title: 'Hidden Bookmark',
+                    url: 'https://secret.com',
+                    hidden: true,
+                },
+            ]);
+
+            await db('notes').insert([
+                {
+                    user_id: user.id,
+                    title: 'Public Note',
+                    content: 'Public content',
+                    hidden: false,
+                },
+                {
+                    user_id: user.id,
+                    title: 'Hidden Note',
+                    content: 'Secret content',
+                    hidden: true,
+                },
+            ]);
+
+            await db('bangs').insert([
+                {
+                    user_id: user.id,
+                    trigger: '!public',
+                    name: 'Public Action',
+                    url: 'https://public-action.com',
+                    action_type: 'redirect',
+                    hidden: false,
+                },
+                {
+                    user_id: user.id,
+                    trigger: '!hidden',
+                    name: 'Hidden Action',
+                    url: 'https://secret-action.com',
+                    action_type: 'redirect',
+                    hidden: true,
+                },
+            ]);
+
+            const response = await agent
+                .post('/settings/data/export')
+                .send({
+                    options: ['bookmarks', 'notes', 'actions'],
+                })
+                .expect(200);
+
+            const exportData = JSON.parse(response.text);
+
+            expect(exportData.bookmarks).toHaveLength(2);
+            const publicBookmark = exportData.bookmarks.find(
+                (b: any) => b.title === 'Public Bookmark',
+            );
+            const hiddenBookmark = exportData.bookmarks.find(
+                (b: any) => b.title === 'Hidden Bookmark',
+            );
+            expect(publicBookmark.hidden).toBe(0);
+            expect(hiddenBookmark.hidden).toBe(1);
+
+            expect(exportData.notes).toHaveLength(2);
+            const publicNote = exportData.notes.find((n: any) => n.title === 'Public Note');
+            const hiddenNote = exportData.notes.find((n: any) => n.title === 'Hidden Note');
+            expect(publicNote.hidden).toBe(0);
+            expect(hiddenNote.hidden).toBe(1);
+
+            expect(exportData.actions).toHaveLength(2);
+            const publicAction = exportData.actions.find((a: any) => a.trigger === '!public');
+            const hiddenAction = exportData.actions.find((a: any) => a.trigger === '!hidden');
+            expect(publicAction.hidden).toBe(0);
+            expect(hiddenAction.hidden).toBe(1);
+        });
     });
 });
