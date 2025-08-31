@@ -55,6 +55,7 @@
         "node": ">=22.18.0"
     },
     "dependencies": {
+        "bcrypt": "^6.0.0",
         "better-sqlite3": "^12.2.0",
         "compression": "^1.8.1",
         "connect-flash": "^0.1.1",
@@ -79,6 +80,7 @@
     "devDependencies": {
         "@eslint/js": "^9.34.0",
         "@playwright/test": "^1.55.0",
+        "@types/bcrypt": "^6.0.0",
         "@types/clean-css": "^4.2.11",
         "@types/compression": "^1.8.1",
         "@types/connect-flash": "^0.0.40",
