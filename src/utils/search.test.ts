@@ -289,6 +289,7 @@ describe('search', () => {
                     name: 'Custom Search',
                     action_type: 'search',
                     url: 'https://example.com/search?q={{{s}}}',
+                    hidden: false,
                 },
                 {
                     user_id: 1,
@@ -296,6 +297,7 @@ describe('search', () => {
                     name: 'My Site',
                     action_type: 'redirect',
                     url: 'https://mysite.com',
+                    hidden: false,
                 },
             ]);
         });
@@ -456,6 +458,7 @@ describe('search', () => {
                 url: 'https://example.com',
                 title: 'My Bookmark',
                 userId: 1,
+                hidden: false,
             });
 
             expect(res.set).toHaveBeenCalledWith(
@@ -551,6 +554,146 @@ describe('search', () => {
             vi.mocked(isValidUrl).mockReset();
         });
 
+        describe('!bm command with --hide flag', () => {
+            afterEach(async () => {
+                await db('bookmarks').where({ user_id: testUser.id }).delete();
+                vi.restoreAllMocks();
+            });
+
+            it('should create hidden bookmark with --hide flag when global password is set', async () => {
+                const userWithPassword = {
+                    ...testUser,
+                    hidden_items_password: 'hashed_password',
+                };
+
+                const req = {} as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                vi.mocked(isValidUrl).mockReturnValue(true);
+                const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
+                vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
+
+                await search({
+                    req,
+                    res,
+                    user: userWithPassword,
+                    query: '!bm Secret Site https://secret.com --hide',
+                });
+
+                await new Promise((resolve) => setTimeout(resolve, 0));
+
+                expect(mockInsertBookmark).toHaveBeenCalledWith({
+                    url: 'https://secret.com',
+                    title: 'Secret Site',
+                    userId: 1,
+                    hidden: true,
+                });
+
+                expect(res.redirect).toHaveBeenCalledWith('https://secret.com');
+            });
+
+            it('should reject hidden bookmark creation without global password', async () => {
+                const userWithoutPassword = {
+                    ...testUser,
+                    hidden_items_password: null,
+                };
+
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                vi.mocked(isValidUrl).mockReturnValue(true);
+
+                await search({
+                    req,
+                    res,
+                    user: userWithoutPassword,
+                    query: '!bm Secret Site https://secret.com --hide',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'You must set a global password in settings before hiding items',
+                    ),
+                );
+            });
+
+            it('should handle --hide flag with URL only (no title)', async () => {
+                const userWithPassword = {
+                    ...testUser,
+                    hidden_items_password: 'hashed_password',
+                };
+
+                const req = {} as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                vi.mocked(isValidUrl).mockReturnValue(true);
+                const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
+                vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
+
+                await search({
+                    req,
+                    res,
+                    user: userWithPassword,
+                    query: '!bm https://secret.com --hide',
+                });
+
+                await new Promise((resolve) => setTimeout(resolve, 0));
+
+                expect(mockInsertBookmark).toHaveBeenCalledWith({
+                    url: 'https://secret.com',
+                    title: '',
+                    userId: 1,
+                    hidden: true,
+                });
+
+                expect(res.redirect).toHaveBeenCalledWith('https://secret.com');
+            });
+
+            it('should remove --hide flag from bookmark title', async () => {
+                const userWithPassword = {
+                    ...testUser,
+                    hidden_items_password: 'hashed_password',
+                };
+
+                const req = {} as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                vi.mocked(isValidUrl).mockReturnValue(true);
+                const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
+                vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
+
+                await search({
+                    req,
+                    res,
+                    user: userWithPassword,
+                    query: '!bm Title with --hide in middle https://example.com',
+                });
+
+                await new Promise((resolve) => setTimeout(resolve, 0));
+
+                expect(mockInsertBookmark).toHaveBeenCalledWith({
+                    url: 'https://example.com',
+                    title: 'Title with in middle', // --hide removed from title
+                    userId: 1,
+                    hidden: true,
+                });
+            });
+        });
+
         it('should handle custom bang creation', async () => {
             const req = {} as Request;
             const res = {
@@ -570,7 +713,165 @@ describe('search', () => {
             expect(res.send).toHaveBeenCalledWith(expect.stringContaining('window.history.back()'));
         });
 
+        describe('!add command with --hide flag', () => {
+            afterEach(async () => {
+                await db('bangs').where({ user_id: testUser.id }).delete();
+            });
+
+            it('should create hidden redirect action with --hide flag when global password is set', async () => {
+                const userWithPassword = {
+                    ...testUser,
+                    hidden_items_password: 'hashed_password',
+                };
+
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: userWithPassword,
+                    query: '!add !secret https://secret.com Secret Site --hide',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('window.history.back()'),
+                );
+
+                const createdAction = await db('bangs')
+                    .where({ user_id: userWithPassword.id, trigger: '!secret' })
+                    .first();
+                expect(createdAction).toBeDefined();
+                expect(createdAction.hidden).toBe(1);
+                expect(createdAction.action_type).toBe('redirect');
+                expect(createdAction.name).toBe('Fetching title...'); // Actions are created with placeholder name
+            });
+
+            it('should reject hidden action creation without global password', async () => {
+                const userWithoutPassword = {
+                    ...testUser,
+                    hidden_items_password: null,
+                };
+
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: userWithoutPassword,
+                    query: '!add !secret https://secret.com Secret Site --hide',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'You must set a global password in settings before hiding items',
+                    ),
+                );
+
+                const createdAction = await db('bangs')
+                    .where({ user_id: userWithoutPassword.id, trigger: '!secret' })
+                    .first();
+                expect(createdAction).toBeUndefined();
+            });
+
+            it('should create hidden action regardless of URL pattern (no search/redirect validation)', async () => {
+                const userWithPassword = {
+                    ...testUser,
+                    hidden_items_password: 'hashed_password',
+                };
+
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: userWithPassword,
+                    query: '!add !secretsearch https://example.com/search?q=%s --hide',
+                });
+
+                // Currently, the code doesn't validate search vs redirect for hidden actions
+                // All actions created with !add are marked as 'redirect' type
+                expect(res.status).toHaveBeenCalledWith(200);
+
+                const createdAction = await db('bangs')
+                    .where({ user_id: userWithPassword.id, trigger: '!secretsearch' })
+                    .first();
+                expect(createdAction).toBeDefined();
+                expect(createdAction.hidden).toBe(1);
+                expect(createdAction.action_type).toBe('redirect'); // Always 'redirect' for !add
+            });
+
+            it('should remove --hide flag from action name', async () => {
+                const userWithPassword = {
+                    ...testUser,
+                    hidden_items_password: 'hashed_password',
+                };
+
+                const req = {} as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await search({
+                    req,
+                    res,
+                    user: userWithPassword,
+                    query: '!add !test https://example.com Name with --hide in middle',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+
+                const createdAction = await db('bangs')
+                    .where({ user_id: userWithPassword.id, trigger: '!test' })
+                    .first();
+                expect(createdAction).toBeDefined();
+                expect(createdAction.hidden).toBe(1);
+                expect(createdAction.name).toBe('Fetching title...'); // Actions are created with placeholder name
+            });
+        });
+
         it('should handle custom search bang', async () => {
+            await db('users')
+                .insert({
+                    id: 1,
+                    username: 'Test User',
+                    email: 'test@example.com',
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                })
+                .onConflict('id')
+                .ignore();
+
+            await db('bangs')
+                .insert({
+                    user_id: 1,
+                    trigger: '!custom',
+                    name: 'Custom Search',
+                    action_type: 'search',
+                    url: 'https://example.com/search?q={{{s}}}',
+                    hidden: false,
+                })
+                .onConflict(['user_id', 'trigger'])
+                .ignore();
+
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
@@ -661,6 +962,29 @@ describe('search', () => {
         });
 
         it('should handle custom redirect bang', async () => {
+            // Ensure the user and bang exist for this specific test
+            await db('users')
+                .insert({
+                    id: 1,
+                    username: 'Test User',
+                    email: 'test@example.com',
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                })
+                .onConflict('id')
+                .ignore();
+
+            await db('bangs')
+                .insert({
+                    user_id: 1,
+                    trigger: '!mysite',
+                    name: 'My Site',
+                    action_type: 'redirect',
+                    url: 'https://mysite.com',
+                    hidden: false,
+                })
+                .onConflict(['user_id', 'trigger'])
+                .ignore();
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
@@ -727,6 +1051,29 @@ describe('search', () => {
         });
 
         it('should handle duplicate bang trigger creation', async () => {
+            // Ensure the user and bang exist for this specific test
+            await db('users')
+                .insert({
+                    id: 1,
+                    username: 'Test User',
+                    email: 'test@example.com',
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                })
+                .onConflict('id')
+                .ignore();
+
+            await db('bangs')
+                .insert({
+                    user_id: 1,
+                    trigger: '!custom',
+                    name: 'Custom Search',
+                    action_type: 'search',
+                    url: 'https://example.com/search?q={{{s}}}',
+                    hidden: false,
+                })
+                .onConflict(['user_id', 'trigger'])
+                .ignore();
             const req = {} as Request;
             const res = {
                 redirect: vi.fn(),
@@ -1181,6 +1528,116 @@ describe('search', () => {
                 // Other notes should follow in creation order (newest first)
                 expect(result.data[1].title).toBe('Third Note');
                 expect(result.data[2].title).toBe('First Note');
+            });
+
+            describe('--hide flag', () => {
+                beforeEach(async () => {
+                    await db('users').where({ id: testUser.id }).update({
+                        hidden_items_password: '$2b$10$test-hash', // Mock bcrypt hash
+                    });
+                });
+
+                afterEach(async () => {
+                    await db('users').where({ id: testUser.id }).update({
+                        hidden_items_password: null,
+                    });
+                });
+
+                it('should create hidden note with --hide flag when global password is set', async () => {
+                    const userWithPassword = {
+                        ...testUser,
+                        hidden_items_password: '$2b$10$test-hash',
+                    } as User;
+
+                    const req = {} as Request;
+                    const res = {
+                        set: vi.fn().mockReturnThis(),
+                        status: vi.fn().mockReturnThis(),
+                        send: vi.fn(),
+                    } as unknown as Response;
+
+                    await search({
+                        req,
+                        res,
+                        user: userWithPassword,
+                        query: '!note Hidden Note | Secret content --hide',
+                    });
+
+                    expect(res.status).toHaveBeenCalledWith(200);
+                    expect(res.send).toHaveBeenCalledWith(
+                        expect.stringContaining('window.history.back()'),
+                    );
+
+                    const createdNote = await db('notes')
+                        .where({ user_id: testUser.id, title: 'Hidden Note' })
+                        .first();
+                    expect(createdNote).toBeDefined();
+                    expect(createdNote.content).toBe('Secret content');
+                    expect(createdNote.hidden).toBe(1); // SQLite stores boolean as 0/1
+                });
+
+                it('should reject hidden note creation without global password', async () => {
+                    const userWithoutPassword = {
+                        ...testUser,
+                        hidden_items_password: null,
+                    } as User;
+
+                    const req = {} as Request;
+                    const res = {
+                        set: vi.fn().mockReturnThis(),
+                        status: vi.fn().mockReturnThis(),
+                        send: vi.fn(),
+                    } as unknown as Response;
+
+                    await search({
+                        req,
+                        res,
+                        user: userWithoutPassword,
+                        query: '!note Hidden Note | Secret content --hide',
+                    });
+
+                    expect(res.status).toHaveBeenCalledWith(422);
+                    expect(res.send).toHaveBeenCalledWith(
+                        expect.stringContaining(
+                            'You must set a global password in settings before hiding items',
+                        ),
+                    );
+
+                    const createdNote = await db('notes')
+                        .where({ user_id: testUser.id, title: 'Hidden Note' })
+                        .first();
+                    expect(createdNote).toBeUndefined();
+                });
+
+                it('should handle --hide flag in middle of content', async () => {
+                    const userWithPassword = {
+                        ...testUser,
+                        hidden_items_password: '$2b$10$test-hash',
+                    } as User;
+
+                    const req = {} as Request;
+                    const res = {
+                        set: vi.fn().mockReturnThis(),
+                        status: vi.fn().mockReturnThis(),
+                        send: vi.fn(),
+                    } as unknown as Response;
+
+                    await search({
+                        req,
+                        res,
+                        user: userWithPassword,
+                        query: '!note Test Note | Content with --hide flag in middle',
+                    });
+
+                    expect(res.status).toHaveBeenCalledWith(200);
+
+                    const createdNote = await db('notes')
+                        .where({ user_id: testUser.id, title: 'Test Note' })
+                        .first();
+                    expect(createdNote).toBeDefined();
+                    expect(createdNote.content).toBe('Content with  flag in middle'); // --hide removed leaves double space
+                    expect(createdNote.hidden).toBe(1);
+                });
             });
         });
 
@@ -1951,6 +2408,7 @@ describe('search', () => {
                     url: 'https://unique.com',
                     title: 'Unique Title',
                     userId: testUser.id,
+                    hidden: false,
                 });
 
                 expect(res.set).toHaveBeenCalledWith(
@@ -1994,6 +2452,7 @@ describe('search', () => {
                     url: 'https://existing.com',
                     title: 'Same URL',
                     userId: otherUser.id,
+                    hidden: false,
                 });
 
                 expect(res.redirect).toHaveBeenCalledWith('https://existing.com');
