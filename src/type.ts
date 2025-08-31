@@ -8,6 +8,8 @@ declare module 'express-session' {
         searchCount: number;
         /** The total cumulative delay time (in milliseconds) encountered during the session. */
         cumulativeDelay: number;
+        /** Tracks verified hidden items with expiration timestamps */
+        verifiedHiddenItems?: Record<string, number>;
     }
 }
 
@@ -131,6 +133,7 @@ export type User = {
     email_verified_at: string | null;
     autocomplete_search_on_homepage: boolean;
     timezone: string;
+    hidden_items_password?: string | null;
 };
 
 export type BookmarkToExport = {
@@ -147,6 +150,7 @@ export type Action = {
     url: string;
     action_type: ActionTypes;
     user_id: number;
+    hidden?: boolean;
     created_at?: string;
 };
 
@@ -158,6 +162,7 @@ export type ActionsQueryParams = {
     sortKey: string | 'created_at';
     direction: string | 'asc' | 'desc';
     highlight?: boolean;
+    excludeHidden?: boolean;
 };
 
 export type Bookmark = {
@@ -166,6 +171,7 @@ export type Bookmark = {
     url: string;
     user_id: number;
     pinned?: boolean;
+    hidden?: boolean;
     created_at?: string;
 };
 
@@ -177,6 +183,7 @@ export type BookmarksQueryParams = {
     sortKey: string | 'created_at';
     direction: string | 'asc' | 'desc';
     highlight?: boolean;
+    excludeHidden?: boolean;
 };
 
 export type Note = {
@@ -185,6 +192,7 @@ export type Note = {
     content: string;
     user_id: number;
     pinned?: boolean;
+    hidden?: boolean;
     created_at?: string;
 };
 
@@ -196,6 +204,7 @@ export type NotesQueryParams = {
     sortKey: string | 'created_at';
     direction: string | 'asc' | 'desc';
     highlight?: boolean;
+    excludeHidden?: boolean;
 };
 
 export type Tab = {
