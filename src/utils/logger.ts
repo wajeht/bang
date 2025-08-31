@@ -37,7 +37,7 @@ function formatMessage(message: string, args: unknown[]): string {
             case '%j':
                 try {
                     return JSON.stringify(arg);
-                } catch (err) {
+                } catch (_err) {
                     return '[Circular]';
                 }
             case '%s':

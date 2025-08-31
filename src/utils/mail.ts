@@ -307,7 +307,6 @@ export async function sendReminderDigestEmail({
     // HTML version with clickable links
     const formatReminderListHTML = reminders
         .map((reminder, index) => {
-            const number = index + 1;
             const title = reminder.title;
 
             if (reminder.url && reminder.url !== 'null') {
