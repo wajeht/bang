@@ -639,7 +639,7 @@ export async function generateUserDataExport(
         includeBookmarks
             ? db('bookmarks')
                   .where('user_id', userId)
-                  .select('title', 'url', 'pinned', 'created_at')
+                  .select('title', 'url', 'pinned', 'hidden', 'created_at')
             : Promise.resolve([]);
 
     const fetchActions = () =>
@@ -650,6 +650,7 @@ export async function generateUserDataExport(
                       'bangs.name',
                       'bangs.url',
                       'bangs.action_type',
+                      'bangs.hidden',
                       'bangs.created_at',
                   )
                   .from('bangs')
@@ -660,7 +661,7 @@ export async function generateUserDataExport(
         includeNotes
             ? db('notes')
                   .where('user_id', userId)
-                  .select('title', 'content', 'pinned', 'created_at')
+                  .select('title', 'content', 'pinned', 'hidden', 'created_at')
             : Promise.resolve([]);
 
     const fetchTabs = async () => {
