@@ -459,4 +459,199 @@ describe('Notes Routes', () => {
             }
         });
     });
+
+    describe('Hidden Items Functionality', () => {
+        describe('POST /notes - Hidden field', () => {
+            it('should reject creating hidden note without global password', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await agent
+                    .post('/notes')
+                    .type('form')
+                    .send({
+                        title: 'Hidden Note',
+                        content: 'Secret content',
+                        hidden: 'on',
+                    })
+                    .expect(302);
+
+                const note = await db('notes').where({ user_id: user.id }).first();
+                expect(note).toBeUndefined();
+            });
+
+            it('should create hidden note when global password is set', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                await agent
+                    .post('/notes')
+                    .type('form')
+                    .send({
+                        title: 'Hidden Note',
+                        content: 'Secret content',
+                        hidden: 'on',
+                    })
+                    .expect(302);
+
+                const note = await db('notes').where({ user_id: user.id }).first();
+                expect(note).toBeDefined();
+                expect(note.title).toBe('Hidden Note');
+                expect(note.hidden).toBe(1);
+            });
+
+            it('should exclude hidden notes from listing', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                await db('notes').insert([
+                    {
+                        user_id: user.id,
+                        title: 'Public Note',
+                        content: 'Public content',
+                        hidden: false,
+                    },
+                    {
+                        user_id: user.id,
+                        title: 'Hidden Note',
+                        content: 'Secret content',
+                        hidden: true,
+                    },
+                ]);
+
+                const response = await agent.get('/notes').expect(200);
+                expect(response.text).toContain('Public Note');
+                expect(response.text).not.toContain('Hidden Note');
+            });
+        });
+
+        describe('POST /api/notes - Hidden field via API', () => {
+            it('should reject creating hidden note without global password via API', async () => {
+                const { agent } = await authenticateApiAgent(app);
+
+                const response = await agent
+                    .post('/api/notes')
+                    .send({
+                        title: 'Hidden Note',
+                        content: 'Secret content',
+                        hidden: true,
+                    })
+                    .expect(422);
+
+                expect(response.body.message).toContain('Validation');
+            });
+
+            it('should create hidden note with global password via API', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                const response = await agent
+                    .post('/api/notes')
+                    .send({
+                        title: 'Hidden API Note',
+                        content: 'Secret API content',
+                        hidden: true,
+                    })
+                    .expect(201);
+
+                expect(response.body.message).toContain('created successfully');
+
+                const note = await db('notes').where({ user_id: user.id }).first();
+                expect(note.hidden).toBe(1);
+            });
+        });
+
+        describe('PUT /api/notes/:id - Update hidden field', () => {
+            it('should allow toggling hidden status with global password', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                const [note] = await db('notes')
+                    .insert({
+                        user_id: user.id,
+                        title: 'Test Note',
+                        content: 'Test content',
+                        hidden: false,
+                    })
+                    .returning('*');
+
+                await agent
+                    .put(`/api/notes/${note.id}`)
+                    .send({
+                        title: 'Test Note',
+                        content: 'Test content',
+                        hidden: true,
+                    })
+                    .expect(200);
+
+                const updatedNote = await db('notes').where({ id: note.id }).first();
+                expect(updatedNote.hidden).toBe(1);
+            });
+
+            it('should reject hiding note without global password', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                const [note] = await db('notes')
+                    .insert({
+                        user_id: user.id,
+                        title: 'Test Note',
+                        content: 'Test content',
+                        hidden: false,
+                    })
+                    .returning('*');
+
+                const response = await agent
+                    .put(`/api/notes/${note.id}`)
+                    .send({
+                        title: 'Test Note',
+                        content: 'Test content',
+                        hidden: true,
+                    })
+                    .expect(422);
+
+                expect(response.body.message).toContain('Validation');
+            });
+        });
+
+        describe('GET /api/notes - Hidden notes exclusion', () => {
+            it('should exclude hidden notes from API listing', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                await db('notes').insert([
+                    {
+                        user_id: user.id,
+                        title: 'Public Note',
+                        content: 'Public content',
+                        hidden: false,
+                    },
+                    {
+                        user_id: user.id,
+                        title: 'Hidden Note',
+                        content: 'Secret content',
+                        hidden: true,
+                    },
+                ]);
+
+                const response = await agent.get('/api/notes').expect(200);
+
+                expect(response.body.data).toHaveLength(1);
+                expect(response.body.data[0].title).toBe('Public Note');
+            });
+        });
+    });
 });
