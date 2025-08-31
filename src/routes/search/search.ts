@@ -71,6 +71,7 @@ export function createSearchRouter(
                     sortKey: 'created_at',
                     direction: 'desc',
                     highlight: true,
+                    excludeHidden: true,
                 }),
 
                 actions.all({
@@ -81,6 +82,7 @@ export function createSearchRouter(
                     sortKey: 'created_at',
                     direction: 'desc',
                     highlight: true,
+                    excludeHidden: true,
                 }),
 
                 notes.all({
@@ -91,6 +93,7 @@ export function createSearchRouter(
                     sortKey: 'created_at',
                     direction: 'desc',
                     highlight: true,
+                    excludeHidden: true,
                 }),
 
                 tabs.all({
