@@ -44,6 +44,7 @@ export function createNotesRouter(notes: Notes) {
             sortKey,
             direction,
             highlight: !isApiRequest(req),
+            excludeHidden: true,
         });
 
         if (isApiRequest(req)) {
@@ -123,6 +124,67 @@ export function createNotesRouter(notes: Notes) {
             throw new NotFoundError('Note not found');
         }
 
+        if (note.hidden && !isApiRequest(req)) {
+            const verificationKey = `note_${note.id}`;
+            const verifiedTime = req.session?.verifiedHiddenItems?.[verificationKey];
+
+            if (!verifiedTime || verifiedTime < Date.now()) {
+                const csrfToken = res.locals.csrfToken || '';
+
+                return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head><title>Password Required</title></head>
+                    <body>
+                    <script>
+                        const password = prompt("This note is protected. Please enter your password:");
+                        if (password) {
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = '/verify-hidden-password';
+
+                            const csrfInput = document.createElement('input');
+                            csrfInput.type = 'hidden';
+                            csrfInput.name = 'csrfToken';
+                            csrfInput.value = '${csrfToken}';
+
+                            const passwordInput = document.createElement('input');
+                            passwordInput.type = 'hidden';
+                            passwordInput.name = 'password';
+                            passwordInput.value = password;
+
+                            const typeInput = document.createElement('input');
+                            typeInput.type = 'hidden';
+                            typeInput.name = 'resource_type';
+                            typeInput.value = 'note';
+
+                            const idInput = document.createElement('input');
+                            idInput.type = 'hidden';
+                            idInput.name = 'resource_id';
+                            idInput.value = '${note.id}';
+
+                            const urlInput = document.createElement('input');
+                            urlInput.type = 'hidden';
+                            urlInput.name = 'redirect_url';
+                            urlInput.value = '/notes/${note.id}';
+
+                            form.appendChild(csrfInput);
+                            form.appendChild(passwordInput);
+                            form.appendChild(typeInput);
+                            form.appendChild(idInput);
+                            form.appendChild(urlInput);
+                            document.body.appendChild(form);
+                            form.submit();
+                        } else {
+                            window.history.back();
+                        }
+                    </script>
+                    </body>
+                    </html>
+                `);
+            }
+        }
+
         if (isApiRequest(req)) {
             res.status(200).json({
                 message: 'note retrieved successfully',
@@ -197,7 +259,7 @@ export function createNotesRouter(notes: Notes) {
     router.post('/api/notes', authenticationMiddleware, postNoteHandler);
     router.post('/notes', authenticationMiddleware, postNoteHandler);
     async function postNoteHandler(req: Request, res: Response) {
-        const { title, content, pinned } = req.body;
+        const { title, content, pinned, hidden } = req.body;
 
         if (!title) {
             throw new ValidationError({ title: 'Title is required' });
@@ -211,13 +273,26 @@ export function createNotesRouter(notes: Notes) {
             throw new ValidationError({ pinned: 'Pinned must be a boolean or checkbox value' });
         }
 
+        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+            throw new ValidationError({ hidden: 'Hidden must be a boolean or checkbox value' });
+        }
+
         const user = req.user as User;
+
+        if (hidden === 'on' || hidden === true) {
+            if (!user.hidden_items_password) {
+                throw new ValidationError({
+                    hidden: 'You must set a global password in settings before hiding items',
+                });
+            }
+        }
 
         const note = await notes.create({
             user_id: user.id,
             title: title.trim(),
             content: content.trim(),
             pinned: pinned === 'on' || pinned === true,
+            hidden: hidden === 'on' || hidden === true,
         });
 
         if (isApiRequest(req)) {
@@ -248,7 +323,7 @@ export function createNotesRouter(notes: Notes) {
     router.put('/api/notes/:id', authenticationMiddleware, updateNoteHandler);
     router.post('/notes/:id/update', authenticationMiddleware, updateNoteHandler);
     async function updateNoteHandler(req: Request, res: Response) {
-        const { title, content, pinned } = req.body;
+        const { title, content, pinned, hidden } = req.body;
 
         if (!title) {
             throw new ValidationError({ title: 'Title is required' });
@@ -262,17 +337,27 @@ export function createNotesRouter(notes: Notes) {
             throw new ValidationError({ pinned: 'Pinned must be a boolean or checkbox value' });
         }
 
-        const user = req.user as User;
+        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+            throw new ValidationError({ hidden: 'Hidden must be a boolean or checkbox value' });
+        }
 
-        const updatedNote = await notes.update(
-            parseInt(req.params.id as unknown as string),
-            user.id,
-            {
-                title: title.trim(),
-                content: content.trim(),
-                pinned: pinned === 'on' || pinned === true,
-            },
-        );
+        const user = req.user as User;
+        const noteId = parseInt(req.params.id as unknown as string);
+
+        if (hidden === 'on' || hidden === true) {
+            if (!user.hidden_items_password) {
+                throw new ValidationError({
+                    hidden: 'You must set a global password in settings before hiding items',
+                });
+            }
+        }
+
+        const updatedNote = await notes.update(noteId, user.id, {
+            title: title.trim(),
+            content: content.trim(),
+            pinned: pinned === 'on' || pinned === true,
+            hidden: hidden === 'on' || hidden === true,
+        });
 
         if (isApiRequest(req)) {
             res.status(200).json({ message: 'note updated successfully' });
