@@ -1036,25 +1036,49 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
     if (trigger && commandType === 'bang' && searchConfig.systemBangs.has(trigger)) {
         // Process bookmark creation command (!bm)
         // Format supported:
-        // 1. !bm URL
+        // 1. !bm URL [--hide]
         // Example: !bm https://example.com
+        // Example: !bm https://example.com --hide
         if (trigger === '!bm') {
             if (!url || !isValidUrl(url)) {
                 return goBackWithValidationAlert(res, 'Invalid or missing URL');
+            }
+
+            let shouldHide = false;
+            let titleSection: string | null = null;
+
+            if (searchTerm) {
+                const hideIndex = searchTerm.indexOf('--hide');
+                if (hideIndex !== -1) {
+                    shouldHide = true;
+                    // Remove --hide from searchTerm to get the title
+                    const beforeHide = searchTerm.slice(0, hideIndex).trim();
+                    const afterHide = searchTerm.slice(hideIndex + 6).trim();
+                    const cleanedTerm = (beforeHide + ' ' + afterHide).trim();
+
+                    const urlIndex = cleanedTerm.indexOf(url);
+                    titleSection =
+                        urlIndex > -1 ? cleanedTerm.slice(0, urlIndex).trim() : cleanedTerm;
+                } else {
+                    const urlIndex = searchTerm.indexOf(url);
+                    titleSection =
+                        urlIndex > -1 ? searchTerm.slice(0, urlIndex).trim() : searchTerm;
+                }
+            }
+
+            if (shouldHide) {
+                if (!user.hidden_items_password) {
+                    return goBackWithValidationAlert(
+                        res,
+                        'You must set a global password in settings before hiding items',
+                    );
+                }
             }
 
             try {
                 const existingBookmark = await checkDuplicateBookmarkUrl(user.id, url);
 
                 if (existingBookmark) {
-                    // Extract title from command by removing "!bm" and URL
-                    let titleSection: string | null = null;
-                    if (searchTerm) {
-                        const urlIndex = searchTerm.indexOf(url);
-                        titleSection =
-                            urlIndex > -1 ? searchTerm.slice(0, urlIndex).trim() : searchTerm;
-                    }
-
                     const newTitle = titleSection || '';
 
                     if (newTitle.length > 0) {
@@ -1070,15 +1094,6 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     );
                 }
 
-                // Extract title from command by removing "!bm" and URL - optimized to avoid redundant operations
-                let titleSection: string | null = null;
-
-                if (searchTerm) {
-                    const urlIndex = searchTerm.indexOf(url);
-                    titleSection =
-                        urlIndex > -1 ? searchTerm.slice(0, urlIndex).trim() : searchTerm;
-                }
-
                 if (titleSection && titleSection.length > 255) {
                     return goBackWithValidationAlert(
                         res,
@@ -1092,6 +1107,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                             url,
                             title: titleSection || '',
                             userId: user.id,
+                            hidden: shouldHide,
                         }),
                     0,
                 );
@@ -1113,12 +1129,30 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
         // Process custom bang creation command (!add)
         // Format supported:
-        // 1. !add !trigger URL
-        // 2. !add trigger URL
+        // 1. !add !trigger URL [--hide]
+        // 2. !add trigger URL [--hide]
         // Example: !add !custom https://custom-search.com
-        // Example: !add custom https://custom-search.com
+        // Example: !add custom https://custom-search.com --hide
         if (trigger === '!add') {
-            const rest = query.slice('!add'.length).trim();
+            let rest = query.slice('!add'.length).trim();
+
+            let shouldHide = false;
+            const hideIndex = rest.indexOf('--hide');
+            if (hideIndex !== -1) {
+                shouldHide = true;
+                // Remove --hide from rest
+                rest = (rest.slice(0, hideIndex) + rest.slice(hideIndex + 6)).trim();
+            }
+
+            if (shouldHide) {
+                if (!user.hidden_items_password) {
+                    return goBackWithValidationAlert(
+                        res,
+                        'You must set a global password in settings before hiding items',
+                    );
+                }
+            }
+
             const firstSpaceIdx = rest.indexOf(' ');
             if (firstSpaceIdx === -1) {
                 return goBackWithValidationAlert(res, 'Invalid trigger or empty URL');
@@ -1163,6 +1197,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
                 const safeBangUrl = escapeHtml(bangUrl);
                 const safeMessage = escapeHtml(message);
+                const hideFlag = shouldHide ? ' --hide' : '';
 
                 return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
                         <script>
@@ -1170,7 +1205,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                             const newTrigger = prompt("${safeMessage}");
                             if (newTrigger) {
                                 const domain = window.location.origin;
-                                window.location.href = \`\${domain}/?q=!add \${newTrigger} \${bangUrl}\`;
+                                window.location.href = \`\${domain}/?q=!add \${newTrigger} \${bangUrl}${hideFlag}\`;
                             } else {
                                 window.history.back();
                             }
@@ -1187,6 +1222,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                         name: 'Fetching title...',
                         action_type: 'redirect',
                         url: bangUrl,
+                        hidden: shouldHide,
                     })
                     .returning('*');
             } catch (error) {
@@ -1421,10 +1457,10 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
         // Process note creation command (!note)
         // Formats supported:
-        // 1. !note this is the title | this is the content
-        // 2. !note this is the content without title
+        // 1. !note this is the title | this is the content [--hide]
+        // 2. !note this is the content without title [--hide]
         // Example: !note this is the title | this is the content
-        // Example: !note this is the content without title
+        // Example: !note this is the content without title --hide
         if (trigger === '!note') {
             const contentStartIndex = query.indexOf(' ');
 
@@ -1433,10 +1469,29 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                 return goBackWithValidationAlert(res, 'Content is required');
             }
 
-            const fullContent = query.slice(contentStartIndex + 1).trim();
+            let fullContent = query.slice(contentStartIndex + 1).trim();
 
             if (!fullContent) {
                 return goBackWithValidationAlert(res, 'Content is required');
+            }
+
+            let shouldHide = false;
+            const hideIndex = fullContent.indexOf('--hide');
+            if (hideIndex !== -1) {
+                shouldHide = true;
+                // Remove --hide from content
+                fullContent = (
+                    fullContent.slice(0, hideIndex) + fullContent.slice(hideIndex + 6)
+                ).trim();
+            }
+
+            if (shouldHide) {
+                if (!user.hidden_items_password) {
+                    return goBackWithValidationAlert(
+                        res,
+                        'You must set a global password in settings before hiding items',
+                    );
+                }
             }
 
             // If content contains a pipe, split into title and content
@@ -1463,6 +1518,7 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                     user_id: user.id,
                     title: title || 'Untitled',
                     content,
+                    hidden: shouldHide,
                 });
             } catch (error) {
                 logger.error('Database error creating note:', error);
@@ -1580,12 +1636,11 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
 
         try {
             customBang = await db('bangs')
-                .select('bangs.id', 'bangs.url', 'bangs.action_type')
+                .select('bangs.id', 'bangs.url', 'bangs.action_type', 'bangs.hidden')
                 .where({ 'bangs.user_id': user.id, 'bangs.trigger': trigger })
                 .first();
         } catch (error) {
             logger.error('Database error fetching custom bang:', error);
-            // Continue to fallback behavior instead of failing
         }
 
         if (customBang) {
@@ -1611,6 +1666,75 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
             }
 
             if (customBang.action_type === 'redirect') {
+                if (customBang.hidden && user.hidden_items_password) {
+                    const verificationKey = `bang_${customBang.id}`;
+                    const verifiedTime = req.session?.verifiedHiddenItems?.[verificationKey];
+
+                    if (!verifiedTime || verifiedTime < Date.now()) {
+                        const safeUrl = escapeHtml(customBang.url);
+                        const csrfToken = res.locals.csrfToken || '';
+
+                        return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
+                            <!DOCTYPE html>
+                            <html>
+                            <head><title>Password Required</title></head>
+                            <body>
+                            <script>
+                                const password = prompt("This action is protected. Please enter your password:");
+                                if (password) {
+                                    // Create form and submit to verification endpoint
+                                    const form = document.createElement('form');
+                                    form.method = 'POST';
+                                    form.action = '/verify-hidden-password';
+
+                                    const csrfInput = document.createElement('input');
+                                    csrfInput.type = 'hidden';
+                                    csrfInput.name = 'csrfToken';
+                                    csrfInput.value = '${csrfToken}';
+
+                                    const passwordInput = document.createElement('input');
+                                    passwordInput.type = 'hidden';
+                                    passwordInput.name = 'password';
+                                    passwordInput.value = password;
+
+                                    const typeInput = document.createElement('input');
+                                    typeInput.type = 'hidden';
+                                    typeInput.name = 'resource_type';
+                                    typeInput.value = 'bang';
+
+                                    const idInput = document.createElement('input');
+                                    idInput.type = 'hidden';
+                                    idInput.name = 'resource_id';
+                                    idInput.value = '${customBang.id}';
+
+                                    const urlInput = document.createElement('input');
+                                    urlInput.type = 'hidden';
+                                    urlInput.name = 'redirect_url';
+                                    urlInput.value = '${safeUrl}';
+
+                                    const originalQueryInput = document.createElement('input');
+                                    originalQueryInput.type = 'hidden';
+                                    originalQueryInput.name = 'original_query';
+                                    originalQueryInput.value = window.location.search;
+
+                                    form.appendChild(csrfInput);
+                                    form.appendChild(passwordInput);
+                                    form.appendChild(typeInput);
+                                    form.appendChild(idInput);
+                                    form.appendChild(urlInput);
+                                    form.appendChild(originalQueryInput);
+                                    document.body.appendChild(form);
+                                    form.submit();
+                                } else {
+                                    window.history.back();
+                                }
+                            </script>
+                            </body>
+                            </html>
+                        `);
+                    }
+                }
+
                 return redirectWithCache(
                     res,
                     customBang.url,
@@ -1636,7 +1760,6 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
         tab = await db.select('*').from('tabs').where({ user_id: user.id, trigger }).first();
     } catch (error) {
         logger.error('Database error fetching tab:', error);
-        // Continue to fallback behavior
     }
 
     // Process tab commands
