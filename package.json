@@ -9,7 +9,7 @@
         "dev:only": "export APP_ENV=development && npm run extract:readme && tsx watch --no-warnings --clear-screen=false ./src/server.ts",
         "dev": "export APP_ENV=development && npm run db:prepare:dev npm run extract:readme && exec tsx watch --no-warnings --clear-screen=false ./src/server.ts",
         "build:server": "tsc",
-        "build:server:prod": "tsc -p tsconfig.prod.json",
+        "build:server:prod": "tsc -p tsconfig.json",
         "build": "npm run extract:readme && npm run build:server",
         "build:prod": "npm run extract:readme && npm run build:server:prod && npm run minify",
         "extract:readme": "tsx scripts/extract-readme.ts",
