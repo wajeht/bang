@@ -228,7 +228,7 @@ export function isValidUrl(url: string): boolean {
     try {
         new URL(url);
         return true;
-    } catch (error) {
+    } catch (_error) {
         // logger.error(`[isValidUrl]: Not a valid url, %o`, { error });
         return false;
     }
