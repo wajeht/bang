@@ -46,10 +46,25 @@
 <li>eg: <code>!bm this title can be super long https://bang.jaw.dev</code></li>
 </ul>
 </li>
+<li><code>!bm --hide [url]</code> - Add a hidden bookmark (requires global password)</li>
+<li><code>!bm --hide [title] [url]</code> - Add a hidden bookmark with title<ul>
+<li><code>--hide</code> flag makes the bookmark hidden (only visible after password verification)</li>
+<li>Requires global password to be set in settings</li>
+<li>eg: <code>!bm --hide https://private-site.com</code></li>
+<li>eg: <code>!bm --hide Private Site https://private-site.com</code></li>
+</ul>
+</li>
 <li><code>!add [trigger] [url]</code> - Create a custom bang<ul>
 <li><code>[trigger]</code> is required</li>
 <li><code>[url]</code> is required</li>
 <li>eg: <code>!add jaw https://bang.jaw.dev</code></li>
+</ul>
+</li>
+<li><code>!add --hide [trigger] [url]</code> - Create a hidden custom bang (requires global password)<ul>
+<li><code>--hide</code> flag makes the action hidden (only visible after password verification)</li>
+<li>Only redirect-type actions can be hidden</li>
+<li>Requires global password to be set in settings</li>
+<li>eg: <code>!add --hide private https://private-service.com</code></li>
 </ul>
 </li>
 <li><code>!del [trigger]</code> - Delete a custom bang or tab<ul>
@@ -85,6 +100,13 @@
 <li><code>[content]</code> is required</li>
 <li>eg: <code>!note some title | this is a note https://bang.jaw.dev</code></li>
 <li>eg: <code>!note this is a content without any title</code></li>
+</ul>
+</li>
+<li><code>!note --hide [title] | [content]</code> - Create a hidden note (requires global password)<ul>
+<li><code>--hide</code> flag makes the note hidden (only visible after password verification)</li>
+<li>Requires global password to be set in settings</li>
+<li>eg: <code>!note --hide Private Note | sensitive information here</code></li>
+<li>eg: <code>!note --hide this is hidden content without title</code></li>
 </ul>
 </li>
 <li><code>!remind [description]</code> - Create a reminder with your default timing<ul>
