@@ -17,6 +17,7 @@ module.exports = tseslint.config(
             '**/db.sqlite*',
             '**/*.test.ts',
             '**/*.test.mts',
+            '**/*.browser-test.ts',
             'src/db/bang.ts',
             'src/tests/**/*',
             'scripts/**/*',
