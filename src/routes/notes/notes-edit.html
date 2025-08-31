@@ -46,6 +46,15 @@
                 error: state.errors && state.errors.pinned ? state.errors.pinned : undefined
             }) %>
 
+            <%- include('../_components/inputs/checkbox.html', {
+                id: 'hidden',
+                name: 'hidden',
+                label: '🔒 Hide this note',
+                checked: note.hidden ? true : false,
+                helpText: 'Hidden notes are excluded from searches and require your global password to view',
+                error: state.errors && state.errors.hidden ? state.errors.hidden : undefined
+            }) %>
+
         </fieldset>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px;">
