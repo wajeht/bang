@@ -54,6 +54,7 @@ export function createActionsRouter(db: Knex, actions: Actions) {
             sortKey,
             direction,
             highlight: !isApiRequest(req),
+            excludeHidden: true,
         });
 
         if (isApiRequest(req)) {
@@ -159,7 +160,7 @@ export function createActionsRouter(db: Knex, actions: Actions) {
     router.post('/api/actions', authenticationMiddleware, postActionHandler);
     router.post('/actions', authenticationMiddleware, postActionHandler);
     async function postActionHandler(req: Request, res: Response) {
-        const { url, name, actionType, trigger } = req.body;
+        const { url, name, actionType, trigger, hidden } = req.body;
         const user = req.user as User;
 
         if (!url) {
@@ -180,6 +181,22 @@ export function createActionsRouter(db: Knex, actions: Actions) {
 
         if (!isValidUrl(url)) {
             throw new ValidationError({ url: 'Invalid URL format' });
+        }
+
+        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+            throw new ValidationError({ hidden: 'Hidden must be a boolean or checkbox value' });
+        }
+
+        if ((hidden === 'on' || hidden === true) && actionType !== 'redirect') {
+            throw new ValidationError({ hidden: 'Only redirect-type actions can be hidden' });
+        }
+
+        if (hidden === 'on' || hidden === true) {
+            if (!user.hidden_items_password) {
+                throw new ValidationError({
+                    hidden: 'You must set a global password in settings before hiding items',
+                });
+            }
         }
 
         const formattedTrigger: string = normalizeBangTrigger(trigger);
@@ -206,6 +223,7 @@ export function createActionsRouter(db: Knex, actions: Actions) {
             action_type: actionType,
             actionType: actionType,
             user_id: user.id,
+            hidden: hidden === 'on' || hidden === true,
         });
 
         if (isApiRequest(req)) {
@@ -239,8 +257,9 @@ export function createActionsRouter(db: Knex, actions: Actions) {
     router.patch('/api/actions/:id', authenticationMiddleware, updateActionHandler);
     router.post('/actions/:id/update', authenticationMiddleware, updateActionHandler);
     async function updateActionHandler(req: Request, res: Response) {
-        const { url, name, actionType, trigger } = req.body;
+        const { url, name, actionType, trigger, hidden } = req.body;
         const user = req.user as User;
+        const actionId = req.params.id as unknown as number;
 
         if (!url) {
             throw new ValidationError({ url: 'URL is required' });
@@ -262,6 +281,22 @@ export function createActionsRouter(db: Knex, actions: Actions) {
             throw new ValidationError({ url: 'Invalid URL format' });
         }
 
+        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+            throw new ValidationError({ hidden: 'Hidden must be a boolean or checkbox value' });
+        }
+
+        if ((hidden === 'on' || hidden === true) && actionType !== 'redirect') {
+            throw new ValidationError({ hidden: 'Only redirect-type actions can be hidden' });
+        }
+
+        if (hidden === 'on' || hidden === true) {
+            if (!user.hidden_items_password) {
+                throw new ValidationError({
+                    hidden: 'You must set a global password in settings before hiding items',
+                });
+            }
+        }
+
         if (!isOnlyLettersAndNumbers(trigger.slice(1))) {
             throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
         }
@@ -280,12 +315,13 @@ export function createActionsRouter(db: Knex, actions: Actions) {
             throw new ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        const updatedAction = await actions.update(req.params.id as unknown as number, user.id, {
+        const updatedAction = await actions.update(actionId, user.id, {
             trigger: formattedTrigger,
             name: name.trim(),
             url,
             action_type: actionType,
             actionType: actionType,
+            hidden: hidden === 'on' || hidden === true,
         });
 
         if (isApiRequest(req)) {
