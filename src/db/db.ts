@@ -147,6 +147,7 @@ export const actions: Actions = {
         sortKey = 'created_at',
         direction = 'desc',
         highlight = false,
+        excludeHidden = false,
     }: ActionsQueryParams) => {
         const query = db.select(
             'bangs.id',
@@ -173,6 +174,22 @@ export const actions: Actions = {
         }
 
         query.from('bangs').where('bangs.user_id', user.id);
+
+        // Exclude hidden redirect actions if requested
+        if (excludeHidden) {
+            query.where((q) => {
+                q.where((subQ) => {
+                    // Include all non-redirect actions
+                    subQ.whereNot('bangs.action_type', 'redirect')
+                        // Or redirect actions that are not hidden
+                        .orWhere((innerQ) => {
+                            innerQ.where('bangs.action_type', 'redirect').where((hiddenQ) => {
+                                hiddenQ.where('bangs.hidden', false).orWhereNull('bangs.hidden');
+                            });
+                        });
+                });
+            });
+        }
 
         if (search) {
             const searchTerms = search
@@ -261,7 +278,7 @@ export const actions: Actions = {
         userId: number,
         updates: Partial<Action> & { actionType: string },
     ) => {
-        const allowedFields = ['name', 'trigger', 'url', 'actionType'];
+        const allowedFields = ['name', 'trigger', 'url', 'actionType', 'hidden'];
 
         const updateData = Object.fromEntries(
             Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
@@ -306,6 +323,7 @@ export const bookmarks: Bookmarks = {
         sortKey = 'created_at',
         direction = 'desc',
         highlight = false,
+        excludeHidden = false,
     }: BookmarksQueryParams) => {
         const query = db.select('id', 'user_id', 'pinned', 'created_at', 'updated_at');
 
@@ -318,6 +336,12 @@ export const bookmarks: Bookmarks = {
         }
 
         query.from('bookmarks').where('user_id', user.id);
+
+        if (excludeHidden) {
+            query.where((q) => {
+                q.where('hidden', false).orWhereNull('hidden');
+            });
+        }
 
         if (search) {
             const searchTerms = search
@@ -376,7 +400,7 @@ export const bookmarks: Bookmarks = {
     },
 
     update: async (id: number, userId: number, updates: Partial<Bookmark>) => {
-        const allowedFields = ['title', 'url', 'pinned'];
+        const allowedFields = ['title', 'url', 'pinned', 'hidden'];
 
         const updateData = Object.fromEntries(
             Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
@@ -413,6 +437,7 @@ export const notes: Notes = {
         sortKey = 'created_at',
         direction = 'desc',
         highlight = false,
+        excludeHidden = false,
     }: NotesQueryParams) => {
         const query = db.select('id', 'user_id', 'pinned', 'created_at', 'updated_at');
 
@@ -425,6 +450,12 @@ export const notes: Notes = {
         }
 
         query.from('notes').where('user_id', user.id);
+
+        if (excludeHidden) {
+            query.where((q) => {
+                q.where('hidden', false).orWhereNull('hidden');
+            });
+        }
 
         if (search) {
             const searchTerms = search
@@ -479,7 +510,7 @@ export const notes: Notes = {
     },
 
     update: async (id: number, userId: number, updates: Partial<Note>) => {
-        const allowedFields = ['title', 'content', 'pinned'];
+        const allowedFields = ['title', 'content', 'pinned', 'hidden'];
 
         const updateData = Object.fromEntries(
             Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
