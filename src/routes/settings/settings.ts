@@ -663,11 +663,17 @@ export function createSettingsRouter(db: Knex) {
                     // Import bookmarks
                     if (importData.bookmarks?.length > 0) {
                         const bookmarks = importData.bookmarks.map(
-                            (bookmark: { title: string; url: string; pinned?: boolean }) => ({
+                            (bookmark: {
+                                title: string;
+                                url: string;
+                                pinned?: boolean;
+                                hidden?: boolean;
+                            }) => ({
                                 user_id: userId,
                                 title: bookmark.title,
                                 url: bookmark.url,
                                 pinned: bookmark.pinned || false,
+                                hidden: bookmark.hidden || false,
                                 created_at: db.fn.now(),
                             }),
                         );
@@ -694,6 +700,7 @@ export function createSettingsRouter(db: Knex) {
                                         name: action.name,
                                         url: action.url,
                                         action_type: action.action_type,
+                                        hidden: action.hidden || false,
                                         created_at: db.fn.now(),
                                     });
                                 }
@@ -704,11 +711,17 @@ export function createSettingsRouter(db: Knex) {
                     // Import notes
                     if (importData.notes?.length > 0) {
                         const notes = importData.notes.map(
-                            (note: { title: string; content: string; pinned?: boolean }) => ({
+                            (note: {
+                                title: string;
+                                content: string;
+                                pinned?: boolean;
+                                hidden?: boolean;
+                            }) => ({
                                 user_id: userId,
                                 title: note.title,
                                 content: note.content,
                                 pinned: note.pinned || false,
+                                hidden: note.hidden || false,
                                 created_at: db.fn.now(),
                             }),
                         );
