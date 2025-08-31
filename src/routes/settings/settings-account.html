@@ -110,6 +110,64 @@
   </form>
 
   <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+    <legend>🔐 Hidden Items Password</legend>
+
+    <p>Set a password to protect all your hidden items (notes, bookmarks, and actions). This password will be required to view any hidden content.</p>
+
+    <form action="/settings/hidden-password" method="POST">
+      <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
+
+      <% if (user.hidden_items_password) { %>
+        <%- include('../_components/inputs/password.html', {
+          id: 'currentPassword',
+          name: 'currentPassword',
+          label: '🔑 Current Password',
+          placeholder: 'Enter current password',
+          value: '',
+          helpText: 'Required to change the password',
+          error: state.errors && state.errors.currentPassword ? state.errors.currentPassword : undefined
+        }) %>
+      <% } %>
+
+      <%- include('../_components/inputs/password.html', {
+        id: 'newPassword',
+        name: 'newPassword',
+        label: '🔑 New Password',
+        placeholder: 'Enter new password (min 4 characters)',
+        value: '',
+        required: !user.hidden_items_password,
+        helpText: user.hidden_items_password ? 'Leave blank to keep current password' : 'Set a password to enable hiding items',
+        error: state.errors && state.errors.newPassword ? state.errors.newPassword : undefined
+      }) %>
+
+      <% if (user.hidden_items_password) { %>
+        <%- include('../_components/inputs/password.html', {
+          id: 'confirmPassword',
+          name: 'confirmPassword',
+          label: '🔑 Confirm New Password',
+          placeholder: 'Re-enter new password',
+          value: '',
+          helpText: 'Must match the new password',
+          error: state.errors && state.errors.confirmPassword ? state.errors.confirmPassword : undefined
+        }) %>
+
+        <%- include('../_components/inputs/checkbox.html', {
+          id: 'removePassword',
+          name: 'removePassword',
+          label: 'Remove password (this will unhide all items)',
+          checked: false,
+          helpText: 'Check this to remove the password and unhide all hidden items',
+          error: state.errors && state.errors.removePassword ? state.errors.removePassword : undefined
+        }) %>
+      <% } %>
+
+      <button type="submit" style="width: 100%;">
+        <%= user.hidden_items_password ? '🔄 Update Password' : '➕ Set Password' %>
+      </button>
+    </form>
+  </fieldset>
+
+  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
     <legend>🔑 API Key <% if (user.api_key_version > 0) { %>(v<%= user.api_key_version %>)<% } %></legend>
 
     <% if (user.api_key) { %>
