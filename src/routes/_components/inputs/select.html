@@ -6,6 +6,7 @@
     <% if (typeof disabled !== 'undefined' && disabled) { %>disabled<% } %>
     <% if (typeof required !== 'undefined' && required) { %>required<% } %>
     <% if (typeof style !== 'undefined') { %>style="<%= style %>"<% } %>
+    <% if (typeof onchange !== 'undefined') { %>onchange="<%= onchange %>"<% } %>
     aria-describedby="<%= id %>-help<% if (typeof error !== 'undefined' && error) { %> <%= id %>-error<% } %>"
   >
     <% if (typeof options !== 'undefined' && Array.isArray(options)) { %>
