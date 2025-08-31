@@ -515,6 +515,88 @@ export function createSettingsRouter(db: Knex) {
     );
 
     router.post(
+        '/settings/hidden-password',
+        authenticationMiddleware,
+        async (req: Request, res: Response) => {
+            const { currentPassword, newPassword, confirmPassword, removePassword } = req.body;
+            const user = req.user as User;
+
+            if (removePassword === 'on') {
+                if (!user.hidden_items_password) {
+                    throw new ValidationError({ removePassword: 'No password to remove' });
+                }
+
+                if (!currentPassword) {
+                    throw new ValidationError({
+                        currentPassword: 'Current password is required to remove it',
+                    });
+                }
+
+                const bcrypt = await import('bcrypt');
+                const isValid = await bcrypt.compare(currentPassword, user.hidden_items_password);
+
+                if (!isValid) {
+                    throw new ValidationError({ currentPassword: 'Incorrect password' });
+                }
+
+                await db.transaction(async (trx) => {
+                    await trx('users')
+                        .where({ id: user.id })
+                        .update({ hidden_items_password: null });
+                    await trx('notes').where({ user_id: user.id }).update({ hidden: false });
+                    await trx('bookmarks').where({ user_id: user.id }).update({ hidden: false });
+                    await trx('bangs').where({ user_id: user.id }).update({ hidden: false });
+                });
+
+                req.flash('success', '🔓 Password removed and all items unhidden');
+                return res.redirect('/settings/account');
+            }
+
+            if (user.hidden_items_password) {
+                if (!currentPassword) {
+                    throw new ValidationError({ currentPassword: 'Current password is required' });
+                }
+
+                const bcrypt = await import('bcrypt');
+                const isValid = await bcrypt.compare(currentPassword, user.hidden_items_password);
+
+                if (!isValid) {
+                    throw new ValidationError({ currentPassword: 'Incorrect password' });
+                }
+
+                if (!newPassword) {
+                    return res.redirect('/settings/account');
+                }
+            } else {
+                if (!newPassword) {
+                    throw new ValidationError({ newPassword: 'Password is required' });
+                }
+            }
+
+            if (newPassword && newPassword.length < 4) {
+                throw new ValidationError({
+                    newPassword: 'Password must be at least 4 characters',
+                });
+            }
+
+            if (user.hidden_items_password && newPassword !== confirmPassword) {
+                throw new ValidationError({ confirmPassword: 'Passwords do not match' });
+            }
+
+            const bcrypt = await import('bcrypt');
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+            await db('users').where({ id: user }).update({ hidden_items_password: hashedPassword });
+
+            req.flash(
+                'success',
+                user.hidden_items_password ? '🔄 Password updated' : '🔐 Password set',
+            );
+            return res.redirect('/settings/account');
+        },
+    );
+
+    router.post(
         '/settings/data/export',
         authenticationMiddleware,
         async (req: Request, res: Response) => {
