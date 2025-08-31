@@ -7,6 +7,7 @@
       <% if (typeof checked !== 'undefined' && checked) { %>checked<% } %>
       <% if (typeof value !== 'undefined') { %>value="<%= value %>"<% } %>
       <% if (typeof style !== 'undefined') { %>style="<%= style %>"<% } %>
+      <% if (typeof onchange !== 'undefined') { %>onchange="<%= onchange %>"<% } %>
       aria-describedby="<%= id %>-help<% if (typeof error !== 'undefined' && error) { %> <%= id %>-error<% } %>"
     >
     <%= label %>
