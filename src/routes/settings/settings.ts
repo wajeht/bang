@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import type { Knex } from 'knex';
 import { api } from '../../utils/util';
 import { logger } from '../../utils/logger';
@@ -519,7 +520,7 @@ export function createSettingsRouter(db: Knex) {
         authenticationMiddleware,
         async (req: Request, res: Response) => {
             const { currentPassword, newPassword, confirmPassword, removePassword } = req.body;
-            const user = req.user as User;
+            const user = req.session.user as User;
 
             if (removePassword === 'on') {
                 if (!user.hidden_items_password) {
@@ -573,11 +574,13 @@ export function createSettingsRouter(db: Knex) {
                 }
             }
 
+
             if (newPassword && newPassword.length < 4) {
                 throw new ValidationError({
                     newPassword: 'Password must be at least 4 characters',
                 });
             }
+
 
             if (user.hidden_items_password && newPassword !== confirmPassword) {
                 throw new ValidationError({ confirmPassword: 'Passwords do not match' });
@@ -586,7 +589,7 @@ export function createSettingsRouter(db: Knex) {
             const bcrypt = await import('bcrypt');
             const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-            await db('users').where({ id: user }).update({ hidden_items_password: hashedPassword });
+            await db('users').where({ id: user.id }).update({ hidden_items_password: hashedPassword });
 
             req.flash(
                 'success',
