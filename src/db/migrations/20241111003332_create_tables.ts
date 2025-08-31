@@ -77,6 +77,7 @@ export async function up(knex: Knex): Promise<void> {
             );
             table.timestamp('email_verified_at').nullable();
             table.string('timezone').defaultTo('UTC');
+            table.string('hidden_items_password').nullable();
             table.timestamps(true, true);
 
             table.index('api_key');
@@ -96,6 +97,7 @@ export async function up(knex: Knex): Promise<void> {
             table.text('url').notNullable();
             table.string('title');
             table.boolean('pinned').defaultTo(false);
+            table.boolean('hidden').defaultTo(false);
             table.timestamps(true, true);
 
             table.index(['user_id', 'created_at']);
@@ -116,6 +118,7 @@ export async function up(knex: Knex): Promise<void> {
             table.string('name').notNullable();
             table.string('action_type').notNullable().defaultTo('redirect');
             table.text('url').notNullable();
+            table.boolean('hidden').defaultTo(false);
             table.timestamps(true, true);
             table.timestamp('last_read_at').nullable();
             table.integer('usage_count').defaultTo(0).notNullable();
@@ -143,6 +146,7 @@ export async function up(knex: Knex): Promise<void> {
             table.string('title').notNullable();
             table.text('content').notNullable();
             table.boolean('pinned').defaultTo(false);
+            table.boolean('hidden').defaultTo(false);
             table.timestamps(true, true);
 
             table.index(['user_id', 'created_at']);
