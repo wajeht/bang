@@ -1,12 +1,13 @@
 import bcrypt from 'bcrypt';
 import express from 'express';
 import type { Knex } from 'knex';
+import { User } from '../../type';
 import { config } from '../../config';
 import type { Request, Response } from 'express';
-import { turnstileMiddleware } from '../middleware';
 import { sendMagicLinkEmail } from '../../utils/mail';
 import { HttpError, ValidationError } from '../../error';
 import { isValidEmail, magicLink } from '../../utils/util';
+import { authenticationMiddleware, turnstileMiddleware } from '../middleware';
 
 export function createAuthRouter(db: Knex) {
     const router = express.Router();
@@ -121,75 +122,70 @@ export function createAuthRouter(db: Knex) {
         return res.redirect(redirectTo);
     });
 
-    router.post('/verify-hidden-password', async (req: Request, res: Response) => {
-        const { password, resource_type, resource_id, redirect_url, original_query } = req.body;
-        const user = req.user || req.session?.user;
+    router.post(
+        '/verify-hidden-password',
+        authenticationMiddleware,
+        async (req: Request, res: Response) => {
+            const { password, resource_type, resource_id, redirect_url, original_query } = req.body;
+            const user = req.session.user as User;
 
-        if (!user) {
-            return res.set({ 'Content-Type': 'text/html' }).status(401).send(`
-                <script>
-                    alert("Authentication required");
-                    window.history.back();
-                </script>
-            `);
-        }
-
-        if (!password) {
-            return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
+            if (!password) {
+                return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
                 <script>
                     alert("Password is required");
                     window.history.back();
                 </script>
             `);
-        }
+            }
 
-        if (!user.hidden_items_password) {
-            return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
+            if (!user.hidden_items_password) {
+                return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
                 <script>
                     alert("No password set for hidden items. Please set a password in settings first.");
                     window.history.back();
                 </script>
             `);
-        }
+            }
 
-        const isValid = await bcrypt.compare(password, user.hidden_items_password);
+            const isValid = await bcrypt.compare(password, user.hidden_items_password);
 
-        if (!isValid) {
-            if (resource_type === 'note') {
-                return res.set({ 'Content-Type': 'text/html' }).status(401).send(`
+            if (!isValid) {
+                if (resource_type === 'note') {
+                    return res.set({ 'Content-Type': 'text/html' }).status(401).send(`
                     <script>
                         alert("Invalid password. Please try again.");
                         window.location.href = '${redirect_url}';
                     </script>
                 `);
-            }
+                }
 
-            if (resource_type === 'bang' && original_query) {
-                return res.set({ 'Content-Type': 'text/html' }).status(401).send(`
+                if (resource_type === 'bang' && original_query) {
+                    return res.set({ 'Content-Type': 'text/html' }).status(401).send(`
                     <script>
                         alert("Invalid password. Please try again.");
                         window.location.href = '/${original_query}';
                     </script>
                 `);
-            }
+                }
 
-            return res.set({ 'Content-Type': 'text/html' }).status(401).send(`
+                return res.set({ 'Content-Type': 'text/html' }).status(401).send(`
                 <script>
                     alert("Invalid password. Please try again.");
                     window.history.back();
                 </script>
             `);
-        }
+            }
 
-        if (!req.session.verifiedHiddenItems) {
-            req.session.verifiedHiddenItems = {};
-        }
+            if (!req.session.verifiedHiddenItems) {
+                req.session.verifiedHiddenItems = {};
+            }
 
-        const verificationKey = `${resource_type}_${resource_id}`;
-        req.session.verifiedHiddenItems[verificationKey] = Date.now() + 30 * 60 * 1000; // 30 minutes
+            const verificationKey = `${resource_type}_${resource_id}`;
+            req.session.verifiedHiddenItems[verificationKey] = Date.now() + 30 * 60 * 1000; // 30 minutes
 
-        return res.redirect(redirect_url);
-    });
+            return res.redirect(redirect_url);
+        },
+    );
 
     return router;
 }
