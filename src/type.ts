@@ -10,6 +10,10 @@ declare module 'express-session' {
         cumulativeDelay: number;
         /** Tracks verified hidden items with expiration timestamps */
         verifiedHiddenItems?: Record<string, number>;
+        /** Whether hidden items password has been verified */
+        hiddenItemsVerified?: boolean;
+        /** Timestamp when hidden items password was verified */
+        hiddenItemsVerifiedAt?: number;
     }
 }
 
