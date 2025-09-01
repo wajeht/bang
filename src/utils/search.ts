@@ -1682,7 +1682,6 @@ export async function search({ res, req, user, query }: Parameters<Search>[0]): 
                             <script>
                                 const password = prompt("This action is protected. Please enter your password:");
                                 if (password) {
-                                    // Create form and submit to verification endpoint
                                     const form = document.createElement('form');
                                     form.method = 'POST';
                                     form.action = '/verify-hidden-password';
