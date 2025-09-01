@@ -149,6 +149,7 @@ export function createGeneralRouter(
                         search: actionsParams.search,
                         sortKey: actionsParams.sortKey,
                         direction: actionsParams.direction,
+                        excludeHidden: true,
                     }),
                     bookmarks.all({
                         user,
@@ -157,6 +158,7 @@ export function createGeneralRouter(
                         search: bookmarksParams.search,
                         sortKey: bookmarksParams.sortKey,
                         direction: bookmarksParams.direction,
+                        excludeHidden: true,
                     }),
                     notes.all({
                         user,
@@ -165,6 +167,7 @@ export function createGeneralRouter(
                         search: notesParams.search,
                         sortKey: notesParams.sortKey,
                         direction: notesParams.direction,
+                        excludeHidden: true,
                     }),
                     tabs.all({
                         user,
