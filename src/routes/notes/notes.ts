@@ -374,6 +374,13 @@ export function createNotesRouter(notes: Notes) {
         }
 
         req.flash('success', `Note ${updatedNote.title} updated successfully`);
+
+
+        if  (updatedNote.hidden) {
+            req.flash('success', 'Note hidden successfully');
+            return res.redirect('/notes');
+        }
+
         return res.redirect(`/notes/${updatedNote.id}`);
     }
 
