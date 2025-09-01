@@ -343,6 +343,12 @@ export function createActionsRouter(db: Knex, actions: Actions) {
         }
 
         req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
+
+        if  (updatedAction.hidden) {
+            req.flash('success', 'Action hidden successfully');
+            return res.redirect('/actions');
+        }
+
         return res.redirect('/actions');
     }
 
