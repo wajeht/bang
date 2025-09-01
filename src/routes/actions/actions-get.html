@@ -59,7 +59,7 @@
                             label: 'Password',
                             placeholder: 'Enter password...',
                             required: true,
-                            error: null
+                            error: state.flash && state.flash.error && state.flash.error.length > 0 ? state.flash.error[0] : undefined
                         }) %>
                         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                             <button type="button" onclick="document.getElementById('hidden-password-modal').close()">❌ Cancel</button>
