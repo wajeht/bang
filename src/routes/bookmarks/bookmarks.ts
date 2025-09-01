@@ -348,6 +348,12 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
         }
 
         req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
+
+        if  (updatedBookmark.hidden) {
+            req.flash('success', 'Bookmark hidden successfully');
+            return res.redirect('/bookmarks');
+        }
+
         return res.redirect('/bookmarks');
     }
 
