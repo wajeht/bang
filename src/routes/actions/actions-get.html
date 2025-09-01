@@ -52,7 +52,7 @@
                         <% if (sortKey) currentUrl.searchParams.set('sort_key', sortKey); %>
                         <% if (direction) currentUrl.searchParams.set('direction', direction); %>
                         <% currentUrl.searchParams.set('hidden', 'true'); %>
-                        <input type="hidden" name="returnUrl" value="<%= currentUrl.pathname + currentUrl.search %>" />
+                        <input type="hidden" name="redirect_url" value="<%= currentUrl.pathname + currentUrl.search %>" />
                         <%- include('../_components/inputs/password.html', {
                             id: 'hidden-password-input',
                             name: 'password',
