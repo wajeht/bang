@@ -126,62 +126,60 @@ export function createAuthRouter(db: Knex) {
         '/verify-hidden-password',
         authenticationMiddleware,
         async (req: Request, res: Response) => {
-            const { password, resource_type, resource_id, redirect_url, original_query } = req.body;
+            const { password, resource_type, resource_id, original_query } = req.body;
             const user = req.session.user as User;
+            const redirect_url = req.body.redirect_url || req.headers.referer || '/';
 
             if (!password) {
-                return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
-                <script>
-                    alert("Password is required");
-                    window.history.back();
-                </script>
-            `);
+                req.flash('error', 'Password is required');
+                const url = new URL('http://localhost' + redirect_url);
+                url.searchParams.set('verify-password-modal', 'true');
+                return res.redirect(url.pathname + url.search);
             }
 
             if (!user.hidden_items_password) {
-                return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
-                <script>
-                    alert("No password set for hidden items. Please set a password in settings first.");
-                    window.history.back();
-                </script>
-            `);
+                req.flash(
+                    'error',
+                    'No password set for hidden items. Please set a password in settings first.',
+                );
+                const url = new URL('http://localhost' + redirect_url);
+                url.searchParams.set('verify-password-modal', 'true');
+                return res.redirect(url.pathname + url.search);
             }
 
             const isValid = await bcrypt.compare(password, user.hidden_items_password);
 
             if (!isValid) {
                 if (resource_type === 'note') {
-                    return res.set({ 'Content-Type': 'text/html' }).status(401).send(`
-                    <script>
-                        alert("Invalid password. Please try again.");
-                        window.location.href = '${redirect_url}';
-                    </script>
-                `);
+                    req.flash('error', 'Invalid password. Please try again.');
+                    const url = new URL('http://localhost' + redirect_url);
+                    url.searchParams.set('verify-password-modal', 'true');
+                    return res.redirect(url.pathname + url.search);
                 }
 
                 if (resource_type === 'bang' && original_query) {
-                    return res.set({ 'Content-Type': 'text/html' }).status(401).send(`
-                    <script>
-                        alert("Invalid password. Please try again.");
-                        window.location.href = '/${original_query}';
-                    </script>
-                `);
+                    req.flash('error', 'Invalid password. Please try again.');
+                    const url = new URL('http://localhost' + redirect_url);
+                    url.searchParams.set('verify-password-modal', 'true');
+                    return res.redirect(url.pathname + url.search);
                 }
 
-                return res.set({ 'Content-Type': 'text/html' }).status(401).send(`
-                <script>
-                    alert("Invalid password. Please try again.");
-                    window.history.back();
-                </script>
-            `);
+                req.flash('error', 'Invalid password. Please try again.');
+                const url = new URL('http://localhost' + redirect_url);
+                url.searchParams.set('verify-password-modal', 'true');
+
+                return res.redirect(url.pathname + url.search);
             }
 
             if (!req.session.verifiedHiddenItems) {
                 req.session.verifiedHiddenItems = {};
             }
 
-            const verificationKey = `${resource_type}_${resource_id}`;
+            const verificationKey = `${resource_type || 'global'}_${resource_id || 'global'}`;
             req.session.verifiedHiddenItems[verificationKey] = Date.now() + 30 * 60 * 1000; // 30 minutes
+
+            req.session.hiddenItemsVerified = true;
+            req.session.hiddenItemsVerifiedAt = Date.now();
 
             return res.redirect(redirect_url);
         },
