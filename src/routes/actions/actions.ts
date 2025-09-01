@@ -46,6 +46,15 @@ export function createActionsRouter(db: Knex, actions: Actions) {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'actions');
 
+        // Check if user wants to show hidden items and has verified password
+        const showHidden = req.query.hidden === 'true';
+        const hasVerifiedPassword =
+            req.session?.hiddenItemsVerified &&
+            req.session?.hiddenItemsVerifiedAt &&
+            Date.now() - req.session.hiddenItemsVerifiedAt < 30 * 60 * 1000; // 30 minutes
+
+        const canViewHidden = showHidden && hasVerifiedPassword && user.hidden_items_password;
+
         const { data, pagination } = await actions.all({
             user,
             perPage,
@@ -54,7 +63,7 @@ export function createActionsRouter(db: Knex, actions: Actions) {
             sortKey,
             direction,
             highlight: !isApiRequest(req),
-            excludeHidden: true,
+            excludeHidden: !canViewHidden,
         });
 
         if (isApiRequest(req)) {
@@ -72,6 +81,8 @@ export function createActionsRouter(db: Knex, actions: Actions) {
             search,
             sortKey,
             direction,
+            showHidden: canViewHidden,
+            hiddenItemsVerified: hasVerifiedPassword,
         });
     }
 

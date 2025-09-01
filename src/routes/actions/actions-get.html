@@ -29,6 +29,75 @@
 
             <button type="button" aria-label="View bangs" onclick="location.href='/bangs'">❗️</button>
 
+            <% if (state.user.hidden_items_password) { %>
+                <button
+                    type="button"
+                    id="toggle-hidden-btn"
+                    onclick="toggleHiddenItems()"
+                    title="<%= showHidden ? 'Hide private actions' : 'Show private actions' %>"
+                    aria-label="<%= showHidden ? 'Hide private actions' : 'Show private actions' %>"
+                >
+                    <%= showHidden ? '🔓' : '🔒' %>
+                </button>
+
+                <dialog id="hidden-password-modal" aria-labelledby="hidden-password-title">
+                    <h2 id="hidden-password-title">🔒 Verify Password</h2>
+                    <p>Enter your hidden items password to view private actions.</p>
+                    <form method="POST" action="/verify-hidden-password">
+                        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                        <% const currentUrl = new URL('http://localhost' + path); %>
+                        <% if (search) currentUrl.searchParams.set('search', search); %>
+                        <% if (pagination.currentPage) currentUrl.searchParams.set('page', pagination.currentPage); %>
+                        <% if (pagination.perPage) currentUrl.searchParams.set('per_page', pagination.perPage); %>
+                        <% if (sortKey) currentUrl.searchParams.set('sort_key', sortKey); %>
+                        <% if (direction) currentUrl.searchParams.set('direction', direction); %>
+                        <% currentUrl.searchParams.set('hidden', 'true'); %>
+                        <input type="hidden" name="returnUrl" value="<%= currentUrl.pathname + currentUrl.search %>" />
+                        <%- include('../_components/inputs/password.html', {
+                            id: 'hidden-password-input',
+                            name: 'password',
+                            label: 'Password',
+                            placeholder: 'Enter password...',
+                            required: true,
+                            error: null
+                        }) %>
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                            <button type="button" onclick="document.getElementById('hidden-password-modal').close()">❌ Cancel</button>
+                            <button type="submit">🔓 Verify</button>
+                        </div>
+                    </form>
+                </dialog>
+
+                <script>
+                    function toggleHiddenItems() {
+                        const showHidden = <%= showHidden ? 'true' : 'false' %>;
+                        const hiddenItemsVerified = <%= hiddenItemsVerified ? 'true' : 'false' %>;
+
+                        if (!showHidden && !hiddenItemsVerified) {
+                            document.getElementById('hidden-password-modal').showModal();
+                        } else {
+                            const currentUrl = new URL(window.location.href);
+                            if (showHidden) {
+                                currentUrl.searchParams.delete('hidden');
+                            } else {
+                                currentUrl.searchParams.set('hidden', 'true');
+                            }
+                            window.location.href = currentUrl.toString();
+                        }
+                    }
+
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        if (urlParams.get('verify-password-modal') === 'true') {
+                            document.getElementById('hidden-password-modal').showModal();
+                            urlParams.delete('verify-password-modal');
+                            const newUrl = `${window.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
+                            history.replaceState({}, document.title, newUrl);
+                        }
+                    });
+                </script>
+            <% } %>
+
             <button type="button" aria-label="Create new action" onclick="location.href='/actions/create'">➕</button>
 
 		    <%- include('../_components/column-settings.html') %>
