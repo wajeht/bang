@@ -21,7 +21,7 @@
             type="number"
             id="actions_per_page"
             name="column_preferences[actions][default_per_page]"
-            value="<%= state.input.actions_per_page ?? user.column_preferences.actions.default_per_page %>"
+            value="<%= state.input.actions_per_page ?? state.user.column_preferences.actions.default_per_page %>"
             min="1"
             required
           >
@@ -34,7 +34,7 @@
             <input
               type="checkbox"
               name="column_preferences[actions][name]"
-              <%= user.column_preferences?.actions?.name !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.actions?.name !== false ? 'checked' : '' %>
             >
             📝 Name
           </label>
@@ -42,7 +42,7 @@
             <input
               type="checkbox"
               name="column_preferences[actions][trigger]"
-              <%= user.column_preferences?.actions?.trigger !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.actions?.trigger !== false ? 'checked' : '' %>
             >
             🔥 Trigger
           </label>
@@ -50,7 +50,7 @@
             <input
               type="checkbox"
               name="column_preferences[actions][url]"
-              <%= user.column_preferences?.actions?.url !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.actions?.url !== false ? 'checked' : '' %>
             >
             🌐 URL
           </label>
@@ -58,7 +58,7 @@
             <input
               type="checkbox"
               name="column_preferences[actions][action_type]"
-              <%= user.column_preferences?.actions?.action_type !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.actions?.action_type !== false ? 'checked' : '' %>
             >
             🏷️ Type
           </label>
@@ -66,7 +66,7 @@
             <input
               type="checkbox"
               name="column_preferences[actions][last_read_at]"
-              <%= user.column_preferences?.actions?.last_read_at !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.actions?.last_read_at !== false ? 'checked' : '' %>
             >
             🔄 Last Read
           </label>
@@ -74,7 +74,7 @@
             <input
               type="checkbox"
               name="column_preferences[actions][usage_count]"
-              <%= user.column_preferences?.actions?.usage_count !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.actions?.usage_count !== false ? 'checked' : '' %>
             >
             📊 Usage Count
           </label>
@@ -82,7 +82,7 @@
             <input
               type="checkbox"
               name="column_preferences[actions][created_at]"
-              <%= user.column_preferences?.actions?.created_at !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.actions?.created_at !== false ? 'checked' : '' %>
             >
             📅 Created At
           </label>
@@ -102,7 +102,7 @@
             type="number"
             id="bookmarks_per_page"
             name="column_preferences[bookmarks][default_per_page]"
-            value="<%= state.input.bookmarks_per_page ?? user.column_preferences.bookmarks.default_per_page %>"
+            value="<%= state.input.bookmarks_per_page ?? state.user.column_preferences.bookmarks.default_per_page %>"
             min="1"
             required
           >
@@ -115,7 +115,7 @@
             <input
               type="checkbox"
               name="column_preferences[bookmarks][title]"
-              <%= user.column_preferences?.bookmarks?.title !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.bookmarks?.title !== false ? 'checked' : '' %>
             >
             📝 Title
           </label>
@@ -123,7 +123,7 @@
             <input
               type="checkbox"
               name="column_preferences[bookmarks][url]"
-              <%= user.column_preferences?.bookmarks?.url !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.bookmarks?.url !== false ? 'checked' : '' %>
             >
             🌐 URL
           </label>
@@ -131,7 +131,7 @@
             <input
               type="checkbox"
               name="column_preferences[bookmarks][pinned]"
-              <%= user.column_preferences?.bookmarks?.pinned !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.bookmarks?.pinned !== false ? 'checked' : '' %>
             >
             📌 Pinned
           </label>
@@ -139,7 +139,7 @@
             <input
               type="checkbox"
               name="column_preferences[bookmarks][created_at]"
-              <%= user.column_preferences?.bookmarks?.created_at !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.bookmarks?.created_at !== false ? 'checked' : '' %>
             >
             📅 Created At
           </label>
@@ -160,20 +160,20 @@
               type="number"
               id="notes_per_page"
               name="column_preferences[notes][default_per_page]"
-              value="<%= state.input.notes_per_page ?? user.column_preferences.notes.default_per_page %>"
+              value="<%= state.input.notes_per_page ?? state.user.column_preferences.notes.default_per_page %>"
               min="1"
               required
             >
           </div>
 
           <!-- Visible Columns -->
-          <fieldset style="border: none; padding: 0; margin: 0; <%= (user.column_preferences?.notes?.view_type === 'table') ? 'display:block;' : 'display: none;' %>">
+          <fieldset style="border: none; padding: 0; margin: 0; <%= (state.user.column_preferences?.notes?.view_type === 'table') ? 'display:block;' : 'display: none;' %>">
             <legend style="font-weight: normal;">Columns <abbr style="color: red;" title="Required">*</abbr></legend>
             <label style="display: flex; align-items: center; gap: 10px;">
               <input
                 type="checkbox"
                 name="column_preferences[notes][title]"
-                <%= user.column_preferences?.notes?.title !== false ? 'checked' : '' %>
+                <%= state.user.column_preferences?.notes?.title !== false ? 'checked' : '' %>
               >
               📝 Title
             </label>
@@ -181,7 +181,7 @@
               <input
                 type="checkbox"
                 name="column_preferences[notes][content]"
-                <%= user.column_preferences?.notes?.content !== false ? 'checked' : '' %>
+                <%= state.user.column_preferences?.notes?.content !== false ? 'checked' : '' %>
               >
               📝 Content
             </label>
@@ -189,7 +189,7 @@
               <input
                 type="checkbox"
                 name="column_preferences[notes][pinned]"
-                <%= user.column_preferences?.notes?.pinned !== false ? 'checked' : '' %>
+                <%= state.user.column_preferences?.notes?.pinned !== false ? 'checked' : '' %>
               >
               📌 Pinned
             </label>
@@ -197,7 +197,7 @@
               <input
                 type="checkbox"
                 name="column_preferences[notes][created_at]"
-                <%= user.column_preferences?.notes?.created_at !== false ? 'checked' : '' %>
+                <%= state.user.column_preferences?.notes?.created_at !== false ? 'checked' : '' %>
               >
               📅 Created At
             </label>
@@ -212,7 +212,7 @@
               type="radio"
               name="column_preferences[notes][view_type]"
               value="table"
-              <%= user.column_preferences?.notes?.view_type !== 'card' ? 'checked' : '' %>
+              <%= state.user.column_preferences?.notes?.view_type !== 'card' ? 'checked' : '' %>
             >
             📋 Table View
           </label>
@@ -221,7 +221,7 @@
               type="radio"
               name="column_preferences[notes][view_type]"
               value="card"
-              <%= user.column_preferences?.notes?.view_type === 'card' ? 'checked' : '' %>
+              <%= state.user.column_preferences?.notes?.view_type === 'card' ? 'checked' : '' %>
             >
             🗂️ Card View
           </label>
@@ -241,7 +241,7 @@
             type="number"
             id="tabs_per_page"
             name="column_preferences[tabs][default_per_page]"
-            value="<%= state.input.tabs_per_page ?? user.column_preferences.tabs?.default_per_page ?? 10 %>"
+            value="<%= state.input.tabs_per_page ?? state.user.column_preferences.tabs?.default_per_page ?? 10 %>"
             min="1"
             required
           >
@@ -254,7 +254,7 @@
             <input
               type="checkbox"
               name="column_preferences[tabs][title]"
-              <%= user.column_preferences?.tabs?.title !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.tabs?.title !== false ? 'checked' : '' %>
             >
             🏷️ Title
           </label>
@@ -262,7 +262,7 @@
             <input
               type="checkbox"
               name="column_preferences[tabs][trigger]"
-              <%= user.column_preferences?.tabs?.trigger !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.tabs?.trigger !== false ? 'checked' : '' %>
             >
             🔥 Trigger
           </label>
@@ -270,7 +270,7 @@
             <input
               type="checkbox"
               name="column_preferences[tabs][items_count]"
-              <%= user.column_preferences?.tabs?.items_count !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.tabs?.items_count !== false ? 'checked' : '' %>
             >
             🗂️ Items Count
           </label>
@@ -278,7 +278,7 @@
             <input
               type="checkbox"
               name="column_preferences[tabs][created_at]"
-              <%= user.column_preferences?.tabs?.created_at !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.tabs?.created_at !== false ? 'checked' : '' %>
             >
             📅 Created At
           </label>
@@ -298,7 +298,7 @@
             type="number"
             id="reminders_per_page"
             name="column_preferences[reminders][default_per_page]"
-            value="<%= state.input.reminders_per_page ?? user.column_preferences.reminders.default_per_page %>"
+            value="<%= state.input.reminders_per_page ?? state.user.column_preferences.reminders.default_per_page %>"
             min="1"
             required
           >
@@ -312,9 +312,9 @@
             name="column_preferences[reminders][default_reminder_timing]"
             required
           >
-            <option value="daily" <%= user.column_preferences.reminders.default_reminder_timing === 'daily' ? 'selected' : '' %>>Daily (recurring)</option>
-            <option value="weekly" <%= user.column_preferences.reminders.default_reminder_timing === 'weekly' ? 'selected' : '' %>>Weekly (recurring)</option>
-            <option value="monthly" <%= user.column_preferences.reminders.default_reminder_timing === 'monthly' ? 'selected' : '' %>>Monthly (recurring)</option>
+            <option value="daily" <%= state.user.column_preferences.reminders.default_reminder_timing === 'daily' ? 'selected' : '' %>>Daily (recurring)</option>
+            <option value="weekly" <%= state.user.column_preferences.reminders.default_reminder_timing === 'weekly' ? 'selected' : '' %>>Weekly (recurring)</option>
+            <option value="monthly" <%= state.user.column_preferences.reminders.default_reminder_timing === 'monthly' ? 'selected' : '' %>>Monthly (recurring)</option>
           </select>
           <small style="color: #666;">Used when creating reminders via !remind command without specifying timing</small>
         </div>
@@ -326,7 +326,7 @@
             type="time"
             id="default_reminder_time"
             name="column_preferences[reminders][default_reminder_time]"
-            value="<%= state.input.default_reminder_time ?? user.column_preferences.reminders.default_reminder_time %>"
+            value="<%= state.input.default_reminder_time ?? state.user.column_preferences.reminders.default_reminder_time %>"
             required
           >
           <small style="color: #666;">Time of day for reminders (24-hour format)</small>
@@ -339,7 +339,7 @@
             <input
               type="checkbox"
               name="column_preferences[reminders][title]"
-              <%= user.column_preferences?.reminders?.title !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.reminders?.title !== false ? 'checked' : '' %>
             >
             📝 Title
           </label>
@@ -347,7 +347,7 @@
             <input
               type="checkbox"
               name="column_preferences[reminders][content]"
-              <%= user.column_preferences?.reminders?.content !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.reminders?.content !== false ? 'checked' : '' %>
             >
             📝 Content
           </label>
@@ -355,7 +355,7 @@
             <input
               type="checkbox"
               name="column_preferences[reminders][due_date]"
-              <%= user.column_preferences?.reminders?.due_date !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.reminders?.due_date !== false ? 'checked' : '' %>
             >
             📅 Schedule
           </label>
@@ -363,7 +363,7 @@
             <input
               type="checkbox"
               name="column_preferences[reminders][next_due]"
-              <%= user.column_preferences?.reminders?.next_due !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.reminders?.next_due !== false ? 'checked' : '' %>
             >
             ⏳ Next Due
           </label>
@@ -371,13 +371,13 @@
           <input
             type="hidden"
             name="column_preferences[reminders][frequency]"
-            value="<%= user.column_preferences?.reminders?.frequency !== false ? 'on' : '' %>"
+            value="<%= state.user.column_preferences?.reminders?.frequency !== false ? 'on' : '' %>"
           >
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
               name="column_preferences[reminders][created_at]"
-              <%= user.column_preferences?.reminders?.created_at !== false ? 'checked' : '' %>
+              <%= state.user.column_preferences?.reminders?.created_at !== false ? 'checked' : '' %>
             >
             📅 Created At
           </label>
@@ -398,7 +398,7 @@
               type="number"
               id="users_per_page"
               name="column_preferences[users][default_per_page]"
-              value="<%= state.input.users_per_page ?? user.column_preferences.users.default_per_page %>"
+              value="<%= state.input.users_per_page ?? state.user.column_preferences.users.default_per_page %>"
               min="1"
               required
             >
@@ -411,7 +411,7 @@
               <input
                 type="checkbox"
                 name="column_preferences[users][username]"
-                <%= user.column_preferences?.users?.username !== false ? 'checked' : '' %>
+                <%= state.user.column_preferences?.users?.username !== false ? 'checked' : '' %>
               >
               👤 Username
             </label>
@@ -419,7 +419,7 @@
               <input
                 type="checkbox"
                 name="column_preferences[users][email]"
-                <%= user.column_preferences?.users?.email !== false ? 'checked' : '' %>
+                <%= state.user.column_preferences?.users?.email !== false ? 'checked' : '' %>
               >
               📧 Email
             </label>
@@ -427,7 +427,7 @@
               <input
                 type="checkbox"
                 name="column_preferences[users][is_admin]"
-                <%= user.column_preferences?.users?.is_admin !== false ? 'checked' : '' %>
+                <%= state.user.column_preferences?.users?.is_admin !== false ? 'checked' : '' %>
               >
               👑 Admin
             </label>
@@ -435,7 +435,7 @@
               <input
                 type="checkbox"
                 name="column_preferences[users][email_verified_at]"
-                <%= user.column_preferences?.users?.email_verified_at !== false ? 'checked' : '' %>
+                <%= state.user.column_preferences?.users?.email_verified_at !== false ? 'checked' : '' %>
               >
               ✅ Email Verified
             </label>
@@ -443,7 +443,7 @@
               <input
                 type="checkbox"
                 name="column_preferences[users][created_at]"
-                <%= user.column_preferences?.users?.created_at !== false ? 'checked' : '' %>
+                <%= state.user.column_preferences?.users?.created_at !== false ? 'checked' : '' %>
               >
               📅 Created At
             </label>
