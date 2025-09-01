@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { Knex } from 'knex';
 import path from 'node:path';
+import bcrypt from 'bcrypt';
 import dayjs from '../../utils/dayjs';
 import { logger } from '../../utils/logger';
 
@@ -20,6 +21,8 @@ export async function seed(knex: Knex): Promise<void> {
         await knex('users').del();
         await knex('sessions').del();
 
+        const hiddenPassword = await bcrypt.hash('password', 10);
+
         const [user] = await knex('users')
             .insert({
                 username: env.parsed?.APP_ADMIN_EMAIL?.split('@')[0] || 'admin',
@@ -28,6 +31,7 @@ export async function seed(knex: Knex): Promise<void> {
                 autocomplete_search_on_homepage: true,
                 default_search_provider: 'duckduckgo',
                 timezone: 'America/Chicago',
+                hidden_items_password: hiddenPassword,
                 column_preferences: JSON.stringify({
                     bookmarks: {
                         title: true,
@@ -90,6 +94,7 @@ export async function seed(knex: Knex): Promise<void> {
                 action_type: 'search',
                 last_read_at: null,
                 url: 'https://www.google.com/search?q={query}',
+                hidden: false,
             },
             {
                 user_id: user.id,
@@ -129,6 +134,26 @@ export async function seed(knex: Knex): Promise<void> {
                 name: 'Wikipedia',
                 action_type: 'search',
                 url: 'https://en.wikipedia.org/wiki/Special:Search/{query}',
+                hidden: false,
+            },
+            // Hidden actions (only redirect actions can be hidden)
+            {
+                user_id: user.id,
+                trigger: '!secret',
+                name: 'Secret Admin Panel',
+                action_type: 'redirect',
+                last_read_at: null,
+                url: 'https://admin.example.com/dashboard',
+                hidden: true,
+            },
+            {
+                user_id: user.id,
+                trigger: '!private',
+                name: 'Private Server',
+                action_type: 'redirect',
+                last_read_at: null,
+                url: 'https://private-server.example.com',
+                hidden: true,
             },
         ];
 
@@ -140,26 +165,53 @@ export async function seed(knex: Knex): Promise<void> {
                 url: 'https://github.com',
                 title: 'GitHub - Where the world builds software',
                 pinned: true,
+                hidden: false,
             },
             {
                 user_id: user.id,
                 url: 'https://developer.mozilla.org',
                 title: 'MDN Web Docs',
+                hidden: false,
             },
             {
                 user_id: user.id,
                 url: 'https://typescript-eslint.io',
                 title: 'TypeScript ESLint Documentation',
+                hidden: false,
             },
             {
                 user_id: user.id,
                 url: 'https://www.typescriptlang.org/docs/',
                 title: 'TypeScript Documentation',
+                hidden: false,
             },
             {
                 user_id: user.id,
                 url: 'https://nodejs.org/docs/latest/api/',
                 title: 'Node.js Documentation',
+                hidden: false,
+            },
+            // Hidden bookmarks
+            {
+                user_id: user.id,
+                url: 'https://my-bank.example.com',
+                title: 'Personal Banking Portal',
+                pinned: false,
+                hidden: true,
+            },
+            {
+                user_id: user.id,
+                url: 'https://password-manager.example.com',
+                title: 'Password Manager',
+                pinned: true,
+                hidden: true,
+            },
+            {
+                user_id: user.id,
+                url: 'https://crypto-wallet.example.com',
+                title: 'Crypto Wallet',
+                pinned: false,
+                hidden: true,
             },
         ];
 
@@ -170,6 +222,7 @@ export async function seed(knex: Knex): Promise<void> {
                 user_id: user.id,
                 title: 'Note 1',
                 pinned: true,
+                hidden: false,
                 content: `## 📝 Note 1
 
 This is the **content** of _note 1_.
@@ -193,6 +246,7 @@ console.log('Hello, Note 1');
             {
                 user_id: user.id,
                 title: 'Note 2',
+                hidden: false,
                 content: `## 🔖 Note 2
 
 Here is the \`content\` of **note 2**.
@@ -213,6 +267,75 @@ Here is the \`content\` of **note 2**.
 
 ### Image:
 ![Alt Text](https://via.placeholder.com/100)
+`,
+            },
+            // Hidden notes
+            {
+                user_id: user.id,
+                title: 'Private API Keys',
+                pinned: true,
+                hidden: true,
+                content: `## 🔐 Private API Keys
+
+### Production Keys:
+- API Key: sk-1234567890abcdef
+- Secret: secret-xyz-789
+- Token: token-abc-123
+
+### Database Credentials:
+- Host: db.private.example.com
+- User: admin
+- Pass: SuperSecret123!
+
+> ⚠️ **Important**: Never share these credentials!
+`,
+            },
+            {
+                user_id: user.id,
+                title: 'Personal Journal Entry',
+                pinned: false,
+                hidden: true,
+                content: `## 📔 Personal Journal - ${dayjs().format('MMMM D, YYYY')}
+
+Today was an interesting day...
+
+### Thoughts:
+- Need to remember to check the private server
+- Meeting notes are confidential
+- Project X is progressing well
+
+### Todo (Private):
+1. Review secret documentation
+2. Update security protocols
+3. Change all passwords monthly
+
+---
+*This note is private and should not be shared.*
+`,
+            },
+            {
+                user_id: user.id,
+                title: 'Emergency Contacts',
+                pinned: false,
+                hidden: true,
+                content: `## 🚨 Emergency Contacts
+
+### Family:
+- Mom: +1-555-0101
+- Dad: +1-555-0102
+- Sister: +1-555-0103
+
+### Medical:
+- Doctor Smith: +1-555-0201
+- Hospital: +1-555-0202
+- Insurance: Policy #ABC123456
+
+### Financial:
+- Bank: +1-555-0301
+- Credit Card: +1-555-0302
+- Account Manager: John Doe
+
+> Keep this information secure and updated.
 `,
             },
         ];
