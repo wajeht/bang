@@ -361,6 +361,12 @@ export function createNotesRouter(notes: Notes) {
             }
         }
 
+        const currentNote = await notes.read(noteId, user.id);
+
+        if (!currentNote) {
+            throw new NotFoundError('Note not found');
+        }
+
         const updatedNote = await notes.update(noteId, user.id, {
             title: title.trim(),
             content: content.trim(),
@@ -375,8 +381,7 @@ export function createNotesRouter(notes: Notes) {
 
         req.flash('success', `Note ${updatedNote.title} updated successfully`);
 
-
-        if  (updatedNote.hidden) {
+        if (updatedNote.hidden && !currentNote.hidden) {
             req.flash('success', 'Note hidden successfully');
             return res.redirect('/notes');
         }

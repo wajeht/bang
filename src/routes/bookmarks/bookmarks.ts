@@ -332,6 +332,11 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
             }
         }
 
+        const currentBookmark = await bookmarks.read(bookmarkId, user.id);
+        if (!currentBookmark) {
+            throw new NotFoundError('Bookmark not found');
+        }
+
         const updatedBookmark = await bookmarks.update(bookmarkId, user.id, {
             url,
             title,
@@ -349,7 +354,7 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
 
         req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
 
-        if  (updatedBookmark.hidden) {
+        if (updatedBookmark.hidden && !currentBookmark.hidden) {
             req.flash('success', 'Bookmark hidden successfully');
             return res.redirect('/bookmarks');
         }

@@ -326,6 +326,12 @@ export function createActionsRouter(db: Knex, actions: Actions) {
             throw new ValidationError({ trigger: 'This trigger already exists' });
         }
 
+        const currentAction = await actions.read(actionId, user.id);
+
+        if (!currentAction) {
+            throw new NotFoundError('Action not found');
+        }
+
         const updatedAction = await actions.update(actionId, user.id, {
             trigger: formattedTrigger,
             name: name.trim(),
@@ -344,7 +350,7 @@ export function createActionsRouter(db: Knex, actions: Actions) {
 
         req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
 
-        if  (updatedAction.hidden) {
+        if (updatedAction.hidden && !currentAction.hidden) {
             req.flash('success', 'Action hidden successfully');
             return res.redirect('/actions');
         }
