@@ -47,6 +47,15 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'bookmarks');
 
+        // Check if user wants to show hidden items and has verified password
+        const showHidden = req.query.hidden === 'true';
+        const hasVerifiedPassword =
+            req.session?.hiddenItemsVerified &&
+            req.session?.hiddenItemsVerifiedAt &&
+            Date.now() - req.session.hiddenItemsVerifiedAt < 30 * 60 * 1000; // 30 minutes
+
+        const canViewHidden = showHidden && hasVerifiedPassword && user.hidden_items_password;
+
         const { data, pagination } = await bookmarks.all({
             user,
             perPage,
@@ -55,7 +64,7 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
             sortKey,
             direction,
             highlight: !isApiRequest(req),
-            excludeHidden: true,
+            excludeHidden: !canViewHidden,
         });
 
         if (isApiRequest(req)) {
@@ -73,6 +82,8 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
             pagination,
             sortKey,
             direction,
+            showHidden: canViewHidden,
+            hiddenItemsVerified: hasVerifiedPassword,
         });
     }
 
