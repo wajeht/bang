@@ -36,6 +36,15 @@ export function createNotesRouter(notes: Notes) {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
 
+        // Check if user wants to show hidden items and has verified password
+        const showHidden = req.query.hidden === 'true';
+        const hasVerifiedPassword =
+            req.session?.hiddenItemsVerified &&
+            req.session?.hiddenItemsVerifiedAt &&
+            Date.now() - req.session.hiddenItemsVerifiedAt < 30 * 60 * 1000; // 30 minutes
+
+        const canViewHidden = showHidden && hasVerifiedPassword && user.hidden_items_password;
+
         const { data, pagination } = await notes.all({
             user,
             perPage,
@@ -44,7 +53,7 @@ export function createNotesRouter(notes: Notes) {
             sortKey,
             direction,
             highlight: !isApiRequest(req),
-            excludeHidden: true,
+            excludeHidden: !canViewHidden,
         });
 
         if (isApiRequest(req)) {
@@ -70,6 +79,8 @@ export function createNotesRouter(notes: Notes) {
             pagination,
             sortKey,
             direction,
+            showHidden: canViewHidden,
+            hiddenItemsVerified: hasVerifiedPassword,
         });
     }
 
@@ -78,7 +89,6 @@ export function createNotesRouter(notes: Notes) {
             title: 'Notes / Create',
             path: '/notes/create',
             layout: '_layouts/auth.html',
-            user: req.session.user,
         });
     });
 
@@ -95,7 +105,6 @@ export function createNotesRouter(notes: Notes) {
             path: '/notes/edit',
             layout: '_layouts/auth.html',
             note,
-            user: req.session.user,
         });
     });
 
