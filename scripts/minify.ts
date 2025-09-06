@@ -226,7 +226,7 @@ async function minifyHtmlFiles(): Promise<MinificationSummary> {
 
     logger.info(`🔄 Processing ${htmlFiles.length} HTML files...`);
 
-    const minifyOptions = {
+    const defaultMinifyOptions = {
         collapseWhitespace: true,
         removeComments: true,
         removeOptionalTags: false,
@@ -250,7 +250,31 @@ async function minifyHtmlFiles(): Promise<MinificationSummary> {
         ignoreCustomFragments: [/<%[\s\S]*?%>/, /<\?[\s\S]*?\?>/, /<svg[\s\S]*?<\/svg>/],
     };
 
+    const filesWithSpecialJsHandling = ['tabs-launch.html'];
+
+    const specialJsMinifyOptions = {
+        ...defaultMinifyOptions,
+        minifyJS: {
+            compress: false,
+            mangle: false,
+            output: {
+                comments: false,
+                beautify: false,
+                semicolons: true,
+                inline_script: false,
+                quote_style: 3,
+            },
+        },
+    };
+
     for (const file of htmlFiles) {
+        const needsSpecialJsHandling = filesWithSpecialJsHandling.some((specialFile) =>
+            file.includes(specialFile),
+        );
+
+        const minifyOptions = needsSpecialJsHandling
+            ? specialJsMinifyOptions
+            : defaultMinifyOptions;
         const originalContent = fs.readFileSync(file, 'utf8');
         const originalSize = Buffer.byteLength(originalContent, 'utf8');
         totalOriginalSize += originalSize;
