@@ -1,3 +1,17 @@
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    if (id) {
+        const row = document.querySelector(`tr[data-id="${id}"]`);
+        if (row) {
+            row.classList.add('highlight-table-row');
+            setTimeout(() => row.classList.remove('highlight-table-row'), 2000);
+            history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+});
+</script>
 <section style="display: flex; flex-direction: column; gap: 30px;">
     <header style="display: flex; justify-content: space-between; align-items: center;">
         <div>
@@ -115,7 +129,7 @@
                 </thead>
                 <tbody>
                     <% for (let i = 0; i < reminders.length; i++) { %>
-                        <tr>
+                        <tr data-id="<%- reminders[i].id %>">
                             <% if (state.user.column_preferences?.reminders?.title !== false) { %>
                                 <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                     <% if (reminders[i].title && utils.isUrlLike(reminders[i].title)) { %>
