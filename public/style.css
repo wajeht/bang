@@ -585,8 +585,8 @@ td:last-child {
     }
 }
 
-.highlight-table-row {
-    animation: highlight-fade 1s ease-out;
+.highlight-div {
+    animation: highlight-fade 2s ease-out;
 }
 
 /* Fix dropdown z-index and sticky headers */

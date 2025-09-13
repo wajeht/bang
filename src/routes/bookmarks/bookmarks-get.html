@@ -5,13 +5,10 @@ function handleRowHighlight() {
     if (id) {
         const row = document.querySelector(`tr[data-id="${id}"]`);
         if (row) {
-            row.classList.add('highlight-table-row');
+            row.classList.add('highlight-div');
 
-            requestAnimationFrame(() => {
-                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            });
-
-            setTimeout(() => row.classList.remove('highlight-table-row'), 2000);
+            requestAnimationFrame(() => row.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+            setTimeout(() => row.classList.remove('highlight-div'), 2000);
             history.replaceState({}, document.title, window.location.pathname);
         }
     }

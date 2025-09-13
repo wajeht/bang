@@ -6,24 +6,18 @@ function handleRowHighlight() {
         const row = document.querySelector(`tr[data-id="${id}"]`);
         const article = document.querySelector(`article[data-id="${id}"]`);
         if (row) {
-            row.classList.add('highlight-table-row');
+            row.classList.add('highlight-div');
 
-            requestAnimationFrame(() => {
-                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            });
-
-            setTimeout(() => row.classList.remove('highlight-table-row'), 2000);
+            requestAnimationFrame(() => row.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+            setTimeout(() => row.classList.remove('highlight-div'), 2000);
             history.replaceState({}, document.title, window.location.pathname);
         }
         if (article) {
-            article.classList.add('highlight-table-row');
+            article.classList.add('highlight-div');
 
 
-            requestAnimationFrame(() => {
-                article.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            });
-
-            setTimeout(() => article.classList.remove('highlight-table-row'), 2000);
+            requestAnimationFrame(() => article.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+            setTimeout(() => article.classList.remove('highlight-div'), 2000);
             history.replaceState({}, document.title, window.location.pathname);
         }
     }
