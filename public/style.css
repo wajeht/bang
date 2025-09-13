@@ -576,6 +576,19 @@ td:last-child {
     position: relative;
 }
 
+@keyframes highlight-fade {
+    0% {
+        background-color: #fafa53;
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.highlight-table-row {
+    animation: highlight-fade 1s ease-out;
+}
+
 /* Fix dropdown z-index and sticky headers */
 details div[style*='position: absolute'] {
     z-index: 500 !important;
