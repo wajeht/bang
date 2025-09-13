@@ -1,5 +1,5 @@
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const searchParam = urlParams.get('search');
     if (searchParam && searchParam.trim() !== '') {
@@ -25,22 +25,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const groupRows = document.querySelectorAll('.tab-group-row');
     groupRows.forEach(row => {
+        const tabId = row.dataset.tabId;
+        const detailsRow = document.getElementById('details-' + tabId);
+
+        // Hover logic → only if not over Actions cell
+        row.addEventListener('mouseover', function(event) {
+            if (event.target.closest('details')) return; // skip Actions dropdown
+
+            if (detailsRow.style.display === 'none') {
+                event.target.style.cursor = 's-resize'; // collapsed → down arrow
+            } else {
+                event.target.style.cursor = 'n-resize'; // expanded → up arrow
+            }
+        });
+
+        row.addEventListener('mouseout', function(event) {
+            if (event.target.closest('details')) return; // skip Actions dropdown
+            event.target.style.cursor = 'default';
+        });
+
+        // Click logic → toggle expand/collapse
         row.addEventListener('click', function(event) {
-            const target = event.target;
-            if (target.closest('a, button, details, summary')) {
-                return;
+            if (event.target.closest('a, button, details, summary')) {
+                return; // ignore Actions dropdown and other controls
             }
 
-            const tabId = row.dataset.tabId;
-            const detailsRow = document.getElementById('details-' + tabId);
             if (detailsRow.style.display === 'none') {
-                detailsRow.style.display = 'table-row';
+                detailsRow.style.display = 'table-row'; // expand
+                event.target.style.cursor = 'n-resize'; // immediately show up arrow
             } else {
-                detailsRow.style.display = 'none';
+                detailsRow.style.display = 'none'; // collapse
+                event.target.style.cursor = 's-resize'; // immediately show down arrow
             }
         });
     });
 
+    // Highlight row if ?id= param is present
     const id = urlParams.get('id');
     if (id) {
         const row = document.querySelector(`tr[data-id="${id}"]`);
@@ -50,35 +70,35 @@ document.addEventListener('DOMContentLoaded', function() {
             history.replaceState({}, document.title, window.location.pathname);
         }
     }
-});
+  });
 
-function toggleAddItemForm(tabId) {
-    var form = document.getElementById('add-item-form-' + tabId);
-    if (form.style.display === 'none' || !form.style.display) {
-        form.style.display = 'flex';
-    } else {
-        form.style.display = 'none';
-    }
-}
+  function toggleAddItemForm(tabId) {
+      var form = document.getElementById('add-item-form-' + tabId);
+      if (form.style.display === 'none' || !form.style.display) {
+          form.style.display = 'flex';
+      } else {
+          form.style.display = 'none';
+      }
+  }
 
-function showDeleteTabModal(tabId, tabTitle) {
-    const modal = document.getElementById('delete-tab-modal');
-    const nameElement = document.getElementById('delete-tab-name');
-    const form = document.getElementById('delete-tab-form');
-    nameElement.textContent = tabTitle;
-    form.action = `/tabs/${tabId}/delete`;
-    modal.showModal();
-}
+  function showDeleteTabModal(tabId, tabTitle) {
+      const modal = document.getElementById('delete-tab-modal');
+      const nameElement = document.getElementById('delete-tab-name');
+      const form = document.getElementById('delete-tab-form');
+      nameElement.textContent = tabTitle;
+      form.action = `/tabs/${tabId}/delete`;
+      modal.showModal();
+  }
 
-function showDeleteItemModal(tabId, itemId, itemTitle) {
-    const modal = document.getElementById('delete-item-modal');
-    const nameElement = document.getElementById('delete-item-name');
-    const form = document.getElementById('delete-item-form');
-    nameElement.textContent = itemTitle;
-    form.action = `/tabs/${tabId}/items/${itemId}/delete`;
-    modal.showModal();
-}
-</script>
+  function showDeleteItemModal(tabId, itemId, itemTitle) {
+      const modal = document.getElementById('delete-item-modal');
+      const nameElement = document.getElementById('delete-item-name');
+      const form = document.getElementById('delete-item-form');
+      nameElement.textContent = itemTitle;
+      form.action = `/tabs/${tabId}/items/${itemId}/delete`;
+      modal.showModal();
+  }
+  </script>
 
 <section style="display: flex; flex-direction: column; gap: 30px;">
   <header style="display: flex; justify-content: space-between; align-items: center;">
