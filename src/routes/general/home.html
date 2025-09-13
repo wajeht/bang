@@ -163,7 +163,7 @@
             } else if (selectedItem.dataset.type === 'tab') {
               submitBang(selectedItem.dataset.trigger, input, dropdown);
             } else if (selectedItem.dataset.type === 'reminder') {
-              window.location.href = `/reminders/${selectedItem.dataset.id}`;
+              window.location.href = `/reminders?id=${selectedItem.dataset.id}`;
             } else {
               window.location.href = selectedItem.dataset.url;
             }
@@ -290,7 +290,7 @@
         } else if (item.dataset.type === 'tab') {
           submitBang(item.dataset.trigger, input, dropdown);
         } else if (item.dataset.type === 'reminder') {
-          window.location.href = `/reminders/${item.dataset.id}`;
+          window.location.href = `/reminders?id=${item.dataset.id}`;
         } else {
           window.location.href = item.dataset.url;
         }
