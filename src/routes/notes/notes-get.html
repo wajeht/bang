@@ -1,3 +1,23 @@
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    if (id) {
+        const row = document.querySelector(`tr[data-id="${id}"]`);
+        const article = document.querySelector(`article[data-id="${id}"]`);
+        if (row) {
+            row.classList.add('highlight-table-row');
+            setTimeout(() => row.classList.remove('highlight-table-row'), 2000);
+            history.replaceState({}, document.title, window.location.pathname);
+        }
+        if (article) {
+            article.classList.add('highlight-table-row');
+            setTimeout(() => article.classList.remove('highlight-table-row'), 2000);
+            history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+});
+</script>
 <section style="display: flex; flex-direction: column; gap: 30px;">
     <header style="display: flex; justify-content: space-between; align-items: center;">
         <div>
@@ -52,7 +72,7 @@
         <section style="display: flex; flex-wrap: wrap; gap: 20px;">
             <% if (data && data.length > 0) { %>
                 <% for (let i = 0; i < data.length; i++) { %>
-                    <article style="border-style: solid; border-width: 1px; border-radius: 5px; border-color: var(--card-border-color); padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 200px;">
+                    <article data-id="<%- data[i].id %>" style="border-style: solid; border-width: 1px; border-radius: 5px; border-color: var(--card-border-color); padding: 20px; width: calc(33.33% - 14px); min-width: 300px; box-sizing: border-box; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 200px;">
                         <% if (state.user.column_preferences?.notes?.title !== false) { %>
                             <h3>
                                 <% if (data[i].pinned) { %>📌<% } %>
@@ -177,7 +197,7 @@
                     </thead>
                     <tbody>
                         <% for (let i = 0; i < data.length; i++) { %>
-                            <tr>
+                            <tr data-id="<%- data[i].id %>">
                                 <% if (state.user.column_preferences?.notes?.title !== false) { %>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <% if (data[i].pinned) { %>📌<% } %>
