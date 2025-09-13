@@ -1,73 +1,83 @@
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const searchParam = urlParams.get('search');
     if (searchParam && searchParam.trim() !== '') {
-      const allDetailsRows = document.querySelectorAll('[id^="details-"]');
-      allDetailsRows.forEach(row => {
-        row.style.display = 'table-row';
-      });
+        const allDetailsRows = document.querySelectorAll('[id^="details-"]');
+        allDetailsRows.forEach(row => {
+            row.style.display = 'table-row';
+        });
     }
 
     const toggleButtons = document.querySelectorAll('.toggle-details-btn');
     toggleButtons.forEach(button => {
-      button.addEventListener('click', function(event) {
-        event.stopPropagation(); // Prevent row click from triggering
-        const tabId = this.dataset.tabId;
-        const detailsRow = document.getElementById('details-' + tabId);
-        if (detailsRow.style.display === 'none') {
-          detailsRow.style.display = 'table-row';
-        } else {
-          detailsRow.style.display = 'none';
-        }
-      });
+        button.addEventListener('click', function(event) {
+            event.stopPropagation(); // Prevent row click from triggering
+            const tabId = this.dataset.tabId;
+            const detailsRow = document.getElementById('details-' + tabId);
+            if (detailsRow.style.display === 'none') {
+                detailsRow.style.display = 'table-row';
+            } else {
+                detailsRow.style.display = 'none';
+            }
+        });
     });
 
     const groupRows = document.querySelectorAll('.tab-group-row');
     groupRows.forEach(row => {
-      row.addEventListener('click', function(event) {
-        const target = event.target;
-        if (target.closest('a, button, details, summary')) {
-          return;
-        }
+        row.addEventListener('click', function(event) {
+            const target = event.target;
+            if (target.closest('a, button, details, summary')) {
+                return;
+            }
 
-        const tabId = row.dataset.tabId;
-        const detailsRow = document.getElementById('details-' + tabId);
-        if (detailsRow.style.display === 'none') {
-          detailsRow.style.display = 'table-row';
-        } else {
-          detailsRow.style.display = 'none';
-        }
-      });
+            const tabId = row.dataset.tabId;
+            const detailsRow = document.getElementById('details-' + tabId);
+            if (detailsRow.style.display === 'none') {
+                detailsRow.style.display = 'table-row';
+            } else {
+                detailsRow.style.display = 'none';
+            }
+        });
     });
-  });
 
-  function toggleAddItemForm(tabId) {
+    const id = urlParams.get('id');
+    if (id) {
+        const row = document.querySelector(`tr[data-id="${id}"]`);
+        if (row) {
+            row.classList.add('highlight-table-row');
+            setTimeout(() => row.classList.remove('highlight-table-row'), 2000);
+            history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+});
+
+function toggleAddItemForm(tabId) {
     var form = document.getElementById('add-item-form-' + tabId);
     if (form.style.display === 'none' || !form.style.display) {
-      form.style.display = 'flex';
+        form.style.display = 'flex';
     } else {
-      form.style.display = 'none';
+        form.style.display = 'none';
     }
-  }
+}
 
-  function showDeleteTabModal(tabId, tabTitle) {
+function showDeleteTabModal(tabId, tabTitle) {
     const modal = document.getElementById('delete-tab-modal');
     const nameElement = document.getElementById('delete-tab-name');
     const form = document.getElementById('delete-tab-form');
     nameElement.textContent = tabTitle;
     form.action = `/tabs/${tabId}/delete`;
     modal.showModal();
-  }
+}
 
-  function showDeleteItemModal(tabId, itemId, itemTitle) {
+function showDeleteItemModal(tabId, itemId, itemTitle) {
     const modal = document.getElementById('delete-item-modal');
     const nameElement = document.getElementById('delete-item-name');
     const form = document.getElementById('delete-item-form');
     nameElement.textContent = itemTitle;
     form.action = `/tabs/${tabId}/items/${itemId}/delete`;
     modal.showModal();
-  }
+}
 </script>
 
 <section style="display: flex; flex-direction: column; gap: 30px;">
@@ -170,7 +180,7 @@
               </thead>
               <tbody>
                   <% for (let i = 0; i < tabs.length; i++) { %>
-                      <tr class="tab-group-row" data-tab-id="<%= tabs[i].id %>" style="cursor: pointer;">
+                      <tr class="tab-group-row" data-tab-id="<%= tabs[i].id %>" data-id="<%= tabs[i].id %>" style="cursor: pointer;">
                           <% if (user.column_preferences?.tabs?.title !== false) { %>
                           <td style="padding: 10px;"><%- tabs[i].title %></td>
                           <% } %>
