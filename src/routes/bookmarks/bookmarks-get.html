@@ -6,7 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const row = document.querySelector(`tr[data-id="${id}"]`);
         if (row) {
             row.classList.add('highlight-table-row');
-            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
             setTimeout(() => row.classList.remove('highlight-table-row'), 2000);
             history.replaceState({}, document.title, window.location.pathname);
         }
