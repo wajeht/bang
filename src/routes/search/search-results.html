@@ -62,7 +62,7 @@
                             <% results.bookmarks.data.forEach(function(bookmark) { %>
                                 <tr>
                                     <td style="padding: 10px;">
-                                        <a href="/bookmarks">⭐️ Bookmark</a>
+                                        <a href="/bookmarks?id=<%- bookmark.id %>">⭐️ Bookmark</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <%- bookmark.title || 'Untitled' %>
@@ -99,7 +99,7 @@
                             <% results.actions.data.forEach(function(action) { %>
                                 <tr>
                                     <td style="padding: 10px;">
-                                        <a href="/actions">🚀 Action</a>
+                                        <a href="/actions?id=<%- action.id %>">🚀 Action</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <%- action.name %>
@@ -144,7 +144,7 @@
                             <% results.notes.data.forEach(function(note) { %>
                                 <tr>
                                     <td style="padding: 10px;">
-                                        <a href="/notes">📝 Note</a>
+                                        <a href="/notes?id=<%- note.id %>">📝 Note</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <a href="/notes/<%= note.id %>" title="<%= utils.stripHtmlTags(note.title) %>">
@@ -180,7 +180,7 @@
                             <% results.tabs.forEach(function(tab) { %>
                                 <tr>
                                     <td style="padding: 10px;">
-                                        <a href="/tabs">🔗 Tab</a>
+                                        <a href="/tabs?id=<%- tab.id %>">🔗 Tab</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <%- tab.title %>
@@ -214,10 +214,10 @@
                             <% results.reminders.data.forEach(function(reminder) { %>
                                 <tr>
                                     <td style="padding: 10px;">
-                                        <a href="/reminders">⏰ Reminder</a>
+                                        <a href="/reminders?id=<%- reminder.id %>">⏰ Reminder</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <a href="/reminders/<%= reminder.id %>" title="<%= utils.stripHtmlTags(reminder.title) %>">
+                                        <a href="/reminders?id=<%= reminder.id %>" title="<%= utils.stripHtmlTags(reminder.title) %>">
                                             <%- reminder.title %>
                                         </a>
                                     </td>
