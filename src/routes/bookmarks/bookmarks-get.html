@@ -1,19 +1,24 @@
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+function handleRowHighlight() {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
     if (id) {
         const row = document.querySelector(`tr[data-id="${id}"]`);
         if (row) {
             row.classList.add('highlight-table-row');
-            setTimeout(() => {
+
+            requestAnimationFrame(() => {
                 row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
+            });
+
             setTimeout(() => row.classList.remove('highlight-table-row'), 2000);
             history.replaceState({}, document.title, window.location.pathname);
         }
     }
-});
+}
+
+document.addEventListener('DOMContentLoaded', handleRowHighlight);
+window.addEventListener('load', handleRowHighlight);
 </script>
 <section style="display: flex; flex-direction: column; gap: 30px;">
     <header style="display: flex; justify-content: space-between; align-items: center;">

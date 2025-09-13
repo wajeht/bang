@@ -61,18 +61,25 @@
     });
 
     // Highlight row if ?id= param is present
-    const id = urlParams.get('id');
-    if (id) {
-        const row = document.querySelector(`tr[data-id="${id}"]`);
-        if (row) {
-            row.classList.add('highlight-table-row');
-            setTimeout(() => {
-                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
-            setTimeout(() => row.classList.remove('highlight-table-row'), 2000);
-            history.replaceState({}, document.title, window.location.pathname);
+    function handleTabRowHighlight() {
+        const id = urlParams.get('id');
+        if (id) {
+            const row = document.querySelector(`tr[data-id="${id}"]`);
+            if (row) {
+                row.classList.add('highlight-table-row');
+
+                requestAnimationFrame(() => {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+
+                setTimeout(() => row.classList.remove('highlight-table-row'), 2000);
+                history.replaceState({}, document.title, window.location.pathname);
+            }
         }
-    }
+    };
+
+    handleTabRowHighlight();
+    window.addEventListener('load', handleTabRowHighlight);
   });
 
   function toggleAddItemForm(tabId) {
