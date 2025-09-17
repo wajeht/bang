@@ -12,6 +12,7 @@ module.exports = tseslint.config(
             'src/views/layouts/**/*',
             'src/views/pages/**/*',
             'dist/**/*',
+            'coverage/**/*',
             'node_modules/**/*',
             'playwright-report/**/*',
             '**/db.sqlite*',

@@ -20,6 +20,7 @@ import { logger } from './utils/logger';
 import { router } from './routes/routes';
 import { inittializeDatabase } from './db/db';
 import { processReminderDigests } from './utils/mail';
+import { cleanupExpiredSessions } from './utils/session-cleanup';
 import { expressJSDocSwaggerHandler } from './utils/swagger';
 
 export function setupCronJobs() {
@@ -38,8 +39,25 @@ export function setupCronJobs() {
             timezone: 'UTC',
         },
     );
-
     logger.info('Reminder check scheduled every 15 minutes');
+
+    cron.schedule(
+        '0 */6 * * *', // every 6 hours
+        async () => {
+            logger.info('Cleaning up expired sessions...');
+            try {
+                const deletedCount = await cleanupExpiredSessions();
+                logger.info(`Session cleanup completed: ${deletedCount} expired sessions removed`);
+            } catch (error: any) {
+                logger.error('Session cleanup failed: %o', { error });
+            }
+        },
+        {
+            timezone: 'UTC',
+        },
+    );
+
+    logger.info('Session cleanup scheduled every 6 hours');
 }
 
 export async function createApp() {
