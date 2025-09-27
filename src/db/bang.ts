@@ -9221,7 +9221,7 @@ export const bangs: Record<string, any> = {
         s: 'Bandcamp tags',
         d: 'bandcamp.com',
         t: 'bctag',
-        u: 'https://bandcamp.com/tag/{{{s}}}',
+        u: 'https://bandcamp.com/discover/{{{s}}}',
         c: 'Multimedia',
         sc: 'Music',
     },
