@@ -30,6 +30,7 @@ export async function up(knex: Knex): Promise<void> {
                         default_per_page: 10,
                         created_at: true,
                         pinned: true,
+                        hidden: true,
                     },
                     actions: {
                         name: true,
@@ -39,6 +40,7 @@ export async function up(knex: Knex): Promise<void> {
                         last_read_at: true,
                         usage_count: true,
                         created_at: true,
+                        hidden: true,
                     },
                     notes: {
                         title: true,
@@ -47,6 +49,7 @@ export async function up(knex: Knex): Promise<void> {
                         created_at: true,
                         pinned: true,
                         view_type: 'table',
+                        hidden: true,
                     },
                     tabs: {
                         title: true,
