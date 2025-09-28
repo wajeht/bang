@@ -97,13 +97,18 @@ window.addEventListener('load', handleRowHighlight);
                             </div>
                         <% } %>
                         <footer style="display: flex; justify-content: space-between; gap: 10px; margin-top: auto;">
-                            <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
-                                <p>📅 Created:
-                                    <time datetime="<%= data[i].created_at %>">
-                                        <%= utils.formatDateInTimezone(data[i].created_at, state.user.timezone).fullString %>
-                                    </time>
-                                </p>
-                            <% } %>
+                            <div style="display: flex; flex-direction: column; gap: 5px;">
+                                <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
+                                    <p>📅 Created:
+                                        <time datetime="<%= data[i].created_at %>">
+                                            <%= utils.formatDateInTimezone(data[i].created_at, state.user.timezone).fullString %>
+                                        </time>
+                                    </p>
+                                <% } %>
+                                <% if (state.user.column_preferences?.notes?.hidden !== false && data[i].hidden == 1) { %>
+                                    <p>🫣 Hidden</p>
+                                <% } %>
+                            </div>
                             <nav style="display: flex; gap: 10px; align-items: center;">
                                 <form method="POST" action="/notes/<%= data[i].id %>/pin" style="display: inline;">
                                     <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
@@ -146,7 +151,7 @@ window.addEventListener('load', handleRowHighlight);
                         <tr>
                             <% if (state.user.column_preferences?.notes?.title !== false) { %>
                                 <th scope="col" style="text-align: left; padding: 10px;">
-                                    <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=title&direction=<%= (sortKey === 'title' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                    <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=title&direction=<%= (sortKey === 'title' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
                                        style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
                                        aria-label="Sort by title <%= (sortKey === 'title' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                         📝 Title
@@ -160,7 +165,7 @@ window.addEventListener('load', handleRowHighlight);
                             <% } %>
                             <% if (state.user.column_preferences?.notes?.content !== false) { %>
                                 <th scope="col" style="text-align: left; padding: 10px;">
-                                    <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=content&direction=<%= (sortKey === 'content' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                    <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=content&direction=<%= (sortKey === 'content' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
                                        style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
                                        aria-label="Sort by content <%= (sortKey === 'content' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                         📄 Content
@@ -174,7 +179,7 @@ window.addEventListener('load', handleRowHighlight);
                             <% } %>
                             <% if (state.user.column_preferences?.notes?.pinned !== false) { %>
                                 <th scope="col" style="text-align: left; padding: 10px;">
-                                    <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=pinned&direction=<%= (sortKey === 'pinned' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                    <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=pinned&direction=<%= (sortKey === 'pinned' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
                                        style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
                                        aria-label="Sort by pinned status <%= (sortKey === 'pinned' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                         📌 Pinned
@@ -188,11 +193,25 @@ window.addEventListener('load', handleRowHighlight);
                             <% } %>
                             <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
                                 <th scope="col" style="text-align: left; padding: 10px;">
-                                    <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                    <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
                                        style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
                                        aria-label="Sort by created date <%= (sortKey === 'created_at' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                         📅 Created
                                         <% if (sortKey === 'created_at') { %>
+                                            <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                        <% } else { %>
+                                            <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                                        <% } %>
+                                    </a>
+                                </th>
+                            <% } %>
+                            <% if (state.user.column_preferences?.notes?.hidden !== false) { %>
+                                <th scope="col" style="text-align: left; padding: 10px;">
+                                    <a href="/notes?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=hidden&direction=<%= (sortKey === 'hidden' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
+                                       style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                       aria-label="Sort by hidden status <%= (sortKey === 'hidden' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                        🫣 Hidden
+                                        <% if (sortKey === 'hidden') { %>
                                             <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
                                         <% } else { %>
                                             <span class="sort-icon" aria-label="Not sorted">⏺️</span>
@@ -237,6 +256,15 @@ window.addEventListener('load', handleRowHighlight);
                                         <time datetime="<%= data[i].created_at %>">
                                             <%= utils.formatDateInTimezone(data[i].created_at, state.user.timezone).fullString %>
                                         </time>
+                                    </td>
+                                <% } %>
+                                <% if (state.user.column_preferences?.notes?.hidden !== false) { %>
+                                    <td style="padding: 10px;">
+                                        <% if (data[i].hidden == 1) { %>
+                                            ✅
+                                        <% } else { %>
+                                           -
+                                        <% } %>
                                     </td>
                                 <% } %>
                                 <td style="padding: 10px;">
