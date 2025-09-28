@@ -19954,7 +19954,7 @@ export const bangs: Record<string, any> = {
         sc: 'Learning',
     },
     curse: {
-        s: 'curseforge',
+        s: 'WoW Curseforge',
         d: 'www.curseforge.com',
         t: 'curse',
         u: 'https://www.curseforge.com/wow/addons/search?search={{{s}}}',
@@ -113233,6 +113233,14 @@ export const bangs: Record<string, any> = {
         c: 'Online Services',
         sc: 'Tools',
     },
+    backloggd: {
+        s: 'Backloggd',
+        d: 'backloggd.com',
+        t: 'backloggd',
+        u: 'https://backloggd.com/search/games/{{{s}}}',
+        c: 'Entertainment',
+        sc: 'Games (general)',
+    },
     brde: {
         s: 'Bayerischer Rundfunk',
         d: 'www.br.de',
@@ -113466,6 +113474,14 @@ export const bangs: Record<string, any> = {
         c: 'Shopping',
         sc: 'Online',
         fmt: ['open_base_path', 'url_encode_placeholder'],
+    },
+    dpm: {
+        s: 'DPM LOL',
+        d: 'dpm.lol',
+        t: 'dpm',
+        u: 'https://dpm.lol/{{{s}}}',
+        c: 'Entertainment',
+        sc: 'Games (specific)',
     },
     dscsrv: {
         s: 'Discord Servers',
@@ -113963,6 +113979,22 @@ export const bangs: Record<string, any> = {
         c: 'Entertainment',
         sc: 'Games (Minecraft)',
     },
+    figura: {
+        s: 'FiguraMC Wiki',
+        d: 'wiki.figuramc.org',
+        t: 'figura',
+        u: 'https://wiki.figuramc.org/index.php?search={{{s}}}',
+        c: 'Tech',
+        sc: 'Games (Minecraft)',
+    },
+    figs: {
+        s: 'Figura Documentation',
+        d: 'applejuiceyy.github.io',
+        t: 'figs',
+        u: 'https://applejuiceyy.github.io/figs/latest/search/?q={{{s}}}',
+        c: 'Tech',
+        sc: 'Games (Minecraft)',
+    },
     meny: {
         s: 'Meny',
         d: 'meny.no',
@@ -114102,6 +114134,14 @@ export const bangs: Record<string, any> = {
         u: 'https://perplexity.ai/?q={{{s}}}',
         c: 'Online Services',
         sc: 'Tools',
+    },
+    plex: {
+        s: 'Plex',
+        d: 'app.plex.tv',
+        t: 'plex',
+        u: 'https://app.plex.tv/desktop/#!/search?pivot=top&query={{{s}}}',
+        c: 'Multimedia',
+        sc: 'Video',
     },
     phind: {
         s: 'Phind',
