@@ -157,6 +157,7 @@ export const actions: Actions = {
             'bangs.updated_at',
             'bangs.last_read_at',
             'bangs.usage_count',
+            'bangs.hidden',
         );
 
         if (highlight && search) {
@@ -325,7 +326,7 @@ export const bookmarks: Bookmarks = {
         highlight = false,
         excludeHidden = false,
     }: BookmarksQueryParams) => {
-        const query = db.select('id', 'user_id', 'pinned', 'created_at', 'updated_at');
+        const query = db.select('id', 'user_id', 'pinned', 'created_at', 'updated_at', 'hidden');
 
         if (highlight && search) {
             query
@@ -439,7 +440,7 @@ export const notes: Notes = {
         highlight = false,
         excludeHidden = false,
     }: NotesQueryParams) => {
-        const query = db.select('id', 'user_id', 'pinned', 'created_at', 'updated_at');
+        const query = db.select('id', 'user_id', 'pinned', 'created_at', 'updated_at', 'hidden');
 
         if (highlight && search) {
             query
