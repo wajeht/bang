@@ -29,10 +29,13 @@ window.addEventListener('load', handleRowHighlight);
 
         <nav style="display: flex; gap: 10px;" aria-label="Action management controls">
             <% if (search) { %>
-                <button class="no-style-btn" type="button" onclick="location.href='/actions'">❌ Clear</button>
+                <button class="no-style-btn" type="button" onclick="location.href='/actions<%= showHidden ? '?hidden=true' : '' %>'">❌ Clear</button>
             <% } %>
 
             <form method="GET" action="/actions" style="display: flex; gap: 10px;" role="search">
+                <% if (showHidden) { %>
+                    <input type="hidden" name="hidden" value="true" />
+                <% } %>
                 <%- include('../_components/inputs/search.html', {
                     id: 'search',
                     name: 'search',
@@ -48,7 +51,7 @@ window.addEventListener('load', handleRowHighlight);
 
             <button type="button" aria-label="View bangs" onclick="location.href='/bangs'">❗️</button>
 
-            <% if (state.user.hidden_items_password) { %>
+            <% if (state.user.hidden_items_password && state.user.column_preferences?.actions?.hidden !== false) { %>
                 <%- include('../_components/hidden-password-modal.html', {
                     itemType: 'actions',
                     csrfToken,
@@ -63,7 +66,7 @@ window.addEventListener('load', handleRowHighlight);
                 }) %>
             <% } %>
 
-            <button type="button" aria-label="Create new action" onclick="location.href='/actions/create'">➕</button>
+            <button type="button" aria-label="Create new action" onclick="location.href='/actions/create<%= showHidden ? '?hidden=true' : '' %>'">➕</button>
 
         <%- include('../_components/column-settings.html') %>
         </nav>
@@ -172,7 +175,7 @@ window.addEventListener('load', handleRowHighlight);
                                 </a>
                             </th>
                         <% } %>
-                        <% if (state.user.column_preferences?.actions?.hidden !== false) { %>
+                        <% if (state.user.column_preferences?.actions?.hidden !== false && state.user.hidden_items_password) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
                                 <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=hidden&direction=<%= (sortKey === 'hidden' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
@@ -249,7 +252,7 @@ window.addEventListener('load', handleRowHighlight);
                                     </span>
                                 </td>
                             <% } %>
-                            <% if (state.user.column_preferences?.actions?.hidden !== false) { %>
+                            <% if (state.user.column_preferences?.actions?.hidden !== false && state.user.hidden_items_password) { %>
                                 <td style="padding: 10px;">
                                     <% if (data[i].hidden == 1) { %>
                                         ✅
@@ -263,14 +266,14 @@ window.addEventListener('load', handleRowHighlight);
                                     <summary aria-label="Actions for <%= utils.stripHtmlTags(data[i].name) %>">Actions</summary>
                                     <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
                                         <a
-                                            href="/actions/<%= data[i].id %>/tabs/create"
+                                            href="/actions/<%= data[i].id %>/tabs/create<%= showHidden ? '?hidden=true' : '' %>"
                                             style="display: inline-flex; align-items: center;"
                                             role="menuitem"
                                         >
                                             🔗 Tab
                                         </a>
                                         <a
-                                            href="/actions/<%= data[i].id %>/edit"
+                                            href="/actions/<%= data[i].id %>/edit<%= showHidden ? '?hidden=true' : '' %>"
                                             style="display: inline-flex; align-items: center;"
                                             role="menuitem"
                                         >
@@ -299,10 +302,10 @@ window.addEventListener('load', handleRowHighlight);
             <div style="text-align: center; padding: 20px;">
                 <% if (search) { %>
                     <p>🔍 No actions found matching "<%= search %>"</p>
-                    <p>Try a different search term or <a href="/actions">view all actions</a></p>
+                    <p>Try a different search term or <a href="/actions<%= showHidden ? '?hidden=true' : '' %>">view all actions</a></p>
                 <% } else { %>
                     <p>📭 You haven't created any actions yet.</p>
-                    <p>Use <code>!add [trigger] [url]</code> in the search box to create an action! or <a href="/actions/create">click here</a> to create an action!</p>
+                    <p>Use <code>!add [trigger] [url]</code> in the search box to create an action! or <a href="/actions/create<%= showHidden ? '?hidden=true' : '' %>">click here</a> to create an action!</p>
                 <% } %>
             </div>
         <% } %>
