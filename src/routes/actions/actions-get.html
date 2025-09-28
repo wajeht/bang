@@ -76,7 +76,7 @@ window.addEventListener('load', handleRowHighlight);
                     <tr>
                         <% if (state.user.column_preferences?.actions?.name !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
-                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=name&direction=<%= (sortKey === 'name' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=name&direction=<%= (sortKey === 'name' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
                                    aria-label="Sort by name <%= (sortKey === 'name' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                     📝 Name
@@ -90,7 +90,7 @@ window.addEventListener('load', handleRowHighlight);
                         <% } %>
                         <% if (state.user.column_preferences?.actions?.trigger !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
-                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=trigger&direction=<%= (sortKey === 'trigger' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=trigger&direction=<%= (sortKey === 'trigger' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
                                    aria-label="Sort by trigger <%= (sortKey === 'trigger' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                     🔥 Trigger
@@ -104,7 +104,7 @@ window.addEventListener('load', handleRowHighlight);
                         <% } %>
                         <% if (state.user.column_preferences?.actions?.url !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
-                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=url&direction=<%= (sortKey === 'url' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=url&direction=<%= (sortKey === 'url' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
                                    aria-label="Sort by URL <%= (sortKey === 'url' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                     🌐 URL
@@ -118,7 +118,7 @@ window.addEventListener('load', handleRowHighlight);
                         <% } %>
                         <% if (state.user.column_preferences?.actions?.action_type !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
-                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=action_type&direction=<%= (sortKey === 'action_type' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=action_type&direction=<%= (sortKey === 'action_type' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
                                    aria-label="Sort by type <%= (sortKey === 'action_type' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                     🏷️ Type
@@ -132,7 +132,7 @@ window.addEventListener('load', handleRowHighlight);
                         <% } %>
                         <% if (state.user.column_preferences?.actions?.created_at !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
-                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=created_at&direction=<%= (sortKey === 'created_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
                                    aria-label="Sort by created date <%= (sortKey === 'created_at' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                     📅 Created
@@ -146,7 +146,7 @@ window.addEventListener('load', handleRowHighlight);
                         <% } %>
                         <% if (state.user.column_preferences?.actions?.last_read_at !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
-                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=last_read_at&direction=<%= (sortKey === 'last_read_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=last_read_at&direction=<%= (sortKey === 'last_read_at' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
                                    aria-label="Sort by last read date <%= (sortKey === 'last_read_at' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                     🔄 Last Read
@@ -160,11 +160,25 @@ window.addEventListener('load', handleRowHighlight);
                         <% } %>
                         <% if (state.user.column_preferences?.actions?.usage_count !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
-                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=usage_count&direction=<%= (sortKey === 'usage_count' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=usage_count&direction=<%= (sortKey === 'usage_count' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
                                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
                                    aria-label="Sort by usage count <%= (sortKey === 'usage_count' && direction === 'asc') ? 'descending' : 'ascending' %>">
                                     📊 Usage
                                     <% if (sortKey === 'usage_count') { %>
+                                        <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
+                                    <% } else { %>
+                                        <span class="sort-icon" aria-label="Not sorted">⏺️</span>
+                                    <% } %>
+                                </a>
+                            </th>
+                        <% } %>
+                        <% if (state.user.column_preferences?.actions?.hidden !== false) { %>
+                            <th scope="col" style="text-align: left; padding: 10px;">
+                                <a href="/actions?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=hidden&direction=<%= (sortKey === 'hidden' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %><%= showHidden ? '&hidden=true' : '' %>"
+                                   style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;"
+                                   aria-label="Sort by hidden status <%= (sortKey === 'hidden' && direction === 'asc') ? 'descending' : 'ascending' %>">
+                                    🫣 Hidden
+                                    <% if (sortKey === 'hidden') { %>
                                         <span aria-label="<%= direction === 'asc' ? 'Sorted ascending' : 'Sorted descending' %>"><%= direction === 'asc' ? '🔼' : '🔽' %></span>
                                     <% } else { %>
                                         <span class="sort-icon" aria-label="Not sorted">⏺️</span>
@@ -233,6 +247,15 @@ window.addEventListener('load', handleRowHighlight);
                                             <span style="font-size: 0.8em; opacity: 0.6;"></span>
                                         <% } %>
                                     </span>
+                                </td>
+                            <% } %>
+                            <% if (state.user.column_preferences?.actions?.hidden !== false) { %>
+                                <td style="padding: 10px;">
+                                    <% if (data[i].hidden == 1) { %>
+                                        ✅
+                                    <% } else { %>
+                                       -
+                                    <% } %>
                                 </td>
                             <% } %>
                             <td style="padding: 10px;">
