@@ -221,6 +221,7 @@ export const actions: Actions = {
                 'action_type',
                 'last_read_at',
                 'usage_count',
+                'hidden',
             ].includes(sortKey)
         ) {
             query.orderBy(`bangs.${sortKey}`, direction);
@@ -368,7 +369,7 @@ export const bookmarks: Bookmarks = {
         // Always sort by pinned first (pinned bookmarks at top), then by the requested sort
         query.orderBy('pinned', 'desc');
 
-        if (['title', 'url', 'created_at', 'pinned'].includes(sortKey)) {
+        if (['title', 'url', 'created_at', 'pinned', 'hidden'].includes(sortKey)) {
             query.orderBy(sortKey, direction);
         } else {
             query.orderBy('created_at', 'desc');
@@ -482,7 +483,7 @@ export const notes: Notes = {
         // Always sort by pinned first (pinned notes at top), then by the requested sort
         query.orderBy('pinned', 'desc');
 
-        if (['title', 'content', 'created_at', 'pinned'].includes(sortKey)) {
+        if (['title', 'content', 'created_at', 'pinned', 'hidden'].includes(sortKey)) {
             query.orderBy(sortKey, direction);
         } else {
             query.orderBy('created_at', 'desc');
