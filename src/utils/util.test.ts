@@ -7,6 +7,7 @@ import {
     isValidUrl,
     isUrlLike,
     expectJson,
+    escapeHtml,
     extractUser,
     isApiRequest,
     fetchPageTitle,
@@ -184,6 +185,52 @@ describe.concurrent('addHttps', () => {
     it('should handle URLs with leading whitespace', () => {
         const url = '   http://example.com';
         expect(addHttps(url)).toBe('https://example.com');
+    });
+});
+
+describe.concurrent('escapeHtml', () => {
+    it('should escape ampersands', () => {
+        expect(escapeHtml('Tom & Jerry')).toBe('Tom &amp; Jerry');
+    });
+
+    it('should escape less than signs', () => {
+        expect(escapeHtml('5 < 10')).toBe('5 &lt; 10');
+    });
+
+    it('should escape greater than signs', () => {
+        expect(escapeHtml('10 > 5')).toBe('10 &gt; 5');
+    });
+
+    it('should escape double quotes', () => {
+        expect(escapeHtml('He said "Hello"')).toBe('He said &quot;Hello&quot;');
+    });
+
+    it('should escape single quotes', () => {
+        expect(escapeHtml("It's a test")).toBe('It&#39;s a test');
+    });
+
+    it('should escape all HTML special characters', () => {
+        expect(escapeHtml('<script>alert("XSS & hack\'s");</script>')).toBe(
+            '&lt;script&gt;alert(&quot;XSS &amp; hack&#39;s&quot;);&lt;/script&gt;',
+        );
+    });
+
+    it('should handle empty string', () => {
+        expect(escapeHtml('')).toBe('');
+    });
+
+    it('should handle string with no special characters', () => {
+        expect(escapeHtml('Hello World')).toBe('Hello World');
+    });
+
+    it('should handle string with only special characters', () => {
+        expect(escapeHtml('&<>"\'')).toBe('&amp;&lt;&gt;&quot;&#39;');
+    });
+
+    it('should handle mixed content with URLs', () => {
+        expect(escapeHtml('Visit <a href="https://example.com">Example & Co.</a>')).toBe(
+            'Visit &lt;a href=&quot;https://example.com&quot;&gt;Example &amp; Co.&lt;/a&gt;',
+        );
     });
 });
 

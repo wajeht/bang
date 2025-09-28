@@ -2,6 +2,7 @@ import {
     addHttps,
     isValidUrl,
     isUrlLike,
+    escapeHtml,
     insertBookmark,
     insertPageTitle,
     normalizeBangTrigger,
@@ -134,18 +135,6 @@ export const reminderTimingConfig = {
         return this.getAllOptions().map((option) => option.value);
     },
 } as const;
-
-/**
- * Escapes HTML characters to prevent XSS attacks
- */
-function escapeHtml(text: string): string {
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
 
 export function trackAnonymousUserSearch(req: Request) {
     req.session.searchCount = req.session.searchCount || 0;
