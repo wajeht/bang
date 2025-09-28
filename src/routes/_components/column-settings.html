@@ -6,6 +6,9 @@
 
   <form action="/settings/display" method="POST" style="width: 100%; display: flex; flex-direction: column; gap: 20px; margin-top: 20px;">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+    <% if (typeof showHidden !== 'undefined' && showHidden) { %>
+      <input type="hidden" name="hidden" value="true" />
+    <% } %>
 
     <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between;">
       <!-- Actions -->
@@ -78,6 +81,7 @@
             >
             📊 Usage Count
           </label>
+          <% if (state.user.hidden_items_password) { %>
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
@@ -86,6 +90,7 @@
             >
             🫣 Hidden
           </label>
+          <% } %>
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
@@ -143,6 +148,7 @@
             >
             📌 Pinned
           </label>
+          <% if (state.user.hidden_items_password) { %>
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
@@ -151,6 +157,7 @@
             >
             🫣 Hidden
           </label>
+          <% } %>
           <label style="display: flex; align-items: center; gap: 10px;">
             <input
               type="checkbox"
@@ -209,6 +216,7 @@
               >
               📌 Pinned
             </label>
+            <% if (state.user.hidden_items_password) { %>
             <label style="display: flex; align-items: center; gap: 10px;">
               <input
                 type="checkbox"
@@ -217,6 +225,7 @@
               >
               🫣 Hidden
             </label>
+            <% } %>
             <label style="display: flex; align-items: center; gap: 10px;">
               <input
                 type="checkbox"
