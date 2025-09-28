@@ -195,6 +195,7 @@ export function createSettingsRouter(db: Knex) {
             column_preferences.bookmarks.created_at =
                 column_preferences.bookmarks.created_at === 'on';
             column_preferences.bookmarks.pinned = column_preferences.bookmarks.pinned === 'on';
+            column_preferences.bookmarks.hidden = column_preferences.bookmarks.hidden === 'on';
 
             column_preferences.bookmarks.default_per_page = parseInt(
                 column_preferences.bookmarks.default_per_page,
@@ -214,7 +215,8 @@ export function createSettingsRouter(db: Knex) {
                 !column_preferences.bookmarks.title &&
                 !column_preferences.bookmarks.url &&
                 !column_preferences.bookmarks.created_at &&
-                !column_preferences.bookmarks.pinned
+                !column_preferences.bookmarks.pinned &&
+                !column_preferences.bookmarks.hidden
             ) {
                 throw new ValidationError({
                     bookmarks: 'At least one bookmark column must be enabled',
@@ -236,6 +238,7 @@ export function createSettingsRouter(db: Knex) {
                 column_preferences.actions.last_read_at === 'on';
             column_preferences.actions.usage_count =
                 column_preferences.actions.usage_count === 'on';
+            column_preferences.actions.hidden = column_preferences.actions.hidden === 'on';
 
             column_preferences.actions.default_per_page = parseInt(
                 column_preferences.actions.default_per_page,
@@ -256,6 +259,7 @@ export function createSettingsRouter(db: Knex) {
                 !column_preferences.actions.action_type &&
                 !column_preferences.actions.last_read_at &&
                 !column_preferences.actions.usage_count &&
+                !column_preferences.actions.hidden &&
                 !column_preferences.actions.created_at
             ) {
                 throw new ValidationError({
@@ -272,6 +276,7 @@ export function createSettingsRouter(db: Knex) {
             column_preferences.notes.content = column_preferences.notes.content === 'on';
             column_preferences.notes.created_at = column_preferences.notes.created_at === 'on';
             column_preferences.notes.pinned = column_preferences.notes.pinned === 'on';
+            column_preferences.notes.hidden = column_preferences.notes.hidden === 'on';
 
             // Handle view_type preference
             if (
@@ -284,7 +289,8 @@ export function createSettingsRouter(db: Knex) {
             if (
                 !column_preferences.notes.title &&
                 !column_preferences.notes.content &&
-                !column_preferences.notes.pinned
+                !column_preferences.notes.pinned &&
+                !column_preferences.notes.hidden
             ) {
                 throw new ValidationError({ notes: 'At least one note column must be enabled' });
             }
