@@ -457,7 +457,7 @@ export function createSettingsRouter(db: Knex) {
             }
 
             const user = req.user as User;
-            const { path } = req.body;
+            const { path, hidden } = req.body;
 
             // Merge submitted preferences with existing user preferences to preserve unmodified sections
             const updatedPreferences = { ...user.column_preferences } as any;
@@ -486,7 +486,8 @@ export function createSettingsRouter(db: Knex) {
 
             req.flash('success', 'Column settings updated');
 
-            return res.redirect(path);
+            const redirectUrl = hidden === 'true' ? `${path}?hidden=true` : path;
+            return res.redirect(redirectUrl);
         },
     );
 
