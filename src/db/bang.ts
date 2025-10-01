@@ -12861,7 +12861,7 @@ export const bangs: Record<string, any> = {
         s: 'Bayerische Staatsbibliothek',
         d: 'opacplus.bsb-muenchen.de',
         t: 'bsb',
-        u: 'https://opacplus.bsb-muenchen.de/InfoGuideClient/start.do?Login=opacext&BaseURL=https://opacplus.bsb-muenchen.de/InfoGuideClient/start.do?Login=opacext&Query=-1="{{{s}}}"',
+        u: 'https://opacplus.bsb-muenchen.de/discovery/search?query=any,contains,{{{s}}}&tab=Everything&search_scope=MyInst_and_CI&vid=49BVB_BSB:VU1&offset=0',
         c: 'Research',
         sc: 'Academic',
     },
