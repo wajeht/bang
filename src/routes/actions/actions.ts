@@ -438,7 +438,10 @@ export function createActionsRouter(db: Knex, actions: Actions) {
             return;
         }
 
-        req.flash('success', `${deletedCount} action${deletedCount !== 1 ? 's' : ''} deleted successfully`);
+        req.flash(
+            'success',
+            `${deletedCount} action${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+        );
         return res.redirect('/actions');
     }
 

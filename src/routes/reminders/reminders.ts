@@ -527,7 +527,10 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
             return;
         }
 
-        req.flash('success', `${deletedCount} reminder${deletedCount !== 1 ? 's' : ''} deleted successfully`);
+        req.flash(
+            'success',
+            `${deletedCount} reminder${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+        );
         return res.redirect('/reminders');
     }
 
