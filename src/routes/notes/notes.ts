@@ -84,7 +84,7 @@ export function createNotesRouter(notes: Notes) {
         });
     }
 
-    router.get('/notes/create', authenticationMiddleware, async (req: Request, res: Response) => {
+    router.get('/notes/create', authenticationMiddleware, async (_req: Request, res: Response) => {
         return res.render('notes/notes-create.html', {
             title: 'Notes / Create',
             path: '/notes/create',
