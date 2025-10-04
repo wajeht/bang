@@ -46,6 +46,8 @@ window.addEventListener('load', handleRowHighlight);
                 <button type="submit">🔍</button>
             </form>
 
+            <button type="button" id="delete-selected-btn" style="display: none;" aria-label="Delete selected reminders">🗑️</button>
+
             <button type="button" aria-label="Create new reminder" onclick="location.href='/reminders/create'">➕</button>
 
             <button type="button" aria-label="Recalculate recurring reminders" title="Recalculate all recurring reminders from today" onclick="showRecalculateModal()">🔄</button>
@@ -59,6 +61,9 @@ window.addEventListener('load', handleRowHighlight);
             <table style="width: 100%; border-collapse: collapse;">
                 <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
                     <tr>
+                        <th scope="col" style="text-align: left; padding: 10px; width: 40px;">
+                            <input type="checkbox" id="select-all-checkbox" aria-label="Select all reminders" />
+                        </th>
                         <% if (state.user.column_preferences?.reminders?.title !== false) { %>
                             <th scope="col" style="text-align: left; padding: 10px;">
                                 <a href="/reminders?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=title&direction=<%= (sortKey === 'title' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
@@ -135,6 +140,9 @@ window.addEventListener('load', handleRowHighlight);
                 <tbody>
                     <% for (let i = 0; i < reminders.length; i++) { %>
                         <tr data-id="<%- reminders[i].id %>">
+                            <td style="padding: 10px;">
+                                <input type="checkbox" name="id[]" value="<%- reminders[i].id %>" class="reminder-checkbox" data-title="<%- reminders[i].title %>" aria-label="Select <%= utils.stripHtmlTags(reminders[i].title) %>" />
+                            </td>
                             <% if (state.user.column_preferences?.reminders?.title !== false) { %>
                                 <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                     <% if (reminders[i].title && utils.isUrlLike(reminders[i].title)) { %>
@@ -292,21 +300,54 @@ window.addEventListener('load', handleRowHighlight);
         </form>
     </dialog>
 
+    <dialog id="delete-selected-modal" aria-labelledby="delete-selected-title">
+        <h2 id="delete-selected-title">Confirm Bulk Delete</h2>
+        <p>Are you sure you want to delete these reminders?</p>
+        <div id="selected-reminders-list" style="margin: 15px 0; max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px;"></div>
+        <form id="delete-selected-form" method="POST" action="/reminders/delete-bulk">
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+            <div id="bulk-delete-checkboxes"></div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" onclick="document.getElementById('delete-selected-modal').close()">❌ Cancel</button>
+                <button type="submit">🗑️ Delete All</button>
+            </div>
+        </form>
+    </dialog>
+
+    <style>
+        /* Show delete button when checkboxes are checked */
+        section:has(.reminder-checkbox:checked) #delete-selected-btn {
+            display: block !important;
+        }
+    </style>
+
     <script>
         function showDeleteReminderModal(id, title) {
             const modal = document.getElementById('delete-reminder-modal');
-            const nameElement = document.getElementById('delete-reminder-name');
-            const form = document.getElementById('delete-reminder-form');
-
-            nameElement.textContent = title;
-            form.action = `/reminders/${id}/delete`;
-
+            document.getElementById('delete-reminder-name').textContent = title;
+            document.getElementById('delete-reminder-form').action = `/reminders/${id}/delete`;
             modal.showModal();
         }
 
         function showRecalculateModal() {
-            const modal = document.getElementById('recalculate-modal');
-            modal.showModal();
+            document.getElementById('recalculate-modal').showModal();
         }
+
+        document.getElementById('select-all-checkbox')?.addEventListener('change', function() {
+            document.querySelectorAll('.reminder-checkbox').forEach(cb => cb.checked = this.checked);
+        });
+
+        document.getElementById('delete-selected-btn')?.addEventListener('click', function() {
+            const checked = [...document.querySelectorAll('.reminder-checkbox:checked')];
+            if (!checked.length) return;
+
+            document.getElementById('selected-reminders-list').innerHTML =
+                checked.map(cb => `<span>- ${cb.dataset.title}</span>`).join('');
+
+            document.getElementById('bulk-delete-checkboxes').innerHTML =
+                checked.map(cb => `<input type="hidden" name="id[]" value="${cb.value}">`).join('');
+
+            document.getElementById('delete-selected-modal').showModal();
+        });
     </script>
 </section>
