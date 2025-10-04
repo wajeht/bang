@@ -274,4 +274,168 @@ describe('Actions API', () => {
             });
         });
     });
+
+    describe('POST /actions/delete-bulk', () => {
+        it('should delete multiple actions', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const actions = await db('bangs')
+                .insert([
+                    {
+                        user_id: user.id,
+                        name: 'Action 1',
+                        trigger: '!one',
+                        url: 'https://one.com',
+                        action_type: 'redirect',
+                    },
+                    {
+                        user_id: user.id,
+                        name: 'Action 2',
+                        trigger: '!two',
+                        url: 'https://two.com',
+                        action_type: 'search',
+                    },
+                    {
+                        user_id: user.id,
+                        name: 'Action 3',
+                        trigger: '!three',
+                        url: 'https://three.com',
+                        action_type: 'redirect',
+                    },
+                ])
+                .returning('*');
+
+            await agent
+                .post('/actions/delete-bulk')
+                .type('form')
+                .send({ id: [actions[0].id, actions[1].id] })
+                .expect(302);
+
+            const remaining = await db('bangs').where({ user_id: user.id });
+            expect(remaining).toHaveLength(1);
+            expect(remaining[0].name).toBe('Action 3');
+        });
+
+        it('should only delete actions owned by the user', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const [otherUser] = await db('users')
+                .insert({
+                    username: 'otheruser',
+                    email: 'other@example.com',
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                })
+                .returning('*');
+
+            const [userAction] = await db('bangs')
+                .insert({
+                    user_id: user.id,
+                    name: 'My Action',
+                    trigger: '!mine',
+                    url: 'https://mine.com',
+                    action_type: 'redirect',
+                })
+                .returning('*');
+
+            const [otherAction] = await db('bangs')
+                .insert({
+                    user_id: otherUser.id,
+                    name: 'Other Action',
+                    trigger: '!other',
+                    url: 'https://other.com',
+                    action_type: 'redirect',
+                })
+                .returning('*');
+
+            await agent
+                .post('/actions/delete-bulk')
+                .type('form')
+                .send({ id: [userAction.id, otherAction.id] })
+                .expect(302);
+
+            const userActions = await db('bangs').where({ user_id: user.id });
+            const otherActions = await db('bangs').where({ user_id: otherUser.id });
+
+            expect(userActions).toHaveLength(0);
+            expect(otherActions).toHaveLength(1);
+        });
+
+        it('should require id array', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            await agent.post('/actions/delete-bulk').type('form').send({}).expect(302);
+        });
+    });
+
+    describe('POST /api/actions/delete-bulk', () => {
+        it('should delete multiple actions via API', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            const actions = await db('bangs')
+                .insert([
+                    {
+                        user_id: user.id,
+                        name: 'Action 1',
+                        trigger: '!one',
+                        url: 'https://one.com',
+                        action_type: 'redirect',
+                    },
+                    {
+                        user_id: user.id,
+                        name: 'Action 2',
+                        trigger: '!two',
+                        url: 'https://two.com',
+                        action_type: 'search',
+                    },
+                    {
+                        user_id: user.id,
+                        name: 'Action 3',
+                        trigger: '!three',
+                        url: 'https://three.com',
+                        action_type: 'redirect',
+                    },
+                ])
+                .returning('*');
+
+            const response = await agent
+                .post('/api/actions/delete-bulk')
+                .send({ id: [actions[0].id, actions[1].id] })
+                .expect(200);
+
+            expect(response.body.message).toContain('2 actions deleted successfully');
+            expect(response.body.data.deletedCount).toBe(2);
+
+            const remaining = await db('bangs').where({ user_id: user.id });
+            expect(remaining).toHaveLength(1);
+            expect(remaining[0].name).toBe('Action 3');
+        });
+
+        it('should return correct count when some IDs are invalid', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            const [action] = await db('bangs')
+                .insert({
+                    user_id: user.id,
+                    name: 'Action 1',
+                    trigger: '!one',
+                    url: 'https://one.com',
+                    action_type: 'redirect',
+                })
+                .returning('*');
+
+            const response = await agent
+                .post('/api/actions/delete-bulk')
+                .send({ id: [action.id, 99999] })
+                .expect(200);
+
+            expect(response.body.data.deletedCount).toBe(1);
+        });
+
+        it('should require id to be an array', async () => {
+            const { agent } = await authenticateApiAgent(app);
+
+            await agent.post('/api/actions/delete-bulk').send({ id: 'not-an-array' }).expect(422);
+        });
+    });
 });
