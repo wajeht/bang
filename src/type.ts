@@ -299,6 +299,7 @@ export interface Bookmarks {
     read: (id: number, userId: number) => Promise<Bookmark>;
     update: (id: number, userId: number, updates: Partial<Bookmark>) => Promise<Bookmark>;
     delete: (id: number, userId: number) => Promise<boolean>;
+    bulkDelete: (ids: number[], userId: number) => Promise<number>;
 }
 
 export interface Notes {
