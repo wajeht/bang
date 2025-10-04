@@ -397,6 +397,53 @@ export function createActionsRouter(db: Knex, actions: Actions) {
 
     /**
      *
+     * POST /actions/delete-bulk
+     *
+     * @tags Actions
+     * @summary delete multiple actions
+     *
+     * @security BearerAuth
+     *
+     * @param {array} id.form.required - array of action ids
+     *
+     * @return {object} 200 - success response - application/json
+     * @return {object} 400 - Bad request response - application/json
+     *
+     */
+    router.post('/actions/delete-bulk', authenticationMiddleware, bulkDeleteActionHandler);
+    router.post('/api/actions/delete-bulk', authenticationMiddleware, bulkDeleteActionHandler);
+    async function bulkDeleteActionHandler(req: Request, res: Response) {
+        const { id } = req.body;
+
+        if (!id || !Array.isArray(id)) {
+            throw new ValidationError({ id: 'IDs array is required' });
+        }
+
+        const actionIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
+
+        if (actionIds.length === 0) {
+            throw new ValidationError({ id: 'No valid action IDs provided' });
+        }
+
+        const user = req.user as User;
+        const deletedCount = await actions.bulkDelete(actionIds, user.id);
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: `${deletedCount} action${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+                data: {
+                    deletedCount,
+                },
+            });
+            return;
+        }
+
+        req.flash('success', `${deletedCount} action${deletedCount !== 1 ? 's' : ''} deleted successfully`);
+        return res.redirect('/actions');
+    }
+
+    /**
+     *
      * GET /api/actions/{id}
      *
      * @tags Actions
