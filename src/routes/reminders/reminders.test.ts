@@ -484,4 +484,167 @@ describe('Reminders Routes', () => {
             expect(weeklyReminder.due_date).toBeDefined();
         });
     });
+
+    describe('POST /reminders/delete-bulk', () => {
+        it('should delete multiple reminders', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const reminders = await db('reminders')
+                .insert([
+                    {
+                        user_id: user.id,
+                        title: 'Reminder 1',
+                        content: 'Content 1',
+                        reminder_type: 'once',
+                        due_date: dayjs().add(1, 'day').toISOString(),
+                    },
+                    {
+                        user_id: user.id,
+                        title: 'Reminder 2',
+                        content: 'Content 2',
+                        reminder_type: 'recurring',
+                        frequency: 'daily',
+                        due_date: dayjs().add(2, 'days').toISOString(),
+                    },
+                    {
+                        user_id: user.id,
+                        title: 'Reminder 3',
+                        content: 'Content 3',
+                        reminder_type: 'once',
+                        due_date: dayjs().add(3, 'days').toISOString(),
+                    },
+                ])
+                .returning('*');
+
+            await agent
+                .post('/reminders/delete-bulk')
+                .type('form')
+                .send({ id: [reminders[0].id, reminders[1].id] })
+                .expect(302);
+
+            const remaining = await db('reminders').where({ user_id: user.id });
+            expect(remaining).toHaveLength(1);
+            expect(remaining[0].title).toBe('Reminder 3');
+        });
+
+        it('should only delete reminders owned by the user', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const [otherUser] = await db('users')
+                .insert({
+                    username: 'otheruser',
+                    email: 'other@example.com',
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                })
+                .returning('*');
+
+            const [userReminder] = await db('reminders')
+                .insert({
+                    user_id: user.id,
+                    title: 'My Reminder',
+                    reminder_type: 'once',
+                    due_date: dayjs().add(1, 'day').toISOString(),
+                })
+                .returning('*');
+
+            const [otherReminder] = await db('reminders')
+                .insert({
+                    user_id: otherUser.id,
+                    title: 'Other Reminder',
+                    reminder_type: 'once',
+                    due_date: dayjs().add(1, 'day').toISOString(),
+                })
+                .returning('*');
+
+            await agent
+                .post('/reminders/delete-bulk')
+                .type('form')
+                .send({ id: [userReminder.id, otherReminder.id] })
+                .expect(302);
+
+            const userReminders = await db('reminders').where({ user_id: user.id });
+            const otherReminders = await db('reminders').where({ user_id: otherUser.id });
+
+            expect(userReminders).toHaveLength(0);
+            expect(otherReminders).toHaveLength(1);
+        });
+
+        it('should require id array', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            await agent.post('/reminders/delete-bulk').type('form').send({}).expect(302);
+        });
+    });
+
+    describe('POST /api/reminders/delete-bulk', () => {
+        it('should delete multiple reminders via API', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            const reminders = await db('reminders')
+                .insert([
+                    {
+                        user_id: user.id,
+                        title: 'Reminder 1',
+                        content: 'Content 1',
+                        reminder_type: 'once',
+                        due_date: dayjs().add(1, 'day').toISOString(),
+                    },
+                    {
+                        user_id: user.id,
+                        title: 'Reminder 2',
+                        content: 'Content 2',
+                        reminder_type: 'recurring',
+                        frequency: 'daily',
+                        due_date: dayjs().add(2, 'days').toISOString(),
+                    },
+                    {
+                        user_id: user.id,
+                        title: 'Reminder 3',
+                        content: 'Content 3',
+                        reminder_type: 'once',
+                        due_date: dayjs().add(3, 'days').toISOString(),
+                    },
+                ])
+                .returning('*');
+
+            const response = await agent
+                .post('/api/reminders/delete-bulk')
+                .send({ id: [reminders[0].id, reminders[1].id] })
+                .expect(200);
+
+            expect(response.body.message).toContain('2 reminders deleted successfully');
+            expect(response.body.data.deletedCount).toBe(2);
+
+            const remaining = await db('reminders').where({ user_id: user.id });
+            expect(remaining).toHaveLength(1);
+            expect(remaining[0].title).toBe('Reminder 3');
+        });
+
+        it('should return correct count when some IDs are invalid', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            const [reminder] = await db('reminders')
+                .insert({
+                    user_id: user.id,
+                    title: 'Reminder 1',
+                    reminder_type: 'once',
+                    due_date: dayjs().add(1, 'day').toISOString(),
+                })
+                .returning('*');
+
+            const response = await agent
+                .post('/api/reminders/delete-bulk')
+                .send({ id: [reminder.id, 99999] })
+                .expect(200);
+
+            expect(response.body.data.deletedCount).toBe(1);
+        });
+
+        it('should require id to be an array', async () => {
+            const { agent } = await authenticateApiAgent(app);
+
+            await agent.post('/api/reminders/delete-bulk').send({ id: 'not-an-array' }).expect(422);
+        });
+    });
 });
