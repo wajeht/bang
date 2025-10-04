@@ -484,5 +484,52 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
         return res.redirect('/reminders');
     }
 
+    /**
+     *
+     * POST /reminders/delete-bulk
+     *
+     * @tags Reminders
+     * @summary delete multiple reminders
+     *
+     * @security BearerAuth
+     *
+     * @param {array} id.form.required - array of reminder ids
+     *
+     * @return {object} 200 - success response - application/json
+     * @return {object} 400 - Bad request response - application/json
+     *
+     */
+    router.post('/reminders/delete-bulk', authenticationMiddleware, bulkDeleteReminderHandler);
+    router.post('/api/reminders/delete-bulk', authenticationMiddleware, bulkDeleteReminderHandler);
+    async function bulkDeleteReminderHandler(req: Request, res: Response) {
+        const { id } = req.body;
+
+        if (!id || !Array.isArray(id)) {
+            throw new ValidationError({ id: 'IDs array is required' });
+        }
+
+        const reminderIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
+
+        if (reminderIds.length === 0) {
+            throw new ValidationError({ id: 'No valid reminder IDs provided' });
+        }
+
+        const user = req.user as User;
+        const deletedCount = await reminders.bulkDelete(reminderIds, user.id);
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: `${deletedCount} reminder${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+                data: {
+                    deletedCount,
+                },
+            });
+            return;
+        }
+
+        req.flash('success', `${deletedCount} reminder${deletedCount !== 1 ? 's' : ''} deleted successfully`);
+        return res.redirect('/reminders');
+    }
+
     return router;
 }
