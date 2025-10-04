@@ -435,7 +435,9 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
         if (isApiRequest(req)) {
             res.status(200).json({
                 message: `${deletedCount} bookmark${deletedCount !== 1 ? 's' : ''} deleted successfully`,
-                deletedCount,
+                data: {
+                    deletedCount,
+                },
             });
             return;
         }
