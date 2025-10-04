@@ -314,6 +314,17 @@ export const actions: Actions = {
         const rowsAffected = await db('bangs').where({ id, user_id: userId }).delete();
         return rowsAffected > 0;
     },
+
+    bulkDelete: async (ids: number[], userId: number) => {
+        return db.transaction(async (trx) => {
+            const rowsAffected = await trx('bangs')
+                .whereIn('id', ids)
+                .where('user_id', userId)
+                .delete();
+
+            return rowsAffected;
+        });
+    },
 };
 
 export const bookmarks: Bookmarks = {
@@ -692,6 +703,17 @@ export const reminders: Reminders = {
     delete: async (id: number, userId: number) => {
         const rowsAffected = await db('reminders').where({ id, user_id: userId }).delete();
         return rowsAffected > 0;
+    },
+
+    bulkDelete: async (ids: number[], userId: number) => {
+        return db.transaction(async (trx) => {
+            const rowsAffected = await trx('reminders')
+                .whereIn('id', ids)
+                .where('user_id', userId)
+                .delete();
+
+            return rowsAffected;
+        });
     },
 };
 
