@@ -258,4 +258,118 @@ describe('Bookmarks Routes', () => {
             });
         });
     });
+
+    describe('POST /bookmarks/delete-bulk', () => {
+        it('should delete multiple bookmarks', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const bookmarks = await db('bookmarks')
+                .insert([
+                    { user_id: user.id, title: 'Bookmark 1', url: 'https://one.com' },
+                    { user_id: user.id, title: 'Bookmark 2', url: 'https://two.com' },
+                    { user_id: user.id, title: 'Bookmark 3', url: 'https://three.com' },
+                ])
+                .returning('*');
+
+            await agent
+                .post('/bookmarks/delete-bulk')
+                .type('form')
+                .send({ id: [bookmarks[0].id, bookmarks[1].id] })
+                .expect(302);
+
+            const remaining = await db('bookmarks').where({ user_id: user.id });
+            expect(remaining).toHaveLength(1);
+            expect(remaining[0].title).toBe('Bookmark 3');
+        });
+
+        it('should only delete bookmarks owned by the user', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const [otherUser] = await db('users')
+                .insert({
+                    username: 'otheruser',
+                    email: 'other@example.com',
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                })
+                .returning('*');
+
+            const [userBookmark] = await db('bookmarks')
+                .insert({ user_id: user.id, title: 'My Bookmark', url: 'https://mine.com' })
+                .returning('*');
+
+            const [otherBookmark] = await db('bookmarks')
+                .insert({
+                    user_id: otherUser.id,
+                    title: 'Other Bookmark',
+                    url: 'https://other.com',
+                })
+                .returning('*');
+
+            await agent
+                .post('/bookmarks/delete-bulk')
+                .type('form')
+                .send({ id: [userBookmark.id, otherBookmark.id] })
+                .expect(302);
+
+            const userBookmarks = await db('bookmarks').where({ user_id: user.id });
+            const otherBookmarks = await db('bookmarks').where({ user_id: otherUser.id });
+
+            expect(userBookmarks).toHaveLength(0);
+            expect(otherBookmarks).toHaveLength(1);
+        });
+
+        it('should require id array', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            await agent.post('/bookmarks/delete-bulk').type('form').send({}).expect(302);
+        });
+    });
+
+    describe('POST /api/bookmarks/delete-bulk', () => {
+        it('should delete multiple bookmarks via API', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            const bookmarks = await db('bookmarks')
+                .insert([
+                    { user_id: user.id, title: 'Bookmark 1', url: 'https://one.com' },
+                    { user_id: user.id, title: 'Bookmark 2', url: 'https://two.com' },
+                    { user_id: user.id, title: 'Bookmark 3', url: 'https://three.com' },
+                ])
+                .returning('*');
+
+            const response = await agent
+                .post('/api/bookmarks/delete-bulk')
+                .send({ id: [bookmarks[0].id, bookmarks[1].id] })
+                .expect(200);
+
+            expect(response.body.message).toContain('2 bookmarks deleted successfully');
+            expect(response.body.data.deletedCount).toBe(2);
+
+            const remaining = await db('bookmarks').where({ user_id: user.id });
+            expect(remaining).toHaveLength(1);
+            expect(remaining[0].title).toBe('Bookmark 3');
+        });
+
+        it('should return correct count when some IDs are invalid', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            const [bookmark] = await db('bookmarks')
+                .insert({ user_id: user.id, title: 'Bookmark 1', url: 'https://one.com' })
+                .returning('*');
+
+            const response = await agent
+                .post('/api/bookmarks/delete-bulk')
+                .send({ id: [bookmark.id, 99999] })
+                .expect(200);
+
+            expect(response.body.data.deletedCount).toBe(1);
+        });
+
+        it('should require id to be an array', async () => {
+            const { agent } = await authenticateApiAgent(app);
+
+            await agent.post('/api/bookmarks/delete-bulk').send({ id: 'not-an-array' }).expect(422);
+        });
+    });
 });
