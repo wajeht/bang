@@ -126,6 +126,7 @@ Before you can use the Bang command from your browser's search bar, you need to 
 - See [RECIPE](./docs/recipe.md) for `recipe` guide.
 - See [DEVELOPMENT](./docs/development.md) for `development` guide.
 - See [CONTRIBUTION](./docs/contribution.md) for `contribution` guide.
+- See [SEARCH ARCHITECTURE](./docs/search-architecture.md) for `search architecture` guide.
 
 ## 📜 License
 
