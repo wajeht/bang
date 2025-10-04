@@ -291,6 +291,7 @@ export interface Actions {
     read: (id: number, userId: number) => Promise<Action>;
     update: (id: number, userId: number, updates: Partial<Action> & { actionType: ActionTypes }) => Promise<Action>; // prettier-ignore
     delete: (id: number, userId: number) => Promise<boolean>;
+    bulkDelete: (ids: number[], userId: number) => Promise<number>;
 }
 
 export interface Bookmarks {
@@ -324,6 +325,7 @@ export interface Reminders {
     read: (id: number, userId: number) => Promise<Reminder>;
     update: (id: number, userId: number, updates: Partial<Reminder>) => Promise<Reminder>;
     delete: (id: number, userId: number) => Promise<boolean>;
+    bulkDelete: (ids: number[], userId: number) => Promise<number>;
 }
 
 export type LayoutOptions = {
