@@ -428,6 +428,17 @@ export const bookmarks: Bookmarks = {
         const rowsAffected = await db('bookmarks').where({ id, user_id: userId }).delete();
         return rowsAffected > 0;
     },
+
+    bulkDelete: async (ids: number[], userId: number) => {
+        return db.transaction(async (trx) => {
+            const rowsAffected = await trx('bookmarks')
+                .whereIn('id', ids)
+                .where('user_id', userId)
+                .delete();
+
+            return rowsAffected;
+        });
+    },
 };
 
 export const notes: Notes = {
