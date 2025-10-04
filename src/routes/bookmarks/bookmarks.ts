@@ -400,6 +400,54 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
     }
 
     /**
+     *
+     * POST /bookmarks/delete-bulk
+     *
+     * @tags Bookmarks
+     * @summary delete multiple bookmarks
+     *
+     * @security BearerAuth
+     *
+     * @param {array} id.form.required - array of bookmark ids
+     *
+     * @return {object} 200 - success response - application/json
+     * @return {object} 400 - Bad request response - application/json
+     *
+     */
+    router.post('/bookmarks/delete-bulk', authenticationMiddleware, bulkDeleteBookmarkHandler);
+    router.post('/api/bookmarks/delete-bulk', authenticationMiddleware, bulkDeleteBookmarkHandler);
+    async function bulkDeleteBookmarkHandler(req: Request, res: Response) {
+        const { id } = req.body;
+
+        if (!id || !Array.isArray(id)) {
+            throw new ValidationError({ id: 'IDs array is required' });
+        }
+
+        const bookmarkIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
+
+        if (bookmarkIds.length === 0) {
+            throw new ValidationError({ id: 'No valid bookmark IDs provided' });
+        }
+
+        const user = req.user as User;
+        const deletedCount = await bookmarks.bulkDelete(bookmarkIds, user.id);
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: `${deletedCount} bookmark${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+                deletedCount,
+            });
+            return;
+        }
+
+        req.flash(
+            'success',
+            `${deletedCount} bookmark${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+        );
+        return res.redirect('/bookmarks');
+    }
+
+    /**
      * POST /api/bookmarks/{id}/pin
      *
      * @tags Bookmarks
