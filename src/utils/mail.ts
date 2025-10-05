@@ -7,7 +7,7 @@ import nodemailer from 'nodemailer';
 import { styleText } from 'node:util';
 import type { Request } from 'express';
 import type { Attachment } from 'nodemailer/lib/mailer';
-import { generateUserDataExport, generateBookmarkHtmlExport } from './util';
+import { generateUserDataExport, generateBookmarkHtmlExport, decodeHtmlEntities } from './util';
 
 export const emailTransporter = nodemailer.createTransport({
     host: config.email.host,
@@ -34,29 +34,20 @@ async function sendEmailWithFallback(mailOptions: any, emailType: string): Promi
 function logEmailToConsole(mailOptions: any, emailType: string): void {
     const timestamp = dayjs().format('h:mm:ss A');
     const divider = styleText('dim', '─'.repeat(70));
-    const doubleDivider = styleText('dim', '═'.repeat(70));
-
-    console.log('\n' + doubleDivider);
-    console.log(
-        styleText('cyan', '📧 EMAIL PREVIEW') +
-            ' ' +
-            styleText('magenta', `[${emailType}]`) +
-            ' ' +
-            styleText('dim', `@ ${timestamp}`),
-    );
-    console.log(doubleDivider);
 
     // Email headers
-    console.log(styleText('yellow', '  From:    ') + styleText('white', mailOptions.from));
-    console.log(styleText('yellow', '  To:      ') + styleText('white', mailOptions.to));
-    console.log(styleText('yellow', '  Subject: ') + styleText('white', mailOptions.subject));
+    const headerLines = [
+        styleText('yellow', 'From:    ') + styleText('white', mailOptions.from),
+        styleText('yellow', 'To:      ') + styleText('white', mailOptions.to),
+        styleText('yellow', 'Subject: ') + styleText('white', mailOptions.subject),
+    ];
 
     // Attachments if any
     if (mailOptions.attachments && mailOptions.attachments.length > 0) {
-        console.log(divider);
-        console.log(styleText('blue', '📎 Attachments:'));
+        headerLines.push(divider);
+        headerLines.push(styleText('blue', '📎 Attachments:'));
         mailOptions.attachments.forEach((att: any, index: number) => {
-            console.log(
+            headerLines.push(
                 styleText('dim', `  ${index + 1}. `) +
                     styleText('white', att.filename) +
                     styleText('dim', ` (${att.contentType})`),
@@ -64,65 +55,40 @@ function logEmailToConsole(mailOptions: any, emailType: string): void {
         });
     }
 
-    console.log(divider);
-    console.log(styleText('green', '✉️  Message Body:'));
-    console.log(divider);
+    headerLines.push(divider);
+    headerLines.push(styleText('green', '✉️  Message Body:'));
+    headerLines.push(divider);
 
     // Format the content - handle both text and HTML
     let content = mailOptions.text || '';
 
-    // If it's HTML, strip basic tags for console display
+    // If it's HTML, decode HTML entities for console display
     if (mailOptions.html && !mailOptions.text) {
-        content = mailOptions.html
-            .replace(/<[^>]*>/g, '') // Remove HTML tags
-            .replace(/&nbsp;/g, ' ') // Replace nbsp
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/&amp;/g, '&')
-            .trim();
+        content = decodeHtmlEntities(mailOptions.html);
     }
 
-    const lines = content.split('\n');
-    lines.forEach((line: string) => {
-        const trimmedLine = line.trim();
-
-        if (trimmedLine.includes('http://') || trimmedLine.includes('https://')) {
-            // Highlight full URLs in cyan with underline effect
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            const highlightedLine = line.replace(urlRegex, (url: string) =>
-                styleText('cyan', styleText('underline', url)),
-            );
-            console.log('  ' + highlightedLine);
-        } else if (trimmedLine.startsWith('--') || trimmedLine.includes('Bang Team')) {
-            // Make signature section dimmer
-            console.log(styleText('dim', '  ' + line));
-        } else if (trimmedLine.includes('Click this link') || trimmedLine.includes('Magic Link')) {
-            // Highlight important phrases
-            console.log(styleText('bold', '  ' + line));
-        } else if (line === '') {
-            // Empty lines
-            console.log();
-        } else {
-            // Regular text
-            console.log('  ' + line);
-        }
-    });
-
-    console.log(divider);
-    console.log(
+    const contentLines = content.split('\n');
+    const footerLines = [
+        divider,
         styleText('yellow', '⚠️  Mailpit not running') +
             ' - ' +
             styleText('red', 'Email NOT sent') +
             ' ' +
             styleText('dim', '(Development mode)'),
-    );
-
-    // Add a tip about starting Mailpit
-    console.log(
         styleText('dim', '💡 Tip: Start Mailpit with ') +
             styleText('cyan', 'docker compose up -d mailpit'),
-    );
-    console.log(doubleDivider + '\n');
+    ];
+
+    const allLines = [...headerLines, ...contentLines, ...footerLines];
+
+    const title =
+        styleText('cyan', '📧 EMAIL PREVIEW') +
+        ' ' +
+        styleText('magenta', `[${emailType}]`) +
+        ' ' +
+        styleText('dim', `@ ${timestamp}`);
+
+    logger.box(title, allLines);
 }
 
 export async function isMailpitRunning(): Promise<boolean> {

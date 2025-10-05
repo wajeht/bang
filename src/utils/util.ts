@@ -540,6 +540,16 @@ export function stripHtmlTags(text: string | null | undefined): string {
         .trim(); // Remove leading/trailing whitespace
 }
 
+export function decodeHtmlEntities(html: string): string {
+    return html
+        .replace(/<[^>]*>/g, '') // Remove HTML tags
+        .replace(/&nbsp;/g, ' ') // Replace nbsp
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .trim();
+}
+
 export function nl2br(str: string): string {
     if (str === null || str === undefined || str === '') {
         return '';

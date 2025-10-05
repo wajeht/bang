@@ -4,9 +4,7 @@ import type { Logger as LoggerType } from '../type';
 
 function getFormattedTimestamp() {
     const now = dayjs();
-    const formattedTime = now.format('h:mm:ss A');
-    const formattedDate = now.format('YYYY-MM-DD');
-    return `[${formattedDate} ${formattedTime}]`;
+    return `[${now.format('YYYY-MM-DD h:mm:ss A')}]`;
 }
 
 function formatValue(value: unknown): string {
@@ -15,7 +13,7 @@ function formatValue(value: unknown): string {
             name: value.name,
             message: value.message,
             stack: value.stack,
-            ...(value as any), // Include any custom properties
+            ...(value as any),
         });
     }
     return format('%o', value);
@@ -29,29 +27,45 @@ function formatMessage(message: string, args: unknown[]): string {
 
     formattedMessage = formattedMessage.replace(/%[osj]/g, (match) => {
         if (argIndex >= args.length) return match;
-
         const arg = args[argIndex++];
-        switch (match) {
-            case '%o':
-                return formatValue(arg);
-            case '%j':
-                try {
-                    return JSON.stringify(arg);
-                } catch (_err) {
-                    return '[Circular]';
-                }
-            case '%s':
-            default:
-                return String(arg);
+
+        if (match === '%o') return formatValue(arg);
+        if (match === '%j') {
+            try {
+                return JSON.stringify(arg);
+            } catch {
+                return '[Circular]';
+            }
         }
+        return String(arg);
     });
 
-    // Append any remaining args
     if (argIndex < args.length) {
         formattedMessage += ' ' + args.slice(argIndex).map(formatValue).join(' ');
     }
 
     return formattedMessage;
+}
+
+function stripAnsi(str: string): string {
+    // eslint-disable-next-line no-control-regex
+    return str.replace(/\x1b\[[0-9;]*m/g, '');
+}
+
+function wrapLine(line: string, maxWidth: number): string[] {
+    const visibleLen = stripAnsi(line).length;
+    if (visibleLen <= maxWidth) return [line];
+
+    const stripped = stripAnsi(line);
+    const wrapped: string[] = [];
+    let pos = 0;
+
+    while (pos < stripped.length) {
+        wrapped.push(stripped.substring(pos, pos + maxWidth));
+        pos += maxWidth;
+    }
+
+    return wrapped;
 }
 
 export const logger: LoggerType = {
@@ -92,20 +106,32 @@ export const logger: LoggerType = {
     },
     box(title: string, content: string | string[]) {
         const terminalWidth = process.stdout.columns || 100;
-        const horizontalLine = '─'.repeat(terminalWidth - 2);
+        const boxWidth = terminalWidth - 2;
+        const contentWidth = boxWidth - 2;
+        const horizontalLine = '─'.repeat(boxWidth);
 
         console.log('');
-        console.log(styleText('dim', '┌' + horizontalLine));
-        console.log(styleText('dim', '│') + ' ' + title);
-        console.log(styleText('dim', '├' + horizontalLine));
+        console.log(styleText('dim', '┌' + horizontalLine + '┐'));
+
+        const titleLen = stripAnsi(title).length;
+        const titlePadding = ' '.repeat(Math.max(0, boxWidth - titleLen - 1));
+        console.log(styleText('dim', '│') + ' ' + title + titlePadding + styleText('dim', '│'));
+
+        console.log(styleText('dim', '├' + horizontalLine + '┤'));
 
         const lines = Array.isArray(content) ? content : content.split('\n');
 
-        lines.forEach((line: string) => {
-            console.log(styleText('dim', '│') + ' ' + line);
+        lines.forEach((line) => {
+            wrapLine(line, contentWidth).forEach((wrappedLine) => {
+                const lineLen = stripAnsi(wrappedLine).length;
+                const linePadding = ' '.repeat(Math.max(0, boxWidth - lineLen - 1));
+                console.log(
+                    styleText('dim', '│') + ' ' + wrappedLine + linePadding + styleText('dim', '│'),
+                );
+            });
         });
 
-        console.log(styleText('dim', '└' + horizontalLine));
+        console.log(styleText('dim', '└' + horizontalLine + '┘'));
         console.log('');
     },
 };
