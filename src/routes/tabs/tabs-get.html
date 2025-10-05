@@ -278,7 +278,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                           </td>
                       </tr>
                       <tr id="details-<%= tabs[i].id %>" style="display: none; background: var(--sub-table-background);">
-                        <td colspan="<%= (user.column_preferences?.tabs?.title !== false ? 1 : 0) + (user.column_preferences?.tabs?.trigger !== false ? 1 : 0) + (user.column_preferences?.tabs?.items_count !== false ? 1 : 0) + (user.column_preferences?.tabs?.created_at !== false ? 1 : 0) + 1 %>">
+                        <td colspan="<%= (user.column_preferences?.tabs?.title !== false ? 1 : 0) + (user.column_preferences?.tabs?.trigger !== false ? 1 : 0) + (user.column_preferences?.tabs?.items_count !== false ? 1 : 0) + (user.column_preferences?.tabs?.created_at !== false ? 1 : 0) + 2 %>">
                           <% if (tabs[i].items && tabs[i].items.length > 0) { %>
                             <style>
                               .sub-table {
@@ -340,7 +340,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                   <tr>
                                     <% if (user.column_preferences?.tabs?.title !== false) { %>
                                      <td style="padding: 10px;">
-                                       <div style="font-weight: 500;"><%- tabs[i].items[j].title %></div>
+                                       <%- tabs[i].items[j].title %>
                                      </td>
                                      <% } %>
                                      <% if (user.column_preferences?.tabs?.trigger !== false) { %>
