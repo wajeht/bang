@@ -309,6 +309,7 @@ export interface Notes {
     read: (id: number, userId: number) => Promise<Note>;
     update: (id: number, userId: number, updates: Partial<Note>) => Promise<Note>;
     delete: (id: number, userId: number) => Promise<boolean>;
+    bulkDelete: (ids: number[], userId: number) => Promise<number>;
 }
 
 export interface Tabs {
@@ -317,6 +318,7 @@ export interface Tabs {
     read: (id: number, userId: number) => Promise<Tab>;
     update: (id: number, userId: number, updates: Partial<Tab>) => Promise<Tab>;
     delete: (id: number, userId: number) => Promise<boolean>;
+    bulkDelete: (ids: number[], userId: number) => Promise<number>;
 }
 
 export interface Reminders {
