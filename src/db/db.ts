@@ -560,6 +560,17 @@ export const notes: Notes = {
         const rowsAffected = await db('notes').where({ id, user_id: userId }).delete();
         return rowsAffected > 0;
     },
+
+    bulkDelete: async (ids: number[], userId: number) => {
+        return db.transaction(async (trx) => {
+            const rowsAffected = await trx('notes')
+                .whereIn('id', ids)
+                .where('user_id', userId)
+                .delete();
+
+            return rowsAffected;
+        });
+    },
 };
 
 export const users = {
@@ -902,5 +913,16 @@ export const tabs: Tabs = {
     delete: async (id: number, userId: number) => {
         const rowsAffected = await db('tabs').where({ id, user_id: userId }).delete();
         return rowsAffected > 0;
+    },
+
+    bulkDelete: async (ids: number[], userId: number) => {
+        return db.transaction(async (trx) => {
+            const rowsAffected = await trx('tabs')
+                .whereIn('id', ids)
+                .where('user_id', userId)
+                .delete();
+
+            return rowsAffected;
+        });
     },
 };
