@@ -33,7 +33,8 @@ async function sendEmailWithFallback(mailOptions: any, emailType: string): Promi
 
 function logEmailToConsole(mailOptions: any, emailType: string): void {
     const timestamp = dayjs().format('h:mm:ss A');
-    const divider = styleText('dim', '─'.repeat(70));
+    const width = process.stdout.columns || 100;
+    const divider = styleText('dim', '─'.repeat(width - 4));
 
     // Email headers
     const headerLines = [

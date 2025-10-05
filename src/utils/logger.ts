@@ -52,86 +52,80 @@ function stripAnsi(str: string): string {
     return str.replace(/\x1b\[[0-9;]*m/g, '');
 }
 
-function wrapLine(line: string, maxWidth: number): string[] {
+function logWithTimestamp(level: string, color: string, message: string, args: unknown[]): string {
+    const timestamp = styleText('dim', getFormattedTimestamp());
+    const label = styleText(color as any, `${level}:`);
+    const formattedMsg = formatMessage(message, args);
+    return `${timestamp} ${label} ${formattedMsg}`;
+}
+
+function drawBorder(char: string, width: number): string {
+    const line = '─'.repeat(width - 2);
+    return styleText('dim', `${char}${line}${char}`);
+}
+
+function padLine(line: string, maxLen: number): string {
     const visibleLen = stripAnsi(line).length;
-    if (visibleLen <= maxWidth) return [line];
-
-    const stripped = stripAnsi(line);
-    const wrapped: string[] = [];
-    let pos = 0;
-
-    while (pos < stripped.length) {
-        wrapped.push(stripped.substring(pos, pos + maxWidth));
-        pos += maxWidth;
-    }
-
-    return wrapped;
+    const padding = ' '.repeat(maxLen - visibleLen);
+    return line + padding;
 }
 
 export const logger: LoggerType = {
     info(message: string, ...args: unknown[]) {
-        const timestamp = getFormattedTimestamp();
-        const formattedMessage = formatMessage(message, args);
-        console.info(
-            `${styleText('dim', timestamp)} ${styleText('green', 'INFO:')} ${formattedMessage}`,
-        );
+        const output = logWithTimestamp('INFO', 'green', message, args);
+        console.info(output);
     },
+
     error(message: string, ...args: unknown[]) {
-        const timestamp = getFormattedTimestamp();
-        const formattedMessage = formatMessage(message, args);
-        console.error(
-            `${styleText('dim', timestamp)} ${styleText('red', 'ERROR:')} ${formattedMessage}`,
-        );
+        const output = logWithTimestamp('ERROR', 'red', message, args);
+        console.error(output);
     },
+
     warn(message: string, ...args: unknown[]) {
-        const timestamp = getFormattedTimestamp();
-        const formattedMessage = formatMessage(message, args);
-        console.warn(
-            `${styleText('dim', timestamp)} ${styleText('yellow', 'WARN:')} ${formattedMessage}`,
-        );
+        const output = logWithTimestamp('WARN', 'yellow', message, args);
+        console.warn(output);
     },
+
     debug(message: string, ...args: unknown[]) {
         if (process.env.NODE_ENV === 'development') {
-            const timestamp = getFormattedTimestamp();
-            const formattedMessage = formatMessage(message, args);
-            console.debug(
-                `${styleText('dim', timestamp)} ${styleText('blue', 'DEBUG:')} ${formattedMessage}`,
-            );
+            const output = logWithTimestamp('DEBUG', 'blue', message, args);
+            console.debug(output);
         }
     },
+
     table(tabularData: any, properties?: readonly string[]) {
-        const timestamp = getFormattedTimestamp();
-        console.log(`${styleText('dim', timestamp)} ${styleText('cyan', 'TABLE:')}`);
+        const timestamp = styleText('dim', getFormattedTimestamp());
+        const label = styleText('cyan', 'TABLE:');
+        console.log(`${timestamp} ${label}`);
         console.table(tabularData, properties);
     },
+
     box(title: string, content: string | string[]) {
-        const terminalWidth = process.stdout.columns || 100;
-        const boxWidth = terminalWidth - 2;
-        const contentWidth = boxWidth - 2;
-        const horizontalLine = '─'.repeat(boxWidth);
+        const width = process.stdout.columns || 100;
+        const maxLen = width - 4;
+        const border = styleText('dim', '│');
 
         console.log('');
-        console.log(styleText('dim', '┌' + horizontalLine + '┐'));
+        console.log(drawBorder('┌', width));
 
-        const titleLen = stripAnsi(title).length;
-        const titlePadding = ' '.repeat(Math.max(0, boxWidth - titleLen - 1));
-        console.log(styleText('dim', '│') + ' ' + title + titlePadding + styleText('dim', '│'));
+        const paddedTitle = padLine(title, maxLen);
+        console.log(`${border} ${paddedTitle} ${border}`);
 
-        console.log(styleText('dim', '├' + horizontalLine + '┤'));
+        console.log(drawBorder('├', width));
 
         const lines = Array.isArray(content) ? content : content.split('\n');
+        for (const line of lines) {
+            const visibleLen = stripAnsi(line).length;
 
-        lines.forEach((line) => {
-            wrapLine(line, contentWidth).forEach((wrappedLine) => {
-                const lineLen = stripAnsi(wrappedLine).length;
-                const linePadding = ' '.repeat(Math.max(0, boxWidth - lineLen - 1));
-                console.log(
-                    styleText('dim', '│') + ' ' + wrappedLine + linePadding + styleText('dim', '│'),
-                );
-            });
-        });
+            if (visibleLen <= maxLen) {
+                const paddedLine = padLine(line, maxLen);
+                console.log(`${border} ${paddedLine} ${border}`);
+            } else {
+                console.log(`${border} ${line}`);
+            }
+        }
 
-        console.log(styleText('dim', '└' + horizontalLine + '┘'));
+        console.log(drawBorder('└', width));
         console.log('');
     },
 };
