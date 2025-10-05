@@ -653,5 +653,113 @@ describe('Notes Routes', () => {
                 expect(response.body.data[0].title).toBe('Public Note');
             });
         });
+
+        describe('POST /notes/delete-bulk', () => {
+            it('should delete multiple notes', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                const [note1] = await db('notes')
+                    .insert({ user_id: user.id, title: 'Note 1', content: 'Content 1' })
+                    .returning('*');
+                const [note2] = await db('notes')
+                    .insert({ user_id: user.id, title: 'Note 2', content: 'Content 2' })
+                    .returning('*');
+
+                await agent
+                    .post('/notes/delete-bulk')
+                    .send({ id: [note1.id.toString(), note2.id.toString()] })
+                    .expect(302);
+
+                const remainingNotes = await db('notes').where({ user_id: user.id });
+                expect(remainingNotes).toHaveLength(0);
+            });
+
+            it('should only delete notes owned by the user', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                const [otherUser] = await db('users')
+                    .insert({
+                        username: 'otheruser',
+                        email: 'other@example.com',
+                        is_admin: false,
+                        default_search_provider: 'duckduckgo',
+                    })
+                    .returning('*');
+
+                const [userNote] = await db('notes')
+                    .insert({ user_id: user.id, title: 'My Note', content: 'My content' })
+                    .returning('*');
+
+                const [otherNote] = await db('notes')
+                    .insert({
+                        user_id: otherUser.id,
+                        title: 'Other Note',
+                        content: 'Other content',
+                    })
+                    .returning('*');
+
+                await agent
+                    .post('/notes/delete-bulk')
+                    .send({ id: [userNote.id.toString(), otherNote.id.toString()] })
+                    .expect(302);
+
+                const userNotes = await db('notes').where({ user_id: user.id });
+                expect(userNotes).toHaveLength(0);
+
+                const otherNotes = await db('notes').where({ user_id: otherUser.id });
+                expect(otherNotes).toHaveLength(1);
+            });
+
+            it('should require id array', async () => {
+                const { agent } = await authenticateAgent(app);
+
+                await agent.post('/notes/delete-bulk').type('form').send({}).expect(302);
+            });
+        });
+
+        describe('POST /api/notes/delete-bulk', () => {
+            it('should delete multiple notes via API', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                const [note1] = await db('notes')
+                    .insert({ user_id: user.id, title: 'Note 1', content: 'Content 1' })
+                    .returning('*');
+                const [note2] = await db('notes')
+                    .insert({ user_id: user.id, title: 'Note 2', content: 'Content 2' })
+                    .returning('*');
+
+                const response = await agent
+                    .post('/api/notes/delete-bulk')
+                    .send({ id: [note1.id.toString(), note2.id.toString()] })
+                    .expect(200);
+
+                expect(response.body.message).toContain('2 notes deleted successfully');
+                expect(response.body.data.deletedCount).toBe(2);
+
+                const remainingNotes = await db('notes').where({ user_id: user.id });
+                expect(remainingNotes).toHaveLength(0);
+            });
+
+            it('should return correct count when some IDs are invalid', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                const [note1] = await db('notes')
+                    .insert({ user_id: user.id, title: 'Note 1', content: 'Content 1' })
+                    .returning('*');
+
+                const response = await agent
+                    .post('/api/notes/delete-bulk')
+                    .send({ id: [note1.id.toString(), '99999'] })
+                    .expect(200);
+
+                expect(response.body.data.deletedCount).toBe(1);
+            });
+
+            it('should require id to be an array', async () => {
+                const { agent } = await authenticateApiAgent(app);
+
+                await agent.post('/api/notes/delete-bulk').send({ id: 'not-an-array' }).expect(422);
+            });
+        });
     });
 });
