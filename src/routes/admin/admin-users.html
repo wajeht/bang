@@ -24,6 +24,8 @@
         <button type="submit">🔍</button>
       </form>
 
+      <button type="button" id="delete-selected-btn" style="display: none;" aria-label="Delete selected users">🗑️</button>
+
       <%- include('../_components/column-settings.html') %>
 
     </nav>
@@ -35,6 +37,9 @@
         <caption style="position: absolute; left: -10000px;"><%= data.length %> users found</caption>
         <thead>
           <tr>
+            <th scope="col" style="text-align: left; padding: 10px; width: 40px;">
+              <input type="checkbox" id="select-all-checkbox" aria-label="Select all users" />
+            </th>
             <% if (state.user.column_preferences?.users?.username !== false) { %>
             <th scope="col" style="text-align: left; padding: 10px;">
               <a href="/admin/users?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=username&direction=<%= (sortKey === 'username' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
@@ -106,6 +111,16 @@
         <tbody>
           <% data.forEach(function(user) { %>
             <tr>
+              <td style="padding: 10px;">
+                <input
+                  type="checkbox"
+                  name="id[]"
+                  value="<%- user.id %>"
+                  class="user-checkbox"
+                  data-username="<%- utils.stripHtmlTags(user.username || 'Unknown User') %>"
+                  <%= user.is_admin ? 'disabled title="Cannot delete admin users"' : '' %>
+                />
+              </td>
               <% if (state.user.column_preferences?.users?.username !== false) { %>
                 <td style="padding: 10px;"><%- utils.highlightSearchTerm(user.username, search) %></td>
               <% } %>
@@ -174,6 +189,26 @@
     </form>
   </dialog>
 
+  <dialog id="delete-selected-modal" aria-labelledby="delete-selected-title">
+    <h2 id="delete-selected-title">Confirm Bulk Delete</h2>
+    <p>Are you sure you want to delete the following users?</p>
+    <div id="selected-users-list" style="display: flex; flex-direction: column; gap: 5px; margin: 10px 0;"></div>
+    <form action="/admin/users/delete-bulk" method="POST">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+      <div id="bulk-delete-checkboxes"></div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button type="button" onclick="document.getElementById('delete-selected-modal').close()">❌ Cancel</button>
+        <button type="submit">🗑️ Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <style>
+    section:has(.user-checkbox:checked) #delete-selected-btn {
+      display: inline-block !important;
+    }
+  </style>
+
   <script>
     function showDeleteUserModal(userId, username) {
       const modal = document.getElementById('delete-user-modal');
@@ -183,5 +218,29 @@
       form.action = `/admin/users/${userId}/delete`;
       modal.showModal();
     }
+
+    document.getElementById('select-all-checkbox')?.addEventListener('change', function() {
+      document.querySelectorAll('.user-checkbox:not(:disabled)').forEach(cb => {
+        cb.checked = this.checked;
+      });
+    });
+
+    document.getElementById('delete-selected-btn')?.addEventListener('click', function() {
+      const checked = [...document.querySelectorAll('.user-checkbox:checked')];
+
+      if (!checked.length) {
+        return;
+      }
+
+      document.getElementById('selected-users-list').innerHTML = checked
+        .map(cb => `<span>- <strong>${cb.dataset.username}</strong></span>`)
+        .join('');
+
+      document.getElementById('bulk-delete-checkboxes').innerHTML = checked
+        .map(cb => `<input type="hidden" name="id[]" value="${cb.value}">`)
+        .join('');
+
+      document.getElementById('delete-selected-modal').showModal();
+    });
   </script>
 </section>
