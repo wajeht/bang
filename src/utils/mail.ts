@@ -23,7 +23,10 @@ export const emailTransporter = nodemailer.createTransport({
 });
 
 async function sendEmailWithFallback(mailOptions: any, emailType: string): Promise<void> {
-    if (config.app.env === 'development' && (await isMailpitRunning()) === false) {
+    if (
+        ['development', 'staging', 'test', 'testing', 'ci', 'dev'].includes(config.app.env) &&
+        (await isMailpitRunning()) === false
+    ) {
         logEmailToConsole(mailOptions, emailType);
         return;
     }
