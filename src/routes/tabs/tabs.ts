@@ -404,7 +404,8 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
      *
      * @security BearerAuth
      *
-     * @param {array<string>} id.body.required - Array of tab IDs
+     * @param {object} request.body.required - Bulk delete request
+     * @param {array<string>} request.body.id - Array of tab IDs
      *
      * @return {object} 200 - success response - application/json
      * @return {object} 400 - Bad request response - application/json

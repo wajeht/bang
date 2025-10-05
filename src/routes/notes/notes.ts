@@ -430,7 +430,8 @@ export function createNotesRouter(notes: Notes) {
      *
      * @security BearerAuth
      *
-     * @param {array<string>} id.body.required - Array of note IDs
+     * @param {object} request.body.required - Bulk delete request
+     * @param {array<string>} request.body.id - Array of note IDs
      *
      * @return {object} 200 - success response - application/json
      * @return {object} 400 - Bad request response - application/json
