@@ -31,7 +31,10 @@ RUN npm run build:prod && \
     find src/routes -name "*.js" -delete && \
     rm -f public/tsconfig.json && \
     rm -rf dist/scripts && \
-    rm -f dist/src/type.js
+    rm -f dist/src/type.js && \
+    rm -rf vitest.config.* && \
+    rm -rf eslint.config.* && \
+    rm -rf playwright.config.*
 
 FROM node:24-slim
 

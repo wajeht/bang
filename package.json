@@ -8,7 +8,7 @@
         "dev:inspect": "npm run build && npm run db:prepare:prod && export APP_ENV=development && node --inspect ./dist/src/server.js",
         "dev:only": "export APP_ENV=development && npm run extract:readme && tsx watch --no-warnings --clear-screen=false ./src/server.ts",
         "dev": "export APP_ENV=development && npm run db:prepare:dev npm run extract:readme && exec tsx watch --no-warnings --clear-screen=false ./src/server.ts",
-        "build:server": "tsc",
+        "build:server": "rm -rf ./dist && tsc",
         "build:server:prod": "tsc -p tsconfig.json",
         "build": "npm run extract:readme && npm run build:server",
         "build:prod": "npm run extract:readme && npm run build:server:prod && npm run minify",
