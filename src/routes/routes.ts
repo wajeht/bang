@@ -1,15 +1,20 @@
 import express from 'express';
+import { db } from '../db/db';
+import { tabs } from './tabs/tabs.repo';
+import { notes } from './notes/notes.repo';
 import { createTabsRouter } from './tabs/tabs';
 import { createAuthRouter } from './auth/auth';
-import { createNotesRouter } from './notes/notes';
+import { actions } from './actions/actions.repo';
 import { createAdminRouter } from './admin/admin';
+import { createNotesRouter } from './notes/notes';
 import { createSearchRouter } from './search/search';
+import { bookmarks } from './bookmarks/bookmarks.repo';
+import { reminders } from './reminders/reminders.repo';
 import { createActionsRouter } from './actions/actions';
 import { createGeneralRouter } from './general/general';
 import { createSettingsRouter } from './settings/settings';
 import { createBookmarksRouter } from './bookmarks/bookmarks';
 import { createRemindersRouter } from './reminders/reminders';
-import { db, actions, bookmarks, notes, tabs, reminders } from '../db/db';
 
 /**
  * @swagger

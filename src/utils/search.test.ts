@@ -16,8 +16,8 @@ import dayjs from './dayjs';
 import { db } from '../db/db';
 import { User } from '../type';
 import { config } from '../config';
-import { notes } from '../db/db';
 import { Request, Response } from 'express';
+import { notes } from '../routes/notes/notes.repo';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('./util', async () => {

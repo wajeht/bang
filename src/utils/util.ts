@@ -15,9 +15,9 @@ import https from 'node:https';
 import jwt from 'jsonwebtoken';
 import { logger } from './logger';
 import { config } from '../config';
-import { bookmarks } from '../db/db';
 import type { Request } from 'express';
 import type { Bookmark } from '../type';
+import { bookmarks } from '../routes/bookmarks/bookmarks.repo';
 import { HttpError, NotFoundError, ValidationError } from '../error';
 
 export const actionTypes = ['search', 'redirect'] as const;

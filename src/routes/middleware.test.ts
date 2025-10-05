@@ -1,8 +1,8 @@
 import { db } from '../db/db';
-import { users } from '../db/db';
 import type { User } from '../type';
 import { logger } from '../utils/logger';
 import { Session } from 'express-session';
+import { users } from './admin/admin.repo';
 import { api, getApiKey, isApiRequest } from '../utils/util';
 import type { Request, Response, NextFunction } from 'express';
 import { authenticationMiddleware, errorMiddleware } from './middleware';
@@ -65,17 +65,12 @@ vi.mock('../config', () => ({
     },
 }));
 
-vi.mock('../db/db', async () => {
-    const actual = await vi.importActual('../db/db');
-    return {
-        ...(actual as any),
-        users: {
-            ...(actual as any).users,
-            read: vi.fn(),
-            readByEmail: vi.fn(),
-        },
-    };
-});
+vi.mock('./admin/admin.repo', () => ({
+    users: {
+        read: vi.fn(),
+        readByEmail: vi.fn(),
+    },
+}));
 
 describe('authenticationMiddleware', () => {
     let req: Partial<Request>;
