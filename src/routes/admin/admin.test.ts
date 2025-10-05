@@ -3,7 +3,6 @@ import {
     authenticateAgent,
     cleanupTestDatabase,
     ensureTestUserExists,
-    authenticateApiAgent,
 } from '../../tests/api-test-utils';
 import request from 'supertest';
 import { db } from '../../db/db';

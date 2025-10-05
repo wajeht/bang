@@ -79,36 +79,35 @@ export function createAdminRouter(db: Knex) {
         '/admin/users/delete-bulk',
         authenticationMiddleware,
         adminOnlyMiddleware,
-        bulkDeleteUserHandler,
+        async (req: Request, res: Response) => {
+            const { id } = req.body;
+
+            if (!id || !Array.isArray(id)) {
+                throw new ValidationError({ id: 'IDs array is required' });
+            }
+
+            const userIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
+
+            if (userIds.length === 0) {
+                throw new ValidationError({ id: 'No valid user IDs provided' });
+            }
+
+            const deletedCount = await db.transaction(async (trx) => {
+                const rowsAffected = await trx('users')
+                    .whereIn('id', userIds)
+                    .where('is_admin', false)
+                    .delete();
+
+                return rowsAffected;
+            });
+
+            req.flash(
+                'success',
+                `${deletedCount} user${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+            );
+            return res.redirect('/admin/users');
+        },
     );
-    async function bulkDeleteUserHandler(req: Request, res: Response) {
-        const { id } = req.body;
-
-        if (!id || !Array.isArray(id)) {
-            throw new ValidationError({ id: 'IDs array is required' });
-        }
-
-        const userIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
-
-        if (userIds.length === 0) {
-            throw new ValidationError({ id: 'No valid user IDs provided' });
-        }
-
-        const deletedCount = await db.transaction(async (trx) => {
-            const rowsAffected = await trx('users')
-                .whereIn('id', userIds)
-                .where('is_admin', false)
-                .delete();
-
-            return rowsAffected;
-        });
-
-        req.flash(
-            'success',
-            `${deletedCount} user${deletedCount !== 1 ? 's' : ''} deleted successfully`,
-        );
-        return res.redirect('/admin/users');
-    }
 
     return router;
 }
