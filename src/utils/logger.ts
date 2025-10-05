@@ -90,4 +90,22 @@ export const logger: LoggerType = {
         console.log(`${styleText('dim', timestamp)} ${styleText('cyan', 'TABLE:')}`);
         console.table(tabularData, properties);
     },
+    box(title: string, content: string | string[]) {
+        const terminalWidth = process.stdout.columns || 100;
+        const horizontalLine = '─'.repeat(terminalWidth - 2);
+
+        console.log('');
+        console.log(styleText('dim', '┌' + horizontalLine));
+        console.log(styleText('dim', '│') + ' ' + title);
+        console.log(styleText('dim', '├' + horizontalLine));
+
+        const lines = Array.isArray(content) ? content : content.split('\n');
+
+        lines.forEach((line: string) => {
+            console.log(styleText('dim', '│') + ' ' + line);
+        });
+
+        console.log(styleText('dim', '└' + horizontalLine));
+        console.log('');
+    },
 };

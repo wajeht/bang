@@ -352,6 +352,7 @@ export type Logger = {
     warn: (message: string, ...args: unknown[]) => void;
     info: (message: string, ...args: unknown[]) => void;
     table: (tabularData: any, properties?: readonly string[]) => void;
+    box: (title: string, content: string | string[]) => void;
 };
 
 export type PaginateArrayOptions = {
