@@ -397,6 +397,56 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
 
     /**
      *
+     * POST /api/tabs/delete-bulk
+     *
+     * @tags Tabs
+     * @summary Delete multiple tabs
+     *
+     * @security BearerAuth
+     *
+     * @param {array<string>} id.body.required - Array of tab IDs
+     *
+     * @return {object} 200 - success response - application/json
+     * @return {object} 400 - Bad request response - application/json
+     *
+     */
+    router.post('/api/tabs/delete-bulk', authenticationMiddleware, bulkDeleteTabHandler);
+    router.post('/tabs/delete-bulk', authenticationMiddleware, bulkDeleteTabHandler);
+    async function bulkDeleteTabHandler(req: Request, res: Response) {
+        const { id } = req.body;
+
+        if (!id || !Array.isArray(id)) {
+            throw new ValidationError({ id: 'IDs array is required' });
+        }
+
+        const tabIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
+
+        if (tabIds.length === 0) {
+            throw new ValidationError({ id: 'No valid tab IDs provided' });
+        }
+
+        const user = req.user as User;
+        const deletedCount = await tabs.bulkDelete(tabIds, user.id);
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: `${deletedCount} tab group${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+                data: {
+                    deletedCount,
+                },
+            });
+            return;
+        }
+
+        req.flash(
+            'success',
+            `${deletedCount} tab group${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+        );
+        return res.redirect('/tabs');
+    }
+
+    /**
+     *
      * A tab item
      * @typedef {object} TabItem
      * @property {string} id - tab item id
