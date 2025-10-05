@@ -105,7 +105,30 @@
       form.action = `/tabs/${tabId}/items/${itemId}/delete`;
       modal.showModal();
   }
+
+  document.getElementById('select-all-checkbox')?.addEventListener('change', function() {
+      document.querySelectorAll('.tab-checkbox').forEach(cb => cb.checked = this.checked);
+  });
+
+  document.getElementById('delete-selected-btn')?.addEventListener('click', function() {
+      const checked = [...document.querySelectorAll('.tab-checkbox:checked')];
+      if (!checked.length) return;
+
+      document.getElementById('selected-tabs-list').innerHTML =
+          checked.map(cb => `<span>- <strong>${cb.dataset.title}</strong></span>`).join('');
+
+      document.getElementById('bulk-delete-checkboxes').innerHTML =
+          checked.map(cb => `<input type="hidden" name="id[]" value="${cb.value}">`).join('');
+
+      document.getElementById('delete-selected-modal').showModal();
+  });
   </script>
+
+<style>
+section:has(.tab-checkbox:checked) #delete-selected-btn {
+    display: block !important;
+}
+</style>
 
 <section style="display: flex; flex-direction: column; gap: 30px;">
   <header style="display: flex; justify-content: space-between; align-items: center;">
@@ -135,6 +158,7 @@
             <button type="submit">🔍</button>
         </form>
 
+        <button type="button" id="delete-selected-btn" style="display: none;" aria-label="Delete selected tab groups">🗑️</button>
         <button type="button" aria-label="Create new tab group" onclick="location.href='/tabs/create'">➕</button>
         <!-- <button type="button" aria-label="Delete all tab groups" onclick="document.getElementById('delete-all-tabs-modal').showModal()">🗑️</button> -->
         <%- include('../_components/column-settings.html') %>
@@ -146,6 +170,9 @@
           <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
               <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
                   <tr>
+                      <th scope="col" style="text-align: left; padding: 10px; width: 40px;">
+                          <input type="checkbox" id="select-all-checkbox" aria-label="Select all tab groups" />
+                      </th>
                       <% if (user.column_preferences?.tabs?.title !== false) { %>
                       <th scope="col" style="text-align: left; padding: 10px;">
                           <a href="/tabs?page=<%= pagination.currentPage %>&per_page=<%= pagination.perPage %>&sort_key=title&direction=<%= (sortKey === 'title' && direction === 'asc') ? 'desc' : 'asc' %>&search=<%= search %>"
@@ -208,6 +235,9 @@
               <tbody>
                   <% for (let i = 0; i < tabs.length; i++) { %>
                       <tr class="tab-group-row" data-tab-id="<%= tabs[i].id %>" data-id="<%= tabs[i].id %>" style="cursor: pointer;">
+                          <td style="padding: 10px;">
+                              <input type="checkbox" name="id[]" value="<%- tabs[i].id %>" class="tab-checkbox" data-title="<%- tabs[i].title || 'Untitled' %>" />
+                          </td>
                           <% if (user.column_preferences?.tabs?.title !== false) { %>
                           <td style="padding: 10px;"><%- tabs[i].title %></td>
                           <% } %>
@@ -415,6 +445,20 @@
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
       <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
         <button type="button" onclick="document.getElementById('delete-item-modal').close()">❌ Cancel</button>
+        <button type="submit">🗑️ Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="delete-selected-modal" aria-labelledby="delete-selected-title">
+    <h2 id="delete-selected-title">Confirm Bulk Delete</h2>
+    <p>Are you sure you want to delete the following tab groups?</p>
+    <div id="selected-tabs-list" style="display: flex; flex-direction: column; gap: 5px; margin: 10px 0;"></div>
+    <form action="/tabs/delete-bulk" method="POST">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+      <div id="bulk-delete-checkboxes"></div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button type="button" onclick="document.getElementById('delete-selected-modal').close()">❌ Cancel</button>
         <button type="submit">🗑️ Delete</button>
       </div>
     </form>
