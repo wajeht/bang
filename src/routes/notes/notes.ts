@@ -464,7 +464,10 @@ export function createNotesRouter(notes: Notes) {
             return;
         }
 
-        req.flash('success', `${deletedCount} note${deletedCount !== 1 ? 's' : ''} deleted successfully`);
+        req.flash(
+            'success',
+            `${deletedCount} note${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+        );
         return res.redirect('/notes');
     }
 
