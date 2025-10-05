@@ -423,6 +423,52 @@ export function createNotesRouter(notes: Notes) {
     }
 
     /**
+     * POST /api/notes/delete-bulk
+     *
+     * @tags Notes
+     * @summary Delete multiple notes
+     *
+     * @security BearerAuth
+     *
+     * @param {array<string>} id.body.required - Array of note IDs
+     *
+     * @return {object} 200 - success response - application/json
+     * @return {object} 400 - Bad request response - application/json
+     *
+     */
+    router.post('/api/notes/delete-bulk', authenticationMiddleware, bulkDeleteNoteHandler);
+    router.post('/notes/delete-bulk', authenticationMiddleware, bulkDeleteNoteHandler);
+    async function bulkDeleteNoteHandler(req: Request, res: Response) {
+        const { id } = req.body;
+
+        if (!id || !Array.isArray(id)) {
+            throw new ValidationError({ id: 'IDs array is required' });
+        }
+
+        const noteIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
+
+        if (noteIds.length === 0) {
+            throw new ValidationError({ id: 'No valid note IDs provided' });
+        }
+
+        const user = req.user as User;
+        const deletedCount = await notes.bulkDelete(noteIds, user.id);
+
+        if (isApiRequest(req)) {
+            res.status(200).json({
+                message: `${deletedCount} note${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+                data: {
+                    deletedCount,
+                },
+            });
+            return;
+        }
+
+        req.flash('success', `${deletedCount} note${deletedCount !== 1 ? 's' : ''} deleted successfully`);
+        return res.redirect('/notes');
+    }
+
+    /**
      * POST /api/notes/{id}/pin
      *
      * @tags Notes
