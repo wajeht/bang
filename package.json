@@ -52,7 +52,7 @@
     "author": "wajeht",
     "license": "MIT",
     "engines": {
-        "node": ">=22.18.0"
+        "node": ">=24.9.0"
     },
     "dependencies": {
         "bcrypt": "^6.0.0",
