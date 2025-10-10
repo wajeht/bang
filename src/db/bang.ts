@@ -80505,11 +80505,10 @@ export const bangs: Record<string, any> = {
     },
     rb: {
         s: 'Current ruby docs',
-        d: 'www.google.com',
-        ad: 'docs.ruby-lang.org',
+        d: 'docs.ruby-lang.org',
         t: 'rb',
         ts: ['ruby'],
-        u: 'https://www.google.com/cse?q={{{s}}}&cx=013598269713424429640:g5orptiw95w&ie=UTF-8',
+        u: 'https://docs.ruby-lang.org/en/master/?q={{{s}}}',
         c: 'Tech',
         sc: 'Programming',
     },
