@@ -75347,6 +75347,7 @@ export const bangs: Record<string, any> = {
     phpnet: {
         s: 'PHP.net',
         d: 'secure.php.net',
+        ad: 'php.net',
         t: 'phpnet',
         ts: ['php'],
         u: 'https://secure.php.net/manual-lookup.php?pattern={{{s}}}',
