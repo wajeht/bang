@@ -121,4 +121,4 @@ export const notes: Notes = {
             return rowsAffected;
         });
     },
-};
+} as const;

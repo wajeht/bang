@@ -125,4 +125,4 @@ export const bookmarks: Bookmarks = {
             return rowsAffected;
         });
     },
-};
+} as const;

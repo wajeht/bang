@@ -15,5 +15,10 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    await db.destroy();
+    try {
+        await db.destroy();
+    } catch (error) {
+        console.error('Error cleaning up test database:', error);
+        throw error;
+    }
 });

@@ -189,4 +189,4 @@ export const actions: Actions = {
             return rowsAffected;
         });
     },
-};
+} as const;

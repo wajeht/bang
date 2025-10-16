@@ -66,5 +66,9 @@ export function attachPaginate() {
         return { data, pagination };
     }
 
-    (knex as any).QueryBuilder.extend('paginate', paginate);
+    try {
+        (knex as any).QueryBuilder.extend('paginate', paginate);
+    } catch (error) {
+        console.error('Error attaching paginate method to Knex QueryBuilder:', error);
+    }
 }

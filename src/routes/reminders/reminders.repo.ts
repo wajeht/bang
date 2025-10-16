@@ -122,4 +122,4 @@ export const reminders: Reminders = {
             return rowsAffected;
         });
     },
-};
+} as const;

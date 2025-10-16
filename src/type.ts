@@ -158,7 +158,11 @@ export type Action = {
     created_at?: string;
 };
 
-export type ActionsQueryParams = {
+/**
+ * Generic base type for repository query parameters.
+ * @template Extra - Additional fields to extend the base query params with
+ */
+export type RepositoryQueryParams<Extra = object> = {
     user: { id: number };
     perPage: number;
     page: number;
@@ -166,8 +170,11 @@ export type ActionsQueryParams = {
     sortKey: string | 'created_at';
     direction: string | 'asc' | 'desc';
     highlight?: boolean;
+} & Extra;
+
+export type ActionsQueryParams = RepositoryQueryParams<{
     excludeHidden?: boolean;
-};
+}>;
 
 export type Bookmark = {
     id?: number;
@@ -179,16 +186,9 @@ export type Bookmark = {
     created_at?: string;
 };
 
-export type BookmarksQueryParams = {
-    user: { id: number };
-    perPage: number;
-    page: number;
-    search: string;
-    sortKey: string | 'created_at';
-    direction: string | 'asc' | 'desc';
-    highlight?: boolean;
+export type BookmarksQueryParams = RepositoryQueryParams<{
     excludeHidden?: boolean;
-};
+}>;
 
 export type Note = {
     id?: number;
@@ -200,16 +200,9 @@ export type Note = {
     created_at?: string;
 };
 
-export type NotesQueryParams = {
-    user: { id: number };
-    perPage: number;
-    page: number;
-    search: string;
-    sortKey: string | 'created_at';
-    direction: string | 'asc' | 'desc';
-    highlight?: boolean;
+export type NotesQueryParams = RepositoryQueryParams<{
     excludeHidden?: boolean;
-};
+}>;
 
 export type Tab = {
     id?: number;
@@ -231,15 +224,7 @@ export type TabItem = {
     updated_at?: string;
 };
 
-export type TabsQueryParams = {
-    user: { id: number };
-    perPage: number;
-    page: number;
-    search: string;
-    sortKey: string | 'created_at';
-    direction: string | 'asc' | 'desc';
-    highlight?: boolean;
-};
+export type TabsQueryParams = RepositoryQueryParams;
 
 export type Reminder = {
     id?: number;
@@ -253,15 +238,7 @@ export type Reminder = {
     updated_at?: string;
 };
 
-export type RemindersQueryParams = {
-    user: { id: number };
-    perPage: number;
-    page: number;
-    search: string;
-    sortKey: string | 'created_at';
-    direction: string | 'asc' | 'desc';
-    highlight?: boolean;
-};
+export type RemindersQueryParams = RepositoryQueryParams;
 
 export type ReminderTimingResult = {
     isValid: boolean;
@@ -285,50 +262,36 @@ export type Pagination = {
     totalPages: number;
 };
 
-export interface Actions {
-    all: (params: ActionsQueryParams) => Promise<any>;
-    create: (action: Action & { actionType: ActionTypes }) => Promise<Action>;
-    read: (id: number, userId: number) => Promise<Action>;
-    update: (id: number, userId: number, updates: Partial<Action> & { actionType: ActionTypes }) => Promise<Action>; // prettier-ignore
+/**
+ * Generic repository interface for CRUD operations.
+ * @template Entity - The entity type returned by operations
+ * @template Params - Query parameters type for the `all` method
+ * @template CreateInput - Input type for the `create` method (defaults to Entity)
+ * @template UpdateInput - Input type for the `update` method (defaults to Partial<Entity>)
+ */
+export interface Repository<Entity, Params, CreateInput = Entity, UpdateInput = Partial<Entity>> {
+    all: (params: Params) => Promise<any>;
+    create: (item: CreateInput) => Promise<Entity>;
+    read: (id: number, userId: number) => Promise<Entity>;
+    update: (id: number, userId: number, updates: UpdateInput) => Promise<Entity>;
     delete: (id: number, userId: number) => Promise<boolean>;
     bulkDelete: (ids: number[], userId: number) => Promise<number>;
 }
 
-export interface Bookmarks {
-    all: (params: BookmarksQueryParams) => Promise<any>;
-    create: (bookmark: Bookmark) => Promise<Bookmark>;
-    read: (id: number, userId: number) => Promise<Bookmark>;
-    update: (id: number, userId: number, updates: Partial<Bookmark>) => Promise<Bookmark>;
-    delete: (id: number, userId: number) => Promise<boolean>;
-    bulkDelete: (ids: number[], userId: number) => Promise<number>;
-}
+export type Actions = Repository<
+    Action,
+    ActionsQueryParams,
+    Action & { actionType: ActionTypes },
+    Partial<Action> & { actionType: ActionTypes }
+>;
 
-export interface Notes {
-    all: (params: NotesQueryParams) => Promise<any>;
-    create: (note: Note) => Promise<Note>;
-    read: (id: number, userId: number) => Promise<Note>;
-    update: (id: number, userId: number, updates: Partial<Note>) => Promise<Note>;
-    delete: (id: number, userId: number) => Promise<boolean>;
-    bulkDelete: (ids: number[], userId: number) => Promise<number>;
-}
+export type Bookmarks = Repository<Bookmark, BookmarksQueryParams>;
 
-export interface Tabs {
-    all: (params: TabsQueryParams) => Promise<any>;
-    create: (tab: Tab) => Promise<Tab>;
-    read: (id: number, userId: number) => Promise<Tab>;
-    update: (id: number, userId: number, updates: Partial<Tab>) => Promise<Tab>;
-    delete: (id: number, userId: number) => Promise<boolean>;
-    bulkDelete: (ids: number[], userId: number) => Promise<number>;
-}
+export type Notes = Repository<Note, NotesQueryParams>;
 
-export interface Reminders {
-    all: (params: RemindersQueryParams) => Promise<any>;
-    create: (reminder: Reminder) => Promise<Reminder>;
-    read: (id: number, userId: number) => Promise<Reminder>;
-    update: (id: number, userId: number, updates: Partial<Reminder>) => Promise<Reminder>;
-    delete: (id: number, userId: number) => Promise<boolean>;
-    bulkDelete: (ids: number[], userId: number) => Promise<number>;
-}
+export type Tabs = Repository<Tab, TabsQueryParams>;
+
+export type Reminders = Repository<Reminder, RemindersQueryParams>;
 
 export type LayoutOptions = {
     /** Default layout file path relative to views directory */

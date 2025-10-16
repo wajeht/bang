@@ -199,4 +199,4 @@ export const tabs: Tabs = {
             return rowsAffected;
         });
     },
-};
+} as const;
