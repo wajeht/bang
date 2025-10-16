@@ -1,16 +1,15 @@
+import type { User } from '../../type';
 import { search } from '../../utils/search';
 import { isApiRequest } from '../../utils/util';
+import type { AppContext } from '../../context';
 import { authenticationMiddleware } from '../middleware';
 import express, { type Request, type Response } from 'express';
-import type { User, Actions, Bookmarks, Notes, Reminders, Tabs } from '../../type';
 
-export function createSearchRouter(
-    actions: Actions,
-    bookmarks: Bookmarks,
-    notes: Notes,
-    reminders: Reminders,
-    tabs: Tabs,
-) {
+export function createSearchRouter(context: AppContext) {
+    const { models } = context;
+
+    const { actions, bookmarks, notes, reminders, tabs } = models;
+
     const router = express.Router();
 
     router.post('/search', async (req: Request, res: Response) => {
@@ -63,7 +62,7 @@ export function createSearchRouter(
 
         const [bookmarksResult, actionsResult, notesResult, tabsResult, remindersResult] =
             await Promise.all([
-                bookmarks.all({
+                context.models.bookmarks.all({
                     user,
                     perPage: 999999,
                     page: 1,
@@ -74,7 +73,7 @@ export function createSearchRouter(
                     excludeHidden: true,
                 }),
 
-                actions.all({
+                context.models.actions.all({
                     user,
                     perPage: 999999,
                     page: 1,
@@ -85,7 +84,7 @@ export function createSearchRouter(
                     excludeHidden: true,
                 }),
 
-                notes.all({
+                context.models.notes.all({
                     user,
                     perPage: 999999,
                     page: 1,
@@ -96,7 +95,7 @@ export function createSearchRouter(
                     excludeHidden: true,
                 }),
 
-                tabs.all({
+                context.models.tabs.all({
                     user,
                     perPage: 999999,
                     page: 1,
@@ -106,7 +105,7 @@ export function createSearchRouter(
                     highlight: true,
                 }),
 
-                reminders.all({
+                context.models.reminders.all({
                     user,
                     perPage: 999999,
                     page: 1,

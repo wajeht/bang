@@ -7,14 +7,14 @@ import {
     checkDuplicateBookmarkUrl,
     generateBookmarkHtmlExport,
 } from '../../utils/util';
-import type { Knex } from 'knex';
 import dayjs from '../../utils/dayjs';
+import type { AppContext } from '../../context';
+import type { User, BookmarkToExport } from '../../type';
 import { NotFoundError, ValidationError } from '../../error';
 import express, { type Request, type Response } from 'express';
 import { authenticationMiddleware } from '../../routes/middleware';
-import type { User, Bookmarks, BookmarkToExport } from '../../type';
 
-export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
+export function createBookmarksRouter(context: AppContext) {
     const router = express.Router();
 
     /**
@@ -56,7 +56,7 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
 
         const canViewHidden = showHidden && hasVerifiedPassword && user.hidden_items_password;
 
-        const { data, pagination } = await bookmarks.all({
+        const { data, pagination } = await context.models.bookmarks.all({
             user,
             perPage,
             page,
@@ -109,8 +109,8 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
                 throw new NotFoundError('User not found');
             }
 
-            const bookmarksData = (await db
-                .select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
+            const bookmarksData = (await context.db
+                .select('url', 'title', context.db.raw("strftime('%s', created_at) as add_date"))
                 .from('bookmarks')
                 .where({ user_id: userId })) as BookmarkToExport[];
 
@@ -134,7 +134,7 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
         '/bookmarks/:id/edit',
         authenticationMiddleware,
         async (req: Request, res: Response) => {
-            const bookmark = await bookmarks.read(
+            const bookmark = await context.models.bookmarks.read(
                 req.params.id as unknown as number,
                 (req.user as User).id,
             );
@@ -157,7 +157,8 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
         authenticationMiddleware,
         async (req: Request, res: Response) => {
             const id = parseInt(req.params.id as unknown as string);
-            const bookmark = await db('bookmarks')
+            const bookmark = await context
+                .db('bookmarks')
                 .where({
                     id,
                     user_id: req.session.user?.id,
@@ -168,7 +169,7 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
                 throw new NotFoundError('Bookmark not found');
             }
 
-            const tabs = await db('tabs').where({ user_id: req.session.user?.id });
+            const tabs = await context.db('tabs').where({ user_id: req.session.user?.id });
 
             return res.render('bookmarks/bookmarks-id-tabs-create.html', {
                 title: `Bookmarks / ${id} / Tabs / Create`,
@@ -184,7 +185,8 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
         '/bookmarks/:id/actions/create',
         authenticationMiddleware,
         async (req: Request, res: Response) => {
-            const bookmark = await db('bookmarks')
+            const bookmark = await context
+                .db('bookmarks')
                 .where({
                     id: req.params.id,
                     user_id: req.session.user?.id,
@@ -332,12 +334,12 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
             }
         }
 
-        const currentBookmark = await bookmarks.read(bookmarkId, user.id);
+        const currentBookmark = await context.models.bookmarks.read(bookmarkId, user.id);
         if (!currentBookmark) {
             throw new NotFoundError('Bookmark not found');
         }
 
-        const updatedBookmark = await bookmarks.update(bookmarkId, user.id, {
+        const updatedBookmark = await context.models.bookmarks.update(bookmarkId, user.id, {
             url,
             title,
             pinned: pinned === 'on' || pinned === true,
@@ -381,7 +383,7 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
     router.delete('/api/bookmarks/:id', authenticationMiddleware, deleteBookmarkHandler);
     router.post('/bookmarks/:id/delete', authenticationMiddleware, deleteBookmarkHandler);
     async function deleteBookmarkHandler(req: Request, res: Response) {
-        const deleted = await bookmarks.delete(
+        const deleted = await context.models.bookmarks.delete(
             req.params.id as unknown as number,
             (req.user as User).id,
         );
@@ -430,7 +432,7 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
         }
 
         const user = req.user as User;
-        const deletedCount = await bookmarks.bulkDelete(bookmarkIds, user.id);
+        const deletedCount = await context.models.bookmarks.bulkDelete(bookmarkIds, user.id);
 
         if (isApiRequest(req)) {
             res.status(200).json({
@@ -469,13 +471,13 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
         const user = req.user as User;
         const bookmarkId = parseInt(req.params.id as unknown as string);
 
-        const currentBookmark = await bookmarks.read(bookmarkId, user.id);
+        const currentBookmark = await context.models.bookmarks.read(bookmarkId, user.id);
 
         if (!currentBookmark) {
             throw new NotFoundError('Bookmark not found');
         }
 
-        const updatedBookmark = await bookmarks.update(bookmarkId, user.id, {
+        const updatedBookmark = await context.models.bookmarks.update(bookmarkId, user.id, {
             pinned: !currentBookmark.pinned,
         });
 
@@ -515,7 +517,7 @@ export function createBookmarksRouter(db: Knex, bookmarks: Bookmarks) {
         authenticationMiddleware,
         async (req: Request, res: Response) => {
             const user = req.user as User;
-            const bookmark = await bookmarks.read(
+            const bookmark = await context.models.bookmarks.read(
                 parseInt(req.params.id as unknown as string),
                 user.id,
             );

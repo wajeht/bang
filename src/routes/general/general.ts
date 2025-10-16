@@ -1,23 +1,16 @@
-import type { Knex } from 'knex';
 import { bangs } from '../../db/bang';
 import { search } from '../../utils/search';
+import type { Bang, User } from '../../type';
+import type { AppContext } from '../../context';
 import express, { type Request, type Response } from 'express';
 import { authenticationMiddleware } from '../../routes/middleware';
-import type { Bang, User, Actions, Bookmarks, Notes, Tabs, Reminders } from '../../type';
 import { paginate, expectJson, extractPagination, highlightSearchTerm } from '../../utils/util';
 
-export function createGeneralRouter(
-    db: Knex,
-    actions: Actions,
-    bookmarks: Bookmarks,
-    notes: Notes,
-    tabs: Tabs,
-    reminders: Reminders,
-) {
+export function createGeneralRouter(context: AppContext) {
     const router = express.Router();
 
     router.get('/healthz', async (req: Request, res: Response) => {
-        await db.raw('SELECT 1');
+        await context.db.raw('SELECT 1');
 
         if (expectJson(req)) {
             res.status(200).json({ status: 'ok', database: 'connected' });
@@ -142,7 +135,7 @@ export function createGeneralRouter(
 
             const [actionsResult, bookmarksResult, notesResult, tabsResult, remindersResult] =
                 await Promise.all([
-                    actions.all({
+                    context.models.actions.all({
                         user,
                         perPage: actionsParams.perPage,
                         page: actionsParams.page,
@@ -151,7 +144,7 @@ export function createGeneralRouter(
                         direction: actionsParams.direction,
                         excludeHidden: true,
                     }),
-                    bookmarks.all({
+                    context.models.bookmarks.all({
                         user,
                         perPage: bookmarksParams.perPage,
                         page: bookmarksParams.page,
@@ -160,7 +153,7 @@ export function createGeneralRouter(
                         direction: bookmarksParams.direction,
                         excludeHidden: true,
                     }),
-                    notes.all({
+                    context.models.notes.all({
                         user,
                         perPage: notesParams.perPage,
                         page: notesParams.page,
@@ -169,7 +162,7 @@ export function createGeneralRouter(
                         direction: notesParams.direction,
                         excludeHidden: true,
                     }),
-                    tabs.all({
+                    context.models.tabs.all({
                         user,
                         perPage: tabsParams.perPage,
                         page: tabsParams.page,
@@ -177,7 +170,7 @@ export function createGeneralRouter(
                         sortKey: tabsParams.sortKey,
                         direction: tabsParams.direction,
                     }),
-                    reminders.all({
+                    context.models.reminders.all({
                         user,
                         perPage: remindersParams.perPage,
                         page: remindersParams.page,

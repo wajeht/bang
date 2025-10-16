@@ -1,15 +1,14 @@
 import bcrypt from 'bcrypt';
 import express from 'express';
-import type { Knex } from 'knex';
 import { User } from '../../type';
-import { config } from '../../config';
+import type { AppContext } from '../../context';
 import type { Request, Response } from 'express';
 import { sendMagicLinkEmail } from '../../utils/mail';
 import { HttpError, ValidationError } from '../../error';
 import { isValidEmail, magicLink } from '../../utils/util';
 import { authenticationMiddleware, turnstileMiddleware } from '../middleware';
 
-export function createAuthRouter(db: Knex) {
+export function createAuthRouter(context: AppContext) {
     const router = express.Router();
 
     router.get('/logout', async (req: Request, res: Response) => {
@@ -37,7 +36,7 @@ export function createAuthRouter(db: Knex) {
             throw new ValidationError({ email: 'Please enter a valid email address' });
         }
 
-        let user = await db('users').where({ email }).first();
+        let user = await context.db('users').where({ email }).first();
 
         if (user) {
             user.is_admin = Boolean(user.is_admin);
@@ -46,11 +45,12 @@ export function createAuthRouter(db: Knex) {
 
         if (!user) {
             const username = email.split('@')[0];
-            [user] = await db('users')
+            [user] = await context
+                .db('users')
                 .insert({
                     username,
                     email,
-                    is_admin: config.app.adminEmail === email,
+                    is_admin: context.config.app.adminEmail === email,
                 })
                 .returning('*');
 
@@ -84,7 +84,7 @@ export function createAuthRouter(db: Knex) {
             });
         }
 
-        const user = await db('users').where({ email: decoded.email }).first();
+        const user = await context.db('users').where({ email: decoded.email }).first();
 
         if (user) {
             user.is_admin = Boolean(user.is_admin);
@@ -95,7 +95,10 @@ export function createAuthRouter(db: Knex) {
             throw new ValidationError({ email: 'User not found' });
         }
 
-        await db('users').where({ id: user.id }).update({ email_verified_at: db.fn.now() });
+        await context
+            .db('users')
+            .where({ id: user.id })
+            .update({ email_verified_at: context.db.fn.now() });
 
         let columnPreferences = {};
         if (user.column_preferences) {

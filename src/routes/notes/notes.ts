@@ -1,12 +1,12 @@
 import express from 'express';
-import { logger } from '../../utils/logger';
-import type { User, Notes } from '../../type';
+import type { User } from '../../type';
 import type { Request, Response } from 'express';
+import type { AppContext } from '../../context';
 import { authenticationMiddleware } from '../middleware';
 import { NotFoundError, ValidationError } from '../../error';
 import { isApiRequest, extractPagination, convertMarkdownToPlainText } from '../../utils/util';
 
-export function createNotesRouter(notes: Notes) {
+export function createNotesRouter(context: AppContext) {
     const router = express.Router();
 
     /**
@@ -45,7 +45,7 @@ export function createNotesRouter(notes: Notes) {
 
         const canViewHidden = showHidden && hasVerifiedPassword && user.hidden_items_password;
 
-        const { data, pagination } = await notes.all({
+        const { data, pagination } = await context.models.notes.all({
             user,
             perPage,
             page,
@@ -94,7 +94,10 @@ export function createNotesRouter(notes: Notes) {
 
     router.get('/notes/:id/edit', authenticationMiddleware, async (req: Request, res: Response) => {
         const user = req.user as User;
-        const note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
+        const note = await context.models.notes.read(
+            parseInt(req.params.id as unknown as string),
+            user.id,
+        );
 
         if (!note) {
             throw new NotFoundError('Note not found');
@@ -127,7 +130,10 @@ export function createNotesRouter(notes: Notes) {
     router.get('/notes/:id', authenticationMiddleware, getNoteHandler);
     async function getNoteHandler(req: Request, res: Response) {
         const user = req.user as User;
-        let note = await notes.read(parseInt(req.params.id as unknown as string), user.id);
+        let note = await context.models.notes.read(
+            parseInt(req.params.id as unknown as string),
+            user.id,
+        );
 
         if (!note) {
             throw new NotFoundError('Note not found');
@@ -235,7 +241,7 @@ export function createNotesRouter(notes: Notes) {
             content = marked(escapedContent) as string;
         } catch (_error) {
             content = '';
-            logger.error(`cannot parse content into markdown`, { error: _error });
+            context.logger.error(`cannot parse content into markdown`, { error: _error });
         }
 
         note = {
@@ -296,7 +302,7 @@ export function createNotesRouter(notes: Notes) {
             }
         }
 
-        const note = await notes.create({
+        const note = await context.models.notes.create({
             user_id: user.id,
             title: title.trim(),
             content: content.trim(),
@@ -361,13 +367,13 @@ export function createNotesRouter(notes: Notes) {
             }
         }
 
-        const currentNote = await notes.read(noteId, user.id);
+        const currentNote = await context.models.notes.read(noteId, user.id);
 
         if (!currentNote) {
             throw new NotFoundError('Note not found');
         }
 
-        const updatedNote = await notes.update(noteId, user.id, {
+        const updatedNote = await context.models.notes.update(noteId, user.id, {
             title: title.trim(),
             content: content.trim(),
             pinned: pinned === 'on' || pinned === true,
@@ -407,7 +413,10 @@ export function createNotesRouter(notes: Notes) {
     router.post('/notes/:id/delete', authenticationMiddleware, deleteNoteHandler);
     async function deleteNoteHandler(req: Request, res: Response) {
         const user = req.user as User;
-        const deleted = await notes.delete(parseInt(req.params.id as unknown as string), user.id);
+        const deleted = await context.models.notes.delete(
+            parseInt(req.params.id as unknown as string),
+            user.id,
+        );
 
         if (!deleted) {
             throw new NotFoundError('Not not found');
@@ -453,7 +462,7 @@ export function createNotesRouter(notes: Notes) {
         }
 
         const user = req.user as User;
-        const deletedCount = await notes.bulkDelete(noteIds, user.id);
+        const deletedCount = await context.models.notes.bulkDelete(noteIds, user.id);
 
         if (isApiRequest(req)) {
             res.status(200).json({
@@ -492,13 +501,13 @@ export function createNotesRouter(notes: Notes) {
         const user = req.user as User;
         const noteId = parseInt(req.params.id as unknown as string);
 
-        const currentNote = await notes.read(noteId, user.id);
+        const currentNote = await context.models.notes.read(noteId, user.id);
 
         if (!currentNote) {
             throw new NotFoundError('Note not found');
         }
 
-        const updatedNote = await notes.update(noteId, user.id, {
+        const updatedNote = await context.models.notes.update(noteId, user.id, {
             pinned: !currentNote.pinned,
         });
 

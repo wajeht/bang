@@ -16,7 +16,8 @@ describe('Tabs Routes', () => {
     });
 
     beforeEach(async () => {
-        app = await createApp();
+        const { app: expressApp } = await createApp();
+        app = expressApp;
     });
 
     afterEach(async () => {

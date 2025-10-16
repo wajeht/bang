@@ -7,13 +7,13 @@ import {
     normalizeBangTrigger,
     isOnlyLettersAndNumbers,
 } from '../../utils/util';
-import type { Knex } from 'knex';
-import type { User, Actions } from '../../type';
+import type { User } from '../../type';
+import type { AppContext } from '../../context';
 import { NotFoundError, ValidationError } from '../../error';
 import express, { type Request, type Response } from 'express';
 import { authenticationMiddleware } from '../../routes/middleware';
 
-export function createActionsRouter(db: Knex, actions: Actions) {
+export function createActionsRouter(context: AppContext) {
     const router = express.Router();
 
     /**
@@ -55,7 +55,7 @@ export function createActionsRouter(db: Knex, actions: Actions) {
 
         const canViewHidden = showHidden && hasVerifiedPassword && user.hidden_items_password;
 
-        const { data, pagination } = await actions.all({
+        const { data, pagination } = await context.models.actions.all({
             user,
             perPage,
             page,
@@ -103,7 +103,7 @@ export function createActionsRouter(db: Knex, actions: Actions) {
         '/actions/:id/edit',
         authenticationMiddleware,
         async (req: Request, res: Response) => {
-            const action = await db
+            const action = await context.db
                 .select('bangs.*')
                 .from('bangs')
                 .where({
@@ -130,7 +130,8 @@ export function createActionsRouter(db: Knex, actions: Actions) {
         authenticationMiddleware,
         async (req: Request, res: Response) => {
             const id = parseInt(req.params.id as unknown as string);
-            const action = await db('bangs')
+            const action = await context
+                .db('bangs')
                 .where({
                     id,
                     user_id: req.session.user?.id,
@@ -141,7 +142,7 @@ export function createActionsRouter(db: Knex, actions: Actions) {
                 throw new NotFoundError('Actions not found');
             }
 
-            const tabs = await db('tabs').where({ user_id: req.session.user?.id });
+            const tabs = await context.db('tabs').where({ user_id: req.session.user?.id });
 
             return res.render('actions/actions-id-tabs-create.html', {
                 title: `Actions / ${id} / Tabs / Create`,
@@ -216,7 +217,8 @@ export function createActionsRouter(db: Knex, actions: Actions) {
             throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
         }
 
-        const existingBang = await db('bangs')
+        const existingBang = await context
+            .db('bangs')
             .where({
                 trigger: formattedTrigger,
                 user_id: user.id,
@@ -227,7 +229,7 @@ export function createActionsRouter(db: Knex, actions: Actions) {
             throw new ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        await actions.create({
+        await context.models.actions.create({
             name: name.trim(),
             trigger: formattedTrigger.toLowerCase(),
             url,
@@ -314,7 +316,8 @@ export function createActionsRouter(db: Knex, actions: Actions) {
 
         const formattedTrigger = normalizeBangTrigger(trigger);
 
-        const existingBang = await db('bangs')
+        const existingBang = await context
+            .db('bangs')
             .where({
                 trigger: formattedTrigger,
                 user_id: user.id,
@@ -326,13 +329,13 @@ export function createActionsRouter(db: Knex, actions: Actions) {
             throw new ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        const currentAction = await actions.read(actionId, user.id);
+        const currentAction = await context.models.actions.read(actionId, user.id);
 
         if (!currentAction) {
             throw new NotFoundError('Action not found');
         }
 
-        const updatedAction = await actions.update(actionId, user.id, {
+        const updatedAction = await context.models.actions.update(actionId, user.id, {
             trigger: formattedTrigger,
             name: name.trim(),
             url,
@@ -377,7 +380,7 @@ export function createActionsRouter(db: Knex, actions: Actions) {
     router.delete('/api/actions/:id', authenticationMiddleware, deleteActionHandler);
     router.post('/actions/:id/delete', authenticationMiddleware, deleteActionHandler);
     async function deleteActionHandler(req: Request, res: Response) {
-        const deleted = await actions.delete(
+        const deleted = await context.models.actions.delete(
             req.params.id as unknown as number,
             (req.user as User).id,
         );
@@ -426,7 +429,7 @@ export function createActionsRouter(db: Knex, actions: Actions) {
         }
 
         const user = req.user as User;
-        const deletedCount = await actions.bulkDelete(actionIds, user.id);
+        const deletedCount = await context.models.actions.bulkDelete(actionIds, user.id);
 
         if (isApiRequest(req)) {
             res.status(200).json({
@@ -466,7 +469,7 @@ export function createActionsRouter(db: Knex, actions: Actions) {
         authenticationMiddleware,
         async (req: Request, res: Response) => {
             const user = req.user as User;
-            const action = await actions.read(
+            const action = await context.models.actions.read(
                 parseInt(req.params.id as unknown as string),
                 user.id,
             );

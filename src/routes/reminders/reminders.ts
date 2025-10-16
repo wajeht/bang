@@ -6,14 +6,16 @@ import {
     checkDuplicateBookmarkUrl,
 } from '../../utils/util';
 import express from 'express';
-import type { Knex } from 'knex';
-import type { User, Reminders } from '../../type';
+import type { User } from '../../type';
 import type { Request, Response } from 'express';
+import type { AppContext } from '../../context';
 import { authenticationMiddleware } from '../middleware';
 import { NotFoundError, ValidationError } from '../../error';
 import { parseReminderTiming, reminderTimingConfig } from '../../utils/search';
 
-export function createRemindersRouter(db: Knex, reminders: Reminders) {
+export function createRemindersRouter(context: AppContext) {
+    const { db, models } = context;
+
     const router = express.Router();
 
     /**
@@ -50,7 +52,7 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
             const user = req.user as User;
             const reminderId = parseInt(req.params.id || '', 10);
 
-            const reminder = await reminders.read(reminderId, user.id);
+            const reminder = await context.models.reminders.read(reminderId, user.id);
 
             if (!reminder) {
                 throw new NotFoundError('Reminder not found');
@@ -74,7 +76,7 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
             const user = req.session.user as User;
             const reminderId = parseInt(req.params.id || '', 10);
 
-            const reminder = await reminders.read(reminderId, user.id);
+            const reminder = await context.models.reminders.read(reminderId, user.id);
 
             if (!reminder) {
                 throw new NotFoundError('Reminder not found');
@@ -98,7 +100,7 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
             const reminderId = parseInt(req.params.id || '', 10);
             const { url, title, pinned, delete_reminder } = req.body;
 
-            const reminder = await reminders.read(reminderId, user.id);
+            const reminder = await context.models.reminders.read(reminderId, user.id);
 
             if (!reminder) {
                 throw new NotFoundError('Reminder not found');
@@ -142,7 +144,7 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
 
             // Delete reminder if requested
             if (delete_reminder === 'on' || delete_reminder === true) {
-                await reminders.delete(reminderId, user.id);
+                await context.models.reminders.delete(reminderId, user.id);
             }
 
             const successMessage =
@@ -167,7 +169,8 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
             const user = req.user as User;
 
             try {
-                const recurringReminders = await db('reminders')
+                const recurringReminders = await context
+                    .db('reminders')
                     .where({
                         user_id: user.id,
                         reminder_type: 'recurring',
@@ -182,14 +185,15 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
                     );
 
                     if (timing.isValid && timing.nextDue) {
-                        await db('reminders')
+                        await context
+                            .db('reminders')
                             .where({ id: reminder.id })
                             .update({
                                 due_date:
                                     timing.nextDue instanceof Date
                                         ? timing.nextDue.toISOString()
                                         : timing.nextDue,
-                                updated_at: db.fn.now(),
+                                updated_at: context.db.fn.now(),
                             });
                     }
                 }
@@ -220,7 +224,7 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'reminders');
 
-        const { data: remindersData, pagination } = await reminders.all({
+        const { data: remindersData, pagination } = await context.models.reminders.all({
             user,
             perPage: perPage || 20,
             page,
@@ -268,7 +272,7 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
         authenticationMiddleware,
         async (req: Request, res: Response) => {
             const user = req.user as User;
-            const reminder = await reminders.read(
+            const reminder = await context.models.reminders.read(
                 parseInt(req.params.id as unknown as string),
                 user.id,
             );
@@ -342,7 +346,7 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
             });
         }
 
-        const reminder = await reminders.create({
+        const reminder = await context.models.reminders.create({
             user_id: user.id,
             title: title.trim(),
             content: trimmedContent,
@@ -424,7 +428,7 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
             });
         }
 
-        const updatedReminder = await reminders.update(reminderId, user.id, {
+        const updatedReminder = await context.models.reminders.update(reminderId, user.id, {
             title,
             content: trimmedContent,
             reminder_type: timing.type,
@@ -469,7 +473,7 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
         const user = req.user as User;
         const reminderId = parseInt(req.params.id as string);
 
-        const deleted = await reminders.delete(reminderId, user.id);
+        const deleted = await context.models.reminders.delete(reminderId, user.id);
 
         if (!deleted) {
             throw new NotFoundError('Reminder not found');
@@ -515,7 +519,7 @@ export function createRemindersRouter(db: Knex, reminders: Reminders) {
         }
 
         const user = req.user as User;
-        const deletedCount = await reminders.bulkDelete(reminderIds, user.id);
+        const deletedCount = await context.models.reminders.bulkDelete(reminderIds, user.id);
 
         if (isApiRequest(req)) {
             res.status(200).json({

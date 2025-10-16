@@ -1,11 +1,11 @@
 import express from 'express';
-import type { Knex } from 'knex';
+import type { AppContext } from '../../context';
 import type { Request, Response } from 'express';
 import { extractPagination } from '../../utils/util';
 import { NotFoundError, ValidationError } from '../../error';
 import { authenticationMiddleware, adminOnlyMiddleware } from '../middleware';
 
-export function createAdminRouter(db: Knex) {
+export function createAdminRouter(context: AppContext) {
     const router = express.Router();
 
     router.get(
@@ -24,7 +24,7 @@ export function createAdminRouter(db: Knex) {
         async (req: Request, res: Response) => {
             const { perPage, page, search, sortKey, direction } = extractPagination(req, 'admin');
 
-            const query = db.select('*').from('users');
+            const query = context.db.select('*').from('users');
 
             if (search) {
                 query.where((q) =>
@@ -64,7 +64,7 @@ export function createAdminRouter(db: Knex) {
                 return res.redirect('/admin/users');
             }
 
-            const user = await db('users').where({ id: userId }).delete();
+            const user = await context.db('users').where({ id: userId }).delete();
 
             if (!user) {
                 throw new NotFoundError('User not found');
@@ -92,7 +92,7 @@ export function createAdminRouter(db: Knex) {
                 throw new ValidationError({ id: 'No valid user IDs provided' });
             }
 
-            const deletedCount = await db.transaction(async (trx) => {
+            const deletedCount = await context.db.transaction(async (trx) => {
                 const rowsAffected = await trx('users')
                     .whereIn('id', userIds)
                     .where('is_admin', false)

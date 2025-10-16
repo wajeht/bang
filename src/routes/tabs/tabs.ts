@@ -6,13 +6,13 @@ import {
     isOnlyLettersAndNumbers,
 } from '../../utils/util';
 import express from 'express';
-import type { Knex } from 'knex';
-import type { User, Tabs } from '../../type';
+import type { User } from '../../type';
 import type { Request, Response } from 'express';
+import type { AppContext } from '../../context';
 import { authenticationMiddleware } from '../middleware';
 import { NotFoundError, ValidationError } from '../../error';
 
-export function createTabsRouter(db: Knex, tabs: Tabs) {
+export function createTabsRouter(context: AppContext) {
     const router = express.Router();
 
     /**
@@ -42,7 +42,7 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
         async (req: Request, res: Response) => {
             const user = req.session.user as User;
 
-            await db('tabs').where({ user_id: user.id }).delete();
+            await context.db('tabs').where({ user_id: user.id }).delete();
 
             if (isApiRequest(req)) {
                 res.status(200).json({ message: 'All tab groups deleted successfully' });
@@ -56,7 +56,7 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
 
     router.get('/tabs/:id/edit', authenticationMiddleware, async (req: Request, res: Response) => {
         const user = req.user as User;
-        const tab = await tabs.read(parseInt(req.params.id as string), user.id);
+        const tab = await context.models.tabs.read(parseInt(req.params.id as string), user.id);
 
         if (!tab) {
             throw new NotFoundError('Tab group not found');
@@ -78,7 +78,7 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
             const user = req.session.user as User;
             const id = req.params.id;
 
-            const tabGroup = await tabs.read(parseInt(id as string), user.id);
+            const tabGroup = await context.models.tabs.read(parseInt(id as string), user.id);
 
             if (!tabGroup) {
                 throw new NotFoundError('Tab group not found');
@@ -101,7 +101,7 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
         async (req: Request, res: Response) => {
             const user = req.session.user as User;
             const tabId = req.params.id;
-            const tab = await db('tabs').where({ id: tabId, user_id: user.id }).first();
+            const tab = await context.db('tabs').where({ id: tabId, user_id: user.id }).first();
 
             if (!tab) {
                 throw new NotFoundError('Tab group not found');
@@ -124,13 +124,17 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
             const user = req.user as User;
             const { id, itemId } = req.params;
 
-            const tab = await db.select('*').from('tabs').where({ id, user_id: user.id }).first();
+            const tab = await context.db
+                .select('*')
+                .from('tabs')
+                .where({ id, user_id: user.id })
+                .first();
 
             if (!tab) {
                 throw new NotFoundError('Tab group not found');
             }
 
-            const tabItem = await db
+            const tabItem = await context.db
                 .select('*')
                 .from('tab_items')
                 .where({ id: itemId, tab_id: id })
@@ -169,7 +173,7 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } = extractPagination(req, 'tabs');
 
-        const { data: tabsData, pagination } = await tabs.all({
+        const { data: tabsData, pagination } = await context.models.tabs.all({
             user,
             perPage,
             page,
@@ -240,14 +244,15 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
             throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
         }
 
-        const existingTab = await db('tabs')
+        const existingTab = await context
+            .db('tabs')
             .where({
                 trigger: formattedTrigger,
                 user_id: user.id,
             })
             .first();
 
-        const existingAction = await db.select('*').from('bangs').where({
+        const existingAction = await context.db.select('*').from('bangs').where({
             user_id: user.id,
             trigger: formattedTrigger,
         });
@@ -262,7 +267,7 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
             throw new ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        await tabs.create({
+        await context.models.tabs.create({
             user_id: user.id,
             title,
             trigger: formattedTrigger,
@@ -301,7 +306,7 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
         const user = req.user as User;
         const { title, trigger } = req.body;
 
-        const tab = await tabs.read(parseInt(req.params.id as string), user.id);
+        const tab = await context.models.tabs.read(parseInt(req.params.id as string), user.id);
 
         if (!tab) {
             throw new NotFoundError('Tab group not found');
@@ -321,7 +326,7 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
             throw new ValidationError({ trigger: 'Trigger can only contain letters and numbers' });
         }
 
-        const existingAction = await db.select('*').from('bangs').where({
+        const existingAction = await context.db.select('*').from('bangs').where({
             user_id: user.id,
             trigger: formattedTrigger,
         });
@@ -332,7 +337,8 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
             });
         }
 
-        const existingTab = await db('tabs')
+        const existingTab = await context
+            .db('tabs')
             .where({
                 trigger: formattedTrigger,
                 user_id: user.id,
@@ -344,7 +350,7 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
             throw new ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        await tabs.update(parseInt(req.params.id as string), user.id, {
+        await context.models.tabs.update(parseInt(req.params.id as string), user.id, {
             title,
             trigger: formattedTrigger,
         });
@@ -380,7 +386,7 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
         const user = req.user as User;
         const tabId = parseInt(req.params.id as unknown as string);
 
-        const deleted = await tabs.delete(tabId, user.id);
+        const deleted = await context.models.tabs.delete(tabId, user.id);
 
         if (!deleted) {
             throw new NotFoundError('Tab group not found');
@@ -427,7 +433,7 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
         }
 
         const user = req.user as User;
-        const deletedCount = await tabs.bulkDelete(tabIds, user.id);
+        const deletedCount = await context.models.tabs.bulkDelete(tabIds, user.id);
 
         if (isApiRequest(req)) {
             res.status(200).json({
@@ -494,13 +500,13 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
             throw new ValidationError({ url: 'Invalid URL format' });
         }
 
-        const tab = await db('tabs').where({ id: tabId, user_id: user.id }).first();
+        const tab = await context.db('tabs').where({ id: tabId, user_id: user.id }).first();
 
         if (!tab) {
             throw new NotFoundError('Tab group not found');
         }
 
-        await db('tab_items').insert({
+        await context.db('tab_items').insert({
             tab_id: tab.id,
             title,
             url,
@@ -543,7 +549,7 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
         const user = req.user as User;
         const { id, itemId } = req.params;
 
-        const tab = await db('tabs').where({ id, user_id: user.id }).first();
+        const tab = await context.db('tabs').where({ id, user_id: user.id }).first();
 
         if (!tab) {
             throw new NotFoundError('Tab group not found');
@@ -563,20 +569,20 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
             throw new ValidationError({ url: 'Invalid URL format' });
         }
 
-        const tabItem = await db('tab_items').where({ id: itemId, tab_id: id }).first();
+        const tabItem = await context.db('tab_items').where({ id: itemId, tab_id: id }).first();
 
         if (!tabItem) {
             throw new NotFoundError('Tab item not found');
         }
 
-        await db.transaction(async (trx) => {
+        await context.db.transaction(async (trx) => {
             await trx('tab_items').where({ id: itemId, tab_id: id }).update({
                 title,
                 url,
-                updated_at: db.fn.now(),
+                updated_at: context.db.fn.now(),
             });
 
-            await trx('tabs').where({ id }).update({ updated_at: db.fn.now() });
+            await trx('tabs').where({ id }).update({ updated_at: context.db.fn.now() });
         });
 
         if (isApiRequest(req)) {
@@ -612,11 +618,11 @@ export function createTabsRouter(db: Knex, tabs: Tabs) {
         const tabId = parseInt(req.params.id as unknown as string);
         const itemId = parseInt(req.params.itemId as unknown as string);
 
-        await db.transaction(async (trx) => {
+        await context.db.transaction(async (trx) => {
             await trx('tab_items').where({ id: itemId, tab_id: tabId }).delete();
             await trx('tabs')
                 .where({ id: tabId, user_id: user.id })
-                .update({ updated_at: db.fn.now() });
+                .update({ updated_at: context.db.fn.now() });
         });
 
         if (isApiRequest(req)) {

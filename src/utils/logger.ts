@@ -128,4 +128,4 @@ export const logger: LoggerType = {
         console.log(drawBorder('└', width));
         console.log('');
     },
-};
+} as const;

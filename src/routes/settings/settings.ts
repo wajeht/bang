@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt';
-import type { Knex } from 'knex';
 import { api } from '../../utils/util';
-import { logger } from '../../utils/logger';
+import type { AppContext } from '../../context';
 import { searchConfig } from '../../utils/search';
 import type { User, ApiKeyPayload } from '../../type';
 import { sendDataExportEmail } from '../../utils/mail';
@@ -10,7 +9,7 @@ import { authenticationMiddleware } from '../../routes/middleware';
 import { HttpError, NotFoundError, ValidationError } from '../../error';
 import { isValidEmail, generateUserDataExport } from '../../utils/util';
 
-export function createSettingsRouter(db: Knex) {
+export function createSettingsRouter(context: AppContext) {
     const router = express.Router();
 
     router.get('/settings', authenticationMiddleware, async (_req: Request, res: Response) => {
@@ -128,7 +127,8 @@ export function createSettingsRouter(db: Knex) {
             // Check if username is being changed and if it's already taken by another user
             const currentUserId = (req.user as User).id;
             if (username !== (req.user as User).username) {
-                const existingUser = await db('users')
+                const existingUser = await context
+                    .db('users')
                     .where({ username })
                     .whereNot({ id: currentUserId })
                     .first();
@@ -139,7 +139,8 @@ export function createSettingsRouter(db: Knex) {
 
             // Check if email is being changed and if it's already taken by another user
             if (email !== (req.user as User).email) {
-                const existingUser = await db('users')
+                const existingUser = await context
+                    .db('users')
                     .where({ email })
                     .whereNot({ id: currentUserId })
                     .first();
@@ -148,7 +149,8 @@ export function createSettingsRouter(db: Knex) {
                 }
             }
 
-            const updatedUser = await db('users')
+            const updatedUser = await context
+                .db('users')
                 .update({
                     email,
                     username,
@@ -474,7 +476,8 @@ export function createSettingsRouter(db: Knex) {
                 }
             });
 
-            await db('users')
+            await context
+                .db('users')
                 .where('id', user.id)
                 .update({
                     column_preferences: JSON.stringify(updatedPreferences),
@@ -495,7 +498,7 @@ export function createSettingsRouter(db: Knex) {
         '/settings/create-api-key',
         authenticationMiddleware,
         async (req: Request, res: Response) => {
-            const user = await db('users').where({ id: req.session.user?.id }).first();
+            const user = await context.db('users').where({ id: req.session.user?.id }).first();
 
             if (!user) {
                 throw new NotFoundError('User not found');
@@ -509,12 +512,13 @@ export function createSettingsRouter(db: Knex) {
 
             const payload: ApiKeyPayload = { userId: user.id, apiKeyVersion: newKeyVersion };
 
-            await db('users')
+            await context
+                .db('users')
                 .where({ id: req.session?.user?.id })
                 .update({
                     api_key: await api.generate(payload),
                     api_key_version: newKeyVersion,
-                    api_key_created_at: db.fn.now(),
+                    api_key_created_at: context.db.fn.now(),
                 });
 
             req.flash('success', '📱 api key created');
@@ -546,7 +550,7 @@ export function createSettingsRouter(db: Knex) {
                     throw new ValidationError({ currentPassword: 'Incorrect password' });
                 }
 
-                await db.transaction(async (trx) => {
+                await context.db.transaction(async (trx) => {
                     await trx('users')
                         .where({ id: user.id })
                         .update({ hidden_items_password: null });
@@ -591,7 +595,8 @@ export function createSettingsRouter(db: Knex) {
 
             const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-            await db('users')
+            await context
+                .db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
 
@@ -666,7 +671,7 @@ export function createSettingsRouter(db: Knex) {
             const userId = req.session.user?.id;
 
             try {
-                await db.transaction(async (trx) => {
+                await context.db.transaction(async (trx) => {
                     // Import bookmarks
                     if (importData.bookmarks?.length > 0) {
                         const bookmarks = importData.bookmarks.map(
@@ -681,7 +686,7 @@ export function createSettingsRouter(db: Knex) {
                                 url: bookmark.url,
                                 pinned: bookmark.pinned || false,
                                 hidden: bookmark.hidden || false,
-                                created_at: db.fn.now(),
+                                created_at: context.db.fn.now(),
                             }),
                         );
                         await trx('bookmarks').insert(bookmarks);
@@ -708,7 +713,7 @@ export function createSettingsRouter(db: Knex) {
                                         url: action.url,
                                         action_type: action.action_type,
                                         hidden: action.hidden || false,
-                                        created_at: db.fn.now(),
+                                        created_at: context.db.fn.now(),
                                     });
                                 }
                             }
@@ -729,7 +734,7 @@ export function createSettingsRouter(db: Knex) {
                                 content: note.content,
                                 pinned: note.pinned || false,
                                 hidden: note.hidden || false,
-                                created_at: db.fn.now(),
+                                created_at: context.db.fn.now(),
                             }),
                         );
 
@@ -755,7 +760,7 @@ export function createSettingsRouter(db: Knex) {
                                         user_id: userId,
                                         trigger: tabData.trigger,
                                         title: tabData.title,
-                                        created_at: db.fn.now(),
+                                        created_at: context.db.fn.now(),
                                     })
                                     .returning('id');
                                 tabId = newTabId;
@@ -770,7 +775,7 @@ export function createSettingsRouter(db: Knex) {
                                         tab_id: typeof tabId === 'object' ? tabId.id : tabId,
                                         title: item.title,
                                         url: item.url,
-                                        created_at: db.fn.now(),
+                                        created_at: context.db.fn.now(),
                                     }),
                                 );
 
@@ -795,7 +800,7 @@ export function createSettingsRouter(db: Knex) {
                                 reminder_type: reminder.reminder_type,
                                 frequency: reminder.frequency || null,
                                 due_date: reminder.due_date || null,
-                                created_at: db.fn.now(),
+                                created_at: context.db.fn.now(),
                             }),
                         );
                         await trx('reminders').insert(reminders);
@@ -869,7 +874,7 @@ export function createSettingsRouter(db: Knex) {
 
                 req.flash('success', 'Data imported successfully!');
             } catch (error) {
-                logger.error('Import error: %o', error);
+                context.logger.error('Import error: %o', error);
                 req.flash('error', 'Failed to import data. Please check the format and try again.');
             }
 
@@ -912,13 +917,16 @@ export function createSettingsRouter(db: Knex) {
                         includeHtml,
                     });
                 } catch (error) {
-                    logger.error('Failed to send export email before account deletion: %o', {
-                        error,
-                    });
+                    context.logger.error(
+                        'Failed to send export email before account deletion: %o',
+                        {
+                            error,
+                        },
+                    );
                 }
             }
 
-            await db('users').where({ id: user.id }).delete();
+            await context.db('users').where({ id: user.id }).delete();
 
             if ((req.session && req.session.user) || req.user) {
                 req.session.user = null;
@@ -997,7 +1005,7 @@ export function createSettingsRouter(db: Knex) {
             }
 
             try {
-                await db.transaction(async (trx) => {
+                await context.db.transaction(async (trx) => {
                     const deleteCounts: { [key: string]: number } = {};
 
                     if (deleteActions) {
@@ -1069,7 +1077,7 @@ export function createSettingsRouter(db: Knex) {
                     }
                 });
             } catch (error) {
-                logger.error('Bulk delete error: %o', error);
+                context.logger.error('Bulk delete error: %o', error);
                 req.flash('error', 'Failed to delete data. Please try again.');
             }
 

@@ -1,15 +1,10 @@
 import express from 'express';
-import { db } from '../db/db';
-import { tabs } from './tabs/tabs.repo';
-import { notes } from './notes/notes.repo';
+import type { AppContext } from '../context';
 import { createTabsRouter } from './tabs/tabs';
 import { createAuthRouter } from './auth/auth';
-import { actions } from './actions/actions.repo';
 import { createAdminRouter } from './admin/admin';
 import { createNotesRouter } from './notes/notes';
 import { createSearchRouter } from './search/search';
-import { bookmarks } from './bookmarks/bookmarks.repo';
-import { reminders } from './reminders/reminders.repo';
 import { createActionsRouter } from './actions/actions';
 import { createGeneralRouter } from './general/general';
 import { createSettingsRouter } from './settings/settings';
@@ -26,17 +21,19 @@ import { createRemindersRouter } from './reminders/reminders';
  *       bearerFormat: JWT
  */
 
-const router = express.Router();
+export function router(ctx: AppContext) {
+    const router = express.Router();
 
-router.use(createAuthRouter(db));
-router.use(createAdminRouter(db));
-router.use(createSettingsRouter(db));
-router.use(createTabsRouter(db, tabs));
-router.use(createNotesRouter(notes));
-router.use(createActionsRouter(db, actions));
-router.use(createBookmarksRouter(db, bookmarks));
-router.use(createRemindersRouter(db, reminders));
-router.use(createSearchRouter(actions, bookmarks, notes, reminders, tabs));
-router.use(createGeneralRouter(db, actions, bookmarks, notes, tabs, reminders));
+    router.use(createAuthRouter(ctx));
+    router.use(createAdminRouter(ctx));
+    router.use(createSettingsRouter(ctx));
+    router.use(createTabsRouter(ctx));
+    router.use(createNotesRouter(ctx));
+    router.use(createActionsRouter(ctx));
+    router.use(createBookmarksRouter(ctx));
+    router.use(createRemindersRouter(ctx));
+    router.use(createSearchRouter(ctx));
+    router.use(createGeneralRouter(ctx));
 
-export { router };
+    return router;
+}
