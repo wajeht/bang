@@ -115,11 +115,11 @@ export async function createServer() {
             case 'EACCES':
                 logger.error(`${bind} requires elevated privileges`);
                 process.exit(1);
-                // eslint-disable-next-line no-fallthrough
+            // eslint-disable-next-line no-fallthrough
             case 'EADDRINUSE':
                 logger.error(`${bind} is already in use`);
                 process.exit(1);
-                // eslint-disable-next-line no-fallthrough
+            // eslint-disable-next-line no-fallthrough
             default:
                 throw error;
         }
