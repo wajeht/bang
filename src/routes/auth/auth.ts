@@ -1,15 +1,8 @@
-import bcrypt from 'bcrypt';
-import express from 'express';
-import { User } from '../../type';
-import type { AppContext } from '../../context';
 import type { Request, Response } from 'express';
-import { sendMagicLinkEmail } from '../../utils/mail';
-import { HttpError, ValidationError } from '../../error';
-import { isValidEmail, magicLink } from '../../utils/util';
-import { authenticationMiddleware, turnstileMiddleware } from '../middleware';
+import type { AppContext, User } from '../../type';
 
 export function createAuthRouter(context: AppContext) {
-    const router = express.Router();
+    const router = context.libs.express.Router();
 
     router.get('/logout', async (req: Request, res: Response) => {
         if ((req.session && req.session.user) || req.user) {
@@ -17,7 +10,7 @@ export function createAuthRouter(context: AppContext) {
             req.user = undefined;
             req.session.destroy((error) => {
                 if (error) {
-                    throw new HttpError(500, error.message, req);
+                    throw new context.errors.HttpError(500, error.message, req);
                 }
             });
         }
@@ -25,15 +18,17 @@ export function createAuthRouter(context: AppContext) {
         return res.redirect(`/?toast=${encodeURIComponent('✌️ see ya!')}`);
     });
 
-    router.post('/login', turnstileMiddleware, async (req: Request, res: Response) => {
+    router.post('/login', context.middleware.turnstile, async (req: Request, res: Response) => {
         const { email } = req.body;
 
         if (!email) {
-            throw new ValidationError({ email: 'Email is required' });
+            throw new context.errors.ValidationError({ email: 'Email is required' });
         }
 
-        if (!isValidEmail(email)) {
-            throw new ValidationError({ email: 'Please enter a valid email address' });
+        if (!context.utils.validation.isValidEmail(email)) {
+            throw new context.errors.ValidationError({
+                email: 'Please enter a valid email address',
+            });
         }
 
         let user = await context.db('users').where({ email }).first();
@@ -62,9 +57,9 @@ export function createAuthRouter(context: AppContext) {
             }
         }
 
-        const token = magicLink.generate({ email });
+        const token = context.utils.auth.generateMagicLink({ email });
 
-        setTimeout(() => sendMagicLinkEmail({ email, token, req }), 0);
+        setTimeout(() => context.utils.mail.sendMagicLinkEmail({ email, token, req }), 0);
 
         req.flash(
             'success',
@@ -76,10 +71,10 @@ export function createAuthRouter(context: AppContext) {
     router.get('/auth/magic/:token', async (req: Request, res: Response) => {
         const { token } = req.params;
 
-        const decoded = magicLink.verify(token!);
+        const decoded = context.utils.auth.verifyMagicLink(token!);
 
         if (!decoded || !decoded.email) {
-            throw new ValidationError({
+            throw new context.errors.ValidationError({
                 email: 'Magic link has expired or is invalid. Please request a new one.',
             });
         }
@@ -92,7 +87,7 @@ export function createAuthRouter(context: AppContext) {
         }
 
         if (!user) {
-            throw new ValidationError({ email: 'User not found' });
+            throw new context.errors.ValidationError({ email: 'User not found' });
         }
 
         await context
@@ -127,7 +122,7 @@ export function createAuthRouter(context: AppContext) {
 
     router.post(
         '/verify-hidden-password',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const { password, resource_type, resource_id, original_query } = req.body;
             const user = req.session.user as User;
@@ -150,7 +145,7 @@ export function createAuthRouter(context: AppContext) {
                 return res.redirect(url.pathname + url.search);
             }
 
-            const isValid = await bcrypt.compare(password, user.hidden_items_password);
+            const isValid = await context.libs.bcrypt.compare(password, user.hidden_items_password);
 
             if (!isValid) {
                 if (resource_type === 'note') {

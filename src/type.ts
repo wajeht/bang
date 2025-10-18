@@ -1,3 +1,5 @@
+import type * as express from 'express';
+
 declare module 'express-session' {
     interface SessionData {
         redirectTo: string | null;
@@ -26,8 +28,6 @@ declare global {
         }
     }
 }
-
-import type { Request, Response } from 'express';
 
 export type DefaultSearchProviders = 'duckduckgo' | 'google' | 'yahoo' | 'bing';
 
@@ -249,11 +249,11 @@ export type ReminderTimingResult = {
 };
 
 export type Search = (options: {
-    res: Response;
+    res: express.Response;
     user: User | undefined;
     query: string;
-    req: Request;
-}) => Promise<void | Response>;
+    req: express.Request;
+}) => Promise<void | express.Response>;
 
 export type Pagination = {
     total: number;
@@ -293,6 +293,11 @@ export type Tabs = Repository<Tab, TabsQueryParams>;
 
 export type Reminders = Repository<Reminder, RemindersQueryParams>;
 
+export type Users = {
+    read: (id: number) => Promise<User | null>;
+    readByEmail: (email: string) => Promise<User | null>;
+};
+
 export type LayoutOptions = {
     /** Default layout file path relative to views directory */
     defaultLayout?: string;
@@ -323,3 +328,120 @@ export type PaginateArrayOptions = {
     perPage: number;
     total: number;
 };
+
+import type { Knex } from 'knex';
+
+import type { createDateUtils } from './utils/date';
+import type { createHtmlUtils } from './utils/html';
+import type { createAuthUtils } from './utils/auth';
+import type { createMailUtils } from './utils/mail';
+import type { createUtilUtils } from './utils/util';
+import type { createSearchUtils } from './utils/search';
+import type { createRequestUtils } from './utils/request';
+import type { createValidationUtils } from './utils/validation';
+import type { createCronService } from './crons';
+import type { createDatabase } from './db/db';
+import type { config } from './config';
+import type { Libs, dayjs } from './libs';
+
+export type DateUtils = ReturnType<typeof createDateUtils>;
+export type HtmlUtils = ReturnType<typeof createHtmlUtils>;
+export type ValidationUtils = ReturnType<typeof createValidationUtils>;
+export type AuthUtils = ReturnType<typeof createAuthUtils>;
+export type RequestUtils = ReturnType<typeof createRequestUtils>;
+export type UtilUtils = ReturnType<typeof createUtilUtils>;
+export type SearchUtils = ReturnType<typeof createSearchUtils>;
+export type MailUtils = ReturnType<typeof createMailUtils>;
+
+export type Config = typeof config;
+export type CronService = ReturnType<typeof createCronService>;
+export type Database = ReturnType<typeof createDatabase>;
+
+export interface Models {
+    actions: Actions;
+    bookmarks: Bookmarks;
+    notes: Notes;
+    tabs: Tabs;
+    reminders: Reminders;
+    users: Users;
+}
+
+export interface Services {
+    crons: CronService;
+}
+
+export interface Utilities {
+    date: DateUtils;
+    html: HtmlUtils;
+    validation: ValidationUtils;
+    auth: AuthUtils;
+    request: RequestUtils;
+    util: UtilUtils;
+    search: SearchUtils;
+    mail: MailUtils;
+}
+
+export interface Middlewares {
+    authentication: express.RequestHandler;
+    notFound: express.RequestHandler;
+    errorHandler: express.ErrorRequestHandler;
+    turnstile: express.RequestHandler;
+    adminOnly: express.RequestHandler;
+    helmet: express.RequestHandler;
+    session: express.RequestHandler;
+    csrf: express.RequestHandler[];
+    rateLimit: express.RequestHandler;
+    appLocalState: express.RequestHandler;
+    staticAssets: express.RequestHandler;
+    layout: express.RequestHandler;
+}
+
+export interface ErrorClasses {
+    HttpError: new (
+        statusCode: number,
+        message: string,
+        req?: express.Request,
+    ) => Error & {
+        statusCode: number;
+        request?: express.Request;
+    };
+    NotFoundError: new (
+        message: string,
+        req?: express.Request,
+    ) => Error & {
+        statusCode: number;
+        request?: express.Request;
+    };
+    ValidationError: new (errors: Record<string, string> | string) => Error & {
+        statusCode: number;
+        errors?: Record<string, string>;
+    };
+    UnauthorizedError: new (
+        message: string,
+        req?: express.Request,
+    ) => Error & {
+        statusCode: number;
+        request?: express.Request;
+    };
+    ForbiddenError: new (
+        message: string,
+        req?: express.Request,
+    ) => Error & {
+        statusCode: number;
+        request?: express.Request;
+    };
+    UnimplementedFunctionError: new (message: string) => Error & { statusCode: number };
+}
+
+export interface AppContext {
+    config: Config;
+    logger: Logger;
+    db: Knex;
+    database: Database;
+    errors: ErrorClasses;
+    libs: Libs;
+    models: Models;
+    services: Services;
+    utils: Utilities;
+    middleware: Middlewares;
+}

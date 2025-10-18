@@ -1,4 +1,4 @@
-import dayjs from './dayjs';
+import { dayjs } from '../libs';
 import { styleText, format } from 'node:util';
 import type { Logger as LoggerType } from '../type';
 

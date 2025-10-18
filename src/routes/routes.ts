@@ -1,5 +1,4 @@
-import express from 'express';
-import type { AppContext } from '../context';
+import type { AppContext } from '../type';
 import { createTabsRouter } from './tabs/tabs';
 import { createAuthRouter } from './auth/auth';
 import { createAdminRouter } from './admin/admin';
@@ -22,7 +21,7 @@ import { createRemindersRouter } from './reminders/reminders';
  */
 
 export function router(ctx: AppContext) {
-    const router = express.Router();
+    const router = ctx.libs.express.Router();
 
     router.use(createAuthRouter(ctx));
     router.use(createAdminRouter(ctx));

@@ -1,9 +1,18 @@
 import { db } from '../db/db';
-import { magicLink, api } from '../utils/util';
 import request from 'supertest';
-import { createApp } from '../app';
+import { createContext } from '../context';
 import type { Application } from 'express';
+import type { AppContext } from '../type';
 import type { SuperTest, Test } from 'supertest';
+
+let testContext: AppContext | null = null;
+
+async function getTestContext(): Promise<AppContext> {
+    if (!testContext) {
+        testContext = await createContext();
+    }
+    return testContext;
+}
 
 export async function ensureTestUserExists(email: string = 'test@example.com') {
     let user = await db('users').where({ email }).first();
@@ -150,7 +159,8 @@ async function wrapAgentWithCsrf(agent: SuperTest<Test>, getCsrfToken: () => Pro
 export async function authenticateAgent(app: Application, email: string = 'test@example.com') {
     const user = await ensureTestUserExists(email);
     const agent = request.agent(app);
-    const token = magicLink.generate({ email });
+    const ctx = await getTestContext();
+    const token = ctx.utils.auth.generateMagicLink({ email });
     await agent.get(`/auth/magic/${token}`).expect(302);
 
     // Helper to get CSRF token
@@ -255,8 +265,9 @@ export async function authenticateApiAgent(app: Application, email: string = 'te
     const user = await ensureTestUserExists(email);
 
     // Generate API key for the user
+    const ctx = await getTestContext();
     const apiKeyVersion = 1;
-    const apiKey = await api.generate({ userId: user.id, apiKeyVersion });
+    const apiKey = await ctx.utils.auth.generateApiKey({ userId: user.id, apiKeyVersion });
 
     // Update user with API key
     await db('users').where({ id: user.id }).update({

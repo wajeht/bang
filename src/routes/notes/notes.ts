@@ -1,13 +1,8 @@
-import express from 'express';
-import type { User } from '../../type';
 import type { Request, Response } from 'express';
-import type { AppContext } from '../../context';
-import { authenticationMiddleware } from '../middleware';
-import { NotFoundError, ValidationError } from '../../error';
-import { isApiRequest, extractPagination, convertMarkdownToPlainText } from '../../utils/util';
+import type { AppContext, User } from '../../type';
 
 export function createNotesRouter(context: AppContext) {
-    const router = express.Router();
+    const router = context.libs.express.Router();
 
     /**
      * A note
@@ -30,11 +25,12 @@ export function createNotesRouter(context: AppContext) {
      * @return {object} 200 - success response - application/json
      * @return {object} 400 - Bad request response - application/json
      */
-    router.get('/api/notes', authenticationMiddleware, getNotesHandler);
-    router.get('/notes', authenticationMiddleware, getNotesHandler);
+    router.get('/api/notes', context.middleware.authentication, getNotesHandler);
+    router.get('/notes', context.middleware.authentication, getNotesHandler);
     async function getNotesHandler(req: Request, res: Response) {
         const user = req.user as User;
-        const { perPage, page, search, sortKey, direction } = extractPagination(req, 'notes');
+        const { perPage, page, search, sortKey, direction } =
+            context.utils.request.extractPaginationParams(req, 'notes');
 
         // Check if user wants to show hidden items and has verified password
         const showHidden = req.query.hidden === 'true';
@@ -52,11 +48,11 @@ export function createNotesRouter(context: AppContext) {
             search,
             sortKey,
             direction,
-            highlight: !isApiRequest(req),
+            highlight: !context.utils.auth.isApiRequest(req),
             excludeHidden: !canViewHidden,
         });
 
-        if (isApiRequest(req)) {
+        if (context.utils.auth.isApiRequest(req)) {
             res.json({ data, pagination, search, sortKey, direction });
             return;
         }
@@ -65,7 +61,7 @@ export function createNotesRouter(context: AppContext) {
         const markdownRemovedData = await Promise.all(
             limitedData.map(async (d: any) => ({
                 ...d,
-                content: await convertMarkdownToPlainText(d.content, 200),
+                content: await context.utils.util.convertMarkdownToPlainText(d.content, 200),
             })),
         );
 
@@ -84,32 +80,40 @@ export function createNotesRouter(context: AppContext) {
         });
     }
 
-    router.get('/notes/create', authenticationMiddleware, async (_req: Request, res: Response) => {
-        return res.render('notes/notes-create.html', {
-            title: 'Notes / Create',
-            path: '/notes/create',
-            layout: '_layouts/auth.html',
-        });
-    });
+    router.get(
+        '/notes/create',
+        context.middleware.authentication,
+        async (_req: Request, res: Response) => {
+            return res.render('notes/notes-create.html', {
+                title: 'Notes / Create',
+                path: '/notes/create',
+                layout: '_layouts/auth.html',
+            });
+        },
+    );
 
-    router.get('/notes/:id/edit', authenticationMiddleware, async (req: Request, res: Response) => {
-        const user = req.user as User;
-        const note = await context.models.notes.read(
-            parseInt(req.params.id as unknown as string),
-            user.id,
-        );
+    router.get(
+        '/notes/:id/edit',
+        context.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const note = await context.models.notes.read(
+                parseInt(req.params.id as unknown as string),
+                user.id,
+            );
 
-        if (!note) {
-            throw new NotFoundError('Note not found');
-        }
+            if (!note) {
+                throw new context.errors.NotFoundError('Note not found');
+            }
 
-        return res.render('notes/notes-edit.html', {
-            title: 'Notes / Edit',
-            path: '/notes/edit',
-            layout: '_layouts/auth.html',
-            note,
-        });
-    });
+            return res.render('notes/notes-edit.html', {
+                title: 'Notes / Edit',
+                path: '/notes/edit',
+                layout: '_layouts/auth.html',
+                note,
+            });
+        },
+    );
 
     /**
      * GET /api/notes/{id}
@@ -126,8 +130,8 @@ export function createNotesRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.get('/api/notes/:id', authenticationMiddleware, getNoteHandler);
-    router.get('/notes/:id', authenticationMiddleware, getNoteHandler);
+    router.get('/api/notes/:id', context.middleware.authentication, getNoteHandler);
+    router.get('/notes/:id', context.middleware.authentication, getNoteHandler);
     async function getNoteHandler(req: Request, res: Response) {
         const user = req.user as User;
         let note = await context.models.notes.read(
@@ -136,10 +140,10 @@ export function createNotesRouter(context: AppContext) {
         );
 
         if (!note) {
-            throw new NotFoundError('Note not found');
+            throw new context.errors.NotFoundError('Note not found');
         }
 
-        if (note.hidden && !isApiRequest(req)) {
+        if (note.hidden && !context.utils.auth.isApiRequest(req)) {
             const verificationKey = `note_${note.id}`;
             const verifiedTime = req.session?.verifiedHiddenItems?.[verificationKey];
 
@@ -200,7 +204,7 @@ export function createNotesRouter(context: AppContext) {
             }
         }
 
-        if (isApiRequest(req)) {
+        if (context.utils.auth.isApiRequest(req)) {
             res.status(200).json({
                 message: 'note retrieved successfully',
                 data: note,
@@ -271,32 +275,36 @@ export function createNotesRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.post('/api/notes', authenticationMiddleware, postNoteHandler);
-    router.post('/notes', authenticationMiddleware, postNoteHandler);
+    router.post('/api/notes', context.middleware.authentication, postNoteHandler);
+    router.post('/notes', context.middleware.authentication, postNoteHandler);
     async function postNoteHandler(req: Request, res: Response) {
         const { title, content, pinned, hidden } = req.body;
 
         if (!title) {
-            throw new ValidationError({ title: 'Title is required' });
+            throw new context.errors.ValidationError({ title: 'Title is required' });
         }
 
         if (!content) {
-            throw new ValidationError({ content: 'Content is required' });
+            throw new context.errors.ValidationError({ content: 'Content is required' });
         }
 
         if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-            throw new ValidationError({ pinned: 'Pinned must be a boolean or checkbox value' });
+            throw new context.errors.ValidationError({
+                pinned: 'Pinned must be a boolean or checkbox value',
+            });
         }
 
         if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new ValidationError({ hidden: 'Hidden must be a boolean or checkbox value' });
+            throw new context.errors.ValidationError({
+                hidden: 'Hidden must be a boolean or checkbox value',
+            });
         }
 
         const user = req.user as User;
 
         if (hidden === 'on' || hidden === true) {
             if (!user.hidden_items_password) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
                 });
             }
@@ -310,7 +318,7 @@ export function createNotesRouter(context: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
-        if (isApiRequest(req)) {
+        if (context.utils.auth.isApiRequest(req)) {
             res.status(201).json({ message: `Note ${note.title} created successfully!` });
             return;
         }
@@ -335,25 +343,29 @@ export function createNotesRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.put('/api/notes/:id', authenticationMiddleware, updateNoteHandler);
-    router.post('/notes/:id/update', authenticationMiddleware, updateNoteHandler);
+    router.put('/api/notes/:id', context.middleware.authentication, updateNoteHandler);
+    router.post('/notes/:id/update', context.middleware.authentication, updateNoteHandler);
     async function updateNoteHandler(req: Request, res: Response) {
         const { title, content, pinned, hidden } = req.body;
 
         if (!title) {
-            throw new ValidationError({ title: 'Title is required' });
+            throw new context.errors.ValidationError({ title: 'Title is required' });
         }
 
         if (!content) {
-            throw new ValidationError({ content: 'Content is required' });
+            throw new context.errors.ValidationError({ content: 'Content is required' });
         }
 
         if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-            throw new ValidationError({ pinned: 'Pinned must be a boolean or checkbox value' });
+            throw new context.errors.ValidationError({
+                pinned: 'Pinned must be a boolean or checkbox value',
+            });
         }
 
         if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new ValidationError({ hidden: 'Hidden must be a boolean or checkbox value' });
+            throw new context.errors.ValidationError({
+                hidden: 'Hidden must be a boolean or checkbox value',
+            });
         }
 
         const user = req.user as User;
@@ -361,7 +373,7 @@ export function createNotesRouter(context: AppContext) {
 
         if (hidden === 'on' || hidden === true) {
             if (!user.hidden_items_password) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
                 });
             }
@@ -370,7 +382,7 @@ export function createNotesRouter(context: AppContext) {
         const currentNote = await context.models.notes.read(noteId, user.id);
 
         if (!currentNote) {
-            throw new NotFoundError('Note not found');
+            throw new context.errors.NotFoundError('Note not found');
         }
 
         const updatedNote = await context.models.notes.update(noteId, user.id, {
@@ -380,7 +392,7 @@ export function createNotesRouter(context: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
-        if (isApiRequest(req)) {
+        if (context.utils.auth.isApiRequest(req)) {
             res.status(200).json({ message: 'note updated successfully' });
             return;
         }
@@ -409,8 +421,8 @@ export function createNotesRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.delete('/api/notes/:id', authenticationMiddleware, deleteNoteHandler);
-    router.post('/notes/:id/delete', authenticationMiddleware, deleteNoteHandler);
+    router.delete('/api/notes/:id', context.middleware.authentication, deleteNoteHandler);
+    router.post('/notes/:id/delete', context.middleware.authentication, deleteNoteHandler);
     async function deleteNoteHandler(req: Request, res: Response) {
         const user = req.user as User;
         const deleted = await context.models.notes.delete(
@@ -419,10 +431,10 @@ export function createNotesRouter(context: AppContext) {
         );
 
         if (!deleted) {
-            throw new NotFoundError('Not not found');
+            throw new context.errors.NotFoundError('Not not found');
         }
 
-        if (isApiRequest(req)) {
+        if (context.utils.auth.isApiRequest(req)) {
             res.status(200).json({ message: 'note deleted successfully' });
             return;
         }
@@ -446,25 +458,25 @@ export function createNotesRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.post('/api/notes/delete-bulk', authenticationMiddleware, bulkDeleteNoteHandler);
-    router.post('/notes/delete-bulk', authenticationMiddleware, bulkDeleteNoteHandler);
+    router.post('/api/notes/delete-bulk', context.middleware.authentication, bulkDeleteNoteHandler);
+    router.post('/notes/delete-bulk', context.middleware.authentication, bulkDeleteNoteHandler);
     async function bulkDeleteNoteHandler(req: Request, res: Response) {
         const { id } = req.body;
 
         if (!id || !Array.isArray(id)) {
-            throw new ValidationError({ id: 'IDs array is required' });
+            throw new context.errors.ValidationError({ id: 'IDs array is required' });
         }
 
         const noteIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
 
         if (noteIds.length === 0) {
-            throw new ValidationError({ id: 'No valid note IDs provided' });
+            throw new context.errors.ValidationError({ id: 'No valid note IDs provided' });
         }
 
         const user = req.user as User;
         const deletedCount = await context.models.notes.bulkDelete(noteIds, user.id);
 
-        if (isApiRequest(req)) {
+        if (context.utils.auth.isApiRequest(req)) {
             res.status(200).json({
                 message: `${deletedCount} note${deletedCount !== 1 ? 's' : ''} deleted successfully`,
                 data: {
@@ -495,8 +507,8 @@ export function createNotesRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.post('/api/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler);
-    router.post('/notes/:id/pin', authenticationMiddleware, toggleNotePinHandler);
+    router.post('/api/notes/:id/pin', context.middleware.authentication, toggleNotePinHandler);
+    router.post('/notes/:id/pin', context.middleware.authentication, toggleNotePinHandler);
     async function toggleNotePinHandler(req: Request, res: Response) {
         const user = req.user as User;
         const noteId = parseInt(req.params.id as unknown as string);
@@ -504,14 +516,14 @@ export function createNotesRouter(context: AppContext) {
         const currentNote = await context.models.notes.read(noteId, user.id);
 
         if (!currentNote) {
-            throw new NotFoundError('Note not found');
+            throw new context.errors.NotFoundError('Note not found');
         }
 
         const updatedNote = await context.models.notes.update(noteId, user.id, {
             pinned: !currentNote.pinned,
         });
 
-        if (isApiRequest(req)) {
+        if (context.utils.auth.isApiRequest(req)) {
             res.status(200).json({
                 message: `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`,
                 data: updatedNote,
@@ -539,12 +551,12 @@ export function createNotesRouter(context: AppContext) {
      */
     router.post(
         '/api/notes/render-markdown',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const { content } = req.body;
 
             if (!content || content.trim() === '') {
-                throw new ValidationError({ content: 'Content is required' });
+                throw new context.errors.ValidationError({ content: 'Content is required' });
             }
 
             const { marked } = await import('marked');

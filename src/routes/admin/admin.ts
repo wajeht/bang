@@ -1,17 +1,13 @@
-import express from 'express';
-import type { AppContext } from '../../context';
 import type { Request, Response } from 'express';
-import { extractPagination } from '../../utils/util';
-import { NotFoundError, ValidationError } from '../../error';
-import { authenticationMiddleware, adminOnlyMiddleware } from '../middleware';
+import type { AppContext } from '../../type';
 
 export function createAdminRouter(context: AppContext) {
-    const router = express.Router();
+    const router = context.libs.express.Router();
 
     router.get(
         '/admin',
-        authenticationMiddleware,
-        adminOnlyMiddleware,
+        context.middleware.authentication,
+        context.middleware.adminOnly,
         async (_req: Request, res: Response) => {
             return res.redirect('/admin/users');
         },
@@ -19,10 +15,11 @@ export function createAdminRouter(context: AppContext) {
 
     router.get(
         '/admin/users',
-        authenticationMiddleware,
-        adminOnlyMiddleware,
+        context.middleware.authentication,
+        context.middleware.adminOnly,
         async (req: Request, res: Response) => {
-            const { perPage, page, search, sortKey, direction } = extractPagination(req, 'admin');
+            const { perPage, page, search, sortKey, direction } =
+                context.utils.request.extractPaginationParams(req, 'admin');
 
             const query = context.db.select('*').from('users');
 
@@ -54,8 +51,8 @@ export function createAdminRouter(context: AppContext) {
 
     router.post(
         '/admin/users/:id/delete',
-        authenticationMiddleware,
-        adminOnlyMiddleware,
+        context.middleware.authentication,
+        context.middleware.adminOnly,
         async (req: Request, res: Response) => {
             const userId = parseInt(req.params.id as unknown as string);
 
@@ -67,7 +64,7 @@ export function createAdminRouter(context: AppContext) {
             const user = await context.db('users').where({ id: userId }).delete();
 
             if (!user) {
-                throw new NotFoundError('User not found');
+                throw new context.errors.NotFoundError('User not found');
             }
 
             req.flash('success', 'deleted');
@@ -77,19 +74,19 @@ export function createAdminRouter(context: AppContext) {
 
     router.post(
         '/admin/users/delete-bulk',
-        authenticationMiddleware,
-        adminOnlyMiddleware,
+        context.middleware.authentication,
+        context.middleware.adminOnly,
         async (req: Request, res: Response) => {
             const { id } = req.body;
 
             if (!id || !Array.isArray(id)) {
-                throw new ValidationError({ id: 'IDs array is required' });
+                throw new context.errors.ValidationError({ id: 'IDs array is required' });
             }
 
             const userIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
 
             if (userIds.length === 0) {
-                throw new ValidationError({ id: 'No valid user IDs provided' });
+                throw new context.errors.ValidationError({ id: 'No valid user IDs provided' });
             }
 
             const deletedCount = await context.db.transaction(async (trx) => {
