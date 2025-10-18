@@ -1,7 +1,13 @@
-import { db } from './test-setup';
+import { libs } from '../libs';
+import { config } from '../config';
+import { Database } from '../db/db';
+import { logger } from '../utils/logger';
 
 async function globalSetup() {
     console.log('Setting up test database...');
+
+    const database = Database({ config, logger, libs });
+    const db = database.instance;
 
     try {
         await db.migrate.latest();

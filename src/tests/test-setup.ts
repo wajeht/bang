@@ -1,11 +1,11 @@
 process.env.APP_ENV = 'testing';
 process.env.NODE_ENV = 'testing';
 
-import { beforeAll, afterAll } from 'vitest';
-import { config } from '../config';
-import { logger } from '../utils/logger';
 import { libs } from '../libs';
+import { config } from '../config';
 import { Database } from '../db/db';
+import { logger } from '../utils/logger';
+import { beforeAll, afterAll } from 'vitest';
 
 const database = Database({ config, logger, libs });
 export const db = database.instance;
