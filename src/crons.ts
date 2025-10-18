@@ -25,10 +25,14 @@ export function CronService(context: AppContext): CronService {
     }
 
     async function start() {
-        // Schedule reminder check every 15 minutes
-        const reminderJob = context.libs.cron.schedule('*/15 * * * *', reminderCheckTask, {
-            timezone: 'UTC',
-        });
+        const reminderJob = context.libs.cron.schedule(
+            // every 15 minutes
+            '*/15 * * * *',
+            reminderCheckTask,
+            {
+                timezone: 'UTC',
+            },
+        );
         cronJobs.push(reminderJob);
         context.logger.info('Reminder check scheduled every 15 minutes');
 
