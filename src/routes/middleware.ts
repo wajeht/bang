@@ -460,7 +460,7 @@ export function TurnstileMiddleware(context: AppContext) {
     };
 }
 
-export function staticAssetsMiddleware(context: AppContext) {
+export function StaticAssetsMiddleware(context: AppContext) {
     return context.libs.express.static('./public', {
         maxAge: '365d', // 1 year
         etag: true,

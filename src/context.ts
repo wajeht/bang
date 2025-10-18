@@ -16,7 +16,7 @@ import {
     TurnstileMiddleware,
     RateLimitMiddleware,
     AdminOnlyMiddleware,
-    staticAssetsMiddleware,
+    StaticAssetsMiddleware,
     AppLocalStateMiddleware,
     AuthenticationMiddleware,
 } from './routes/middleware';
@@ -112,7 +112,7 @@ export async function Context(): Promise<AppContext> {
         turnstile: TurnstileMiddleware(partialCtx),
         rateLimit: RateLimitMiddleware(partialCtx),
         adminOnly: AdminOnlyMiddleware(partialCtx),
-        staticAssets: staticAssetsMiddleware(partialCtx),
+        staticAssets: StaticAssetsMiddleware(partialCtx),
         appLocalState: AppLocalStateMiddleware(partialCtx),
         authentication: AuthenticationMiddleware(partialCtx),
         layout: LayoutMiddleware({ layoutsDir: '_layouts', defaultLayout: '_layouts/public.html' }),
