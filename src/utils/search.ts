@@ -2,7 +2,7 @@ import { bangs as bangsTable } from '../db/bang';
 import type { Request, Response } from 'express';
 import type { Bang, Search, ReminderTimingResult, AppContext } from '../type';
 
-export function createSearchUtils(context: AppContext) {
+export function SearchUtils(context: AppContext) {
     const searchConfig = {
         /**
          * List of bangs that are available to use from the bangs table
@@ -92,7 +92,6 @@ export function createSearchUtils(context: AppContext) {
 
     /**
      * Reminder timing options configuration
-     * Used by both the UI handlers and the parseReminderTiming function
      */
     const reminderTimingConfig = {
         /**
@@ -1884,19 +1883,19 @@ export function createSearchUtils(context: AppContext) {
     }
 
     return {
-        searchConfig,
-        reminderTimingConfig,
-        trackAnonymousUserSearch,
-        redirectWithAlert,
-        goBackWithValidationAlert,
         goBack,
+        search,
+        searchConfig,
         parseSearchQuery,
-        getSearchLimitWarning,
-        processDelayedSearch,
+        redirectWithAlert,
         redirectWithCache,
-        handleAnonymousSearch,
         getBangRedirectUrl,
         parseReminderTiming,
-        search,
+        processDelayedSearch,
+        reminderTimingConfig,
+        getSearchLimitWarning,
+        handleAnonymousSearch,
+        trackAnonymousUserSearch,
+        goBackWithValidationAlert,
     };
 }

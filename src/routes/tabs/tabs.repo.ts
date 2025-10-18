@@ -1,6 +1,6 @@
 import type { Tab, Tabs, TabsQueryParams, AppContext } from '../../type';
 
-export function createTabsRepo(context: AppContext): Tabs {
+export function TabsRepository(context: AppContext): Tabs {
     return {
         all: async ({
             user,

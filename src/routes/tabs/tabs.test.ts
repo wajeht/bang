@@ -4,8 +4,8 @@ import {
     cleanupTestDatabase,
     authenticateApiAgent,
 } from '../../tests/api-test-utils';
-import { db } from '../../tests/test-setup';
 import { createApp } from '../../app';
+import { db } from '../../tests/test-setup';
 import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 describe('Tabs Routes', () => {

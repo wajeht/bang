@@ -1,6 +1,6 @@
 import type { Note, Notes, NotesQueryParams, AppContext } from '../../type';
 
-export function createNotesRepo(context: AppContext): Notes {
+export function NotesRepository(context: AppContext): Notes {
     return {
         all: async ({
             user,

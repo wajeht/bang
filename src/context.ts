@@ -22,27 +22,27 @@ import {
 } from './routes/middleware';
 import { libs } from './libs';
 import { config } from './config';
+import { Database } from './db/db';
+import { Utils } from './utils/util';
+import { CronService } from './crons';
 import { logger } from './utils/logger';
-import { createDatabase } from './db/db';
-import { createCronService } from './crons';
-import { createDateUtils } from './utils/date';
-import { createHtmlUtils } from './utils/html';
-import { createAuthUtils } from './utils/auth';
-import { createMailUtils } from './utils/mail';
-import { createUtilUtils } from './utils/util';
-import { createSearchUtils } from './utils/search';
-import { createRequestUtils } from './utils/request';
-import { createTabsRepo } from './routes/tabs/tabs.repo';
-import { createValidationUtils } from './utils/validation';
-import { createNotesRepo } from './routes/notes/notes.repo';
-import { createUsersRepo } from './routes/admin/admin.repo';
-import { createActionsRepo } from './routes/actions/actions.repo';
-import { createSessionCleanupUtils } from './utils/session-cleanup';
-import { createBookmarksRepo } from './routes/bookmarks/bookmarks.repo';
-import { createRemindersRepo } from './routes/reminders/reminders.repo';
+import { DateUtils } from './utils/date';
+import { HtmlUtils } from './utils/html';
+import { AuthUtils } from './utils/auth';
+import { MailUtils } from './utils/mail';
+import { SearchUtils } from './utils/search';
+import { RequestUtils } from './utils/request';
+import { ValidationUtils } from './utils/validation';
+import { TabsRepository } from './routes/tabs/tabs.repo';
+import { NotesRepository } from './routes/notes/notes.repo';
+import { UsersRepository } from './routes/admin/admin.repo';
+import { SessionCleanupUtils } from './utils/session-cleanup';
+import { ActionsRepository } from './routes/actions/actions.repo';
+import { BookmarksRepository } from './routes/bookmarks/bookmarks.repo';
+import { RemindersRepository } from './routes/reminders/reminders.repo';
 import type { AppContext, Models, Services, Utilities, Middlewares } from './type';
 
-export async function createContext(): Promise<AppContext> {
+export async function Context(): Promise<AppContext> {
     if (!config) {
         throw new Error('Configuration required for app context');
     }
@@ -60,7 +60,7 @@ export async function createContext(): Promise<AppContext> {
         UnimplementedFunctionError,
     };
 
-    const database = createDatabase({ config, logger, libs });
+    const database = Database({ config, logger, libs });
 
     const partialCtx = {
         config,
@@ -71,12 +71,12 @@ export async function createContext(): Promise<AppContext> {
         libs,
     } as any;
 
-    const auth = createAuthUtils(partialCtx);
-    const date = createDateUtils(partialCtx);
-    const html = createHtmlUtils(partialCtx);
-    const utilUtils = createUtilUtils(partialCtx);
-    const request = createRequestUtils(partialCtx);
-    const validation = createValidationUtils();
+    const auth = AuthUtils(partialCtx);
+    const date = DateUtils(partialCtx);
+    const html = HtmlUtils(partialCtx);
+    const utilUtils = Utils(partialCtx);
+    const request = RequestUtils(partialCtx);
+    const validation = ValidationUtils();
 
     const utilities: Utilities = {
         date,
@@ -85,46 +85,46 @@ export async function createContext(): Promise<AppContext> {
         request,
         validation,
         util: utilUtils,
-        mail: createMailUtils(partialCtx),
-        search: createSearchUtils(partialCtx),
-        sessionCleanup: createSessionCleanupUtils(partialCtx),
+        mail: MailUtils(partialCtx),
+        search: SearchUtils(partialCtx),
+        sessionCleanup: SessionCleanupUtils(partialCtx),
     };
 
     partialCtx.utils = utilities;
 
     const models: Models = {
-        tabs: createTabsRepo(partialCtx),
-        notes: createNotesRepo(partialCtx),
-        users: createUsersRepo(partialCtx),
-        actions: createActionsRepo(partialCtx),
-        bookmarks: createBookmarksRepo(partialCtx),
-        reminders: createRemindersRepo(partialCtx),
+        tabs: TabsRepository(partialCtx),
+        notes: NotesRepository(partialCtx),
+        users: UsersRepository(partialCtx),
+        actions: ActionsRepository(partialCtx),
+        bookmarks: BookmarksRepository(partialCtx),
+        reminders: RemindersRepository(partialCtx),
     };
 
     partialCtx.models = models;
 
     const middlewares: Middlewares = {
+        layout: layoutMiddleware({
+            layoutsDir: '_layouts',
+            defaultLayout: '_layouts/public.html',
+        }),
+        helmet: helmetMiddleware(partialCtx),
+        csrf: createCsrfMiddleware(partialCtx),
+        session: createSessionMiddleware(partialCtx),
         notFound: createNotFoundMiddleware(partialCtx),
         errorHandler: createErrorMiddleware(partialCtx),
         turnstile: createTurnstileMiddleware(partialCtx),
-        adminOnly: createAdminOnlyMiddleware(partialCtx),
-        authentication: createAuthenticationMiddleware(partialCtx),
-        helmet: helmetMiddleware(partialCtx),
-        session: createSessionMiddleware(partialCtx),
-        csrf: createCsrfMiddleware(partialCtx),
         rateLimit: createRateLimitMiddleware(partialCtx),
-        appLocalState: createAppLocalStateMiddleware(partialCtx),
+        adminOnly: createAdminOnlyMiddleware(partialCtx),
         staticAssets: staticAssetsMiddleware(partialCtx),
-        layout: layoutMiddleware({
-            defaultLayout: '_layouts/public.html',
-            layoutsDir: '_layouts',
-        }),
+        appLocalState: createAppLocalStateMiddleware(partialCtx),
+        authentication: createAuthenticationMiddleware(partialCtx),
     };
 
     partialCtx.middleware = middlewares;
 
     const services: Services = {
-        crons: createCronService(partialCtx),
+        crons: CronService(partialCtx),
     };
 
     partialCtx.services = services;

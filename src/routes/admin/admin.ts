@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { AppContext } from '../../type';
 
-export function createAdminRouter(context: AppContext) {
+export function AdminRouter(context: AppContext) {
     const router = context.libs.express.Router();
 
     router.get(

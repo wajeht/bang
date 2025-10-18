@@ -1,6 +1,6 @@
 import type { AppContext } from '../type';
 
-export function createHtmlUtils(context: AppContext) {
+export function HtmlUtils(context: AppContext) {
     function escapeHtml(text: string): string {
         return text
             .replace(/&/g, '&amp;')
@@ -135,11 +135,11 @@ export function createHtmlUtils(context: AppContext) {
     }
 
     return {
+        nl2br,
         escapeHtml,
-        highlightSearchTerm,
-        sqlHighlightSearchTerm,
         stripHtmlTags,
         decodeHtmlEntities,
-        nl2br,
+        highlightSearchTerm,
+        sqlHighlightSearchTerm,
     };
 }

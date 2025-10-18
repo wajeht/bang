@@ -86,7 +86,7 @@ function _createKnexInstance(libs: Libs): Knex {
     return _db;
 }
 
-export function createDatabase(deps: { config: Config; logger: Logger; libs: Libs }) {
+export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
     const db: Knex = _createKnexInstance(deps.libs);
 
     async function optimizeDatabase() {

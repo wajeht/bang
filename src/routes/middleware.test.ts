@@ -1,6 +1,6 @@
+import { Context } from '../context';
 import { db } from '../tests/test-setup';
 import { Session } from 'express-session';
-import { createContext } from '../context';
 import type { User, AppContext } from '../type';
 import type { Request, Response, NextFunction } from 'express';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
@@ -16,7 +16,7 @@ describe('authenticationMiddleware', () => {
     let authenticationMiddleware: any;
 
     beforeAll(async () => {
-        ctx = await createContext();
+        ctx = await Context();
 
         // Spy on context logger instead of mocking the module
         vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});
@@ -198,7 +198,7 @@ describe('authenticationMiddleware', () => {
                 column_preferences: null,
             })
             .returning('*')
-            .then((users) => users[0]);
+            .then((users: any) => users[0]);
 
         const sessionUser = {
             id: nullPrefUser.id,
@@ -253,7 +253,7 @@ describe('errorMiddleware', () => {
     let errorMiddleware: any;
 
     beforeAll(async () => {
-        ctx = await createContext();
+        ctx = await Context();
 
         // Spy on context logger instead of mocking the module
         vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});

@@ -1,4 +1,4 @@
-export function createValidationUtils() {
+export function ValidationUtils() {
     function isValidUrl(url: string): boolean {
         try {
             new URL(url);

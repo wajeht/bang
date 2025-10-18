@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { User, AppContext } from '../../type';
 
-export function createActionsRouter(context: AppContext) {
+export function ActionsRouter(context: AppContext) {
     const router = context.libs.express.Router();
 
     /**

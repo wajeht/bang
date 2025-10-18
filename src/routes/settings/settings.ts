@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { User, ApiKeyPayload, AppContext } from '../../type';
 
-export function createSettingsRouter(context: AppContext) {
+export function SettingsRouter(context: AppContext) {
     const router = context.libs.express.Router();
 
     router.get(

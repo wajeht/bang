@@ -3,7 +3,7 @@ import type { Request } from 'express';
 import type { Attachment } from 'nodemailer/lib/mailer';
 import type { User, AppContext } from '../type';
 
-export function createMailUtils(context: AppContext) {
+export function MailUtils(context: AppContext) {
     const emailTransporter = context.libs.nodemailer.createTransport({
         host: context.config.email.host,
         port: context.config.email.port,
@@ -459,7 +459,7 @@ ${formatReminderListHTML}
         isMailpitRunning,
         sendMagicLinkEmail,
         sendDataExportEmail,
-        sendReminderDigestEmail,
         processReminderDigests,
+        sendReminderDigestEmail,
     };
 }

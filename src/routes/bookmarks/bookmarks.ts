@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { User, BookmarkToExport, AppContext } from '../../type';
 
-export function createBookmarksRouter(context: AppContext) {
+export function BookmarksRouter(context: AppContext) {
     const router = context.libs.express.Router();
 
     /**

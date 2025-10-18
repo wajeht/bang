@@ -1,19 +1,19 @@
 import { dayjs } from '../libs';
 import { config } from '../config';
 import { db } from '../tests/test-setup';
-import { createContext } from '../context';
+import { Context } from '../context';
 import { Request, Response } from 'express';
 import type { User, AppContext } from '../type';
-import { createSearchUtils } from '../utils/search';
+import { SearchUtils } from '../utils/search';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let ctx: AppContext;
-let search: ReturnType<typeof createSearchUtils>['search'];
-let parseSearchQuery: ReturnType<typeof createSearchUtils>['parseSearchQuery'];
-let parseReminderTiming: ReturnType<typeof createSearchUtils>['parseReminderTiming'];
-let getBangRedirectUrl: ReturnType<typeof createSearchUtils>['getBangRedirectUrl'];
-let processDelayedSearch: ReturnType<typeof createSearchUtils>['processDelayedSearch'];
-let handleAnonymousSearch: ReturnType<typeof createSearchUtils>['handleAnonymousSearch'];
+let search: ReturnType<typeof SearchUtils>['search'];
+let parseSearchQuery: ReturnType<typeof SearchUtils>['parseSearchQuery'];
+let parseReminderTiming: ReturnType<typeof SearchUtils>['parseReminderTiming'];
+let getBangRedirectUrl: ReturnType<typeof SearchUtils>['getBangRedirectUrl'];
+let processDelayedSearch: ReturnType<typeof SearchUtils>['processDelayedSearch'];
+let handleAnonymousSearch: ReturnType<typeof SearchUtils>['handleAnonymousSearch'];
 let isValidUrl: any;
 let insertBookmark: any;
 let insertPageTitle: any;
@@ -21,9 +21,9 @@ let checkDuplicateBookmarkUrl: any;
 
 describe('search', () => {
     beforeAll(async () => {
-        ctx = await createContext();
+        ctx = await Context();
 
-        const searchUtils = createSearchUtils(ctx);
+        const searchUtils = SearchUtils(ctx);
 
         search = searchUtils.search;
         parseSearchQuery = searchUtils.parseSearchQuery;

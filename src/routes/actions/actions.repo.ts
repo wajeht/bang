@@ -1,6 +1,6 @@
 import type { Action, Actions, ActionsQueryParams, AppContext } from '../../type';
 
-export function createActionsRepo(context: AppContext): Actions {
+export function ActionsRepository(context: AppContext): Actions {
     return {
         all: async ({
             user,

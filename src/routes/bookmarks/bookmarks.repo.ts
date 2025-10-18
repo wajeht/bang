@@ -1,6 +1,6 @@
 import type { Bookmark, Bookmarks, BookmarksQueryParams, AppContext } from '../../type';
 
-export function createBookmarksRepo(context: AppContext): Bookmarks {
+export function BookmarksRepository(context: AppContext): Bookmarks {
     return {
         all: async ({
             user,

@@ -1,8 +1,8 @@
 import request from 'supertest';
 import { db } from './test-setup';
 import type { UrlObject } from 'url';
+import { Context } from '../context';
 import type { AppContext } from '../type';
-import { createContext } from '../context';
 import type { Application } from 'express';
 import type { SuperTest, Test } from 'supertest';
 
@@ -10,7 +10,7 @@ let testContext: AppContext | null = null;
 
 async function getTestContext(): Promise<AppContext> {
     if (!testContext) {
-        testContext = await createContext();
+        testContext = await Context();
     }
     return testContext;
 }

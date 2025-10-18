@@ -1,7 +1,7 @@
 import type { Request } from 'express';
 import type { User, PageType, AppContext } from '../type';
 
-export function createRequestUtils(context: AppContext) {
+export function RequestUtils(context: AppContext) {
     async function extractUser(req: Request): Promise<User> {
         if (context.utils.auth.isApiRequest(req) && req.apiKeyPayload) {
             try {

@@ -1,13 +1,13 @@
 import { db } from './test-setup';
+import { Context } from '../context';
 import type { AppContext } from '../type';
-import { createContext } from '../context';
 import { Page, expect } from '@playwright/test';
 
 let testContext: AppContext | null = null;
 
 async function getTestContext(): Promise<AppContext> {
     if (!testContext) {
-        testContext = await createContext();
+        testContext = await Context();
     }
     return testContext;
 }

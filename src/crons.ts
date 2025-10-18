@@ -10,7 +10,7 @@ export interface CronService {
     };
 }
 
-export function createCronService(context: AppContext): CronService {
+export function CronService(context: AppContext): CronService {
     let cronJobs: ScheduledTask[] = [];
     let isRunning = false;
 

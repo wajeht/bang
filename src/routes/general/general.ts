@@ -2,7 +2,7 @@ import { bangs } from '../../db/bang';
 import type { Request, Response } from 'express';
 import type { Bang, User, AppContext } from '../../type';
 
-export function createGeneralRouter(context: AppContext) {
+export function GeneralRouter(context: AppContext) {
     const router = context.libs.express.Router();
 
     router.get('/healthz', async (req: Request, res: Response) => {

@@ -1,13 +1,13 @@
-import { Server } from 'node:http';
 import { config } from './config';
+import { Server } from 'node:http';
+import { Context } from './context';
 import { AddressInfo } from 'node:net';
 import type { AppContext } from './type';
 import { router } from './routes/routes';
-import { createContext } from './context';
 import { expressJSDocSwaggerHandler } from './utils/swagger';
 
 export async function createApp() {
-    const ctx = await createContext();
+    const ctx = await Context();
 
     const app = ctx.libs.express();
 

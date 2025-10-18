@@ -1,7 +1,7 @@
 import type { Knex } from 'knex';
 import type { Logger } from '../type';
 
-export function createSessionCleanupUtils(deps: { db: Knex; logger: Logger }) {
+export function SessionCleanupUtils(deps: { db: Knex; logger: Logger }) {
     async function cleanupExpiredSessions(): Promise<number> {
         try {
             const result = await deps.db('sessions').where('expired', '<', new Date()).del();

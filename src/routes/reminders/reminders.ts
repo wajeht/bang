@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { User, AppContext } from '../../type';
 
-export function createRemindersRouter(context: AppContext) {
+export function RemindersRouter(context: AppContext) {
     const router = context.libs.express.Router();
 
     /**

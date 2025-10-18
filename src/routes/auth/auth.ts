@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { AppContext, User } from '../../type';
 
-export function createAuthRouter(context: AppContext) {
+export function AuthRouter(context: AppContext) {
     const router = context.libs.express.Router();
 
     router.get('/logout', async (req: Request, res: Response) => {

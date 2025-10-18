@@ -9,7 +9,7 @@ import http from 'node:http';
 import https from 'node:https';
 import type { Request } from 'express';
 
-export function createUtilUtils(context: AppContext) {
+export function Utils(context: AppContext) {
     const { db, logger, config, models, utils, errors } = context;
 
     const ACTION_TYPES = ['search', 'redirect'] as const;

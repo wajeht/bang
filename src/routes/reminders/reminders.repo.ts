@@ -1,6 +1,6 @@
 import type { Reminder, Reminders, RemindersQueryParams, AppContext } from '../../type';
 
-export function createRemindersRepo(context: AppContext): Reminders {
+export function RemindersRepository(context: AppContext): Reminders {
     return {
         all: async ({
             user,

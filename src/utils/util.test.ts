@@ -4,26 +4,26 @@ import fs from 'node:fs/promises';
 import { Request } from 'express';
 import { config } from '../config';
 import { db } from '../tests/test-setup';
-import { createAuthUtils } from './auth';
-import { createUtilUtils } from './util';
-import { createHtmlUtils } from './html';
-import { createDateUtils } from './date';
-import { createMailUtils } from './mail';
-import { createRequestUtils } from './request';
-import { createValidationUtils } from './validation';
+import { AuthUtils } from './auth';
+import { Utils } from './util';
+import { HtmlUtils } from './html';
+import { DateUtils } from './date';
+import { MailUtils } from './mail';
+import { RequestUtils } from './request';
+import { ValidationUtils } from './validation';
 import type { ApiKeyPayload, BookmarkToExport } from '../type';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-let validationUtils: ReturnType<typeof createValidationUtils>;
-let authUtils: ReturnType<typeof createAuthUtils>;
-let utilUtils: ReturnType<typeof createUtilUtils>;
-let htmlUtils: ReturnType<typeof createHtmlUtils>;
-let dateUtils: ReturnType<typeof createDateUtils>;
-let requestUtils: ReturnType<typeof createRequestUtils>;
-let mailUtils: ReturnType<typeof createMailUtils>;
+let validationUtils: ReturnType<typeof ValidationUtils>;
+let authUtils: ReturnType<typeof AuthUtils>;
+let utilUtils: ReturnType<typeof Utils>;
+let htmlUtils: ReturnType<typeof HtmlUtils>;
+let dateUtils: ReturnType<typeof DateUtils>;
+let requestUtils: ReturnType<typeof RequestUtils>;
+let mailUtils: ReturnType<typeof MailUtils>;
 
 beforeAll(async () => {
-    const { createBookmarksRepo } = await import('../routes/bookmarks/bookmarks.repo');
+    const { BookmarksRepository } = await import('../routes/bookmarks/bookmarks.repo');
 
     const mockContext = {
         db,
@@ -35,11 +35,11 @@ beforeAll(async () => {
         errors: {} as any,
     } as any;
 
-    validationUtils = createValidationUtils(mockContext);
-    authUtils = createAuthUtils(mockContext);
-    htmlUtils = createHtmlUtils(mockContext);
-    dateUtils = createDateUtils(mockContext);
-    requestUtils = createRequestUtils(mockContext);
+    validationUtils = ValidationUtils(mockContext);
+    authUtils = AuthUtils(mockContext);
+    htmlUtils = HtmlUtils(mockContext);
+    dateUtils = DateUtils(mockContext);
+    requestUtils = RequestUtils(mockContext);
 
     mockContext.utils = {
         validation: validationUtils,
@@ -50,11 +50,11 @@ beforeAll(async () => {
     };
 
     mockContext.models = {
-        bookmarks: createBookmarksRepo(mockContext),
+        bookmarks: BookmarksRepository(mockContext),
     };
 
-    utilUtils = createUtilUtils(mockContext);
-    mailUtils = createMailUtils(mockContext);
+    utilUtils = Utils(mockContext);
+    mailUtils = MailUtils(mockContext);
 
     mockContext.utils.util = utilUtils;
     mockContext.utils.mail = mailUtils;

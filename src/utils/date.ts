@@ -1,6 +1,6 @@
 import type { AppContext } from '../type';
 
-export function createDateUtils(context: AppContext) {
+export function DateUtils(context: AppContext) {
     function formatDateInTimezone(
         utcDateString: string | Date,
         timezone: string = 'UTC',
@@ -70,7 +70,7 @@ export function createDateUtils(context: AppContext) {
     }
 
     return {
-        formatDateInTimezone,
         convertToUTC,
+        formatDateInTimezone,
     };
 }
