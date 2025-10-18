@@ -90,7 +90,10 @@ export async function ensureTestUserExists(email: string = 'test@example.com') {
     return user;
 }
 
-async function wrapAgentWithCsrf(agent: SuperTest<Test>, getCsrfToken: () => Promise<string>) {
+async function wrapAgentWithCsrf(
+    agent: ReturnType<typeof request.agent>,
+    getCsrfToken: () => Promise<string>,
+) {
     const originalPost = agent.post.bind(agent) as (url: string | URL | UrlObject) => Test;
     const originalPut = agent.put.bind(agent) as (url: string | URL | UrlObject) => Test;
     const originalPatch = agent.patch.bind(agent) as (url: string | URL | UrlObject) => Test;
@@ -223,7 +226,7 @@ export async function cleanupTestData() {
             }
         });
     } catch (error) {
-        // Silent cleanup
+        // ...
     }
 }
 

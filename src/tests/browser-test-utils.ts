@@ -165,6 +165,6 @@ export async function cleanupTestData() {
             }
         });
     } catch (error) {
-        // Silent cleanup
+        // ...
     }
 }
