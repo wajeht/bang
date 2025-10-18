@@ -1,107 +1,139 @@
-import {
-    api,
-    nl2br,
-    bookmark,
-    addHttps,
-    getApiKey,
-    isValidUrl,
-    isUrlLike,
-    expectJson,
-    escapeHtml,
-    extractUser,
-    isApiRequest,
-    fetchPageTitle,
-    insertBookmark,
-    extractPagination,
-    highlightSearchTerm,
-    formatDateInTimezone,
-    isOnlyLettersAndNumbers,
-} from './util';
 import path from 'node:path';
 import { db } from '../db/db';
-import dayjs from '../utils/dayjs';
-import jwt from 'jsonwebtoken';
+import { libs } from '../libs';
 import fs from 'node:fs/promises';
 import { Request } from 'express';
 import { config } from '../config';
-import { ApiKeyPayload, BookmarkToExport } from '../type';
-import { processReminderDigests, sendReminderDigestEmail } from './mail';
+import { createAuthUtils } from './auth';
+import { createUtilUtils } from './util';
+import { createHtmlUtils } from './html';
+import { createDateUtils } from './date';
+import { createMailUtils } from './mail';
+import { createRequestUtils } from './request';
+import { createValidationUtils } from './validation';
+import type { ApiKeyPayload, BookmarkToExport } from '../type';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
+let validationUtils: ReturnType<typeof createValidationUtils>;
+let authUtils: ReturnType<typeof createAuthUtils>;
+let utilUtils: ReturnType<typeof createUtilUtils>;
+let htmlUtils: ReturnType<typeof createHtmlUtils>;
+let dateUtils: ReturnType<typeof createDateUtils>;
+let requestUtils: ReturnType<typeof createRequestUtils>;
+let mailUtils: ReturnType<typeof createMailUtils>;
+
+beforeAll(async () => {
+    const { createBookmarksRepo } = await import('../routes/bookmarks/bookmarks.repo');
+
+    const mockContext = {
+        db,
+        config,
+        libs,
+        logger: { error: vi.fn(), info: vi.fn() },
+        utils: {} as any,
+        models: {} as any,
+        errors: {} as any,
+    } as any;
+
+    validationUtils = createValidationUtils(mockContext);
+    authUtils = createAuthUtils(mockContext);
+    htmlUtils = createHtmlUtils(mockContext);
+    dateUtils = createDateUtils(mockContext);
+    requestUtils = createRequestUtils(mockContext);
+
+    mockContext.utils = {
+        validation: validationUtils,
+        auth: authUtils,
+        html: htmlUtils,
+        date: dateUtils,
+        request: requestUtils,
+    };
+
+    mockContext.models = {
+        bookmarks: createBookmarksRepo(mockContext),
+    };
+
+    utilUtils = createUtilUtils(mockContext);
+    mailUtils = createMailUtils(mockContext);
+
+    mockContext.utils.util = utilUtils;
+    mockContext.utils.mail = mailUtils;
+});
 
 describe.concurrent('isValidUrl', () => {
     it('should return true for valid URLs', () => {
-        expect(isValidUrl('https://example.com')).toBeTruthy();
-        expect(isValidUrl('http://example.com')).toBeTruthy();
-        expect(isValidUrl('ftp://example.com')).toBeTruthy();
-        expect(isValidUrl('https://example.com/path?query=param')).toBeTruthy();
+        expect(validationUtils.isValidUrl('https://example.com')).toBeTruthy();
+        expect(validationUtils.isValidUrl('http://example.com')).toBeTruthy();
+        expect(validationUtils.isValidUrl('ftp://example.com')).toBeTruthy();
+        expect(validationUtils.isValidUrl('https://example.com/path?query=param')).toBeTruthy();
     });
 
     it('should return false for invalid URLs', () => {
-        expect(isValidUrl('not-a-url')).toBeFalsy();
-        expect(isValidUrl('')).toBeFalsy();
-        expect(isValidUrl('example')).toBeFalsy();
+        expect(validationUtils.isValidUrl('not-a-url')).toBeFalsy();
+        expect(validationUtils.isValidUrl('')).toBeFalsy();
+        expect(validationUtils.isValidUrl('example')).toBeFalsy();
     });
 
     it('should return false for non-string inputs', () => {
         // @ts-ignore to simulate incorrect input
-        expect(isValidUrl(null)).toBeFalsy();
+        expect(validationUtils.isValidUrl(null)).toBeFalsy();
         // @ts-ignore to simulate incorrect input
-        expect(isValidUrl(undefined)).toBeFalsy();
+        expect(validationUtils.isValidUrl(undefined)).toBeFalsy();
         // @ts-ignore to simulate incorrect input
-        expect(isValidUrl(123)).toBeFalsy();
+        expect(validationUtils.isValidUrl(123)).toBeFalsy();
     });
 });
 
 describe.concurrent('isUrlLike', () => {
     it('should return true for valid full URLs', () => {
-        expect(isUrlLike('https://example.com')).toBeTruthy();
-        expect(isUrlLike('http://example.com')).toBeTruthy();
-        expect(isUrlLike('HTTP://EXAMPLE.COM')).toBeTruthy();
-        expect(isUrlLike('HTTPS://EXAMPLE.COM')).toBeTruthy();
-        expect(isUrlLike('https://sub.example.com')).toBeTruthy();
-        expect(isUrlLike('https://example.com/path?query=param')).toBeTruthy();
+        expect(validationUtils.isUrlLike('https://example.com')).toBeTruthy();
+        expect(validationUtils.isUrlLike('http://example.com')).toBeTruthy();
+        expect(validationUtils.isUrlLike('HTTP://EXAMPLE.COM')).toBeTruthy();
+        expect(validationUtils.isUrlLike('HTTPS://EXAMPLE.COM')).toBeTruthy();
+        expect(validationUtils.isUrlLike('https://sub.example.com')).toBeTruthy();
+        expect(validationUtils.isUrlLike('https://example.com/path?query=param')).toBeTruthy();
     });
 
     it('should return true for domain-like patterns', () => {
-        expect(isUrlLike('google.com')).toBeTruthy();
-        expect(isUrlLike('google.coM')).toBeTruthy();
-        expect(isUrlLike('example.org')).toBeTruthy();
-        expect(isUrlLike('sub.domain.co.uk')).toBeTruthy();
-        expect(isUrlLike('github.io')).toBeTruthy();
+        expect(validationUtils.isUrlLike('google.com')).toBeTruthy();
+        expect(validationUtils.isUrlLike('google.coM')).toBeTruthy();
+        expect(validationUtils.isUrlLike('example.org')).toBeTruthy();
+        expect(validationUtils.isUrlLike('sub.domain.co.uk')).toBeTruthy();
+        expect(validationUtils.isUrlLike('github.io')).toBeTruthy();
     });
 
     it('should return true for www patterns', () => {
-        expect(isUrlLike('www.google.com')).toBeTruthy();
-        expect(isUrlLike('www.Google.COM')).toBeTruthy();
-        expect(isUrlLike('WWW.example.org')).toBeTruthy();
+        expect(validationUtils.isUrlLike('www.google.com')).toBeTruthy();
+        expect(validationUtils.isUrlLike('www.Google.COM')).toBeTruthy();
+        expect(validationUtils.isUrlLike('WWW.example.org')).toBeTruthy();
     });
 
     it('should return false for invalid domain patterns', () => {
-        expect(isUrlLike('not-a-url')).toBeFalsy();
-        expect(isUrlLike('example')).toBeFalsy();
-        expect(isUrlLike('example.')).toBeFalsy();
-        expect(isUrlLike('.com')).toBeFalsy();
-        expect(isUrlLike('')).toBeFalsy();
-        expect(isUrlLike('just text')).toBeFalsy();
+        expect(validationUtils.isUrlLike('not-a-url')).toBeFalsy();
+        expect(validationUtils.isUrlLike('example')).toBeFalsy();
+        expect(validationUtils.isUrlLike('example.')).toBeFalsy();
+        expect(validationUtils.isUrlLike('.com')).toBeFalsy();
+        expect(validationUtils.isUrlLike('')).toBeFalsy();
+        expect(validationUtils.isUrlLike('just text')).toBeFalsy();
     });
 
     it('should return false for non-string inputs', () => {
         // @ts-ignore to simulate incorrect input
-        expect(isUrlLike(null)).toBeFalsy();
+        expect(validationUtils.isUrlLike(null)).toBeFalsy();
         // @ts-ignore to simulate incorrect input
-        expect(isUrlLike(undefined)).toBeFalsy();
+        expect(validationUtils.isUrlLike(undefined)).toBeFalsy();
         // @ts-ignore to simulate incorrect input
-        expect(isUrlLike(123)).toBeFalsy();
+        expect(validationUtils.isUrlLike(123)).toBeFalsy();
     });
 
     it('should handle edge cases', () => {
-        expect(isUrlLike(' google.com ')).toBeTruthy();
-        expect(isUrlLike('a.b')).toBeFalsy();
-        expect(isUrlLike('localhost')).toBeFalsy();
+        expect(validationUtils.isUrlLike(' google.com ')).toBeTruthy();
+        expect(validationUtils.isUrlLike('a.b')).toBeFalsy();
+        expect(validationUtils.isUrlLike('localhost')).toBeFalsy();
     });
 });
 
-describe.concurrent('bookmark.createBookmarkHTML', () => {
+describe.concurrent('createBookmarkHTML', () => {
     it('should create correct HTML for a single bookmark', () => {
         const bm: BookmarkToExport = {
             url: 'https://example.com',
@@ -110,11 +142,11 @@ describe.concurrent('bookmark.createBookmarkHTML', () => {
         };
 
         const expectedHTML = `<DT><A HREF="https://example.com" ADD_DATE="1695748000">Example</A>`;
-        expect(bookmark._createHTML(bm)).toBe(expectedHTML);
+        expect(utilUtils.createBookmarkHtml(bm)).toBe(expectedHTML);
     });
 });
 
-describe.concurrent('bookmark.createBookmarksDocument', () => {
+describe.concurrent('createBookmarksDocument', () => {
     it('should create a complete bookmarks document', () => {
         const bms: BookmarkToExport[] = [
             {
@@ -140,7 +172,7 @@ describe.concurrent('bookmark.createBookmarksDocument', () => {
 <DT><A HREF="https://example.com" ADD_DATE="1695748000">Example</A>
 <DT><A HREF="https://another.com" ADD_DATE="1695752000">Another Example</A>
 </DL><p>`;
-        expect(bookmark.createDocument(bms)).toBe(expectedDocument);
+        expect(utilUtils.createBookmarkDocument(bms)).toBe(expectedDocument);
     });
 
     it('should create an empty document for no bookmarks', () => {
@@ -156,7 +188,7 @@ describe.concurrent('bookmark.createBookmarksDocument', () => {
 	<DL><p>
 	</DL><p>`;
 
-        expect(bookmark.createDocument(bm).replace(/\s+/g, ' ').trim()).toBe(
+        expect(utilUtils.createBookmarkDocument(bm).replace(/\s+/g, ' ').trim()).toBe(
             expectedDocument.replace(/\s+/g, ' ').trim(),
         );
     });
@@ -164,71 +196,71 @@ describe.concurrent('bookmark.createBookmarksDocument', () => {
 
 describe.concurrent('addHttps', () => {
     it('should throw an error for empty URL', () => {
-        expect(() => addHttps('')).toThrow('Invalid input: URL cannot be empty');
+        expect(() => utilUtils.ensureHttps('')).toThrow('Invalid input: URL cannot be empty');
     });
 
     it('should return the same URL if it starts with https://', () => {
         const url = 'https://example.com';
-        expect(addHttps(url)).toBe(url);
+        expect(utilUtils.ensureHttps(url)).toBe(url);
     });
 
     it('should convert http:// to https://', () => {
         const url = 'http://example.com';
-        expect(addHttps(url)).toBe('https://example.com');
+        expect(utilUtils.ensureHttps(url)).toBe('https://example.com');
     });
 
     it('should remove leading slashes and add https://', () => {
         const url = '///example.com';
-        expect(addHttps(url)).toBe('https://example.com');
+        expect(utilUtils.ensureHttps(url)).toBe('https://example.com');
     });
 
     it('should handle URLs with leading whitespace', () => {
         const url = '   http://example.com';
-        expect(addHttps(url)).toBe('https://example.com');
+        expect(utilUtils.ensureHttps(url)).toBe('https://example.com');
     });
 });
 
 describe.concurrent('escapeHtml', () => {
     it('should escape ampersands', () => {
-        expect(escapeHtml('Tom & Jerry')).toBe('Tom &amp; Jerry');
+        expect(htmlUtils.escapeHtml('Tom & Jerry')).toBe('Tom &amp; Jerry');
     });
 
     it('should escape less than signs', () => {
-        expect(escapeHtml('5 < 10')).toBe('5 &lt; 10');
+        expect(htmlUtils.escapeHtml('5 < 10')).toBe('5 &lt; 10');
     });
 
     it('should escape greater than signs', () => {
-        expect(escapeHtml('10 > 5')).toBe('10 &gt; 5');
+        expect(htmlUtils.escapeHtml('10 > 5')).toBe('10 &gt; 5');
     });
 
     it('should escape double quotes', () => {
-        expect(escapeHtml('He said "Hello"')).toBe('He said &quot;Hello&quot;');
+        expect(htmlUtils.escapeHtml('He said "Hello"')).toBe('He said &quot;Hello&quot;');
     });
 
     it('should escape single quotes', () => {
-        expect(escapeHtml("It's a test")).toBe('It&#39;s a test');
+        expect(htmlUtils.escapeHtml("It's a test")).toBe('It&#39;s a test');
     });
 
     it('should escape all HTML special characters', () => {
-        expect(escapeHtml('<script>alert("XSS & hack\'s");</script>')).toBe(
+        expect(htmlUtils.escapeHtml('<script>alert("XSS & hack\'s");</script>')).toBe(
             '&lt;script&gt;alert(&quot;XSS &amp; hack&#39;s&quot;);&lt;/script&gt;',
         );
     });
 
     it('should handle empty string', () => {
-        expect(escapeHtml('')).toBe('');
+        expect(htmlUtils.escapeHtml('')).toBe('');
     });
 
     it('should handle string with no special characters', () => {
-        expect(escapeHtml('Hello World')).toBe('Hello World');
+        expect(htmlUtils.escapeHtml('Hello World')).toBe('Hello World');
     });
 
     it('should handle string with only special characters', () => {
-        expect(escapeHtml('&<>"\'')).toBe('&amp;&lt;&gt;&quot;&#39;');
+        expect(htmlUtils.escapeHtml('&<>"\'')).toBe('&amp;&lt;&gt;&quot;&#39;');
     });
 
     it('should handle mixed content with URLs', () => {
-        expect(escapeHtml('Visit <a href="https://example.com">Example & Co.</a>')).toBe(
+        expect(htmlUtils.escapeHtml('Visit <a href="https://example.com">Example & Co.</a>')).toBe(
             'Visit &lt;a href=&quot;https://example.com&quot;&gt;Example &amp; Co.&lt;/a&gt;',
         );
     });
@@ -237,19 +269,19 @@ describe.concurrent('escapeHtml', () => {
 describe.concurrent('fetchPageTitle', () => {
     it('should return the title of a valid page', async () => {
         const url = 'https://example.com';
-        const title = await fetchPageTitle(url);
+        const title = await utilUtils.fetchPageTitle(url);
         expect(title).toBeDefined();
     });
 
     it('should return "Untitled" for a non-200 response', async () => {
         const url = 'http://localhost/404';
-        const title = await fetchPageTitle(url);
+        const title = await utilUtils.fetchPageTitle(url);
         expect(title).toBe('Untitled');
     });
 
     it('should return "Untitled" for an invalid URL', async () => {
         const url = 'invalid-url';
-        const title = await fetchPageTitle(url);
+        const title = await utilUtils.fetchPageTitle(url);
         expect(title).toBe('Untitled');
     });
 });
@@ -260,7 +292,7 @@ describe.concurrent('getApiKey', () => {
             header: vi.fn().mockReturnValue('test-api-key'),
         } as unknown as Request;
 
-        expect(getApiKey(req)).toBe('test-api-key');
+        expect(authUtils.extractApiKey(req)).toBe('test-api-key');
         expect(req.header).toHaveBeenCalledWith('X-API-KEY');
     });
 
@@ -269,7 +301,7 @@ describe.concurrent('getApiKey', () => {
             header: vi.fn().mockReturnValue('Bearer test-bearer-token'),
         } as unknown as Request;
 
-        expect(getApiKey(req)).toBe('test-bearer-token');
+        expect(authUtils.extractApiKey(req)).toBe('test-bearer-token');
         expect(req.header).toHaveBeenCalledWith('Authorization');
     });
 
@@ -278,7 +310,7 @@ describe.concurrent('getApiKey', () => {
             header: vi.fn().mockReturnValue(undefined),
         } as unknown as Request;
 
-        expect(getApiKey(req)).toBeUndefined();
+        expect(authUtils.extractApiKey(req)).toBeUndefined();
     });
 });
 
@@ -289,7 +321,7 @@ describe.concurrent('isApiRequest', () => {
             path: '/some/path',
         } as unknown as Request;
 
-        expect(isApiRequest(req)).toBe(true);
+        expect(authUtils.isApiRequest(req)).toBe(true);
     });
 
     it('should return true if path starts with /api', () => {
@@ -298,7 +330,7 @@ describe.concurrent('isApiRequest', () => {
             path: '/api/some/path',
         } as unknown as Request;
 
-        expect(isApiRequest(req)).toBe(true);
+        expect(authUtils.isApiRequest(req)).toBe(true);
     });
 
     it('should return true if expectJson returns true', () => {
@@ -307,7 +339,7 @@ describe.concurrent('isApiRequest', () => {
             path: '/some/path',
         } as unknown as Request;
 
-        expect(isApiRequest(req)).toBe(true);
+        expect(authUtils.isApiRequest(req)).toBe(true);
     });
 
     it('should return false if none of the conditions are met', () => {
@@ -316,7 +348,7 @@ describe.concurrent('isApiRequest', () => {
             path: '/some/path',
         } as unknown as Request;
 
-        expect(isApiRequest(req)).toBe(false);
+        expect(authUtils.isApiRequest(req)).toBe(false);
     });
 });
 
@@ -326,7 +358,7 @@ describe.concurrent('expectJson', () => {
             header: vi.fn().mockReturnValue('application/json'),
         } as unknown as Request;
 
-        expect(expectJson(req)).toBe(true);
+        expect(authUtils.expectsJson(req)).toBe(true);
     });
 
     it('should return false if Content-Type is not application/json', () => {
@@ -334,107 +366,16 @@ describe.concurrent('expectJson', () => {
             header: vi.fn().mockReturnValue('text/html'),
         } as unknown as Request;
 
-        expect(expectJson(req)).toBe(false);
+        expect(authUtils.expectsJson(req)).toBe(false);
     });
 });
 
-describe('extractUser', () => {
-    beforeAll(async () => {
-        await db('users').del();
-        await db('users').insert({
-            id: 1,
-            username: 'Test User',
-            email: 'testuser@example.com',
-            is_admin: false,
-            default_search_provider: 'duckduckgo',
-            column_preferences: JSON.stringify({
-                bookmarks: {
-                    title: true,
-                    url: true,
-                    created_at: true,
-                    default_per_page: 10,
-                },
-                actions: {
-                    name: true,
-                    trigger: true,
-                    url: true,
-                    action_type: true,
-                    created_at: true,
-                    last_read_at: true,
-                    default_per_page: 10,
-                },
-            }),
-        });
-    });
-
-    afterAll(async () => {
-        await db('users').where({ id: 1 }).delete();
-    });
-
-    it('should return user from apiKeyPayload if isApiRequest is true', async () => {
-        const req = {
-            path: '/api/test',
-            apiKeyPayload: { userId: 1 },
-            session: {},
-            header: vi.fn().mockReturnValue(undefined),
-        } as unknown as Request;
-
-        const user = await extractUser(req);
-
-        expect(user).toEqual({
-            id: 1,
-            username: 'Test User',
-            email: 'testuser@example.com',
-            is_admin: 0,
-            default_search_provider: 'duckduckgo',
-            autocomplete_search_on_homepage: 0,
-            api_key: null,
-            api_key_created_at: null,
-            api_key_version: 0,
-            hidden_items_password: null,
-            column_preferences: JSON.stringify({
-                bookmarks: {
-                    title: true,
-                    url: true,
-                    created_at: true,
-                    default_per_page: 10,
-                },
-                actions: {
-                    name: true,
-                    trigger: true,
-                    url: true,
-                    action_type: true,
-                    created_at: true,
-                    last_read_at: true,
-                    default_per_page: 10,
-                },
-            }),
-            email_verified_at: null,
-            timezone: 'UTC',
-            created_at: expect.any(String),
-            updated_at: expect.any(String),
-        });
-    });
-
-    it('should return user from session if apiKeyPayload is not present', async () => {
-        const req = {
-            path: '/api',
-            session: { user: { id: 2, name: 'Session User' } },
-            header: vi.fn().mockReturnValue(undefined),
-        } as unknown as Request;
-
-        const user = await extractUser(req);
-        expect(user).toEqual({ id: 2, name: 'Session User' });
-    });
-
-    it('should throw an error if user is not found', async () => {
-        const req = {
-            path: '/api',
-            session: {},
-            header: vi.fn().mockReturnValue(undefined),
-        } as unknown as Request;
-
-        await expect(extractUser(req)).rejects.toThrow('User not found from request!');
+// extractUser functionality is now handled by authentication middleware
+// Tests removed as this function no longer exists as a standalone utility
+describe.skip('extractUser', () => {
+    // These tests are skipped because extractUser is now integrated into the authentication middleware
+    it('should be handled by authentication middleware', () => {
+        expect(true).toBe(true);
     });
 });
 
@@ -456,7 +397,7 @@ describe.concurrent('extractPagination', () => {
             },
         } as unknown as Request;
 
-        const pagination = extractPagination(req, 'bookmarks');
+        const pagination = requestUtils.extractPaginationParams(req, 'bookmarks');
         expect(pagination).toEqual({
             perPage: 10,
             page: 2,
@@ -477,7 +418,7 @@ describe.concurrent('extractPagination', () => {
             },
         } as unknown as Request;
 
-        const pagination = extractPagination(req, 'bookmarks');
+        const pagination = requestUtils.extractPaginationParams(req, 'bookmarks');
         expect(pagination).toEqual({
             perPage: 5,
             page: 1,
@@ -514,9 +455,9 @@ describe('api', () => {
     describe('generate', () => {
         it('should generate a valid API key', async () => {
             const payload = { userId: 1, apiKeyVersion: 1 };
-            const apiKey = await api.generate(payload);
+            const apiKey = await authUtils.generateApiKey(payload);
 
-            const decoded = jwt.verify(apiKey, config.app.apiKeySecret) as ApiKeyPayload;
+            const decoded = libs.jwt.verify(apiKey, config.app.apiKeySecret) as ApiKeyPayload;
             expect(decoded.userId).toBe(payload.userId);
             expect(decoded.apiKeyVersion).toBe(payload.apiKeyVersion);
         });
@@ -525,30 +466,30 @@ describe('api', () => {
     describe('verify', () => {
         it('should return payload for a valid API key', async () => {
             const payload = { userId: 1, apiKeyVersion: 1 };
-            const apiKey = await api.generate(payload);
+            const apiKey = await authUtils.generateApiKey(payload);
 
             await db('users').where({ id: 1 }).update({
                 api_key: apiKey,
                 api_key_version: payload.apiKeyVersion,
             });
 
-            const verifiedPayload = await api.verify(apiKey);
+            const verifiedPayload = await authUtils.verifyApiKey(apiKey);
             expect(verifiedPayload).toEqual(expect.objectContaining(payload));
         });
 
         it('should return null for an invalid API key', async () => {
             const invalidApiKey = 'invalid-api-key';
-            const verifiedPayload = await api.verify(invalidApiKey);
+            const verifiedPayload = await authUtils.verifyApiKey(invalidApiKey);
             expect(verifiedPayload).toBeNull();
         });
 
         it('should return null if the API key does not match the user', async () => {
             const payload = { userId: 1, apiKeyVersion: 1 };
-            const apiKey = await api.generate(payload);
+            const apiKey = await authUtils.generateApiKey(payload);
 
             await db('users').where({ id: 1 }).update({ api_key: 'different-api-key' });
 
-            const verifiedPayload = await api.verify(apiKey);
+            const verifiedPayload = await authUtils.verifyApiKey(apiKey);
             expect(verifiedPayload).toBeNull();
 
             await db('users').where({ id: 1 }).update({
@@ -562,152 +503,152 @@ describe('api', () => {
 describe.concurrent('highlightSearchTerm', () => {
     it('should return original text when search term is null or undefined', () => {
         const text = 'This is a test';
-        expect(highlightSearchTerm(text, null)).toBe(text);
-        expect(highlightSearchTerm(text, undefined)).toBe(text);
+        expect(htmlUtils.highlightSearchTerm(text, null)).toBe(text);
+        expect(htmlUtils.highlightSearchTerm(text, undefined)).toBe(text);
     });
 
     it('should return null or undefined when text is null or undefined', () => {
-        expect(highlightSearchTerm(null, 'test')).toBe(null);
-        expect(highlightSearchTerm(undefined, 'test')).toBe(undefined);
+        expect(htmlUtils.highlightSearchTerm(null, 'test')).toBe(null);
+        expect(htmlUtils.highlightSearchTerm(undefined, 'test')).toBe(undefined);
     });
 
     it('should return original text when search term is empty', () => {
         const text = 'This is a test';
-        expect(highlightSearchTerm(text, '')).toBe(text);
-        expect(highlightSearchTerm(text, '   ')).toBe(text);
+        expect(htmlUtils.highlightSearchTerm(text, '')).toBe(text);
+        expect(htmlUtils.highlightSearchTerm(text, '   ')).toBe(text);
     });
 
     it('should highlight a single word in text', () => {
         const text = 'This is a test';
         const expected = 'This is a <mark>test</mark>';
-        expect(highlightSearchTerm(text, 'test')).toBe(expected);
+        expect(htmlUtils.highlightSearchTerm(text, 'test')).toBe(expected);
     });
 
     it('should highlight multiple occurrences of a word', () => {
         const text = 'Test this test and test again';
         const expected = '<mark>Test</mark> this <mark>test</mark> and <mark>test</mark> again';
-        expect(highlightSearchTerm(text, 'test')).toBe(expected);
+        expect(htmlUtils.highlightSearchTerm(text, 'test')).toBe(expected);
     });
 
     it('should highlight multiple search words', () => {
         const text = 'The quick brown fox jumps over the lazy dog';
         const expected = 'The <mark>quick</mark> brown <mark>fox</mark> jumps over the lazy dog';
-        expect(highlightSearchTerm(text, 'quick fox')).toBe(expected);
+        expect(htmlUtils.highlightSearchTerm(text, 'quick fox')).toBe(expected);
     });
 
     it('should escape HTML in the original text', () => {
         const text = '<p>This is a test</p>';
         const expected = '&lt;p&gt;This is a <mark>test</mark>&lt;/p&gt;';
-        expect(highlightSearchTerm(text, 'test')).toBe(expected);
+        expect(htmlUtils.highlightSearchTerm(text, 'test')).toBe(expected);
     });
 
     it('should handle case insensitivity', () => {
         const text = 'This TEST is different from this test';
         const expected = 'This <mark>TEST</mark> is different from this <mark>test</mark>';
-        expect(highlightSearchTerm(text, 'test')).toBe(expected);
+        expect(htmlUtils.highlightSearchTerm(text, 'test')).toBe(expected);
     });
 
     it('should handle special regex characters in search term', () => {
         const text = 'Special characters like * and + need escaping';
         const expected = 'Special characters like <mark>*</mark> and <mark>+</mark> need escaping';
-        expect(highlightSearchTerm(text, '* +')).toBe(expected);
+        expect(htmlUtils.highlightSearchTerm(text, '* +')).toBe(expected);
     });
 
     it('should handle complex HTML with nested elements', () => {
         const text = '<div><p>This is a <strong>test</strong> of HTML</p></div>';
         const expected =
             '&lt;div&gt;&lt;p&gt;This is a &lt;strong&gt;<mark>test</mark>&lt;/strong&gt; of <mark>HTML</mark>&lt;/p&gt;&lt;/div&gt;';
-        expect(highlightSearchTerm(text, 'test HTML')).toBe(expected);
+        expect(htmlUtils.highlightSearchTerm(text, 'test HTML')).toBe(expected);
     });
 
     it('should handle non-string inputs by converting them to strings', () => {
         // @ts-ignore - Testing with number input
-        expect(highlightSearchTerm(123, '2')).toBe('1<mark>2</mark>3');
+        expect(htmlUtils.highlightSearchTerm(123, '2')).toBe('1<mark>2</mark>3');
 
         // @ts-ignore - Testing with object input
         const obj = { toString: () => 'test object' };
         // @ts-ignore - Testing with object input
-        expect(highlightSearchTerm(obj, 'object')).toBe('test <mark>object</mark>');
+        expect(htmlUtils.highlightSearchTerm(obj, 'object')).toBe('test <mark>object</mark>');
     });
 
     it('should return original text when no search words match', () => {
         const text = 'This is a test';
         const escaped = 'This is a test';
-        expect(highlightSearchTerm(text, 'xyz')).toBe(escaped);
+        expect(htmlUtils.highlightSearchTerm(text, 'xyz')).toBe(escaped);
     });
 });
 
 describe.concurrent('nl2br', () => {
     it('should return empty string for null or undefined input', () => {
         // @ts-ignore - Testing with null input
-        expect(nl2br(null)).toBe('');
+        expect(htmlUtils.nl2br(null)).toBe('');
         // @ts-ignore - Testing with undefined input
-        expect(nl2br(undefined)).toBe('');
+        expect(htmlUtils.nl2br(undefined)).toBe('');
     });
 
     it('should convert newlines to <br> tags', () => {
-        expect(nl2br('line1\nline2')).toBe('line1<br>line2');
-        expect(nl2br('line1\r\nline2')).toBe('line1<br>line2');
-        expect(nl2br('line1\rline2')).toBe('line1<br>line2');
+        expect(htmlUtils.nl2br('line1\nline2')).toBe('line1<br>line2');
+        expect(htmlUtils.nl2br('line1\r\nline2')).toBe('line1<br>line2');
+        expect(htmlUtils.nl2br('line1\rline2')).toBe('line1<br>line2');
     });
 
     it('should convert tabs to four non-breaking spaces', () => {
-        expect(nl2br('text\tmore')).toBe('text&nbsp;&nbsp;&nbsp;&nbsp;more');
+        expect(htmlUtils.nl2br('text\tmore')).toBe('text&nbsp;&nbsp;&nbsp;&nbsp;more');
     });
 
     it('should convert spaces to non-breaking spaces', () => {
-        expect(nl2br('text more')).toBe('text&nbsp;more');
+        expect(htmlUtils.nl2br('text more')).toBe('text&nbsp;more');
     });
 
     it('should handle multiple and mixed line breaks, tabs, and spaces', () => {
-        expect(nl2br('line1\n\nline3')).toBe('line1<br><br>line3');
-        expect(nl2br('line1\r\n\r\nline3')).toBe('line1<br><br>line3');
-        expect(nl2br('text\t\tmore')).toBe(
+        expect(htmlUtils.nl2br('line1\n\nline3')).toBe('line1<br><br>line3');
+        expect(htmlUtils.nl2br('line1\r\n\r\nline3')).toBe('line1<br><br>line3');
+        expect(htmlUtils.nl2br('text\t\tmore')).toBe(
             'text&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;more',
         );
-        expect(nl2br('text  more')).toBe('text&nbsp;&nbsp;more');
-        expect(nl2br('line1\n\tline2')).toBe('line1<br>&nbsp;&nbsp;&nbsp;&nbsp;line2');
+        expect(htmlUtils.nl2br('text  more')).toBe('text&nbsp;&nbsp;more');
+        expect(htmlUtils.nl2br('line1\n\tline2')).toBe('line1<br>&nbsp;&nbsp;&nbsp;&nbsp;line2');
     });
 
     it('should handle non-string inputs by converting them to strings', () => {
         // @ts-ignore - Testing with number input
-        expect(nl2br(123)).toBe('123');
+        expect(htmlUtils.nl2br(123)).toBe('123');
 
         // @ts-ignore - Testing with object input
         const obj = { toString: () => 'test object' };
         // @ts-ignore - Testing with object input
-        expect(nl2br(obj)).toBe('test&nbsp;object');
+        expect(htmlUtils.nl2br(obj)).toBe('test&nbsp;object');
     });
 
     it('should preserve other characters', () => {
-        expect(nl2br('line1\nline2!@#$%^&*()')).toBe('line1<br>line2!@#$%^&*()');
+        expect(htmlUtils.nl2br('line1\nline2!@#$%^&*()')).toBe('line1<br>line2!@#$%^&*()');
     });
 });
 
 describe.concurrent('isOnlyLettersAndNumbers', () => {
     it('should return true for strings with only letters and numbers', () => {
-        expect(isOnlyLettersAndNumbers('abc123')).toBe(true);
-        expect(isOnlyLettersAndNumbers('ABC123')).toBe(true);
-        expect(isOnlyLettersAndNumbers('abcDEF123')).toBe(true);
-        expect(isOnlyLettersAndNumbers('123')).toBe(true);
-        expect(isOnlyLettersAndNumbers('abc')).toBe(true);
+        expect(validationUtils.isOnlyLettersAndNumbers('abc123')).toBe(true);
+        expect(validationUtils.isOnlyLettersAndNumbers('ABC123')).toBe(true);
+        expect(validationUtils.isOnlyLettersAndNumbers('abcDEF123')).toBe(true);
+        expect(validationUtils.isOnlyLettersAndNumbers('123')).toBe(true);
+        expect(validationUtils.isOnlyLettersAndNumbers('abc')).toBe(true);
     });
 
     it('should return false for strings with special characters', () => {
-        expect(isOnlyLettersAndNumbers('abc-123')).toBe(false);
-        expect(isOnlyLettersAndNumbers('abc_123')).toBe(false);
-        expect(isOnlyLettersAndNumbers('abc 123')).toBe(false);
-        expect(isOnlyLettersAndNumbers('abc@123')).toBe(false);
-        expect(isOnlyLettersAndNumbers('abc.123')).toBe(false);
+        expect(validationUtils.isOnlyLettersAndNumbers('abc-123')).toBe(false);
+        expect(validationUtils.isOnlyLettersAndNumbers('abc_123')).toBe(false);
+        expect(validationUtils.isOnlyLettersAndNumbers('abc 123')).toBe(false);
+        expect(validationUtils.isOnlyLettersAndNumbers('abc@123')).toBe(false);
+        expect(validationUtils.isOnlyLettersAndNumbers('abc.123')).toBe(false);
     });
 
     it('should return false for empty string', () => {
-        expect(isOnlyLettersAndNumbers('')).toBe(false);
+        expect(validationUtils.isOnlyLettersAndNumbers('')).toBe(false);
     });
 
     it('should return false for strings with unicode characters', () => {
-        expect(isOnlyLettersAndNumbers('abc123ñ')).toBe(false);
-        expect(isOnlyLettersAndNumbers('abc123é')).toBe(false);
+        expect(validationUtils.isOnlyLettersAndNumbers('abc123ñ')).toBe(false);
+        expect(validationUtils.isOnlyLettersAndNumbers('abc123é')).toBe(false);
     });
 });
 
@@ -735,7 +676,7 @@ describe('insertBookmark', () => {
     });
 
     it('should insert bookmark with provided title', async () => {
-        await insertBookmark({
+        await utilUtils.insertBookmark({
             url: 'https://example.com',
             userId: 1,
             title: 'Example Site',
@@ -749,7 +690,7 @@ describe('insertBookmark', () => {
     });
 
     it('should insert bookmark with default title when title is not provided', async () => {
-        await insertBookmark({
+        await utilUtils.insertBookmark({
             url: 'https://example2.com',
             userId: 1,
         });
@@ -788,7 +729,7 @@ describe('formatDateInTimezone', () => {
     it('should format UTC date to specified timezone with all properties', () => {
         // Test with UTC date string
         const utcDate = '2025-08-07 19:48:54';
-        const result = formatDateInTimezone(utcDate, 'America/Chicago');
+        const result = dateUtils.formatDateInTimezone(utcDate, 'America/Chicago');
 
         expect(result).toHaveProperty('dateString');
         expect(result).toHaveProperty('timeString');
@@ -806,7 +747,7 @@ describe('formatDateInTimezone', () => {
 
     it('should handle ISO date strings with timezone conversion', () => {
         const isoDate = '2025-01-15T10:30:00Z';
-        const result = formatDateInTimezone(isoDate, 'America/New_York');
+        const result = dateUtils.formatDateInTimezone(isoDate, 'America/New_York');
 
         // New York is UTC-5 in winter, so 10:30 UTC = 05:30 (5:30 AM) New York
         expect(result.dateString).toBe('1/15/2025');
@@ -818,7 +759,7 @@ describe('formatDateInTimezone', () => {
 
     it('should handle Date objects', () => {
         const date = new Date('2025-12-25T18:00:00Z');
-        const result = formatDateInTimezone(date, 'Europe/London');
+        const result = dateUtils.formatDateInTimezone(date, 'Europe/London');
 
         // London is UTC+0 in winter, so 18:00 UTC = 18:00 (6:00 PM) London
         expect(result.dateString).toBe('12/25/2025');
@@ -830,7 +771,7 @@ describe('formatDateInTimezone', () => {
 
     it('should default to UTC when no timezone is provided', () => {
         const utcDate = '2025-06-15 09:15:00';
-        const result = formatDateInTimezone(utcDate);
+        const result = dateUtils.formatDateInTimezone(utcDate);
 
         expect(result.dateString).toBe('6/15/2025');
         expect(result.timeString).toBe('9:15 AM');
@@ -841,7 +782,7 @@ describe('formatDateInTimezone', () => {
 
     it('should handle midnight correctly', () => {
         const midnightUTC = '2025-03-01T00:00:00Z';
-        const result = formatDateInTimezone(midnightUTC, 'America/Los_Angeles');
+        const result = dateUtils.formatDateInTimezone(midnightUTC, 'America/Los_Angeles');
 
         // LA is UTC-8 in winter, so midnight UTC = 4:00 PM previous day in LA
         expect(result.dateString).toBe('2/28/2025');
@@ -852,7 +793,7 @@ describe('formatDateInTimezone', () => {
 
     it('should handle noon correctly', () => {
         const noonUTC = '2025-07-15T12:00:00Z';
-        const result = formatDateInTimezone(noonUTC, 'Asia/Tokyo');
+        const result = dateUtils.formatDateInTimezone(noonUTC, 'Asia/Tokyo');
 
         // Tokyo is UTC+9, so noon UTC = 9:00 PM Tokyo
         expect(result.dateString).toBe('7/15/2025');
@@ -863,7 +804,7 @@ describe('formatDateInTimezone', () => {
 
     it('should handle invalid date gracefully with fallback', () => {
         const invalidDate = 'invalid-date';
-        const result = formatDateInTimezone(invalidDate, 'America/Chicago');
+        const result = dateUtils.formatDateInTimezone(invalidDate, 'America/Chicago');
 
         // Should still return all properties even with fallback
         expect(result).toHaveProperty('dateString');
@@ -876,7 +817,7 @@ describe('formatDateInTimezone', () => {
     it('should format time inputs correctly for single-digit hours', () => {
         // Test 1:05 AM
         const earlyMorning = '2025-04-10T06:05:00Z';
-        const result1 = formatDateInTimezone(earlyMorning, 'America/New_York');
+        const result1 = dateUtils.formatDateInTimezone(earlyMorning, 'America/New_York');
 
         // NYC is UTC-4 in April, so 6:05 UTC = 2:05 AM NYC
         expect(result1.timeString).toBe('2:05 AM');
@@ -884,7 +825,7 @@ describe('formatDateInTimezone', () => {
 
         // Test 9:30 AM
         const morning = '2025-04-10T13:30:00Z';
-        const result2 = formatDateInTimezone(morning, 'America/New_York');
+        const result2 = dateUtils.formatDateInTimezone(morning, 'America/New_York');
 
         // 13:30 UTC = 9:30 AM NYC
         expect(result2.timeString).toBe('9:30 AM');
@@ -925,7 +866,7 @@ describe('sendReminderDigestEmail', () => {
 
         // This test can be run locally with mailpit running to verify the email format
         // When mailpit is running, you can check the email at http://localhost:8025
-        await sendReminderDigestEmail({
+        await mailUtils.sendReminderDigestEmail({
             email: 'test@example.com',
             username: 'TestUser',
             reminders,
@@ -964,7 +905,7 @@ describe('sendReminderDigestEmail', () => {
         ];
 
         // This test can be run locally with mailpit running to verify the email format
-        await sendReminderDigestEmail({
+        await mailUtils.sendReminderDigestEmail({
             email: 'test@example.com',
             username: 'TestUser',
             reminders,
@@ -1028,7 +969,7 @@ describe('processReminderDigests', () => {
             },
         ]);
 
-        await processReminderDigests();
+        await mailUtils.processReminderDigests();
 
         // Check that one-time reminder was deleted (this confirms processing happened)
         const remainingReminders = await db('reminders').where('title', 'Due Soon');
@@ -1065,7 +1006,7 @@ describe('processReminderDigests', () => {
             },
         ]);
 
-        await processReminderDigests();
+        await mailUtils.processReminderDigests();
 
         // Check that recurring reminders were updated with next due dates
         const dailyReminder = await db('reminders').where('title', 'Daily Reminder').first();
@@ -1084,7 +1025,7 @@ describe('processReminderDigests', () => {
 
         // Weekly should be scheduled for next Saturday after processing
         // Parse the UTC date and convert to test user's timezone to check the day
-        const weeklyDue = dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
+        const weeklyDue = libs.dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
         expect(weeklyDue.day()).toBe(6); // 6 = Saturday
 
         // Since the reminder is processed and moved to the next occurrence,
@@ -1107,7 +1048,7 @@ describe('processReminderDigests', () => {
         });
 
         // Should not throw an error
-        await expect(processReminderDigests()).resolves.not.toThrow();
+        await expect(mailUtils.processReminderDigests()).resolves.not.toThrow();
 
         // Reminder should still exist (not processed since it's not due)
         const reminders = await db('reminders').where('title', 'Far Future');
@@ -1127,7 +1068,7 @@ describe('processReminderDigests', () => {
             due_date: in5Minutes.toISOString(), // This is in UTC
         });
 
-        await processReminderDigests();
+        await mailUtils.processReminderDigests();
 
         // The reminder should have been processed (deleted for one-time reminders)
         const remainingReminders = await db('reminders').where('title', 'UTC Test');
@@ -1156,7 +1097,7 @@ describe('processReminderDigests', () => {
             },
         ]);
 
-        await processReminderDigests();
+        await mailUtils.processReminderDigests();
 
         // Check that reminders were rescheduled
         const weeklyReminder = await db('reminders').where('title', 'Weekly Report').first();
@@ -1167,12 +1108,12 @@ describe('processReminderDigests', () => {
 
         // Weekly reminder should be scheduled for next Saturday
         // Parse the UTC date and convert to test user's timezone to check the day
-        const weeklyDue = dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
+        const weeklyDue = libs.dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
         expect(weeklyDue.day()).toBe(6); // 6 = Saturday
 
         // Monthly reminder should be scheduled for the 1st of next month
         // Parse the UTC date and convert to test user's timezone to check the date
-        const monthlyDue = dayjs.tz(monthlyReminder.due_date, 'UTC').tz('America/Chicago');
+        const monthlyDue = libs.dayjs.tz(monthlyReminder.due_date, 'UTC').tz('America/Chicago');
         expect(monthlyDue.date()).toBe(1); // 1st of the month
     });
 
@@ -1198,7 +1139,7 @@ describe('processReminderDigests', () => {
             },
         ]);
 
-        await processReminderDigests();
+        await mailUtils.processReminderDigests();
 
         // Check that reminders were rescheduled
         const weeklyReminder = await db('reminders').where('title', 'Weekly Report').first();
@@ -1209,12 +1150,12 @@ describe('processReminderDigests', () => {
 
         // Weekly reminder should be scheduled for next Saturday
         // Parse the UTC date and convert to test user's timezone to check the day
-        const weeklyDue = dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
+        const weeklyDue = libs.dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
         expect(weeklyDue.day()).toBe(6); // 6 = Saturday
 
         // Monthly reminder should be scheduled for the 1st of next month
         // Parse the UTC date and convert to test user's timezone to check the date
-        const monthlyDue = dayjs.tz(monthlyReminder.due_date, 'UTC').tz('America/Chicago');
+        const monthlyDue = libs.dayjs.tz(monthlyReminder.due_date, 'UTC').tz('America/Chicago');
         expect(monthlyDue.date()).toBe(1); // 1st of the month
     });
 
@@ -1232,7 +1173,7 @@ describe('processReminderDigests', () => {
         });
 
         // First processing
-        await processReminderDigests();
+        await mailUtils.processReminderDigests();
 
         let reminder = await db('reminders').where('title', 'Multi-Day Daily Reminder').first();
         expect(reminder).toBeTruthy();
@@ -1251,7 +1192,7 @@ describe('processReminderDigests', () => {
             .update({ due_date: in5MinutesAgain.toISOString() });
 
         // Second processing
-        await processReminderDigests();
+        await mailUtils.processReminderDigests();
 
         reminder = await db('reminders').where('title', 'Multi-Day Daily Reminder').first();
         expect(reminder).toBeTruthy();

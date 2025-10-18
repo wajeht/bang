@@ -4,7 +4,6 @@ import {
     cleanupTestDatabase,
     authenticateApiAgent,
 } from '../../tests/api-test-utils';
-import request from 'supertest';
 import { db } from '../../db/db';
 import { createApp } from '../../app';
 import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';

@@ -1,125 +1,141 @@
-import { db } from '../../db/db';
-import { sqlHighlight } from '../../utils/util';
-import type { Reminder, Reminders, RemindersQueryParams } from '../../type';
+import type { Reminder, Reminders, RemindersQueryParams, AppContext } from '../../type';
 
-export const reminders: Reminders = {
-    all: async ({
-        user,
-        perPage = 20,
-        page = 1,
-        search = '',
-        sortKey = 'due_date',
-        direction = 'asc',
-        highlight = false,
-    }: RemindersQueryParams) => {
-        const query = db.select(
-            'id',
-            'user_id',
-            'reminder_type',
-            'frequency',
-            'created_at',
-            'updated_at',
-        );
+export function createRemindersRepo(context: AppContext): Reminders {
+    return {
+        all: async ({
+            user,
+            perPage = 20,
+            page = 1,
+            search = '',
+            sortKey = 'due_date',
+            direction = 'asc',
+            highlight = false,
+        }: RemindersQueryParams) => {
+            const query = context.db.select(
+                'id',
+                'user_id',
+                'reminder_type',
+                'frequency',
+                'created_at',
+                'updated_at',
+            );
 
-        if (highlight && search) {
-            query
-                .select(db.raw(`${sqlHighlight('title', search)} as title`))
-                .select(db.raw(`${sqlHighlight('content', search)} as content`))
-                .select(db.raw(`${sqlHighlight('CAST(due_date AS TEXT)', search)} as due_date`));
-        } else {
-            query.select('title').select('content').select('due_date');
-        }
+            if (highlight && search) {
+                query
+                    .select(
+                        context.db.raw(
+                            `${context.utils.html.sqlHighlightSearchTerm('title', search)} as title`,
+                        ),
+                    )
+                    .select(
+                        context.db.raw(
+                            `${context.utils.html.sqlHighlightSearchTerm('content', search)} as content`,
+                        ),
+                    )
+                    .select(
+                        context.db.raw(
+                            `${context.utils.html.sqlHighlightSearchTerm('CAST(due_date AS TEXT)', search)} as due_date`,
+                        ),
+                    );
+            } else {
+                query.select('title').select('content').select('due_date');
+            }
 
-        query.from('reminders').where('user_id', user.id);
+            query.from('reminders').where('user_id', user.id);
 
-        if (search) {
-            const searchTerms = search
-                .toLowerCase()
-                .trim()
-                .split(/\s+/)
-                .filter((term) => term.length > 0)
-                .map((term) => term.replace(/[%_]/g, '\\$&'));
+            if (search) {
+                const searchTerms = search
+                    .toLowerCase()
+                    .trim()
+                    .split(/\s+/)
+                    .filter((term) => term.length > 0)
+                    .map((term) => term.replace(/[%_]/g, '\\$&'));
 
-            query.where((q) => {
-                // Each term must match title, content, or frequency
-                searchTerms.forEach((term) => {
-                    q.andWhere((subQ) => {
-                        subQ.whereRaw('LOWER(title) LIKE ?', [`%${term}%`])
-                            .orWhereRaw('LOWER(content) LIKE ?', [`%${term}%`])
-                            .orWhereRaw('LOWER(frequency) LIKE ?', [`%${term}%`]);
+                query.where((q: any) => {
+                    // Each term must match title, content, or frequency
+                    searchTerms.forEach((term) => {
+                        q.andWhere((subQ: any) => {
+                            subQ.whereRaw('LOWER(title) LIKE ?', [`%${term}%`])
+                                .orWhereRaw('LOWER(content) LIKE ?', [`%${term}%`])
+                                .orWhereRaw('LOWER(frequency) LIKE ?', [`%${term}%`]);
+                        });
                     });
                 });
-            });
-        }
+            }
 
-        if (['title', 'content', 'due_date', 'frequency', 'created_at'].includes(sortKey)) {
-            query.orderBy(sortKey, direction);
-        } else {
-            query.orderBy('due_date', 'asc');
-        }
+            if (['title', 'content', 'due_date', 'frequency', 'created_at'].includes(sortKey)) {
+                query.orderBy(sortKey, direction);
+            } else {
+                query.orderBy('due_date', 'asc');
+            }
 
-        return query.paginate({ perPage, currentPage: page, isLengthAware: true });
-    },
+            return query.paginate({ perPage, currentPage: page, isLengthAware: true });
+        },
 
-    create: async (reminder: Reminder) => {
-        if (!reminder.title || !reminder.user_id || !reminder.reminder_type) {
-            throw new Error('Missing required fields to create a reminder');
-        }
+        create: async (reminder: Reminder) => {
+            if (!reminder.title || !reminder.user_id || !reminder.reminder_type) {
+                throw new Error('Missing required fields to create a reminder');
+            }
 
-        const [createdReminder] = await db('reminders').insert(reminder).returning('*');
-        return createdReminder;
-    },
+            const [createdReminder] = await context.db('reminders').insert(reminder).returning('*');
+            return createdReminder;
+        },
 
-    read: async (id: number, userId: number) => {
-        const reminder = await db
-            .select('*')
-            .from('reminders')
-            .where({ id, user_id: userId })
-            .first();
+        read: async (id: number, userId: number) => {
+            const reminder = await context.db
+                .select('*')
+                .from('reminders')
+                .where({ id, user_id: userId })
+                .first();
 
-        if (!reminder) {
-            return null;
-        }
+            if (!reminder) {
+                return null;
+            }
 
-        return reminder;
-    },
+            return reminder;
+        },
 
-    update: async (id: number, userId: number, updates: Partial<Reminder>) => {
-        const allowedFields = ['title', 'content', 'reminder_type', 'frequency', 'due_date'];
+        update: async (id: number, userId: number, updates: Partial<Reminder>) => {
+            const allowedFields = ['title', 'content', 'reminder_type', 'frequency', 'due_date'];
 
-        const updateData = Object.fromEntries(
-            Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
-        );
+            const updateData = Object.fromEntries(
+                Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
+            );
 
-        if (Object.keys(updateData).length === 0) {
-            throw new Error('No valid fields provided for update');
-        }
+            if (Object.keys(updateData).length === 0) {
+                throw new Error('No valid fields provided for update');
+            }
 
-        const [updatedReminder] = await db('reminders')
-            .where({ id, user_id: userId })
-            .update(updateData)
-            .returning('*');
+            const [updatedReminder] = await context
+                .db('reminders')
+                .where({ id, user_id: userId })
+                .update(updateData)
+                .returning('*');
 
-        if (!updatedReminder) {
-            return null;
-        }
+            if (!updatedReminder) {
+                return null;
+            }
 
-        return updatedReminder;
-    },
+            return updatedReminder;
+        },
 
-    delete: async (id: number, userId: number) => {
-        const rowsAffected = await db('reminders').where({ id, user_id: userId }).delete();
-        return rowsAffected > 0;
-    },
-
-    bulkDelete: async (ids: number[], userId: number) => {
-        return db.transaction(async (trx) => {
-            const rowsAffected = await trx('reminders')
-                .whereIn('id', ids)
-                .where('user_id', userId)
+        delete: async (id: number, userId: number) => {
+            const rowsAffected = await context
+                .db('reminders')
+                .where({ id, user_id: userId })
                 .delete();
+            return rowsAffected > 0;
+        },
 
-            return rowsAffected;
-        });
-    },
-} as const;
+        bulkDelete: async (ids: number[], userId: number) => {
+            return context.db.transaction(async (trx: any) => {
+                const rowsAffected = await trx('reminders')
+                    .whereIn('id', ids)
+                    .where('user_id', userId)
+                    .delete();
+
+                return rowsAffected;
+            });
+        },
+    };
+}

@@ -1,7 +1,5 @@
-import cron from 'node-cron';
-import type { ScheduledTask } from 'node-cron';
-import type { AppContext } from './context';
-import { processReminderDigests } from './utils/mail';
+import type { AppContext } from './type';
+import { type ScheduledTask } from 'node-cron';
 import { cleanupExpiredSessions } from './utils/session-cleanup';
 
 export interface CronService {
@@ -13,49 +11,49 @@ export interface CronService {
     };
 }
 
-export function createCronService(dependencies: { logger: AppContext['logger'] }): CronService {
-    const { logger } = dependencies;
-
+export function createCronService(context: AppContext): CronService {
     let cronJobs: ScheduledTask[] = [];
     let isRunning = false;
 
     async function reminderCheckTask() {
-        logger.info('Checking for due reminders...');
+        context.logger.info('Checking for due reminders...');
         try {
-            await processReminderDigests();
-            logger.info('Reminder check completed');
+            await context.utils.mail.processReminderDigests();
+            context.logger.info('Reminder check completed');
         } catch (error: any) {
-            logger.error('Reminder check failed: %o', { error });
+            context.logger.error('Reminder check failed: %o', { error });
         }
     }
 
     async function sessionCleanupTask() {
-        logger.info('Cleaning up expired sessions...');
+        context.logger.info('Cleaning up expired sessions...');
         try {
             const deletedCount = await cleanupExpiredSessions();
-            logger.info(`Session cleanup completed: ${deletedCount} expired sessions removed`);
+            context.logger.info(
+                `Session cleanup completed: ${deletedCount} expired sessions removed`,
+            );
         } catch (error: any) {
-            logger.error('Session cleanup failed: %o', { error });
+            context.logger.error('Session cleanup failed: %o', { error });
         }
     }
 
     async function start() {
         // Schedule reminder check every 15 minutes
-        const reminderJob = cron.schedule('*/15 * * * *', reminderCheckTask, {
+        const reminderJob = context.libs.cron.schedule('*/15 * * * *', reminderCheckTask, {
             timezone: 'UTC',
         });
         cronJobs.push(reminderJob);
-        logger.info('Reminder check scheduled every 15 minutes');
+        context.logger.info('Reminder check scheduled every 15 minutes');
 
         // Schedule session cleanup every 6 hours
-        const sessionJob = cron.schedule('0 */6 * * *', sessionCleanupTask, {
+        const sessionJob = context.libs.cron.schedule('0 */6 * * *', sessionCleanupTask, {
             timezone: 'UTC',
         });
         cronJobs.push(sessionJob);
-        logger.info('Session cleanup scheduled every 6 hours');
+        context.logger.info('Session cleanup scheduled every 6 hours');
 
         isRunning = true;
-        logger.info(`Cron service started with ${cronJobs.length} job(s)`);
+        context.logger.info(`Cron service started with ${cronJobs.length} job(s)`);
     }
 
     function stop() {
@@ -67,7 +65,7 @@ export function createCronService(dependencies: { logger: AppContext['logger'] }
         });
         cronJobs = [];
         isRunning = false;
-        logger.info('Cron service stopped');
+        context.logger.info('Cron service stopped');
     }
 
     function getStatus() {

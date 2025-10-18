@@ -1,7 +1,5 @@
-import { createServer, closeServer } from './app';
-import { config } from './config';
 import { logger } from './utils/logger';
-import { notifyError } from './error';
+import { createServer, closeServer } from './app';
 
 async function gracefulShutdown(
     signal: string,
@@ -29,33 +27,12 @@ function handleWarning(warning: any) {
 
 function handleUncaughtException(error: Error, origin: string) {
     logger.error(`Uncaught Exception: ${error.message}, Origin: ${origin}`);
-
-    if (config.app.env === 'production') {
-        try {
-            notifyError(error);
-        } catch (notificationError) {
-            logger.error(`Failed to send uncaught exception notification: %o`, {
-                error: notificationError as Error,
-            });
-        }
-    }
-
     process.exit(1);
 }
 
 function handleUnhandledRejection(reason: unknown, _promise: Promise<unknown>) {
     if (reason instanceof Error) {
         logger.error(`Unhandled Rejection: ${reason.message}`);
-
-        if (config.app.env === 'production') {
-            try {
-                notifyError(reason);
-            } catch (notificationError) {
-                logger.error(`Failed to send unhandled rejection notification: %o`, {
-                    error: notificationError as Error,
-                });
-            }
-        }
     } else {
         logger.error(`Unhandled Rejection: %o`, reason);
     }

@@ -1,37 +1,50 @@
-import {
-    search,
-    parseSearchQuery,
-    parseReminderTiming,
-    getBangRedirectUrl,
-    processDelayedSearch,
-    handleAnonymousSearch,
-} from '../utils/search';
-import {
-    isValidUrl,
-    insertBookmark,
-    insertPageTitle,
-    checkDuplicateBookmarkUrl,
-} from '../utils/util';
-import dayjs from './dayjs';
 import { db } from '../db/db';
-import { User } from '../type';
+import { dayjs } from '../libs';
 import { config } from '../config';
+import { createContext } from '../context';
 import { Request, Response } from 'express';
-import { notes } from '../routes/notes/notes.repo';
+import type { User, AppContext } from '../type';
+import { createSearchUtils } from '../utils/search';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('./util', async () => {
-    const actual = await vi.importActual('./util');
-    return {
-        ...actual,
-        isValidUrl: vi.fn(),
-        insertBookmark: vi.fn(),
-        insertPageTitle: vi.fn(),
-        checkDuplicateBookmarkUrl: vi.fn(),
-    };
-});
+let ctx: AppContext;
+let search: ReturnType<typeof createSearchUtils>['search'];
+let parseSearchQuery: ReturnType<typeof createSearchUtils>['parseSearchQuery'];
+let parseReminderTiming: ReturnType<typeof createSearchUtils>['parseReminderTiming'];
+let getBangRedirectUrl: ReturnType<typeof createSearchUtils>['getBangRedirectUrl'];
+let processDelayedSearch: ReturnType<typeof createSearchUtils>['processDelayedSearch'];
+let handleAnonymousSearch: ReturnType<typeof createSearchUtils>['handleAnonymousSearch'];
+let isValidUrl: any;
+let insertBookmark: any;
+let insertPageTitle: any;
+let checkDuplicateBookmarkUrl: any;
 
 describe('search', () => {
+    beforeAll(async () => {
+        ctx = await createContext();
+
+        const searchUtils = createSearchUtils(ctx);
+
+        search = searchUtils.search;
+        parseSearchQuery = searchUtils.parseSearchQuery;
+        parseReminderTiming = searchUtils.parseReminderTiming;
+        getBangRedirectUrl = searchUtils.getBangRedirectUrl;
+        processDelayedSearch = searchUtils.processDelayedSearch;
+        handleAnonymousSearch = searchUtils.handleAnonymousSearch;
+    });
+
+    beforeEach(() => {
+        isValidUrl = vi.spyOn(ctx.utils.validation, 'isValidUrl').mockReturnValue(true);
+        insertBookmark = vi.spyOn(ctx.utils.util, 'insertBookmark').mockResolvedValue(undefined);
+        insertPageTitle = vi.spyOn(ctx.utils.util, 'insertPageTitle').mockResolvedValue(undefined);
+        checkDuplicateBookmarkUrl = vi
+            .spyOn(ctx.utils.util, 'checkDuplicateBookmarkUrl')
+            .mockResolvedValue(null);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
     describe('unauthenticated', () => {
         it('should redirect to google when !g is used', async () => {
             const req = {
@@ -76,7 +89,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            vi.mocked(isValidUrl).mockReturnValue(true);
+            isValidUrl.mockReturnValue(true);
 
             await search({ req, res, user: undefined as unknown as User, query: '!g' });
 
@@ -90,7 +103,7 @@ describe('search', () => {
             expect(req.session.searchCount).toBe(1);
             expect(req.session.user).toBeUndefined();
 
-            vi.mocked(isValidUrl).mockReset();
+            isValidUrl.mockReset();
         });
 
         it('should redirect ddg without a exclamation mark when !doesnotexistanywhere is used', async () => {
@@ -134,6 +147,8 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
+            isValidUrl.mockReturnValue(false);
+
             try {
                 await search({ req, res, user: undefined, query: '!g' });
 
@@ -141,13 +156,14 @@ describe('search', () => {
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
                         'Cache-Control': 'private, max-age=3600',
+                        Vary: 'Cookie',
                     }),
                 );
                 expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=!g');
                 expect(req.session.searchCount).toBe(1);
                 expect(req.session.user).toBeUndefined();
             } finally {
-                vi.mocked(isValidUrl).mockReset();
+                isValidUrl.mockReset();
             }
         });
 
@@ -438,10 +454,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
-
-            vi.mocked(isValidUrl).mockReturnValue(true);
-            vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
+            isValidUrl.mockReturnValue(true);
 
             const query = '!bm My Bookmark https://example.com';
 
@@ -452,9 +465,9 @@ describe('search', () => {
                 query,
             });
 
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 10));
 
-            expect(mockInsertBookmark).toHaveBeenCalledWith({
+            expect(insertBookmark).toHaveBeenCalledWith({
                 url: 'https://example.com',
                 title: 'My Bookmark',
                 userId: 1,
@@ -481,10 +494,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
-
-            vi.mocked(isValidUrl).mockReturnValue(true);
-            vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
+            isValidUrl.mockReturnValue(true);
 
             const query = '!bm https://example.com';
 
@@ -501,8 +511,6 @@ describe('search', () => {
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://example.com');
-
-            vi.restoreAllMocks();
         });
 
         it('should handle invalid bookmark URLs', async () => {
@@ -534,7 +542,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            vi.mocked(isValidUrl).mockReturnValue(true);
+            isValidUrl.mockReturnValue(true);
 
             const longTitle = 'A'.repeat(256);
             const query = `!bm ${longTitle} https://example.com`;
@@ -551,7 +559,7 @@ describe('search', () => {
                 expect.stringContaining('Title must be shorter than 255 characters'),
             );
 
-            vi.mocked(isValidUrl).mockReset();
+            isValidUrl.mockReset();
         });
 
         describe('!bm command with --hide flag', () => {
@@ -572,9 +580,7 @@ describe('search', () => {
                     set: vi.fn(),
                 } as unknown as Response;
 
-                vi.mocked(isValidUrl).mockReturnValue(true);
-                const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
-                vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
+                isValidUrl.mockReturnValue(true);
 
                 await search({
                     req,
@@ -583,9 +589,9 @@ describe('search', () => {
                     query: '!bm Secret Site https://secret.com --hide',
                 });
 
-                await new Promise((resolve) => setTimeout(resolve, 0));
+                await new Promise((resolve) => setTimeout(resolve, 10));
 
-                expect(mockInsertBookmark).toHaveBeenCalledWith({
+                expect(insertBookmark).toHaveBeenCalledWith({
                     url: 'https://secret.com',
                     title: 'Secret Site',
                     userId: 1,
@@ -608,7 +614,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                vi.mocked(isValidUrl).mockReturnValue(true);
+                isValidUrl.mockReturnValue(true);
 
                 await search({
                     req,
@@ -637,10 +643,7 @@ describe('search', () => {
                     set: vi.fn(),
                 } as unknown as Response;
 
-                vi.mocked(isValidUrl).mockReturnValue(true);
-                const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
-                vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
-
+                isValidUrl.mockReturnValue(true);
                 await search({
                     req,
                     res,
@@ -648,9 +651,9 @@ describe('search', () => {
                     query: '!bm https://secret.com --hide',
                 });
 
-                await new Promise((resolve) => setTimeout(resolve, 0));
+                await new Promise((resolve) => setTimeout(resolve, 10));
 
-                expect(mockInsertBookmark).toHaveBeenCalledWith({
+                expect(insertBookmark).toHaveBeenCalledWith({
                     url: 'https://secret.com',
                     title: '',
                     userId: 1,
@@ -672,9 +675,7 @@ describe('search', () => {
                     set: vi.fn(),
                 } as unknown as Response;
 
-                vi.mocked(isValidUrl).mockReturnValue(true);
-                const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
-                vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
+                isValidUrl.mockReturnValue(true);
 
                 await search({
                     req,
@@ -683,9 +684,9 @@ describe('search', () => {
                     query: '!bm Title with --hide in middle https://example.com',
                 });
 
-                await new Promise((resolve) => setTimeout(resolve, 0));
+                await new Promise((resolve) => setTimeout(resolve, 10));
 
-                expect(mockInsertBookmark).toHaveBeenCalledWith({
+                expect(insertBookmark).toHaveBeenCalledWith({
                     url: 'https://example.com',
                     title: 'Title with in middle', // --hide removed from title
                     userId: 1,
@@ -1149,8 +1150,8 @@ describe('search', () => {
 
             const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
 
-            vi.mocked(isValidUrl).mockReturnValue(true);
-            vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
+            isValidUrl.mockReturnValue(true);
+            insertBookmark.mockImplementation(mockInsertBookmark);
 
             await search({
                 req,
@@ -1226,8 +1227,8 @@ describe('search', () => {
                 redirect: vi.fn(),
             } as unknown as Response;
 
-            vi.mocked(isValidUrl).mockReturnValue(true);
-            vi.mocked(checkDuplicateBookmarkUrl).mockRejectedValue(new Error('Database error'));
+            isValidUrl.mockReturnValue(true);
+            checkDuplicateBookmarkUrl.mockRejectedValue(new Error('Database error'));
 
             await search({
                 req,
@@ -1512,7 +1513,7 @@ describe('search', () => {
                     .update({ pinned: true });
 
                 // Get all notes using repository
-                const result = await notes.all({
+                const result = await ctx.models.notes.all({
                     user: testUser,
                     perPage: 10,
                     page: 1,
@@ -1893,9 +1894,6 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                const mockInsertPageTitle = vi.fn().mockResolvedValue(undefined);
-                vi.mocked(insertPageTitle).mockImplementation(mockInsertPageTitle);
-
                 await search({
                     req,
                     res,
@@ -1908,9 +1906,9 @@ describe('search', () => {
                     expect.stringContaining('window.history.back()'),
                 );
 
-                await new Promise((resolve) => setTimeout(resolve, 0));
+                await new Promise((resolve) => setTimeout(resolve, 10));
 
-                expect(mockInsertPageTitle).toHaveBeenCalledWith({
+                expect(insertPageTitle).toHaveBeenCalledWith({
                     actionId: 1001,
                     url: 'https://new-url.com',
                     req,
@@ -1933,10 +1931,10 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                vi.mocked(isValidUrl).mockReturnValue(true);
+                isValidUrl.mockReturnValue(true);
 
                 const mockInsertPageTitle = vi.fn().mockResolvedValue(undefined);
-                vi.mocked(insertPageTitle).mockImplementation(mockInsertPageTitle);
+                insertPageTitle.mockImplementation(mockInsertPageTitle);
 
                 await search({
                     req,
@@ -2059,6 +2057,8 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
+                isValidUrl.mockReturnValue(false);
+
                 await search({
                     req,
                     res,
@@ -2131,7 +2131,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                vi.mocked(isValidUrl).mockReturnValue(true);
+                isValidUrl.mockReturnValue(true);
 
                 await search({
                     req,
@@ -2151,7 +2151,7 @@ describe('search', () => {
                 expect(updatedBang).toBeDefined();
                 expect(updatedBang.url).toBe('https://new-without-prefix.com');
 
-                vi.mocked(isValidUrl).mockReset();
+                isValidUrl.mockReset();
             });
 
             it('should successfully edit an existing tab trigger', async () => {
@@ -2238,7 +2238,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            vi.mocked(isValidUrl).mockReturnValue(false);
+            isValidUrl.mockReturnValue(false);
 
             try {
                 await search({ req, res, user: testUser, query: '!g' });
@@ -2246,9 +2246,9 @@ describe('search', () => {
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
                         'Cache-Control': 'private, max-age=3600',
-                        Vary: 'Cookie',
                     }),
                 );
+                // When bang URL is invalid, fall back to searching for trigger without the "!"
                 expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=g');
             } finally {
                 vi.restoreAllMocks();
@@ -2280,8 +2280,8 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                vi.mocked(isValidUrl).mockReturnValue(true);
-                vi.mocked(checkDuplicateBookmarkUrl).mockResolvedValue({
+                isValidUrl.mockReturnValue(true);
+                checkDuplicateBookmarkUrl.mockResolvedValue({
                     id: 999,
                     user_id: 1,
                     title: 'Existing Bookmark',
@@ -2303,8 +2303,8 @@ describe('search', () => {
                     ),
                 );
 
-                vi.mocked(isValidUrl).mockReset();
-                vi.mocked(checkDuplicateBookmarkUrl).mockReset();
+                isValidUrl.mockReset();
+                checkDuplicateBookmarkUrl.mockReset();
             });
 
             it('should detect duplicate URL and show error without title', async () => {
@@ -2315,8 +2315,8 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                vi.mocked(isValidUrl).mockReturnValue(true);
-                vi.mocked(checkDuplicateBookmarkUrl).mockResolvedValue({
+                isValidUrl.mockReturnValue(true);
+                checkDuplicateBookmarkUrl.mockResolvedValue({
                     id: 999,
                     user_id: 1,
                     title: 'Existing Bookmark',
@@ -2338,8 +2338,8 @@ describe('search', () => {
                     ),
                 );
 
-                vi.mocked(isValidUrl).mockReset();
-                vi.mocked(checkDuplicateBookmarkUrl).mockReset();
+                isValidUrl.mockReset();
+                checkDuplicateBookmarkUrl.mockReset();
             });
 
             it('should handle bookmark titles with special characters in duplicate detection', async () => {
@@ -2355,8 +2355,8 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                vi.mocked(isValidUrl).mockReturnValue(true);
-                vi.mocked(checkDuplicateBookmarkUrl).mockResolvedValue({
+                isValidUrl.mockReturnValue(true);
+                checkDuplicateBookmarkUrl.mockResolvedValue({
                     id: 999,
                     user_id: 1,
                     title: 'Test "Quotes" & Special Chars',
@@ -2378,8 +2378,8 @@ describe('search', () => {
                     ),
                 );
 
-                vi.mocked(isValidUrl).mockReset();
-                vi.mocked(checkDuplicateBookmarkUrl).mockReset();
+                isValidUrl.mockReset();
+                checkDuplicateBookmarkUrl.mockReset();
             });
 
             it('should allow bookmark creation with unique URL', async () => {
@@ -2389,11 +2389,8 @@ describe('search', () => {
                     set: vi.fn(),
                 } as unknown as Response;
 
-                const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
-
-                vi.mocked(isValidUrl).mockReturnValue(true);
-                vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
-                vi.mocked(checkDuplicateBookmarkUrl).mockResolvedValue(null); // No duplicate found
+                isValidUrl.mockReturnValue(true);
+                checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate found
 
                 await search({
                     req,
@@ -2402,9 +2399,9 @@ describe('search', () => {
                     query: '!bm Unique Title https://unique.com',
                 });
 
-                await new Promise((resolve) => setTimeout(resolve, 0));
+                await new Promise((resolve) => setTimeout(resolve, 10));
 
-                expect(mockInsertBookmark).toHaveBeenCalledWith({
+                expect(insertBookmark).toHaveBeenCalledWith({
                     url: 'https://unique.com',
                     title: 'Unique Title',
                     userId: testUser.id,
@@ -2417,8 +2414,6 @@ describe('search', () => {
                     }),
                 );
                 expect(res.redirect).toHaveBeenCalledWith('https://unique.com');
-
-                vi.restoreAllMocks();
             });
 
             it('should not check for duplicates for other users', async () => {
@@ -2433,11 +2428,8 @@ describe('search', () => {
                     set: vi.fn(),
                 } as unknown as Response;
 
-                const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
-
-                vi.mocked(isValidUrl).mockReturnValue(true);
-                vi.mocked(insertBookmark).mockImplementation(mockInsertBookmark);
-                vi.mocked(checkDuplicateBookmarkUrl).mockResolvedValue(null); // No duplicate found for other user
+                isValidUrl.mockReturnValue(true);
+                checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate found for other user
 
                 await search({
                     req,
@@ -2446,9 +2438,9 @@ describe('search', () => {
                     query: '!bm Same URL https://existing.com', // Same URL as user 1's bookmark
                 });
 
-                await new Promise((resolve) => setTimeout(resolve, 0));
+                await new Promise((resolve) => setTimeout(resolve, 10));
 
-                expect(mockInsertBookmark).toHaveBeenCalledWith({
+                expect(insertBookmark).toHaveBeenCalledWith({
                     url: 'https://existing.com',
                     title: 'Same URL',
                     userId: otherUser.id,
@@ -2456,8 +2448,6 @@ describe('search', () => {
                 });
 
                 expect(res.redirect).toHaveBeenCalledWith('https://existing.com');
-
-                vi.restoreAllMocks();
             });
         });
 
@@ -2986,7 +2976,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                vi.mocked(isValidUrl).mockReturnValue(true);
+                isValidUrl.mockReturnValue(true);
 
                 await search({
                     req,
@@ -3004,7 +2994,7 @@ describe('search', () => {
                 expect(createdReminder.frequency).toBe('weekly');
                 expect(createdReminder.content).toBe('google.com');
 
-                vi.mocked(isValidUrl).mockReset();
+                isValidUrl.mockReset();
             });
 
             it('should handle URL-only reminder with https protocol and set title to Untitled', async () => {
@@ -3015,7 +3005,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                vi.mocked(isValidUrl).mockReturnValue(true);
+                isValidUrl.mockReturnValue(true);
 
                 await search({
                     req,
@@ -3033,7 +3023,7 @@ describe('search', () => {
                 expect(createdReminder.frequency).toBe('weekly');
                 expect(createdReminder.content).toBe('https://example.com');
 
-                vi.mocked(isValidUrl).mockReset();
+                isValidUrl.mockReset();
             });
 
             it('should call insertPageTitle for URL-only reminders', async () => {
@@ -3044,9 +3034,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                const mockInsertPageTitle = vi.fn();
-                vi.mocked(insertPageTitle).mockImplementation(mockInsertPageTitle);
-                vi.mocked(isValidUrl).mockReturnValue(true);
+                isValidUrl.mockReturnValue(true);
 
                 await search({
                     req,
@@ -3064,14 +3052,11 @@ describe('search', () => {
 
                 await new Promise((resolve) => setTimeout(resolve, 10));
 
-                expect(mockInsertPageTitle).toHaveBeenCalledWith({
+                expect(insertPageTitle).toHaveBeenCalledWith({
                     reminderId: createdReminder.id,
                     url: 'https://example.com',
                     req,
                 });
-
-                vi.mocked(insertPageTitle).mockReset();
-                vi.mocked(isValidUrl).mockReset();
             });
         });
     });

@@ -1,54 +1,45 @@
-import type { Knex } from 'knex';
-import { config } from './config';
-import dayjs from './utils/dayjs';
-import * as mail from './utils/mail';
-import * as util from './utils/util';
-import type { Logger } from './type';
-import { logger } from './utils/logger';
-import * as search from './utils/search';
-import { db as database } from './db/db';
-import { tabs } from './routes/tabs/tabs.repo';
-import { notes } from './routes/notes/notes.repo';
-import { actions } from './routes/actions/actions.repo';
-import { NotFoundError, ValidationError } from './error';
-import { bookmarks } from './routes/bookmarks/bookmarks.repo';
-import { reminders } from './routes/reminders/reminders.repo';
-import { createCronService, type CronService } from './crons';
-import type { Actions, Bookmarks, Notes, Tabs, Reminders } from './type';
-
-export const errors = {
+import {
+    HttpError,
     NotFoundError,
+    ForbiddenError,
     ValidationError,
-};
-
-export interface Models {
-    actions: Actions;
-    bookmarks: Bookmarks;
-    notes: Notes;
-    tabs: Tabs;
-    reminders: Reminders;
-}
-
-export interface Services {
-    crons: CronService;
-}
-
-export interface Utilities {
-    util: typeof util;
-    search: typeof search;
-    mail: typeof mail;
-    dayjs: typeof dayjs;
-}
-
-export interface AppContext {
-    config: typeof config;
-    logger: Logger;
-    db: Knex;
-    errors: typeof errors;
-    models: Models;
-    services: Services;
-    utils: Utilities;
-}
+    UnauthorizedError,
+    UnimplementedFunctionError,
+} from './error';
+import {
+    helmetMiddleware,
+    layoutMiddleware,
+    createCsrfMiddleware,
+    createErrorMiddleware,
+    staticAssetsMiddleware,
+    createSessionMiddleware,
+    createNotFoundMiddleware,
+    createTurnstileMiddleware,
+    createRateLimitMiddleware,
+    createAdminOnlyMiddleware,
+    createAppLocalStateMiddleware,
+    createAuthenticationMiddleware,
+} from './routes/middleware';
+import { libs } from './libs';
+import { config } from './config';
+import { logger } from './utils/logger';
+import { createDatabase } from './db/db';
+import { createCronService } from './crons';
+import { createDateUtils } from './utils/date';
+import { createHtmlUtils } from './utils/html';
+import { createAuthUtils } from './utils/auth';
+import { createMailUtils } from './utils/mail';
+import { createUtilUtils } from './utils/util';
+import { createSearchUtils } from './utils/search';
+import { createRequestUtils } from './utils/request';
+import { createTabsRepo } from './routes/tabs/tabs.repo';
+import { createValidationUtils } from './utils/validation';
+import { createNotesRepo } from './routes/notes/notes.repo';
+import { createUsersRepo } from './routes/admin/admin.repo';
+import { createActionsRepo } from './routes/actions/actions.repo';
+import { createBookmarksRepo } from './routes/bookmarks/bookmarks.repo';
+import { createRemindersRepo } from './routes/reminders/reminders.repo';
+import type { AppContext, Models, Services, Utilities, Middlewares } from './type';
 
 export async function createContext(): Promise<AppContext> {
     if (!config) {
@@ -59,38 +50,84 @@ export async function createContext(): Promise<AppContext> {
         throw new Error('Logger required for app context');
     }
 
-    if (!database) {
-        throw new Error('Database required for app context');
-    }
-
-    const models: Models = {
-        actions,
-        bookmarks,
-        notes,
-        tabs,
-        reminders,
+    const errors = {
+        HttpError,
+        NotFoundError,
+        ForbiddenError,
+        ValidationError,
+        UnauthorizedError,
+        UnimplementedFunctionError,
     };
 
-    const services: Services = {
-        crons: createCronService({ logger }),
-    };
+    const database = createDatabase({ config, logger, libs });
 
-    const utilities: Utilities = {
-        util,
-        search,
-        mail,
-        dayjs,
-    };
-
-    const ctx: AppContext = {
+    const partialCtx = {
         config,
         logger,
-        db: database,
+        db: database.instance,
+        database,
         errors,
-        models,
-        services,
-        utils: utilities,
+        libs,
+    } as any;
+
+    const auth = createAuthUtils(partialCtx);
+    const date = createDateUtils(partialCtx);
+    const html = createHtmlUtils(partialCtx);
+    const utilUtils = createUtilUtils(partialCtx);
+    const request = createRequestUtils(partialCtx);
+    const validation = createValidationUtils(partialCtx);
+
+    const utilities: Utilities = {
+        date,
+        html,
+        auth,
+        request,
+        validation,
+        util: utilUtils,
+        mail: createMailUtils(partialCtx),
+        search: createSearchUtils(partialCtx),
     };
+
+    partialCtx.utils = utilities;
+
+    const models: Models = {
+        tabs: createTabsRepo(partialCtx),
+        notes: createNotesRepo(partialCtx),
+        users: createUsersRepo(partialCtx),
+        actions: createActionsRepo(partialCtx),
+        bookmarks: createBookmarksRepo(partialCtx),
+        reminders: createRemindersRepo(partialCtx),
+    };
+
+    partialCtx.models = models;
+
+    const middlewares: Middlewares = {
+        notFound: createNotFoundMiddleware(partialCtx),
+        errorHandler: createErrorMiddleware(partialCtx),
+        turnstile: createTurnstileMiddleware(partialCtx),
+        adminOnly: createAdminOnlyMiddleware(partialCtx),
+        authentication: createAuthenticationMiddleware(partialCtx),
+        helmet: helmetMiddleware(partialCtx),
+        session: createSessionMiddleware(partialCtx),
+        csrf: createCsrfMiddleware(partialCtx),
+        rateLimit: createRateLimitMiddleware(partialCtx),
+        appLocalState: createAppLocalStateMiddleware(partialCtx),
+        staticAssets: staticAssetsMiddleware(partialCtx),
+        layout: layoutMiddleware({
+            defaultLayout: '_layouts/public.html',
+            layoutsDir: '_layouts',
+        }),
+    };
+
+    partialCtx.middleware = middlewares;
+
+    const services: Services = {
+        crons: createCronService(partialCtx),
+    };
+
+    partialCtx.services = services;
+
+    const ctx: AppContext = partialCtx as AppContext;
 
     return config.app.env === 'production' ? Object.freeze(ctx) : ctx;
 }

@@ -1,6 +1,16 @@
 import { db } from '../db/db';
-import { magicLink } from '../utils/util';
+import type { AppContext } from '../type';
+import { createContext } from '../context';
 import { Page, expect } from '@playwright/test';
+
+let testContext: AppContext | null = null;
+
+async function getTestContext(): Promise<AppContext> {
+    if (!testContext) {
+        testContext = await createContext();
+    }
+    return testContext;
+}
 
 export async function ensureTestUserExists(email: string = 'test@example.com') {
     let user = await db('users').where({ email }).first();
@@ -79,7 +89,8 @@ export async function ensureTestUserExists(email: string = 'test@example.com') {
 
 export async function authenticateUser(page: Page, email: string = 'test@example.com') {
     const user = await ensureTestUserExists(email);
-    const token = magicLink.generate({ email });
+    const ctx = await getTestContext();
+    const token = ctx.utils.auth.generateMagicLink({ email });
     await page.goto(`/auth/magic/${token}`);
     await page.waitForURL('/actions', { timeout: 5000 });
     return user;

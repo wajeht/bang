@@ -1,7 +1,8 @@
 import { Application } from 'express';
+import type { AppContext } from '../type';
 import type { Options } from 'express-jsdoc-swagger';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
-import { authenticationMiddleware } from '../routes/middleware';
+import { createAuthenticationMiddleware } from '../routes/middleware';
 
 const swaggerConfig = {
     info: {
@@ -36,7 +37,7 @@ const swaggerConfig = {
     multiple: {},
 } as unknown as Options;
 
-export function expressJSDocSwaggerHandler(app: Application) {
-    app.use('/api-docs', authenticationMiddleware);
+export function expressJSDocSwaggerHandler(app: Application, context: AppContext) {
+    app.use('/api-docs', createAuthenticationMiddleware(context));
     expressJSDocSwagger(app)(swaggerConfig);
 }

@@ -1,22 +1,8 @@
-import {
-    isValidUrl,
-    isApiRequest,
-    insertBookmark,
-    extractPagination,
-    checkDuplicateBookmarkUrl,
-} from '../../utils/util';
-import express from 'express';
-import type { User } from '../../type';
 import type { Request, Response } from 'express';
-import type { AppContext } from '../../context';
-import { authenticationMiddleware } from '../middleware';
-import { NotFoundError, ValidationError } from '../../error';
-import { parseReminderTiming, reminderTimingConfig } from '../../utils/search';
+import type { User, AppContext } from '../../type';
 
 export function createRemindersRouter(context: AppContext) {
-    const { db, models } = context;
-
-    const router = express.Router();
+    const router = context.libs.express.Router();
 
     /**
      * A reminder
@@ -33,21 +19,21 @@ export function createRemindersRouter(context: AppContext) {
 
     router.get(
         '/reminders/create',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             return res.render('reminders/reminders-create.html', {
                 title: 'Reminders / New',
                 path: '/reminders/create',
                 layout: '_layouts/auth.html',
                 user: req.session?.user,
-                timingOptions: reminderTimingConfig.getAllOptions(),
+                timingOptions: context.utils.search.reminderTimingConfig.getAllOptions(),
             });
         },
     );
 
     router.get(
         '/reminders/:id/edit',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
             const reminderId = parseInt(req.params.id || '', 10);
@@ -55,7 +41,7 @@ export function createRemindersRouter(context: AppContext) {
             const reminder = await context.models.reminders.read(reminderId, user.id);
 
             if (!reminder) {
-                throw new NotFoundError('Reminder not found');
+                throw new context.errors.NotFoundError('Reminder not found');
             }
 
             return res.render('reminders/reminders-edit.html', {
@@ -64,14 +50,14 @@ export function createRemindersRouter(context: AppContext) {
                 layout: '_layouts/auth.html',
                 user: req.session?.user,
                 reminder,
-                timingOptions: reminderTimingConfig.getAllOptions(),
+                timingOptions: context.utils.search.reminderTimingConfig.getAllOptions(),
             });
         },
     );
 
     router.get(
         '/reminders/:id/bookmarks/create',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user as User;
             const reminderId = parseInt(req.params.id || '', 10);
@@ -79,7 +65,7 @@ export function createRemindersRouter(context: AppContext) {
             const reminder = await context.models.reminders.read(reminderId, user.id);
 
             if (!reminder) {
-                throw new NotFoundError('Reminder not found');
+                throw new context.errors.NotFoundError('Reminder not found');
             }
 
             return res.render('reminders/reminders-id-bookmarks-create.html', {
@@ -94,7 +80,7 @@ export function createRemindersRouter(context: AppContext) {
 
     router.post(
         '/reminders/:id/bookmarks',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user as User;
             const reminderId = parseInt(req.params.id || '', 10);
@@ -103,36 +89,41 @@ export function createRemindersRouter(context: AppContext) {
             const reminder = await context.models.reminders.read(reminderId, user.id);
 
             if (!reminder) {
-                throw new NotFoundError('Reminder not found');
+                throw new context.errors.NotFoundError('Reminder not found');
             }
 
             if (!title) {
-                throw new ValidationError({ title: 'Title is required' });
+                throw new context.errors.ValidationError({ title: 'Title is required' });
             }
 
             if (!url) {
-                throw new ValidationError({ url: 'URL is required' });
+                throw new context.errors.ValidationError({ url: 'URL is required' });
             }
 
-            if (!isValidUrl(url)) {
-                throw new ValidationError({ url: 'Invalid URL format' });
+            if (!context.utils.validation.isValidUrl(url)) {
+                throw new context.errors.ValidationError({ url: 'Invalid URL format' });
             }
 
             if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-                throw new ValidationError({ pinned: 'Pinned must be a boolean or checkbox value' });
+                throw new context.errors.ValidationError({
+                    pinned: 'Pinned must be a boolean or checkbox value',
+                });
             }
 
-            const existingBookmark = await checkDuplicateBookmarkUrl(user.id, url);
+            const existingBookmark = await context.utils.util.checkDuplicateBookmarkUrl(
+                user.id,
+                url,
+            );
 
             if (existingBookmark) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     url: `URL already bookmarked as "${existingBookmark.title}". Please use a different URL or update the existing bookmark.`,
                 });
             }
 
             setTimeout(
                 () =>
-                    insertBookmark({
+                    context.utils.util.insertBookmark({
                         url,
                         userId: user.id,
                         title,
@@ -152,7 +143,7 @@ export function createRemindersRouter(context: AppContext) {
                     ? `Bookmark ${title} created successfully and reminder deleted!`
                     : `Bookmark ${title} created successfully!`;
 
-            if (isApiRequest(req)) {
+            if (context.utils.auth.isApiRequest(req)) {
                 res.status(201).json({ message: successMessage });
                 return;
             }
@@ -164,7 +155,7 @@ export function createRemindersRouter(context: AppContext) {
 
     router.post(
         '/reminders/recalculate',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
 
@@ -178,7 +169,7 @@ export function createRemindersRouter(context: AppContext) {
                     .whereNotNull('frequency');
 
                 for (const reminder of recurringReminders) {
-                    const timing = parseReminderTiming(
+                    const timing = context.utils.search.parseReminderTiming(
                         reminder.frequency.toLowerCase(),
                         user.column_preferences?.reminders?.default_reminder_time,
                         user.timezone,
@@ -218,11 +209,12 @@ export function createRemindersRouter(context: AppContext) {
      * @return {object} 200 - success response - application/json
      * @return {object} 400 - Bad request response - application/json
      */
-    router.get('/api/reminders', authenticationMiddleware, getRemindersHandler);
-    router.get('/reminders', authenticationMiddleware, getRemindersHandler);
+    router.get('/api/reminders', context.middleware.authentication, getRemindersHandler);
+    router.get('/reminders', context.middleware.authentication, getRemindersHandler);
     async function getRemindersHandler(req: Request, res: Response) {
         const user = req.user as User;
-        const { perPage, page, search, sortKey, direction } = extractPagination(req, 'reminders');
+        const { perPage, page, search, sortKey, direction } =
+            context.utils.request.extractPaginationParams(req, 'reminders');
 
         const { data: remindersData, pagination } = await context.models.reminders.all({
             user,
@@ -234,7 +226,7 @@ export function createRemindersRouter(context: AppContext) {
             highlight: !!search,
         });
 
-        if (isApiRequest(req)) {
+        if (context.utils.auth.isApiRequest(req)) {
             res.json({ data: remindersData, pagination, search, sortKey, direction });
             return;
         }
@@ -269,7 +261,7 @@ export function createRemindersRouter(context: AppContext) {
      */
     router.get(
         '/api/reminders/:id',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
             const reminder = await context.models.reminders.read(
@@ -278,7 +270,7 @@ export function createRemindersRouter(context: AppContext) {
             );
 
             if (!reminder) {
-                throw new NotFoundError('Reminder not found');
+                throw new context.errors.NotFoundError('Reminder not found');
             }
 
             res.status(200).json({
@@ -303,26 +295,26 @@ export function createRemindersRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.post('/api/reminders', authenticationMiddleware, postReminderHandler);
-    router.post('/reminders', authenticationMiddleware, postReminderHandler);
+    router.post('/api/reminders', context.middleware.authentication, postReminderHandler);
+    router.post('/reminders', context.middleware.authentication, postReminderHandler);
     async function postReminderHandler(req: Request, res: Response) {
         const { title, content, when, custom_date, custom_time } = req.body;
         const user = req.user as User;
 
         if (!title) {
-            throw new ValidationError({ title: 'Title is required' });
+            throw new context.errors.ValidationError({ title: 'Title is required' });
         }
 
         const trimmedContent = content ? content.trim() : null;
 
         if (!when) {
-            throw new ValidationError({ when: 'When is required' });
+            throw new context.errors.ValidationError({ when: 'When is required' });
         }
 
         if (custom_time) {
             const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
             if (!timeRegex.test(custom_time)) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     custom_time: 'Invalid time format. Must be HH:MM (24-hour format)',
                 });
             }
@@ -333,15 +325,19 @@ export function createRemindersRouter(context: AppContext) {
             when === 'custom' && custom_time
                 ? custom_time
                 : req.user?.column_preferences?.reminders?.default_reminder_time;
-        const timing = parseReminderTiming(timeInput.toLowerCase(), timeToUse, user.timezone);
+        const timing = context.utils.search.parseReminderTiming(
+            timeInput.toLowerCase(),
+            timeToUse,
+            user.timezone,
+        );
         if (!timing.isValid) {
-            throw new ValidationError({
+            throw new context.errors.ValidationError({
                 when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
             });
         }
 
         if (timing.type === 'once' && !timing.nextDue) {
-            throw new ValidationError({
+            throw new context.errors.ValidationError({
                 when: 'One-time reminders must have a specific date. Please select a date.',
             });
         }
@@ -356,7 +352,7 @@ export function createRemindersRouter(context: AppContext) {
                 timing.nextDue instanceof Date ? timing.nextDue.toISOString() : timing.nextDue,
         });
 
-        if (isApiRequest(req)) {
+        if (context.utils.auth.isApiRequest(req)) {
             res.status(201).json({
                 message: 'Reminder created successfully',
                 data: reminder,
@@ -384,27 +380,27 @@ export function createRemindersRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.patch('/api/reminders/:id', authenticationMiddleware, updateReminderHandler);
-    router.post('/reminders/:id/update', authenticationMiddleware, updateReminderHandler);
+    router.patch('/api/reminders/:id', context.middleware.authentication, updateReminderHandler);
+    router.post('/reminders/:id/update', context.middleware.authentication, updateReminderHandler);
     async function updateReminderHandler(req: Request, res: Response) {
         const user = req.user as User;
         const reminderId = parseInt(req.params.id as string);
         const { title, content, when, custom_date, custom_time } = req.body;
 
         if (!title) {
-            throw new ValidationError({ title: 'Title is required' });
+            throw new context.errors.ValidationError({ title: 'Title is required' });
         }
 
         const trimmedContent = content ? content.trim() : null;
 
         if (!when) {
-            throw new ValidationError({ when: 'When is required' });
+            throw new context.errors.ValidationError({ when: 'When is required' });
         }
 
         if (custom_time) {
             const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
             if (!timeRegex.test(custom_time)) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     custom_time: 'Invalid time format. Must be HH:MM (24-hour format)',
                 });
             }
@@ -415,15 +411,19 @@ export function createRemindersRouter(context: AppContext) {
             when === 'custom' && custom_time
                 ? custom_time
                 : user.column_preferences?.reminders?.default_reminder_time;
-        const timing = parseReminderTiming(timeInput.toLowerCase(), timeToUse, user.timezone);
+        const timing = context.utils.search.parseReminderTiming(
+            timeInput.toLowerCase(),
+            timeToUse,
+            user.timezone,
+        );
         if (!timing.isValid) {
-            throw new ValidationError({
+            throw new context.errors.ValidationError({
                 when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
             });
         }
 
         if (timing.type === 'once' && !timing.nextDue) {
-            throw new ValidationError({
+            throw new context.errors.ValidationError({
                 when: 'One-time reminders must have a specific date. Please select a date.',
             });
         }
@@ -438,10 +438,10 @@ export function createRemindersRouter(context: AppContext) {
         });
 
         if (!updatedReminder) {
-            throw new NotFoundError('Reminder not found');
+            throw new context.errors.NotFoundError('Reminder not found');
         }
 
-        if (isApiRequest(req)) {
+        if (context.utils.auth.isApiRequest(req)) {
             res.status(200).json({
                 message: 'Reminder updated successfully',
                 data: updatedReminder,
@@ -467,8 +467,8 @@ export function createRemindersRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.delete('/api/reminders/:id', authenticationMiddleware, deleteReminderHandler);
-    router.post('/reminders/:id/delete', authenticationMiddleware, deleteReminderHandler);
+    router.delete('/api/reminders/:id', context.middleware.authentication, deleteReminderHandler);
+    router.post('/reminders/:id/delete', context.middleware.authentication, deleteReminderHandler);
     async function deleteReminderHandler(req: Request, res: Response) {
         const user = req.user as User;
         const reminderId = parseInt(req.params.id as string);
@@ -476,10 +476,10 @@ export function createRemindersRouter(context: AppContext) {
         const deleted = await context.models.reminders.delete(reminderId, user.id);
 
         if (!deleted) {
-            throw new NotFoundError('Reminder not found');
+            throw new context.errors.NotFoundError('Reminder not found');
         }
 
-        if (isApiRequest(req)) {
+        if (context.utils.auth.isApiRequest(req)) {
             res.status(200).json({ message: 'Reminder deleted successfully' });
             return;
         }
@@ -503,25 +503,33 @@ export function createRemindersRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.post('/reminders/delete-bulk', authenticationMiddleware, bulkDeleteReminderHandler);
-    router.post('/api/reminders/delete-bulk', authenticationMiddleware, bulkDeleteReminderHandler);
+    router.post(
+        '/reminders/delete-bulk',
+        context.middleware.authentication,
+        bulkDeleteReminderHandler,
+    );
+    router.post(
+        '/api/reminders/delete-bulk',
+        context.middleware.authentication,
+        bulkDeleteReminderHandler,
+    );
     async function bulkDeleteReminderHandler(req: Request, res: Response) {
         const { id } = req.body;
 
         if (!id || !Array.isArray(id)) {
-            throw new ValidationError({ id: 'IDs array is required' });
+            throw new context.errors.ValidationError({ id: 'IDs array is required' });
         }
 
         const reminderIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
 
         if (reminderIds.length === 0) {
-            throw new ValidationError({ id: 'No valid reminder IDs provided' });
+            throw new context.errors.ValidationError({ id: 'No valid reminder IDs provided' });
         }
 
         const user = req.user as User;
         const deletedCount = await context.models.reminders.bulkDelete(reminderIds, user.id);
 
-        if (isApiRequest(req)) {
+        if (context.utils.auth.isApiRequest(req)) {
             res.status(200).json({
                 message: `${deletedCount} reminder${deletedCount !== 1 ? 's' : ''} deleted successfully`,
                 data: {

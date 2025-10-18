@@ -1,47 +1,49 @@
-import bcrypt from 'bcrypt';
-import { api } from '../../utils/util';
-import type { AppContext } from '../../context';
-import { searchConfig } from '../../utils/search';
-import type { User, ApiKeyPayload } from '../../type';
-import { sendDataExportEmail } from '../../utils/mail';
-import express, { type Request, type Response } from 'express';
-import { authenticationMiddleware } from '../../routes/middleware';
-import { HttpError, NotFoundError, ValidationError } from '../../error';
-import { isValidEmail, generateUserDataExport } from '../../utils/util';
+import type { Request, Response } from 'express';
+import type { User, ApiKeyPayload, AppContext } from '../../type';
 
 export function createSettingsRouter(context: AppContext) {
-    const router = express.Router();
+    const router = context.libs.express.Router();
 
-    router.get('/settings', authenticationMiddleware, async (_req: Request, res: Response) => {
-        return res.redirect('/settings/account');
-    });
+    router.get(
+        '/settings',
+        context.middleware.authentication,
+        async (_req: Request, res: Response) => {
+            return res.redirect('/settings/account');
+        },
+    );
 
     router.get(
         '/settings/account',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             return res.render('settings/settings-account.html', {
                 user: req.session?.user,
                 title: 'Settings Account',
                 path: '/settings/account',
                 layout: '_layouts/settings.html',
-                defaultSearchProviders: Object.keys(searchConfig.defaultSearchProviders),
+                defaultSearchProviders: Object.keys(
+                    context.utils.search.searchConfig.defaultSearchProviders,
+                ),
             });
         },
     );
 
-    router.get('/settings/data', authenticationMiddleware, async (req: Request, res: Response) => {
-        return res.render('settings/settings-data.html', {
-            user: req.session?.user,
-            title: 'Settings Data',
-            path: '/settings/data',
-            layout: '_layouts/settings.html',
-        });
-    });
+    router.get(
+        '/settings/data',
+        context.middleware.authentication,
+        async (req: Request, res: Response) => {
+            return res.render('settings/settings-data.html', {
+                user: req.session?.user,
+                title: 'Settings Data',
+                path: '/settings/data',
+                layout: '_layouts/settings.html',
+            });
+        },
+    );
 
     router.get(
         '/settings/danger-zone',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             return res.render('settings/settings-danger-zone.html', {
                 user: req.session?.user,
@@ -54,7 +56,7 @@ export function createSettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/account',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const {
                 username,
@@ -65,33 +67,37 @@ export function createSettingsRouter(context: AppContext) {
             } = req.body;
 
             if (!username) {
-                throw new ValidationError({ username: 'Username is required' });
+                throw new context.errors.ValidationError({ username: 'Username is required' });
             }
 
             if (!email) {
-                throw new ValidationError({ email: 'Email is required' });
+                throw new context.errors.ValidationError({ email: 'Email is required' });
             }
 
             if (!default_search_provider) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     default_search_provider: 'Default search provider is required',
                 });
             }
 
-            if (!isValidEmail(email)) {
-                throw new ValidationError({ email: 'Please enter a valid email address' });
+            if (!context.utils.validation.isValidEmail(email)) {
+                throw new context.errors.ValidationError({
+                    email: 'Please enter a valid email address',
+                });
             }
 
             if (
-                !Object.keys(searchConfig.defaultSearchProviders).includes(default_search_provider)
+                !Object.keys(context.utils.search.searchConfig.defaultSearchProviders).includes(
+                    default_search_provider,
+                )
             ) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     default_search_provider: 'Invalid search provider selected',
                 });
             }
 
             if (!timezone) {
-                throw new ValidationError({ timezone: 'Timezone is required' });
+                throw new context.errors.ValidationError({ timezone: 'Timezone is required' });
             }
 
             const validTimezones = [
@@ -109,14 +115,14 @@ export function createSettingsRouter(context: AppContext) {
                 'Australia/Sydney',
             ];
             if (!validTimezones.includes(timezone)) {
-                throw new ValidationError({ timezone: 'Invalid timezone selected' });
+                throw new context.errors.ValidationError({ timezone: 'Invalid timezone selected' });
             }
 
             let parsedAutocompleteSearchOnHomepage = false;
             if (autocomplete_search_on_homepage === undefined) {
                 parsedAutocompleteSearchOnHomepage = false;
             } else if (autocomplete_search_on_homepage !== 'on') {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     autocomplete_search_on_homepage:
                         'Invalid autocomplete search on homepage format',
                 });
@@ -133,7 +139,9 @@ export function createSettingsRouter(context: AppContext) {
                     .whereNot({ id: currentUserId })
                     .first();
                 if (existingUser) {
-                    throw new ValidationError({ username: 'Username is already taken' });
+                    throw new context.errors.ValidationError({
+                        username: 'Username is already taken',
+                    });
                 }
             }
 
@@ -145,7 +153,9 @@ export function createSettingsRouter(context: AppContext) {
                     .whereNot({ id: currentUserId })
                     .first();
                 if (existingUser) {
-                    throw new ValidationError({ email: 'Email address is already in use' });
+                    throw new context.errors.ValidationError({
+                        email: 'Email address is already in use',
+                    });
                 }
             }
 
@@ -177,19 +187,21 @@ export function createSettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/display',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const { column_preferences } = req.body;
 
             if (!column_preferences || typeof column_preferences !== 'object') {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     column_preferences: 'Column preferences must be an object',
                 });
             }
 
             // bookmarks
             if (typeof column_preferences.bookmarks !== 'object') {
-                throw new ValidationError({ bookmarks: 'Bookmarks must be an object' });
+                throw new context.errors.ValidationError({
+                    bookmarks: 'Bookmarks must be an object',
+                });
             }
 
             column_preferences.bookmarks.title = column_preferences.bookmarks.title === 'on';
@@ -208,7 +220,7 @@ export function createSettingsRouter(context: AppContext) {
                 isNaN(column_preferences.bookmarks.default_per_page) ||
                 column_preferences.bookmarks.default_per_page < 1
             ) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     bookmarks: 'Bookmarks per page must be greater than 0',
                 });
             }
@@ -220,14 +232,14 @@ export function createSettingsRouter(context: AppContext) {
                 !column_preferences.bookmarks.pinned &&
                 !column_preferences.bookmarks.hidden
             ) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     bookmarks: 'At least one bookmark column must be enabled',
                 });
             }
 
             // actions
             if (typeof column_preferences.actions !== 'object') {
-                throw new ValidationError({ actions: 'Actions must be an object' });
+                throw new context.errors.ValidationError({ actions: 'Actions must be an object' });
             }
 
             column_preferences.actions.name = column_preferences.actions.name === 'on';
@@ -251,7 +263,9 @@ export function createSettingsRouter(context: AppContext) {
                 isNaN(column_preferences.actions.default_per_page) ||
                 column_preferences.actions.default_per_page < 1
             ) {
-                throw new ValidationError({ actions: 'Actions per page must be greater than 0' });
+                throw new context.errors.ValidationError({
+                    actions: 'Actions per page must be greater than 0',
+                });
             }
 
             if (
@@ -264,14 +278,14 @@ export function createSettingsRouter(context: AppContext) {
                 !column_preferences.actions.hidden &&
                 !column_preferences.actions.created_at
             ) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     actions: 'At least one action column must be enabled',
                 });
             }
 
             // notes
             if (typeof column_preferences.notes !== 'object') {
-                throw new ValidationError({ notes: 'Notes must be an object' });
+                throw new context.errors.ValidationError({ notes: 'Notes must be an object' });
             }
 
             column_preferences.notes.title = column_preferences.notes.title === 'on';
@@ -294,7 +308,9 @@ export function createSettingsRouter(context: AppContext) {
                 !column_preferences.notes.pinned &&
                 !column_preferences.notes.hidden
             ) {
-                throw new ValidationError({ notes: 'At least one note column must be enabled' });
+                throw new context.errors.ValidationError({
+                    notes: 'At least one note column must be enabled',
+                });
             }
 
             column_preferences.notes.default_per_page = parseInt(
@@ -306,7 +322,9 @@ export function createSettingsRouter(context: AppContext) {
                 isNaN(column_preferences.notes.default_per_page) ||
                 column_preferences.notes.default_per_page < 1
             ) {
-                throw new ValidationError({ notes: 'Notes per page must be greater than 0' });
+                throw new context.errors.ValidationError({
+                    notes: 'Notes per page must be greater than 0',
+                });
             }
 
             // Preserve the view_type if it's not in the form submission
@@ -321,7 +339,7 @@ export function createSettingsRouter(context: AppContext) {
             // tabs
             if (column_preferences.tabs) {
                 if (typeof column_preferences.tabs !== 'object') {
-                    throw new ValidationError({ tabs: 'Tabs must be an object' });
+                    throw new context.errors.ValidationError({ tabs: 'Tabs must be an object' });
                 }
 
                 column_preferences.tabs.title = column_preferences.tabs.title === 'on';
@@ -338,7 +356,9 @@ export function createSettingsRouter(context: AppContext) {
                     isNaN(column_preferences.tabs.default_per_page) ||
                     column_preferences.tabs.default_per_page < 1
                 ) {
-                    throw new ValidationError({ tabs: 'Tabs per page must be greater than 0' });
+                    throw new context.errors.ValidationError({
+                        tabs: 'Tabs per page must be greater than 0',
+                    });
                 }
 
                 if (
@@ -347,14 +367,16 @@ export function createSettingsRouter(context: AppContext) {
                     !column_preferences.tabs.items_count &&
                     !column_preferences.tabs.created_at
                 ) {
-                    throw new ValidationError({ tabs: 'At least one tab column must be enabled' });
+                    throw new context.errors.ValidationError({
+                        tabs: 'At least one tab column must be enabled',
+                    });
                 }
             }
 
             // users (admin only)
             if (req.user?.is_admin && column_preferences.users) {
                 if (typeof column_preferences.users !== 'object') {
-                    throw new ValidationError({ users: 'Users must be an object' });
+                    throw new context.errors.ValidationError({ users: 'Users must be an object' });
                 }
 
                 column_preferences.users.username = column_preferences.users.username === 'on';
@@ -373,7 +395,9 @@ export function createSettingsRouter(context: AppContext) {
                     isNaN(column_preferences.users.default_per_page) ||
                     column_preferences.users.default_per_page < 1
                 ) {
-                    throw new ValidationError({ users: 'Users per page must be greater than 0' });
+                    throw new context.errors.ValidationError({
+                        users: 'Users per page must be greater than 0',
+                    });
                 }
 
                 if (
@@ -383,7 +407,7 @@ export function createSettingsRouter(context: AppContext) {
                     !column_preferences.users.email_verified_at &&
                     !column_preferences.users.created_at
                 ) {
-                    throw new ValidationError({
+                    throw new context.errors.ValidationError({
                         users: 'At least one user column must be enabled',
                     });
                 }
@@ -392,7 +416,9 @@ export function createSettingsRouter(context: AppContext) {
             // reminders
             if (column_preferences.reminders) {
                 if (typeof column_preferences.reminders !== 'object') {
-                    throw new ValidationError({ reminders: 'Reminders must be an object' });
+                    throw new context.errors.ValidationError({
+                        reminders: 'Reminders must be an object',
+                    });
                 }
 
                 column_preferences.reminders.title = column_preferences.reminders.title === 'on';
@@ -416,7 +442,7 @@ export function createSettingsRouter(context: AppContext) {
                     isNaN(column_preferences.reminders.default_per_page) ||
                     column_preferences.reminders.default_per_page < 1
                 ) {
-                    throw new ValidationError({
+                    throw new context.errors.ValidationError({
                         reminders: 'Reminders per page must be greater than 0',
                     });
                 }
@@ -427,7 +453,7 @@ export function createSettingsRouter(context: AppContext) {
                     if (
                         !validTimings.includes(column_preferences.reminders.default_reminder_timing)
                     ) {
-                        throw new ValidationError({
+                        throw new context.errors.ValidationError({
                             reminders: 'Invalid reminder timing. Must be daily, weekly, or monthly',
                         });
                     }
@@ -437,7 +463,7 @@ export function createSettingsRouter(context: AppContext) {
                 if (column_preferences.reminders.default_reminder_time) {
                     const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
                     if (!timeRegex.test(column_preferences.reminders.default_reminder_time)) {
-                        throw new ValidationError({
+                        throw new context.errors.ValidationError({
                             reminders:
                                 'Invalid reminder time format. Must be HH:MM (24-hour format)',
                         });
@@ -452,7 +478,7 @@ export function createSettingsRouter(context: AppContext) {
                     !column_preferences.reminders.frequency &&
                     !column_preferences.reminders.created_at
                 ) {
-                    throw new ValidationError({
+                    throw new context.errors.ValidationError({
                         reminders: 'At least one reminder column must be enabled',
                     });
                 }
@@ -496,12 +522,12 @@ export function createSettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/create-api-key',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = await context.db('users').where({ id: req.session.user?.id }).first();
 
             if (!user) {
-                throw new NotFoundError('User not found');
+                throw new context.errors.NotFoundError('User not found');
             }
 
             // Convert SQLite integer values to booleans
@@ -516,7 +542,7 @@ export function createSettingsRouter(context: AppContext) {
                 .db('users')
                 .where({ id: req.session?.user?.id })
                 .update({
-                    api_key: await api.generate(payload),
+                    api_key: await context.utils.auth.generateApiKey(payload),
                     api_key_version: newKeyVersion,
                     api_key_created_at: context.db.fn.now(),
                 });
@@ -528,26 +554,33 @@ export function createSettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/hidden-password',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const { currentPassword, newPassword, confirmPassword, removePassword } = req.body;
             const user = req.session.user as User;
 
             if (removePassword === 'on') {
                 if (!user.hidden_items_password) {
-                    throw new ValidationError({ removePassword: 'No password to remove' });
+                    throw new context.errors.ValidationError({
+                        removePassword: 'No password to remove',
+                    });
                 }
 
                 if (!currentPassword) {
-                    throw new ValidationError({
+                    throw new context.errors.ValidationError({
                         currentPassword: 'Current password is required to remove it',
                     });
                 }
 
-                const isValid = await bcrypt.compare(currentPassword, user.hidden_items_password);
+                const isValid = await context.libs.bcrypt.compare(
+                    currentPassword,
+                    user.hidden_items_password,
+                );
 
                 if (!isValid) {
-                    throw new ValidationError({ currentPassword: 'Incorrect password' });
+                    throw new context.errors.ValidationError({
+                        currentPassword: 'Incorrect password',
+                    });
                 }
 
                 await context.db.transaction(async (trx) => {
@@ -565,13 +598,20 @@ export function createSettingsRouter(context: AppContext) {
 
             if (user.hidden_items_password) {
                 if (!currentPassword) {
-                    throw new ValidationError({ currentPassword: 'Current password is required' });
+                    throw new context.errors.ValidationError({
+                        currentPassword: 'Current password is required',
+                    });
                 }
 
-                const isValid = await bcrypt.compare(currentPassword, user.hidden_items_password);
+                const isValid = await context.libs.bcrypt.compare(
+                    currentPassword,
+                    user.hidden_items_password,
+                );
 
                 if (!isValid) {
-                    throw new ValidationError({ currentPassword: 'Incorrect password' });
+                    throw new context.errors.ValidationError({
+                        currentPassword: 'Incorrect password',
+                    });
                 }
 
                 if (!newPassword) {
@@ -579,21 +619,25 @@ export function createSettingsRouter(context: AppContext) {
                 }
             } else {
                 if (!newPassword) {
-                    throw new ValidationError({ newPassword: 'Password is required' });
+                    throw new context.errors.ValidationError({
+                        newPassword: 'Password is required',
+                    });
                 }
             }
 
             if (newPassword && newPassword.length < 4) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     newPassword: 'Password must be at least 4 characters',
                 });
             }
 
             if (user.hidden_items_password && newPassword !== confirmPassword) {
-                throw new ValidationError({ confirmPassword: 'Passwords do not match' });
+                throw new context.errors.ValidationError({
+                    confirmPassword: 'Passwords do not match',
+                });
             }
 
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            const hashedPassword = await context.libs.bcrypt.hash(newPassword, 10);
 
             await context
                 .db('users')
@@ -610,12 +654,12 @@ export function createSettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/data/export',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const { options } = req.body;
 
             if (!options || !Array.isArray(options) || options.length === 0) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     options: 'Please select at least one data type to export',
                 });
             }
@@ -628,7 +672,7 @@ export function createSettingsRouter(context: AppContext) {
             const includeReminders = req.body.options.includes('reminders');
             const includeUserPreferences = req.body.options.includes('user_preferences');
 
-            const exportData = await generateUserDataExport(userId, {
+            const exportData = await context.utils.util.generateUserDataExport(userId, {
                 includeBookmarks,
                 includeActions,
                 includeNotes,
@@ -649,23 +693,23 @@ export function createSettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/data/import',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const { config } = req.body;
 
             if (!config) {
-                throw new ValidationError({ config: 'Please provide a config' });
+                throw new context.errors.ValidationError({ config: 'Please provide a config' });
             }
 
             let importData;
             try {
                 importData = JSON.parse(req.body.config);
             } catch (error) {
-                throw new ValidationError({ config: 'Invalid JSON format' });
+                throw new context.errors.ValidationError({ config: 'Invalid JSON format' });
             }
 
             if (!importData.version || importData.version !== '1.0') {
-                throw new ValidationError({ config: 'Config version must be 1.0' });
+                throw new context.errors.ValidationError({ config: 'Config version must be 1.0' });
             }
 
             const userId = req.session.user?.id;
@@ -884,17 +928,17 @@ export function createSettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/danger-zone/delete',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user;
 
             if (!user) {
-                throw new NotFoundError('User not found');
+                throw new context.errors.NotFoundError('User not found');
             }
 
             const confirmation = req.body.confirmation?.trim();
             if (confirmation !== 'DELETE ACCOUNT') {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     confirmation: 'You must type "DELETE ACCOUNT" to confirm account deletion',
                 });
             }
@@ -909,7 +953,7 @@ export function createSettingsRouter(context: AppContext) {
 
             if (includeJson || includeHtml) {
                 try {
-                    await sendDataExportEmail({
+                    await context.utils.mail.sendDataExportEmail({
                         email: user.email,
                         username: user.username,
                         req,
@@ -933,7 +977,7 @@ export function createSettingsRouter(context: AppContext) {
                 req.user = undefined;
                 req.session.destroy((error) => {
                     if (error) {
-                        throw new HttpError(error);
+                        throw new context.errors.HttpError(500, 'Failed to destroy session', req);
                     }
                 });
             }
@@ -944,12 +988,12 @@ export function createSettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/danger-zone/bulk-delete',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user;
 
             if (!user) {
-                throw new NotFoundError('User not found');
+                throw new context.errors.NotFoundError('User not found');
             }
 
             const deleteOptions = req.body.delete_options || [];
@@ -984,7 +1028,7 @@ export function createSettingsRouter(context: AppContext) {
             if (allOptionsSelected) {
                 const confirmation = req.body.confirmation?.trim();
                 if (confirmation !== 'DELETE DATA') {
-                    throw new ValidationError({
+                    throw new context.errors.ValidationError({
                         confirmation:
                             'You must type "DELETE DATA" to confirm bulk deletion of all data',
                     });
@@ -999,7 +1043,7 @@ export function createSettingsRouter(context: AppContext) {
                 !deleteReminders &&
                 !deleteApiKeys
             ) {
-                throw new ValidationError({
+                throw new context.errors.ValidationError({
                     delete_options: 'Please select at least one data type to delete',
                 });
             }

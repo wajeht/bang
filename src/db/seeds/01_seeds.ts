@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { Knex } from 'knex';
 import path from 'node:path';
 import bcrypt from 'bcrypt';
-import dayjs from '../../utils/dayjs';
+import { dayjs } from '../../libs';
 import { logger } from '../../utils/logger';
 
 const env = dotenv.config({

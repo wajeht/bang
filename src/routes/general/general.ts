@@ -1,18 +1,14 @@
 import { bangs } from '../../db/bang';
-import { search } from '../../utils/search';
-import type { Bang, User } from '../../type';
-import type { AppContext } from '../../context';
-import express, { type Request, type Response } from 'express';
-import { authenticationMiddleware } from '../../routes/middleware';
-import { paginate, expectJson, extractPagination, highlightSearchTerm } from '../../utils/util';
+import type { Request, Response } from 'express';
+import type { Bang, User, AppContext } from '../../type';
 
 export function createGeneralRouter(context: AppContext) {
-    const router = express.Router();
+    const router = context.libs.express.Router();
 
     router.get('/healthz', async (req: Request, res: Response) => {
         await context.db.raw('SELECT 1');
 
-        if (expectJson(req)) {
+        if (context.utils.auth.expectsJson(req)) {
             res.status(200).json({ status: 'ok', database: 'connected' });
             return;
         }
@@ -32,7 +28,7 @@ export function createGeneralRouter(context: AppContext) {
             });
         }
 
-        await search({ res, user, query, req });
+        await context.utils.search.search({ res, user, query, req });
     });
 
     router.get('/about', async (_req: Request, res: Response) => {
@@ -81,21 +77,21 @@ export function createGeneralRouter(context: AppContext) {
             return 0;
         });
 
-        const { data, ...pagination } = paginate(sortedBangs, {
+        const { data, ...pagination } = context.utils.util.paginate(sortedBangs, {
             page: Number(page),
             perPage: Number(per_page),
             total: sortedBangs.length,
         });
 
         const highlightedData = searchTerm
-            ? data.map((bang) => ({
+            ? data.map((bang: Bang) => ({
                   ...bang,
-                  s: highlightSearchTerm(bang.s, String(searchTerm)),
-                  t: highlightSearchTerm(bang.t, String(searchTerm)),
-                  d: highlightSearchTerm(bang.d, String(searchTerm)),
-                  u: highlightSearchTerm(bang.u, String(searchTerm)),
-                  c: highlightSearchTerm(bang.c, String(searchTerm)),
-                  sc: highlightSearchTerm(bang.sc, String(searchTerm)),
+                  s: context.utils.html.highlightSearchTerm(bang.s, String(searchTerm)),
+                  t: context.utils.html.highlightSearchTerm(bang.t, String(searchTerm)),
+                  d: context.utils.html.highlightSearchTerm(bang.d, String(searchTerm)),
+                  u: context.utils.html.highlightSearchTerm(bang.u, String(searchTerm)),
+                  c: context.utils.html.highlightSearchTerm(bang.c, String(searchTerm)),
+                  sc: context.utils.html.highlightSearchTerm(bang.sc, String(searchTerm)),
               }))
             : data;
 
@@ -124,14 +120,14 @@ export function createGeneralRouter(context: AppContext) {
      */
     router.get(
         '/api/collections',
-        authenticationMiddleware,
+        context.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
-            const actionsParams = extractPagination(req, 'actions');
-            const bookmarksParams = extractPagination(req, 'bookmarks');
-            const notesParams = extractPagination(req, 'notes');
-            const tabsParams = extractPagination(req, 'tabs');
-            const remindersParams = extractPagination(req, 'reminders');
+            const actionsParams = context.utils.request.extractPaginationParams(req, 'actions');
+            const bookmarksParams = context.utils.request.extractPaginationParams(req, 'bookmarks');
+            const notesParams = context.utils.request.extractPaginationParams(req, 'notes');
+            const tabsParams = context.utils.request.extractPaginationParams(req, 'tabs');
+            const remindersParams = context.utils.request.extractPaginationParams(req, 'reminders');
 
             const [actionsResult, bookmarksResult, notesResult, tabsResult, remindersResult] =
                 await Promise.all([

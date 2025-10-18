@@ -8,7 +8,7 @@ import {
 import request from 'supertest';
 import { db } from '../../db/db';
 import { createApp } from '../../app';
-import dayjs from '../../utils/dayjs';
+import { dayjs } from '../../libs';
 import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 
 describe('Reminders Routes', () => {
