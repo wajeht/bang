@@ -10,7 +10,7 @@ import {
     CsrfMiddleware,
     ErrorMiddleware,
     HelmetMiddleware,
-    layoutMiddleware,
+    LayoutMiddleware,
     SessionMiddleware,
     NotFoundMiddleware,
     TurnstileMiddleware,
@@ -115,7 +115,7 @@ export async function Context(): Promise<AppContext> {
         staticAssets: staticAssetsMiddleware(partialCtx),
         appLocalState: AppLocalStateMiddleware(partialCtx),
         authentication: AuthenticationMiddleware(partialCtx),
-        layout: layoutMiddleware({ layoutsDir: '_layouts', defaultLayout: '_layouts/public.html' }),
+        layout: LayoutMiddleware({ layoutsDir: '_layouts', defaultLayout: '_layouts/public.html' }),
     };
 
     partialCtx.middleware = middlewares;

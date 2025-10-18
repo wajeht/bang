@@ -388,7 +388,7 @@ export function RateLimitMiddleware(context: AppContext) {
     });
 }
 
-export function layoutMiddleware(options: LayoutOptions = {}) {
+export function LayoutMiddleware(options: LayoutOptions = {}) {
     const defaultOptions: LayoutOptions = {
         defaultLayout: '_layouts/public.html',
         layoutsDir: '_layouts',
