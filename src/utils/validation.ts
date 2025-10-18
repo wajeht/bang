@@ -1,6 +1,4 @@
-import type { AppContext } from '../type';
-
-export function createValidationUtils(context: AppContext) {
+export function createValidationUtils() {
     function isValidUrl(url: string): boolean {
         try {
             new URL(url);
@@ -54,9 +52,9 @@ export function createValidationUtils(context: AppContext) {
     }
 
     return {
+        isUrlLike,
         isValidUrl,
         isValidEmail,
         isOnlyLettersAndNumbers,
-        isUrlLike,
     };
 }

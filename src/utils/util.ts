@@ -1,4 +1,3 @@
-import type { Request } from 'express';
 import type {
     Bookmark,
     AppContext,
@@ -8,6 +7,7 @@ import type {
 } from '../type';
 import http from 'node:http';
 import https from 'node:https';
+import type { Request } from 'express';
 
 export function createUtilUtils(context: AppContext) {
     const { db, logger, config, models, utils, errors } = context;
