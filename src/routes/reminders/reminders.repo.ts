@@ -1,6 +1,6 @@
 import type { Reminder, Reminders, RemindersQueryParams, AppContext } from '../../type';
 
-export function RemindersRepository(context: AppContext): Reminders {
+export function RemindersRepository(ctx: AppContext): Reminders {
     return {
         all: async ({
             user,
@@ -11,7 +11,7 @@ export function RemindersRepository(context: AppContext): Reminders {
             direction = 'asc',
             highlight = false,
         }: RemindersQueryParams) => {
-            const query = context.db.select(
+            const query = ctx.db.select(
                 'id',
                 'user_id',
                 'reminder_type',
@@ -23,18 +23,18 @@ export function RemindersRepository(context: AppContext): Reminders {
             if (highlight && search) {
                 query
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('title', search)} as title`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('title', search)} as title`,
                         ),
                     )
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('content', search)} as content`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('content', search)} as content`,
                         ),
                     )
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('CAST(due_date AS TEXT)', search)} as due_date`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('CAST(due_date AS TEXT)', search)} as due_date`,
                         ),
                     );
             } else {
@@ -77,12 +77,12 @@ export function RemindersRepository(context: AppContext): Reminders {
                 throw new Error('Missing required fields to create a reminder');
             }
 
-            const [createdReminder] = await context.db('reminders').insert(reminder).returning('*');
+            const [createdReminder] = await ctx.db('reminders').insert(reminder).returning('*');
             return createdReminder;
         },
 
         read: async (id: number, userId: number) => {
-            const reminder = await context.db
+            const reminder = await ctx.db
                 .select('*')
                 .from('reminders')
                 .where({ id, user_id: userId })
@@ -106,7 +106,7 @@ export function RemindersRepository(context: AppContext): Reminders {
                 throw new Error('No valid fields provided for update');
             }
 
-            const [updatedReminder] = await context
+            const [updatedReminder] = await ctx
                 .db('reminders')
                 .where({ id, user_id: userId })
                 .update(updateData)
@@ -120,15 +120,12 @@ export function RemindersRepository(context: AppContext): Reminders {
         },
 
         delete: async (id: number, userId: number) => {
-            const rowsAffected = await context
-                .db('reminders')
-                .where({ id, user_id: userId })
-                .delete();
+            const rowsAffected = await ctx.db('reminders').where({ id, user_id: userId }).delete();
             return rowsAffected > 0;
         },
 
         bulkDelete: async (ids: number[], userId: number) => {
-            return context.db.transaction(async (trx: any) => {
+            return ctx.db.transaction(async (trx: any) => {
                 const rowsAffected = await trx('reminders')
                     .whereIn('id', ids)
                     .where('user_id', userId)

@@ -2,17 +2,17 @@ import type { Request, Response, NextFunction } from 'express';
 import type { LayoutOptions, User, AppContext } from '../type';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 
-export function NotFoundMiddleware(context: AppContext) {
+export function NotFoundMiddleware(ctx: AppContext) {
     return (req: Request, _res: Response, _next: NextFunction) => {
-        throw new context.errors.NotFoundError(
-            `Sorry, the ${context.utils.auth.isApiRequest(req) ? 'resource' : 'page'} you are looking for could not be found.`,
+        throw new ctx.errors.NotFoundError(
+            `Sorry, the ${ctx.utils.auth.isApiRequest(req) ? 'resource' : 'page'} you are looking for could not be found.`,
         );
     };
 }
 
-export function ErrorMiddleware(context: AppContext) {
+export function ErrorMiddleware(ctx: AppContext) {
     return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
-        context.logger.error(`${req.method} ${req.path} - ${error.message}`, {
+        ctx.logger.error(`${req.method} ${req.path} - ${error.message}`, {
             error: {
                 stack: error.stack,
                 name: error.name,
@@ -26,10 +26,10 @@ export function ErrorMiddleware(context: AppContext) {
         });
 
         if ((error as { code?: string }).code === 'EBADCSRFTOKEN') {
-            error = new context.errors.HttpError(403, error.message, req);
-        } else if (!(error instanceof context.errors.HttpError)) {
-            error = new context.errors.HttpError(500, error.message, req);
-        } else if (error instanceof context.errors.HttpError && !(error as any).request) {
+            error = new ctx.errors.HttpError(403, error.message, req);
+        } else if (!(error instanceof ctx.errors.HttpError)) {
+            error = new ctx.errors.HttpError(500, error.message, req);
+        } else if (error instanceof ctx.errors.HttpError && !(error as any).request) {
             (error as any).request = req;
         }
 
@@ -37,13 +37,13 @@ export function ErrorMiddleware(context: AppContext) {
         const statusCode = httpError.statusCode || 500;
         const message = httpError.message || 'The server encountered an internal error or misconfiguration and was unable to complete your request'; // prettier-ignore
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             const responsePayload: any = {
                 message: statusCode === 422 ? 'Validation errors' : message,
             };
 
             if (statusCode === 422) {
-                if (httpError instanceof context.errors.ValidationError) {
+                if (httpError instanceof ctx.errors.ValidationError) {
                     responsePayload.details = httpError.errors;
                 } else {
                     responsePayload.details = message;
@@ -56,7 +56,7 @@ export function ErrorMiddleware(context: AppContext) {
 
         if (statusCode === 422) {
             if (req.session) {
-                if (httpError instanceof context.errors.ValidationError) {
+                if (httpError instanceof ctx.errors.ValidationError) {
                     req.session.errors = httpError.errors;
                 } else {
                     req.session.errors = { general: message };
@@ -81,7 +81,7 @@ export function ErrorMiddleware(context: AppContext) {
         }
 
         if (!res.locals.state) {
-            SetupAppLocals(context)(req, res);
+            SetupAppLocals(ctx)(req, res);
         }
 
         if (typeof res.locals.csrfToken === 'undefined') {
@@ -92,20 +92,20 @@ export function ErrorMiddleware(context: AppContext) {
             path: req.path,
             title: 'Error',
             statusCode,
-            message: context.config.app.env !== 'production' ? error.stack : message,
+            message: ctx.config.app.env !== 'production' ? error.stack : message,
         });
     };
 }
 
-export function AdminOnlyMiddleware(context: AppContext) {
+export function AdminOnlyMiddleware(ctx: AppContext) {
     return async (req: Request, _res: Response, next: NextFunction) => {
         try {
             if (!req.user || !req.user.is_admin) {
-                throw new context.errors.UnauthorizedError('Unauthorized', req);
+                throw new ctx.errors.UnauthorizedError('Unauthorized', req);
             }
 
             if (!req.session?.user || !req.session.user.is_admin) {
-                throw new context.errors.UnauthorizedError('Unauthorized', req);
+                throw new ctx.errors.UnauthorizedError('Unauthorized', req);
             }
 
             next();
@@ -115,12 +115,12 @@ export function AdminOnlyMiddleware(context: AppContext) {
     };
 }
 
-export function HelmetMiddleware(context: AppContext) {
-    return context.libs.helmet({
+export function HelmetMiddleware(ctx: AppContext) {
+    return ctx.libs.helmet({
         contentSecurityPolicy: {
             useDefaults: true,
             directives: {
-                ...context.libs.helmet.contentSecurityPolicy.getDefaultDirectives(),
+                ...ctx.libs.helmet.contentSecurityPolicy.getDefaultDirectives(),
                 'default-src': ["'self'", 'plausible.jaw.dev', 'bang.jaw.dev', '*.cloudflare.com'],
                 'img-src': ["'self'", '*'],
                 'script-src': [
@@ -153,40 +153,40 @@ export function HelmetMiddleware(context: AppContext) {
     });
 }
 
-export function SessionMiddleware(context: AppContext) {
-    return context.libs.session({
-        secret: context.config.session.secret,
+export function SessionMiddleware(ctx: AppContext) {
+    return ctx.libs.session({
+        secret: ctx.config.session.secret,
         resave: false,
         saveUninitialized: false,
         store: new ConnectSessionKnexStore({
-            knex: context.db,
+            knex: ctx.db,
             tableName: 'sessions',
             createTable: true, // create sessions table if does not exist already
             cleanupInterval: 60000, // 1 minute - clear expired sessions
         }),
-        proxy: context.config.app.env === 'production',
+        proxy: ctx.config.app.env === 'production',
         cookie: {
             path: '/',
             // Don't set domain for localhost/127.0.0.1 to avoid cookie issues in tests
-            domain: context.config.session.domain === 'production' ? `.${context.config.session.domain}` : undefined, // prettier-ignore
+            domain: ctx.config.session.domain === 'production' ? `.${ctx.config.session.domain}` : undefined, // prettier-ignore
             maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-            httpOnly: context.config.session.domain === 'production',
+            httpOnly: ctx.config.session.domain === 'production',
             sameSite: 'lax',
-            secure: context.config.session.domain === 'production',
+            secure: ctx.config.session.domain === 'production',
         },
     });
 }
 
-export function SetupAppLocals(context: AppContext) {
+export function SetupAppLocals(ctx: AppContext) {
     return (req: Request, res: Response) => {
-        const isProd = context.config.app.env === 'production';
+        const isProd = ctx.config.app.env === 'production';
         const randomNumber = Math.random();
 
         res.locals.state = {
-            cloudflare_turnstile_site_key: context.config.cloudflare.turnstileSiteKey,
-            env: context.config.app.env,
+            cloudflare_turnstile_site_key: ctx.config.cloudflare.turnstileSiteKey,
+            env: ctx.config.app.env,
             user: req.user ?? req.session?.user,
-            copyRightYear: context.libs.dayjs().year(),
+            copyRightYear: ctx.libs.dayjs().year(),
             input: (req.session?.input as Record<string, string>) || {},
             errors: (req.session?.errors as Record<string, string>) || {},
             flash: {
@@ -202,18 +202,18 @@ export function SetupAppLocals(context: AppContext) {
         };
 
         res.locals.utils = {
-            nl2br: context.utils.html.nl2br,
-            getFaviconUrl: context.utils.util.getFaviconUrl,
-            isUrlLike: context.utils.validation.isUrlLike,
-            stripHtmlTags: context.utils.html.stripHtmlTags,
-            highlightSearchTerm: context.utils.html.highlightSearchTerm,
-            formatDateInTimezone: context.utils.date.formatDateInTimezone,
+            nl2br: ctx.utils.html.nl2br,
+            getFaviconUrl: ctx.utils.util.getFaviconUrl,
+            isUrlLike: ctx.utils.validation.isUrlLike,
+            stripHtmlTags: ctx.utils.html.stripHtmlTags,
+            highlightSearchTerm: ctx.utils.html.highlightSearchTerm,
+            formatDateInTimezone: ctx.utils.date.formatDateInTimezone,
         };
     };
 }
 
-export function CsrfMiddleware(context: AppContext) {
-    const { csrfSynchronisedProtection, generateToken } = context.libs.csrfSync({
+export function CsrfMiddleware(ctx: AppContext) {
+    const { csrfSynchronisedProtection, generateToken } = ctx.libs.csrfSync({
         getTokenFromRequest: (req: Request) => {
             // For form submissions, check body first
             if (req.body && req.body.csrfToken) {
@@ -243,7 +243,7 @@ export function CsrfMiddleware(context: AppContext) {
             }
 
             // Skip CSRF protection if API key is provided
-            if (context.utils.auth.extractApiKey(req)) {
+            if (ctx.utils.auth.extractApiKey(req)) {
                 return next();
             }
 
@@ -259,7 +259,7 @@ export function CsrfMiddleware(context: AppContext) {
                 res.locals.csrfToken = generateToken(req);
                 next();
             } catch (error) {
-                context.logger.error('CSRF token generation failed', { error });
+                ctx.logger.error('CSRF token generation failed', { error });
                 res.locals.csrfToken = '';
                 next();
             }
@@ -267,7 +267,7 @@ export function CsrfMiddleware(context: AppContext) {
     ];
 }
 
-export function AppLocalStateMiddleware(context: AppContext) {
+export function AppLocalStateMiddleware(ctx: AppContext) {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
             // Set session input for form data before setting up locals
@@ -275,7 +275,7 @@ export function AppLocalStateMiddleware(context: AppContext) {
                 req.session.input = req.body as Record<string, any>;
             }
 
-            SetupAppLocals(context)(req, res);
+            SetupAppLocals(ctx)(req, res);
 
             // Clear session input and errors after setting locals
             // This ensures they're available for the current request only
@@ -291,48 +291,42 @@ export function AppLocalStateMiddleware(context: AppContext) {
     };
 }
 
-export function AuthenticationMiddleware(context: AppContext) {
+export function AuthenticationMiddleware(ctx: AppContext) {
     return async function authenticationMiddleware(
         req: Request,
         res: Response,
         next: NextFunction,
     ) {
         try {
-            const apiKey = context.utils.auth.extractApiKey(req);
+            const apiKey = ctx.utils.auth.extractApiKey(req);
 
             let user: User | null = null;
 
             if (req.session?.user) {
-                user = await context.models.users.read(req.session.user.id);
+                user = await ctx.models.users.read(req.session.user.id);
                 // If user exists in session but not in DB, clear the session
                 if (!user) {
                     req.session.destroy((err) => {
                         if (err) {
-                            context.logger.error(`Session destruction error: %o`, { err });
+                            ctx.logger.error(`Session destruction error: %o`, { err });
                         }
                     });
                 }
             }
 
             if (apiKey) {
-                const apiKeyPayload = await context.utils.auth.verifyApiKey(apiKey);
+                const apiKeyPayload = await ctx.utils.auth.verifyApiKey(apiKey);
 
                 if (!apiKeyPayload) {
-                    throw new context.errors.UnauthorizedError(
-                        'Invalid API key or Bearer token',
-                        req,
-                    );
+                    throw new ctx.errors.UnauthorizedError('Invalid API key or Bearer token', req);
                 }
 
-                user = await context.models.users.read(apiKeyPayload.userId);
+                user = await ctx.models.users.read(apiKeyPayload.userId);
             }
 
             if (!user) {
-                if (context.utils.auth.isApiRequest(req)) {
-                    throw new context.errors.UnauthorizedError(
-                        'Unauthorized - API key required',
-                        req,
-                    );
+                if (ctx.utils.auth.isApiRequest(req)) {
+                    throw new ctx.errors.UnauthorizedError('Unauthorized - API key required', req);
                 }
 
                 if (req.session) {
@@ -360,7 +354,7 @@ export function AuthenticationMiddleware(context: AppContext) {
 
             next();
         } catch (error) {
-            context.logger.error(`Authentication error: ${(error as Error).message}`, {
+            ctx.logger.error(`Authentication error: ${(error as Error).message}`, {
                 error: {
                     name: (error as Error).name,
                     message: (error as Error).message,
@@ -372,19 +366,19 @@ export function AuthenticationMiddleware(context: AppContext) {
     };
 }
 
-export function RateLimitMiddleware(context: AppContext) {
-    return context.libs.rateLimit({
+export function RateLimitMiddleware(ctx: AppContext) {
+    return ctx.libs.rateLimit({
         windowMs: 15 * 60 * 1000, // 15 minutes
         max: 100, // Limit each IP to 100 requests per windowMs
         standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers
         handler: async (req: Request, res: Response) => {
-            if (context.utils.auth.isApiRequest(req)) {
+            if (ctx.utils.auth.isApiRequest(req)) {
                 return res.json({ message: 'Too many requests, please try again later.' });
             }
             return res.status(429).render('general/rate-limit.html');
         },
-        skip: (_req: Request, _res: Response) => context.config.app.env !== 'production',
+        skip: (_req: Request, _res: Response) => ctx.config.app.env !== 'production',
     });
 }
 
@@ -431,27 +425,27 @@ export function LayoutMiddleware(options: LayoutOptions = {}) {
     };
 }
 
-export function TurnstileMiddleware(context: AppContext) {
+export function TurnstileMiddleware(ctx: AppContext) {
     return async function turnstileMiddleware(req: Request, _res: Response, next: NextFunction) {
         try {
-            if (context.config.app.env !== 'production') {
-                context.logger.info('Skipping turnstile middleware in non-production environment');
+            if (ctx.config.app.env !== 'production') {
+                ctx.logger.info('Skipping turnstile middleware in non-production environment');
                 return next();
             }
 
-            if (req.method === 'GET' || context.utils.auth.isApiRequest(req)) {
+            if (req.method === 'GET' || ctx.utils.auth.isApiRequest(req)) {
                 return next();
             }
 
             const token = req.body['cf-turnstile-response'];
             if (!token) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     email: 'Turnstile verification failed: Missing token',
                 });
             }
 
             const ip = (req.headers['cf-connecting-ip'] as string) || req.ip;
-            await context.utils.util.verifyTurnstileToken(token, ip);
+            await ctx.utils.util.verifyTurnstileToken(token, ip);
 
             next();
         } catch (error) {
@@ -460,8 +454,8 @@ export function TurnstileMiddleware(context: AppContext) {
     };
 }
 
-export function StaticAssetsMiddleware(context: AppContext) {
-    return context.libs.express.static('./public', {
+export function StaticAssetsMiddleware(ctx: AppContext) {
+    return ctx.libs.express.static('./public', {
         maxAge: '365d', // 1 year
         etag: true,
         lastModified: true,

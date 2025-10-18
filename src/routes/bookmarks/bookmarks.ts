@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
 import type { User, BookmarkToExport, AppContext } from '../../type';
 
-export function BookmarksRouter(context: AppContext) {
-    const router = context.libs.express.Router();
+export function BookmarksRouter(ctx: AppContext) {
+    const router = ctx.libs.express.Router();
 
     /**
      * A bookmark
@@ -28,12 +28,12 @@ export function BookmarksRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.get('/api/bookmarks', context.middleware.authentication, getBookmarksHandler);
-    router.get('/bookmarks', context.middleware.authentication, getBookmarksHandler);
+    router.get('/api/bookmarks', ctx.middleware.authentication, getBookmarksHandler);
+    router.get('/bookmarks', ctx.middleware.authentication, getBookmarksHandler);
     async function getBookmarksHandler(req: Request, res: Response) {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } =
-            context.utils.request.extractPaginationParams(req, 'bookmarks');
+            ctx.utils.request.extractPaginationParams(req, 'bookmarks');
 
         // Check if user wants to show hidden items and has verified password
         const showHidden = req.query.hidden === 'true';
@@ -44,18 +44,18 @@ export function BookmarksRouter(context: AppContext) {
 
         const canViewHidden = showHidden && hasVerifiedPassword && user.hidden_items_password;
 
-        const { data, pagination } = await context.models.bookmarks.all({
+        const { data, pagination } = await ctx.models.bookmarks.all({
             user,
             perPage,
             page,
             search,
             sortKey,
             direction,
-            highlight: !context.utils.auth.isApiRequest(req),
+            highlight: !ctx.utils.auth.isApiRequest(req),
             excludeHidden: !canViewHidden,
         });
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.json({ data, pagination, search, sortKey, direction });
             return;
         }
@@ -77,7 +77,7 @@ export function BookmarksRouter(context: AppContext) {
 
     router.get(
         '/bookmarks/create',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (_req: Request, res: Response) => {
             return res.render('bookmarks/bookmarks-create.html', {
                 title: 'Bookmarks / New',
@@ -89,16 +89,16 @@ export function BookmarksRouter(context: AppContext) {
 
     router.get(
         '/bookmarks/export',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const userId = req.session.user?.id;
 
             if (!userId) {
-                throw new context.errors.NotFoundError('User not found');
+                throw new ctx.errors.NotFoundError('User not found');
             }
 
-            const bookmarksData = (await context.db
-                .select('url', 'title', context.db.raw("strftime('%s', created_at) as add_date"))
+            const bookmarksData = (await ctx.db
+                .select('url', 'title', ctx.db.raw("strftime('%s', created_at) as add_date"))
                 .from('bookmarks')
                 .where({ user_id: userId })) as BookmarkToExport[];
 
@@ -107,11 +107,11 @@ export function BookmarksRouter(context: AppContext) {
                 return res.redirect('/bookmarks');
             }
 
-            const htmlExport = await context.utils.util.generateBookmarkHtmlExport(userId);
+            const htmlExport = await ctx.utils.util.generateBookmarkHtmlExport(userId);
 
             res.setHeader(
                 'Content-Disposition',
-                `attachment; filename=bookmarks-${context.libs.dayjs().format('YYYY-MM-DD')}.html`,
+                `attachment; filename=bookmarks-${ctx.libs.dayjs().format('YYYY-MM-DD')}.html`,
             )
                 .setHeader('Content-Type', 'text/html; charset=UTF-8')
                 .send(htmlExport);
@@ -120,15 +120,15 @@ export function BookmarksRouter(context: AppContext) {
 
     router.get(
         '/bookmarks/:id/edit',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const bookmark = await context.models.bookmarks.read(
+            const bookmark = await ctx.models.bookmarks.read(
                 req.params.id as unknown as number,
                 (req.user as User).id,
             );
 
             if (!bookmark) {
-                throw new context.errors.NotFoundError('Bookmark not found');
+                throw new ctx.errors.NotFoundError('Bookmark not found');
             }
 
             return res.render('bookmarks/bookmarks-edit.html', {
@@ -142,10 +142,10 @@ export function BookmarksRouter(context: AppContext) {
 
     router.get(
         '/bookmarks/:id/tabs/create',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const id = parseInt(req.params.id as unknown as string);
-            const bookmark = await context
+            const bookmark = await ctx
                 .db('bookmarks')
                 .where({
                     id,
@@ -154,10 +154,10 @@ export function BookmarksRouter(context: AppContext) {
                 .first();
 
             if (!bookmark) {
-                throw new context.errors.NotFoundError('Bookmark not found');
+                throw new ctx.errors.NotFoundError('Bookmark not found');
             }
 
-            const tabs = await context.db('tabs').where({ user_id: req.session.user?.id });
+            const tabs = await ctx.db('tabs').where({ user_id: req.session.user?.id });
 
             return res.render('bookmarks/bookmarks-id-tabs-create.html', {
                 title: `Bookmarks / ${id} / Tabs / Create`,
@@ -171,9 +171,9 @@ export function BookmarksRouter(context: AppContext) {
 
     router.get(
         '/bookmarks/:id/actions/create',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const bookmark = await context
+            const bookmark = await ctx
                 .db('bookmarks')
                 .where({
                     id: req.params.id,
@@ -205,31 +205,31 @@ export function BookmarksRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.post('/api/bookmarks', context.middleware.authentication, postBookmarkHandler);
-    router.post('/bookmarks', context.middleware.authentication, postBookmarkHandler);
+    router.post('/api/bookmarks', ctx.middleware.authentication, postBookmarkHandler);
+    router.post('/bookmarks', ctx.middleware.authentication, postBookmarkHandler);
     async function postBookmarkHandler(req: Request, res: Response) {
         const { url, title, pinned, hidden } = req.body;
 
         if (!title) {
-            throw new context.errors.ValidationError({ title: 'Title is required' });
+            throw new ctx.errors.ValidationError({ title: 'Title is required' });
         }
 
         if (!url) {
-            throw new context.errors.ValidationError({ url: 'URL is required' });
+            throw new ctx.errors.ValidationError({ url: 'URL is required' });
         }
 
-        if (!context.utils.validation.isValidUrl(url)) {
-            throw new context.errors.ValidationError({ url: 'Invalid URL format' });
+        if (!ctx.utils.validation.isValidUrl(url)) {
+            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
         }
 
         if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-            throw new context.errors.ValidationError({
+            throw new ctx.errors.ValidationError({
                 pinned: 'Pinned must be a boolean or checkbox value',
             });
         }
 
         if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new context.errors.ValidationError({
+            throw new ctx.errors.ValidationError({
                 hidden: 'Hidden must be a boolean or checkbox value',
             });
         }
@@ -238,22 +238,22 @@ export function BookmarksRouter(context: AppContext) {
 
         if (hidden === 'on' || hidden === true) {
             if (!user.hidden_items_password) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
                 });
             }
         }
-        const existingBookmark = await context.utils.util.checkDuplicateBookmarkUrl(user.id, url);
+        const existingBookmark = await ctx.utils.util.checkDuplicateBookmarkUrl(user.id, url);
 
         if (existingBookmark) {
-            throw new context.errors.ValidationError({
+            throw new ctx.errors.ValidationError({
                 url: `URL already bookmarked as "${existingBookmark.title}". Please use a different URL or update the existing bookmark.`,
             });
         }
 
         setTimeout(
             () =>
-                context.utils.util.insertBookmark({
+                ctx.utils.util.insertBookmark({
                     url,
                     userId: (req.user as User).id,
                     title,
@@ -264,7 +264,7 @@ export function BookmarksRouter(context: AppContext) {
             0,
         );
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(201).json({ message: `Bookmark ${title} created successfully!` });
             return;
         }
@@ -290,31 +290,31 @@ export function BookmarksRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.patch('/api/bookmarks/:id', context.middleware.authentication, updateBookmarkHandler);
-    router.post('/bookmarks/:id/update', context.middleware.authentication, updateBookmarkHandler);
+    router.patch('/api/bookmarks/:id', ctx.middleware.authentication, updateBookmarkHandler);
+    router.post('/bookmarks/:id/update', ctx.middleware.authentication, updateBookmarkHandler);
     async function updateBookmarkHandler(req: Request, res: Response) {
         const { url, title, pinned, hidden } = req.body;
 
         if (!title) {
-            throw new context.errors.ValidationError({ title: 'Title is required' });
+            throw new ctx.errors.ValidationError({ title: 'Title is required' });
         }
 
         if (!url) {
-            throw new context.errors.ValidationError({ url: 'URL is required' });
+            throw new ctx.errors.ValidationError({ url: 'URL is required' });
         }
 
-        if (!context.utils.validation.isValidUrl(url)) {
-            throw new context.errors.ValidationError({ url: 'Invalid URL format' });
+        if (!ctx.utils.validation.isValidUrl(url)) {
+            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
         }
 
         if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-            throw new context.errors.ValidationError({
+            throw new ctx.errors.ValidationError({
                 pinned: 'Pinned must be a boolean or checkbox value',
             });
         }
 
         if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new context.errors.ValidationError({
+            throw new ctx.errors.ValidationError({
                 hidden: 'Hidden must be a boolean or checkbox value',
             });
         }
@@ -324,25 +324,25 @@ export function BookmarksRouter(context: AppContext) {
 
         if (hidden === 'on' || hidden === true) {
             if (!user.hidden_items_password) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
                 });
             }
         }
 
-        const currentBookmark = await context.models.bookmarks.read(bookmarkId, user.id);
+        const currentBookmark = await ctx.models.bookmarks.read(bookmarkId, user.id);
         if (!currentBookmark) {
-            throw new context.errors.NotFoundError('Bookmark not found');
+            throw new ctx.errors.NotFoundError('Bookmark not found');
         }
 
-        const updatedBookmark = await context.models.bookmarks.update(bookmarkId, user.id, {
+        const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
             url,
             title,
             pinned: pinned === 'on' || pinned === true,
             hidden: hidden === 'on' || hidden === true,
         });
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({
                 message: `Bookmark ${updatedBookmark.title} updated successfully!`,
                 data: updatedBookmark,
@@ -376,19 +376,19 @@ export function BookmarksRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.delete('/api/bookmarks/:id', context.middleware.authentication, deleteBookmarkHandler);
-    router.post('/bookmarks/:id/delete', context.middleware.authentication, deleteBookmarkHandler);
+    router.delete('/api/bookmarks/:id', ctx.middleware.authentication, deleteBookmarkHandler);
+    router.post('/bookmarks/:id/delete', ctx.middleware.authentication, deleteBookmarkHandler);
     async function deleteBookmarkHandler(req: Request, res: Response) {
-        const deleted = await context.models.bookmarks.delete(
+        const deleted = await ctx.models.bookmarks.delete(
             req.params.id as unknown as number,
             (req.user as User).id,
         );
 
         if (!deleted) {
-            throw new context.errors.NotFoundError('Bookmark not found');
+            throw new ctx.errors.NotFoundError('Bookmark not found');
         }
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({ message: 'Bookmark deleted successfully' });
             return;
         }
@@ -412,33 +412,29 @@ export function BookmarksRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.post(
-        '/bookmarks/delete-bulk',
-        context.middleware.authentication,
-        bulkDeleteBookmarkHandler,
-    );
+    router.post('/bookmarks/delete-bulk', ctx.middleware.authentication, bulkDeleteBookmarkHandler);
     router.post(
         '/api/bookmarks/delete-bulk',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         bulkDeleteBookmarkHandler,
     );
     async function bulkDeleteBookmarkHandler(req: Request, res: Response) {
         const { id } = req.body;
 
         if (!id || !Array.isArray(id)) {
-            throw new context.errors.ValidationError({ id: 'IDs array is required' });
+            throw new ctx.errors.ValidationError({ id: 'IDs array is required' });
         }
 
         const bookmarkIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
 
         if (bookmarkIds.length === 0) {
-            throw new context.errors.ValidationError({ id: 'No valid bookmark IDs provided' });
+            throw new ctx.errors.ValidationError({ id: 'No valid bookmark IDs provided' });
         }
 
         const user = req.user as User;
-        const deletedCount = await context.models.bookmarks.bulkDelete(bookmarkIds, user.id);
+        const deletedCount = await ctx.models.bookmarks.bulkDelete(bookmarkIds, user.id);
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({
                 message: `${deletedCount} bookmark${deletedCount !== 1 ? 's' : ''} deleted successfully`,
                 data: {
@@ -469,27 +465,23 @@ export function BookmarksRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.post('/bookmarks/:id/pin', context.middleware.authentication, toggleBookmarkPinHandler);
-    router.post(
-        '/api/bookmarks/:id/pin',
-        context.middleware.authentication,
-        toggleBookmarkPinHandler,
-    );
+    router.post('/bookmarks/:id/pin', ctx.middleware.authentication, toggleBookmarkPinHandler);
+    router.post('/api/bookmarks/:id/pin', ctx.middleware.authentication, toggleBookmarkPinHandler);
     async function toggleBookmarkPinHandler(req: Request, res: Response) {
         const user = req.user as User;
         const bookmarkId = parseInt(req.params.id as unknown as string);
 
-        const currentBookmark = await context.models.bookmarks.read(bookmarkId, user.id);
+        const currentBookmark = await ctx.models.bookmarks.read(bookmarkId, user.id);
 
         if (!currentBookmark) {
-            throw new context.errors.NotFoundError('Bookmark not found');
+            throw new ctx.errors.NotFoundError('Bookmark not found');
         }
 
-        const updatedBookmark = await context.models.bookmarks.update(bookmarkId, user.id, {
+        const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
             pinned: !currentBookmark.pinned,
         });
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({
                 message: `Bookmark ${updatedBookmark.pinned ? 'pinned' : 'unpinned'} successfully`,
                 data: updatedBookmark,
@@ -522,16 +514,16 @@ export function BookmarksRouter(context: AppContext) {
      */
     router.get(
         '/api/bookmarks/:id',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
-            const bookmark = await context.models.bookmarks.read(
+            const bookmark = await ctx.models.bookmarks.read(
                 parseInt(req.params.id as unknown as string),
                 user.id,
             );
 
             if (!bookmark) {
-                throw new context.errors.NotFoundError('Bookmark not found');
+                throw new ctx.errors.NotFoundError('Bookmark not found');
             }
 
             res.status(200).json({
@@ -543,15 +535,15 @@ export function BookmarksRouter(context: AppContext) {
 
     router.post(
         '/bookmarks/:id/tabs',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
             const tab_id = parseInt(req.body.tab_id as unknown as string);
             const id = parseInt(req.params.id as unknown as string);
 
-            await context.utils.util.addToTabs(user.id, tab_id, 'bookmarks', id);
+            await ctx.utils.util.addToTabs(user.id, tab_id, 'bookmarks', id);
 
-            if (context.utils.auth.isApiRequest(req)) {
+            if (ctx.utils.auth.isApiRequest(req)) {
                 res.status(201).json({ message: 'Tab added successfully' });
                 return;
             }

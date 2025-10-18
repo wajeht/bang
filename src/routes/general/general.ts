@@ -2,13 +2,13 @@ import { bangs } from '../../db/bang';
 import type { Request, Response } from 'express';
 import type { Bang, User, AppContext } from '../../type';
 
-export function GeneralRouter(context: AppContext) {
-    const router = context.libs.express.Router();
+export function GeneralRouter(ctx: AppContext) {
+    const router = ctx.libs.express.Router();
 
     router.get('/healthz', async (req: Request, res: Response) => {
-        await context.db.raw('SELECT 1');
+        await ctx.db.raw('SELECT 1');
 
-        if (context.utils.auth.expectsJson(req)) {
+        if (ctx.utils.auth.expectsJson(req)) {
             res.status(200).json({ status: 'ok', database: 'connected' });
             return;
         }
@@ -28,7 +28,7 @@ export function GeneralRouter(context: AppContext) {
             });
         }
 
-        await context.utils.search.search({ res, user, query, req });
+        await ctx.utils.search.search({ res, user, query, req });
     });
 
     router.get('/about', async (_req: Request, res: Response) => {
@@ -77,7 +77,7 @@ export function GeneralRouter(context: AppContext) {
             return 0;
         });
 
-        const { data, ...pagination } = context.utils.util.paginate(sortedBangs, {
+        const { data, ...pagination } = ctx.utils.util.paginate(sortedBangs, {
             page: Number(page),
             perPage: Number(per_page),
             total: sortedBangs.length,
@@ -86,12 +86,12 @@ export function GeneralRouter(context: AppContext) {
         const highlightedData = searchTerm
             ? data.map((bang: Bang) => ({
                   ...bang,
-                  s: context.utils.html.highlightSearchTerm(bang.s, String(searchTerm)),
-                  t: context.utils.html.highlightSearchTerm(bang.t, String(searchTerm)),
-                  d: context.utils.html.highlightSearchTerm(bang.d, String(searchTerm)),
-                  u: context.utils.html.highlightSearchTerm(bang.u, String(searchTerm)),
-                  c: context.utils.html.highlightSearchTerm(bang.c, String(searchTerm)),
-                  sc: context.utils.html.highlightSearchTerm(bang.sc, String(searchTerm)),
+                  s: ctx.utils.html.highlightSearchTerm(bang.s, String(searchTerm)),
+                  t: ctx.utils.html.highlightSearchTerm(bang.t, String(searchTerm)),
+                  d: ctx.utils.html.highlightSearchTerm(bang.d, String(searchTerm)),
+                  u: ctx.utils.html.highlightSearchTerm(bang.u, String(searchTerm)),
+                  c: ctx.utils.html.highlightSearchTerm(bang.c, String(searchTerm)),
+                  sc: ctx.utils.html.highlightSearchTerm(bang.sc, String(searchTerm)),
               }))
             : data;
 
@@ -120,18 +120,18 @@ export function GeneralRouter(context: AppContext) {
      */
     router.get(
         '/api/collections',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
-            const actionsParams = context.utils.request.extractPaginationParams(req, 'actions');
-            const bookmarksParams = context.utils.request.extractPaginationParams(req, 'bookmarks');
-            const notesParams = context.utils.request.extractPaginationParams(req, 'notes');
-            const tabsParams = context.utils.request.extractPaginationParams(req, 'tabs');
-            const remindersParams = context.utils.request.extractPaginationParams(req, 'reminders');
+            const actionsParams = ctx.utils.request.extractPaginationParams(req, 'actions');
+            const bookmarksParams = ctx.utils.request.extractPaginationParams(req, 'bookmarks');
+            const notesParams = ctx.utils.request.extractPaginationParams(req, 'notes');
+            const tabsParams = ctx.utils.request.extractPaginationParams(req, 'tabs');
+            const remindersParams = ctx.utils.request.extractPaginationParams(req, 'reminders');
 
             const [actionsResult, bookmarksResult, notesResult, tabsResult, remindersResult] =
                 await Promise.all([
-                    context.models.actions.all({
+                    ctx.models.actions.all({
                         user,
                         perPage: actionsParams.perPage,
                         page: actionsParams.page,
@@ -140,7 +140,7 @@ export function GeneralRouter(context: AppContext) {
                         direction: actionsParams.direction,
                         excludeHidden: true,
                     }),
-                    context.models.bookmarks.all({
+                    ctx.models.bookmarks.all({
                         user,
                         perPage: bookmarksParams.perPage,
                         page: bookmarksParams.page,
@@ -149,7 +149,7 @@ export function GeneralRouter(context: AppContext) {
                         direction: bookmarksParams.direction,
                         excludeHidden: true,
                     }),
-                    context.models.notes.all({
+                    ctx.models.notes.all({
                         user,
                         perPage: notesParams.perPage,
                         page: notesParams.page,
@@ -158,7 +158,7 @@ export function GeneralRouter(context: AppContext) {
                         direction: notesParams.direction,
                         excludeHidden: true,
                     }),
-                    context.models.tabs.all({
+                    ctx.models.tabs.all({
                         user,
                         perPage: tabsParams.perPage,
                         page: tabsParams.page,
@@ -166,7 +166,7 @@ export function GeneralRouter(context: AppContext) {
                         sortKey: tabsParams.sortKey,
                         direction: tabsParams.direction,
                     }),
-                    context.models.reminders.all({
+                    ctx.models.reminders.all({
                         user,
                         perPage: remindersParams.perPage,
                         page: remindersParams.page,

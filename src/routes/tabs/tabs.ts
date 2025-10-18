@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
 import type { User, AppContext } from '../../type';
 
-export function TabsRouter(context: AppContext) {
-    const router = context.libs.express.Router();
+export function TabsRouter(ctx: AppContext) {
+    const router = ctx.libs.express.Router();
 
     /**
      *
@@ -18,7 +18,7 @@ export function TabsRouter(context: AppContext) {
 
     router.get(
         '/tabs/create',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             return res.render('tabs/tabs-create.html', {
                 title: 'Tabs / Create',
@@ -31,13 +31,13 @@ export function TabsRouter(context: AppContext) {
 
     router.post(
         '/tabs/delete-all',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user as User;
 
-            await context.db('tabs').where({ user_id: user.id }).delete();
+            await ctx.db('tabs').where({ user_id: user.id }).delete();
 
-            if (context.utils.auth.isApiRequest(req)) {
+            if (ctx.utils.auth.isApiRequest(req)) {
                 res.status(200).json({ message: 'All tab groups deleted successfully' });
                 return;
             }
@@ -49,13 +49,13 @@ export function TabsRouter(context: AppContext) {
 
     router.get(
         '/tabs/:id/edit',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
-            const tab = await context.models.tabs.read(parseInt(req.params.id as string), user.id);
+            const tab = await ctx.models.tabs.read(parseInt(req.params.id as string), user.id);
 
             if (!tab) {
-                throw new context.errors.NotFoundError('Tab group not found');
+                throw new ctx.errors.NotFoundError('Tab group not found');
             }
 
             return res.render('tabs/tabs-edit.html', {
@@ -70,15 +70,15 @@ export function TabsRouter(context: AppContext) {
 
     router.get(
         '/tabs/:id/launch',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user as User;
             const id = req.params.id;
 
-            const tabGroup = await context.models.tabs.read(parseInt(id as string), user.id);
+            const tabGroup = await ctx.models.tabs.read(parseInt(id as string), user.id);
 
             if (!tabGroup) {
-                throw new context.errors.NotFoundError('Tab group not found');
+                throw new ctx.errors.NotFoundError('Tab group not found');
             }
 
             return res.render('tabs/tabs-launch.html', {
@@ -94,14 +94,14 @@ export function TabsRouter(context: AppContext) {
 
     router.get(
         '/tabs/:id/items/create',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user as User;
             const tabId = req.params.id;
-            const tab = await context.db('tabs').where({ id: tabId, user_id: user.id }).first();
+            const tab = await ctx.db('tabs').where({ id: tabId, user_id: user.id }).first();
 
             if (!tab) {
-                throw new context.errors.NotFoundError('Tab group not found');
+                throw new ctx.errors.NotFoundError('Tab group not found');
             }
 
             return res.render('tabs/tabs-items-create.html', {
@@ -116,29 +116,29 @@ export function TabsRouter(context: AppContext) {
 
     router.get(
         '/tabs/:id/items/:itemId/edit',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
             const { id, itemId } = req.params;
 
-            const tab = await context.db
+            const tab = await ctx.db
                 .select('*')
                 .from('tabs')
                 .where({ id, user_id: user.id })
                 .first();
 
             if (!tab) {
-                throw new context.errors.NotFoundError('Tab group not found');
+                throw new ctx.errors.NotFoundError('Tab group not found');
             }
 
-            const tabItem = await context.db
+            const tabItem = await ctx.db
                 .select('*')
                 .from('tab_items')
                 .where({ id: itemId, tab_id: id })
                 .first();
 
             if (!tabItem) {
-                throw new context.errors.NotFoundError('Tab item not found');
+                throw new ctx.errors.NotFoundError('Tab item not found');
             }
 
             return res.render('tabs/tabs-items-edit.html', {
@@ -164,24 +164,24 @@ export function TabsRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.get('/api/tabs', context.middleware.authentication, getTabsPageHandler);
-    router.get('/tabs', context.middleware.authentication, getTabsPageHandler);
+    router.get('/api/tabs', ctx.middleware.authentication, getTabsPageHandler);
+    router.get('/tabs', ctx.middleware.authentication, getTabsPageHandler);
     async function getTabsPageHandler(req: Request, res: Response) {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } =
-            context.utils.request.extractPaginationParams(req, 'tabs');
+            ctx.utils.request.extractPaginationParams(req, 'tabs');
 
-        const { data: tabsData, pagination } = await context.models.tabs.all({
+        const { data: tabsData, pagination } = await ctx.models.tabs.all({
             user,
             perPage,
             page,
             search,
             sortKey,
             direction,
-            highlight: !context.utils.auth.isApiRequest(req),
+            highlight: !ctx.utils.auth.isApiRequest(req),
         });
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({
                 message: 'Tabs retrieved successfully',
                 data: tabsData,
@@ -222,29 +222,29 @@ export function TabsRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.post('/api/tabs', context.middleware.authentication, postTabsPageHandler);
-    router.post('/tabs', context.middleware.authentication, postTabsPageHandler);
+    router.post('/api/tabs', ctx.middleware.authentication, postTabsPageHandler);
+    router.post('/tabs', ctx.middleware.authentication, postTabsPageHandler);
     async function postTabsPageHandler(req: Request, res: Response) {
         const user = req.user as User;
         const { title, trigger } = req.body;
 
         if (!title) {
-            throw new context.errors.ValidationError({ title: 'Title is required' });
+            throw new ctx.errors.ValidationError({ title: 'Title is required' });
         }
 
         if (!trigger) {
-            throw new context.errors.ValidationError({ trigger: 'Trigger is required' });
+            throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
         }
 
-        const formattedTrigger: string = context.utils.util.normalizeBangTrigger(trigger);
+        const formattedTrigger: string = ctx.utils.util.normalizeBangTrigger(trigger);
 
-        if (!context.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
-            throw new context.errors.ValidationError({
+        if (!ctx.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
+            throw new ctx.errors.ValidationError({
                 trigger: 'Trigger can only contain letters and numbers',
             });
         }
 
-        const existingTab = await context
+        const existingTab = await ctx
             .db('tabs')
             .where({
                 trigger: formattedTrigger,
@@ -252,28 +252,28 @@ export function TabsRouter(context: AppContext) {
             })
             .first();
 
-        const existingAction = await context.db.select('*').from('bangs').where({
+        const existingAction = await ctx.db.select('*').from('bangs').where({
             user_id: user.id,
             trigger: formattedTrigger,
         });
 
         if (existingAction.length) {
-            throw new context.errors.ValidationError({
+            throw new ctx.errors.ValidationError({
                 trigger: 'This trigger already exists in Actions. Please choose another one!',
             });
         }
 
         if (existingTab) {
-            throw new context.errors.ValidationError({ trigger: 'This trigger already exists' });
+            throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        await context.models.tabs.create({
+        await ctx.models.tabs.create({
             user_id: user.id,
             title,
             trigger: formattedTrigger,
         });
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(201).json({ message: 'Tab group created successfully' });
             return;
         }
@@ -300,46 +300,46 @@ export function TabsRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.patch('/api/tabs/:id', context.middleware.authentication, updateTabHandler);
-    router.post('/tabs/:id/update', context.middleware.authentication, updateTabHandler);
+    router.patch('/api/tabs/:id', ctx.middleware.authentication, updateTabHandler);
+    router.post('/tabs/:id/update', ctx.middleware.authentication, updateTabHandler);
     async function updateTabHandler(req: Request, res: Response) {
         const user = req.user as User;
         const { title, trigger } = req.body;
 
-        const tab = await context.models.tabs.read(parseInt(req.params.id as string), user.id);
+        const tab = await ctx.models.tabs.read(parseInt(req.params.id as string), user.id);
 
         if (!tab) {
-            throw new context.errors.NotFoundError('Tab group not found');
+            throw new ctx.errors.NotFoundError('Tab group not found');
         }
 
         if (!title) {
-            throw new context.errors.ValidationError({ title: 'Title is required' });
+            throw new ctx.errors.ValidationError({ title: 'Title is required' });
         }
 
         if (!trigger) {
-            throw new context.errors.ValidationError({ trigger: 'Trigger is required' });
+            throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
         }
 
-        const formattedTrigger: string = context.utils.util.normalizeBangTrigger(trigger);
+        const formattedTrigger: string = ctx.utils.util.normalizeBangTrigger(trigger);
 
-        if (!context.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
-            throw new context.errors.ValidationError({
+        if (!ctx.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
+            throw new ctx.errors.ValidationError({
                 trigger: 'Trigger can only contain letters and numbers',
             });
         }
 
-        const existingAction = await context.db.select('*').from('bangs').where({
+        const existingAction = await ctx.db.select('*').from('bangs').where({
             user_id: user.id,
             trigger: formattedTrigger,
         });
 
         if (existingAction.length) {
-            throw new context.errors.ValidationError({
+            throw new ctx.errors.ValidationError({
                 trigger: 'This trigger already exists in Actions. Please choose another one!',
             });
         }
 
-        const existingTab = await context
+        const existingTab = await ctx
             .db('tabs')
             .where({
                 trigger: formattedTrigger,
@@ -349,15 +349,15 @@ export function TabsRouter(context: AppContext) {
             .first();
 
         if (existingTab) {
-            throw new context.errors.ValidationError({ trigger: 'This trigger already exists' });
+            throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        await context.models.tabs.update(parseInt(req.params.id as string), user.id, {
+        await ctx.models.tabs.update(parseInt(req.params.id as string), user.id, {
             title,
             trigger: formattedTrigger,
         });
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({ message: 'Tab group updated successfully' });
             return;
         }
@@ -382,19 +382,19 @@ export function TabsRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.delete('/api/tabs/:id', context.middleware.authentication, deleteTabHandler);
-    router.post('/tabs/:id/delete', context.middleware.authentication, deleteTabHandler);
+    router.delete('/api/tabs/:id', ctx.middleware.authentication, deleteTabHandler);
+    router.post('/tabs/:id/delete', ctx.middleware.authentication, deleteTabHandler);
     async function deleteTabHandler(req: Request, res: Response) {
         const user = req.user as User;
         const tabId = parseInt(req.params.id as unknown as string);
 
-        const deleted = await context.models.tabs.delete(tabId, user.id);
+        const deleted = await ctx.models.tabs.delete(tabId, user.id);
 
         if (!deleted) {
-            throw new context.errors.NotFoundError('Tab group not found');
+            throw new ctx.errors.NotFoundError('Tab group not found');
         }
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({ message: 'Tab group deleted successfully' });
             return;
         }
@@ -419,25 +419,25 @@ export function TabsRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.post('/api/tabs/delete-bulk', context.middleware.authentication, bulkDeleteTabHandler);
-    router.post('/tabs/delete-bulk', context.middleware.authentication, bulkDeleteTabHandler);
+    router.post('/api/tabs/delete-bulk', ctx.middleware.authentication, bulkDeleteTabHandler);
+    router.post('/tabs/delete-bulk', ctx.middleware.authentication, bulkDeleteTabHandler);
     async function bulkDeleteTabHandler(req: Request, res: Response) {
         const { id } = req.body;
 
         if (!id || !Array.isArray(id)) {
-            throw new context.errors.ValidationError({ id: 'IDs array is required' });
+            throw new ctx.errors.ValidationError({ id: 'IDs array is required' });
         }
 
         const tabIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
 
         if (tabIds.length === 0) {
-            throw new context.errors.ValidationError({ id: 'No valid tab IDs provided' });
+            throw new ctx.errors.ValidationError({ id: 'No valid tab IDs provided' });
         }
 
         const user = req.user as User;
-        const deletedCount = await context.models.tabs.bulkDelete(tabIds, user.id);
+        const deletedCount = await ctx.models.tabs.bulkDelete(tabIds, user.id);
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({
                 message: `${deletedCount} tab group${deletedCount !== 1 ? 's' : ''} deleted successfully`,
                 data: {
@@ -483,42 +483,38 @@ export function TabsRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.post('/api/tabs/:id/items', context.middleware.authentication, postTabItemCreateHandler);
-    router.post(
-        '/tabs/:id/items/create',
-        context.middleware.authentication,
-        postTabItemCreateHandler,
-    );
+    router.post('/api/tabs/:id/items', ctx.middleware.authentication, postTabItemCreateHandler);
+    router.post('/tabs/:id/items/create', ctx.middleware.authentication, postTabItemCreateHandler);
     async function postTabItemCreateHandler(req: Request, res: Response) {
         const user = req.user as User;
         const tabId = req.params.id;
         const { title, url } = req.body;
 
         if (!title) {
-            throw new context.errors.ValidationError({ title: 'Title is required' });
+            throw new ctx.errors.ValidationError({ title: 'Title is required' });
         }
 
         if (!url) {
-            throw new context.errors.ValidationError({ url: 'URL is required' });
+            throw new ctx.errors.ValidationError({ url: 'URL is required' });
         }
 
-        if (!context.utils.validation.isValidUrl(url)) {
-            throw new context.errors.ValidationError({ url: 'Invalid URL format' });
+        if (!ctx.utils.validation.isValidUrl(url)) {
+            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
         }
 
-        const tab = await context.db('tabs').where({ id: tabId, user_id: user.id }).first();
+        const tab = await ctx.db('tabs').where({ id: tabId, user_id: user.id }).first();
 
         if (!tab) {
-            throw new context.errors.NotFoundError('Tab group not found');
+            throw new ctx.errors.NotFoundError('Tab group not found');
         }
 
-        await context.db('tab_items').insert({
+        await ctx.db('tab_items').insert({
             tab_id: tab.id,
             title,
             url,
         });
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(201).json({ message: 'Tab item created successfully' });
             return;
         }
@@ -547,55 +543,55 @@ export function TabsRouter(context: AppContext) {
      */
     router.patch(
         '/api/tabs/:id/items/:itemId',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         postTabItemUpdateHandler,
     );
     router.post(
         '/tabs/:id/items/:itemId/update',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         postTabItemUpdateHandler,
     );
     async function postTabItemUpdateHandler(req: Request, res: Response) {
         const user = req.user as User;
         const { id, itemId } = req.params;
 
-        const tab = await context.db('tabs').where({ id, user_id: user.id }).first();
+        const tab = await ctx.db('tabs').where({ id, user_id: user.id }).first();
 
         if (!tab) {
-            throw new context.errors.NotFoundError('Tab group not found');
+            throw new ctx.errors.NotFoundError('Tab group not found');
         }
 
         const { title, url } = req.body;
 
         if (!title) {
-            throw new context.errors.ValidationError({ title: 'Title is required' });
+            throw new ctx.errors.ValidationError({ title: 'Title is required' });
         }
 
         if (!url) {
-            throw new context.errors.ValidationError({ url: 'URL is required' });
+            throw new ctx.errors.ValidationError({ url: 'URL is required' });
         }
 
-        if (!context.utils.validation.isValidUrl(url)) {
-            throw new context.errors.ValidationError({ url: 'Invalid URL format' });
+        if (!ctx.utils.validation.isValidUrl(url)) {
+            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
         }
 
-        const tabItem = await context.db('tab_items').where({ id: itemId, tab_id: id }).first();
+        const tabItem = await ctx.db('tab_items').where({ id: itemId, tab_id: id }).first();
 
         if (!tabItem) {
-            throw new context.errors.NotFoundError('Tab item not found');
+            throw new ctx.errors.NotFoundError('Tab item not found');
         }
 
-        await context.db.transaction(async (trx) => {
+        await ctx.db.transaction(async (trx) => {
             await trx('tab_items').where({ id: itemId, tab_id: id }).update({
                 title,
                 url,
-                updated_at: context.db.fn.now(),
+                updated_at: ctx.db.fn.now(),
             });
 
-            await trx('tabs').where({ id }).update({ updated_at: context.db.fn.now() });
+            await trx('tabs').where({ id }).update({ updated_at: ctx.db.fn.now() });
         });
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({ message: 'Tab item updated successfully' });
             return;
         }
@@ -623,12 +619,12 @@ export function TabsRouter(context: AppContext) {
      */
     router.delete(
         '/api/tabs/:id/items/:itemId',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         deleteTabItemHandler,
     );
     router.post(
         '/tabs/:id/items/:itemId/delete',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         deleteTabItemHandler,
     );
     async function deleteTabItemHandler(req: Request, res: Response) {
@@ -636,14 +632,14 @@ export function TabsRouter(context: AppContext) {
         const tabId = parseInt(req.params.id as unknown as string);
         const itemId = parseInt(req.params.itemId as unknown as string);
 
-        await context.db.transaction(async (trx) => {
+        await ctx.db.transaction(async (trx) => {
             await trx('tab_items').where({ id: itemId, tab_id: tabId }).delete();
             await trx('tabs')
                 .where({ id: tabId, user_id: user.id })
-                .update({ updated_at: context.db.fn.now() });
+                .update({ updated_at: ctx.db.fn.now() });
         });
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({ message: 'Tab item deleted successfully' });
             return;
         }

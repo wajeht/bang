@@ -1,20 +1,16 @@
 import type { Request, Response } from 'express';
 import type { User, ApiKeyPayload, AppContext } from '../../type';
 
-export function SettingsRouter(context: AppContext) {
-    const router = context.libs.express.Router();
+export function SettingsRouter(ctx: AppContext) {
+    const router = ctx.libs.express.Router();
 
-    router.get(
-        '/settings',
-        context.middleware.authentication,
-        async (_req: Request, res: Response) => {
-            return res.redirect('/settings/account');
-        },
-    );
+    router.get('/settings', ctx.middleware.authentication, async (_req: Request, res: Response) => {
+        return res.redirect('/settings/account');
+    });
 
     router.get(
         '/settings/account',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             return res.render('settings/settings-account.html', {
                 user: req.session?.user,
@@ -22,7 +18,7 @@ export function SettingsRouter(context: AppContext) {
                 path: '/settings/account',
                 layout: '_layouts/settings.html',
                 defaultSearchProviders: Object.keys(
-                    context.utils.search.searchConfig.defaultSearchProviders,
+                    ctx.utils.search.searchConfig.defaultSearchProviders,
                 ),
             });
         },
@@ -30,7 +26,7 @@ export function SettingsRouter(context: AppContext) {
 
     router.get(
         '/settings/data',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             return res.render('settings/settings-data.html', {
                 user: req.session?.user,
@@ -43,7 +39,7 @@ export function SettingsRouter(context: AppContext) {
 
     router.get(
         '/settings/danger-zone',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             return res.render('settings/settings-danger-zone.html', {
                 user: req.session?.user,
@@ -56,7 +52,7 @@ export function SettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/account',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const {
                 username,
@@ -67,37 +63,37 @@ export function SettingsRouter(context: AppContext) {
             } = req.body;
 
             if (!username) {
-                throw new context.errors.ValidationError({ username: 'Username is required' });
+                throw new ctx.errors.ValidationError({ username: 'Username is required' });
             }
 
             if (!email) {
-                throw new context.errors.ValidationError({ email: 'Email is required' });
+                throw new ctx.errors.ValidationError({ email: 'Email is required' });
             }
 
             if (!default_search_provider) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     default_search_provider: 'Default search provider is required',
                 });
             }
 
-            if (!context.utils.validation.isValidEmail(email)) {
-                throw new context.errors.ValidationError({
+            if (!ctx.utils.validation.isValidEmail(email)) {
+                throw new ctx.errors.ValidationError({
                     email: 'Please enter a valid email address',
                 });
             }
 
             if (
-                !Object.keys(context.utils.search.searchConfig.defaultSearchProviders).includes(
+                !Object.keys(ctx.utils.search.searchConfig.defaultSearchProviders).includes(
                     default_search_provider,
                 )
             ) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     default_search_provider: 'Invalid search provider selected',
                 });
             }
 
             if (!timezone) {
-                throw new context.errors.ValidationError({ timezone: 'Timezone is required' });
+                throw new ctx.errors.ValidationError({ timezone: 'Timezone is required' });
             }
 
             const validTimezones = [
@@ -115,14 +111,14 @@ export function SettingsRouter(context: AppContext) {
                 'Australia/Sydney',
             ];
             if (!validTimezones.includes(timezone)) {
-                throw new context.errors.ValidationError({ timezone: 'Invalid timezone selected' });
+                throw new ctx.errors.ValidationError({ timezone: 'Invalid timezone selected' });
             }
 
             let parsedAutocompleteSearchOnHomepage = false;
             if (autocomplete_search_on_homepage === undefined) {
                 parsedAutocompleteSearchOnHomepage = false;
             } else if (autocomplete_search_on_homepage !== 'on') {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     autocomplete_search_on_homepage:
                         'Invalid autocomplete search on homepage format',
                 });
@@ -133,13 +129,13 @@ export function SettingsRouter(context: AppContext) {
             // Check if username is being changed and if it's already taken by another user
             const currentUserId = (req.user as User).id;
             if (username !== (req.user as User).username) {
-                const existingUser = await context
+                const existingUser = await ctx
                     .db('users')
                     .where({ username })
                     .whereNot({ id: currentUserId })
                     .first();
                 if (existingUser) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         username: 'Username is already taken',
                     });
                 }
@@ -147,19 +143,19 @@ export function SettingsRouter(context: AppContext) {
 
             // Check if email is being changed and if it's already taken by another user
             if (email !== (req.user as User).email) {
-                const existingUser = await context
+                const existingUser = await ctx
                     .db('users')
                     .where({ email })
                     .whereNot({ id: currentUserId })
                     .first();
                 if (existingUser) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         email: 'Email address is already in use',
                     });
                 }
             }
 
-            const updatedUser = await context
+            const updatedUser = await ctx
                 .db('users')
                 .update({
                     email,
@@ -187,19 +183,19 @@ export function SettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/display',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const { column_preferences } = req.body;
 
             if (!column_preferences || typeof column_preferences !== 'object') {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     column_preferences: 'Column preferences must be an object',
                 });
             }
 
             // bookmarks
             if (typeof column_preferences.bookmarks !== 'object') {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     bookmarks: 'Bookmarks must be an object',
                 });
             }
@@ -220,7 +216,7 @@ export function SettingsRouter(context: AppContext) {
                 isNaN(column_preferences.bookmarks.default_per_page) ||
                 column_preferences.bookmarks.default_per_page < 1
             ) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     bookmarks: 'Bookmarks per page must be greater than 0',
                 });
             }
@@ -232,14 +228,14 @@ export function SettingsRouter(context: AppContext) {
                 !column_preferences.bookmarks.pinned &&
                 !column_preferences.bookmarks.hidden
             ) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     bookmarks: 'At least one bookmark column must be enabled',
                 });
             }
 
             // actions
             if (typeof column_preferences.actions !== 'object') {
-                throw new context.errors.ValidationError({ actions: 'Actions must be an object' });
+                throw new ctx.errors.ValidationError({ actions: 'Actions must be an object' });
             }
 
             column_preferences.actions.name = column_preferences.actions.name === 'on';
@@ -263,7 +259,7 @@ export function SettingsRouter(context: AppContext) {
                 isNaN(column_preferences.actions.default_per_page) ||
                 column_preferences.actions.default_per_page < 1
             ) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     actions: 'Actions per page must be greater than 0',
                 });
             }
@@ -278,14 +274,14 @@ export function SettingsRouter(context: AppContext) {
                 !column_preferences.actions.hidden &&
                 !column_preferences.actions.created_at
             ) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     actions: 'At least one action column must be enabled',
                 });
             }
 
             // notes
             if (typeof column_preferences.notes !== 'object') {
-                throw new context.errors.ValidationError({ notes: 'Notes must be an object' });
+                throw new ctx.errors.ValidationError({ notes: 'Notes must be an object' });
             }
 
             column_preferences.notes.title = column_preferences.notes.title === 'on';
@@ -308,7 +304,7 @@ export function SettingsRouter(context: AppContext) {
                 !column_preferences.notes.pinned &&
                 !column_preferences.notes.hidden
             ) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     notes: 'At least one note column must be enabled',
                 });
             }
@@ -322,7 +318,7 @@ export function SettingsRouter(context: AppContext) {
                 isNaN(column_preferences.notes.default_per_page) ||
                 column_preferences.notes.default_per_page < 1
             ) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     notes: 'Notes per page must be greater than 0',
                 });
             }
@@ -339,7 +335,7 @@ export function SettingsRouter(context: AppContext) {
             // tabs
             if (column_preferences.tabs) {
                 if (typeof column_preferences.tabs !== 'object') {
-                    throw new context.errors.ValidationError({ tabs: 'Tabs must be an object' });
+                    throw new ctx.errors.ValidationError({ tabs: 'Tabs must be an object' });
                 }
 
                 column_preferences.tabs.title = column_preferences.tabs.title === 'on';
@@ -356,7 +352,7 @@ export function SettingsRouter(context: AppContext) {
                     isNaN(column_preferences.tabs.default_per_page) ||
                     column_preferences.tabs.default_per_page < 1
                 ) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         tabs: 'Tabs per page must be greater than 0',
                     });
                 }
@@ -367,7 +363,7 @@ export function SettingsRouter(context: AppContext) {
                     !column_preferences.tabs.items_count &&
                     !column_preferences.tabs.created_at
                 ) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         tabs: 'At least one tab column must be enabled',
                     });
                 }
@@ -376,7 +372,7 @@ export function SettingsRouter(context: AppContext) {
             // users (admin only)
             if (req.user?.is_admin && column_preferences.users) {
                 if (typeof column_preferences.users !== 'object') {
-                    throw new context.errors.ValidationError({ users: 'Users must be an object' });
+                    throw new ctx.errors.ValidationError({ users: 'Users must be an object' });
                 }
 
                 column_preferences.users.username = column_preferences.users.username === 'on';
@@ -395,7 +391,7 @@ export function SettingsRouter(context: AppContext) {
                     isNaN(column_preferences.users.default_per_page) ||
                     column_preferences.users.default_per_page < 1
                 ) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         users: 'Users per page must be greater than 0',
                     });
                 }
@@ -407,7 +403,7 @@ export function SettingsRouter(context: AppContext) {
                     !column_preferences.users.email_verified_at &&
                     !column_preferences.users.created_at
                 ) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         users: 'At least one user column must be enabled',
                     });
                 }
@@ -416,7 +412,7 @@ export function SettingsRouter(context: AppContext) {
             // reminders
             if (column_preferences.reminders) {
                 if (typeof column_preferences.reminders !== 'object') {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         reminders: 'Reminders must be an object',
                     });
                 }
@@ -442,7 +438,7 @@ export function SettingsRouter(context: AppContext) {
                     isNaN(column_preferences.reminders.default_per_page) ||
                     column_preferences.reminders.default_per_page < 1
                 ) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         reminders: 'Reminders per page must be greater than 0',
                     });
                 }
@@ -453,7 +449,7 @@ export function SettingsRouter(context: AppContext) {
                     if (
                         !validTimings.includes(column_preferences.reminders.default_reminder_timing)
                     ) {
-                        throw new context.errors.ValidationError({
+                        throw new ctx.errors.ValidationError({
                             reminders: 'Invalid reminder timing. Must be daily, weekly, or monthly',
                         });
                     }
@@ -463,7 +459,7 @@ export function SettingsRouter(context: AppContext) {
                 if (column_preferences.reminders.default_reminder_time) {
                     const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
                     if (!timeRegex.test(column_preferences.reminders.default_reminder_time)) {
-                        throw new context.errors.ValidationError({
+                        throw new ctx.errors.ValidationError({
                             reminders:
                                 'Invalid reminder time format. Must be HH:MM (24-hour format)',
                         });
@@ -478,7 +474,7 @@ export function SettingsRouter(context: AppContext) {
                     !column_preferences.reminders.frequency &&
                     !column_preferences.reminders.created_at
                 ) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         reminders: 'At least one reminder column must be enabled',
                     });
                 }
@@ -502,7 +498,7 @@ export function SettingsRouter(context: AppContext) {
                 }
             });
 
-            await context
+            await ctx
                 .db('users')
                 .where('id', user.id)
                 .update({
@@ -522,12 +518,12 @@ export function SettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/create-api-key',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = await context.db('users').where({ id: req.session.user?.id }).first();
+            const user = await ctx.db('users').where({ id: req.session.user?.id }).first();
 
             if (!user) {
-                throw new context.errors.NotFoundError('User not found');
+                throw new ctx.errors.NotFoundError('User not found');
             }
 
             // Convert SQLite integer values to booleans
@@ -538,13 +534,13 @@ export function SettingsRouter(context: AppContext) {
 
             const payload: ApiKeyPayload = { userId: user.id, apiKeyVersion: newKeyVersion };
 
-            await context
+            await ctx
                 .db('users')
                 .where({ id: req.session?.user?.id })
                 .update({
-                    api_key: await context.utils.auth.generateApiKey(payload),
+                    api_key: await ctx.utils.auth.generateApiKey(payload),
                     api_key_version: newKeyVersion,
-                    api_key_created_at: context.db.fn.now(),
+                    api_key_created_at: ctx.db.fn.now(),
                 });
 
             req.flash('success', '📱 api key created');
@@ -554,36 +550,36 @@ export function SettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/hidden-password',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const { currentPassword, newPassword, confirmPassword, removePassword } = req.body;
             const user = req.session.user as User;
 
             if (removePassword === 'on') {
                 if (!user.hidden_items_password) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         removePassword: 'No password to remove',
                     });
                 }
 
                 if (!currentPassword) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         currentPassword: 'Current password is required to remove it',
                     });
                 }
 
-                const isValid = await context.libs.bcrypt.compare(
+                const isValid = await ctx.libs.bcrypt.compare(
                     currentPassword,
                     user.hidden_items_password,
                 );
 
                 if (!isValid) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         currentPassword: 'Incorrect password',
                     });
                 }
 
-                await context.db.transaction(async (trx) => {
+                await ctx.db.transaction(async (trx) => {
                     await trx('users')
                         .where({ id: user.id })
                         .update({ hidden_items_password: null });
@@ -598,18 +594,18 @@ export function SettingsRouter(context: AppContext) {
 
             if (user.hidden_items_password) {
                 if (!currentPassword) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         currentPassword: 'Current password is required',
                     });
                 }
 
-                const isValid = await context.libs.bcrypt.compare(
+                const isValid = await ctx.libs.bcrypt.compare(
                     currentPassword,
                     user.hidden_items_password,
                 );
 
                 if (!isValid) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         currentPassword: 'Incorrect password',
                     });
                 }
@@ -619,27 +615,27 @@ export function SettingsRouter(context: AppContext) {
                 }
             } else {
                 if (!newPassword) {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         newPassword: 'Password is required',
                     });
                 }
             }
 
             if (newPassword && newPassword.length < 4) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     newPassword: 'Password must be at least 4 characters',
                 });
             }
 
             if (user.hidden_items_password && newPassword !== confirmPassword) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     confirmPassword: 'Passwords do not match',
                 });
             }
 
-            const hashedPassword = await context.libs.bcrypt.hash(newPassword, 10);
+            const hashedPassword = await ctx.libs.bcrypt.hash(newPassword, 10);
 
-            await context
+            await ctx
                 .db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -654,12 +650,12 @@ export function SettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/data/export',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const { options } = req.body;
 
             if (!options || !Array.isArray(options) || options.length === 0) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     options: 'Please select at least one data type to export',
                 });
             }
@@ -672,7 +668,7 @@ export function SettingsRouter(context: AppContext) {
             const includeReminders = req.body.options.includes('reminders');
             const includeUserPreferences = req.body.options.includes('user_preferences');
 
-            const exportData = await context.utils.util.generateUserDataExport(userId, {
+            const exportData = await ctx.utils.util.generateUserDataExport(userId, {
                 includeBookmarks,
                 includeActions,
                 includeNotes,
@@ -693,29 +689,29 @@ export function SettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/data/import',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const { config } = req.body;
 
             if (!config) {
-                throw new context.errors.ValidationError({ config: 'Please provide a config' });
+                throw new ctx.errors.ValidationError({ config: 'Please provide a config' });
             }
 
             let importData;
             try {
                 importData = JSON.parse(req.body.config);
             } catch (error) {
-                throw new context.errors.ValidationError({ config: 'Invalid JSON format' });
+                throw new ctx.errors.ValidationError({ config: 'Invalid JSON format' });
             }
 
             if (!importData.version || importData.version !== '1.0') {
-                throw new context.errors.ValidationError({ config: 'Config version must be 1.0' });
+                throw new ctx.errors.ValidationError({ config: 'Config version must be 1.0' });
             }
 
             const userId = req.session.user?.id;
 
             try {
-                await context.db.transaction(async (trx) => {
+                await ctx.db.transaction(async (trx) => {
                     // Import bookmarks
                     if (importData.bookmarks?.length > 0) {
                         const bookmarks = importData.bookmarks.map(
@@ -730,7 +726,7 @@ export function SettingsRouter(context: AppContext) {
                                 url: bookmark.url,
                                 pinned: bookmark.pinned || false,
                                 hidden: bookmark.hidden || false,
-                                created_at: context.db.fn.now(),
+                                created_at: ctx.db.fn.now(),
                             }),
                         );
                         await trx('bookmarks').insert(bookmarks);
@@ -757,7 +753,7 @@ export function SettingsRouter(context: AppContext) {
                                         url: action.url,
                                         action_type: action.action_type,
                                         hidden: action.hidden || false,
-                                        created_at: context.db.fn.now(),
+                                        created_at: ctx.db.fn.now(),
                                     });
                                 }
                             }
@@ -778,7 +774,7 @@ export function SettingsRouter(context: AppContext) {
                                 content: note.content,
                                 pinned: note.pinned || false,
                                 hidden: note.hidden || false,
-                                created_at: context.db.fn.now(),
+                                created_at: ctx.db.fn.now(),
                             }),
                         );
 
@@ -804,7 +800,7 @@ export function SettingsRouter(context: AppContext) {
                                         user_id: userId,
                                         trigger: tabData.trigger,
                                         title: tabData.title,
-                                        created_at: context.db.fn.now(),
+                                        created_at: ctx.db.fn.now(),
                                     })
                                     .returning('id');
                                 tabId = newTabId;
@@ -819,7 +815,7 @@ export function SettingsRouter(context: AppContext) {
                                         tab_id: typeof tabId === 'object' ? tabId.id : tabId,
                                         title: item.title,
                                         url: item.url,
-                                        created_at: context.db.fn.now(),
+                                        created_at: ctx.db.fn.now(),
                                     }),
                                 );
 
@@ -844,7 +840,7 @@ export function SettingsRouter(context: AppContext) {
                                 reminder_type: reminder.reminder_type,
                                 frequency: reminder.frequency || null,
                                 due_date: reminder.due_date || null,
-                                created_at: context.db.fn.now(),
+                                created_at: ctx.db.fn.now(),
                             }),
                         );
                         await trx('reminders').insert(reminders);
@@ -918,7 +914,7 @@ export function SettingsRouter(context: AppContext) {
 
                 req.flash('success', 'Data imported successfully!');
             } catch (error) {
-                context.logger.error('Import error: %o', error);
+                ctx.logger.error('Import error: %o', error);
                 req.flash('error', 'Failed to import data. Please check the format and try again.');
             }
 
@@ -928,17 +924,17 @@ export function SettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/danger-zone/delete',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user;
 
             if (!user) {
-                throw new context.errors.NotFoundError('User not found');
+                throw new ctx.errors.NotFoundError('User not found');
             }
 
             const confirmation = req.body.confirmation?.trim();
             if (confirmation !== 'DELETE ACCOUNT') {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     confirmation: 'You must type "DELETE ACCOUNT" to confirm account deletion',
                 });
             }
@@ -953,7 +949,7 @@ export function SettingsRouter(context: AppContext) {
 
             if (includeJson || includeHtml) {
                 try {
-                    await context.utils.mail.sendDataExportEmail({
+                    await ctx.utils.mail.sendDataExportEmail({
                         email: user.email,
                         username: user.username,
                         req,
@@ -961,23 +957,20 @@ export function SettingsRouter(context: AppContext) {
                         includeHtml,
                     });
                 } catch (error) {
-                    context.logger.error(
-                        'Failed to send export email before account deletion: %o',
-                        {
-                            error,
-                        },
-                    );
+                    ctx.logger.error('Failed to send export email before account deletion: %o', {
+                        error,
+                    });
                 }
             }
 
-            await context.db('users').where({ id: user.id }).delete();
+            await ctx.db('users').where({ id: user.id }).delete();
 
             if ((req.session && req.session.user) || req.user) {
                 req.session.user = null;
                 req.user = undefined;
                 req.session.destroy((error) => {
                     if (error) {
-                        throw new context.errors.HttpError(500, 'Failed to destroy session', req);
+                        throw new ctx.errors.HttpError(500, 'Failed to destroy session', req);
                     }
                 });
             }
@@ -988,12 +981,12 @@ export function SettingsRouter(context: AppContext) {
 
     router.post(
         '/settings/danger-zone/bulk-delete',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user;
 
             if (!user) {
-                throw new context.errors.NotFoundError('User not found');
+                throw new ctx.errors.NotFoundError('User not found');
             }
 
             const deleteOptions = req.body.delete_options || [];
@@ -1028,7 +1021,7 @@ export function SettingsRouter(context: AppContext) {
             if (allOptionsSelected) {
                 const confirmation = req.body.confirmation?.trim();
                 if (confirmation !== 'DELETE DATA') {
-                    throw new context.errors.ValidationError({
+                    throw new ctx.errors.ValidationError({
                         confirmation:
                             'You must type "DELETE DATA" to confirm bulk deletion of all data',
                     });
@@ -1043,13 +1036,13 @@ export function SettingsRouter(context: AppContext) {
                 !deleteReminders &&
                 !deleteApiKeys
             ) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     delete_options: 'Please select at least one data type to delete',
                 });
             }
 
             try {
-                await context.db.transaction(async (trx) => {
+                await ctx.db.transaction(async (trx) => {
                     const deleteCounts: { [key: string]: number } = {};
 
                     if (deleteActions) {
@@ -1121,7 +1114,7 @@ export function SettingsRouter(context: AppContext) {
                     }
                 });
             } catch (error) {
-                context.logger.error('Bulk delete error: %o', error);
+                ctx.logger.error('Bulk delete error: %o', error);
                 req.flash('error', 'Failed to delete data. Please try again.');
             }
 

@@ -1,6 +1,6 @@
 import type { Tab, Tabs, TabsQueryParams, AppContext } from '../../type';
 
-export function TabsRepository(context: AppContext): Tabs {
+export function TabsRepository(ctx: AppContext): Tabs {
     return {
         all: async ({
             user,
@@ -11,10 +11,10 @@ export function TabsRepository(context: AppContext): Tabs {
             direction = 'desc',
             highlight = false,
         }: TabsQueryParams) => {
-            const query = context.db
+            const query = ctx.db
                 .select('tabs.id', 'tabs.user_id', 'tabs.created_at', 'tabs.updated_at')
                 .select(
-                    context.db.raw(
+                    ctx.db.raw(
                         '(SELECT COUNT(*) FROM tab_items WHERE tab_items.tab_id = tabs.id) as items_count',
                     ),
                 )
@@ -24,13 +24,13 @@ export function TabsRepository(context: AppContext): Tabs {
             if (highlight && search) {
                 query
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('tabs.title', search)} as title`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('tabs.title', search)} as title`,
                         ),
                     )
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('tabs.trigger', search)} as trigger`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('tabs.trigger', search)} as trigger`,
                         ),
                     );
             } else {
@@ -52,7 +52,7 @@ export function TabsRepository(context: AppContext): Tabs {
                                 .orWhereRaw('LOWER(tabs.trigger) LIKE ?', [`%${term}%`])
                                 .orWhereExists((subquery: any) => {
                                     subquery
-                                        .select(context.db.raw('1'))
+                                        .select(ctx.db.raw('1'))
                                         .from('tab_items')
                                         .whereRaw('tab_items.tab_id = tabs.id')
                                         .where((itemBuilder: any) => {
@@ -90,7 +90,7 @@ export function TabsRepository(context: AppContext): Tabs {
             if (result.data.length > 0) {
                 const tabIds = result.data.map((tab: any) => tab.id);
 
-                let itemsQuery = context.db
+                let itemsQuery = ctx.db
                     .select('id', 'tab_id', 'created_at', 'updated_at')
                     .from('tab_items')
                     .whereIn('tab_id', tabIds);
@@ -98,13 +98,13 @@ export function TabsRepository(context: AppContext): Tabs {
                 if (highlight && search) {
                     itemsQuery = itemsQuery
                         .select(
-                            context.db.raw(
-                                `${context.utils.html.sqlHighlightSearchTerm('tab_items.title', search)} as title`,
+                            ctx.db.raw(
+                                `${ctx.utils.html.sqlHighlightSearchTerm('tab_items.title', search)} as title`,
                             ),
                         )
                         .select(
-                            context.db.raw(
-                                `${context.utils.html.sqlHighlightSearchTerm('tab_items.url', search)} as url`,
+                            ctx.db.raw(
+                                `${ctx.utils.html.sqlHighlightSearchTerm('tab_items.url', search)} as url`,
                             ),
                         );
                 } else {
@@ -148,7 +148,7 @@ export function TabsRepository(context: AppContext): Tabs {
                 throw new Error('Missing required fields to create a tab');
             }
 
-            const [createdTab] = await context
+            const [createdTab] = await ctx
                 .db('tabs')
                 .insert({
                     title: tab.title,
@@ -160,10 +160,10 @@ export function TabsRepository(context: AppContext): Tabs {
         },
 
         read: async (id: number, userId: number) => {
-            const tab = await context.db
+            const tab = await ctx.db
                 .select('tabs.*')
                 .select(
-                    context.db.raw(
+                    ctx.db.raw(
                         '(SELECT COUNT(*) FROM tab_items WHERE tab_items.tab_id = tabs.id) as items_count',
                     ),
                 )
@@ -176,7 +176,7 @@ export function TabsRepository(context: AppContext): Tabs {
             }
 
             // Get tab items
-            const items = await context
+            const items = await ctx
                 .db('tab_items')
                 .select('*')
                 .where({ tab_id: id })
@@ -197,7 +197,7 @@ export function TabsRepository(context: AppContext): Tabs {
                 throw new Error('No valid fields provided for update');
             }
 
-            const [updatedTab] = await context
+            const [updatedTab] = await ctx
                 .db('tabs')
                 .where({ id, user_id: userId })
                 .update(updateData)
@@ -211,12 +211,12 @@ export function TabsRepository(context: AppContext): Tabs {
         },
 
         delete: async (id: number, userId: number) => {
-            const rowsAffected = await context.db('tabs').where({ id, user_id: userId }).delete();
+            const rowsAffected = await ctx.db('tabs').where({ id, user_id: userId }).delete();
             return rowsAffected > 0;
         },
 
         bulkDelete: async (ids: number[], userId: number) => {
-            return context.db.transaction(async (trx: any) => {
+            return ctx.db.transaction(async (trx: any) => {
                 const rowsAffected = await trx('tabs')
                     .whereIn('id', ids)
                     .where('user_id', userId)

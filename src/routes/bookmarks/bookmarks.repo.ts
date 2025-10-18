@@ -1,6 +1,6 @@
 import type { Bookmark, Bookmarks, BookmarksQueryParams, AppContext } from '../../type';
 
-export function BookmarksRepository(context: AppContext): Bookmarks {
+export function BookmarksRepository(ctx: AppContext): Bookmarks {
     return {
         all: async ({
             user,
@@ -12,7 +12,7 @@ export function BookmarksRepository(context: AppContext): Bookmarks {
             highlight = false,
             excludeHidden = false,
         }: BookmarksQueryParams) => {
-            const query = context.db.select(
+            const query = ctx.db.select(
                 'id',
                 'user_id',
                 'pinned',
@@ -24,13 +24,13 @@ export function BookmarksRepository(context: AppContext): Bookmarks {
             if (highlight && search) {
                 query
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('title', search)} as title`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('title', search)} as title`,
                         ),
                     )
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('url', search)} as url`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('url', search)} as url`,
                         ),
                     );
             } else {
@@ -83,12 +83,12 @@ export function BookmarksRepository(context: AppContext): Bookmarks {
                 throw new Error('Missing required fields to create a bookmark');
             }
 
-            const [createdBookmark] = await context.db('bookmarks').insert(bookmark).returning('*');
+            const [createdBookmark] = await ctx.db('bookmarks').insert(bookmark).returning('*');
             return createdBookmark;
         },
 
         read: async (id: number, userId: number) => {
-            const bookmark = await context.db
+            const bookmark = await ctx.db
                 .select('*')
                 .from('bookmarks')
                 .where({ id, user_id: userId })
@@ -112,7 +112,7 @@ export function BookmarksRepository(context: AppContext): Bookmarks {
                 throw new Error('No valid fields provided for update');
             }
 
-            const [updatedBookmark] = await context
+            const [updatedBookmark] = await ctx
                 .db('bookmarks')
                 .where({ id, user_id: userId })
                 .update(updateData)
@@ -126,15 +126,12 @@ export function BookmarksRepository(context: AppContext): Bookmarks {
         },
 
         delete: async (id: number, userId: number) => {
-            const rowsAffected = await context
-                .db('bookmarks')
-                .where({ id, user_id: userId })
-                .delete();
+            const rowsAffected = await ctx.db('bookmarks').where({ id, user_id: userId }).delete();
             return rowsAffected > 0;
         },
 
         bulkDelete: async (ids: number[], userId: number) => {
-            return context.db.transaction(async (trx: any) => {
+            return ctx.db.transaction(async (trx: any) => {
                 const rowsAffected = await trx('bookmarks')
                     .whereIn('id', ids)
                     .where('user_id', userId)

@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
 import type { AppContext, User } from '../../type';
 
-export function AuthRouter(context: AppContext) {
-    const router = context.libs.express.Router();
+export function AuthRouter(ctx: AppContext) {
+    const router = ctx.libs.express.Router();
 
     router.get('/logout', async (req: Request, res: Response) => {
         if ((req.session && req.session.user) || req.user) {
@@ -10,7 +10,7 @@ export function AuthRouter(context: AppContext) {
             req.user = undefined;
             req.session.destroy((error) => {
                 if (error) {
-                    throw new context.errors.HttpError(500, error.message, req);
+                    throw new ctx.errors.HttpError(500, error.message, req);
                 }
             });
         }
@@ -18,20 +18,20 @@ export function AuthRouter(context: AppContext) {
         return res.redirect(`/?toast=${encodeURIComponent('✌️ see ya!')}`);
     });
 
-    router.post('/login', context.middleware.turnstile, async (req: Request, res: Response) => {
+    router.post('/login', ctx.middleware.turnstile, async (req: Request, res: Response) => {
         const { email } = req.body;
 
         if (!email) {
-            throw new context.errors.ValidationError({ email: 'Email is required' });
+            throw new ctx.errors.ValidationError({ email: 'Email is required' });
         }
 
-        if (!context.utils.validation.isValidEmail(email)) {
-            throw new context.errors.ValidationError({
+        if (!ctx.utils.validation.isValidEmail(email)) {
+            throw new ctx.errors.ValidationError({
                 email: 'Please enter a valid email address',
             });
         }
 
-        let user = await context.db('users').where({ email }).first();
+        let user = await ctx.db('users').where({ email }).first();
 
         if (user) {
             user.is_admin = Boolean(user.is_admin);
@@ -40,12 +40,12 @@ export function AuthRouter(context: AppContext) {
 
         if (!user) {
             const username = email.split('@')[0];
-            [user] = await context
+            [user] = await ctx
                 .db('users')
                 .insert({
                     username,
                     email,
-                    is_admin: context.config.app.adminEmail === email,
+                    is_admin: ctx.config.app.adminEmail === email,
                 })
                 .returning('*');
 
@@ -57,9 +57,9 @@ export function AuthRouter(context: AppContext) {
             }
         }
 
-        const token = context.utils.auth.generateMagicLink({ email });
+        const token = ctx.utils.auth.generateMagicLink({ email });
 
-        setTimeout(() => context.utils.mail.sendMagicLinkEmail({ email, token, req }), 0);
+        setTimeout(() => ctx.utils.mail.sendMagicLinkEmail({ email, token, req }), 0);
 
         req.flash(
             'success',
@@ -71,15 +71,15 @@ export function AuthRouter(context: AppContext) {
     router.get('/auth/magic/:token', async (req: Request, res: Response) => {
         const { token } = req.params;
 
-        const decoded = context.utils.auth.verifyMagicLink(token!);
+        const decoded = ctx.utils.auth.verifyMagicLink(token!);
 
         if (!decoded || !decoded.email) {
-            throw new context.errors.ValidationError({
+            throw new ctx.errors.ValidationError({
                 email: 'Magic link has expired or is invalid. Please request a new one.',
             });
         }
 
-        const user = await context.db('users').where({ email: decoded.email }).first();
+        const user = await ctx.db('users').where({ email: decoded.email }).first();
 
         if (user) {
             user.is_admin = Boolean(user.is_admin);
@@ -87,13 +87,10 @@ export function AuthRouter(context: AppContext) {
         }
 
         if (!user) {
-            throw new context.errors.ValidationError({ email: 'User not found' });
+            throw new ctx.errors.ValidationError({ email: 'User not found' });
         }
 
-        await context
-            .db('users')
-            .where({ id: user.id })
-            .update({ email_verified_at: context.db.fn.now() });
+        await ctx.db('users').where({ id: user.id }).update({ email_verified_at: ctx.db.fn.now() });
 
         let columnPreferences = {};
         if (user.column_preferences) {
@@ -122,7 +119,7 @@ export function AuthRouter(context: AppContext) {
 
     router.post(
         '/verify-hidden-password',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const { password, resource_type, resource_id, original_query } = req.body;
             const user = req.session.user as User;
@@ -145,7 +142,7 @@ export function AuthRouter(context: AppContext) {
                 return res.redirect(url.pathname + url.search);
             }
 
-            const isValid = await context.libs.bcrypt.compare(password, user.hidden_items_password);
+            const isValid = await ctx.libs.bcrypt.compare(password, user.hidden_items_password);
 
             if (!isValid) {
                 if (resource_type === 'note') {

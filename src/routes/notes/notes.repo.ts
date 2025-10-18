@@ -1,6 +1,6 @@
 import type { Note, Notes, NotesQueryParams, AppContext } from '../../type';
 
-export function NotesRepository(context: AppContext): Notes {
+export function NotesRepository(ctx: AppContext): Notes {
     return {
         all: async ({
             user,
@@ -12,7 +12,7 @@ export function NotesRepository(context: AppContext): Notes {
             highlight = false,
             excludeHidden = false,
         }: NotesQueryParams) => {
-            const query = context.db.select(
+            const query = ctx.db.select(
                 'id',
                 'user_id',
                 'pinned',
@@ -24,13 +24,13 @@ export function NotesRepository(context: AppContext): Notes {
             if (highlight && search) {
                 query
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('title', search)} as title`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('title', search)} as title`,
                         ),
                     )
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('content', search)} as content`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('content', search)} as content`,
                         ),
                     );
             } else {
@@ -83,12 +83,12 @@ export function NotesRepository(context: AppContext): Notes {
                 throw new Error('Missing required fields to create a note');
             }
 
-            const [createdNote] = await context.db('notes').insert(note).returning('*');
+            const [createdNote] = await ctx.db('notes').insert(note).returning('*');
             return createdNote;
         },
 
         read: async (id: number, userId: number) => {
-            const note = await context.db
+            const note = await ctx.db
                 .select('*')
                 .from('notes')
                 .where({ id, user_id: userId })
@@ -112,7 +112,7 @@ export function NotesRepository(context: AppContext): Notes {
                 throw new Error('No valid fields provided for update');
             }
 
-            const [updatedNote] = await context
+            const [updatedNote] = await ctx
                 .db('notes')
                 .where({ id, user_id: userId })
                 .update(updateData)
@@ -126,12 +126,12 @@ export function NotesRepository(context: AppContext): Notes {
         },
 
         delete: async (id: number, userId: number) => {
-            const rowsAffected = await context.db('notes').where({ id, user_id: userId }).delete();
+            const rowsAffected = await ctx.db('notes').where({ id, user_id: userId }).delete();
             return rowsAffected > 0;
         },
 
         bulkDelete: async (ids: number[], userId: number) => {
-            return context.db.transaction(async (trx: any) => {
+            return ctx.db.transaction(async (trx: any) => {
                 const rowsAffected = await trx('notes')
                     .whereIn('id', ids)
                     .where('user_id', userId)

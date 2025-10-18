@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
 import type { User, AppContext } from '../../type';
 
-export function ActionsRouter(context: AppContext) {
-    const router = context.libs.express.Router();
+export function ActionsRouter(ctx: AppContext) {
+    const router = ctx.libs.express.Router();
 
     /**
      * An action
@@ -28,12 +28,12 @@ export function ActionsRouter(context: AppContext) {
      * @return {object} 200 - success response - application/json
      * @return {object} 400 - Bad request response - application/json
      */
-    router.get('/api/actions', context.middleware.authentication, getActionsHandler);
-    router.get('/actions', context.middleware.authentication, getActionsHandler);
+    router.get('/api/actions', ctx.middleware.authentication, getActionsHandler);
+    router.get('/actions', ctx.middleware.authentication, getActionsHandler);
     async function getActionsHandler(req: Request, res: Response) {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } =
-            context.utils.request.extractPaginationParams(req, 'actions');
+            ctx.utils.request.extractPaginationParams(req, 'actions');
 
         // Check if user wants to show hidden items and has verified password
         const showHidden = req.query.hidden === 'true';
@@ -44,18 +44,18 @@ export function ActionsRouter(context: AppContext) {
 
         const canViewHidden = showHidden && hasVerifiedPassword && user.hidden_items_password;
 
-        const { data, pagination } = await context.models.actions.all({
+        const { data, pagination } = await ctx.models.actions.all({
             user,
             perPage,
             page,
             search,
             sortKey,
             direction,
-            highlight: !context.utils.auth.isApiRequest(req),
+            highlight: !ctx.utils.auth.isApiRequest(req),
             excludeHidden: !canViewHidden,
         });
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.json({ data, pagination, search, sortKey, direction });
             return;
         }
@@ -77,22 +77,22 @@ export function ActionsRouter(context: AppContext) {
 
     router.get(
         '/actions/create',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (_req: Request, res: Response) => {
             return res.render('actions/actions-create.html', {
                 title: 'Actions / New',
                 path: '/actions/create',
                 layout: '_layouts/auth.html',
-                actionTypes: context.utils.util.ACTION_TYPES,
+                actionTypes: ctx.utils.util.ACTION_TYPES,
             });
         },
     );
 
     router.get(
         '/actions/:id/edit',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const action = await context.db
+            const action = await ctx.db
                 .select('bangs.*')
                 .from('bangs')
                 .where({
@@ -102,7 +102,7 @@ export function ActionsRouter(context: AppContext) {
                 .first();
 
             if (!action) {
-                throw new context.errors.NotFoundError('Action not found');
+                throw new ctx.errors.NotFoundError('Action not found');
             }
 
             return res.render('actions/actions-edit.html', {
@@ -116,10 +116,10 @@ export function ActionsRouter(context: AppContext) {
 
     router.get(
         '/actions/:id/tabs/create',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const id = parseInt(req.params.id as unknown as string);
-            const action = await context
+            const action = await ctx
                 .db('bangs')
                 .where({
                     id,
@@ -128,10 +128,10 @@ export function ActionsRouter(context: AppContext) {
                 .first();
 
             if (!action) {
-                throw new context.errors.NotFoundError('Actions not found');
+                throw new ctx.errors.NotFoundError('Actions not found');
             }
 
-            const tabs = await context.db('tabs').where({ user_id: req.session.user?.id });
+            const tabs = await ctx.db('tabs').where({ user_id: req.session.user?.id });
 
             return res.render('actions/actions-id-tabs-create.html', {
                 title: `Actions / ${id} / Tabs / Create`,
@@ -158,61 +158,61 @@ export function ActionsRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.post('/api/actions', context.middleware.authentication, postActionHandler);
-    router.post('/actions', context.middleware.authentication, postActionHandler);
+    router.post('/api/actions', ctx.middleware.authentication, postActionHandler);
+    router.post('/actions', ctx.middleware.authentication, postActionHandler);
     async function postActionHandler(req: Request, res: Response) {
         const { url, name, actionType, trigger, hidden } = req.body;
         const user = req.user as User;
 
         if (!url) {
-            throw new context.errors.ValidationError({ url: 'URL is required' });
+            throw new ctx.errors.ValidationError({ url: 'URL is required' });
         }
 
         if (!name) {
-            throw new context.errors.ValidationError({ name: 'Name is required' });
+            throw new ctx.errors.ValidationError({ name: 'Name is required' });
         }
 
         if (!actionType) {
-            throw new context.errors.ValidationError({ actionType: 'Action type is required' });
+            throw new ctx.errors.ValidationError({ actionType: 'Action type is required' });
         }
 
         if (!trigger) {
-            throw new context.errors.ValidationError({ trigger: 'Trigger is required' });
+            throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
         }
 
-        if (!context.utils.validation.isValidUrl(url)) {
-            throw new context.errors.ValidationError({ url: 'Invalid URL format' });
+        if (!ctx.utils.validation.isValidUrl(url)) {
+            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
         }
 
         if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new context.errors.ValidationError({
+            throw new ctx.errors.ValidationError({
                 hidden: 'Hidden must be a boolean or checkbox value',
             });
         }
 
         if ((hidden === 'on' || hidden === true) && actionType !== 'redirect') {
-            throw new context.errors.ValidationError({
+            throw new ctx.errors.ValidationError({
                 hidden: 'Only redirect-type actions can be hidden',
             });
         }
 
         if (hidden === 'on' || hidden === true) {
             if (!user.hidden_items_password) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
                 });
             }
         }
 
-        const formattedTrigger: string = context.utils.util.normalizeBangTrigger(trigger);
+        const formattedTrigger: string = ctx.utils.util.normalizeBangTrigger(trigger);
 
-        if (!context.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
-            throw new context.errors.ValidationError({
+        if (!ctx.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
+            throw new ctx.errors.ValidationError({
                 trigger: 'Trigger can only contain letters and numbers',
             });
         }
 
-        const existingBang = await context
+        const existingBang = await ctx
             .db('bangs')
             .where({
                 trigger: formattedTrigger,
@@ -221,10 +221,10 @@ export function ActionsRouter(context: AppContext) {
             .first();
 
         if (existingBang) {
-            throw new context.errors.ValidationError({ trigger: 'This trigger already exists' });
+            throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        await context.models.actions.create({
+        await ctx.models.actions.create({
             name: name.trim(),
             trigger: formattedTrigger.toLowerCase(),
             url,
@@ -234,7 +234,7 @@ export function ActionsRouter(context: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(201).json({
                 message: `Action ${formattedTrigger} created successfully!`,
             });
@@ -262,62 +262,62 @@ export function ActionsRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.patch('/api/actions/:id', context.middleware.authentication, updateActionHandler);
-    router.post('/actions/:id/update', context.middleware.authentication, updateActionHandler);
+    router.patch('/api/actions/:id', ctx.middleware.authentication, updateActionHandler);
+    router.post('/actions/:id/update', ctx.middleware.authentication, updateActionHandler);
     async function updateActionHandler(req: Request, res: Response) {
         const { url, name, actionType, trigger, hidden } = req.body;
         const user = req.user as User;
         const actionId = req.params.id as unknown as number;
 
         if (!url) {
-            throw new context.errors.ValidationError({ url: 'URL is required' });
+            throw new ctx.errors.ValidationError({ url: 'URL is required' });
         }
 
         if (!name) {
-            throw new context.errors.ValidationError({ name: 'Name is required' });
+            throw new ctx.errors.ValidationError({ name: 'Name is required' });
         }
 
         if (!actionType) {
-            throw new context.errors.ValidationError({ actionType: 'Action type is required' });
+            throw new ctx.errors.ValidationError({ actionType: 'Action type is required' });
         }
 
         if (!trigger) {
-            throw new context.errors.ValidationError({ trigger: 'Trigger is required' });
+            throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
         }
 
-        if (!context.utils.validation.isValidUrl(url)) {
-            throw new context.errors.ValidationError({ url: 'Invalid URL format' });
+        if (!ctx.utils.validation.isValidUrl(url)) {
+            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
         }
 
         if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new context.errors.ValidationError({
+            throw new ctx.errors.ValidationError({
                 hidden: 'Hidden must be a boolean or checkbox value',
             });
         }
 
         if ((hidden === 'on' || hidden === true) && actionType !== 'redirect') {
-            throw new context.errors.ValidationError({
+            throw new ctx.errors.ValidationError({
                 hidden: 'Only redirect-type actions can be hidden',
             });
         }
 
         if (hidden === 'on' || hidden === true) {
             if (!user.hidden_items_password) {
-                throw new context.errors.ValidationError({
+                throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
                 });
             }
         }
 
-        if (!context.utils.validation.isOnlyLettersAndNumbers(trigger.slice(1))) {
-            throw new context.errors.ValidationError({
+        if (!ctx.utils.validation.isOnlyLettersAndNumbers(trigger.slice(1))) {
+            throw new ctx.errors.ValidationError({
                 trigger: 'Trigger can only contain letters and numbers',
             });
         }
 
-        const formattedTrigger = context.utils.util.normalizeBangTrigger(trigger);
+        const formattedTrigger = ctx.utils.util.normalizeBangTrigger(trigger);
 
-        const existingBang = await context
+        const existingBang = await ctx
             .db('bangs')
             .where({
                 trigger: formattedTrigger,
@@ -327,16 +327,16 @@ export function ActionsRouter(context: AppContext) {
             .first();
 
         if (existingBang) {
-            throw new context.errors.ValidationError({ trigger: 'This trigger already exists' });
+            throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        const currentAction = await context.models.actions.read(actionId, user.id);
+        const currentAction = await ctx.models.actions.read(actionId, user.id);
 
         if (!currentAction) {
-            throw new context.errors.NotFoundError('Action not found');
+            throw new ctx.errors.NotFoundError('Action not found');
         }
 
-        const updatedAction = await context.models.actions.update(actionId, user.id, {
+        const updatedAction = await ctx.models.actions.update(actionId, user.id, {
             trigger: formattedTrigger,
             name: name.trim(),
             url,
@@ -345,7 +345,7 @@ export function ActionsRouter(context: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({
                 message: `Action ${updatedAction.trigger} updated successfully!`,
             });
@@ -378,19 +378,19 @@ export function ActionsRouter(context: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.delete('/api/actions/:id', context.middleware.authentication, deleteActionHandler);
-    router.post('/actions/:id/delete', context.middleware.authentication, deleteActionHandler);
+    router.delete('/api/actions/:id', ctx.middleware.authentication, deleteActionHandler);
+    router.post('/actions/:id/delete', ctx.middleware.authentication, deleteActionHandler);
     async function deleteActionHandler(req: Request, res: Response) {
-        const deleted = await context.models.actions.delete(
+        const deleted = await ctx.models.actions.delete(
             req.params.id as unknown as number,
             (req.user as User).id,
         );
 
         if (!deleted) {
-            throw new context.errors.NotFoundError('Action not found');
+            throw new ctx.errors.NotFoundError('Action not found');
         }
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({ message: 'Action deleted successfully' });
             return;
         }
@@ -414,29 +414,25 @@ export function ActionsRouter(context: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      *
      */
-    router.post('/actions/delete-bulk', context.middleware.authentication, bulkDeleteActionHandler);
-    router.post(
-        '/api/actions/delete-bulk',
-        context.middleware.authentication,
-        bulkDeleteActionHandler,
-    );
+    router.post('/actions/delete-bulk', ctx.middleware.authentication, bulkDeleteActionHandler);
+    router.post('/api/actions/delete-bulk', ctx.middleware.authentication, bulkDeleteActionHandler);
     async function bulkDeleteActionHandler(req: Request, res: Response) {
         const { id } = req.body;
 
         if (!id || !Array.isArray(id)) {
-            throw new context.errors.ValidationError({ id: 'IDs array is required' });
+            throw new ctx.errors.ValidationError({ id: 'IDs array is required' });
         }
 
         const actionIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
 
         if (actionIds.length === 0) {
-            throw new context.errors.ValidationError({ id: 'No valid action IDs provided' });
+            throw new ctx.errors.ValidationError({ id: 'No valid action IDs provided' });
         }
 
         const user = req.user as User;
-        const deletedCount = await context.models.actions.bulkDelete(actionIds, user.id);
+        const deletedCount = await ctx.models.actions.bulkDelete(actionIds, user.id);
 
-        if (context.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({
                 message: `${deletedCount} action${deletedCount !== 1 ? 's' : ''} deleted successfully`,
                 data: {
@@ -471,16 +467,16 @@ export function ActionsRouter(context: AppContext) {
      */
     router.get(
         '/api/actions/:id',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
-            const action = await context.models.actions.read(
+            const action = await ctx.models.actions.read(
                 parseInt(req.params.id as unknown as string),
                 user.id,
             );
 
             if (!action) {
-                throw new context.errors.NotFoundError('Action not found');
+                throw new ctx.errors.NotFoundError('Action not found');
             }
 
             res.status(200).json({
@@ -492,15 +488,15 @@ export function ActionsRouter(context: AppContext) {
 
     router.post(
         '/actions/:id/tabs',
-        context.middleware.authentication,
+        ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
             const tab_id = parseInt(req.body.tab_id as unknown as string);
             const id = parseInt(req.params.id as unknown as string);
 
-            await context.utils.util.addToTabs(user.id, tab_id, 'bangs', id);
+            await ctx.utils.util.addToTabs(user.id, tab_id, 'bangs', id);
 
-            if (context.utils.auth.isApiRequest(req)) {
+            if (ctx.utils.auth.isApiRequest(req)) {
                 res.status(201).json({ message: 'Tab added successfully' });
                 return;
             }

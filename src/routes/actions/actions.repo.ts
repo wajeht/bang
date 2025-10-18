@@ -1,6 +1,6 @@
 import type { Action, Actions, ActionsQueryParams, AppContext } from '../../type';
 
-export function ActionsRepository(context: AppContext): Actions {
+export function ActionsRepository(ctx: AppContext): Actions {
     return {
         all: async ({
             user,
@@ -12,7 +12,7 @@ export function ActionsRepository(context: AppContext): Actions {
             highlight = false,
             excludeHidden = false,
         }: ActionsQueryParams) => {
-            const query = context.db.select(
+            const query = ctx.db.select(
                 'bangs.id',
                 'bangs.user_id',
                 'bangs.action_type',
@@ -26,23 +26,23 @@ export function ActionsRepository(context: AppContext): Actions {
             if (highlight && search) {
                 query
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('bangs.name', search)} as name`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('bangs.name', search)} as name`,
                         ),
                     )
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('bangs.trigger', search)} as trigger`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('bangs.trigger', search)} as trigger`,
                         ),
                     )
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('bangs.url', search)} as url`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('bangs.url', search)} as url`,
                         ),
                     )
                     .select(
-                        context.db.raw(
-                            `${context.utils.html.sqlHighlightSearchTerm('bangs.action_type', search)} as action_type`,
+                        ctx.db.raw(
+                            `${ctx.utils.html.sqlHighlightSearchTerm('bangs.action_type', search)} as action_type`,
                         ),
                     );
             } else {
@@ -133,12 +133,12 @@ export function ActionsRepository(context: AppContext): Actions {
             const { actionType, ...rest } = action;
             const actionData = { ...rest, action_type: actionType };
 
-            const [createdAction] = await context.db('bangs').insert(actionData).returning('*');
+            const [createdAction] = await ctx.db('bangs').insert(actionData).returning('*');
             return createdAction;
         },
 
         read: async (id: number, userId: number) => {
-            const action = await context.db
+            const action = await ctx.db
                 .select(
                     'bangs.id',
                     'bangs.name',
@@ -181,7 +181,7 @@ export function ActionsRepository(context: AppContext): Actions {
 
             const { actionType: _actionType, ...rest } = updateData;
 
-            const [updatedAction] = await context
+            const [updatedAction] = await ctx
                 .db('bangs')
                 .where({ id, user_id: userId })
                 .update(rest)
@@ -195,12 +195,12 @@ export function ActionsRepository(context: AppContext): Actions {
         },
 
         delete: async (id: number, userId: number) => {
-            const rowsAffected = await context.db('bangs').where({ id, user_id: userId }).delete();
+            const rowsAffected = await ctx.db('bangs').where({ id, user_id: userId }).delete();
             return rowsAffected > 0;
         },
 
         bulkDelete: async (ids: number[], userId: number) => {
-            return context.db.transaction(async (trx: any) => {
+            return ctx.db.transaction(async (trx: any) => {
                 const rowsAffected = await trx('bangs')
                     .whereIn('id', ids)
                     .where('user_id', userId)
