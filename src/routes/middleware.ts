@@ -162,7 +162,7 @@ export function SessionMiddleware(ctx: AppContext) {
             knex: ctx.db,
             tableName: 'sessions',
             createTable: true, // create sessions table if does not exist already
-            cleanupInterval: 60000, // 1 minute - clear expired sessions
+            cleanupInterval: 3600000, // 1 hour - less frequent to reduce lock contention
         }),
         proxy: ctx.config.app.env === 'production',
         cookie: {

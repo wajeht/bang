@@ -24,18 +24,6 @@ export function CronService(context: AppContext): CronService {
         }
     }
 
-    async function sessionCleanupTask() {
-        context.logger.info('Cleaning up expired sessions...');
-        try {
-            const deletedCount = await context.utils.sessionCleanup.cleanupExpiredSessions();
-            context.logger.info(
-                `Session cleanup completed: ${deletedCount} expired sessions removed`,
-            );
-        } catch (error: any) {
-            context.logger.error('Session cleanup failed: %o', { error });
-        }
-    }
-
     async function start() {
         // Schedule reminder check every 15 minutes
         const reminderJob = context.libs.cron.schedule('*/15 * * * *', reminderCheckTask, {
@@ -43,13 +31,6 @@ export function CronService(context: AppContext): CronService {
         });
         cronJobs.push(reminderJob);
         context.logger.info('Reminder check scheduled every 15 minutes');
-
-        // Schedule session cleanup every 6 hours
-        const sessionJob = context.libs.cron.schedule('0 */6 * * *', sessionCleanupTask, {
-            timezone: 'UTC',
-        });
-        cronJobs.push(sessionJob);
-        context.logger.info('Session cleanup scheduled every 6 hours');
 
         isRunning = true;
         context.logger.info(`Cron service started with ${cronJobs.length} job(s)`);
