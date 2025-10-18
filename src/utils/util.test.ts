@@ -3,13 +3,13 @@ import { libs } from '../libs';
 import fs from 'node:fs/promises';
 import { Request } from 'express';
 import { config } from '../config';
-import { db } from '../tests/test-setup';
-import { AuthUtils } from './auth';
 import { Utils } from './util';
+import { AuthUtils } from './auth';
 import { HtmlUtils } from './html';
 import { DateUtils } from './date';
 import { MailUtils } from './mail';
 import { RequestUtils } from './request';
+import { db } from '../tests/test-setup';
 import { ValidationUtils } from './validation';
 import type { ApiKeyPayload, BookmarkToExport } from '../type';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -23,7 +23,7 @@ let requestUtils: ReturnType<typeof RequestUtils>;
 let mailUtils: ReturnType<typeof MailUtils>;
 
 beforeAll(async () => {
-    const { BookmarksRepository } = await import('../routes/bookmarks/bookmarks.repo');
+    const { BookmarksRepository } = await import('../routes/bookmarks/bookmarks.repository');
 
     const mockContext = {
         db,

@@ -33,12 +33,12 @@ import { MailUtils } from './utils/mail';
 import { SearchUtils } from './utils/search';
 import { RequestUtils } from './utils/request';
 import { ValidationUtils } from './utils/validation';
-import { TabsRepository } from './routes/tabs/tabs.repo';
-import { NotesRepository } from './routes/notes/notes.repo';
-import { UsersRepository } from './routes/admin/admin.repo';
-import { ActionsRepository } from './routes/actions/actions.repo';
-import { BookmarksRepository } from './routes/bookmarks/bookmarks.repo';
-import { RemindersRepository } from './routes/reminders/reminders.repo';
+import { TabsRepository } from './routes/tabs/tabs.repository';
+import { NotesRepository } from './routes/notes/notes.repository';
+import { UsersRepository } from './routes/admin/admin.repository';
+import { ActionsRepository } from './routes/actions/actions.repository';
+import { BookmarksRepository } from './routes/bookmarks/bookmarks.repository';
+import { RemindersRepository } from './routes/reminders/reminders.repository';
 import type { AppContext, Models, Services, Utilities, Middlewares } from './type';
 
 export async function Context(): Promise<AppContext> {
