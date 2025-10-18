@@ -7,18 +7,18 @@ import {
     UnimplementedFunctionError,
 } from './error';
 import {
-    helmetMiddleware,
+    CsrfMiddleware,
+    ErrorMiddleware,
+    HelmetMiddleware,
     layoutMiddleware,
-    createCsrfMiddleware,
-    createErrorMiddleware,
+    SessionMiddleware,
+    NotFoundMiddleware,
+    TurnstileMiddleware,
+    RateLimitMiddleware,
+    AdminOnlyMiddleware,
     staticAssetsMiddleware,
-    createSessionMiddleware,
-    createNotFoundMiddleware,
-    createTurnstileMiddleware,
-    createRateLimitMiddleware,
-    createAdminOnlyMiddleware,
-    createAppLocalStateMiddleware,
-    createAuthenticationMiddleware,
+    AppLocalStateMiddleware,
+    AuthenticationMiddleware,
 } from './routes/middleware';
 import { libs } from './libs';
 import { config } from './config';
@@ -104,17 +104,17 @@ export async function Context(): Promise<AppContext> {
     partialCtx.models = models;
 
     const middlewares: Middlewares = {
-        helmet: helmetMiddleware(partialCtx),
-        csrf: createCsrfMiddleware(partialCtx),
-        session: createSessionMiddleware(partialCtx),
-        notFound: createNotFoundMiddleware(partialCtx),
-        errorHandler: createErrorMiddleware(partialCtx),
-        turnstile: createTurnstileMiddleware(partialCtx),
-        rateLimit: createRateLimitMiddleware(partialCtx),
-        adminOnly: createAdminOnlyMiddleware(partialCtx),
+        csrf: CsrfMiddleware(partialCtx),
+        helmet: HelmetMiddleware(partialCtx),
+        session: SessionMiddleware(partialCtx),
+        notFound: NotFoundMiddleware(partialCtx),
+        errorHandler: ErrorMiddleware(partialCtx),
+        turnstile: TurnstileMiddleware(partialCtx),
+        rateLimit: RateLimitMiddleware(partialCtx),
+        adminOnly: AdminOnlyMiddleware(partialCtx),
         staticAssets: staticAssetsMiddleware(partialCtx),
-        appLocalState: createAppLocalStateMiddleware(partialCtx),
-        authentication: createAuthenticationMiddleware(partialCtx),
+        appLocalState: AppLocalStateMiddleware(partialCtx),
+        authentication: AuthenticationMiddleware(partialCtx),
         layout: layoutMiddleware({ layoutsDir: '_layouts', defaultLayout: '_layouts/public.html' }),
     };
 

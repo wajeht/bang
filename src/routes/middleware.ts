@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import type { LayoutOptions, User, AppContext } from '../type';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 
-export function createNotFoundMiddleware(context: AppContext) {
+export function NotFoundMiddleware(context: AppContext) {
     return (req: Request, _res: Response, _next: NextFunction) => {
         throw new context.errors.NotFoundError(
             `Sorry, the ${context.utils.auth.isApiRequest(req) ? 'resource' : 'page'} you are looking for could not be found.`,
@@ -10,7 +10,7 @@ export function createNotFoundMiddleware(context: AppContext) {
     };
 }
 
-export function createErrorMiddleware(context: AppContext) {
+export function ErrorMiddleware(context: AppContext) {
     return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
         context.logger.error(`${req.method} ${req.path} - ${error.message}`, {
             error: {
@@ -81,7 +81,7 @@ export function createErrorMiddleware(context: AppContext) {
         }
 
         if (!res.locals.state) {
-            createSetupAppLocals(context)(req, res);
+            SetupAppLocals(context)(req, res);
         }
 
         if (typeof res.locals.csrfToken === 'undefined') {
@@ -97,7 +97,7 @@ export function createErrorMiddleware(context: AppContext) {
     };
 }
 
-export function createAdminOnlyMiddleware(context: AppContext) {
+export function AdminOnlyMiddleware(context: AppContext) {
     return async (req: Request, _res: Response, next: NextFunction) => {
         try {
             if (!req.user || !req.user.is_admin) {
@@ -115,7 +115,7 @@ export function createAdminOnlyMiddleware(context: AppContext) {
     };
 }
 
-export function helmetMiddleware(context: AppContext) {
+export function HelmetMiddleware(context: AppContext) {
     return context.libs.helmet({
         contentSecurityPolicy: {
             useDefaults: true,
@@ -153,7 +153,7 @@ export function helmetMiddleware(context: AppContext) {
     });
 }
 
-export function createSessionMiddleware(context: AppContext) {
+export function SessionMiddleware(context: AppContext) {
     return context.libs.session({
         secret: context.config.session.secret,
         resave: false,
@@ -177,7 +177,7 @@ export function createSessionMiddleware(context: AppContext) {
     });
 }
 
-export function createSetupAppLocals(context: AppContext) {
+export function SetupAppLocals(context: AppContext) {
     return (req: Request, res: Response) => {
         const isProd = context.config.app.env === 'production';
         const randomNumber = Math.random();
@@ -212,7 +212,7 @@ export function createSetupAppLocals(context: AppContext) {
     };
 }
 
-export function createCsrfMiddleware(context: AppContext) {
+export function CsrfMiddleware(context: AppContext) {
     const { csrfSynchronisedProtection, generateToken } = context.libs.csrfSync({
         getTokenFromRequest: (req: Request) => {
             // For form submissions, check body first
@@ -267,7 +267,7 @@ export function createCsrfMiddleware(context: AppContext) {
     ];
 }
 
-export function createAppLocalStateMiddleware(context: AppContext) {
+export function AppLocalStateMiddleware(context: AppContext) {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
             // Set session input for form data before setting up locals
@@ -275,7 +275,7 @@ export function createAppLocalStateMiddleware(context: AppContext) {
                 req.session.input = req.body as Record<string, any>;
             }
 
-            createSetupAppLocals(context)(req, res);
+            SetupAppLocals(context)(req, res);
 
             // Clear session input and errors after setting locals
             // This ensures they're available for the current request only
@@ -291,7 +291,7 @@ export function createAppLocalStateMiddleware(context: AppContext) {
     };
 }
 
-export function createAuthenticationMiddleware(context: AppContext) {
+export function AuthenticationMiddleware(context: AppContext) {
     return async function authenticationMiddleware(
         req: Request,
         res: Response,
@@ -372,7 +372,7 @@ export function createAuthenticationMiddleware(context: AppContext) {
     };
 }
 
-export function createRateLimitMiddleware(context: AppContext) {
+export function RateLimitMiddleware(context: AppContext) {
     return context.libs.rateLimit({
         windowMs: 15 * 60 * 1000, // 15 minutes
         max: 100, // Limit each IP to 100 requests per windowMs
@@ -431,7 +431,7 @@ export function layoutMiddleware(options: LayoutOptions = {}) {
     };
 }
 
-export function createTurnstileMiddleware(context: AppContext) {
+export function TurnstileMiddleware(context: AppContext) {
     return async function turnstileMiddleware(req: Request, _res: Response, next: NextFunction) {
         try {
             if (context.config.app.env !== 'production') {

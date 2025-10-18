@@ -4,7 +4,7 @@ import { Session } from 'express-session';
 import type { User, AppContext } from '../type';
 import type { Request, Response, NextFunction } from 'express';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
-import { createAuthenticationMiddleware, createErrorMiddleware } from './middleware';
+import { AuthenticationMiddleware, ErrorMiddleware } from './middleware';
 import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from '../error';
 
 describe('authenticationMiddleware', () => {
@@ -22,7 +22,7 @@ describe('authenticationMiddleware', () => {
         vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});
         vi.spyOn(ctx.logger, 'info').mockImplementation(() => {});
 
-        authenticationMiddleware = createAuthenticationMiddleware(ctx);
+        authenticationMiddleware = AuthenticationMiddleware(ctx);
         await db('users').where('email', 'like', '%test%').delete();
 
         [testUser] = await db('users')
@@ -259,7 +259,7 @@ describe('errorMiddleware', () => {
         vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});
         vi.spyOn(ctx.logger, 'info').mockImplementation(() => {});
 
-        errorMiddleware = createErrorMiddleware(ctx);
+        errorMiddleware = ErrorMiddleware(ctx);
     });
 
     beforeEach(() => {
