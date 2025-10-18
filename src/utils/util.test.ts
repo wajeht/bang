@@ -35,9 +35,9 @@ beforeAll(async () => {
         errors: {} as any,
     } as any;
 
-    validationUtils = ValidationUtils(mockContext);
+    validationUtils = ValidationUtils();
     authUtils = AuthUtils(mockContext);
-    htmlUtils = HtmlUtils(mockContext);
+    htmlUtils = HtmlUtils();
     dateUtils = DateUtils(mockContext);
     requestUtils = RequestUtils(mockContext);
 

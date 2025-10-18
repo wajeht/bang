@@ -8,12 +8,7 @@ import { SearchUtils } from '../utils/search';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let ctx: AppContext;
-let search: ReturnType<typeof SearchUtils>['search'];
-let parseSearchQuery: ReturnType<typeof SearchUtils>['parseSearchQuery'];
-let parseReminderTiming: ReturnType<typeof SearchUtils>['parseReminderTiming'];
-let getBangRedirectUrl: ReturnType<typeof SearchUtils>['getBangRedirectUrl'];
-let processDelayedSearch: ReturnType<typeof SearchUtils>['processDelayedSearch'];
-let handleAnonymousSearch: ReturnType<typeof SearchUtils>['handleAnonymousSearch'];
+let searchUtils: ReturnType<typeof SearchUtils>;
 let isValidUrl: any;
 let insertBookmark: any;
 let insertPageTitle: any;
@@ -22,15 +17,7 @@ let checkDuplicateBookmarkUrl: any;
 describe('search', () => {
     beforeAll(async () => {
         ctx = await Context();
-
-        const searchUtils = SearchUtils(ctx);
-
-        search = searchUtils.search;
-        parseSearchQuery = searchUtils.parseSearchQuery;
-        parseReminderTiming = searchUtils.parseReminderTiming;
-        getBangRedirectUrl = searchUtils.getBangRedirectUrl;
-        processDelayedSearch = searchUtils.processDelayedSearch;
-        handleAnonymousSearch = searchUtils.handleAnonymousSearch;
+        searchUtils = SearchUtils(ctx);
     });
 
     beforeEach(() => {
@@ -45,6 +32,7 @@ describe('search', () => {
     afterEach(() => {
         vi.restoreAllMocks();
     });
+
     describe('unauthenticated', () => {
         it('should redirect to google when !g is used', async () => {
             const req = {
@@ -62,7 +50,12 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: undefined as unknown as User, query: '!g python' });
+            await searchUtils.search({
+                req,
+                res,
+                user: undefined as unknown as User,
+                query: '!g python',
+            });
 
             expect(res.status).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
@@ -91,7 +84,7 @@ describe('search', () => {
 
             isValidUrl.mockReturnValue(true);
 
-            await search({ req, res, user: undefined as unknown as User, query: '!g' });
+            await searchUtils.search({ req, res, user: undefined as unknown as User, query: '!g' });
 
             expect(res.status).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
@@ -119,7 +112,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: undefined, query: '!doesnotexistanywhere' });
+            await searchUtils.search({ req, res, user: undefined, query: '!doesnotexistanywhere' });
 
             expect(res.status).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
@@ -150,7 +143,7 @@ describe('search', () => {
             isValidUrl.mockReturnValue(false);
 
             try {
-                await search({ req, res, user: undefined, query: '!g' });
+                await searchUtils.search({ req, res, user: undefined, query: '!g' });
 
                 expect(res.status).toBe(200);
                 expect(res.set).toHaveBeenCalledWith(
@@ -182,7 +175,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: undefined, query: '!g python' });
+            await searchUtils.search({ req, res, user: undefined, query: '!g python' });
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
@@ -216,7 +209,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: undefined, query: '!g python' });
+            await searchUtils.search({ req, res, user: undefined, query: '!g python' });
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
@@ -253,11 +246,11 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                const processDelayedSpy = vi.mocked(processDelayedSearch);
+                const processDelayedSpy = vi.mocked(searchUtils.processDelayedSearch);
                 processDelayedSpy.mockResolvedValue(undefined);
 
                 try {
-                    await search({ req, res, user: undefined, query: '!g python' });
+                    await searchUtils.search({ req, res, user: undefined, query: '!g python' });
 
                     expect(processDelayedSpy).toHaveBeenCalled();
 
@@ -340,7 +333,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: testUser, query: '@settings' });
+            await searchUtils.search({ req, res, user: testUser, query: '@settings' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -348,7 +341,7 @@ describe('search', () => {
             );
             expect(res.redirect).toHaveBeenCalledWith('/settings');
 
-            await search({ req, res, user: testUser, query: '@b' });
+            await searchUtils.search({ req, res, user: testUser, query: '@b' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -364,7 +357,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: testUser, query: '@notes search query' });
+            await searchUtils.search({ req, res, user: testUser, query: '@notes search query' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -373,11 +366,11 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await search({ req, res, user: testUser, query: '@note another query' });
+            await searchUtils.search({ req, res, user: testUser, query: '@note another query' });
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=another%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await search({ req, res, user: testUser, query: '@n shorthand' });
+            await searchUtils.search({ req, res, user: testUser, query: '@n shorthand' });
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=shorthand');
         });
 
@@ -388,7 +381,12 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: testUser, query: '@bookmarks search query' });
+            await searchUtils.search({
+                req,
+                res,
+                user: testUser,
+                query: '@bookmarks search query',
+            });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -397,7 +395,7 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await search({ req, res, user: testUser, query: '@bm bookmark query' });
+            await searchUtils.search({ req, res, user: testUser, query: '@bm bookmark query' });
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=bookmark%20query');
         });
 
@@ -408,7 +406,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({ req, res, user: testUser, query: '@actions search query' });
+            await searchUtils.search({ req, res, user: testUser, query: '@actions search query' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -417,7 +415,7 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await search({ req, res, user: testUser, query: '@a action query' });
+            await searchUtils.search({ req, res, user: testUser, query: '@a action query' });
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=action%20query');
         });
 
@@ -428,7 +426,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -458,7 +456,7 @@ describe('search', () => {
 
             const query = '!bm My Bookmark https://example.com';
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -498,7 +496,7 @@ describe('search', () => {
 
             const query = '!bm https://example.com';
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -521,7 +519,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -547,7 +545,7 @@ describe('search', () => {
             const longTitle = 'A'.repeat(256);
             const query = `!bm ${longTitle} https://example.com`;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -582,7 +580,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: userWithPassword,
@@ -616,7 +614,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: userWithoutPassword,
@@ -644,7 +642,7 @@ describe('search', () => {
                 } as unknown as Response;
 
                 isValidUrl.mockReturnValue(true);
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: userWithPassword,
@@ -677,7 +675,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: userWithPassword,
@@ -703,7 +701,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -732,7 +730,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: userWithPassword,
@@ -766,7 +764,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: userWithoutPassword,
@@ -799,7 +797,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: userWithPassword,
@@ -831,7 +829,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: userWithPassword,
@@ -879,7 +877,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -909,7 +907,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -943,7 +941,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -992,7 +990,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -1014,7 +1012,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -1036,7 +1034,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -1083,7 +1081,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -1104,7 +1102,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -1125,7 +1123,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -1153,7 +1151,7 @@ describe('search', () => {
             isValidUrl.mockReturnValue(true);
             insertBookmark.mockImplementation(mockInsertBookmark);
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -1178,7 +1176,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -1201,7 +1199,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: googleUser,
@@ -1230,7 +1228,7 @@ describe('search', () => {
             isValidUrl.mockReturnValue(true);
             checkDuplicateBookmarkUrl.mockRejectedValue(new Error('Database error'));
 
-            await search({
+            await searchUtils.search({
                 req,
                 res,
                 user: testUser,
@@ -1259,7 +1257,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1286,7 +1284,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1313,7 +1311,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1340,7 +1338,7 @@ describe('search', () => {
                 const longTitle = 'A'.repeat(256);
                 const query = `!note ${longTitle} | This is the content`;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1364,7 +1362,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1385,7 +1383,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1406,7 +1404,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1427,7 +1425,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1448,7 +1446,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1472,7 +1470,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1504,7 +1502,7 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await search({ req, res, user: testUser, query });
+                    await searchUtils.search({ req, res, user: testUser, query });
                 }
 
                 // Pin the second note (created in middle)
@@ -1557,7 +1555,7 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await search({
+                    await searchUtils.search({
                         req,
                         res,
                         user: userWithPassword,
@@ -1590,7 +1588,7 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await search({
+                    await searchUtils.search({
                         req,
                         res,
                         user: userWithoutPassword,
@@ -1623,7 +1621,7 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await search({
+                    await searchUtils.search({
                         req,
                         res,
                         user: userWithPassword,
@@ -1666,7 +1664,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1701,7 +1699,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1724,7 +1722,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1747,7 +1745,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1771,7 +1769,7 @@ describe('search', () => {
 
                 const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: unauthenticatedUser,
@@ -1805,7 +1803,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1867,7 +1865,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1894,7 +1892,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1936,7 +1934,7 @@ describe('search', () => {
                 const mockInsertPageTitle = vi.fn().mockResolvedValue(undefined);
                 insertPageTitle.mockImplementation(mockInsertPageTitle);
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1965,7 +1963,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -1988,7 +1986,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -2011,7 +2009,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -2034,7 +2032,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -2059,7 +2057,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(false);
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -2080,7 +2078,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -2106,7 +2104,7 @@ describe('search', () => {
 
                 const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: unauthenticatedUser,
@@ -2133,7 +2131,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -2172,7 +2170,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -2221,7 +2219,7 @@ describe('search', () => {
             };
 
             for (const [command, path] of Object.entries(commands)) {
-                await search({ req, res, user: testUser, query: command });
+                await searchUtils.search({ req, res, user: testUser, query: command });
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
                         'Cache-Control': 'private, max-age=3600',
@@ -2241,7 +2239,7 @@ describe('search', () => {
             isValidUrl.mockReturnValue(false);
 
             try {
-                await search({ req, res, user: testUser, query: '!g' });
+                await searchUtils.search({ req, res, user: testUser, query: '!g' });
 
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -2289,7 +2287,7 @@ describe('search', () => {
                     created_at: dayjs().toISOString(),
                 });
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -2324,7 +2322,7 @@ describe('search', () => {
                     created_at: dayjs().toISOString(),
                 });
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -2364,7 +2362,7 @@ describe('search', () => {
                     created_at: dayjs().toISOString(),
                 });
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -2392,7 +2390,7 @@ describe('search', () => {
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate found
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUser,
@@ -2431,7 +2429,7 @@ describe('search', () => {
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate found for other user
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: otherUser,
@@ -2476,6 +2474,7 @@ describe('search', () => {
                 // Clean up reminders after each test
                 await db('reminders').where({ user_id: testUser.id }).delete();
             });
+
             it('should create reminder with default timing (simple format)', async () => {
                 const req = {} as Request;
                 const res = {
@@ -2484,7 +2483,9 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                isValidUrl.mockRestore();
+
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2497,7 +2498,7 @@ describe('search', () => {
                 );
 
                 const createdReminder = await db('reminders')
-                    .where({ user_id: testUser.id, title: 'take out trash' })
+                    .where({ user_id: testUserWithPreferences.id, title: 'take out trash' })
                     .first();
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.reminder_type).toBe('recurring');
@@ -2512,7 +2513,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2525,7 +2526,7 @@ describe('search', () => {
                 );
 
                 const createdReminder = await db('reminders')
-                    .where({ user_id: testUser.id, title: 'Untitled' })
+                    .where({ user_id: testUserWithPreferences.id, title: 'Untitled' })
                     .first();
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.reminder_type).toBe('recurring');
@@ -2541,7 +2542,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2570,7 +2571,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2592,6 +2593,7 @@ describe('search', () => {
             });
 
             it('should handle all timing keywords', async () => {
+                isValidUrl.mockRestore();
                 const timingKeywords = ['daily', 'weekly', 'monthly'];
 
                 for (const timing of timingKeywords) {
@@ -2602,7 +2604,7 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await search({
+                    await searchUtils.search({
                         req,
                         res,
                         user: testUserWithPreferences,
@@ -2612,7 +2614,10 @@ describe('search', () => {
                     expect(res.status).toHaveBeenCalledWith(200);
 
                     const createdReminder = await db('reminders')
-                        .where({ user_id: testUser.id, title: `test ${timing} reminder` })
+                        .where({
+                            user_id: testUserWithPreferences.id,
+                            title: `test ${timing} reminder`,
+                        })
                         .first();
                     expect(createdReminder).toBeDefined();
                     expect(createdReminder.frequency).toBe(timing);
@@ -2627,7 +2632,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2648,7 +2653,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2662,6 +2667,7 @@ describe('search', () => {
             });
 
             it('should treat invalid timing as description when not a valid keyword', async () => {
+                isValidUrl.mockRestore();
                 const req = {} as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
@@ -2669,7 +2675,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2679,13 +2685,17 @@ describe('search', () => {
                 expect(res.status).toHaveBeenCalledWith(200);
 
                 const createdReminder = await db('reminders')
-                    .where({ user_id: 1, title: 'invalid-timing test reminder' })
+                    .where({
+                        user_id: testUserWithPreferences.id,
+                        title: 'invalid-timing test reminder',
+                    })
                     .first();
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('weekly');
             });
 
             it('should handle user without preferences (fallback to defaults)', async () => {
+                isValidUrl.mockRestore();
                 const userWithoutPrefs = {
                     id: 1,
                     username: 'Test User',
@@ -2703,7 +2713,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: userWithoutPrefs,
@@ -2727,7 +2737,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2752,7 +2762,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2777,7 +2787,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2802,7 +2812,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2820,6 +2830,7 @@ describe('search', () => {
             });
 
             it('should split description and URL content when text precedes URL', async () => {
+                isValidUrl.mockRestore();
                 const req = {} as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
@@ -2827,7 +2838,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2837,7 +2848,7 @@ describe('search', () => {
                 expect(res.status).toHaveBeenCalledWith(200);
 
                 const createdReminder = await db('reminders')
-                    .where({ user_id: 1, title: 'title' })
+                    .where({ user_id: testUserWithPreferences.id, title: 'title' })
                     .first();
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('weekly');
@@ -2852,7 +2863,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2877,7 +2888,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2901,7 +2912,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2926,7 +2937,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2951,7 +2962,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2978,7 +2989,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3007,7 +3018,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3036,7 +3047,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await search({
+                await searchUtils.search({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3064,7 +3075,7 @@ describe('search', () => {
 
 describe('parseSearchQuery', () => {
     it('should parse basic queries correctly', () => {
-        const result = parseSearchQuery('test query');
+        const result = searchUtils.parseSearchQuery('test query');
         expect(result).toEqual({
             commandType: null,
             trigger: null,
@@ -3075,7 +3086,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should parse bangs correctly', () => {
-        const result = parseSearchQuery('!g test query');
+        const result = searchUtils.parseSearchQuery('!g test query');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!g',
@@ -3086,7 +3097,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should parse direct commands correctly', () => {
-        const result = parseSearchQuery('@settings');
+        const result = searchUtils.parseSearchQuery('@settings');
         expect(result).toEqual({
             commandType: 'direct',
             trigger: '@settings',
@@ -3097,7 +3108,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle bookmark commands', () => {
-        const result = parseSearchQuery('bm:homepage');
+        const result = searchUtils.parseSearchQuery('bm:homepage');
         expect(result).toEqual({
             commandType: null,
             trigger: null,
@@ -3108,7 +3119,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle URLs only in bang commands', () => {
-        const result = parseSearchQuery('!bm My Bookmark https://www.example.com');
+        const result = searchUtils.parseSearchQuery('!bm My Bookmark https://www.example.com');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!bm',
@@ -3119,7 +3130,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should not detect URLs in regular searches', () => {
-        const result = parseSearchQuery('https://www.example.com');
+        const result = searchUtils.parseSearchQuery('https://www.example.com');
         expect(result).toEqual({
             commandType: null,
             trigger: null,
@@ -3130,7 +3141,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should detect URLs with special characters in bang commands', () => {
-        const result = parseSearchQuery(
+        const result = searchUtils.parseSearchQuery(
             '!bm Title https://example.com/search?q=hello%20world&lang=en',
         );
         expect(result).toEqual({
@@ -3143,7 +3154,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should detect URLs with fragments in bang commands', () => {
-        const result = parseSearchQuery('!bm Title https://example.com/page#section1');
+        const result = searchUtils.parseSearchQuery('!bm Title https://example.com/page#section1');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!bm',
@@ -3154,7 +3165,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should detect URLs with port numbers in bang commands', () => {
-        const result = parseSearchQuery('!bm Dev https://localhost:3000/api/data');
+        const result = searchUtils.parseSearchQuery('!bm Dev https://localhost:3000/api/data');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!bm',
@@ -3165,7 +3176,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should parse commands with numbers', () => {
-        const result = parseSearchQuery('!123 test');
+        const result = searchUtils.parseSearchQuery('!123 test');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!123',
@@ -3176,7 +3187,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should parse commands with underscores', () => {
-        const result = parseSearchQuery('!my_command test');
+        const result = searchUtils.parseSearchQuery('!my_command test');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!my_command',
@@ -3187,7 +3198,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should parse commands with periods', () => {
-        const result = parseSearchQuery('!my.command test');
+        const result = searchUtils.parseSearchQuery('!my.command test');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!my.command',
@@ -3198,7 +3209,9 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle multiple URLs in bang commands', () => {
-        const result = parseSearchQuery('!bm Title https://example.com https://test.com');
+        const result = searchUtils.parseSearchQuery(
+            '!bm Title https://example.com https://test.com',
+        );
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!bm',
@@ -3209,7 +3222,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should not detect non-http protocols in bang commands', () => {
-        const result = parseSearchQuery('!bm FTP ftp://example.com/files');
+        const result = searchUtils.parseSearchQuery('!bm FTP ftp://example.com/files');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!bm',
@@ -3220,7 +3233,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle queries with special characters', () => {
-        const result = parseSearchQuery('!g test@example.com');
+        const result = searchUtils.parseSearchQuery('!g test@example.com');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!g',
@@ -3232,7 +3245,7 @@ describe('parseSearchQuery', () => {
 
     it('should handle very long search terms', () => {
         const longTerm = 'a'.repeat(500);
-        const result = parseSearchQuery(`!g ${longTerm}`);
+        const result = searchUtils.parseSearchQuery(`!g ${longTerm}`);
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!g',
@@ -3243,7 +3256,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle direct commands with parameters', () => {
-        const result = parseSearchQuery('@notes search: important meeting');
+        const result = searchUtils.parseSearchQuery('@notes search: important meeting');
         expect(result).toEqual({
             commandType: 'direct',
             trigger: '@notes',
@@ -3254,7 +3267,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle direct commands with special characters', () => {
-        const result = parseSearchQuery('@tag:work');
+        const result = searchUtils.parseSearchQuery('@tag:work');
         expect(result).toEqual({
             commandType: 'direct',
             trigger: '@tag:work',
@@ -3265,7 +3278,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle URL-like strings in bang commands', () => {
-        const result = parseSearchQuery('!w https://en.wikipedia.org');
+        const result = searchUtils.parseSearchQuery('!w https://en.wikipedia.org');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!w',
@@ -3276,7 +3289,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle commands that look like URLs', () => {
-        const result = parseSearchQuery('!http test');
+        const result = searchUtils.parseSearchQuery('!http test');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!http',
@@ -3287,7 +3300,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle empty search term with commands', () => {
-        const result = parseSearchQuery('!g');
+        const result = searchUtils.parseSearchQuery('!g');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!g',
@@ -3298,7 +3311,7 @@ describe('parseSearchQuery', () => {
     });
 
     it('should handle whitespace-only search term', () => {
-        const result = parseSearchQuery('!g    ');
+        const result = searchUtils.parseSearchQuery('!g    ');
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!g',
@@ -3316,7 +3329,7 @@ describe('processDelayedSearch', () => {
         } as unknown as Request;
 
         const start = Date.now();
-        await processDelayedSearch(req);
+        await searchUtils.processDelayedSearch(req);
         const duration = Date.now() - start;
 
         expect(duration).toBeLessThan(10);
@@ -3331,7 +3344,7 @@ describe('processDelayedSearch', () => {
         } as unknown as Request;
 
         const start = Date.now();
-        await processDelayedSearch(req);
+        await searchUtils.processDelayedSearch(req);
         const duration = Date.now() - start;
 
         expect(duration).toBeGreaterThanOrEqual(delayMs - 1);
@@ -3345,7 +3358,7 @@ describe('processDelayedSearch', () => {
             },
         } as unknown as Request;
 
-        const delayPromise = processDelayedSearch(req);
+        const delayPromise = searchUtils.processDelayedSearch(req);
 
         let counter = 0;
         const counterPromise = new Promise<number>((resolve) => {
@@ -3378,7 +3391,7 @@ describe('handleAnonymousSearch', () => {
 
         const initialSearchCount = req.session.searchCount || 0;
 
-        await handleAnonymousSearch(req, res, 'test query', 'g', 'test query');
+        await searchUtils.handleAnonymousSearch(req, res, 'test query', 'g', 'test query');
 
         expect(req.session.searchCount).toBe(initialSearchCount + 1);
         expect(res.redirect).toHaveBeenCalled();
@@ -3388,7 +3401,7 @@ describe('handleAnonymousSearch', () => {
 describe('search command handling', () => {
     describe('bangs object access', () => {
         it('should provide fast access to bangs', async () => {
-            const googleBang = getBangRedirectUrl(
+            const googleBang = searchUtils.getBangRedirectUrl(
                 {
                     u: 'https://www.google.com/search?q={{{s}}}',
                     d: 'google.com',
@@ -3402,7 +3415,7 @@ describe('search command handling', () => {
         });
 
         it('should handle Kagi bangs with relative URLs when search term is provided', () => {
-            const kagiHtmlBang = getBangRedirectUrl(
+            const kagiHtmlBang = searchUtils.getBangRedirectUrl(
                 {
                     u: '/html/search?q={{{s}}}',
                     d: 'kagi.com',
@@ -3414,7 +3427,7 @@ describe('search command handling', () => {
         });
 
         it('should handle Kagi bangs with relative URLs when no search term is provided', () => {
-            const kagiHtmlBang = getBangRedirectUrl(
+            const kagiHtmlBang = searchUtils.getBangRedirectUrl(
                 {
                     u: '/html/search?q={{{s}}}',
                     d: 'kagi.com',
@@ -3426,7 +3439,7 @@ describe('search command handling', () => {
         });
 
         it('should fallback to domain for empty or invalid redirect URLs', () => {
-            const invalidBang = getBangRedirectUrl(
+            const invalidBang = searchUtils.getBangRedirectUrl(
                 {
                     u: '',
                     d: 'example.com',
@@ -3446,19 +3459,17 @@ describe('search command handling', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            const parseSearchQuerySpy = vi
-                .spyOn({ parseSearchQuery }, 'parseSearchQuery')
-                .mockReturnValue({
-                    commandType: 'direct',
-                    trigger: '@notes',
-                    triggerWithoutPrefix: 'notes',
-                    url: null,
-                    searchTerm: 'test',
-                });
+            const parseSearchQuerySpy = vi.spyOn(searchUtils, 'parseSearchQuery').mockReturnValue({
+                commandType: 'direct',
+                trigger: '@notes',
+                triggerWithoutPrefix: 'notes',
+                url: null,
+                searchTerm: 'test',
+            });
 
             const user = { id: 1 } as User;
 
-            await search({ req, res, user, query: '@notes test' });
+            await searchUtils.search({ req, res, user, query: '@notes test' });
 
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=test');
 
@@ -3478,17 +3489,15 @@ describe('search command handling', () => {
                 default_search_provider: 'duckduckgo',
             } as User;
 
-            const parseSearchQuerySpy = vi
-                .spyOn({ parseSearchQuery }, 'parseSearchQuery')
-                .mockReturnValue({
-                    commandType: 'bang',
-                    trigger: '!unknown',
-                    triggerWithoutPrefix: 'unknown',
-                    url: null,
-                    searchTerm: '',
-                });
+            const parseSearchQuerySpy = vi.spyOn(searchUtils, 'parseSearchQuery').mockReturnValue({
+                commandType: 'bang',
+                trigger: '!unknown',
+                triggerWithoutPrefix: 'unknown',
+                url: null,
+                searchTerm: '',
+            });
 
-            await search({ req, res, user, query: '!unknown' });
+            await searchUtils.search({ req, res, user, query: '!unknown' });
 
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=unknown');
 
@@ -3506,17 +3515,15 @@ describe('search command handling', () => {
                 default_search_provider: 'duckduckgo',
             } as User;
 
-            const parseSearchQuerySpy = vi
-                .spyOn({ parseSearchQuery }, 'parseSearchQuery')
-                .mockReturnValue({
-                    commandType: null,
-                    trigger: null,
-                    triggerWithoutPrefix: null,
-                    url: null,
-                    searchTerm: 'regular search',
-                });
+            const parseSearchQuerySpy = vi.spyOn(searchUtils, 'parseSearchQuery').mockReturnValue({
+                commandType: null,
+                trigger: null,
+                triggerWithoutPrefix: null,
+                url: null,
+                searchTerm: 'regular search',
+            });
 
-            await search({ req, res, user, query: 'regular search' });
+            await searchUtils.search({ req, res, user, query: 'regular search' });
 
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=regular%20search');
 
@@ -3527,7 +3534,7 @@ describe('search command handling', () => {
 
 describe('parseReminderTiming', () => {
     it('should schedule weekly reminders for Saturday', () => {
-        const timing = parseReminderTiming('weekly', '09:00', 'America/Chicago');
+        const timing = searchUtils.parseReminderTiming('weekly', '09:00', 'America/Chicago');
 
         expect(timing.isValid).toBe(true);
         expect(timing.type).toBe('recurring');
@@ -3539,7 +3546,7 @@ describe('parseReminderTiming', () => {
     });
 
     it('should schedule monthly reminders for the 1st', () => {
-        const timing = parseReminderTiming('monthly', '09:00', 'America/Chicago');
+        const timing = searchUtils.parseReminderTiming('monthly', '09:00', 'America/Chicago');
 
         expect(timing.isValid).toBe(true);
         expect(timing.type).toBe('recurring');
@@ -3551,7 +3558,7 @@ describe('parseReminderTiming', () => {
     });
 
     it('should schedule daily reminders for tomorrow', () => {
-        const timing = parseReminderTiming('daily', '09:00', 'America/Chicago');
+        const timing = searchUtils.parseReminderTiming('daily', '09:00', 'America/Chicago');
 
         expect(timing.isValid).toBe(true);
         expect(timing.type).toBe('recurring');
