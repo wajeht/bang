@@ -1,7 +1,13 @@
-import { db } from './test-setup';
+import { libs } from '../libs';
+import { config } from '../config';
+import { Database } from '../db/db';
 import { Context } from '../context';
+import { logger } from '../utils/logger';
 import type { AppContext } from '../type';
 import { Page, expect } from '@playwright/test';
+
+const database = Database({ config, logger, libs });
+const db = database.instance;
 
 let testContext: AppContext | null = null;
 
