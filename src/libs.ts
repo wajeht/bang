@@ -3,6 +3,7 @@ import knex from 'knex';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import helmet from 'helmet';
+import dotenv from 'dotenv';
 import cron from 'node-cron';
 import express from 'express';
 import dayjsBase from 'dayjs';
@@ -28,6 +29,7 @@ export const libs = {
     jwt,
     dayjs,
     bcrypt,
+    dotenv,
     nodemailer,
 
     // Markdown & syntax highlighting

@@ -1,8 +1,8 @@
-import dotenv from 'dotenv';
 import path from 'node:path';
 import type { Env } from './type';
+import { libs } from './libs';
 
-dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')), quiet: true });
+libs.dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')), quiet: true });
 
 export const config = {
     app: {
