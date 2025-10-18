@@ -370,15 +370,6 @@ describe.concurrent('expectJson', () => {
     });
 });
 
-// extractUser functionality is now handled by authentication middleware
-// Tests removed as this function no longer exists as a standalone utility
-describe.skip('extractUser', () => {
-    // These tests are skipped because extractUser is now integrated into the authentication middleware
-    it('should be handled by authentication middleware', () => {
-        expect(true).toBe(true);
-    });
-});
-
 describe.concurrent('extractPagination', () => {
     it('should return pagination parameters from the request', () => {
         const req = {

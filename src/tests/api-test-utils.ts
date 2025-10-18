@@ -1,8 +1,9 @@
-import { db } from './test-setup';
 import request from 'supertest';
+import { db } from './test-setup';
+import type { UrlObject } from 'url';
+import type { AppContext } from '../type';
 import { createContext } from '../context';
 import type { Application } from 'express';
-import type { AppContext } from '../type';
 import type { SuperTest, Test } from 'supertest';
 
 let testContext: AppContext | null = null;
@@ -89,21 +90,20 @@ export async function ensureTestUserExists(email: string = 'test@example.com') {
     return user;
 }
 
-// Helper function to wrap agent with CSRF token handling
 async function wrapAgentWithCsrf(agent: SuperTest<Test>, getCsrfToken: () => Promise<string>) {
-    const originalPost = agent.post.bind(agent);
-    const originalPut = agent.put.bind(agent);
-    const originalPatch = agent.patch.bind(agent);
-    const originalDelete = agent.delete.bind(agent);
+    const originalPost = agent.post.bind(agent) as (url: string | URL | UrlObject) => Test;
+    const originalPut = agent.put.bind(agent) as (url: string | URL | UrlObject) => Test;
+    const originalPatch = agent.patch.bind(agent) as (url: string | URL | UrlObject) => Test;
+    const originalDelete = agent.delete.bind(agent) as (url: string | URL | UrlObject) => Test;
 
-    // Get CSRF token upfront
     const csrfToken = await getCsrfToken();
 
-    agent.post = function (url: string) {
+    agent.post = function (url: string | URL | UrlObject) {
         const req = originalPost(url);
         const originalSend = req.send.bind(req);
         req.send = function (data: any) {
-            if (csrfToken && typeof data === 'object' && !url.startsWith('/api/')) {
+            const urlString = typeof url === 'string' ? url : url.toString();
+            if (csrfToken && typeof data === 'object' && !urlString.startsWith('/api/')) {
                 data.csrfToken = csrfToken;
                 if (process.env.DEBUG_CSRF) {
                     console.log(
@@ -117,11 +117,12 @@ async function wrapAgentWithCsrf(agent: SuperTest<Test>, getCsrfToken: () => Pro
         return req;
     };
 
-    agent.put = function (url: string) {
+    agent.put = function (url: string | URL | UrlObject) {
         const req = originalPut(url);
         const originalSend = req.send.bind(req);
         req.send = function (data: any) {
-            if (csrfToken && typeof data === 'object' && !url.startsWith('/api/')) {
+            const urlString = typeof url === 'string' ? url : url.toString();
+            if (csrfToken && typeof data === 'object' && !urlString.startsWith('/api/')) {
                 data.csrfToken = csrfToken;
             }
             return originalSend(data);
@@ -129,11 +130,12 @@ async function wrapAgentWithCsrf(agent: SuperTest<Test>, getCsrfToken: () => Pro
         return req;
     };
 
-    agent.patch = function (url: string) {
+    agent.patch = function (url: string | URL | UrlObject) {
         const req = originalPatch(url);
         const originalSend = req.send.bind(req);
         req.send = function (data: any) {
-            if (csrfToken && typeof data === 'object' && !url.startsWith('/api/')) {
+            const urlString = typeof url === 'string' ? url : url.toString();
+            if (csrfToken && typeof data === 'object' && !urlString.startsWith('/api/')) {
                 data.csrfToken = csrfToken;
             }
             return originalSend(data);
@@ -141,11 +143,12 @@ async function wrapAgentWithCsrf(agent: SuperTest<Test>, getCsrfToken: () => Pro
         return req;
     };
 
-    agent.delete = function (url: string) {
+    agent.delete = function (url: string | URL | UrlObject) {
         const req = originalDelete(url);
         const originalSend = req.send.bind(req);
         req.send = function (data: any) {
-            if (csrfToken && typeof data === 'object' && !url.startsWith('/api/')) {
+            const urlString = typeof url === 'string' ? url : url.toString();
+            if (csrfToken && typeof data === 'object' && !urlString.startsWith('/api/')) {
                 data.csrfToken = csrfToken;
             }
             return originalSend(data);
@@ -163,7 +166,6 @@ export async function authenticateAgent(app: Application, email: string = 'test@
     const token = ctx.utils.auth.generateMagicLink({ email });
     await agent.get(`/auth/magic/${token}`).expect(302);
 
-    // Helper to get CSRF token
     const getCsrfToken = async () => {
         // Make a GET request to any page to get the CSRF token
         // Use /reminders which should be accessible for authenticated users
@@ -176,7 +178,6 @@ export async function authenticateAgent(app: Application, email: string = 'test@
         return csrfMatch ? csrfMatch[1] : '';
     };
 
-    // Wrap agent with CSRF handling
     await wrapAgentWithCsrf(agent, getCsrfToken);
 
     return { agent, user };
@@ -236,15 +237,13 @@ export async function cleanupTestDatabase() {
             await fs.unlink(dbConfig.filename + '-shm');
         }
     } catch (error) {
-        // Ignore if file doesn't exist or cleanup fails
+        // ...
     }
 }
 
-// Helper to create an unauthenticated agent with CSRF support
 export async function createUnauthenticatedAgent(app: Application) {
     const agent = request.agent(app); // agent maintains session cookies
 
-    // Get CSRF token using the same agent
     const getCsrfToken = async () => {
         const response = await agent.get('/');
         const csrfMatch =
@@ -254,22 +253,18 @@ export async function createUnauthenticatedAgent(app: Application) {
         return csrfMatch ? csrfMatch[1] : '';
     };
 
-    // Wrap agent with CSRF handling
     await wrapAgentWithCsrf(agent, getCsrfToken);
 
     return agent;
 }
 
-// For API tests, generate an API key and use Bearer authentication
 export async function authenticateApiAgent(app: Application, email: string = 'test@example.com') {
     const user = await ensureTestUserExists(email);
 
-    // Generate API key for the user
     const ctx = await getTestContext();
     const apiKeyVersion = 1;
     const apiKey = await ctx.utils.auth.generateApiKey({ userId: user.id, apiKeyVersion });
 
-    // Update user with API key
     await db('users').where({ id: user.id }).update({
         api_key: apiKey,
         api_key_version: apiKeyVersion,
@@ -278,33 +273,32 @@ export async function authenticateApiAgent(app: Application, email: string = 'te
 
     const agent = request.agent(app);
 
-    // Wrap agent to always include Bearer token and Accept header
-    const originalGet = agent.get.bind(agent);
-    const originalPost = agent.post.bind(agent);
-    const originalPut = agent.put.bind(agent);
-    const originalDelete = agent.delete.bind(agent);
+    const originalGet = agent.get.bind(agent) as (url: string | URL | UrlObject) => Test;
+    const originalPost = agent.post.bind(agent) as (url: string | URL | UrlObject) => Test;
+    const originalPut = agent.put.bind(agent) as (url: string | URL | UrlObject) => Test;
+    const originalDelete = agent.delete.bind(agent) as (url: string | URL | UrlObject) => Test;
 
-    agent.get = function (url: string) {
+    agent.get = function (url: string | URL | UrlObject) {
         return originalGet(url)
             .set('Authorization', `Bearer ${apiKey}`)
             .set('Accept', 'application/json');
     };
 
-    agent.post = function (url: string) {
+    agent.post = function (url: string | URL | UrlObject) {
         return originalPost(url)
             .set('Authorization', `Bearer ${apiKey}`)
             .set('Accept', 'application/json')
             .set('Content-Type', 'application/json');
     };
 
-    agent.put = function (url: string) {
+    agent.put = function (url: string | URL | UrlObject) {
         return originalPut(url)
             .set('Authorization', `Bearer ${apiKey}`)
             .set('Accept', 'application/json')
             .set('Content-Type', 'application/json');
     };
 
-    agent.delete = function (url: string) {
+    agent.delete = function (url: string | URL | UrlObject) {
         return originalDelete(url)
             .set('Authorization', `Bearer ${apiKey}`)
             .set('Accept', 'application/json');
