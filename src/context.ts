@@ -74,7 +74,7 @@ export async function Context(): Promise<AppContext> {
     const html = HtmlUtils();
     const auth = AuthUtils(partialCtx);
     const date = DateUtils(partialCtx);
-    const utilUtils = Utils(partialCtx);
+    const utils = Utils(partialCtx);
     const validation = ValidationUtils();
     const request = RequestUtils(partialCtx);
 
@@ -84,7 +84,7 @@ export async function Context(): Promise<AppContext> {
         auth,
         request,
         validation,
-        util: utilUtils,
+        util: utils,
         mail: MailUtils(partialCtx),
         search: SearchUtils(partialCtx),
         sessionCleanup: SessionCleanupUtils(partialCtx),
