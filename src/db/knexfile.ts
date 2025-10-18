@@ -18,13 +18,13 @@ let knexConfig: Knex.Config = {
     seeds: { directory: path.resolve(__dirname, './seeds') },
     // debug: _developmentEnvironmentOnly,
     pool: {
-        min: 10, // Higher minimum for production server
-        max: 100, // Increased max connections
-        acquireTimeoutMillis: 60000, // 60 seconds
+        min: 0, // No idle connections for SQLite
+        max: 1, // Only 1 connection per container (SQLite is single-file)
+        acquireTimeoutMillis: 120000, // 2 minutes (increased for lock contention)
         createTimeoutMillis: 30000, // 30 seconds
-        idleTimeoutMillis: 900000, // 15 minutes
+        idleTimeoutMillis: 30000, // 30 seconds (close idle connections quickly)
         reapIntervalMillis: 1000, // 1 second
-        createRetryIntervalMillis: 100, // Faster retry
+        createRetryIntervalMillis: 200, // Retry every 200ms
         propagateCreateError: false, // Don't fail immediately on connection errors
         afterCreate: (conn: any, done: (err: Error | null, conn: any) => void) => {
             try {
@@ -43,15 +43,17 @@ let knexConfig: Knex.Config = {
                 // Store temporary objects in memory
                 conn.pragma('temp_store = MEMORY');
 
-                // Busy timeout: 45 seconds
-                conn.pragma('busy_timeout = 45000');
+                // Busy timeout: 2 minutes (critical for multi-container SQLite)
+                conn.pragma('busy_timeout = 120000');
 
                 // Multi-threaded operations: 4 threads
                 conn.pragma('threads = 4');
 
-                // WAL checkpoint every 2000 pages
-                conn.pragma('wal_autocheckpoint = 2000');
-                conn.pragma('wal_checkpoint(TRUNCATE)');
+                // WAL checkpoint every 4000 pages (less frequent = better concurrency)
+                conn.pragma('wal_autocheckpoint = 4000');
+
+                // Don't truncate on every connection (causes locks)
+                // conn.pragma('wal_checkpoint(TRUNCATE)');
 
                 // Memory-mapped I/O: 1GB
                 conn.pragma('mmap_size = 1073741824');
@@ -59,8 +61,8 @@ let knexConfig: Knex.Config = {
                 // Page size: 4KB
                 conn.pragma('page_size = 4096');
 
-                // Lock timeout: 45 seconds
-                conn.pragma('lock_timeout = 45000');
+                // Lock timeout: 2 minutes (matches busy_timeout)
+                conn.pragma('lock_timeout = 120000');
 
                 // Temp cache: 100MB
                 conn.pragma('temp_cache_size = -100000');
