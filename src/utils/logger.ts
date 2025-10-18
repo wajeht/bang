@@ -2,7 +2,7 @@ import { dayjs } from '../libs';
 import { styleText, format } from 'node:util';
 import type { Logger as LoggerType } from '../type';
 
-function getFormattedTimestamp() {
+function getFormattedTimestamp(): string {
     const now = dayjs();
     return `[${now.format('YYYY-MM-DD h:mm:ss A')}]`;
 }

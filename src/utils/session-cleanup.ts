@@ -51,8 +51,8 @@ export function SessionCleanupUtils(deps: { db: Knex; logger: Logger }) {
     }
 
     return {
-        cleanupExpiredSessions,
-        cleanupOldSessions,
         getSessionStats,
+        cleanupOldSessions,
+        cleanupExpiredSessions,
     };
 }

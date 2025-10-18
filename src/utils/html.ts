@@ -1,6 +1,6 @@
 import type { AppContext } from '../type';
 
-export function HtmlUtils(context: AppContext) {
+export function HtmlUtils() {
     function escapeHtml(text: string): string {
         return text
             .replace(/&/g, '&amp;')

@@ -63,20 +63,20 @@ export async function Context(): Promise<AppContext> {
     const database = Database({ config, logger, libs });
 
     const partialCtx = {
-        config,
-        logger,
-        db: database.instance,
-        database,
-        errors,
         libs,
+        config,
+        errors,
+        logger,
+        database,
+        db: database.instance,
     } as any;
 
+    const html = HtmlUtils();
     const auth = AuthUtils(partialCtx);
     const date = DateUtils(partialCtx);
-    const html = HtmlUtils(partialCtx);
     const utilUtils = Utils(partialCtx);
-    const request = RequestUtils(partialCtx);
     const validation = ValidationUtils();
+    const request = RequestUtils(partialCtx);
 
     const utilities: Utilities = {
         date,
@@ -104,10 +104,6 @@ export async function Context(): Promise<AppContext> {
     partialCtx.models = models;
 
     const middlewares: Middlewares = {
-        layout: layoutMiddleware({
-            layoutsDir: '_layouts',
-            defaultLayout: '_layouts/public.html',
-        }),
         helmet: helmetMiddleware(partialCtx),
         csrf: createCsrfMiddleware(partialCtx),
         session: createSessionMiddleware(partialCtx),
@@ -119,6 +115,7 @@ export async function Context(): Promise<AppContext> {
         staticAssets: staticAssetsMiddleware(partialCtx),
         appLocalState: createAppLocalStateMiddleware(partialCtx),
         authentication: createAuthenticationMiddleware(partialCtx),
+        layout: layoutMiddleware({ layoutsDir: '_layouts', defaultLayout: '_layouts/public.html' }),
     };
 
     partialCtx.middleware = middlewares;
