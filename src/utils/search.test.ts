@@ -1,4 +1,4 @@
-import { db } from '../db/db';
+import { db } from '../tests/test-setup';
 import { dayjs } from '../libs';
 import { config } from '../config';
 import { createContext } from '../context';

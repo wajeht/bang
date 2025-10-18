@@ -1,8 +1,14 @@
 process.env.APP_ENV = 'testing';
 process.env.NODE_ENV = 'testing';
 
-import { db } from '../db/db';
 import { beforeAll, afterAll } from 'vitest';
+import { config } from '../config';
+import { logger } from '../utils/logger';
+import { libs } from '../libs';
+import { createDatabase } from '../db/db';
+
+const database = createDatabase({ config, logger, libs });
+export const db = database.instance;
 
 beforeAll(async () => {
     try {

@@ -339,6 +339,7 @@ import type { createUtilUtils } from './utils/util';
 import type { createSearchUtils } from './utils/search';
 import type { createRequestUtils } from './utils/request';
 import type { createValidationUtils } from './utils/validation';
+import type { createSessionCleanupUtils } from './utils/session-cleanup';
 import type { createCronService } from './crons';
 import type { createDatabase } from './db/db';
 import type { config } from './config';
@@ -352,6 +353,7 @@ export type RequestUtils = ReturnType<typeof createRequestUtils>;
 export type UtilUtils = ReturnType<typeof createUtilUtils>;
 export type SearchUtils = ReturnType<typeof createSearchUtils>;
 export type MailUtils = ReturnType<typeof createMailUtils>;
+export type SessionCleanupUtils = ReturnType<typeof createSessionCleanupUtils>;
 
 export type Config = typeof config;
 export type CronService = ReturnType<typeof createCronService>;
@@ -379,6 +381,7 @@ export interface Utilities {
     util: UtilUtils;
     search: SearchUtils;
     mail: MailUtils;
+    sessionCleanup: SessionCleanupUtils;
 }
 
 export interface Middlewares {

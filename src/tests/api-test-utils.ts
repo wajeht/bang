@@ -1,4 +1,4 @@
-import { db } from '../db/db';
+import { db } from './test-setup';
 import request from 'supertest';
 import { createContext } from '../context';
 import type { Application } from 'express';

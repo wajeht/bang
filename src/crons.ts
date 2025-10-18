@@ -1,6 +1,5 @@
 import type { AppContext } from './type';
 import { type ScheduledTask } from 'node-cron';
-import { cleanupExpiredSessions } from './utils/session-cleanup';
 
 export interface CronService {
     start: () => Promise<void>;
@@ -28,7 +27,7 @@ export function createCronService(context: AppContext): CronService {
     async function sessionCleanupTask() {
         context.logger.info('Cleaning up expired sessions...');
         try {
-            const deletedCount = await cleanupExpiredSessions();
+            const deletedCount = await context.utils.sessionCleanup.cleanupExpiredSessions();
             context.logger.info(
                 `Session cleanup completed: ${deletedCount} expired sessions removed`,
             );

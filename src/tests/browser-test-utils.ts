@@ -1,4 +1,4 @@
-import { db } from '../db/db';
+import { db } from './test-setup';
 import type { AppContext } from '../type';
 import { createContext } from '../context';
 import { Page, expect } from '@playwright/test';

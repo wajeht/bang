@@ -32,6 +32,7 @@ import { createMailUtils } from './utils/mail';
 import { createUtilUtils } from './utils/util';
 import { createSearchUtils } from './utils/search';
 import { createRequestUtils } from './utils/request';
+import { createSessionCleanupUtils } from './utils/session-cleanup';
 import { createTabsRepo } from './routes/tabs/tabs.repo';
 import { createValidationUtils } from './utils/validation';
 import { createNotesRepo } from './routes/notes/notes.repo';
@@ -86,6 +87,7 @@ export async function createContext(): Promise<AppContext> {
         util: utilUtils,
         mail: createMailUtils(partialCtx),
         search: createSearchUtils(partialCtx),
+        sessionCleanup: createSessionCleanupUtils(partialCtx),
     };
 
     partialCtx.utils = utilities;

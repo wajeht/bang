@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { db } from '../db/db';
+import { db } from '../tests/test-setup';
 import { libs } from '../libs';
 import fs from 'node:fs/promises';
 import { Request } from 'express';

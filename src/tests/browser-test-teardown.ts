@@ -1,4 +1,4 @@
-import { db } from '../db/db';
+import { db } from './test-setup';
 
 async function globalTeardown() {
     console.log('Cleaning up test resources...');

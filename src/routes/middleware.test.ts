@@ -1,4 +1,4 @@
-import { db } from '../db/db';
+import { db } from '../tests/test-setup';
 import { Session } from 'express-session';
 import { createContext } from '../context';
 import type { User, AppContext } from '../type';
