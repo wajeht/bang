@@ -331,33 +331,33 @@ export type PaginateArrayOptions = {
 
 import type { Knex } from 'knex';
 
-import type { createDateUtils } from './utils/date';
-import type { createHtmlUtils } from './utils/html';
-import type { createAuthUtils } from './utils/auth';
-import type { createMailUtils } from './utils/mail';
-import type { createUtilUtils } from './utils/util';
-import type { createSearchUtils } from './utils/search';
-import type { createRequestUtils } from './utils/request';
-import type { createValidationUtils } from './utils/validation';
-import type { createSessionCleanupUtils } from './utils/session-cleanup';
-import type { createCronService } from './crons';
-import type { createDatabase } from './db/db';
+import { DateUtils as DateUtilsType } from './utils/date';
+import { HtmlUtils as HtmlUtilsType } from './utils/html';
+import { AuthUtils as AuthUtilsType } from './utils/auth';
+import { MailUtils as MailUtilsType } from './utils/mail';
+import { Utils as UtilsType } from './utils/util';
+import { SearchUtils as SearchUtilsType } from './utils/search';
+import { RequestUtils as RequestUtilsType } from './utils/request';
+import { ValidationUtils as ValidationUtilsType } from './utils/validation';
+import { SessionCleanupUtils as SessionCleanupUtilsType } from './utils/session-cleanup';
+import { CronService as CronServiceType } from './crons';
+import { Database as DatabaseType } from './db/db';
 import type { config } from './config';
-import type { Libs, dayjs } from './libs';
+import type { Libs } from './libs';
 
-export type DateUtils = ReturnType<typeof createDateUtils>;
-export type HtmlUtils = ReturnType<typeof createHtmlUtils>;
-export type ValidationUtils = ReturnType<typeof createValidationUtils>;
-export type AuthUtils = ReturnType<typeof createAuthUtils>;
-export type RequestUtils = ReturnType<typeof createRequestUtils>;
-export type UtilUtils = ReturnType<typeof createUtilUtils>;
-export type SearchUtils = ReturnType<typeof createSearchUtils>;
-export type MailUtils = ReturnType<typeof createMailUtils>;
-export type SessionCleanupUtils = ReturnType<typeof createSessionCleanupUtils>;
+export type DateUtils = ReturnType<typeof DateUtilsType>;
+export type HtmlUtils = ReturnType<typeof HtmlUtilsType>;
+export type ValidationUtils = ReturnType<typeof ValidationUtilsType>;
+export type AuthUtils = ReturnType<typeof AuthUtilsType>;
+export type RequestUtils = ReturnType<typeof RequestUtilsType>;
+export type UtilUtils = ReturnType<typeof UtilsType>;
+export type SearchUtils = ReturnType<typeof SearchUtilsType>;
+export type MailUtils = ReturnType<typeof MailUtilsType>;
+export type SessionCleanupUtils = ReturnType<typeof SessionCleanupUtilsType>;
 
 export type Config = typeof config;
-export type CronService = ReturnType<typeof createCronService>;
-export type Database = ReturnType<typeof createDatabase>;
+export type CronService = ReturnType<typeof CronServiceType>;
+export type Database = ReturnType<typeof DatabaseType>;
 
 export interface Models {
     actions: Actions;
