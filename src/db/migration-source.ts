@@ -14,7 +14,7 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
                 withFileTypes: true,
             });
             const migrations = dirents
-                .filter((dirent) => dirent.isFile() && dirent.name.endsWith('.ts'))
+                .filter((dirent) => dirent.isFile() && (dirent.name.endsWith('.ts') || dirent.name.endsWith('.js')))
                 .map((dirent) => dirent.name)
                 .sort();
 
