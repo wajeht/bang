@@ -90,9 +90,6 @@ export function SearchUtils(context: AppContext) {
         ]),
     } as const;
 
-    /**
-     * Reminder timing options configuration
-     */
     const reminderTimingConfig = {
         /**
          * Recurring timing options
@@ -166,24 +163,6 @@ export function SearchUtils(context: AppContext) {
 		`);
     }
 
-    /**
-     * Parses a search query to extract components: bang trigger, URL, and search terms
-     *
-     * @param query - The raw search query string to parse
-     * @returns Parsed components of the search query
-     *
-     * @example Basic search
-     * parseSearchQuery("!g python") → { commandType: "bang", trigger: "!g", triggerWithoutPrefix: "g", url: null, searchTerm: "python" }
-     *
-     * @example Direct command
-     * parseSearchQuery("@notes search query") → { commandType: "direct", trigger: "@notes", triggerWithoutPrefix: "notes", url: null, searchTerm: "search query" }
-     *
-     * @example Bookmark with title
-     * parseSearchQuery("!bm My Bookmark https://example.com") → { commandType: "bang", trigger: "!bm", triggerWithoutPrefix: "bm", url: "https://example.com", searchTerm: "My Bookmark" }
-     *
-     * @example Custom bang creation
-     * parseSearchQuery("!add !custom https://custom-search.com") → { commandType: "bang", trigger: "!add", triggerWithoutPrefix: "add", url: "https://custom-search.com", searchTerm: "!custom" }
-     */
     function parseSearchQuery(query: string): {
         /**
          * The type of command (bang or direct)
@@ -532,14 +511,10 @@ export function SearchUtils(context: AppContext) {
         return redirectUrl;
     }
 
-    /**
-     * Parses reminder content into timing, description, and optional content
-     * @param reminderContent - The full reminder content after "!remind "
-     * @param user - User object with preferences
-     * @returns Parsed reminder components
-     */
     function parseReminderContent(
+        /** @param reminderContent - The full reminder content after "!remind " */
         reminderContent: string,
+        /** @param user - User object with preferences */
         user: { column_preferences?: { reminders?: { default_reminder_timing?: string } } },
     ): {
         when: string;
@@ -732,16 +707,12 @@ export function SearchUtils(context: AppContext) {
         };
     }
 
-    /**
-     * Parses reminder timing from natural language
-     * @param timeStr - Time string like "daily", "weekly", "2024-01-15"
-     * @param defaultTime - Default time in HH:MM format (e.g., "09:00")
-     * @param userTimezone - User's timezone (e.g., "America/New_York")
-     * @returns Parsed timing information with UTC dates
-     */
     function parseReminderTiming(
+        /** @param timeStr - Time string like "daily", "weekly", "2024-01-15" */
         timeStr: string,
+        /** @param defaultTime - Default time in HH:MM format (e.g., "09:00") */
         defaultTime: string = '09:00',
+        /** @param userTimezone - User's timezone (e.g., "America/New_York") */
         userTimezone: string = 'UTC',
     ): ReminderTimingResult {
         // Parse the default time (HH:MM format)
