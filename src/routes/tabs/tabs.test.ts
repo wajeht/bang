@@ -29,7 +29,7 @@ describe('Tabs Routes', () => {
     });
 
     describe('Bulk Delete', () => {
-        describe('POST /tabs/delete-bulk', () => {
+        describe('POST /tabs/delete', () => {
             it('should delete multiple tab groups', async () => {
                 const { agent, user } = await authenticateAgent(app);
 
@@ -41,7 +41,7 @@ describe('Tabs Routes', () => {
                     .returning('*');
 
                 await agent
-                    .post('/tabs/delete-bulk')
+                    .post('/tabs/delete')
                     .send({ id: [tab1.id.toString(), tab2.id.toString()] })
                     .expect(302);
 
@@ -74,7 +74,7 @@ describe('Tabs Routes', () => {
                     .returning('*');
 
                 await agent
-                    .post('/tabs/delete-bulk')
+                    .post('/tabs/delete')
                     .send({ id: [userTab.id.toString(), otherTab.id.toString()] })
                     .expect(302);
 
@@ -88,11 +88,11 @@ describe('Tabs Routes', () => {
             it('should require id array', async () => {
                 const { agent } = await authenticateAgent(app);
 
-                await agent.post('/tabs/delete-bulk').type('form').send({}).expect(302);
+                await agent.post('/tabs/delete').type('form').send({}).expect(302);
             });
         });
 
-        describe('POST /api/tabs/delete-bulk', () => {
+        describe('POST /api/tabs/delete', () => {
             it('should delete multiple tab groups via API', async () => {
                 const { agent, user } = await authenticateApiAgent(app);
 
@@ -104,7 +104,7 @@ describe('Tabs Routes', () => {
                     .returning('*');
 
                 const response = await agent
-                    .post('/api/tabs/delete-bulk')
+                    .post('/api/tabs/delete')
                     .send({ id: [tab1.id.toString(), tab2.id.toString()] })
                     .expect(200);
 
@@ -123,7 +123,7 @@ describe('Tabs Routes', () => {
                     .returning('*');
 
                 const response = await agent
-                    .post('/api/tabs/delete-bulk')
+                    .post('/api/tabs/delete')
                     .send({ id: [tab1.id.toString(), '99999'] })
                     .expect(200);
 
@@ -133,7 +133,7 @@ describe('Tabs Routes', () => {
             it('should require id to be an array', async () => {
                 const { agent } = await authenticateApiAgent(app);
 
-                await agent.post('/api/tabs/delete-bulk').send({ id: 'not-an-array' }).expect(422);
+                await agent.post('/api/tabs/delete').send({ id: 'not-an-array' }).expect(422);
             });
         });
     });

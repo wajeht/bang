@@ -29,24 +29,6 @@ export function TabsRouter(ctx: AppContext) {
         },
     );
 
-    router.post(
-        '/tabs/delete-all',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.session.user as User;
-
-            await ctx.db('tabs').where({ user_id: user.id }).delete();
-
-            if (ctx.utils.auth.isApiRequest(req)) {
-                res.status(200).json({ message: 'All tab groups deleted successfully' });
-                return;
-            }
-
-            req.flash('success', 'All tab groups deleted!');
-            return res.redirect('/tabs');
-        },
-    );
-
     router.get(
         '/tabs/:id/edit',
         ctx.middleware.authentication,
@@ -178,10 +160,10 @@ export function TabsRouter(ctx: AppContext) {
             search,
             sortKey,
             direction,
-            highlight: !ctx.utils.auth.isApiRequest(req),
+            highlight: !ctx.utils.request.isApiRequest(req),
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: 'Tabs retrieved successfully',
                 data: tabsData,
@@ -273,7 +255,7 @@ export function TabsRouter(ctx: AppContext) {
             trigger: formattedTrigger,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({ message: 'Tab group created successfully' });
             return;
         }
@@ -357,7 +339,7 @@ export function TabsRouter(ctx: AppContext) {
             trigger: formattedTrigger,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({ message: 'Tab group updated successfully' });
             return;
         }
@@ -383,74 +365,27 @@ export function TabsRouter(ctx: AppContext) {
      *
      */
     router.delete('/api/tabs/:id', ctx.middleware.authentication, deleteTabHandler);
+    router.post('/api/tabs/delete', ctx.middleware.authentication, deleteTabHandler);
     router.post('/tabs/:id/delete', ctx.middleware.authentication, deleteTabHandler);
+    router.post('/tabs/delete', ctx.middleware.authentication, deleteTabHandler);
     async function deleteTabHandler(req: Request, res: Response) {
         const user = req.user as User;
-        const tabId = parseInt(req.params.id as unknown as string);
+        const tabIds = ctx.utils.request.extractIdsForDelete(req);
+        const deletedCount = await ctx.models.tabs.delete(tabIds, user.id);
 
-        const deleted = await ctx.models.tabs.delete([tabId], user.id);
-
-        if (!deleted) {
+        if (!deletedCount) {
             throw new ctx.errors.NotFoundError('Tab group not found');
         }
 
-        if (ctx.utils.auth.isApiRequest(req)) {
-            res.status(200).json({ message: 'Tab group deleted successfully' });
-            return;
-        }
-
-        req.flash('success', 'Tab group deleted!');
-        return res.redirect('/tabs');
-    }
-
-    /**
-     *
-     * POST /api/tabs/delete-bulk
-     *
-     * @tags Tabs
-     * @summary Delete multiple tabs
-     *
-     * @security BearerAuth
-     *
-     * @param {object} request.body.required - Bulk delete request
-     * @param {array<string>} request.body.id - Array of tab IDs
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.post('/api/tabs/delete-bulk', ctx.middleware.authentication, bulkDeleteTabHandler);
-    router.post('/tabs/delete-bulk', ctx.middleware.authentication, bulkDeleteTabHandler);
-    async function bulkDeleteTabHandler(req: Request, res: Response) {
-        const { id } = req.body;
-
-        if (!id || !Array.isArray(id)) {
-            throw new ctx.errors.ValidationError({ id: 'IDs array is required' });
-        }
-
-        const tabIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
-
-        if (tabIds.length === 0) {
-            throw new ctx.errors.ValidationError({ id: 'No valid tab IDs provided' });
-        }
-
-        const user = req.user as User;
-        const deletedCount = await ctx.models.tabs.delete(tabIds, user.id);
-
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: `${deletedCount} tab group${deletedCount !== 1 ? 's' : ''} deleted successfully`,
-                data: {
-                    deletedCount,
-                },
+                data: { deletedCount },
             });
             return;
         }
 
-        req.flash(
-            'success',
-            `${deletedCount} tab group${deletedCount !== 1 ? 's' : ''} deleted successfully`,
-        );
+        req.flash('success', `${deletedCount} tab group${deletedCount !== 1 ? 's' : ''} deleted!`);
         return res.redirect('/tabs');
     }
 
@@ -514,7 +449,7 @@ export function TabsRouter(ctx: AppContext) {
             url,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({ message: 'Tab item created successfully' });
             return;
         }
@@ -591,7 +526,7 @@ export function TabsRouter(ctx: AppContext) {
             await trx('tabs').where({ id }).update({ updated_at: ctx.db.fn.now() });
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({ message: 'Tab item updated successfully' });
             return;
         }
@@ -639,7 +574,7 @@ export function TabsRouter(ctx: AppContext) {
                 .update({ updated_at: ctx.db.fn.now() });
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({ message: 'Tab item deleted successfully' });
             return;
         }
