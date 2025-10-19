@@ -120,6 +120,16 @@ window.addEventListener('load', handleRowHighlight);
                                         <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
                                     </button>
                                 </form>
+                                <button
+                                    type="button"
+                                    class="no-style-btn copy-note-btn"
+                                    data-note-id="<%= data[i].id %>"
+                                    onclick="copyNoteToClipboard('<%= data[i].id %>')"
+                                    aria-label="Copy note <%= utils.stripHtmlTags(data[i].title) %> to clipboard"
+                                    style="display: inline-flex; align-items: center;"
+                                >
+                                    📋 Copy
+                                </button>
                                 <a href="/notes/<%= data[i].id %>/download" style="display: inline-flex; align-items: center;" aria-label="Download note <%= utils.stripHtmlTags(data[i].title) %> as markdown">⬇️ Download</a>
                                 <a href="/notes/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;">✏️ Edit</a>
                                 <button
@@ -288,6 +298,17 @@ window.addEventListener('load', handleRowHighlight);
                                                     <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
                                                 </button>
                                             </form>
+                                            <button
+                                                type="button"
+                                                class="no-style-btn copy-note-btn"
+                                                data-note-id="<%= data[i].id %>"
+                                                onclick="copyNoteToClipboard('<%= data[i].id %>')"
+                                                role="menuitem"
+                                                aria-label="Copy note <%= utils.stripHtmlTags(data[i].title) %> to clipboard"
+                                                style="text-align: left;"
+                                            >
+                                                📋 Copy
+                                            </button>
                                             <a href="/notes/<%= data[i].id %>/download" style="display: inline-flex; align-items: center;" role="menuitem" aria-label="Download note <%= utils.stripHtmlTags(data[i].title) %> as markdown">⬇️ Download</a>
                                             <a href="/notes/<%= data[i].id %>/edit<%= showHidden ? '?hidden=true' : '' %>" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                             <button
@@ -384,6 +405,20 @@ window.addEventListener('load', handleRowHighlight);
 
             document.getElementById('delete-selected-modal').showModal();
         });
+
+        async function copyNoteToClipboard(noteId) {
+            try {
+                const response = await fetch(`/notes/${noteId}/download`);
+                if (!response.ok) throw new Error('Failed to fetch note content');
+
+                const content = await response.text();
+                await navigator.clipboard.writeText(content);
+                createToast('📋 Note copied to clipboard!');
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                createToast('❌ Failed to copy note');
+            }
+        }
     </script>
 
     <style>

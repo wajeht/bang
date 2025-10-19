@@ -20,6 +20,7 @@
                     <%= note.pinned ? '📌 Unpin' : '📌 Pin' %>
                 </button>
             </form>
+            <button type="button" id="copy-note-btn" onclick="copyNoteToClipboard()" aria-label="Copy this note to clipboard">📋 Copy</button>
             <button type="button" onclick="location.href='/notes/<%= note.id %>/download'" aria-label="Download this note as markdown">⬇️ Download</button>
             <button type="button" onclick="location.href='/notes/<%= note.id %>/edit'" aria-label="Edit this note">✏️ Edit</button>
             <button type="button" onclick="document.getElementById('delete-note-modal').showModal()" aria-label="Delete this note">🗑️ Delete</button>
@@ -42,3 +43,19 @@
         </div>
     </form>
 </dialog>
+
+<script>
+    async function copyNoteToClipboard() {
+        try {
+            const response = await fetch('/notes/<%= note.id %>/download');
+            if (!response.ok) throw new Error('Failed to fetch note content');
+
+            const content = await response.text();
+            await navigator.clipboard.writeText(content);
+            createToast('📋 Note copied to clipboard!');
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            createToast('❌ Failed to copy note');
+        }
+    }
+</script>
