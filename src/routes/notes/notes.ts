@@ -48,11 +48,11 @@ export function NotesRouter(ctx: AppContext) {
             search,
             sortKey,
             direction,
-            highlight: !ctx.utils.auth.isApiRequest(req),
+            highlight: !ctx.utils.request.isApiRequest(req),
             excludeHidden: !canViewHidden,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.json({ data, pagination, search, sortKey, direction });
             return;
         }
@@ -143,7 +143,7 @@ export function NotesRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Note not found');
         }
 
-        if (note.hidden && !ctx.utils.auth.isApiRequest(req)) {
+        if (note.hidden && !ctx.utils.request.isApiRequest(req)) {
             const verificationKey = `note_${note.id}`;
             const verifiedTime = req.session?.verifiedHiddenItems?.[verificationKey];
 
@@ -204,7 +204,7 @@ export function NotesRouter(ctx: AppContext) {
             }
         }
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: 'note retrieved successfully',
                 data: note,
@@ -318,7 +318,7 @@ export function NotesRouter(ctx: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({ message: `Note ${note.title} created successfully!` });
             return;
         }
@@ -392,7 +392,7 @@ export function NotesRouter(ctx: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({ message: 'note updated successfully' });
             return;
         }
@@ -422,66 +422,22 @@ export function NotesRouter(ctx: AppContext) {
      *
      */
     router.delete('/api/notes/:id', ctx.middleware.authentication, deleteNoteHandler);
+    router.post('/api/notes/delete', ctx.middleware.authentication, deleteNoteHandler);
     router.post('/notes/:id/delete', ctx.middleware.authentication, deleteNoteHandler);
+    router.post('/notes/delete', ctx.middleware.authentication, deleteNoteHandler);
     async function deleteNoteHandler(req: Request, res: Response) {
         const user = req.user as User;
-        const deleted = await ctx.models.notes.delete(
-            [parseInt(req.params.id as unknown as string)],
-            user.id,
-        );
-
-        if (!deleted) {
-            throw new ctx.errors.NotFoundError('Not not found');
-        }
-
-        if (ctx.utils.auth.isApiRequest(req)) {
-            res.status(200).json({ message: 'note deleted successfully' });
-            return;
-        }
-
-        req.flash('success', 'Note deleted successfully');
-        return res.redirect('/notes');
-    }
-
-    /**
-     * POST /api/notes/delete-bulk
-     *
-     * @tags Notes
-     * @summary Delete multiple notes
-     *
-     * @security BearerAuth
-     *
-     * @param {object} request.body.required - Bulk delete request
-     * @param {array<string>} request.body.id - Array of note IDs
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.post('/api/notes/delete-bulk', ctx.middleware.authentication, bulkDeleteNoteHandler);
-    router.post('/notes/delete-bulk', ctx.middleware.authentication, bulkDeleteNoteHandler);
-    async function bulkDeleteNoteHandler(req: Request, res: Response) {
-        const { id } = req.body;
-
-        if (!id || !Array.isArray(id)) {
-            throw new ctx.errors.ValidationError({ id: 'IDs array is required' });
-        }
-
-        const noteIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
-
-        if (noteIds.length === 0) {
-            throw new ctx.errors.ValidationError({ id: 'No valid note IDs provided' });
-        }
-
-        const user = req.user as User;
+        const noteIds = ctx.utils.request.extractIdsForDelete(req);
         const deletedCount = await ctx.models.notes.delete(noteIds, user.id);
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (!deletedCount) {
+            throw new ctx.errors.NotFoundError('Note not found');
+        }
+
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: `${deletedCount} note${deletedCount !== 1 ? 's' : ''} deleted successfully`,
-                data: {
-                    deletedCount,
-                },
+                data: { deletedCount },
             });
             return;
         }
@@ -523,7 +479,7 @@ export function NotesRouter(ctx: AppContext) {
             pinned: !currentNote.pinned,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`,
                 data: updatedNote,

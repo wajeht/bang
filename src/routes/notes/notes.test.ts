@@ -655,7 +655,7 @@ describe('Notes Routes', () => {
             });
         });
 
-        describe('POST /notes/delete-bulk', () => {
+        describe('POST /notes/delete', () => {
             it('should delete multiple notes', async () => {
                 const { agent, user } = await authenticateAgent(app);
 
@@ -667,7 +667,7 @@ describe('Notes Routes', () => {
                     .returning('*');
 
                 await agent
-                    .post('/notes/delete-bulk')
+                    .post('/notes/delete')
                     .send({ id: [note1.id.toString(), note2.id.toString()] })
                     .expect(302);
 
@@ -700,7 +700,7 @@ describe('Notes Routes', () => {
                     .returning('*');
 
                 await agent
-                    .post('/notes/delete-bulk')
+                    .post('/notes/delete')
                     .send({ id: [userNote.id.toString(), otherNote.id.toString()] })
                     .expect(302);
 
@@ -714,11 +714,11 @@ describe('Notes Routes', () => {
             it('should require id array', async () => {
                 const { agent } = await authenticateAgent(app);
 
-                await agent.post('/notes/delete-bulk').type('form').send({}).expect(302);
+                await agent.post('/notes/delete').type('form').send({}).expect(302);
             });
         });
 
-        describe('POST /api/notes/delete-bulk', () => {
+        describe('POST /api/notes/delete', () => {
             it('should delete multiple notes via API', async () => {
                 const { agent, user } = await authenticateApiAgent(app);
 
@@ -730,7 +730,7 @@ describe('Notes Routes', () => {
                     .returning('*');
 
                 const response = await agent
-                    .post('/api/notes/delete-bulk')
+                    .post('/api/notes/delete')
                     .send({ id: [note1.id.toString(), note2.id.toString()] })
                     .expect(200);
 
@@ -749,7 +749,7 @@ describe('Notes Routes', () => {
                     .returning('*');
 
                 const response = await agent
-                    .post('/api/notes/delete-bulk')
+                    .post('/api/notes/delete')
                     .send({ id: [note1.id.toString(), '99999'] })
                     .expect(200);
 
@@ -759,7 +759,7 @@ describe('Notes Routes', () => {
             it('should require id to be an array', async () => {
                 const { agent } = await authenticateApiAgent(app);
 
-                await agent.post('/api/notes/delete-bulk').send({ id: 'not-an-array' }).expect(422);
+                await agent.post('/api/notes/delete').send({ id: 'not-an-array' }).expect(422);
             });
         });
     });
