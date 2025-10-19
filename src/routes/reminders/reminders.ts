@@ -132,7 +132,7 @@ export function RemindersRouter(ctx: AppContext) {
 
             // Delete reminder if requested
             if (delete_reminder === 'on' || delete_reminder === true) {
-                await ctx.models.reminders.delete(reminderId, user.id);
+                await ctx.models.reminders.delete([reminderId], user.id);
             }
 
             const successMessage =
@@ -470,7 +470,7 @@ export function RemindersRouter(ctx: AppContext) {
         const user = req.user as User;
         const reminderId = parseInt(req.params.id as string);
 
-        const deleted = await ctx.models.reminders.delete(reminderId, user.id);
+        const deleted = await ctx.models.reminders.delete([reminderId], user.id);
 
         if (!deleted) {
             throw new ctx.errors.NotFoundError('Reminder not found');
@@ -520,7 +520,7 @@ export function RemindersRouter(ctx: AppContext) {
         }
 
         const user = req.user as User;
-        const deletedCount = await ctx.models.reminders.bulkDelete(reminderIds, user.id);
+        const deletedCount = await ctx.models.reminders.delete(reminderIds, user.id);
 
         if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({

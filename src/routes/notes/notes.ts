@@ -426,7 +426,7 @@ export function NotesRouter(ctx: AppContext) {
     async function deleteNoteHandler(req: Request, res: Response) {
         const user = req.user as User;
         const deleted = await ctx.models.notes.delete(
-            parseInt(req.params.id as unknown as string),
+            [parseInt(req.params.id as unknown as string)],
             user.id,
         );
 
@@ -474,7 +474,7 @@ export function NotesRouter(ctx: AppContext) {
         }
 
         const user = req.user as User;
-        const deletedCount = await ctx.models.notes.bulkDelete(noteIds, user.id);
+        const deletedCount = await ctx.models.notes.delete(noteIds, user.id);
 
         if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({

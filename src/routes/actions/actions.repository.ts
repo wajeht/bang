@@ -194,12 +194,7 @@ export function ActionsRepository(ctx: AppContext): Actions {
             return updatedAction;
         },
 
-        delete: async (id: number, userId: number) => {
-            const rowsAffected = await ctx.db('bangs').where({ id, user_id: userId }).delete();
-            return rowsAffected > 0;
-        },
-
-        bulkDelete: async (ids: number[], userId: number) => {
+        delete: async (ids: number[], userId: number) => {
             return ctx.db.transaction(async (trx: any) => {
                 const rowsAffected = await trx('bangs')
                     .whereIn('id', ids)

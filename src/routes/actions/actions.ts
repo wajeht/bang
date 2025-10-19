@@ -382,7 +382,7 @@ export function ActionsRouter(ctx: AppContext) {
     router.post('/actions/:id/delete', ctx.middleware.authentication, deleteActionHandler);
     async function deleteActionHandler(req: Request, res: Response) {
         const deleted = await ctx.models.actions.delete(
-            req.params.id as unknown as number,
+            [req.params.id as unknown as number],
             (req.user as User).id,
         );
 
@@ -430,7 +430,7 @@ export function ActionsRouter(ctx: AppContext) {
         }
 
         const user = req.user as User;
-        const deletedCount = await ctx.models.actions.bulkDelete(actionIds, user.id);
+        const deletedCount = await ctx.models.actions.delete(actionIds, user.id);
 
         if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({

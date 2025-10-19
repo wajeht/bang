@@ -388,7 +388,7 @@ export function TabsRouter(ctx: AppContext) {
         const user = req.user as User;
         const tabId = parseInt(req.params.id as unknown as string);
 
-        const deleted = await ctx.models.tabs.delete(tabId, user.id);
+        const deleted = await ctx.models.tabs.delete([tabId], user.id);
 
         if (!deleted) {
             throw new ctx.errors.NotFoundError('Tab group not found');
@@ -435,7 +435,7 @@ export function TabsRouter(ctx: AppContext) {
         }
 
         const user = req.user as User;
-        const deletedCount = await ctx.models.tabs.bulkDelete(tabIds, user.id);
+        const deletedCount = await ctx.models.tabs.delete(tabIds, user.id);
 
         if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({

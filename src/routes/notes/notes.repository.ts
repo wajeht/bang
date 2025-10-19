@@ -125,12 +125,7 @@ export function NotesRepository(ctx: AppContext): Notes {
             return updatedNote;
         },
 
-        delete: async (id: number, userId: number) => {
-            const rowsAffected = await ctx.db('notes').where({ id, user_id: userId }).delete();
-            return rowsAffected > 0;
-        },
-
-        bulkDelete: async (ids: number[], userId: number) => {
+        delete: async (ids: number[], userId: number) => {
             return ctx.db.transaction(async (trx: any) => {
                 const rowsAffected = await trx('notes')
                     .whereIn('id', ids)

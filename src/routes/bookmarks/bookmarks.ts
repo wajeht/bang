@@ -380,7 +380,7 @@ export function BookmarksRouter(ctx: AppContext) {
     router.post('/bookmarks/:id/delete', ctx.middleware.authentication, deleteBookmarkHandler);
     async function deleteBookmarkHandler(req: Request, res: Response) {
         const deleted = await ctx.models.bookmarks.delete(
-            req.params.id as unknown as number,
+            [req.params.id as unknown as number],
             (req.user as User).id,
         );
 
@@ -432,7 +432,7 @@ export function BookmarksRouter(ctx: AppContext) {
         }
 
         const user = req.user as User;
-        const deletedCount = await ctx.models.bookmarks.bulkDelete(bookmarkIds, user.id);
+        const deletedCount = await ctx.models.bookmarks.delete(bookmarkIds, user.id);
 
         if (ctx.utils.auth.isApiRequest(req)) {
             res.status(200).json({

@@ -274,8 +274,7 @@ export interface Repository<Entity, Params, CreateInput = Entity, UpdateInput = 
     create: (item: CreateInput) => Promise<Entity>;
     read: (id: number, userId: number) => Promise<Entity>;
     update: (id: number, userId: number, updates: UpdateInput) => Promise<Entity>;
-    delete: (id: number, userId: number) => Promise<boolean>;
-    bulkDelete: (ids: number[], userId: number) => Promise<number>;
+    delete: (ids: number[], userId: number) => Promise<number>;
 }
 
 export type Actions = Repository<
