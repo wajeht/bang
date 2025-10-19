@@ -108,7 +108,7 @@ export function SearchRouter(ctx: AppContext) {
                 }),
             ]);
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.json({
                 searchQuery,
                 searchType,

@@ -8,7 +8,7 @@ export function GeneralRouter(ctx: AppContext) {
     router.get('/healthz', async (req: Request, res: Response) => {
         await ctx.db.raw('SELECT 1');
 
-        if (ctx.utils.auth.expectsJson(req)) {
+        if (ctx.utils.request.expectsJson(req)) {
             res.status(200).json({ status: 'ok', database: 'connected' });
             return;
         }
