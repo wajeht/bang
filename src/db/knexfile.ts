@@ -92,19 +92,20 @@ if (
     process.env.NODE_ENV === 'testing' ||
     process.env.APP_ENV === 'testing'
 ) {
-    // Use a unique temp file for each test run to avoid database connection sharing issues
-    const testDbPath = path.resolve(
-        __dirname,
-        'sqlite',
-        `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.sqlite`,
-    );
+    // const testDbPath = path.resolve(
+    //     __dirname,
+    //     'sqlite',
+    //     `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.sqlite`,
+    // );
     knexConfig = {
         ...knexConfig,
         connection: {
-            filename: testDbPath,
+            // filename: testDbPath,
+            filename: ':memory:',
         },
     };
-    logger.info(`Using temporary test database: ${testDbPath}`);
+    // logger.info(`Using temporary test database: ${testDbPath}`);
+    logger.info(`Using temporary test database: :memory:`);
 }
 
 export default knexConfig;
