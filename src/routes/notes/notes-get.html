@@ -120,6 +120,7 @@ window.addEventListener('load', handleRowHighlight);
                                         <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
                                     </button>
                                 </form>
+                                <a href="/notes/<%= data[i].id %>/download" style="display: inline-flex; align-items: center;" aria-label="Download note <%= utils.stripHtmlTags(data[i].title) %> as markdown">⬇️ Download</a>
                                 <a href="/notes/<%= data[i].id %>/edit" style="display: inline-flex; align-items: center;">✏️ Edit</a>
                                 <button
                                     type="button"
@@ -287,6 +288,7 @@ window.addEventListener('load', handleRowHighlight);
                                                     <%= data[i].pinned ? '📌 Unpin' : '📍 Pin' %>
                                                 </button>
                                             </form>
+                                            <a href="/notes/<%= data[i].id %>/download" style="display: inline-flex; align-items: center;" role="menuitem" aria-label="Download note <%= utils.stripHtmlTags(data[i].title) %> as markdown">⬇️ Download</a>
                                             <a href="/notes/<%= data[i].id %>/edit<%= showHidden ? '?hidden=true' : '' %>" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                             <button
                                                 type="button"

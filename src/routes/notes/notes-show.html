@@ -20,6 +20,7 @@
                     <%= note.pinned ? '📌 Unpin' : '📌 Pin' %>
                 </button>
             </form>
+            <button type="button" onclick="location.href='/notes/<%= note.id %>/download'" aria-label="Download this note as markdown">⬇️ Download</button>
             <button type="button" onclick="location.href='/notes/<%= note.id %>/edit'" aria-label="Edit this note">✏️ Edit</button>
             <button type="button" onclick="document.getElementById('delete-note-modal').showModal()" aria-label="Delete this note">🗑️ Delete</button>
         </div>
