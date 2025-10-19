@@ -5,7 +5,7 @@ import { ConnectSessionKnexStore } from 'connect-session-knex';
 export function NotFoundMiddleware(ctx: AppContext) {
     return (req: Request, _res: Response, _next: NextFunction) => {
         throw new ctx.errors.NotFoundError(
-            `Sorry, the ${ctx.utils.auth.isApiRequest(req) ? 'resource' : 'page'} you are looking for could not be found.`,
+            `Sorry, the ${ctx.utils.request.isApiRequest(req) ? 'resource' : 'page'} you are looking for could not be found.`,
         );
     };
 }
@@ -37,7 +37,7 @@ export function ErrorMiddleware(ctx: AppContext) {
         const statusCode = httpError.statusCode || 500;
         const message = httpError.message || 'The server encountered an internal error or misconfiguration and was unable to complete your request'; // prettier-ignore
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             const responsePayload: any = {
                 message: statusCode === 422 ? 'Validation errors' : message,
             };
@@ -243,7 +243,7 @@ export function CsrfMiddleware(ctx: AppContext) {
             }
 
             // Skip CSRF protection if API key is provided
-            if (ctx.utils.auth.extractApiKey(req)) {
+            if (ctx.utils.request.extractApiKey(req)) {
                 return next();
             }
 
@@ -298,7 +298,7 @@ export function AuthenticationMiddleware(ctx: AppContext) {
         next: NextFunction,
     ) {
         try {
-            const apiKey = ctx.utils.auth.extractApiKey(req);
+            const apiKey = ctx.utils.request.extractApiKey(req);
 
             let user: User | null = null;
 
@@ -325,7 +325,7 @@ export function AuthenticationMiddleware(ctx: AppContext) {
             }
 
             if (!user) {
-                if (ctx.utils.auth.isApiRequest(req)) {
+                if (ctx.utils.request.isApiRequest(req)) {
                     throw new ctx.errors.UnauthorizedError('Unauthorized - API key required', req);
                 }
 
@@ -373,7 +373,7 @@ export function RateLimitMiddleware(ctx: AppContext) {
         standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
         legacyHeaders: false, // Disable the `X-RateLimit-*` headers
         handler: async (req: Request, res: Response) => {
-            if (ctx.utils.auth.isApiRequest(req)) {
+            if (ctx.utils.request.isApiRequest(req)) {
                 return res.json({ message: 'Too many requests, please try again later.' });
             }
             return res.status(429).render('general/rate-limit.html');
@@ -433,7 +433,7 @@ export function TurnstileMiddleware(ctx: AppContext) {
                 return next();
             }
 
-            if (req.method === 'GET' || ctx.utils.auth.isApiRequest(req)) {
+            if (req.method === 'GET' || ctx.utils.request.isApiRequest(req)) {
                 return next();
             }
 
