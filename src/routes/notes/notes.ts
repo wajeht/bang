@@ -488,6 +488,49 @@ export function NotesRouter(ctx: AppContext) {
     }
 
     /**
+     * GET /notes/{id}/download
+     *
+     * @tags Notes
+     * @summary Download a note as markdown file
+     *
+     * @security BearerAuth
+     *
+     * @param {string} id.path.required - note id
+     *
+     * @return {string} 200 - markdown file
+     * @return {object} 404 - Not found response - application/json
+     *
+     */
+    router.get(
+        '/notes/:id/download',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const note = await ctx.models.notes.read(
+                parseInt(req.params.id as unknown as string),
+                user.id,
+            );
+
+            if (!note) {
+                throw new ctx.errors.NotFoundError('Note not found');
+            }
+
+            const fileName = note.title
+                .toLowerCase()
+                .trim()
+                .replace(/[^\w\s-]/g, '') // Remove special characters
+                .replace(/\s+/g, '-') // Replace spaces with dashes
+                .replace(/-+/g, '-') // Replace multiple dashes with single dash
+                .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
+
+            res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+            res.setHeader('Content-Disposition', `attachment; filename="${fileName}.md"`);
+
+            res.send(note.content);
+        },
+    );
+
+    /**
      * POST /api/notes/render-markdown
      *
      * @tags Notes
