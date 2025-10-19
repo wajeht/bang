@@ -51,11 +51,11 @@ export function ActionsRouter(ctx: AppContext) {
             search,
             sortKey,
             direction,
-            highlight: !ctx.utils.auth.isApiRequest(req),
+            highlight: !ctx.utils.request.isApiRequest(req),
             excludeHidden: !canViewHidden,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.json({ data, pagination, search, sortKey, direction });
             return;
         }
@@ -234,7 +234,7 @@ export function ActionsRouter(ctx: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({
                 message: `Action ${formattedTrigger} created successfully!`,
             });
@@ -345,7 +345,7 @@ export function ActionsRouter(ctx: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: `Action ${updatedAction.trigger} updated successfully!`,
             });
@@ -379,65 +379,22 @@ export function ActionsRouter(ctx: AppContext) {
      *
      */
     router.delete('/api/actions/:id', ctx.middleware.authentication, deleteActionHandler);
+    router.post('/api/actions/delete', ctx.middleware.authentication, deleteActionHandler);
     router.post('/actions/:id/delete', ctx.middleware.authentication, deleteActionHandler);
+    router.post('/actions/delete', ctx.middleware.authentication, deleteActionHandler);
     async function deleteActionHandler(req: Request, res: Response) {
-        const deleted = await ctx.models.actions.delete(
-            [req.params.id as unknown as number],
-            (req.user as User).id,
-        );
+        const user = req.user as User;
+        const actionIds = ctx.utils.request.extractIdsForDelete(req);
+        const deletedCount = await ctx.models.actions.delete(actionIds, user.id);
 
-        if (!deleted) {
+        if (!deletedCount) {
             throw new ctx.errors.NotFoundError('Action not found');
         }
 
-        if (ctx.utils.auth.isApiRequest(req)) {
-            res.status(200).json({ message: 'Action deleted successfully' });
-            return;
-        }
-
-        req.flash('success', 'Action deleted successfully');
-        return res.redirect('/actions');
-    }
-
-    /**
-     *
-     * POST /actions/delete-bulk
-     *
-     * @tags Actions
-     * @summary delete multiple actions
-     *
-     * @security BearerAuth
-     *
-     * @param {array} id.form.required - array of action ids
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.post('/actions/delete-bulk', ctx.middleware.authentication, bulkDeleteActionHandler);
-    router.post('/api/actions/delete-bulk', ctx.middleware.authentication, bulkDeleteActionHandler);
-    async function bulkDeleteActionHandler(req: Request, res: Response) {
-        const { id } = req.body;
-
-        if (!id || !Array.isArray(id)) {
-            throw new ctx.errors.ValidationError({ id: 'IDs array is required' });
-        }
-
-        const actionIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
-
-        if (actionIds.length === 0) {
-            throw new ctx.errors.ValidationError({ id: 'No valid action IDs provided' });
-        }
-
-        const user = req.user as User;
-        const deletedCount = await ctx.models.actions.delete(actionIds, user.id);
-
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: `${deletedCount} action${deletedCount !== 1 ? 's' : ''} deleted successfully`,
-                data: {
-                    deletedCount,
-                },
+                data: { deletedCount },
             });
             return;
         }
@@ -496,7 +453,7 @@ export function ActionsRouter(ctx: AppContext) {
 
             await ctx.utils.util.addToTabs(user.id, tab_id, 'bangs', id);
 
-            if (ctx.utils.auth.isApiRequest(req)) {
+            if (ctx.utils.request.isApiRequest(req)) {
                 res.status(201).json({ message: 'Tab added successfully' });
                 return;
             }

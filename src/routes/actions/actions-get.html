@@ -344,7 +344,7 @@ window.addEventListener('load', handleRowHighlight);
         <h2 id="delete-selected-title">Confirm Bulk Delete</h2>
         <p>Are you sure you want to delete these actions?</p>
         <div id="selected-actions-list" style="margin: 15px 0; max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px;"></div>
-        <form id="delete-selected-form" method="POST" action="/actions/delete-bulk">
+        <form id="delete-selected-form" method="POST" action="/actions/delete">
             <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
             <div id="bulk-delete-checkboxes"></div>
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">

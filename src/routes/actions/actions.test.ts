@@ -276,7 +276,7 @@ describe('Actions API', () => {
         });
     });
 
-    describe('POST /actions/delete-bulk', () => {
+    describe('POST /actions/delete', () => {
         it('should delete multiple actions', async () => {
             const { agent, user } = await authenticateAgent(app);
 
@@ -307,7 +307,7 @@ describe('Actions API', () => {
                 .returning('*');
 
             await agent
-                .post('/actions/delete-bulk')
+                .post('/actions/delete')
                 .type('form')
                 .send({ id: [actions[0].id, actions[1].id] })
                 .expect(302);
@@ -350,7 +350,7 @@ describe('Actions API', () => {
                 .returning('*');
 
             await agent
-                .post('/actions/delete-bulk')
+                .post('/actions/delete')
                 .type('form')
                 .send({ id: [userAction.id, otherAction.id] })
                 .expect(302);
@@ -365,11 +365,11 @@ describe('Actions API', () => {
         it('should require id array', async () => {
             const { agent } = await authenticateAgent(app);
 
-            await agent.post('/actions/delete-bulk').type('form').send({}).expect(302);
+            await agent.post('/actions/delete').type('form').send({}).expect(302);
         });
     });
 
-    describe('POST /api/actions/delete-bulk', () => {
+    describe('POST /api/actions/delete', () => {
         it('should delete multiple actions via API', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
@@ -400,7 +400,7 @@ describe('Actions API', () => {
                 .returning('*');
 
             const response = await agent
-                .post('/api/actions/delete-bulk')
+                .post('/api/actions/delete')
                 .send({ id: [actions[0].id, actions[1].id] })
                 .expect(200);
 
@@ -426,7 +426,7 @@ describe('Actions API', () => {
                 .returning('*');
 
             const response = await agent
-                .post('/api/actions/delete-bulk')
+                .post('/api/actions/delete')
                 .send({ id: [action.id, 99999] })
                 .expect(200);
 
@@ -436,7 +436,7 @@ describe('Actions API', () => {
         it('should require id to be an array', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            await agent.post('/api/actions/delete-bulk').send({ id: 'not-an-array' }).expect(422);
+            await agent.post('/api/actions/delete').send({ id: 'not-an-array' }).expect(422);
         });
     });
 });
