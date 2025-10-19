@@ -193,7 +193,7 @@
     <h2 id="delete-selected-title">Confirm Bulk Delete</h2>
     <p>Are you sure you want to delete the following users?</p>
     <div id="selected-users-list" style="display: flex; flex-direction: column; gap: 5px; margin: 10px 0;"></div>
-    <form action="/admin/users/delete-bulk" method="POST">
+    <form action="/admin/users/delete" method="POST">
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
       <div id="bulk-delete-checkboxes"></div>
       <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">

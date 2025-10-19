@@ -53,58 +53,45 @@ export function AdminRouter(ctx: AppContext) {
         '/admin/users/:id/delete',
         ctx.middleware.authentication,
         ctx.middleware.adminOnly,
-        async (req: Request, res: Response) => {
+        deleteUserHandler,
+    );
+    router.post(
+        '/admin/users/delete',
+        ctx.middleware.authentication,
+        ctx.middleware.adminOnly,
+        deleteUserHandler,
+    );
+    async function deleteUserHandler(req: Request, res: Response) {
+        if (req.params.id) {
             const userId = parseInt(req.params.id as unknown as string);
 
             if (req.user?.is_admin && req.user?.id === userId) {
                 req.flash('info', 'you cannot delete yourself');
                 return res.redirect('/admin/users');
             }
+        }
 
-            const user = await ctx.db('users').where({ id: userId }).delete();
+        const userIds = ctx.utils.request.extractIdsForDelete(req);
 
-            if (!user) {
-                throw new ctx.errors.NotFoundError('User not found');
-            }
+        const deletedCount = await ctx.db.transaction(async (trx) => {
+            const rowsAffected = await trx('users')
+                .whereIn('id', userIds)
+                .where('is_admin', false)
+                .delete();
 
-            req.flash('success', 'deleted');
-            return res.redirect('/admin/users');
-        },
-    );
+            return rowsAffected;
+        });
 
-    router.post(
-        '/admin/users/delete-bulk',
-        ctx.middleware.authentication,
-        ctx.middleware.adminOnly,
-        async (req: Request, res: Response) => {
-            const { id } = req.body;
+        if (!deletedCount) {
+            throw new ctx.errors.NotFoundError('User not found');
+        }
 
-            if (!id || !Array.isArray(id)) {
-                throw new ctx.errors.ValidationError({ id: 'IDs array is required' });
-            }
-
-            const userIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
-
-            if (userIds.length === 0) {
-                throw new ctx.errors.ValidationError({ id: 'No valid user IDs provided' });
-            }
-
-            const deletedCount = await ctx.db.transaction(async (trx) => {
-                const rowsAffected = await trx('users')
-                    .whereIn('id', userIds)
-                    .where('is_admin', false)
-                    .delete();
-
-                return rowsAffected;
-            });
-
-            req.flash(
-                'success',
-                `${deletedCount} user${deletedCount !== 1 ? 's' : ''} deleted successfully`,
-            );
-            return res.redirect('/admin/users');
-        },
-    );
+        req.flash(
+            'success',
+            `${deletedCount} user${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+        );
+        return res.redirect('/admin/users');
+    }
 
     return router;
 }

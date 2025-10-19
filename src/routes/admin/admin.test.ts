@@ -68,7 +68,7 @@ describe('Admin Routes', () => {
     });
 
     describe('Bulk Delete', () => {
-        describe('POST /admin/users/delete-bulk', () => {
+        describe('POST /admin/users/delete', () => {
             it('should delete multiple non-admin users', async () => {
                 const adminUser = await ensureTestUserExists('admin@example.com');
                 await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
@@ -94,7 +94,7 @@ describe('Admin Routes', () => {
                 const { agent } = await authenticateAgent(app, 'admin@example.com');
 
                 await agent
-                    .post('/admin/users/delete-bulk')
+                    .post('/admin/users/delete')
                     .send({ id: [user1.id.toString(), user2.id.toString()] })
                     .expect(302);
 
@@ -130,7 +130,7 @@ describe('Admin Routes', () => {
                 const { agent } = await authenticateAgent(app, 'admin@example.com');
 
                 await agent
-                    .post('/admin/users/delete-bulk')
+                    .post('/admin/users/delete')
                     .send({ id: [adminUser2.id.toString(), regularUser.id.toString()] })
                     .expect(302);
 
@@ -147,7 +147,7 @@ describe('Admin Routes', () => {
                 const { agent } = await authenticateAgent(app);
 
                 await agent
-                    .post('/admin/users/delete-bulk')
+                    .post('/admin/users/delete')
                     .send({ id: ['1', '2'] })
                     .expect(401);
             });
@@ -158,7 +158,7 @@ describe('Admin Routes', () => {
 
                 const { agent } = await authenticateAgent(app, 'admin@example.com');
 
-                await agent.post('/admin/users/delete-bulk').type('form').send({}).expect(302);
+                await agent.post('/admin/users/delete').type('form').send({}).expect(302);
             });
         });
     });
