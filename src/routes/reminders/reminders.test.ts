@@ -486,7 +486,7 @@ describe('Reminders Routes', () => {
         });
     });
 
-    describe('POST /reminders/delete-bulk', () => {
+    describe('POST /reminders/delete', () => {
         it('should delete multiple reminders', async () => {
             const { agent, user } = await authenticateAgent(app);
 
@@ -518,7 +518,7 @@ describe('Reminders Routes', () => {
                 .returning('*');
 
             await agent
-                .post('/reminders/delete-bulk')
+                .post('/reminders/delete')
                 .type('form')
                 .send({ id: [reminders[0].id, reminders[1].id] })
                 .expect(302);
@@ -559,7 +559,7 @@ describe('Reminders Routes', () => {
                 .returning('*');
 
             await agent
-                .post('/reminders/delete-bulk')
+                .post('/reminders/delete')
                 .type('form')
                 .send({ id: [userReminder.id, otherReminder.id] })
                 .expect(302);
@@ -574,11 +574,11 @@ describe('Reminders Routes', () => {
         it('should require id array', async () => {
             const { agent } = await authenticateAgent(app);
 
-            await agent.post('/reminders/delete-bulk').type('form').send({}).expect(302);
+            await agent.post('/reminders/delete').type('form').send({}).expect(302);
         });
     });
 
-    describe('POST /api/reminders/delete-bulk', () => {
+    describe('POST /api/reminders/delete', () => {
         it('should delete multiple reminders via API', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
@@ -610,7 +610,7 @@ describe('Reminders Routes', () => {
                 .returning('*');
 
             const response = await agent
-                .post('/api/reminders/delete-bulk')
+                .post('/api/reminders/delete')
                 .send({ id: [reminders[0].id, reminders[1].id] })
                 .expect(200);
 
@@ -635,7 +635,7 @@ describe('Reminders Routes', () => {
                 .returning('*');
 
             const response = await agent
-                .post('/api/reminders/delete-bulk')
+                .post('/api/reminders/delete')
                 .send({ id: [reminder.id, 99999] })
                 .expect(200);
 
@@ -645,7 +645,7 @@ describe('Reminders Routes', () => {
         it('should require id to be an array', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            await agent.post('/api/reminders/delete-bulk').send({ id: 'not-an-array' }).expect(422);
+            await agent.post('/api/reminders/delete').send({ id: 'not-an-array' }).expect(422);
         });
     });
 });

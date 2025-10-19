@@ -140,7 +140,7 @@ export function RemindersRouter(ctx: AppContext) {
                     ? `Bookmark ${title} created successfully and reminder deleted!`
                     : `Bookmark ${title} created successfully!`;
 
-            if (ctx.utils.auth.isApiRequest(req)) {
+            if (ctx.utils.request.isApiRequest(req)) {
                 res.status(201).json({ message: successMessage });
                 return;
             }
@@ -223,7 +223,7 @@ export function RemindersRouter(ctx: AppContext) {
             highlight: !!search,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.json({ data: remindersData, pagination, search, sortKey, direction });
             return;
         }
@@ -349,7 +349,7 @@ export function RemindersRouter(ctx: AppContext) {
                 timing.nextDue instanceof Date ? timing.nextDue.toISOString() : timing.nextDue,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({
                 message: 'Reminder created successfully',
                 data: reminder,
@@ -438,7 +438,7 @@ export function RemindersRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Reminder not found');
         }
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: 'Reminder updated successfully',
                 data: updatedReminder,
@@ -465,69 +465,22 @@ export function RemindersRouter(ctx: AppContext) {
      *
      */
     router.delete('/api/reminders/:id', ctx.middleware.authentication, deleteReminderHandler);
+    router.post('/api/reminders/delete', ctx.middleware.authentication, deleteReminderHandler);
     router.post('/reminders/:id/delete', ctx.middleware.authentication, deleteReminderHandler);
+    router.post('/reminders/delete', ctx.middleware.authentication, deleteReminderHandler);
     async function deleteReminderHandler(req: Request, res: Response) {
         const user = req.user as User;
-        const reminderId = parseInt(req.params.id as string);
+        const reminderIds = ctx.utils.request.extractIdsForDelete(req);
+        const deletedCount = await ctx.models.reminders.delete(reminderIds, user.id);
 
-        const deleted = await ctx.models.reminders.delete([reminderId], user.id);
-
-        if (!deleted) {
+        if (!deletedCount) {
             throw new ctx.errors.NotFoundError('Reminder not found');
         }
 
-        if (ctx.utils.auth.isApiRequest(req)) {
-            res.status(200).json({ message: 'Reminder deleted successfully' });
-            return;
-        }
-
-        req.flash('success', 'Reminder deleted successfully');
-        return res.redirect('/reminders');
-    }
-
-    /**
-     *
-     * POST /reminders/delete-bulk
-     *
-     * @tags Reminders
-     * @summary delete multiple reminders
-     *
-     * @security BearerAuth
-     *
-     * @param {array} id.form.required - array of reminder ids
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.post('/reminders/delete-bulk', ctx.middleware.authentication, bulkDeleteReminderHandler);
-    router.post(
-        '/api/reminders/delete-bulk',
-        ctx.middleware.authentication,
-        bulkDeleteReminderHandler,
-    );
-    async function bulkDeleteReminderHandler(req: Request, res: Response) {
-        const { id } = req.body;
-
-        if (!id || !Array.isArray(id)) {
-            throw new ctx.errors.ValidationError({ id: 'IDs array is required' });
-        }
-
-        const reminderIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
-
-        if (reminderIds.length === 0) {
-            throw new ctx.errors.ValidationError({ id: 'No valid reminder IDs provided' });
-        }
-
-        const user = req.user as User;
-        const deletedCount = await ctx.models.reminders.delete(reminderIds, user.id);
-
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: `${deletedCount} reminder${deletedCount !== 1 ? 's' : ''} deleted successfully`,
-                data: {
-                    deletedCount,
-                },
+                data: { deletedCount },
             });
             return;
         }
