@@ -395,3 +395,239 @@ describe.concurrent('isApiRequest', () => {
         expect(requestUtils.isApiRequest(req)).toBe(false);
     });
 });
+
+describe('canViewHiddenItems', () => {
+    it('should return true when all conditions are met', () => {
+        const now = Date.now();
+        const req = {
+            query: { hidden: 'true' },
+            session: {
+                hiddenItemsVerified: true,
+                hiddenItemsVerifiedAt: now - 5 * 60 * 1000, // 5 minutes ago
+            },
+        } as unknown as Request;
+
+        const user = {
+            hidden_items_password: 'hashed-password',
+        } as any;
+
+        const result = requestUtils.canViewHiddenItems(req, user);
+        expect(result.canViewHidden).toBe(true);
+        expect(result.hasVerifiedPassword).toBe(true);
+        expect(result.showHidden).toBe(true);
+    });
+
+    it('should return false when query.hidden is not "true"', () => {
+        const now = Date.now();
+        const req = {
+            query: { hidden: 'false' },
+            session: {
+                hiddenItemsVerified: true,
+                hiddenItemsVerifiedAt: now - 5 * 60 * 1000,
+            },
+        } as unknown as Request;
+
+        const user = {
+            hidden_items_password: 'hashed-password',
+        } as any;
+
+        const result = requestUtils.canViewHiddenItems(req, user);
+        expect(result.canViewHidden).toBe(false);
+        expect(result.hasVerifiedPassword).toBe(true);
+        expect(result.showHidden).toBe(false);
+    });
+
+    it('should return false when query.hidden is missing', () => {
+        const now = Date.now();
+        const req = {
+            query: {},
+            session: {
+                hiddenItemsVerified: true,
+                hiddenItemsVerifiedAt: now - 5 * 60 * 1000,
+            },
+        } as unknown as Request;
+
+        const user = {
+            hidden_items_password: 'hashed-password',
+        } as any;
+
+        const result = requestUtils.canViewHiddenItems(req, user);
+        expect(result.canViewHidden).toBe(false);
+        expect(result.hasVerifiedPassword).toBe(true);
+        expect(result.showHidden).toBe(false);
+    });
+
+    it('should return false when session is not verified', () => {
+        const now = Date.now();
+        const req = {
+            query: { hidden: 'true' },
+            session: {
+                hiddenItemsVerified: false,
+                hiddenItemsVerifiedAt: now - 5 * 60 * 1000,
+            },
+        } as unknown as Request;
+
+        const user = {
+            hidden_items_password: 'hashed-password',
+        } as any;
+
+        const result = requestUtils.canViewHiddenItems(req, user);
+        expect(result.canViewHidden).toBe(false);
+        expect(result.hasVerifiedPassword).toBe(false);
+        expect(result.showHidden).toBe(true);
+    });
+
+    it('should return false when session verification is expired (31 minutes old)', () => {
+        const now = Date.now();
+        const req = {
+            query: { hidden: 'true' },
+            session: {
+                hiddenItemsVerified: true,
+                hiddenItemsVerifiedAt: now - 31 * 60 * 1000, // 31 minutes ago
+            },
+        } as unknown as Request;
+
+        const user = {
+            hidden_items_password: 'hashed-password',
+        } as any;
+
+        const result = requestUtils.canViewHiddenItems(req, user);
+        expect(result.canViewHidden).toBe(false);
+        expect(result.hasVerifiedPassword).toBe(false);
+        expect(result.showHidden).toBe(true);
+    });
+
+    it('should return true when verification is 29 minutes old (still valid)', () => {
+        const now = Date.now();
+        const req = {
+            query: { hidden: 'true' },
+            session: {
+                hiddenItemsVerified: true,
+                hiddenItemsVerifiedAt: now - 29 * 60 * 1000, // 29 minutes ago
+            },
+        } as unknown as Request;
+
+        const user = {
+            hidden_items_password: 'hashed-password',
+        } as any;
+
+        const result = requestUtils.canViewHiddenItems(req, user);
+        expect(result.canViewHidden).toBe(true);
+        expect(result.hasVerifiedPassword).toBe(true);
+        expect(result.showHidden).toBe(true);
+    });
+
+    it('should return false when user does not have hidden_items_password', () => {
+        const now = Date.now();
+        const req = {
+            query: { hidden: 'true' },
+            session: {
+                hiddenItemsVerified: true,
+                hiddenItemsVerifiedAt: now - 5 * 60 * 1000,
+            },
+        } as unknown as Request;
+
+        const user = {
+            hidden_items_password: null,
+        } as any;
+
+        const result = requestUtils.canViewHiddenItems(req, user);
+        expect(result.canViewHidden).toBe(false);
+        expect(result.hasVerifiedPassword).toBe(true);
+        expect(result.showHidden).toBe(true);
+    });
+
+    it('should return false when user has empty hidden_items_password', () => {
+        const now = Date.now();
+        const req = {
+            query: { hidden: 'true' },
+            session: {
+                hiddenItemsVerified: true,
+                hiddenItemsVerifiedAt: now - 5 * 60 * 1000,
+            },
+        } as unknown as Request;
+
+        const user = {
+            hidden_items_password: '',
+        } as any;
+
+        const result = requestUtils.canViewHiddenItems(req, user);
+        expect(result.canViewHidden).toBe(false);
+        expect(result.hasVerifiedPassword).toBe(true);
+        expect(result.showHidden).toBe(true);
+    });
+
+    it('should return false when hiddenItemsVerifiedAt is missing', () => {
+        const req = {
+            query: { hidden: 'true' },
+            session: {
+                hiddenItemsVerified: true,
+                hiddenItemsVerifiedAt: undefined,
+            },
+        } as unknown as Request;
+
+        const user = {
+            hidden_items_password: 'hashed-password',
+        } as any;
+
+        const result = requestUtils.canViewHiddenItems(req, user);
+        expect(result.canViewHidden).toBe(false);
+        expect(result.hasVerifiedPassword).toBe(false);
+        expect(result.showHidden).toBe(true);
+    });
+
+    it('should return false when session is missing', () => {
+        const req = {
+            query: { hidden: 'true' },
+            session: undefined,
+        } as unknown as Request;
+
+        const user = {
+            hidden_items_password: 'hashed-password',
+        } as any;
+
+        const result = requestUtils.canViewHiddenItems(req, user);
+        expect(result.canViewHidden).toBe(false);
+        expect(result.hasVerifiedPassword).toBe(false);
+        expect(result.showHidden).toBe(true);
+    });
+
+    it('should return false when hiddenItemsVerified is missing', () => {
+        const now = Date.now();
+        const req = {
+            query: { hidden: 'true' },
+            session: {
+                hiddenItemsVerifiedAt: now - 5 * 60 * 1000,
+            },
+        } as unknown as Request;
+
+        const user = {
+            hidden_items_password: 'hashed-password',
+        } as any;
+
+        const result = requestUtils.canViewHiddenItems(req, user);
+        expect(result.canViewHidden).toBe(false);
+        expect(result.hasVerifiedPassword).toBe(false);
+        expect(result.showHidden).toBe(true);
+    });
+
+    it('should return true when verification is exactly at 30 minute boundary', () => {
+        const now = Date.now();
+        const req = {
+            query: { hidden: 'true' },
+            session: {
+                hiddenItemsVerified: true,
+                hiddenItemsVerifiedAt: now - 30 * 60 * 1000 + 1, // Just under 30 minutes
+            },
+        } as unknown as Request;
+
+        const user = {
+            hidden_items_password: 'hashed-password',
+        } as any;
+
+        const result = requestUtils.canViewHiddenItems(req, user);
+        expect(result.canViewHidden).toBe(true);
+        expect(result.hasVerifiedPassword).toBe(true);
+        expect(result.showHidden).toBe(true);
+    });
+});

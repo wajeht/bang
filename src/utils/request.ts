@@ -124,5 +124,23 @@ export function RequestUtils(context: AppContext) {
 
             return acceptsJson === true && sendsJson === true;
         },
+
+        canViewHiddenItems(req: Request, user: User) {
+            const showHidden = req.query?.hidden === 'true';
+            const hasVerifiedPassword = !!(
+                req.session?.hiddenItemsVerified &&
+                req.session?.hiddenItemsVerifiedAt &&
+                Date.now() - req.session.hiddenItemsVerifiedAt < 30 * 60 * 1000 // 30 minutes
+            );
+
+            const canViewHidden =
+                showHidden && hasVerifiedPassword && !!user?.hidden_items_password;
+
+            return {
+                canViewHidden,
+                hasVerifiedPassword,
+                showHidden,
+            };
+        },
     };
 }

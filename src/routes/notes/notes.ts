@@ -32,14 +32,10 @@ export function NotesRouter(ctx: AppContext) {
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'notes');
 
-        // Check if user wants to show hidden items and has verified password
-        const showHidden = req.query.hidden === 'true';
-        const hasVerifiedPassword =
-            req.session?.hiddenItemsVerified &&
-            req.session?.hiddenItemsVerifiedAt &&
-            Date.now() - req.session.hiddenItemsVerifiedAt < 30 * 60 * 1000; // 30 minutes
-
-        const canViewHidden = showHidden && hasVerifiedPassword && user.hidden_items_password;
+        const { canViewHidden, hasVerifiedPassword } = ctx.utils.request.canViewHiddenItems(
+            req,
+            user,
+        );
 
         const { data, pagination } = await ctx.models.notes.all({
             user,
