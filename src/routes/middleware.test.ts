@@ -3,8 +3,8 @@ import { db } from '../tests/test-setup';
 import { Session } from 'express-session';
 import type { User, AppContext } from '../type';
 import type { Request, Response, NextFunction } from 'express';
-import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { AuthenticationMiddleware, ErrorMiddleware } from './middleware';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from '../error';
 
 describe('authenticationMiddleware', () => {

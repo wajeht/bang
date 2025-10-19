@@ -1,5 +1,5 @@
-import { config } from '../config';
 import { libs } from '../libs';
+import { config } from '../config';
 import { AuthUtils } from './auth';
 import { db } from '../tests/test-setup';
 import type { ApiKeyPayload, MagicLinkPayload } from '../type';

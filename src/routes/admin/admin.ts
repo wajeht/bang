@@ -1,5 +1,5 @@
-import type { Request, Response } from 'express';
 import type { AppContext } from '../../type';
+import type { Request, Response } from 'express';
 
 export function AdminRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
