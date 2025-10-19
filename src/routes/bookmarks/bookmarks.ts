@@ -51,11 +51,11 @@ export function BookmarksRouter(ctx: AppContext) {
             search,
             sortKey,
             direction,
-            highlight: !ctx.utils.auth.isApiRequest(req),
+            highlight: !ctx.utils.request.isApiRequest(req),
             excludeHidden: !canViewHidden,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.json({ data, pagination, search, sortKey, direction });
             return;
         }
@@ -264,7 +264,7 @@ export function BookmarksRouter(ctx: AppContext) {
             0,
         );
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({ message: `Bookmark ${title} created successfully!` });
             return;
         }
@@ -342,7 +342,7 @@ export function BookmarksRouter(ctx: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: `Bookmark ${updatedBookmark.title} updated successfully!`,
                 data: updatedBookmark,
@@ -377,69 +377,22 @@ export function BookmarksRouter(ctx: AppContext) {
      *
      */
     router.delete('/api/bookmarks/:id', ctx.middleware.authentication, deleteBookmarkHandler);
+    router.post('/api/bookmarks/delete', ctx.middleware.authentication, deleteBookmarkHandler);
     router.post('/bookmarks/:id/delete', ctx.middleware.authentication, deleteBookmarkHandler);
+    router.post('/bookmarks/delete', ctx.middleware.authentication, deleteBookmarkHandler);
     async function deleteBookmarkHandler(req: Request, res: Response) {
-        const deleted = await ctx.models.bookmarks.delete(
-            [req.params.id as unknown as number],
-            (req.user as User).id,
-        );
+        const user = req.user as User;
+        const bookmarkIds = ctx.utils.request.extractIdsForDelete(req);
+        const deletedCount = await ctx.models.bookmarks.delete(bookmarkIds, user.id);
 
-        if (!deleted) {
+        if (!deletedCount) {
             throw new ctx.errors.NotFoundError('Bookmark not found');
         }
 
-        if (ctx.utils.auth.isApiRequest(req)) {
-            res.status(200).json({ message: 'Bookmark deleted successfully' });
-            return;
-        }
-
-        req.flash('success', 'Bookmark deleted successfully');
-        return res.redirect('/bookmarks');
-    }
-
-    /**
-     *
-     * POST /bookmarks/delete-bulk
-     *
-     * @tags Bookmarks
-     * @summary delete multiple bookmarks
-     *
-     * @security BearerAuth
-     *
-     * @param {array} id.form.required - array of bookmark ids
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.post('/bookmarks/delete-bulk', ctx.middleware.authentication, bulkDeleteBookmarkHandler);
-    router.post(
-        '/api/bookmarks/delete-bulk',
-        ctx.middleware.authentication,
-        bulkDeleteBookmarkHandler,
-    );
-    async function bulkDeleteBookmarkHandler(req: Request, res: Response) {
-        const { id } = req.body;
-
-        if (!id || !Array.isArray(id)) {
-            throw new ctx.errors.ValidationError({ id: 'IDs array is required' });
-        }
-
-        const bookmarkIds = id.map((id: string) => parseInt(id)).filter((id: number) => !isNaN(id));
-
-        if (bookmarkIds.length === 0) {
-            throw new ctx.errors.ValidationError({ id: 'No valid bookmark IDs provided' });
-        }
-
-        const user = req.user as User;
-        const deletedCount = await ctx.models.bookmarks.delete(bookmarkIds, user.id);
-
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: `${deletedCount} bookmark${deletedCount !== 1 ? 's' : ''} deleted successfully`,
-                data: {
-                    deletedCount,
-                },
+                data: { deletedCount },
             });
             return;
         }
@@ -481,7 +434,7 @@ export function BookmarksRouter(ctx: AppContext) {
             pinned: !currentBookmark.pinned,
         });
 
-        if (ctx.utils.auth.isApiRequest(req)) {
+        if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: `Bookmark ${updatedBookmark.pinned ? 'pinned' : 'unpinned'} successfully`,
                 data: updatedBookmark,
@@ -543,7 +496,7 @@ export function BookmarksRouter(ctx: AppContext) {
 
             await ctx.utils.util.addToTabs(user.id, tab_id, 'bookmarks', id);
 
-            if (ctx.utils.auth.isApiRequest(req)) {
+            if (ctx.utils.request.isApiRequest(req)) {
                 res.status(201).json({ message: 'Tab added successfully' });
                 return;
             }

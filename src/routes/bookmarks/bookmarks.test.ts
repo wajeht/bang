@@ -259,7 +259,7 @@ describe('Bookmarks Routes', () => {
         });
     });
 
-    describe('POST /bookmarks/delete-bulk', () => {
+    describe('POST /bookmarks/delete', () => {
         it('should delete multiple bookmarks', async () => {
             const { agent, user } = await authenticateAgent(app);
 
@@ -272,7 +272,7 @@ describe('Bookmarks Routes', () => {
                 .returning('*');
 
             await agent
-                .post('/bookmarks/delete-bulk')
+                .post('/bookmarks/delete')
                 .type('form')
                 .send({ id: [bookmarks[0].id, bookmarks[1].id] })
                 .expect(302);
@@ -307,7 +307,7 @@ describe('Bookmarks Routes', () => {
                 .returning('*');
 
             await agent
-                .post('/bookmarks/delete-bulk')
+                .post('/bookmarks/delete')
                 .type('form')
                 .send({ id: [userBookmark.id, otherBookmark.id] })
                 .expect(302);
@@ -322,11 +322,11 @@ describe('Bookmarks Routes', () => {
         it('should require id array', async () => {
             const { agent } = await authenticateAgent(app);
 
-            await agent.post('/bookmarks/delete-bulk').type('form').send({}).expect(302);
+            await agent.post('/bookmarks/delete').type('form').send({}).expect(302);
         });
     });
 
-    describe('POST /api/bookmarks/delete-bulk', () => {
+    describe('POST /api/bookmarks/delete', () => {
         it('should delete multiple bookmarks via API', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
@@ -339,7 +339,7 @@ describe('Bookmarks Routes', () => {
                 .returning('*');
 
             const response = await agent
-                .post('/api/bookmarks/delete-bulk')
+                .post('/api/bookmarks/delete')
                 .send({ id: [bookmarks[0].id, bookmarks[1].id] })
                 .expect(200);
 
@@ -359,7 +359,7 @@ describe('Bookmarks Routes', () => {
                 .returning('*');
 
             const response = await agent
-                .post('/api/bookmarks/delete-bulk')
+                .post('/api/bookmarks/delete')
                 .send({ id: [bookmark.id, 99999] })
                 .expect(200);
 
@@ -369,7 +369,7 @@ describe('Bookmarks Routes', () => {
         it('should require id to be an array', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            await agent.post('/api/bookmarks/delete-bulk').send({ id: 'not-an-array' }).expect(422);
+            await agent.post('/api/bookmarks/delete').send({ id: 'not-an-array' }).expect(422);
         });
     });
 });
