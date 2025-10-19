@@ -425,6 +425,99 @@ describe('Notes Routes', () => {
         });
     });
 
+    describe('GET /notes/:id/download', () => {
+        it('should require authentication', async () => {
+            await request(app)
+                .get('/notes/1/download')
+                .expect(302)
+                .expect('Location', '/?modal=login');
+        });
+
+        it('should return 404 for non-existent note', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            await agent.get('/notes/99999/download').expect(404);
+        });
+
+        it('should download note as markdown for owner', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const [note] = await db('notes')
+                .insert({
+                    user_id: user.id,
+                    title: 'Test Note',
+                    content: '# Heading\n\nThis is **markdown** content.',
+                    pinned: false,
+                })
+                .returning('*');
+
+            const response = await agent.get(`/notes/${note.id}/download`).expect(200);
+
+            expect(response.headers['content-type']).toContain('text/markdown');
+            expect(response.headers['content-disposition']).toContain('attachment');
+            expect(response.headers['content-disposition']).toContain('test-note.md');
+            expect(response.text).toBe('# Heading\n\nThis is **markdown** content.');
+        });
+
+        it('should convert title to dash-case for filename', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const [note] = await db('notes')
+                .insert({
+                    user_id: user.id,
+                    title: 'My Cool Note Title!',
+                    content: 'Test content',
+                    pinned: false,
+                })
+                .returning('*');
+
+            const response = await agent.get(`/notes/${note.id}/download`).expect(200);
+
+            expect(response.headers['content-disposition']).toContain('my-cool-note-title.md');
+        });
+
+        it('should handle special characters in title for filename', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const [note] = await db('notes')
+                .insert({
+                    user_id: user.id,
+                    title: 'Test@#$%Note   With  Spaces',
+                    content: 'Test content',
+                    pinned: false,
+                })
+                .returning('*');
+
+            const response = await agent.get(`/notes/${note.id}/download`).expect(200);
+
+            expect(response.headers['content-disposition']).toContain('testnote-with-spaces.md');
+        });
+
+        it('should not allow downloading notes from other users', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const [otherUser] = await db('users')
+                .insert({
+                    username: 'otheruser5',
+                    email: 'other5@example.com',
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                })
+                .returning('*');
+
+            const [note] = await db('notes')
+                .insert({
+                    user_id: otherUser.id,
+                    title: 'Other User Note',
+                    content: 'Other content',
+                    pinned: false,
+                })
+                .returning('*');
+
+            await agent.get(`/notes/${note.id}/download`).expect(404);
+        });
+    });
+
     describe('POST /api/notes/render-markdown', () => {
         it('should require authentication', async () => {
             await request(app)
