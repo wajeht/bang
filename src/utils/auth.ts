@@ -1,31 +1,7 @@
-import type { Request } from 'express';
 import type { ApiKeyPayload, MagicLinkPayload, AppContext } from '../type';
 
 export function AuthUtils(context: AppContext) {
     return {
-        expectsJson(req: Request): boolean {
-            return req.header('Content-Type')?.includes('application/json') || false;
-        },
-
-        isApiRequest(req: Request): boolean {
-            if (req.path.startsWith('/api/')) {
-                return true;
-            }
-
-            if (this.extractApiKey(req)) {
-                return true;
-            }
-
-            const acceptsJson = req.header('Accept')?.includes('application/json');
-            const sendsJson = req.header('Content-Type')?.includes('application/json');
-
-            if (req.method === 'GET' || req.method === 'HEAD') {
-                return acceptsJson === true;
-            }
-
-            return acceptsJson === true && sendsJson === true;
-        },
-
         async verifyApiKey(apiKey: string): Promise<ApiKeyPayload | null> {
             try {
                 const decodedApiKeyPayload = context.libs.jwt.verify(
@@ -49,17 +25,6 @@ export function AuthUtils(context: AppContext) {
                 context.logger.error(`[verifyApiKey]: failed to verify api key: %o`, { error });
                 return null;
             }
-        },
-
-        extractApiKey(req: Request): string | undefined {
-            const apiKey = req.header('X-API-KEY');
-            const authHeader = req.header('Authorization');
-
-            if (authHeader?.startsWith('Bearer ')) {
-                return authHeader.substring(7);
-            }
-
-            return apiKey;
         },
 
         async generateApiKey(payload: ApiKeyPayload): Promise<string> {

@@ -292,7 +292,7 @@ describe.concurrent('getApiKey', () => {
             header: vi.fn().mockReturnValue('test-api-key'),
         } as unknown as Request;
 
-        expect(authUtils.extractApiKey(req)).toBe('test-api-key');
+        expect(requestUtils.extractApiKey(req)).toBe('test-api-key');
         expect(req.header).toHaveBeenCalledWith('X-API-KEY');
     });
 
@@ -301,7 +301,7 @@ describe.concurrent('getApiKey', () => {
             header: vi.fn().mockReturnValue('Bearer test-bearer-token'),
         } as unknown as Request;
 
-        expect(authUtils.extractApiKey(req)).toBe('test-bearer-token');
+        expect(requestUtils.extractApiKey(req)).toBe('test-bearer-token');
         expect(req.header).toHaveBeenCalledWith('Authorization');
     });
 
@@ -310,7 +310,7 @@ describe.concurrent('getApiKey', () => {
             header: vi.fn().mockReturnValue(undefined),
         } as unknown as Request;
 
-        expect(authUtils.extractApiKey(req)).toBeUndefined();
+        expect(requestUtils.extractApiKey(req)).toBeUndefined();
     });
 });
 
@@ -321,7 +321,7 @@ describe.concurrent('isApiRequest', () => {
             path: '/some/path',
         } as unknown as Request;
 
-        expect(authUtils.isApiRequest(req)).toBe(true);
+        expect(requestUtils.isApiRequest(req)).toBe(true);
     });
 
     it('should return true if path starts with /api', () => {
@@ -330,7 +330,7 @@ describe.concurrent('isApiRequest', () => {
             path: '/api/some/path',
         } as unknown as Request;
 
-        expect(authUtils.isApiRequest(req)).toBe(true);
+        expect(requestUtils.isApiRequest(req)).toBe(true);
     });
 
     it('should return true if expectJson returns true', () => {
@@ -339,7 +339,7 @@ describe.concurrent('isApiRequest', () => {
             path: '/some/path',
         } as unknown as Request;
 
-        expect(authUtils.isApiRequest(req)).toBe(true);
+        expect(requestUtils.isApiRequest(req)).toBe(true);
     });
 
     it('should return false if none of the conditions are met', () => {
@@ -348,7 +348,7 @@ describe.concurrent('isApiRequest', () => {
             path: '/some/path',
         } as unknown as Request;
 
-        expect(authUtils.isApiRequest(req)).toBe(false);
+        expect(requestUtils.isApiRequest(req)).toBe(false);
     });
 });
 
@@ -358,7 +358,7 @@ describe.concurrent('expectJson', () => {
             header: vi.fn().mockReturnValue('application/json'),
         } as unknown as Request;
 
-        expect(authUtils.expectsJson(req)).toBe(true);
+        expect(requestUtils.expectsJson(req)).toBe(true);
     });
 
     it('should return false if Content-Type is not application/json', () => {
@@ -366,7 +366,7 @@ describe.concurrent('expectJson', () => {
             header: vi.fn().mockReturnValue('text/html'),
         } as unknown as Request;
 
-        expect(authUtils.expectsJson(req)).toBe(false);
+        expect(requestUtils.expectsJson(req)).toBe(false);
     });
 });
 
