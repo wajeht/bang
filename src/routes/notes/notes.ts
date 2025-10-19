@@ -5,25 +5,45 @@ export function NotesRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     /**
-     * A note
-     * @typedef {object} Note
-     * @property {string} id - note id
-     * @property {string} title.required - note title
-     * @property {string} content.required - note content
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     */
-
-    /**
-     * GET /api/notes
-     *
-     * @tags Notes
-     * @summary Get all notes
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
+     * @openapi
+     * /api/notes:
+     *   get:
+     *     tags:
+     *       - Notes
+     *     summary: Get all notes
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: query
+     *         name: page
+     *         schema:
+     *           type: integer
+     *       - in: query
+     *         name: perPage
+     *         schema:
+     *           type: integer
+     *       - in: query
+     *         name: search
+     *         schema:
+     *           type: string
+     *       - in: query
+     *         name: sortKey
+     *         schema:
+     *           type: string
+     *       - in: query
+     *         name: direction
+     *         schema:
+     *           type: string
+     *           enum: [asc, desc]
+     *       - in: query
+     *         name: hidden
+     *         schema:
+     *           type: boolean
+     *     responses:
+     *       200:
+     *         description: Success response
+     *       400:
+     *         description: Bad request
      */
     router.get('/api/notes', ctx.middleware.authentication, getNotesHandler);
     router.get('/notes', ctx.middleware.authentication, getNotesHandler);
@@ -116,19 +136,27 @@ export function NotesRouter(ctx: AppContext) {
     );
 
     /**
-     * GET /api/notes/{id}
-     *
-     * @tags Notes
-     * @summary Get a specific note
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     *
-     * @return {Note} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/notes/{id}:
+     *   get:
+     *     tags:
+     *       - Notes
+     *     summary: Get a specific note
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *     responses:
+     *       200:
+     *         description: Success response
+     *       400:
+     *         description: Bad request
+     *       404:
+     *         description: Not found
      */
     router.get('/api/notes/:id', ctx.middleware.authentication, getNoteHandler);
     router.get('/notes/:id', ctx.middleware.authentication, getNoteHandler);
@@ -262,18 +290,37 @@ export function NotesRouter(ctx: AppContext) {
     }
 
     /**
-     * POST /api/notes
-     *
-     * @tags Notes
-     * @summary Create a new note
-     *
-     * @security BearerAuth
-     *
-     * @param {Note} request.body.required - note info
-     *
-     * @return {object} 201 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
+     * @openapi
+     * /api/notes:
+     *   post:
+     *     tags:
+     *       - Notes
+     *     summary: Create a new note
+     *     security:
+     *       - BearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - title
+     *               - content
+     *             properties:
+     *               title:
+     *                 type: string
+     *               content:
+     *                 type: string
+     *               pinned:
+     *                 type: boolean
+     *               hidden:
+     *                 type: boolean
+     *     responses:
+     *       201:
+     *         description: Created successfully
+     *       400:
+     *         description: Bad request
      */
     router.post('/api/notes', ctx.middleware.authentication, postNoteHandler);
     router.post('/notes', ctx.middleware.authentication, postNoteHandler);
@@ -328,20 +375,42 @@ export function NotesRouter(ctx: AppContext) {
     }
 
     /**
-     * PUT /api/notes/{id}
-     *
-     * @tags Notes
-     * @summary Update a note
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     * @param {Note} request.body.required - note info
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/notes/{id}:
+     *   put:
+     *     tags:
+     *       - Notes
+     *     summary: Update a note
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               title:
+     *                 type: string
+     *               content:
+     *                 type: string
+     *               pinned:
+     *                 type: boolean
+     *               hidden:
+     *                 type: boolean
+     *     responses:
+     *       200:
+     *         description: Updated successfully
+     *       400:
+     *         description: Bad request
+     *       404:
+     *         description: Not found
      */
     router.put('/api/notes/:id', ctx.middleware.authentication, updateNoteHandler);
     router.post('/notes/:id/update', ctx.middleware.authentication, updateNoteHandler);
@@ -408,18 +477,25 @@ export function NotesRouter(ctx: AppContext) {
     }
 
     /**
-     * DELETE /api/notes/{id}
-     *
-     * @tags Notes
-     * @summary Delete a note
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/notes/{id}:
+     *   delete:
+     *     tags:
+     *       - Notes
+     *     summary: Delete a note
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *     responses:
+     *       200:
+     *         description: Deleted successfully
+     *       404:
+     *         description: Not found
      */
     router.delete('/api/notes/:id', ctx.middleware.authentication, deleteNoteHandler);
     router.post('/notes/:id/delete', ctx.middleware.authentication, deleteNoteHandler);
@@ -444,18 +520,32 @@ export function NotesRouter(ctx: AppContext) {
     }
 
     /**
-     * POST /api/notes/delete-bulk
-     *
-     * @tags Notes
-     * @summary Delete multiple notes
-     *
-     * @security BearerAuth
-     *
-     * @param {object} request.body.required - Bulk delete request
-     * @param {array<string>} request.body.id - Array of note IDs
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
+     * @openapi
+     * /api/notes/delete-bulk:
+     *   post:
+     *     tags:
+     *       - Notes
+     *     summary: Delete multiple notes
+     *     security:
+     *       - BearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - id
+     *             properties:
+     *               id:
+     *                 type: array
+     *                 items:
+     *                   type: integer
+     *     responses:
+     *       200:
+     *         description: Success response
+     *       400:
+     *         description: Bad request
      *
      */
     router.post('/api/notes/delete-bulk', ctx.middleware.authentication, bulkDeleteNoteHandler);
@@ -494,18 +584,25 @@ export function NotesRouter(ctx: AppContext) {
     }
 
     /**
-     * POST /api/notes/{id}/pin
-     *
-     * @tags Notes
-     * @summary Toggle pin status of a note
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/notes/{id}/pin:
+     *   post:
+     *     tags:
+     *       - Notes
+     *     summary: Toggle pin status of a note
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *     responses:
+     *       200:
+     *         description: Success response
+     *       404:
+     *         description: Not found
      */
     router.post('/api/notes/:id/pin', ctx.middleware.authentication, toggleNotePinHandler);
     router.post('/notes/:id/pin', ctx.middleware.authentication, toggleNotePinHandler);

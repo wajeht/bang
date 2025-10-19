@@ -5,28 +5,62 @@ export function ActionsRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     /**
-     * An action
-     * @typedef {object} Action
-     * @property {string} id - action id
-     * @property {string} url.required - action url
-     * @property {string} name.required - action name
-     * @property {string} actionType.required - action type
-     * @property {string} trigger.required - trigger condition
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     */
-
-    /**
-     *
-     * GET /api/actions
-     *
-     * @tags Actions
-     * @summary get actions
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
+     * @openapi
+     * /api/actions:
+     *   get:
+     *     tags:
+     *       - Actions
+     *     summary: Get all actions
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: query
+     *         name: page
+     *         schema:
+     *           type: integer
+     *         description: Page number
+     *       - in: query
+     *         name: perPage
+     *         schema:
+     *           type: integer
+     *         description: Items per page
+     *       - in: query
+     *         name: search
+     *         schema:
+     *           type: string
+     *         description: Search query
+     *       - in: query
+     *         name: sortKey
+     *         schema:
+     *           type: string
+     *         description: Sort by field
+     *       - in: query
+     *         name: direction
+     *         schema:
+     *           type: string
+     *           enum: [asc, desc]
+     *         description: Sort direction
+     *       - in: query
+     *         name: hidden
+     *         schema:
+     *           type: boolean
+     *         description: Include hidden items
+     *     responses:
+     *       200:
+     *         description: Success response
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                 pagination:
+     *                   type: object
+     *       400:
+     *         description: Bad request response
      */
     router.get('/api/actions', ctx.middleware.authentication, getActionsHandler);
     router.get('/actions', ctx.middleware.authentication, getActionsHandler);
@@ -144,18 +178,53 @@ export function ActionsRouter(ctx: AppContext) {
     );
 
     /**
-     *
-     * POST /api/actions
-     *
-     * @tags Actions
-     * @summary create an action
-     *
-     * @security BearerAuth
-     *
-     * @param {Action} request.body.required - action info
-     *
-     * @return {object} 201 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
+     * @openapi
+     * /api/actions:
+     *   post:
+     *     tags:
+     *       - Actions
+     *     summary: Create an action
+     *     security:
+     *       - BearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - name
+     *               - trigger
+     *               - url
+     *               - action_type
+     *             properties:
+     *               name:
+     *                 type: string
+     *               trigger:
+     *                 type: string
+     *               url:
+     *                 type: string
+     *               action_type:
+     *                 type: string
+     *                 enum: [redirect, search, tab]
+     *               description:
+     *                 type: string
+     *               hidden:
+     *                 type: boolean
+     *     responses:
+     *       201:
+     *         description: Created successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   type: object
+     *       400:
+     *         description: Bad request response
      *
      */
     router.post('/api/actions', ctx.middleware.authentication, postActionHandler);
@@ -246,21 +315,62 @@ export function ActionsRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * PATCH /api/actions/{id}
-     *
-     * @tags Actions
-     * @summary update an action
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - action id
-     * @param {Action} request.body.required - action info
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/actions/{id}:
+     *   patch:
+     *     tags:
+     *       - Actions
+     *     summary: Update an action
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: Action ID
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - name
+     *               - trigger
+     *               - url
+     *               - action_type
+     *             properties:
+     *               name:
+     *                 type: string
+     *               trigger:
+     *                 type: string
+     *               url:
+     *                 type: string
+     *               action_type:
+     *                 type: string
+     *                 enum: [redirect, search, tab]
+     *               description:
+     *                 type: string
+     *               hidden:
+     *                 type: boolean
+     *     responses:
+     *       200:
+     *         description: Updated successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   type: object
+     *       400:
+     *         description: Bad request response
+     *       404:
+     *         description: Not found response
      */
     router.patch('/api/actions/:id', ctx.middleware.authentication, updateActionHandler);
     router.post('/actions/:id/update', ctx.middleware.authentication, updateActionHandler);
@@ -363,20 +473,33 @@ export function ActionsRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * DELETE /api/actions/{id}
-     *
-     * @tags Actions
-     * @summary delete an action
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - action id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/actions/{id}:
+     *   delete:
+     *     tags:
+     *       - Actions
+     *     summary: Delete an action
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: Action ID
+     *     responses:
+     *       200:
+     *         description: Deleted successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *       404:
+     *         description: Not found response
      */
     router.delete('/api/actions/:id', ctx.middleware.authentication, deleteActionHandler);
     router.post('/actions/:id/delete', ctx.middleware.authentication, deleteActionHandler);
@@ -400,19 +523,45 @@ export function ActionsRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * POST /actions/delete-bulk
-     *
-     * @tags Actions
-     * @summary delete multiple actions
-     *
-     * @security BearerAuth
-     *
-     * @param {array} id.form.required - array of action ids
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
+     * @openapi
+     * /api/actions/delete-bulk:
+     *   post:
+     *     tags:
+     *       - Actions
+     *     summary: Delete multiple actions
+     *     security:
+     *       - BearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - id
+     *             properties:
+     *               id:
+     *                 type: array
+     *                 items:
+     *                   type: integer
+     *                 description: Array of action IDs to delete
+     *     responses:
+     *       200:
+     *         description: Success response
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     deletedCount:
+     *                       type: integer
+     *       400:
+     *         description: Bad request response
      */
     router.post('/actions/delete-bulk', ctx.middleware.authentication, bulkDeleteActionHandler);
     router.post('/api/actions/delete-bulk', ctx.middleware.authentication, bulkDeleteActionHandler);
@@ -450,20 +599,37 @@ export function ActionsRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * GET /api/actions/{id}
-     *
-     * @tags Actions
-     * @summary get a specific action
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - action id
-     *
-     * @return {Action} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/actions/{id}:
+     *   get:
+     *     tags:
+     *       - Actions
+     *     summary: Get a specific action
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: Action ID
+     *     responses:
+     *       200:
+     *         description: Success response
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   type: object
+     *       400:
+     *         description: Bad request response
+     *       404:
+     *         description: Not found response
      */
     router.get(
         '/api/actions/:id',

@@ -5,28 +5,45 @@ export function BookmarksRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     /**
-     * A bookmark
-     * @typedef {object} Bookmark
-     * @property {number} id - bookmark id
-     * @property {string} url.required - bookmark url
-     * @property {string} title.required - bookmark title
-     * @property {string} description - bookmark description
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     */
-
-    /**
-     *
-     * GET /api/bookmarks
-     *
-     * @tags Bookmarks
-     * @summary get bookmarks
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
+     * @openapi
+     * /api/bookmarks:
+     *   get:
+     *     tags:
+     *       - Bookmarks
+     *     summary: Get all bookmarks
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: query
+     *         name: page
+     *         schema:
+     *           type: integer
+     *       - in: query
+     *         name: perPage
+     *         schema:
+     *           type: integer
+     *       - in: query
+     *         name: search
+     *         schema:
+     *           type: string
+     *       - in: query
+     *         name: sortKey
+     *         schema:
+     *           type: string
+     *       - in: query
+     *         name: direction
+     *         schema:
+     *           type: string
+     *           enum: [asc, desc]
+     *       - in: query
+     *         name: hidden
+     *         schema:
+     *           type: boolean
+     *     responses:
+     *       200:
+     *         description: Success response
+     *       400:
+     *         description: Bad request
      */
     router.get('/api/bookmarks', ctx.middleware.authentication, getBookmarksHandler);
     router.get('/bookmarks', ctx.middleware.authentication, getBookmarksHandler);
@@ -191,19 +208,37 @@ export function BookmarksRouter(ctx: AppContext) {
     );
 
     /**
-     *
-     * POST /api/bookmarks
-     *
-     * @tags Bookmarks
-     * @summary create a bookmark
-     *
-     * @security BearerAuth
-     *
-     * @param {Bookmark} request.body.required - bookmark info
-     *
-     * @return {object} 201 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
+     * @openapi
+     * /api/bookmarks:
+     *   post:
+     *     tags:
+     *       - Bookmarks
+     *     summary: Create a bookmark
+     *     security:
+     *       - BearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - title
+     *               - url
+     *             properties:
+     *               title:
+     *                 type: string
+     *               url:
+     *                 type: string
+     *               pinned:
+     *                 type: boolean
+     *               hidden:
+     *                 type: boolean
+     *     responses:
+     *       201:
+     *         description: Created successfully
+     *       400:
+     *         description: Bad request
      */
     router.post('/api/bookmarks', ctx.middleware.authentication, postBookmarkHandler);
     router.post('/bookmarks', ctx.middleware.authentication, postBookmarkHandler);
@@ -274,21 +309,42 @@ export function BookmarksRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * PATCH /api/bookmarks/{id}
-     *
-     * @tags Bookmarks
-     * @summary update a bookmark
-     *
-     * @security BearerAuth
-     *
-     * @param {number} id.path.required - bookmark id
-     * @param {Bookmark} request.body.required - bookmark info
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/bookmarks/{id}:
+     *   patch:
+     *     tags:
+     *       - Bookmarks
+     *     summary: Update a bookmark
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               title:
+     *                 type: string
+     *               url:
+     *                 type: string
+     *               pinned:
+     *                 type: boolean
+     *               hidden:
+     *                 type: boolean
+     *     responses:
+     *       200:
+     *         description: Updated successfully
+     *       400:
+     *         description: Bad request
+     *       404:
+     *         description: Not found
      */
     router.patch('/api/bookmarks/:id', ctx.middleware.authentication, updateBookmarkHandler);
     router.post('/bookmarks/:id/update', ctx.middleware.authentication, updateBookmarkHandler);
@@ -361,20 +417,25 @@ export function BookmarksRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * DELETE /api/bookmarks/{id}
-     *
-     * @tags Bookmarks
-     * @summary delete a bookmark
-     *
-     * @security BearerAuth
-     *
-     * @param {number} id.path.required - bookmark id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/bookmarks/{id}:
+     *   delete:
+     *     tags:
+     *       - Bookmarks
+     *     summary: Delete a bookmark
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *     responses:
+     *       200:
+     *         description: Deleted successfully
+     *       404:
+     *         description: Not found
      */
     router.delete('/api/bookmarks/:id', ctx.middleware.authentication, deleteBookmarkHandler);
     router.post('/bookmarks/:id/delete', ctx.middleware.authentication, deleteBookmarkHandler);
@@ -398,19 +459,32 @@ export function BookmarksRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * POST /bookmarks/delete-bulk
-     *
-     * @tags Bookmarks
-     * @summary delete multiple bookmarks
-     *
-     * @security BearerAuth
-     *
-     * @param {array} id.form.required - array of bookmark ids
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
+     * @openapi
+     * /api/bookmarks/delete-bulk:
+     *   post:
+     *     tags:
+     *       - Bookmarks
+     *     summary: Delete multiple bookmarks
+     *     security:
+     *       - BearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - id
+     *             properties:
+     *               id:
+     *                 type: array
+     *                 items:
+     *                   type: integer
+     *     responses:
+     *       200:
+     *         description: Success response
+     *       400:
+     *         description: Bad request
      */
     router.post('/bookmarks/delete-bulk', ctx.middleware.authentication, bulkDeleteBookmarkHandler);
     router.post(
@@ -452,18 +526,25 @@ export function BookmarksRouter(ctx: AppContext) {
     }
 
     /**
-     * POST /api/bookmarks/{id}/pin
-     *
-     * @tags Bookmarks
-     * @summary Toggle pin status of a bookmark
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - bookmark id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/bookmarks/{id}/pin:
+     *   post:
+     *     tags:
+     *       - Bookmarks
+     *     summary: Toggle pin status of a bookmark
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *     responses:
+     *       200:
+     *         description: Success response
+     *       404:
+     *         description: Not found
      */
     router.post('/bookmarks/:id/pin', ctx.middleware.authentication, toggleBookmarkPinHandler);
     router.post('/api/bookmarks/:id/pin', ctx.middleware.authentication, toggleBookmarkPinHandler);
@@ -497,19 +578,27 @@ export function BookmarksRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * GET /api/bookmarks/{id}
-     *
-     * @tags Bookmarks
-     * @summary get a specific bookmark
-     *
-     * @security BearerAuth
-     *
-     * @param {number} id.path.required - bookmark id
-     *
-     * @return {Bookmark} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
+     * @openapi
+     * /api/bookmarks/{id}:
+     *   get:
+     *     tags:
+     *       - Bookmarks
+     *     summary: Get a specific bookmark
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *     responses:
+     *       200:
+     *         description: Success response
+     *       400:
+     *         description: Bad request
+     *       404:
+     *         description: Not found
      *
      */
     router.get(

@@ -4,18 +4,6 @@ import type { User, AppContext } from '../../type';
 export function TabsRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
-    /**
-     *
-     * A tab
-     * @typedef {object} Tab
-     * @property {string} id - tab id
-     * @property {string} title.required - tab title
-     * @property {string} trigger.required - tab trigger
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     *
-     */
-
     router.get(
         '/tabs/create',
         ctx.middleware.authentication,
@@ -152,17 +140,41 @@ export function TabsRouter(ctx: AppContext) {
     );
 
     /**
-     *
-     * GET /api/tabs
-     *
-     * @tags Tabs
-     * @summary Get all tabs
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
+     * @openapi
+     * /api/tabs:
+     *   get:
+     *     tags:
+     *       - Tabs
+     *     summary: Get all tabs
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: query
+     *         name: page
+     *         schema:
+     *           type: integer
+     *       - in: query
+     *         name: perPage
+     *         schema:
+     *           type: integer
+     *       - in: query
+     *         name: search
+     *         schema:
+     *           type: string
+     *       - in: query
+     *         name: sortKey
+     *         schema:
+     *           type: string
+     *       - in: query
+     *         name: direction
+     *         schema:
+     *           type: string
+     *           enum: [asc, desc]
+     *     responses:
+     *       200:
+     *         description: Success response
+     *       400:
+     *         description: Bad request
      */
     router.get('/api/tabs', ctx.middleware.authentication, getTabsPageHandler);
     router.get('/tabs', ctx.middleware.authentication, getTabsPageHandler);
@@ -207,20 +219,33 @@ export function TabsRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * POST /api/tabs
-     *
-     * @tags Tabs
-     * @summary create a tab
-     *
-     * @security BearerAuth
-     *
-     * @param {string} request.title.required - tab title
-     * @param {string} request.trigger.required - tab trigger
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
+     * @openapi
+     * /api/tabs:
+     *   post:
+     *     tags:
+     *       - Tabs
+     *     summary: Create a tab
+     *     security:
+     *       - BearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - title
+     *               - trigger
+     *             properties:
+     *               title:
+     *                 type: string
+     *               trigger:
+     *                 type: string
+     *     responses:
+     *       200:
+     *         description: Success response
+     *       400:
+     *         description: Bad request
      */
     router.post('/api/tabs', ctx.middleware.authentication, postTabsPageHandler);
     router.post('/tabs', ctx.middleware.authentication, postTabsPageHandler);
@@ -283,22 +308,41 @@ export function TabsRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * PATCH /api/tabs/{id}
-     *
-     * @tags Tabs
-     * @summary update a tab
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - tab id
-     * @param {string} request.title.required - tab title
-     * @param {string} request.trigger.required - tab trigger
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/tabs/{id}:
+     *   patch:
+     *     tags:
+     *       - Tabs
+     *     summary: Update a tab
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - title
+     *               - trigger
+     *             properties:
+     *               title:
+     *                 type: string
+     *               trigger:
+     *                 type: string
+     *     responses:
+     *       200:
+     *         description: Updated successfully
+     *       400:
+     *         description: Bad request
+     *       404:
+     *         description: Not found
      */
     router.patch('/api/tabs/:id', ctx.middleware.authentication, updateTabHandler);
     router.post('/tabs/:id/update', ctx.middleware.authentication, updateTabHandler);
@@ -367,20 +411,25 @@ export function TabsRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * DELETE /api/tabs/{id}
-     *
-     * @tags Tabs
-     * @summary delete a tab
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - tab id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/tabs/{id}:
+     *   delete:
+     *     tags:
+     *       - Tabs
+     *     summary: Delete a tab
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *     responses:
+     *       200:
+     *         description: Deleted successfully
+     *       404:
+     *         description: Not found
      */
     router.delete('/api/tabs/:id', ctx.middleware.authentication, deleteTabHandler);
     router.post('/tabs/:id/delete', ctx.middleware.authentication, deleteTabHandler);
@@ -404,20 +453,32 @@ export function TabsRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * POST /api/tabs/delete-bulk
-     *
-     * @tags Tabs
-     * @summary Delete multiple tabs
-     *
-     * @security BearerAuth
-     *
-     * @param {object} request.body.required - Bulk delete request
-     * @param {array<string>} request.body.id - Array of tab IDs
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
+     * @openapi
+     * /api/tabs/delete-bulk:
+     *   post:
+     *     tags:
+     *       - Tabs
+     *     summary: Delete multiple tabs
+     *     security:
+     *       - BearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - id
+     *             properties:
+     *               id:
+     *                 type: array
+     *                 items:
+     *                   type: integer
+     *     responses:
+     *       200:
+     *         description: Success response
+     *       400:
+     *         description: Bad request
      */
     router.post('/api/tabs/delete-bulk', ctx.middleware.authentication, bulkDeleteTabHandler);
     router.post('/tabs/delete-bulk', ctx.middleware.authentication, bulkDeleteTabHandler);
@@ -468,20 +529,40 @@ export function TabsRouter(ctx: AppContext) {
      */
 
     /**
-     *
-     * POST /api/tabs/{id}/items
-     *
-     * @tags Tab Items
-     * @summary create a tab item
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - tab id
-     * @param {TabItem} request.body.required - tab item info
-     *
-     * @return {object} 201 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
+     * @openapi
+     * /api/tabs/{id}/items:
+     *   post:
+     *     tags:
+     *       - Tab Items
+     *     summary: Create a tab item
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: Tab ID
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - title
+     *               - url
+     *             properties:
+     *               title:
+     *                 type: string
+     *               url:
+     *                 type: string
+     *     responses:
+     *       201:
+     *         description: Created successfully
+     *       400:
+     *         description: Bad request
      */
     router.post('/api/tabs/:id/items', ctx.middleware.authentication, postTabItemCreateHandler);
     router.post('/tabs/:id/items/create', ctx.middleware.authentication, postTabItemCreateHandler);

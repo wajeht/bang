@@ -4,19 +4,6 @@ import type { User, AppContext } from '../../type';
 export function RemindersRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
-    /**
-     * A reminder
-     * @typedef {object} Reminder
-     * @property {string} id - reminder id
-     * @property {string} title.required - reminder title
-     * @property {string} content - reminder content
-     * @property {string} reminder_type.required - reminder type
-     * @property {string} frequency - reminder frequency
-     * @property {string} due_date - reminder due date
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     */
-
     router.get(
         '/reminders/create',
         ctx.middleware.authentication,
@@ -196,15 +183,57 @@ export function RemindersRouter(ctx: AppContext) {
     );
 
     /**
-     * GET /api/reminders
-     *
-     * @tags Reminders
-     * @summary Get all reminders
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
+     * @openapi
+     * /api/reminders:
+     *   get:
+     *     tags:
+     *       - Reminders
+     *     summary: Get all reminders
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: query
+     *         name: page
+     *         schema:
+     *           type: integer
+     *         description: Page number
+     *       - in: query
+     *         name: perPage
+     *         schema:
+     *           type: integer
+     *         description: Items per page
+     *       - in: query
+     *         name: search
+     *         schema:
+     *           type: string
+     *         description: Search query
+     *       - in: query
+     *         name: sortKey
+     *         schema:
+     *           type: string
+     *         description: Sort by field
+     *       - in: query
+     *         name: direction
+     *         schema:
+     *           type: string
+     *           enum: [asc, desc]
+     *         description: Sort direction
+     *     responses:
+     *       200:
+     *         description: Success response
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                 pagination:
+     *                   type: object
+     *       400:
+     *         description: Bad request response
      */
     router.get('/api/reminders', ctx.middleware.authentication, getRemindersHandler);
     router.get('/reminders', ctx.middleware.authentication, getRemindersHandler);
@@ -242,19 +271,37 @@ export function RemindersRouter(ctx: AppContext) {
     }
 
     /**
-     * GET /api/reminders/{id}
-     *
-     * @tags Reminders
-     * @summary Get a specific reminder
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - reminder id
-     *
-     * @return {Reminder} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/reminders/{id}:
+     *   get:
+     *     tags:
+     *       - Reminders
+     *     summary: Get a specific reminder
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: Reminder ID
+     *     responses:
+     *       200:
+     *         description: Success response
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   type: object
+     *       400:
+     *         description: Bad request response
+     *       404:
+     *         description: Not found response
      */
     router.get(
         '/api/reminders/:id',
@@ -279,18 +326,50 @@ export function RemindersRouter(ctx: AppContext) {
     );
 
     /**
-     * POST /api/reminders
-     *
-     * @tags Reminders
-     * @summary Create a new reminder
-     *
-     * @security BearerAuth
-     *
-     * @param {Reminder} request.body.required - reminder info
-     *
-     * @return {object} 201 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
+     * @openapi
+     * /api/reminders:
+     *   post:
+     *     tags:
+     *       - Reminders
+     *     summary: Create a new reminder
+     *     security:
+     *       - BearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - title
+     *               - when
+     *             properties:
+     *               title:
+     *                 type: string
+     *               content:
+     *                 type: string
+     *               when:
+     *                 type: string
+     *                 enum: [tomorrow, next_week, next_month, custom]
+     *               custom_date:
+     *                 type: string
+     *                 format: date
+     *               custom_time:
+     *                 type: string
+     *     responses:
+     *       201:
+     *         description: Success response
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   type: object
+     *       400:
+     *         description: Bad request response
      */
     router.post('/api/reminders', ctx.middleware.authentication, postReminderHandler);
     router.post('/reminders', ctx.middleware.authentication, postReminderHandler);
@@ -362,20 +441,58 @@ export function RemindersRouter(ctx: AppContext) {
     }
 
     /**
-     * PATCH /api/reminders/{id}
-     *
-     * @tags Reminders
-     * @summary Update a reminder
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - reminder id
-     * @param {Reminder} request.body.required - reminder info
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/reminders/{id}:
+     *   patch:
+     *     tags:
+     *       - Reminders
+     *     summary: Update a reminder
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: Reminder ID
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - title
+     *               - when
+     *             properties:
+     *               title:
+     *                 type: string
+     *               content:
+     *                 type: string
+     *               when:
+     *                 type: string
+     *               custom_date:
+     *                 type: string
+     *                 format: date
+     *               custom_time:
+     *                 type: string
+     *     responses:
+     *       200:
+     *         description: Success response
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   type: object
+     *       400:
+     *         description: Bad request response
+     *       404:
+     *         description: Not found response
      */
     router.patch('/api/reminders/:id', ctx.middleware.authentication, updateReminderHandler);
     router.post('/reminders/:id/update', ctx.middleware.authentication, updateReminderHandler);
@@ -451,18 +568,33 @@ export function RemindersRouter(ctx: AppContext) {
     }
 
     /**
-     * DELETE /api/reminders/{id}
-     *
-     * @tags Reminders
-     * @summary Delete a reminder
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - reminder id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
+     * @openapi
+     * /api/reminders/{id}:
+     *   delete:
+     *     tags:
+     *       - Reminders
+     *     summary: Delete a reminder
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: Reminder ID
+     *     responses:
+     *       200:
+     *         description: Success response
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *       404:
+     *         description: Not found response
      */
     router.delete('/api/reminders/:id', ctx.middleware.authentication, deleteReminderHandler);
     router.post('/reminders/:id/delete', ctx.middleware.authentication, deleteReminderHandler);
@@ -486,19 +618,45 @@ export function RemindersRouter(ctx: AppContext) {
     }
 
     /**
-     *
-     * POST /reminders/delete-bulk
-     *
-     * @tags Reminders
-     * @summary delete multiple reminders
-     *
-     * @security BearerAuth
-     *
-     * @param {array} id.form.required - array of reminder ids
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
+     * @openapi
+     * /api/reminders/delete-bulk:
+     *   post:
+     *     tags:
+     *       - Reminders
+     *     summary: Delete multiple reminders
+     *     security:
+     *       - BearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - id
+     *             properties:
+     *               id:
+     *                 type: array
+     *                 items:
+     *                   type: integer
+     *                 description: Array of reminder IDs to delete
+     *     responses:
+     *       200:
+     *         description: Success response
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                 data:
+     *                   type: object
+     *                   properties:
+     *                     deletedCount:
+     *                       type: integer
+     *       400:
+     *         description: Bad request response
      */
     router.post('/reminders/delete-bulk', ctx.middleware.authentication, bulkDeleteReminderHandler);
     router.post(
