@@ -1,8 +1,10 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
 import { config } from '../config';
-import { logger } from '../utils/logger';
+import { Logger } from '../utils/logger';
 import { CustomMigrationSource } from './migration-source';
+
+const logger = Logger();
 
 const migrationsPath = path.resolve(__dirname, 'migrations');
 

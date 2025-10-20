@@ -2,8 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import { build } from 'esbuild';
 import CleanCSS from 'clean-css';
-import { logger } from '../src/utils/logger';
+import { Logger } from '../src/utils/logger';
 import { minify as minifyHtml } from 'html-minifier-terser';
+
+const logger = Logger();
 
 const distDir = path.join(__dirname, '..', 'dist');
 const viewsDir = path.join(__dirname, '..', 'src', 'routes');

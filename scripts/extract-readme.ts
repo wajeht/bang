@@ -1,7 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { marked } from 'marked';
-import { logger } from '../src/utils/logger';
+import { Logger } from '../src/utils/logger';
+
+const logger = Logger();
 
 interface ExtractionResult {
     success: boolean;

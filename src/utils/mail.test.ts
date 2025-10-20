@@ -3,8 +3,10 @@ import { MailUtils } from './mail';
 import { AuthUtils } from './auth';
 import { dayjs, libs } from '../libs';
 import { db } from '../tests/test-setup';
-import { logger } from '../utils/logger';
+import { Logger } from '../utils/logger';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+const logger = Logger();
 
 describe('Mail Utils', () => {
     const mockContext = {

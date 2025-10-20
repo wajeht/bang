@@ -1,7 +1,9 @@
 import { libs } from '../libs';
 import { config } from '../config';
 import { Database } from '../db/db';
-import { logger } from '../utils/logger';
+import { Logger } from '../utils/logger';
+
+const logger = Logger();
 
 async function globalTeardown() {
     console.log('Cleaning up test resources...');

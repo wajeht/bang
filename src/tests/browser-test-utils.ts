@@ -2,10 +2,11 @@ import { libs } from '../libs';
 import { config } from '../config';
 import { Database } from '../db/db';
 import { Context } from '../context';
-import { logger } from '../utils/logger';
+import { Logger } from '../utils/logger';
 import type { AppContext } from '../type';
 import { Page, expect } from '@playwright/test';
 
+const logger = Logger();
 const database = Database({ config, logger, libs });
 const db = database.instance;
 

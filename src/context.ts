@@ -25,7 +25,7 @@ import { config } from './config';
 import { Database } from './db/db';
 import { Utils } from './utils/util';
 import { CronService } from './crons';
-import { logger } from './utils/logger';
+import { Logger } from './utils/logger';
 import { DateUtils } from './utils/date';
 import { HtmlUtils } from './utils/html';
 import { AuthUtils } from './utils/auth';
@@ -46,9 +46,7 @@ export async function Context(): Promise<AppContext> {
         throw new Error('Configuration required for app context');
     }
 
-    if (!logger) {
-        throw new Error('Logger required for app context');
-    }
+    const logger = Logger();
 
     const errors = {
         HttpError,

@@ -1,7 +1,9 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import type { Knex } from 'knex';
-import { logger } from '../utils/logger';
+import { Logger } from '../utils/logger';
+
+const logger = Logger();
 
 export class CustomMigrationSource implements Knex.MigrationSource<string> {
     constructor(private migrationsPath: string) {
