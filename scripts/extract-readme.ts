@@ -114,7 +114,7 @@ async function main(): Promise<void> {
     }
 }
 
-main().catch((error) => {
+main().catch((error: any) => {
     logger.error('❌ Unexpected error: %o', error);
     process.exit(1);
 });

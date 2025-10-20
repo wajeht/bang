@@ -1,9 +1,9 @@
-import { build } from 'esbuild';
-import { minify as minifyHtml } from 'html-minifier-terser';
-import CleanCSS from 'clean-css';
 import fs from 'fs';
 import path from 'path';
+import { build } from 'esbuild';
+import CleanCSS from 'clean-css';
 import { logger } from '../src/utils/logger';
+import { minify as minifyHtml } from 'html-minifier-terser';
 
 const distDir = path.join(__dirname, '..', 'dist');
 const viewsDir = path.join(__dirname, '..', 'src', 'routes');
@@ -461,4 +461,7 @@ async function minifyAll(): Promise<void> {
     }
 }
 
-minifyAll();
+minifyAll().catch((error: any) => {
+    logger.error('❌ Unexpected error: %o', error);
+    process.exit(1);
+});
