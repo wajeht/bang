@@ -24,6 +24,16 @@ export function CronService(context: AppContext): CronService {
         }
     }
 
+    async function verificationReminderTask() {
+        context.logger.info('Checking for unverified users...');
+        try {
+            await context.utils.mail.processVerificationReminders(context.config.app.appUrl);
+            context.logger.info('Verification reminder check completed');
+        } catch (error: any) {
+            context.logger.error('Verification reminder check failed: %o', { error });
+        }
+    }
+
     async function start() {
         const reminderJob = context.libs.cron.schedule(
             // every 15 minutes
@@ -35,6 +45,17 @@ export function CronService(context: AppContext): CronService {
         );
         cronJobs.push(reminderJob);
         context.logger.info('Reminder check scheduled every 15 minutes');
+
+        const verificationReminderJob = context.libs.cron.schedule(
+            // every monday at 9am
+            '0 9 * * 1',
+            verificationReminderTask,
+            {
+                timezone: 'UTC',
+            },
+        );
+        cronJobs.push(verificationReminderJob);
+        context.logger.info('Verification reminder scheduled for Mondays at 9am UTC');
 
         isRunning = true;
         context.logger.info(`Cron service started with ${cronJobs.length} job(s)`);
