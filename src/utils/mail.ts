@@ -142,6 +142,47 @@ https://github.com/wajeht/bang`,
             }
         },
 
+        async sendVerificationReminderEmail({
+            email,
+            username,
+            token,
+            baseUrl,
+        }: {
+            email: string;
+            username: string;
+            token: string;
+            baseUrl: string;
+        }): Promise<void> {
+            const magicLink = `${baseUrl}/auth/magic/${token}`;
+
+            const mailOptions = {
+                from: `Bang <${context.config.email.from}>`,
+                to: email,
+                subject: '👋 Verify your Bang account',
+                text: `Hello ${username},
+
+We noticed you haven't verified your Bang account yet. Verifying your email helps secure your account and ensures you can receive important updates.
+
+Click this link to verify your account:
+${magicLink}
+
+This link will expire in 15 minutes.
+
+If you didn't create a Bang account, you can safely ignore this email.
+
+--
+Bang Team
+https://github.com/wajeht/bang`,
+            };
+
+            try {
+                await this.sendEmailWithFallback(mailOptions, 'Verification Reminder');
+                context.logger.info(`Verification reminder sent to ${email}`);
+            } catch (error) {
+                context.logger.error(`Failed to send verification reminder email: %o`, { error });
+            }
+        },
+
         async sendDataExportEmail({
             email,
             username,
@@ -455,6 +496,59 @@ ${formatReminderListHTML}
                 );
             } catch (error) {
                 context.logger.error(`Failed to process reminder digests: %o`, { error });
+            }
+        },
+
+        async processVerificationReminders(baseUrl: string): Promise<void> {
+            try {
+                const now = context.libs.dayjs.utc();
+                const sevenDaysAgo = now.subtract(7, 'days').toISOString();
+
+                // Find users who:
+                // 1. Haven't verified their email (email_verified_at is NULL)
+                // 2. Registered more than 7 days ago
+                const unverifiedUsers = await context
+                    .db('users')
+                    .select('id', 'email', 'username')
+                    .whereNull('email_verified_at')
+                    .where('created_at', '<', sevenDaysAgo)
+                    .orderBy('created_at', 'asc');
+
+                if (unverifiedUsers.length === 0) {
+                    context.logger.info('No unverified users found who need reminders');
+                    return;
+                }
+
+                context.logger.info(
+                    `Found ${unverifiedUsers.length} unverified user(s) who registered 7+ days ago`,
+                );
+
+                // Send verification reminders to each user
+                const emailsSent: string[] = [];
+                for (const user of unverifiedUsers) {
+                    // Generate a new magic link token
+                    const token = context.utils.auth.generateMagicLink({ email: user.email });
+
+                    await this.sendVerificationReminderEmail({
+                        email: user.email,
+                        username: user.username,
+                        token,
+                        baseUrl,
+                    });
+
+                    emailsSent.push(user.email);
+                }
+
+                const userSummary = unverifiedUsers.map((user) => ({
+                    email: user.email,
+                    username: user.username,
+                }));
+                context.logger.table(userSummary);
+                context.logger.info(
+                    `Sent verification reminders to ${emailsSent.length} unverified user(s)`,
+                );
+            } catch (error) {
+                context.logger.error(`Failed to process verification reminders: %o`, { error });
             }
         },
     };
