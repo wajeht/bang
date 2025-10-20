@@ -504,9 +504,6 @@ ${formatReminderListHTML}
                 const now = context.libs.dayjs.utc();
                 const sevenDaysAgo = now.subtract(7, 'days').toISOString();
 
-                // Find users who:
-                // 1. Haven't verified their email (email_verified_at is NULL)
-                // 2. Registered more than 7 days ago
                 const unverifiedUsers = await context
                     .db('users')
                     .select('id', 'email', 'username')
@@ -523,10 +520,8 @@ ${formatReminderListHTML}
                     `Found ${unverifiedUsers.length} unverified user(s) who registered 7+ days ago`,
                 );
 
-                // Send verification reminders to each user
                 const emailsSent: string[] = [];
                 for (const user of unverifiedUsers) {
-                    // Generate a new magic link token
                     const token = context.utils.auth.generateMagicLink({ email: user.email });
 
                     await this.sendVerificationReminderEmail({
