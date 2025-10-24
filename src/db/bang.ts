@@ -18853,10 +18853,11 @@ export const bangs: Record<string, any> = {
     },
     cpp: {
         s: 'cppreference.com',
-        d: 'en.cppreference.com',
+        d: 'kagi.com',
+        ad: 'cppreference.com',
         t: 'cpp',
         ts: ['cppref', 'c++ref'],
-        u: 'https://en.cppreference.com/mwiki/index.php?search={{{s}}}',
+        u: '/search?q={{{s}}}+site:cppreference.com',
         c: 'Tech',
         sc: 'Languages (c++)',
     },
