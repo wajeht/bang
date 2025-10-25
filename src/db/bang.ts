@@ -12072,7 +12072,7 @@ export const bangs: Record<string, any> = {
         s: 'boomkat',
         d: 'boomkat.com',
         t: 'boomkat',
-        u: 'http://boomkat.com/search?q={{{s}}}',
+        u: 'http://boomkat.com/products?q[keywords]={{{s}}}',
         c: 'Multimedia',
         sc: 'Music',
     },
