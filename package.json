@@ -76,7 +76,7 @@
         "knex": "^3.1.0",
         "marked": "^16.4.1",
         "node-cron": "^4.2.1",
-        "nodemailer": "^7.0.9"
+        "nodemailer": "^7.0.10"
     },
     "devDependencies": {
         "@eslint/js": "^9.38.0",
@@ -87,15 +87,15 @@
         "@types/connect-flash": "^0.0.40",
         "@types/cors": "^2.8.19",
         "@types/ejs": "^3.1.5",
-        "@types/express": "^5.0.3",
+        "@types/express": "^5.0.4",
         "@types/express-session": "^1.18.2",
         "@types/html-minifier-terser": "^7.0.2",
         "@types/jsonwebtoken": "^9.0.10",
         "@types/node": "^24.9.1",
         "@types/node-cron": "^3.0.11",
-        "@types/nodemailer": "^7.0.2",
+        "@types/nodemailer": "^7.0.3",
         "@types/supertest": "^6.0.3",
-        "@vitest/coverage-v8": "^4.0.1",
+        "@vitest/coverage-v8": "^4.0.3",
         "@wajeht/express-templates-reload": "^2.0.3",
         "clean-css": "^5.3.3",
         "esbuild": "^0.25.11",
@@ -109,7 +109,7 @@
         "tsx": "^4.20.6",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.46.2",
-        "vitest": "^4.0.1"
+        "vitest": "^4.0.3"
     },
     "overrides": {
         "glob": "^10.4.5",
