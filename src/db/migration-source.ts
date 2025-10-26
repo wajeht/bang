@@ -1,6 +1,6 @@
 import path from 'node:path';
-import fs from 'node:fs/promises';
 import type { Knex } from 'knex';
+import fs from 'node:fs/promises';
 import { Logger } from '../utils/logger';
 
 const logger = Logger();

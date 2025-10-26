@@ -2,9 +2,9 @@ import request from 'supertest';
 import { db } from './test-setup';
 import type { UrlObject } from 'url';
 import { Context } from '../context';
+import type { Test } from 'supertest';
 import type { AppContext } from '../type';
 import type { Application } from 'express';
-import type { SuperTest, Test } from 'supertest';
 
 let testContext: AppContext | null = null;
 
