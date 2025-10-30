@@ -101515,7 +101515,7 @@ export const bangs: Record<string, any> = {
         d: 'search.lib.virginia.edu',
         t: 'uvac',
         ts: ['uvalib'],
-        u: 'https://search.lib.virginia.edu/catalog?q={{{s}}}',
+        u: 'https://search.lib.virginia.edu/search?q=keyword:+{{{{s}}}}&pool=uva_library&sort=SortRelevance_desc',
         c: 'Research',
         sc: 'Academic',
     },
