@@ -94,19 +94,12 @@ if (
     process.env.NODE_ENV === 'testing' ||
     process.env.APP_ENV === 'testing'
 ) {
-    // const testDbPath = path.resolve(
-    //     __dirname,
-    //     'sqlite',
-    //     `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.sqlite`,
-    // );
     knexConfig = {
         ...knexConfig,
         connection: {
-            // filename: testDbPath,
             filename: ':memory:',
         },
     };
-    // logger.info(`Using temporary test database: ${testDbPath}`);
     logger.info(`Using temporary test database: :memory:`);
 }
 
