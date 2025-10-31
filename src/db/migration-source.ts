@@ -31,7 +31,7 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
             }));
             logger.table(migrationList);
             return migrations;
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error('Error reading migrations directory: %o', error);
             logger.info('Attempted path: %s', this.migrationsPath);
             throw error;
@@ -59,7 +59,7 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
             } else {
                 throw new Error(`Migration ${migration} does not export up and down functions`);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             logger.error('Error loading migration: %o', error);
             throw error;
         }
