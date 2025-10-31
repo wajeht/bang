@@ -72,7 +72,7 @@ function attachPaginate(knex: typeof import('knex')) {
     try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (knex as any).QueryBuilder.extend('paginate', paginate);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error attaching paginate method to Knex QueryBuilder:', error);
     }
 }
@@ -98,7 +98,7 @@ export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
             }
 
             deps.logger.info('Database optimization completed');
-        } catch (error) {
+        } catch (error: unknown) {
             deps.logger.error(`Error optimizing database: %o`, { error });
         }
     }
@@ -109,7 +109,7 @@ export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
             await optimizeDatabase();
             await runProductionMigration();
             deps.logger.info('Database migrations completed successfully');
-        } catch (error) {
+        } catch (error: unknown) {
             deps.logger.error('Error while initalizing databse: %o', { error });
         }
     }
@@ -140,7 +140,7 @@ export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
             deps.logger.table(healthInfo);
 
             return true;
-        } catch (error) {
+        } catch (error: unknown) {
             deps.logger.error(`Database health check failed: %o`, { error });
             return false;
         }
@@ -188,7 +188,7 @@ export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
 
             deps.logger.info(`database upgrades completed for ${migrationList} schema`);
             deps.logger.info(`batch ${batchNo} run: ${migrations.length} migrations`);
-        } catch (error) {
+        } catch (error: unknown) {
             deps.logger.error(`error running migrations: %o`, { error });
             throw error;
         }
