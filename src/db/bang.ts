@@ -113153,6 +113153,15 @@ export const bangs: Record<string, any> = {
         c: 'Shopping',
         sc: 'Online',
     },
+    'a.ae': {
+        s: 'Amazon UAE',
+        d: 'www.amazon.ae',
+        t: 'a.ae',
+        ts: ['amazon_ae', 'amazonae', 'amazon.ae'],
+        u: 'https://www.amazon.ae/s?k={{{s}}}',
+        c: 'Shopping',
+        sc: 'Online',
+    },
     agw: {
         s: 'Apple Gaming Wiki',
         d: 'www.applegamingwiki.com',
