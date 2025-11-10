@@ -980,13 +980,12 @@ export const bangs: Record<string, any> = {
         sc: 'Books',
     },
     '7tv': {
-        c: 'Multimedia',
-        d: 'www.7tv.de',
-        r: 5,
         s: '7TV',
-        sc: 'Video',
+        d: '7tv.app',
         t: '7tv',
-        u: 'https://www.7tv.de/suche?q={{{s}}}',
+        u: 'https://7tv.app/emotes?q={{{s}}}',
+        c: 'Online Services',
+        sc: 'Tools',
     },
     '80k': {
         s: '80,000 hours',
@@ -113309,6 +113308,14 @@ export const bangs: Record<string, any> = {
         t: 'blockexplorer',
         u: 'https://blockexplorer.com/searchgo/{{{s}}}',
         c: 'Tech',
+        sc: 'Tools',
+    },
+    bttv: {
+        s: 'BetterTTV',
+        d: 'betterttv.com',
+        t: 'bttv',
+        u: 'https://betterttv.com/emotes/shared/search?query={{{s}}}',
+        c: 'Online Services',
         sc: 'Tools',
     },
     bav: {
