@@ -2,9 +2,9 @@ https://github.com/user-attachments/assets/5f033de3-afa1-44a7-b55b-dc45fc203d10
 
 # ⚡️ Command
 
-[![Node.js CI](https://github.com/wajeht/bang/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wajeht/bang/actions/workflows/ci.yml)
+[![Node.js CI](https://github.com/wajeht/command/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wajeht/command/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Open Source Love svg1](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/wajeht/bang)
+[![Open Source Love svg1](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/wajeht/command)
 
 your personal command center for blazingly fast web navigation
 
@@ -64,7 +64,7 @@ Before you can use the Command command from your browser's search bar, you need 
 - `!add [trigger] [url]` - Create a custom bang
     - `[trigger]` is required
     - `[url]` is required
-    - eg: `!add jaw https://bang.jaw.dev`
+    - eg: `!add jaw https://command.jaw.dev`
 - `!add --hide [trigger] [url]` - Create a hidden custom bang (requires global password)
     - `--hide` flag makes the action hidden (only visible after password verification)
     - Only redirect-type actions can be hidden
