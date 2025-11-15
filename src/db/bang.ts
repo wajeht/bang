@@ -114259,6 +114259,14 @@ export const bangs: Record<string, any> = {
         c: 'Research',
         sc: 'Reference (science)',
     },
+    podnews: {
+        s: 'Podnews',
+        d: 'podnews.net',
+        t: 'podnews',
+        u: 'https://podnews.net/search?q={{{s}}}',
+        c: 'News',
+        sc: 'Business',
+    },
     printables: {
         s: 'Printables',
         d: 'www.printables.com',
@@ -114599,6 +114607,15 @@ export const bangs: Record<string, any> = {
         u: 'https://www.tine.no/sok?q={{{s}}}',
         c: 'Research',
         sc: 'Food',
+    },
+    trainb: {
+        s: 'Trainboard',
+        d: 'trainboard.eu',
+        t: 'trainb',
+        ts: ['trainboard', 'zugtafel'],
+        u: 'https://trainboard.eu/bang.html?station={{{s}}}',
+        c: 'Online Services',
+        sc: 'Tools',
     },
     tlni: {
         s: 'Translink NI',
