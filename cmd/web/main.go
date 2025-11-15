@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"os"
 	"runtime/debug"
+	"sync"
 )
 
 type config struct {
@@ -14,6 +15,7 @@ type config struct {
 type application struct {
 	config config
 	logger *slog.Logger
+	wg     sync.WaitGroup
 }
 
 func run(logger *slog.Logger) error {
