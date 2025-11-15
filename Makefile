@@ -29,7 +29,7 @@ lint:
 	@echo "lint is not available yet"
 
 build:
-	@go build -o ./command ./cmd/command
+	@go build -o ./command ./cmd/web
 
 run: build
 	@./command
