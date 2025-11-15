@@ -1,10 +1,46 @@
-node_modules
+# Git
 .git
 .gitignore
-dist
-.git
-node_modules
-docs
-.vscode
+
+# Documentation
+README.md
+LICENSE
+
+# Development files
+*.db
+data/
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+favicon
+
+# Go build cache
+.cache/
+
+# Test coverage files
+*.coverprofile
+coverage.out
+
 LICENSE
 Makefile
+
+.env.ci
+.env.example
+
