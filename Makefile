@@ -25,8 +25,11 @@ dev:
 		--build.include_ext "go, tpl, tmpl, html, css, scss, js, ts, sql, jpeg, jpg, gif, png, bmp, svg, webp, ico, md" \
 		--misc.clean_on_exit "true"
 
+lint:
+	@echo "lint is not available yet"
+
 build:
-	@go build -o ./command ./cmd
+	@go build -o ./command ./cmd/command
 
 run: build
 	@./command
