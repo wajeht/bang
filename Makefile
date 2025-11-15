@@ -9,41 +9,30 @@ push:
 fix-git:
 	@git rm -r --cached . -f
 	@git add .
-	@git commit -m "Untrack files in .gitignore"
+	@git command -m "Untrack files in .gitignore"
 
 test:
-	@make test-unit
-	@make test-browser
-
-test-unit:
-	@docker compose -f docker-compose.dev.yml exec bang npm run test
-
-test-coverage:
-	@docker compose -f docker-compose.dev.yml exec bang npm run test:coverage
-
-test-browser:
-	@docker compose -f docker-compose.dev.yml exec bang npm run test:browser:headless
+	@go test ./...
 
 format:
-	@docker compose -f docker-compose.dev.yml exec bang npm run format
+	@go mod tidy -v
+	@go fmt ./...
 
-lint:
-	@docker compose -f docker-compose.dev.yml exec bang npm run lint
+dev:
+	@export $$(grep -v '^#' .env | xargs) && go run github.com/cosmtrek/air@v1.43.0 \
+		--build.cmd "make build" --build.bin "./command" --build.delay "100" \
+		--build.exclude_dir "" \
+		--build.include_ext "go, tpl, tmpl, html, css, scss, js, ts, sql, jpeg, jpg, gif, png, bmp, svg, webp, ico, md" \
+		--misc.clean_on_exit "true"
+
+build:
+	@go build -o ./command ./cmd
+
+run: build
+	@./command
 
 deploy:
 	@./scripts/deploy.sh
-
-shell:
-	@docker compose -f docker-compose.dev.yml exec bang sh
-
-db-migrate:
-	@docker compose -f docker-compose.dev.yml exec bang npm run db:migrate:latest
-
-db-rollback:
-	@docker compose -f docker-compose.dev.yml exec bang npm run db:migrate:rollback
-
-db-seed:
-	@docker compose -f docker-compose.dev.yml exec bang npm run db:seed:run
 
 pull-prod-db:
 	@./scripts/db.sh pull
@@ -51,26 +40,5 @@ pull-prod-db:
 push-prod-db:
 	@./scripts/db.sh push
 
-db-reset:
-	make db-rollback
-	make db-migrate
-	make db-seed
-
-up:
-	@rm -rf ./src/db/sqlite/*sqlite*
-	@docker compose -f docker-compose.dev.yml up
-
-up-d:
-	@docker compose -f docker-compose.dev.yml up -d
-
-log:
-	@docker compose -f docker-compose.dev.yml logs -f
-
-down:
-	@docker compose -f docker-compose.dev.yml down
-
 clean:
-	@docker compose -f docker-compose.dev.yml down --rmi all --volumes --remove-orphans
-	@docker system prune -a -f
-	@docker volume prune -f
-	@docker network prune -f
+	@rm -f command*
