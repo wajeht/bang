@@ -1,6 +1,6 @@
 https://github.com/user-attachments/assets/5f033de3-afa1-44a7-b55b-dc45fc203d10
 
-# ⚡️ Bang
+# ⚡️ Command
 
 [![Node.js CI](https://github.com/wajeht/bang/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wajeht/bang/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -14,15 +14,15 @@ your personal command center for blazingly fast web navigation
 
 ### 🔍 Setup Custom Search Engine in Your Browser
 
-Before you can use the Bang command from your browser's search bar, you need to add the Bang URL as a custom search engine. Follow these steps:
+Before you can use the Command command from your browser's search bar, you need to add the Command URL as a custom search engine. Follow these steps:
 
 1. In your browser settings, add a new search engine:
-    - **Name**: Whatever you prefer (e.g., "Bang")
+    - **Name**: Whatever you prefer (e.g., "Command")
     - **Shortcut**: `bd` (or any keyword you prefer)
-    - **URL**: `http://bang.jaw.dev/?q=%s`
+    - **URL**: `http://command.jaw.dev/?q=%s`
 
-2. Now you can use Bang directly from your browser's address bar:
-   `!bm https://bang.jaw.dev`
+2. Now you can use command directly from your browser's address bar:
+   `!bm https://command.jaw.dev`
 
 ### ⚙️ How to Add Custom Search Engine
 
@@ -54,7 +54,7 @@ Before you can use the Bang command from your browser's search bar, you need to 
 - `!bm [title] [url]` - Add a bookmark
     - `[title]` is optional, if not provided, we will auto fetch the title
     - `[url]` is required
-    - eg: `!bm this title can be super long https://bang.jaw.dev`
+    - eg: `!bm this title can be super long https://command.jaw.dev`
 - `!bm --hide [url]` - Add a hidden bookmark (requires global password)
 - `!bm --hide [title] [url]` - Add a hidden bookmark with title
     - `--hide` flag makes the bookmark hidden (only visible after password verification)
@@ -93,7 +93,7 @@ Before you can use the Bang command from your browser's search bar, you need to 
 - `!note [title] | [content]` - Create a note
     - `[title]` is optional, if not provided, we will use it as `Untitled`
     - `[content]` is required
-    - eg: `!note some title | this is a note https://bang.jaw.dev`
+    - eg: `!note some title | this is a note https://command.jaw.dev`
     - eg: `!note this is a content without any title`
 - `!note --hide [title] | [content]` - Create a hidden note (requires global password)
     - `--hide` flag makes the note hidden (only visible after password verification)
