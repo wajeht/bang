@@ -1,6 +1,6 @@
 services:
-    bang:
-        container_name: bang
+    command:
+        container_name: command
         restart: unless-stopped
         init: true
         build:
@@ -17,11 +17,11 @@ services:
         depends_on:
             - mailpit
         networks:
-            - bang_network
+            - command_network
 
     mailpit:
         image: axllent/mailpit
-        container_name: bang-mailpit
+        container_name: command-mailpit
         restart: unless-stopped
         ports:
             - '8025:8025' # Web UI
@@ -30,8 +30,8 @@ services:
             MP_SMTP_AUTH_ACCEPT_ANY: 1
             MP_SMTP_AUTH_ALLOW_INSECURE: 1
         networks:
-            - bang_network
+            - command_network
 
 networks:
-    bang_network:
+    command_network:
         driver: bridge

@@ -11,8 +11,8 @@ env:
     APP_ENV: 'development'
     APP_URL: 'localhost'
     APP_ADMIN_EMAIL: 'deeznutz@gmail.com'
-    APP_SECRET_SALT: 'bang'
-    APP_API_KEY_SECRET: 'bang'
+    APP_SECRET_SALT: 'command'
+    APP_API_KEY_SECRET: 'command'
 
     # session
     SESSION_STORE_PREFIX: 'deez'
@@ -25,7 +25,7 @@ env:
     EMAIL_SECURE: false
     EMAIL_USER:
     EMAIL_PASSWORD:
-    EMAIL_FROM: noreply@bang.local
+    EMAIL_FROM: noreply@command.local
 
     # notify
     NOTIFY_URL: 'https://deeznutz.co'
@@ -205,7 +205,7 @@ jobs:
 
         environment:
             name: production
-            url: https://bang.jaw.dev/
+            url: https://command.jaw.dev/
 
         steps:
             - name: Generate Image Name

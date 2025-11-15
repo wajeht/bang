@@ -1,20 +1,20 @@
 ### 🔖 How to Add Bookmarklet
 
-To add the Bang bookmarklet to your browser, follow these steps:
+To add the Command bookmarklet to your browser, follow these steps:
 
 1. Create a new bookmark in your browser.
-2. For the bookmark's name, you can use something like "Bang Bookmarklet".
+2. For the bookmark's name, you can use something like "Command Bookmarklet".
 3. In the URL field, copy and paste the following code:
     ```javascript
     javascript: (function () {
         const link = encodeURIComponent(window.location.href).trim();
         if (!link) return;
-        window.location.href = `http://bang.jaw.dev/?q=!bm ${link}`;
+        window.location.href = `http://command.jaw.dev/?q=!bm ${link}`;
     })();
     ```
 4. Save the bookmark.
 
-Now, whenever you want to add a bookmark using Bang, simply click on this bookmarklet.
+Now, whenever you want to add a bookmark using Command, simply click on this bookmarklet.
 
 ### 🔖 Browser Bookmarklet
 
@@ -24,7 +24,7 @@ Now, whenever you want to add a bookmark using Bang, simply click on this bookma
 javascript: (function () {
     const link = encodeURIComponent(window.location.href).trim();
     if (!link) return;
-    window.location.href = `http://bang.jaw.dev/?q=!bm ${link}`;
+    window.location.href = `http://command.jaw.dev/?q=!bm ${link}`;
 })();
 ```
 
@@ -36,7 +36,7 @@ javascript: (function () {
     if (!trigger) return;
     const link = encodeURIComponent(window.location.href).trim();
     if (!link) return;
-    window.location.href = `http://bang.jaw.dev/?q=!add !${trigger} ${link}`;
+    window.location.href = `http://command.jaw.dev/?q=!add !${trigger} ${link}`;
 })();
 ```
 
@@ -48,6 +48,6 @@ javascript: (function () {
     if (!title) return;
     const content = prompt('please enter the content').trim();
     if (!content) return;
-    window.location.href = `http://bang.jaw.dev/?q=!note ${title} | ${content}`;
+    window.location.href = `http://command.jaw.dev/?q=!note ${title} | ${content}`;
 })();
 ```

@@ -3,7 +3,7 @@
 Clone the repository
 
 ```bash
-$ git clone https://github.com/wajeht/bang.git
+$ git clone https://github.com/wajeht/command.git
 ```
 
 Copy `.env.example` to `.env` and update all the necessary environment variables.
@@ -60,18 +60,18 @@ $ docker compose -f docker-compose.dev.yml up
 Run test
 
 ```bash
-$ docker compose -f docker-compose.dev.yml exec bang npm run test
+$ docker compose -f docker-compose.dev.yml exec command npm run test
 
 ```
 
 Format code
 
 ```bash
-$ docker compose -f docker-compose.dev.yml exec bang npm run format
+$ docker compose -f docker-compose.dev.yml exec command npm run format
 ```
 
 Lint code
 
 ```bash
-$ docker compose -f docker-compose.dev.yml exec bang npm run lint
+$ docker compose -f docker-compose.dev.yml exec command npm run lint
 ```

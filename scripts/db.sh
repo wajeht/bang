@@ -4,7 +4,7 @@ set -e
 source .env
 
 LOCAL_DIR="./src/db/sqlite"
-REMOTE_DIR="~/databases/bang"
+REMOTE_DIR="~/databases/command"
 
 usage() {
     echo "Usage: $0 {pull|push}"
