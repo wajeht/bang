@@ -12,6 +12,16 @@ type config struct {
 	appEnv  string
 	appUrl  string
 
+	sessionSecret string
+	sessionDomain string
+	sessionSalt   string
+
+	emailHost     string
+	emailPort     int
+	emailUser     string
+	emailPassword string
+	emailFrom     string
+
 	notifyUrl     string
 	notifyXApiKey string
 
