@@ -1,4 +1,7 @@
-## 💻 Development
+# 💻 Development
+
+> [!NOTE]
+> Nodejs version of this project is also available via `git checkout node` after pulling it down.
 
 Clone the repository
 
@@ -6,7 +9,7 @@ Clone the repository
 $ git clone https://github.com/wajeht/command.git
 ```
 
-Copy `.env.example` to `.env` and update all the necessary environment variables.
+Copy `.env.example` to `.env`
 
 ```bash
 $ cp .env.example .env
@@ -15,63 +18,18 @@ $ cp .env.example .env
 Install dependencies
 
 ```bash
-$ npm install
+$ go mod download
 ```
 
 Run development server
 
 ```bash
-$ npm run dev
+$ go run ./cmd
 ```
 
-Run test
+Test the application
 
 ```bash
-$ npm npm test
+$ go test ./...
 ```
 
-Format code
-
-```bash
-$ npm run format
-```
-
-Lint code
-
-```bash
-$ npm run lint
-```
-
-## 🐳 Docker
-
-Copy `.env.example` to `.env` and update all the necessary environment variables.
-
-```bash
-$ cp .env.example .env
-```
-
-Run development server
-
-```bash
-$ docker compose -f docker-compose.dev.yml up
-
-```
-
-Run test
-
-```bash
-$ docker compose -f docker-compose.dev.yml exec command npm run test
-
-```
-
-Format code
-
-```bash
-$ docker compose -f docker-compose.dev.yml exec command npm run format
-```
-
-Lint code
-
-```bash
-$ docker compose -f docker-compose.dev.yml exec command npm run lint
-```
