@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN go build -o command ./cmd
+RUN go build -o command ./cmd/web
 
 FROM alpine:latest
 
