@@ -1,19 +1,45 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"time"
+)
 
-type config struct {
-	appPort int
-	appEnv  string
+const (
+	defaultIdleTimeout  = time.Minute
+	defaultReadTimeout  = 5 * time.Second
+	defaultWriteTimeout = 10 * time.Second
+)
+
+func (app *application) serveHTTP() error {
+	srv := &http.Server{
+		Addr:         fmt.Sprintf(":%d", app.config.appPort),
+		Handler:      app.routes(),
+		IdleTimeout:  defaultIdleTimeout,
+		ReadTimeout:  defaultReadTimeout,
+		WriteTimeout: defaultWriteTimeout,
+	}
+
+	err := app.serve(srv)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-type application struct {
-	config config
-}
+func (app *application) serve(srv *http.Server) error {
+	app.logger.Info("starting server", slog.Group("server", "addr", srv.Addr))
 
-func serve() {
-	var cfg config
+	err := srv.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
 
-	cfg.appEnv = "development"
-	cfg.appPort = 80
+	app.logger.Info("stopped server", slog.Group("server", "addr", srv.Addr))
+
+	return nil
 }
