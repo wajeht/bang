@@ -10,6 +10,13 @@ import (
 type config struct {
 	appPort int
 	appEnv  string
+	appUrl  string
+
+	notifyUrl     string
+	notifyXApiKey string
+
+	cloudflareTurnstileSiteKey   string
+	cloudflareTurnstileSecretKey string
 }
 
 type application struct {
