@@ -116053,6 +116053,14 @@ export const bangs: Record<string, any> = {
         c: 'Translation',
         sc: 'General',
     },
+    kdic: {
+        s: 'Kagi Translate (Dictionary)',
+        d: 'translate.kagi.com',
+        t: 'kdic',
+        u: 'https://translate.kagi.com/dictionary?word={{{s}}}&from=auto',
+        c: 'Translation',
+        sc: 'General',
+    },
     hac: {
         s: 'Home Assistant Community',
         d: 'community.home-assistant.io',
