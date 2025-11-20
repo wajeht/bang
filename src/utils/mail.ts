@@ -449,15 +449,30 @@ ${formatReminderListHTML}
                             const currentDue = context.libs.dayjs
                                 .tz(reminder.due_date, 'UTC')
                                 .tz(userTz);
+
+                            // Extract the local time to preserve across DST transitions
+                            const hour = currentDue.hour();
+                            const minute = currentDue.minute();
+                            const second = currentDue.second();
+
                             let nextDue: ReturnType<typeof context.libs.dayjs>;
 
                             switch (reminder.frequency) {
                                 case 'daily':
-                                    nextDue = currentDue.add(1, 'day');
+                                    // Add 1 day and preserve the local time (handles DST correctly)
+                                    nextDue = currentDue
+                                        .add(1, 'day')
+                                        .hour(hour)
+                                        .minute(minute)
+                                        .second(second);
                                     break;
                                 case 'weekly':
-                                    // Always move to next Saturday
-                                    nextDue = currentDue.add(1, 'week');
+                                    // Add 1 week and preserve the local time
+                                    nextDue = currentDue
+                                        .add(1, 'week')
+                                        .hour(hour)
+                                        .minute(minute)
+                                        .second(second);
                                     // Ensure it's still on Saturday (in case of DST changes)
                                     if (nextDue.day() !== 6) {
                                         // Find the next Saturday from current position
@@ -466,8 +481,13 @@ ${formatReminderListHTML}
                                     }
                                     break;
                                 case 'monthly':
-                                    // Always move to the 1st of next month
-                                    nextDue = currentDue.add(1, 'month').date(1);
+                                    // Move to the 1st of next month and preserve the local time
+                                    nextDue = currentDue
+                                        .add(1, 'month')
+                                        .date(1)
+                                        .hour(hour)
+                                        .minute(minute)
+                                        .second(second);
                                     break;
                                 default:
                                     continue; // Skip if frequency is not recognized
