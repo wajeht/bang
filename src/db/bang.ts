@@ -74915,7 +74915,7 @@ export const bangs: Record<string, any> = {
         s: 'Petco',
         d: 'www.petco.com',
         t: 'petco',
-        u: 'http://www.petco.com/shop/SearchDisplay?categoryId=&storeId=10151&catalogId=10051&langId=-1&sType=SimpleSearch&resultCatEntryType=2&showResultsPage=true&searchSource=Q&pageView=&beginIndex=0&pageSize=24&fromPageValue=search&searchTerm={{{s}}}',
+        u: 'https://www.petco.com/shop/en/petcostore/search?query={{{s}}}',
         c: 'Shopping',
         sc: 'Big box/department',
     },
@@ -113440,6 +113440,15 @@ export const bangs: Record<string, any> = {
         c: 'Online Services',
         sc: 'AI Chatbots',
     },
+    gai: {
+        s: 'Google AI Mode',
+        d: 'www.google.com',
+        t: 'gai',
+        ts: ['googleai'],
+        u: 'https://www.google.com/search?q={{{s}}}&udm=50',
+        c: 'Online Services',
+        sc: 'AI Chatbots',
+    },
     chequeado: {
         s: 'Chequeado',
         d: 'chequeado.com',
@@ -114233,7 +114242,7 @@ export const bangs: Record<string, any> = {
         ts: ['ppx', 'pplx'],
         u: 'https://perplexity.ai/?q={{{s}}}',
         c: 'Online Services',
-        sc: 'Tools',
+        sc: 'AI Chatbots',
     },
     plex: {
         s: 'Plex',
