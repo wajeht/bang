@@ -262,7 +262,7 @@ window.addEventListener('load', handleRowHighlight);
 
     <dialog id="delete-selected-modal" aria-labelledby="delete-selected-title">
         <h2 id="delete-selected-title">Confirm Bulk Delete</h2>
-        <p>Are you sure you want to delete these bookmarks?</p>
+        <p>Are you sure you want to delete these <span id="bulk-delete-bookmark-checkbhoxes-count"></span> bookmarks?</p>
         <div id="selected-bookmarks-list" style="margin: 15px 0; max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px;"></div>
         <form id="delete-selected-form" method="POST" action="/bookmarks/delete">
             <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
@@ -302,6 +302,8 @@ window.addEventListener('load', handleRowHighlight);
 
             document.getElementById('bulk-delete-checkboxes').innerHTML =
                 checked.map(cb => `<input type="hidden" name="id[]" value="${cb.value}">`).join('');
+            
+            document.getElementById("bulk-delete-bookmark-checkbhoxes-count").innerHTML = checked.length;
 
             document.getElementById('delete-selected-modal').showModal();
         });
