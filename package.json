@@ -57,7 +57,7 @@
     },
     "dependencies": {
         "bcrypt": "^6.0.0",
-        "better-sqlite3": "^12.4.5",
+        "better-sqlite3": "^12.4.6",
         "compression": "^1.8.1",
         "connect-flash": "^0.1.1",
         "connect-session-knex": "^5.0.0",
@@ -95,7 +95,7 @@
         "@types/node-cron": "^3.0.11",
         "@types/nodemailer": "^7.0.4",
         "@types/supertest": "^6.0.3",
-        "@vitest/coverage-v8": "^4.0.12",
+        "@vitest/coverage-v8": "^4.0.13",
         "@wajeht/express-templates-reload": "^2.0.5",
         "clean-css": "^5.3.3",
         "esbuild": "^0.27.0",
@@ -109,7 +109,7 @@
         "tsx": "^4.20.6",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.47.0",
-        "vitest": "^4.0.12"
+        "vitest": "^4.0.13"
     },
     "overrides": {
         "glob": "^10.4.5",
