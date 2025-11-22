@@ -60,6 +60,20 @@ beforeAll(async () => {
     mockContext.utils.mail = mailUtils;
 });
 
+describe.concurrent('truncateString', () => {
+    it('should truncate to default char limit', () => {
+        expect(utilUtils.truncateString('something else')).toBe('somet...');
+    });
+
+    it('should truncate to given char limit', () => {
+        expect(utilUtils.truncateString('something else', 1)).toBe('s...');
+    });
+
+    it('should not truncate on empty string', () => {
+        expect(utilUtils.truncateString('')).toBe('');
+    });
+});
+
 describe.concurrent('isValidUrl', () => {
     it('should return true for valid URLs', () => {
         expect(validationUtils.isValidUrl('https://example.com')).toBeTruthy();
