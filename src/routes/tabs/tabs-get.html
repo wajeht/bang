@@ -367,7 +367,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                       <details style="position: relative; display: inline-flex; align-items: center;">
                                         <summary>Actions</summary>
                                         <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 200px; gap: 10px;" role="menu">
-                                          <a href="/tabs/<%= tabs[i].id %>/items/<%= tabs[i].items[j].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit <%- tabs[i].items[j].id %></a>
+                                          <a href="/tabs/<%= tabs[i].id %>/items/<%= tabs[i].items[j].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit <%= utils.truncateString(tabs[i].items[j].title, 4) %></a>
                                           <button
                                               type="button"
                                               class="no-style-btn"
@@ -375,7 +375,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                               onclick="showDeleteItemModal('<%= tabs[i].id %>', '<%= tabs[i].items[j].id %>', '<%= utils.stripHtmlTags(tabs[i].items[j].title || 'Untitled').replace(/'/g, '\\\'') %>')"
                                               role="menuitem"
                                           >
-                                              🗑️ Delete <%- tabs[i].items[j].id %>
+                                              🗑️ Delete <%= utils.truncateString(tabs[i].items[j].title, 4) %>
                                           </button>
                                         </div>
                                       </details>

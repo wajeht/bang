@@ -70,10 +70,13 @@ export function Utils(context: AppContext) {
             return `https://${url}`;
         },
 
-        truncateString(str: string, maxLength: number = 5) {
+        truncateString(str: string, maxLength = 5) {
+            if (str === '') return '';
+
             if (str.length <= maxLength) {
                 return str;
             }
+
             return str.slice(0, maxLength) + '...';
         },
 
