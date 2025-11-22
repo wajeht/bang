@@ -71,13 +71,20 @@ export function Utils(context: AppContext) {
         },
 
         truncateString(str: string, maxLength = 5) {
-            if (str === '') return '';
+            if (!str) return '';
 
             if (str.length <= maxLength) {
                 return str;
             }
 
-            return str.slice(0, maxLength) + '...';
+            let truncated = str.slice(0, maxLength);
+
+            // Remove trailing space if last char is space
+            if (truncated[truncated.length - 1] === ' ') {
+                truncated = truncated.slice(0, truncated.length - 1);
+            }
+
+            return truncated + '...';
         },
 
         getFaviconUrl(url: string): string {

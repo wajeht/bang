@@ -72,6 +72,10 @@ describe.concurrent('truncateString', () => {
     it('should not truncate on empty string', () => {
         expect(utilUtils.truncateString('')).toBe('');
     });
+
+    it('should not start from space char to truncate if maxLength index char is at space', () => {
+        expect(utilUtils.truncateString('rick rol', 5)).toBe('rick...');
+    });
 });
 
 describe.concurrent('isValidUrl', () => {
