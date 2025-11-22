@@ -196,8 +196,8 @@ export function SetupAppLocals(ctx: AppContext) {
                 warning: req.flash ? req.flash('warning') : [],
             },
             version: {
-                style: isProd ? '0.37' : randomNumber,
-                script: isProd ? '0.19' : randomNumber,
+                style: isProd ? '0.38' : randomNumber,
+                script: isProd ? '0.20' : randomNumber,
             },
         };
 
