@@ -70,6 +70,14 @@ export function Utils(context: AppContext) {
             return `https://${url}`;
         },
 
+        capitalize(str: string): string {
+            if (str === '') return '';
+
+            if (str.length === 1) return str.toUpperCase();
+
+            return str[0]?.toUpperCase() + str.substring(1);
+        },
+
         truncateString(str: string, maxLength = 5) {
             if (!str) return '';
 

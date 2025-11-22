@@ -258,11 +258,11 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                             <details style="position: relative; display: inline-flex; align-items: center;">
                               <summary>Actions</summary>
                               <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 200px; gap: 10px;" role="menu">
-                                <a href="/tabs/<%= tabs[i].id %>/items/create" class="no-style-btn" style="display: inline-flex; align-items: center;" role="menuitem">➕ Add Item</a>
-                                <button class="no-style-btn toggle-details-btn" data-tab-id="<%= tabs[i].id %>" style="display: inline-flex; align-items: center;">👁️ View Items</button>
-                                <a href="/tabs/<%= tabs[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit Group</a>
+                                <a href="/tabs/<%= tabs[i].id %>/items/create" class="no-style-btn" style="display: inline-flex; align-items: center;" role="menuitem">➕ Add <%= utils.capitalize(tabs[i].title) %> Item</a>
+                                <button class="no-style-btn toggle-details-btn" data-tab-id="<%= tabs[i].id %>" style="display: inline-flex; align-items: center;">👁️ View <%= utils.capitalize(tabs[i].title) %> Items</button>
+                                <a href="/tabs/<%= tabs[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit <%= utils.capitalize(tabs[i].title) %> Group</a>
                                 <% if (tabs[i].items.length > 0) { %>
-                                  <a href="/tabs/<%= tabs[i].id %>/launch" style="display: inline-flex; align-items: center;" role="menuitem">🚀 Launch Group</a>
+                                  <a href="/tabs/<%= tabs[i].id %>/launch" style="display: inline-flex; align-items: center;" role="menuitem">🚀 Launch <%= utils.capitalize(tabs[i].title) %> Group</a>
                                 <% } %>
                                 <button
                                     type="button"
@@ -271,7 +271,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                     onclick="showDeleteTabModal('<%= tabs[i].id %>', '<%= utils.stripHtmlTags(tabs[i].title || 'Untitled').replace(/'/g, '\\\'') %>')"
                                     role="menuitem"
                                 >
-                                    🗑️ Delete Group
+                                    🗑️ Delete <%= utils.capitalize(tabs[i].title) %> Group
                                 </button>
                               </div>
                             </details>
