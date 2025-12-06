@@ -350,6 +350,26 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/bangs');
         });
 
+        it('should handle uppercased direct commands', async () => {
+            const req = {} as Request;
+            const res = {
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
+
+            await searchUtils.search({ req, res, user: testUser, query: '@NOTES' });
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'private, max-age=3600',
+                }),
+            );
+            expect(res.redirect).toHaveBeenCalledWith('/notes');
+
+            vi.mocked(res.redirect).mockClear();
+            await searchUtils.search({ req, res, user: testUser, query: '@BM' });
+            expect(res.redirect).toHaveBeenCalledWith('/bookmarks');
+        });
+
         it('should handle direct commands with search terms for @notes', async () => {
             const req = {} as Request;
             const res = {

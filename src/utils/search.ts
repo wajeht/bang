@@ -941,7 +941,9 @@ export function SearchUtils(context: AppContext) {
             if (commandType === 'direct') {
                 // For command-only queries like @notes, @bookmarks with no search term
                 if (!searchTerm) {
-                    const directPath = searchConfig.directCommands.get(trigger ?? '');
+                    const directPath = searchConfig.directCommands.get(
+                        trigger?.toLowerCase() ?? '',
+                    );
                     if (directPath) {
                         return this.redirectWithCache(
                             res,
@@ -953,7 +955,7 @@ export function SearchUtils(context: AppContext) {
                 }
 
                 // For commands with search terms like @notes search query
-                if (searchTerm && trigger) {
+                if (searchTerm && trigger?.toLowerCase()) {
                     let redirectPath: string | null = null;
 
                     switch (trigger) {
