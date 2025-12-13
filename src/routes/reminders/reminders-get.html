@@ -14,9 +14,27 @@ function handleRowHighlight() {
     }
 }
 
+function previewWebpageOnLinkHover() {
+    document.querySelectorAll('.preview').forEach(el => {
+        const preview = el.querySelector('.preview-window');
+        el.addEventListener('mouseenter', () => {
+            const rect = el.getBoundingClientRect();
+            preview.style.left = (rect.left + rect.width / 2) + 'px';
+            preview.style.top = (rect.top - preview.offsetHeight - 5) + 'px';
+            preview.style.display = 'block';
+        })
+
+        el.addEventListener('mouseleave', () => {
+            preview.style.display = 'none';
+        })
+    })
+}
+
 document.addEventListener('DOMContentLoaded', handleRowHighlight);
+document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
 window.addEventListener('load', handleRowHighlight);
 </script>
+
 <section style="display: flex; flex-direction: column; gap: 30px;">
     <header style="display: flex; justify-content: space-between; align-items: center;">
         <div>
@@ -148,9 +166,12 @@ window.addEventListener('load', handleRowHighlight);
                                     <% if (reminders[i].title && utils.isUrlLike(reminders[i].title)) { %>
                                         <div style="display: flex; gap: 5px; align-items: center;">
                                             <img loading="lazy" src="<%- utils.getFaviconUrl(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                            <a href="<%= utils.stripHtmlTags(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
-                                                <%- reminders[i].title %>
-                                            </a>
+                                            <span class="preview">
+                                                <a href="<%= utils.stripHtmlTags(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
+                                                    <%- reminders[i].title %>
+                                                </a>
+                                                <img class="preview-window" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" loading="lazy" alt="Preview">
+                                            </span>
                                         </div>
                                     <% } else { %>
                                         <%- reminders[i].title %>
@@ -163,9 +184,12 @@ window.addEventListener('load', handleRowHighlight);
                                         <% if (utils.isUrlLike(reminders[i].content)) { %>
                                             <div style="display: flex; gap: 5px; align-items: center;">
                                                 <img loading="lazy" src="<%- utils.getFaviconUrl(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                                <a href="<%= utils.stripHtmlTags(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
-                                                    <%- reminders[i].content %>
-                                                </a>
+                                                <span class="preview">
+                                                    <a href="<%= utils.stripHtmlTags(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
+                                                        <%- reminders[i].content %>
+                                                    </a>
+                                                    <img class="preview-window" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" loading="lazy" alt="Preview">
+                                                </span>
                                             </div>
                                         <% } else { %>
                                             <%- reminders[i].content %>
