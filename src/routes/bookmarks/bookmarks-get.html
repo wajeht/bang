@@ -14,9 +14,27 @@ function handleRowHighlight() {
     }
 }
 
+function previewWebpageOnLinkHover() {
+    document.querySelectorAll('.preview').forEach(el => {
+        const preview = el.querySelector('.preview-window');
+        el.addEventListener('mouseenter', () => {
+            const rect = el.getBoundingClientRect();
+            preview.style.left = (rect.left + rect.width / 2) + 'px';
+            preview.style.top = (rect.top - preview.offsetHeight - 5) + 'px';
+            preview.style.display = 'block';
+        })
+
+        el.addEventListener('mouseleave', () => {
+            preview.style.display = 'none';
+        })
+    })
+}
+
 document.addEventListener('DOMContentLoaded', handleRowHighlight);
 window.addEventListener('load', handleRowHighlight);
+document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
 </script>
+
 <section style="display: flex; flex-direction: column; gap: 30px;">
     <header style="display: flex; justify-content: space-between; align-items: center;">
         <div>
@@ -169,9 +187,12 @@ window.addEventListener('load', handleRowHighlight);
                                 <td style="padding: 10px;">
                                     <div style="display: flex; gap: 5px; align-items: center;">
                                         <img loading="lazy" src= "<%- utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                        <a href="<%= utils.stripHtmlTags(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].title) %>" target="_blank" rel="noopener noreferrer">
-                                            <%- data[i].url %>
-                                        </a>
+                                        <span class="preview">
+                                            <a href="<%= utils.stripHtmlTags(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].title) %>" target="_blank" rel="noopener noreferrer">
+                                                <%- data[i].url %>
+                                            </a>
+                                            <img class="preview-window" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].url) %>" loading="lazy" alt="Preview">
+                                        </span>
                                     </div>
                                 </td>
                             <% } %>
