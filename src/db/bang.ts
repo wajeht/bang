@@ -46728,6 +46728,7 @@ export const bangs: Record<string, any> = {
         u: 'https://hn.algolia.com/?q={{{s}}}',
         c: 'News',
         sc: 'Aggregators',
+        fmt: ['open_snap_domain', 'url_encode_placeholder', 'url_encode_space_to_plus'],
     },
     hno: {
         s: 'hackernoon',
@@ -66804,7 +66805,7 @@ export const bangs: Record<string, any> = {
         s: 'namuwiki',
         d: 'namu.wiki',
         t: 'namu',
-        u: 'https://namu.wiki/Search?q={{{s}}}',
+        u: 'https://namu.wiki/Go?q={{{s}}}',
         c: 'Research',
         sc: 'Reference',
     },
@@ -69484,10 +69485,12 @@ export const bangs: Record<string, any> = {
     nr: {
         s: 'Nixpkgs Repository',
         d: 'github.com',
+        ad: 'github.com/NixOS/nixpkgs',
         t: 'nr',
         u: 'https://github.com/NixOS/nixpkgs/search?q={{{s}}}',
         c: 'Tech',
         sc: 'Sysadmin (packages)',
+        fmt: ['url_encode_placeholder', 'url_encode_space_to_plus', 'open_snap_domain'],
     },
     nrtq: {
         s: 'NASDAQ Real Time Quotes',
@@ -75353,11 +75356,11 @@ export const bangs: Record<string, any> = {
     },
     phpnet: {
         s: 'PHP.net',
-        d: 'secure.php.net',
+        d: 'www.php.net',
         ad: 'php.net',
         t: 'phpnet',
         ts: ['php'],
-        u: 'https://secure.php.net/manual-lookup.php?pattern={{{s}}}',
+        u: 'https://www.php.net/manual-lookup.php?pattern={{{s}}}',
         c: 'Tech',
         sc: 'Languages (php)',
     },
