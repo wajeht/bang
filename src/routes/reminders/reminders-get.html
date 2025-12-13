@@ -170,7 +170,7 @@ window.addEventListener('load', handleRowHighlight);
                                                 <a href="<%= utils.stripHtmlTags(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
                                                     <%- reminders[i].title %>
                                                 </a>
-                                                <img class="preview-window" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>&width=300&height=200" loading="lazy" alt="Preview">
+                                                <img class="preview-window" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" loading="lazy" alt="Preview">
                                             </span>
                                         </div>
                                     <% } else { %>

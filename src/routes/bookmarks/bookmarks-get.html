@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
                                             <a href="<%= utils.stripHtmlTags(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].title) %>" target="_blank" rel="noopener noreferrer">
                                                 <%- data[i].url %>
                                             </a>
-                                            <img class="preview-window" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].url) %>&width=300 to" loading="lazy" alt="Preview">
+                                            <img class="preview-window" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].url) %>" loading="lazy" alt="Preview">
                                         </span>
                                     </div>
                                 </td>
