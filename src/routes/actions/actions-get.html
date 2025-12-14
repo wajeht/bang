@@ -14,7 +14,27 @@ function handleRowHighlight() {
     }
 }
 
+function previewWebpageOnLinkHover() {
+    document.querySelectorAll('.preview').forEach(el => {
+        const img = el.querySelector('.preview-img');
+
+        el.addEventListener('mouseenter', () => {
+            const rect = el.getBoundingClientRect();
+            const left = (rect.left + rect.width / 2) + 'px';
+            const top = (rect.top - 158 - 5) + 'px';
+            img.style.left = left;
+            img.style.top = top;
+            img.style.display = 'block';
+        })
+
+        el.addEventListener('mouseleave', () => {
+            img.style.display = 'none';
+        })
+    })
+}
+
 document.addEventListener('DOMContentLoaded', handleRowHighlight);
+document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
 window.addEventListener('load', handleRowHighlight);
 </script>
 <section style="display: flex; flex-direction: column; gap: 30px;">
@@ -69,6 +89,11 @@ window.addEventListener('load', handleRowHighlight);
             <% } %>
 
             <button type="button" aria-label="Create new action" onclick="location.href='/actions/create<%= showHidden ? '?hidden=true' : '' %>'">➕</button>
+
+            <form method="POST" action="/actions/prefetch" style="display: inline;">
+                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                <button type="submit" aria-label="Prefetch all previews" title="Cache all preview images">🖼️</button>
+            </form>
 
         <%- include('../_components/column-settings.html') %>
         </nav>
@@ -217,9 +242,12 @@ window.addEventListener('load', handleRowHighlight);
                                     <% if (data[i].url) { %>
                                     <div style="display: flex; gap: 5px; align-items: center;">
                                         <img loading="lazy" src= "<%- utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                        <a href="<%= utils.stripHtmlTags(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].url) %>" target="_blank" rel="noopener noreferrer">
-                                            <%- data[i].url %>
-                                        </a>
+                                        <span class="preview">
+                                            <a href="<%= utils.stripHtmlTags(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].url) %>" target="_blank" rel="noopener noreferrer">
+                                                <%- data[i].url %>
+                                            </a>
+                                            <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].url) %>" loading="lazy" alt="Preview">
+                                        </span>
                                     </div>
                                     <% } else { %>
                                         <span>-</span>

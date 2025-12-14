@@ -583,5 +583,36 @@ export function TabsRouter(ctx: AppContext) {
         return res.redirect(`/tabs`);
     }
 
+    router.post(
+        '/tabs/prefetch',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const tabItems = await ctx.db('tab_items')
+                .select('tab_items.url')
+                .join('tabs', 'tabs.id', 'tab_items.tab_id')
+                .where('tabs.user_id', user.id);
+
+            const urls = tabItems.map((t: { url: string }) => t.url).filter(Boolean);
+
+            const results = await Promise.all(
+                urls.map(url =>
+                    fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
+                        method: 'HEAD',
+                        headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' }
+                    })
+                        .then(() => true)
+                        .catch(() => false)
+                )
+            );
+
+            const success = results.filter(Boolean).length;
+            const failed = results.length - success;
+
+            req.flash('success', `Cached ${success}/${urls.length} preview images${failed > 0 ? ` (${failed} failed)` : ''}`);
+            return res.redirect('/tabs');
+        },
+    );
+
     return router;
 }

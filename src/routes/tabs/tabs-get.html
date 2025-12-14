@@ -75,7 +75,27 @@
         }
     };
 
+    function previewWebpageOnLinkHover() {
+        document.querySelectorAll('.preview').forEach(el => {
+            const img = el.querySelector('.preview-img');
+
+            el.addEventListener('mouseenter', () => {
+                const rect = el.getBoundingClientRect();
+                const left = (rect.left + rect.width / 2) + 'px';
+                const top = (rect.top - 158 - 5) + 'px';
+                img.style.left = left;
+                img.style.top = top;
+                img.style.display = 'block';
+            })
+
+            el.addEventListener('mouseleave', () => {
+                img.style.display = 'none';
+            })
+        })
+    }
+
     handleTabRowHighlight();
+    previewWebpageOnLinkHover();
     window.addEventListener('load', handleTabRowHighlight);
   });
 
@@ -160,6 +180,10 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
 
         <button type="button" id="delete-selected-btn" style="display: none;" aria-label="Delete selected tab groups">🗑️</button>
         <button type="button" aria-label="Create new tab group" onclick="location.href='/tabs/create'">➕</button>
+        <form method="POST" action="/tabs/prefetch" style="display: inline;">
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+            <button type="submit" aria-label="Prefetch all previews" title="Cache all preview images">🖼️</button>
+        </form>
         <!-- <button type="button" aria-label="Delete all tab groups" onclick="document.getElementById('delete-all-tabs-modal').showModal()">🗑️</button> -->
         <%- include('../_components/column-settings.html') %>
       </div>
@@ -347,9 +371,12 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                      <td style="padding: 10px;">
                                         <div style="display: flex; gap: 5px; align-items: center;">
                                             <img loading="lazy" src= "<%- utils.getFaviconUrl(tabs[i].items[j].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                            <a href="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" target="_blank" rel="noopener noreferrer">
-                                                <%- tabs[i].items[j].url %>
-                                            </a>
+                                            <span class="preview">
+                                                <a href="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" target="_blank" rel="noopener noreferrer">
+                                                    <%- tabs[i].items[j].url %>
+                                                </a>
+                                                <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(tabs[i].items[j].url) %>" loading="lazy" alt="Preview">
+                                            </span>
                                         </div>
                                      </td>
                                      <% } %>

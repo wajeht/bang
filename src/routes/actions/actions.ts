@@ -459,5 +459,36 @@ export function ActionsRouter(ctx: AppContext) {
         },
     );
 
+    router.post(
+        '/actions/prefetch',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const actions = await ctx.db('bangs')
+                .select('url')
+                .where({ user_id: user.id })
+                .whereNotNull('url');
+
+            const urls = actions.map((a: { url: string }) => a.url).filter(Boolean);
+
+            const results = await Promise.all(
+                urls.map(url =>
+                    fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
+                        method: 'HEAD',
+                        headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' }
+                    })
+                        .then(() => true)
+                        .catch(() => false)
+                )
+            );
+
+            const success = results.filter(Boolean).length;
+            const failed = results.length - success;
+
+            req.flash('success', `Cached ${success}/${urls.length} preview images${failed > 0 ? ` (${failed} failed)` : ''}`);
+            return res.redirect('/actions');
+        },
+    );
+
     return router;
 }
