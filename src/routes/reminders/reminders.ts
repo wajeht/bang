@@ -513,7 +513,10 @@ export function RemindersRouter(ctx: AppContext) {
 
             const results = await Promise.all(
                 urls.map(url =>
-                    fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, { method: 'HEAD' })
+                    fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
+                        method: 'HEAD',
+                        headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' }
+                    })
                         .then(() => true)
                         .catch(() => false)
                 )
