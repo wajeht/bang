@@ -655,18 +655,35 @@ a:hover .sort-icon {
     position: relative;
 }
 
-.preview-window {
+.preview-img {
     display: none;
     position: fixed;
     z-index: 99999;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     width: 300px;
-    min-height: 200px;
-    object-fit: contain;
+    height: 158px;
+    object-fit: cover;
     background: var(--background-color);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     pointer-events: none;
+}
+
+.preview-loading {
+    display: none;
+    position: fixed;
+    z-index: 99999;
+    width: 300px;
+    height: 158px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--background-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-color);
+    font-size: 0.9em;
 }
 
 [data-theme='dark'] .question-mark-btn {
