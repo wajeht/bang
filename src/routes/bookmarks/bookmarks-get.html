@@ -16,17 +16,30 @@ function handleRowHighlight() {
 
 function previewWebpageOnLinkHover() {
     document.querySelectorAll('.preview').forEach(el => {
-        const preview = el.querySelector('.preview-window');
+        const img = el.querySelector('.preview-img');
+        const loader = document.createElement('div');
+        loader.className = 'preview-loading';
+        loader.textContent = 'Loading...';
+        el.appendChild(loader);
+
         el.addEventListener('mouseenter', () => {
             const rect = el.getBoundingClientRect();
-            preview.style.left = (rect.left + rect.width / 2) + 'px';
-            preview.style.top = (rect.top - preview.offsetHeight - 5) + 'px';
-            preview.style.display = 'block';
+            const left = (rect.left + rect.width / 2) + 'px';
+            const top = (rect.top - 158 - 5) + 'px';
+            img.style.left = left;
+            img.style.top = top;
+            loader.style.left = left;
+            loader.style.top = top;
+            img.style.display = 'block';
+            if (!img.complete) loader.style.display = 'flex';
         })
 
         el.addEventListener('mouseleave', () => {
-            preview.style.display = 'none';
+            img.style.display = 'none';
+            loader.style.display = 'none';
         })
+
+        img.onload = () => loader.style.display = 'none';
     })
 }
 
@@ -191,7 +204,7 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
                                             <a href="<%= utils.stripHtmlTags(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].title) %>" target="_blank" rel="noopener noreferrer">
                                                 <%- data[i].url %>
                                             </a>
-                                            <img class="preview-window" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].url) %>" loading="lazy" alt="Preview">
+                                            <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].url) %>" loading="lazy" alt="Preview">
                                         </span>
                                     </div>
                                 </td>

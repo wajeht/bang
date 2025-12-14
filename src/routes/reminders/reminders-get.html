@@ -16,17 +16,30 @@ function handleRowHighlight() {
 
 function previewWebpageOnLinkHover() {
     document.querySelectorAll('.preview').forEach(el => {
-        const preview = el.querySelector('.preview-window');
+        const img = el.querySelector('.preview-img');
+        const loader = document.createElement('div');
+        loader.className = 'preview-loading';
+        loader.textContent = 'Loading...';
+        el.appendChild(loader);
+
         el.addEventListener('mouseenter', () => {
             const rect = el.getBoundingClientRect();
-            preview.style.left = (rect.left + rect.width / 2) + 'px';
-            preview.style.top = (rect.top - preview.offsetHeight - 5) + 'px';
-            preview.style.display = 'block';
+            const left = (rect.left + rect.width / 2) + 'px';
+            const top = (rect.top - 158 - 5) + 'px';
+            img.style.left = left;
+            img.style.top = top;
+            loader.style.left = left;
+            loader.style.top = top;
+            img.style.display = 'block';
+            if (!img.complete) loader.style.display = 'flex';
         })
 
         el.addEventListener('mouseleave', () => {
-            preview.style.display = 'none';
+            img.style.display = 'none';
+            loader.style.display = 'none';
         })
+
+        img.onload = () => loader.style.display = 'none';
     })
 }
 
@@ -170,7 +183,7 @@ window.addEventListener('load', handleRowHighlight);
                                                 <a href="<%= utils.stripHtmlTags(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
                                                     <%- reminders[i].title %>
                                                 </a>
-                                                <img class="preview-window" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" loading="lazy" alt="Preview">
+                                                <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" loading="lazy" alt="Preview">
                                             </span>
                                         </div>
                                     <% } else { %>
@@ -188,7 +201,7 @@ window.addEventListener('load', handleRowHighlight);
                                                     <a href="<%= utils.stripHtmlTags(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
                                                         <%- reminders[i].content %>
                                                     </a>
-                                                    <img class="preview-window" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" loading="lazy" alt="Preview">
+                                                    <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" loading="lazy" alt="Preview">
                                                 </span>
                                             </div>
                                         <% } else { %>
