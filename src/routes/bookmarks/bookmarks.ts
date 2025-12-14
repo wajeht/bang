@@ -502,5 +502,32 @@ export function BookmarksRouter(ctx: AppContext) {
         },
     );
 
+    router.post(
+        '/bookmarks/prefetch',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const bookmarks = await ctx.db('bookmarks')
+                .select('url')
+                .where({ user_id: user.id });
+
+            const urls = bookmarks.map((b: { url: string }) => b.url).filter(Boolean);
+
+            const results = await Promise.all(
+                urls.map(url =>
+                    fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, { method: 'HEAD' })
+                        .then(() => true)
+                        .catch(() => false)
+                )
+            );
+
+            const success = results.filter(Boolean).length;
+            const failed = results.length - success;
+
+            req.flash('success', `Cached ${success}/${urls.length} preview images${failed > 0 ? ` (${failed} failed)` : ''}`);
+            return res.redirect('/bookmarks');
+        },
+    );
+
     return router;
 }

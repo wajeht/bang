@@ -492,5 +492,40 @@ export function RemindersRouter(ctx: AppContext) {
         return res.redirect('/reminders');
     }
 
+    router.post(
+        '/reminders/prefetch',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const reminders = await ctx.db('reminders')
+                .select('title', 'content')
+                .where({ user_id: user.id });
+
+            const urls: string[] = [];
+            for (const r of reminders) {
+                if (r.title && ctx.utils.validation.isUrlLike(r.title)) {
+                    urls.push(r.title.startsWith('http') ? r.title : 'https://' + r.title);
+                }
+                if (r.content && ctx.utils.validation.isUrlLike(r.content)) {
+                    urls.push(r.content.startsWith('http') ? r.content : 'https://' + r.content);
+                }
+            }
+
+            const results = await Promise.all(
+                urls.map(url =>
+                    fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, { method: 'HEAD' })
+                        .then(() => true)
+                        .catch(() => false)
+                )
+            );
+
+            const success = results.filter(Boolean).length;
+            const failed = results.length - success;
+
+            req.flash('success', `Cached ${success}/${urls.length} preview images${failed > 0 ? ` (${failed} failed)` : ''}`);
+            return res.redirect('/reminders');
+        },
+    );
+
     return router;
 }

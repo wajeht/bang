@@ -99,6 +99,11 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
 
             <button type="button" aria-label="Create new bookmark" onclick="location.href='/bookmarks/create<%= showHidden ? '?hidden=true' : '' %>'">➕</button>
 
+            <form method="POST" action="/bookmarks/prefetch" style="display: inline;">
+                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                <button type="submit" aria-label="Prefetch all previews" title="Cache all preview images">🖼️</button>
+            </form>
+
         <%- include('../_components/column-settings.html') %>
         </nav>
     </header>
@@ -336,11 +341,12 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
 
             document.getElementById('bulk-delete-checkboxes').innerHTML =
                 checked.map(cb => `<input type="hidden" name="id[]" value="${cb.value}">`).join('');
-            
+
             document.getElementById("bulk-delete-bookmark-checkbhoxes-count").innerHTML = checked.length;
 
             document.getElementById('delete-selected-modal').showModal();
         });
-    </script>
+
+        </script>
 
 </section>

@@ -83,6 +83,11 @@ window.addEventListener('load', handleRowHighlight);
 
             <button type="button" aria-label="Recalculate recurring reminders" title="Recalculate all recurring reminders from today" onclick="showRecalculateModal()">🔄</button>
 
+            <form method="POST" action="/reminders/prefetch" style="display: inline;">
+                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                <button type="submit" aria-label="Prefetch all previews" title="Cache all preview images">🖼️</button>
+            </form>
+
             <%- include('../_components/column-settings.html') %>
         </nav>
     </header>
@@ -388,5 +393,6 @@ window.addEventListener('load', handleRowHighlight);
 
             document.getElementById('delete-selected-modal').showModal();
         });
-    </script>
+
+        </script>
 </section>
