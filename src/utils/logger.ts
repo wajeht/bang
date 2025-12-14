@@ -102,7 +102,7 @@ export function Logger() {
             const timestamp = styleText('dim', getFormattedTimestamp());
             const label = styleText('cyan', 'TABLE:');
             console.log(`${timestamp} ${label}`);
-            console.table(tabularData, properties);
+            console.table(tabularData, properties ? [...properties] : undefined);
         },
 
         box(title: string, content: string | string[]) {
