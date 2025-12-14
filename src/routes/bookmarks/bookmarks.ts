@@ -507,27 +507,22 @@ export function BookmarksRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
-            const bookmarks = await ctx.db('bookmarks')
-                .select('url')
-                .where({ user_id: user.id });
+            const bookmarks = await ctx.db('bookmarks').select('url').where({ user_id: user.id });
 
             const urls = bookmarks.map((b: { url: string }) => b.url).filter(Boolean);
 
-            const results = await Promise.all(
-                urls.map(url =>
-                    fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
-                        method: 'HEAD',
-                        headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' }
-                    })
-                        .then(() => true)
-                        .catch(() => false)
-                )
-            );
+            setTimeout(() => {
+                Promise.all(
+                    urls.map((url) =>
+                        fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
+                            method: 'HEAD',
+                            headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' },
+                        }).catch(() => {}),
+                    ),
+                );
+            }, 0);
 
-            const success = results.filter(Boolean).length;
-            const failed = results.length - success;
-
-            req.flash('success', `Cached ${success}/${urls.length} preview images${failed > 0 ? ` (${failed} failed)` : ''}`);
+            req.flash('success', `Caching ${urls.length} preview images in background...`);
             return res.redirect('/bookmarks');
         },
     );
