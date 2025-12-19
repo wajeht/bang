@@ -206,10 +206,6 @@ export function BookmarksRouter(ctx: AppContext) {
     async function postBookmarkHandler(req: Request, res: Response) {
         const { url, title, pinned, hidden } = req.body;
 
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
-
         if (!url) {
             throw new ctx.errors.ValidationError({ url: 'URL is required' });
         }
