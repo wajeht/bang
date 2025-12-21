@@ -1,10 +1,45 @@
+# Dependencies
 node_modules
+
+# Build output
+dist
+
+# Git
 .git
 .gitignore
-dist
-.git
-node_modules
-docs
+
+# IDE
 .vscode
+.idea
+.claude
+
+# Documentation
+docs
 LICENSE
+
+# Development files
 Makefile
+docker-compose*.yml
+Dockerfile.dev
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+**/*.browser-test.ts
+vitest.config.*
+playwright.config.*
+playwright-report
+
+# Linting/formatting configs (using oxc now)
+.oxlintrc.json
+.oxfmtrc.json
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Other
+.npmrc
+.nvmrc
+captain-definition
