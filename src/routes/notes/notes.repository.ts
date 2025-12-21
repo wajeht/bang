@@ -9,7 +9,6 @@ export function NotesRepository(ctx: AppContext): Notes {
             search = '',
             sortKey = 'created_at',
             direction = 'desc',
-            highlight = false,
             excludeHidden = false,
         }: NotesQueryParams) => {
             const query = ctx.db.select(
@@ -19,23 +18,9 @@ export function NotesRepository(ctx: AppContext): Notes {
                 'created_at',
                 'updated_at',
                 'hidden',
+                'title',
+                'content',
             );
-
-            if (highlight && search) {
-                query
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('title', search)} as title`,
-                        ),
-                    )
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('content', search)} as content`,
-                        ),
-                    );
-            } else {
-                query.select('title').select('content');
-            }
 
             query.from('notes').where('user_id', user.id);
 

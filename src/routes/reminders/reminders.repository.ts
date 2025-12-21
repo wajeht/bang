@@ -9,7 +9,6 @@ export function RemindersRepository(ctx: AppContext): Reminders {
             search = '',
             sortKey = 'due_date',
             direction = 'asc',
-            highlight = false,
         }: RemindersQueryParams) => {
             const query = ctx.db.select(
                 'id',
@@ -18,28 +17,10 @@ export function RemindersRepository(ctx: AppContext): Reminders {
                 'frequency',
                 'created_at',
                 'updated_at',
+                'title',
+                'content',
+                'due_date',
             );
-
-            if (highlight && search) {
-                query
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('title', search)} as title`,
-                        ),
-                    )
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('content', search)} as content`,
-                        ),
-                    )
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('CAST(due_date AS TEXT)', search)} as due_date`,
-                        ),
-                    );
-            } else {
-                query.select('title').select('content').select('due_date');
-            }
 
             query.from('reminders').where('user_id', user.id);
 

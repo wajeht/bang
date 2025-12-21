@@ -9,7 +9,6 @@ export function BookmarksRepository(ctx: AppContext): Bookmarks {
             search = '',
             sortKey = 'created_at',
             direction = 'desc',
-            highlight = false,
             excludeHidden = false,
         }: BookmarksQueryParams) => {
             const query = ctx.db.select(
@@ -19,23 +18,9 @@ export function BookmarksRepository(ctx: AppContext): Bookmarks {
                 'created_at',
                 'updated_at',
                 'hidden',
+                'title',
+                'url',
             );
-
-            if (highlight && search) {
-                query
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('title', search)} as title`,
-                        ),
-                    )
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('url', search)} as url`,
-                        ),
-                    );
-            } else {
-                query.select('title').select('url');
-            }
 
             query.from('bookmarks').where('user_id', user.id);
 

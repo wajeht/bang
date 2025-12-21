@@ -9,10 +9,16 @@ export function TabsRepository(ctx: AppContext): Tabs {
             search = '',
             sortKey = 'created_at',
             direction = 'desc',
-            highlight = false,
         }: TabsQueryParams) => {
             const query = ctx.db
-                .select('tabs.id', 'tabs.user_id', 'tabs.created_at', 'tabs.updated_at')
+                .select(
+                    'tabs.id',
+                    'tabs.user_id',
+                    'tabs.created_at',
+                    'tabs.updated_at',
+                    'tabs.title',
+                    'tabs.trigger',
+                )
                 .select(
                     ctx.db.raw(
                         '(SELECT COUNT(*) FROM tab_items WHERE tab_items.tab_id = tabs.id) as items_count',
@@ -20,22 +26,6 @@ export function TabsRepository(ctx: AppContext): Tabs {
                 )
                 .from('tabs')
                 .where('tabs.user_id', user.id);
-
-            if (highlight && search) {
-                query
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('tabs.title', search)} as title`,
-                        ),
-                    )
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('tabs.trigger', search)} as trigger`,
-                        ),
-                    );
-            } else {
-                query.select('tabs.title').select('tabs.trigger');
-            }
 
             if (search) {
                 const searchTerms = search
@@ -91,27 +81,9 @@ export function TabsRepository(ctx: AppContext): Tabs {
                 const tabIds = result.data.map((tab: any) => tab.id);
 
                 let itemsQuery = ctx.db
-                    .select('id', 'tab_id', 'created_at', 'updated_at')
+                    .select('id', 'tab_id', 'created_at', 'updated_at', 'title', 'url')
                     .from('tab_items')
                     .whereIn('tab_id', tabIds);
-
-                if (highlight && search) {
-                    itemsQuery = itemsQuery
-                        .select(
-                            ctx.db.raw(
-                                `${ctx.utils.html.sqlHighlightSearchTerm('tab_items.title', search)} as title`,
-                            ),
-                        )
-                        .select(
-                            ctx.db.raw(
-                                `${ctx.utils.html.sqlHighlightSearchTerm('tab_items.url', search)} as url`,
-                            ),
-                        );
-                } else {
-                    itemsQuery = itemsQuery
-                        .select('tab_items.title as title')
-                        .select('tab_items.url as url');
-                }
 
                 if (search) {
                     itemsQuery = itemsQuery.where((builder: any) => {

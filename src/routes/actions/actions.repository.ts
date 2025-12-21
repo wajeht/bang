@@ -9,7 +9,6 @@ export function ActionsRepository(ctx: AppContext): Actions {
             search = '',
             sortKey = 'created_at',
             direction = 'desc',
-            highlight = false,
             excludeHidden = false,
         }: ActionsQueryParams) => {
             const query = ctx.db.select(
@@ -21,37 +20,10 @@ export function ActionsRepository(ctx: AppContext): Actions {
                 'bangs.last_read_at',
                 'bangs.usage_count',
                 'bangs.hidden',
+                'bangs.name',
+                'bangs.trigger',
+                'bangs.url',
             );
-
-            if (highlight && search) {
-                query
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('bangs.name', search)} as name`,
-                        ),
-                    )
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('bangs.trigger', search)} as trigger`,
-                        ),
-                    )
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('bangs.url', search)} as url`,
-                        ),
-                    )
-                    .select(
-                        ctx.db.raw(
-                            `${ctx.utils.html.sqlHighlightSearchTerm('bangs.action_type', search)} as action_type`,
-                        ),
-                    );
-            } else {
-                query
-                    .select('bangs.name')
-                    .select('bangs.trigger')
-                    .select('bangs.url')
-                    .select('bangs.action_type');
-            }
 
             query.from('bangs').where('bangs.user_id', user.id);
 

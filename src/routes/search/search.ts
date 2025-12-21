@@ -61,7 +61,6 @@ export function SearchRouter(ctx: AppContext) {
                     search: searchQuery,
                     sortKey: 'created_at',
                     direction: 'desc',
-                    highlight: true,
                     excludeHidden: true,
                 }),
 
@@ -72,7 +71,6 @@ export function SearchRouter(ctx: AppContext) {
                     search: searchQuery,
                     sortKey: 'created_at',
                     direction: 'desc',
-                    highlight: true,
                     excludeHidden: true,
                 }),
 
@@ -83,7 +81,6 @@ export function SearchRouter(ctx: AppContext) {
                     search: searchQuery,
                     sortKey: 'created_at',
                     direction: 'desc',
-                    highlight: true,
                     excludeHidden: true,
                 }),
 
@@ -94,7 +91,6 @@ export function SearchRouter(ctx: AppContext) {
                     search: searchQuery,
                     sortKey: 'created_at',
                     direction: 'desc',
-                    highlight: true,
                 }),
 
                 ctx.models.reminders.all({
@@ -104,9 +100,24 @@ export function SearchRouter(ctx: AppContext) {
                     search: searchQuery,
                     sortKey: 'created_at',
                     direction: 'desc',
-                    highlight: true,
                 }),
             ]);
+
+        ctx.utils.html.applyHighlighting(bookmarksResult.data, ['title', 'url'], searchQuery);
+        ctx.utils.html.applyHighlighting(
+            actionsResult.data,
+            ['name', 'trigger', 'url'],
+            searchQuery,
+        );
+        ctx.utils.html.applyHighlighting(notesResult.data, ['title', 'content'], searchQuery);
+        ctx.utils.html.applyHighlighting(remindersResult.data, ['title', 'content'], searchQuery);
+
+        ctx.utils.html.applyHighlighting(tabsResult.data, ['title', 'trigger'], searchQuery);
+        for (const tab of tabsResult.data) {
+            if (tab.items) {
+                ctx.utils.html.applyHighlighting(tab.items, ['title', 'url'], searchQuery);
+            }
+        }
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.json({
