@@ -442,6 +442,59 @@ export function BookmarksRouter(ctx: AppContext) {
     }
 
     /**
+     * POST /api/bookmarks/{id}/hide
+     *
+     * @tags Bookmarks
+     * @summary Toggle hidden status of a bookmark
+     *
+     * @security BearerAuth
+     *
+     * @param {string} id.path.required - bookmark id
+     *
+     * @return {object} 200 - success response - application/json
+     * @return {object} 400 - Bad request response - application/json
+     * @return {object} 404 - Not found response - application/json
+     *
+     */
+    router.post('/bookmarks/:id/hide', ctx.middleware.authentication, toggleBookmarkHideHandler);
+    router.post('/api/bookmarks/:id/hide', ctx.middleware.authentication, toggleBookmarkHideHandler);
+    async function toggleBookmarkHideHandler(req: Request, res: Response) {
+        const user = req.user as User;
+        const bookmarkId = parseInt(req.params.id as unknown as string);
+
+        if (!user.hidden_items_password) {
+            throw new ctx.errors.ValidationError({
+                hidden: 'You must set a global password in settings before hiding items',
+            });
+        }
+
+        const currentBookmark = await ctx.models.bookmarks.read(bookmarkId, user.id);
+
+        if (!currentBookmark) {
+            throw new ctx.errors.NotFoundError('Bookmark not found');
+        }
+
+        const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
+            hidden: !currentBookmark.hidden,
+        });
+
+        if (ctx.utils.request.isApiRequest(req)) {
+            res.status(200).json({
+                message: `Bookmark ${updatedBookmark.hidden ? 'hidden' : 'unhidden'} successfully`,
+                data: updatedBookmark,
+            });
+            return;
+        }
+
+        req.flash(
+            'success',
+            `Bookmark ${updatedBookmark.hidden ? 'hidden' : 'unhidden'} successfully`,
+        );
+        const showHidden = req.body.showHidden === 'true';
+        return res.redirect('/bookmarks' + (showHidden ? '?hidden=true' : ''));
+    }
+
+    /**
      *
      * GET /api/bookmarks/{id}
      *
