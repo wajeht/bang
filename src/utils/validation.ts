@@ -3,7 +3,7 @@ export function ValidationUtils() {
         try {
             new URL(url);
             return true;
-        } catch (_error) {
+        } catch {
             return false;
         }
     }

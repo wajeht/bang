@@ -700,7 +700,7 @@ export function SettingsRouter(ctx: AppContext) {
             let importData;
             try {
                 importData = JSON.parse(req.body.config);
-            } catch (error) {
+            } catch {
                 throw new ctx.errors.ValidationError({ config: 'Invalid JSON format' });
             }
 
@@ -900,7 +900,7 @@ export function SettingsRouter(ctx: AppContext) {
                                             typeof updateData.column_preferences === 'string'
                                                 ? JSON.parse(updateData.column_preferences)
                                                 : updateData.column_preferences;
-                                    } catch (error) {
+                                    } catch {
                                         // Handle parsing error gracefully
                                     }
                                 }

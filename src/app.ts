@@ -31,7 +31,7 @@ export async function createApp() {
                 ],
                 options: { quiet: true },
             });
-        } catch (error) {
+        } catch {
             ctx.logger.warn('Express templates reload not available in production');
         }
     }

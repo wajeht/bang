@@ -318,7 +318,7 @@ https://github.com/wajeht/bang`,
 
             // HTML version with clickable links
             const formatReminderListHTML = reminders
-                .map((reminder, index) => {
+                .map((reminder) => {
                     const title = reminder.title;
 
                     if (reminder.url && reminder.url !== 'null') {

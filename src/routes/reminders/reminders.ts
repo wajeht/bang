@@ -187,7 +187,7 @@ export function RemindersRouter(ctx: AppContext) {
                 }
 
                 req.flash('success', `Recalculated ${recurringReminders.length} reminders`);
-            } catch (error) {
+            } catch {
                 req.flash('error', 'Failed to recalculate reminders');
             }
 

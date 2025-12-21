@@ -99,7 +99,7 @@ export function Utils(context: AppContext) {
             let domain = '';
             try {
                 domain = new URL(url).hostname;
-            } catch (error) {
+            } catch {
                 domain = url;
             }
             return `https://favicon.jaw.dev/?url=${domain}`;
@@ -201,7 +201,7 @@ export function Utils(context: AppContext) {
                 }
 
                 return plainText;
-            } catch (error) {
+            } catch {
                 return '';
             }
         },

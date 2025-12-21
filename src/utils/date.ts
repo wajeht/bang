@@ -11,7 +11,7 @@ export function DateUtils(context: AppContext) {
                 // Parse as local time in the specified timezone, then convert to UTC
                 const localTime = context.libs.dayjs.tz(localDateTimeString, timezone);
                 return localTime.utc().toISOString();
-            } catch (error) {
+            } catch {
                 // Fallback: assume input is already UTC
                 return context.libs.dayjs.utc(localDateTimeString).toISOString();
             }
@@ -52,7 +52,7 @@ export function DateUtils(context: AppContext) {
                 const timeInputValue = localDate.format('HH:mm');
 
                 return { dateString, timeString, fullString, dateInputValue, timeInputValue };
-            } catch (_error) {
+            } catch {
                 // Fallback to basic formatting
                 const date = context.libs.dayjs(utcDateString);
                 const jsDate = date.toDate();
