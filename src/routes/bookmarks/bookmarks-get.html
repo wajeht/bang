@@ -248,6 +248,17 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
                                         <a href="/bookmarks/<%= data[i].id %>/tabs/create<%= showHidden ? '?hidden=true' : '' %>" style="display: inline-flex; align-items: center;" role="menuitem">🔗 Tab</a>
                                         <a href="/bookmarks/<%= data[i].id %>/actions/create<%= showHidden ? '?hidden=true' : '' %>" style="display: inline-flex; align-items: center;" role="menuitem">⚡️ Bang</a>
                                         <a href="/bookmarks/<%= data[i].id %>/edit<%= showHidden ? '?hidden=true' : '' %>" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
+                                        <% if (state.user.hidden_items_password) { %>
+                                            <form method="POST" action="/bookmarks/<%= data[i].id %>/hide" style="display: inline;">
+                                                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                                                <% if (showHidden) { %>
+                                                    <input type="hidden" name="showHidden" value="true" />
+                                                <% } %>
+                                                <button type="submit" class="no-style-btn" style="text-align: left;" role="menuitem" aria-label="<%= data[i].hidden ? 'Unhide' : 'Hide' %> bookmark <%= utils.stripHtmlTags(data[i].title || 'Untitled') %>">
+                                                    <%= data[i].hidden ? '👁️ Unhide' : '🫣 Hide' %>
+                                                </button>
+                                            </form>
+                                        <% } %>
 
                                         <button
                                             type="button"
