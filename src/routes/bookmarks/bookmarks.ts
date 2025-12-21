@@ -47,9 +47,10 @@ export function BookmarksRouter(ctx: AppContext) {
             search,
             sortKey,
             direction,
-            highlight: !ctx.utils.request.isApiRequest(req),
             excludeHidden: !canViewHidden,
         });
+
+        ctx.utils.html.applyHighlighting(data, ['title', 'url'], search);
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.json({ data, pagination, search, sortKey, direction });

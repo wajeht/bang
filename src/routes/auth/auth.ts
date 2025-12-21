@@ -59,7 +59,6 @@ export function AuthRouter(ctx: AppContext) {
 
         const token = ctx.utils.auth.generateMagicLink({ email });
 
-        // Send magic link email in background with error handling
         Promise.resolve().then(async () => {
             try {
                 await ctx.utils.mail.sendMagicLinkEmail({ email, token, req });
@@ -139,7 +138,6 @@ export function AuthRouter(ctx: AppContext) {
                 return res.redirect(url.pathname + url.search);
             }
 
-            // Check database for current password (not cached session)
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
             if (!dbUser?.hidden_items_password) {
                 req.flash(
@@ -178,7 +176,6 @@ export function AuthRouter(ctx: AppContext) {
             req.session.verifiedHiddenItems ??= {};
             const verifiedItems: Record<string, number> = req.session.verifiedHiddenItems;
 
-            // Clean up expired verification keys to prevent memory leak
             const now = Date.now();
             for (const [key, expiry] of Object.entries(verifiedItems)) {
                 if (expiry < now) {
@@ -192,7 +189,6 @@ export function AuthRouter(ctx: AppContext) {
             req.session.hiddenItemsVerified = true;
             req.session.hiddenItemsVerifiedAt = now;
 
-            // Explicitly save session after modifications
             req.session.save((err) => {
                 if (err) {
                     ctx.logger.error(

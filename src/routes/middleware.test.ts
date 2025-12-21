@@ -180,7 +180,7 @@ describe('authenticationMiddleware', () => {
     it('should throw UnauthorizedError if no user found and is API request', async () => {
         req.session!.user = undefined;
         req.headers = { accept: 'application/json' }; // API request marker
-        req.path = '/api/test'; // API path
+        (req as any).path = '/api/test'; // API path
 
         await authenticationMiddleware(req as Request, res as Response, next);
 
@@ -410,7 +410,7 @@ describe('errorMiddleware', () => {
 
     it('should handle API requests with different error types', async () => {
         req.headers = { accept: 'application/json' };
-        req.path = '/api/test';
+        (req as any).path = '/api/test';
 
         const notFoundError = new NotFoundError('API resource not found');
         await errorMiddleware(
@@ -428,7 +428,7 @@ describe('errorMiddleware', () => {
 
         vi.resetAllMocks();
         req.headers = { accept: 'application/json' };
-        req.path = '/api/test';
+        (req as any).path = '/api/test';
         res = {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),

@@ -220,8 +220,9 @@ export function RemindersRouter(ctx: AppContext) {
             search,
             sortKey: sortKey || 'due_date',
             direction: direction || 'asc',
-            highlight: !!search,
         });
+
+        ctx.utils.html.applyHighlighting(remindersData, ['title', 'content'], search);
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.json({ data: remindersData, pagination, search, sortKey, direction });

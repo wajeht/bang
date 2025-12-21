@@ -160,8 +160,9 @@ export function TabsRouter(ctx: AppContext) {
             search,
             sortKey,
             direction,
-            highlight: !ctx.utils.request.isApiRequest(req),
         });
+
+        ctx.utils.html.applyHighlighting(tabsData, ['title', 'trigger'], search);
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({

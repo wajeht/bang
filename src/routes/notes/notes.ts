@@ -44,7 +44,6 @@ export function NotesRouter(ctx: AppContext) {
             search,
             sortKey,
             direction,
-            highlight: !ctx.utils.request.isApiRequest(req),
             excludeHidden: !canViewHidden,
         });
 
@@ -60,6 +59,8 @@ export function NotesRouter(ctx: AppContext) {
                 content: await ctx.utils.util.convertMarkdownToPlainText(d.content, 200),
             })),
         );
+
+        ctx.utils.html.applyHighlighting(markdownRemovedData, ['title', 'content'], search);
 
         return res.render('notes/notes-get.html', {
             user: req.session?.user,
