@@ -4,44 +4,54 @@
 		specScript.type = "speculationrules";
 
 		// AGGRESSIVE SPECULATION RULES - Maximum Speed Configuration
-		// Chrome limits (2025): eager = 10 prerender, 50 prefetch
 		const specRules = {
 			// === PRERENDER RULES ===
-			// Full page rendering - instant 0ms navigation
+			// Prerender core app pages - instant navigation
 			"prerender": [
 				{
-					// Top pages get immediate prerender on hover
-					"urls": ["/actions", "/bookmarks", "/notes", "/tabs", "/reminders"],
-					"eagerness": "eager" // Triggers immediately on hover - no delay
-				},
-				{
-					// Prerender detail pages on hover
-					"where": {
-						"and": [
-							{ "href_matches": "/*" },
-							{ "not": { "href_matches": "/api/*" } },
-							{ "not": { "href_matches": "/logout" } },
-							{ "not": { "selector_matches": "[data-no-prerender]" } }
-						]
-					},
-					"eagerness": "moderate" // 200ms hover for other internal links
+					"urls": [
+						"/actions",
+						"/bookmarks",
+						"/notes",
+						"/tabs",
+						"/reminders",
+						"/settings",
+						"/settings/account",
+						"/settings/data",
+						"/about",
+						"/bangs"
+					],
+					"eagerness": "eager"
 				}
 			],
 
 			// === PREFETCH RULES ===
-			// Catch-all: prefetch ANY same-origin link on hover
+			// Prefetch on hover - covers dynamic URLs and detail pages
 			"prefetch": [
 				{
-					// Prefetch all internal links immediately on hover
+					// Detail pages with IDs
 					"where": {
-						"and": [
-							{ "href_matches": "/*" },
-							{ "not": { "href_matches": "/api/*" } },
-							{ "not": { "href_matches": "/logout" } },
-							{ "not": { "selector_matches": "[data-no-prefetch]" } }
+						"or": [
+							{ "href_matches": "/actions/*/edit" },
+							{ "href_matches": "/bookmarks/*/edit" },
+							{ "href_matches": "/notes/*/edit" },
+							{ "href_matches": "/tabs/*/edit" },
+							{ "href_matches": "/tabs/*/items/*" },
+							{ "href_matches": "/reminders/*/edit" }
 						]
 					},
-					"eagerness": "eager" // No delay - prefetch starts immediately on hover
+					"eagerness": "eager"
+				},
+				{
+					// Create pages
+					"urls": [
+						"/actions/create",
+						"/bookmarks/create",
+						"/notes/create",
+						"/tabs/create",
+						"/reminders/create"
+					],
+					"eagerness": "eager"
 				}
 			]
 		};

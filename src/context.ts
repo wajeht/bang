@@ -19,6 +19,7 @@ import {
     StaticAssetsMiddleware,
     AppLocalStateMiddleware,
     AuthenticationMiddleware,
+    SpeculationRulesMiddleware,
 } from './routes/middleware';
 import { libs } from './libs';
 import { config } from './config';
@@ -111,6 +112,7 @@ export async function Context(): Promise<AppContext> {
         staticAssets: StaticAssetsMiddleware(partialCtx),
         appLocalState: AppLocalStateMiddleware(partialCtx),
         authentication: AuthenticationMiddleware(partialCtx),
+        speculationRules: SpeculationRulesMiddleware(),
         layout: LayoutMiddleware({ layoutsDir: '_layouts', defaultLayout: '_layouts/public.html' }),
     };
 

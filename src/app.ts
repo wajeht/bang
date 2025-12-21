@@ -42,6 +42,7 @@ export async function createApp() {
         .use(ctx.libs.compression())
         .use(ctx.libs.cors())
         .use(ctx.middleware.helmet)
+        .use(ctx.middleware.speculationRules)
         .use(ctx.middleware.rateLimit)
         .use(ctx.libs.express.json({ limit: '10mb' }))
         .use(ctx.libs.express.urlencoded({ extended: true, limit: '10mb' }))

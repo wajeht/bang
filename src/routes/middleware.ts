@@ -155,6 +155,13 @@ export function HelmetMiddleware(ctx: AppContext) {
     });
 }
 
+export function SpeculationRulesMiddleware() {
+    return (_req: Request, res: Response, next: NextFunction) => {
+        res.setHeader('Supports-Loading-Mode', 'credentialed-prerender');
+        next();
+    };
+}
+
 export function SessionMiddleware(ctx: AppContext) {
     return ctx.libs.session({
         secret: ctx.config.session.secret,

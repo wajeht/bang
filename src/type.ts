@@ -393,6 +393,7 @@ export interface Middlewares {
     rateLimit: express.RequestHandler;
     appLocalState: express.RequestHandler;
     staticAssets: express.RequestHandler;
+    speculationRules: express.RequestHandler;
     layout: express.RequestHandler;
 }
 
