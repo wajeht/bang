@@ -80,8 +80,5 @@
 	<% if (state.env !== 'testing') { %>
 		<%- include('./speculation-rules.html') %>
 	<% } %>
-	<% if (state.env === 'production') { %>
-		<script defer data-domain="bang.jaw.dev" src="https://plausible.jaw.dev/js/script.js"></script>
-	<% } %>
 	<script defer src="/script.js?v=<%- state.version.script %>"></script>
 </head>

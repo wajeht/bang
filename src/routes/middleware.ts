@@ -123,7 +123,7 @@ export function HelmetMiddleware(ctx: AppContext) {
             useDefaults: true,
             directives: {
                 ...ctx.libs.helmet.contentSecurityPolicy.getDefaultDirectives(),
-                'default-src': ["'self'", 'plausible.jaw.dev', 'bang.jaw.dev', '*.cloudflare.com'],
+                'default-src': ["'self'", 'bang.jaw.dev', '*.cloudflare.com'],
                 'img-src': ["'self'", '*'],
                 'script-src': [
                     "'self'",
@@ -131,20 +131,14 @@ export function HelmetMiddleware(ctx: AppContext) {
                     "'unsafe-eval'",
                     'text/javascript',
                     'blob:',
-                    'plausible.jaw.dev',
                     'bang.jaw.dev',
                     '*.cloudflare.com',
                 ],
-                'script-src-elem': [
-                    "'self'",
-                    "'unsafe-inline'",
-                    'https://plausible.jaw.dev',
-                    '*.cloudflare.com',
-                ],
+                'script-src-elem': ["'self'", "'unsafe-inline'", '*.cloudflare.com'],
                 'frame-src': ["'self'", '*.cloudflare.com'],
                 'style-src': ["'self'", "'unsafe-inline'", '*.cloudflare.com'],
 
-                'connect-src': ["'self'", 'plausible.jaw.dev', '*.cloudflare.com'],
+                'connect-src': ["'self'", '*.cloudflare.com'],
                 'script-src-attr': ["'self'", "'unsafe-inline'"],
                 'form-action': ["'self'", '*'],
             },
