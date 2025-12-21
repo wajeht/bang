@@ -179,16 +179,40 @@ export function SessionMiddleware(ctx: AppContext) {
     });
 }
 
-export function SetupAppLocals(ctx: AppContext) {
-    return (req: Request, res: Response) => {
-        const isProd = ctx.config.app.env === 'production';
-        const randomNumber = Math.random();
+let cachedStaticLocals: {
+    copyRightYear: number;
+    version: { style: string | number; script: string | number };
+    utils: Record<string, any>;
+} | null = null;
 
+export function SetupAppLocals(ctx: AppContext) {
+    if (!cachedStaticLocals) {
+        const isProd = ctx.config.app.env === 'production';
+        cachedStaticLocals = {
+            copyRightYear: ctx.libs.dayjs().year(),
+            version: {
+                style: isProd ? '0.41' : Math.random(),
+                script: isProd ? '0.20' : Math.random(),
+            },
+            utils: {
+                nl2br: ctx.utils.html.nl2br,
+                truncateString: ctx.utils.util.truncateString,
+                capitalize: ctx.utils.util.capitalize,
+                getFaviconUrl: ctx.utils.util.getFaviconUrl,
+                isUrlLike: ctx.utils.validation.isUrlLike,
+                stripHtmlTags: ctx.utils.html.stripHtmlTags,
+                highlightSearchTerm: ctx.utils.html.highlightSearchTerm,
+                formatDateInTimezone: ctx.utils.date.formatDateInTimezone,
+            },
+        };
+    }
+
+    return (req: Request, res: Response) => {
         res.locals.state = {
             cloudflare_turnstile_site_key: ctx.config.cloudflare.turnstileSiteKey,
             env: ctx.config.app.env,
             user: req.user ?? req.session?.user,
-            copyRightYear: ctx.libs.dayjs().year(),
+            copyRightYear: cachedStaticLocals!.copyRightYear,
             input: (req.session?.input as Record<string, string>) || {},
             errors: (req.session?.errors as Record<string, string>) || {},
             flash: {
@@ -197,22 +221,10 @@ export function SetupAppLocals(ctx: AppContext) {
                 info: req.flash ? req.flash('info') : [],
                 warning: req.flash ? req.flash('warning') : [],
             },
-            version: {
-                style: isProd ? '0.41' : randomNumber,
-                script: isProd ? '0.20' : randomNumber,
-            },
+            version: cachedStaticLocals!.version,
         };
 
-        res.locals.utils = {
-            nl2br: ctx.utils.html.nl2br,
-            truncateString: ctx.utils.util.truncateString,
-            capitalize: ctx.utils.util.capitalize,
-            getFaviconUrl: ctx.utils.util.getFaviconUrl,
-            isUrlLike: ctx.utils.validation.isUrlLike,
-            stripHtmlTags: ctx.utils.html.stripHtmlTags,
-            highlightSearchTerm: ctx.utils.html.highlightSearchTerm,
-            formatDateInTimezone: ctx.utils.date.formatDateInTimezone,
-        };
+        res.locals.utils = cachedStaticLocals!.utils;
     };
 }
 
@@ -271,6 +283,11 @@ export function CsrfMiddleware(ctx: AppContext) {
 export function AppLocalStateMiddleware(ctx: AppContext) {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
+            // Skip for API routes - they don't need template locals
+            if (req.path.startsWith('/api/')) {
+                return next();
+            }
+
             // Set session input for form data before setting up locals
             if (/^(POST|PATCH|PUT|DELETE)$/.test(req.method) && req.session) {
                 req.session.input = req.body as Record<string, any>;

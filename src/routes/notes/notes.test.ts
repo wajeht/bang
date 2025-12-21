@@ -552,6 +552,54 @@ describe('Notes Routes', () => {
                 expect(response.body.html).toBe('');
             }
         });
+
+        it('should sanitize XSS in script tags', async () => {
+            const { agent } = await authenticateApiAgent(app);
+
+            const response = await agent
+                .post('/api/notes/render-markdown')
+                .send({ content: '<script>alert("xss")</script>' })
+                .expect(200);
+
+            expect(response.body.content).not.toContain('<script>');
+            expect(response.body.content).not.toContain('alert');
+        });
+
+        it('should sanitize XSS in event handlers', async () => {
+            const { agent } = await authenticateApiAgent(app);
+
+            const response = await agent
+                .post('/api/notes/render-markdown')
+                .send({ content: '<img src="x" onerror="alert(1)">' })
+                .expect(200);
+
+            expect(response.body.content).not.toContain('onerror');
+            expect(response.body.content).not.toContain('alert');
+        });
+
+        it('should sanitize XSS in javascript: URLs', async () => {
+            const { agent } = await authenticateApiAgent(app);
+
+            const response = await agent
+                .post('/api/notes/render-markdown')
+                .send({ content: '<a href="javascript:alert(1)">click</a>' })
+                .expect(200);
+
+            expect(response.body.content).not.toContain('javascript:');
+        });
+
+        it('should allow safe HTML elements', async () => {
+            const { agent } = await authenticateApiAgent(app);
+
+            const response = await agent
+                .post('/api/notes/render-markdown')
+                .send({ content: '# Heading\n\n<strong>Bold</strong>\n\n<em>Italic</em>' })
+                .expect(200);
+
+            expect(response.body.content).toContain('<h1>Heading</h1>');
+            expect(response.body.content).toContain('<strong>Bold</strong>');
+            expect(response.body.content).toContain('<em>Italic</em>');
+        });
     });
 
     describe('Hidden Items Functionality', () => {

@@ -3,7 +3,7 @@ import { db } from '../tests/test-setup';
 import { Session } from 'express-session';
 import type { User, AppContext } from '../type';
 import type { Request, Response, NextFunction } from 'express';
-import { AuthenticationMiddleware, ErrorMiddleware } from './middleware';
+import { AuthenticationMiddleware, ErrorMiddleware, AppLocalStateMiddleware } from './middleware';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from '../error';
 
@@ -471,5 +471,121 @@ describe('errorMiddleware', () => {
 
         expect(req.flash).toHaveBeenCalledWith('error', 'Name is required, Email is invalid');
         expect(res.redirect).toHaveBeenCalledWith('/test-page');
+    });
+});
+
+describe('AppLocalStateMiddleware', () => {
+    let req: Partial<Request>;
+    let res: Partial<Response>;
+    let next: NextFunction;
+    let ctx: AppContext;
+    let appLocalStateMiddleware: any;
+
+    beforeAll(async () => {
+        ctx = await Context();
+        appLocalStateMiddleware = AppLocalStateMiddleware(ctx);
+    });
+
+    beforeEach(() => {
+        vi.resetAllMocks();
+
+        req = {
+            method: 'GET',
+            path: '/dashboard',
+            url: '/dashboard',
+            session: {
+                destroy: vi.fn((callback) => callback(null)),
+                save: vi.fn(),
+                regenerate: vi.fn(),
+                reload: vi.fn(),
+                touch: vi.fn(),
+                id: 'test-session-id',
+                cookie: { maxAge: 30000 },
+                user: { id: 1, username: 'test' },
+            } as unknown as Session & { user?: any },
+            user: undefined,
+            flash: vi.fn().mockReturnValue([]),
+        };
+
+        res = {
+            locals: {},
+        };
+
+        next = vi.fn();
+    });
+
+    it('should skip setting up locals for API routes', async () => {
+        req.path = '/api/settings/api-key';
+
+        await appLocalStateMiddleware(req as Request, res as Response, next);
+
+        expect(next).toHaveBeenCalled();
+        expect(res.locals).toEqual({});
+    });
+
+    it('should skip setting up locals for nested API routes', async () => {
+        req.path = '/api/notes/render-markdown';
+
+        await appLocalStateMiddleware(req as Request, res as Response, next);
+
+        expect(next).toHaveBeenCalled();
+        expect(res.locals).toEqual({});
+    });
+
+    it('should set up locals for non-API routes', async () => {
+        req.path = '/dashboard';
+
+        await appLocalStateMiddleware(req as Request, res as Response, next);
+
+        expect(next).toHaveBeenCalled();
+        expect(res.locals).toHaveProperty('state');
+        expect(res.locals).toHaveProperty('utils');
+        expect((res.locals as any).state).toHaveProperty('copyRightYear');
+        expect((res.locals as any).state).toHaveProperty('version');
+    });
+
+    it('should set up locals for HTML page routes', async () => {
+        req.path = '/bookmarks';
+
+        await appLocalStateMiddleware(req as Request, res as Response, next);
+
+        expect(next).toHaveBeenCalled();
+        expect(res.locals).toHaveProperty('state');
+        expect((res.locals as any).state.user).toBeDefined();
+    });
+
+    it('should cache static values across multiple calls', async () => {
+        req.path = '/notes';
+
+        await appLocalStateMiddleware(req as Request, res as Response, next);
+
+        const firstCopyRightYear = (res.locals as any).state.copyRightYear;
+        const firstVersion = (res.locals as any).state.version;
+
+        // Reset and call again
+        res.locals = {};
+        req.path = '/reminders';
+
+        await appLocalStateMiddleware(req as Request, res as Response, next);
+
+        const secondCopyRightYear = (res.locals as any).state.copyRightYear;
+        const secondVersion = (res.locals as any).state.version;
+
+        expect(firstCopyRightYear).toBe(secondCopyRightYear);
+        expect(firstVersion).toBe(secondVersion);
+    });
+
+    it('should provide utility functions in locals', async () => {
+        req.path = '/tabs';
+
+        await appLocalStateMiddleware(req as Request, res as Response, next);
+
+        expect((res.locals as any).utils).toHaveProperty('nl2br');
+        expect((res.locals as any).utils).toHaveProperty('truncateString');
+        expect((res.locals as any).utils).toHaveProperty('capitalize');
+        expect((res.locals as any).utils).toHaveProperty('getFaviconUrl');
+        expect((res.locals as any).utils).toHaveProperty('stripHtmlTags');
+        expect((res.locals as any).utils).toHaveProperty('highlightSearchTerm');
+        expect((res.locals as any).utils).toHaveProperty('formatDateInTimezone');
     });
 });

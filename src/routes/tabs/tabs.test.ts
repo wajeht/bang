@@ -336,4 +336,66 @@ describe('Tabs Routes', () => {
             expect(response.body.data[0].trigger).toContain('<mark>highlight</mark>');
         });
     });
+
+    describe('Database Indexes', () => {
+        it('should have index on tab_items.tab_id for efficient JOINs', async () => {
+            const indexes = await db.raw(
+                "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='tab_items'",
+            );
+            const indexNames = indexes.map((idx: any) => idx.name);
+            expect(indexNames).toContain('tab_items_tab_id_idx');
+        });
+
+        it('should have composite index on tab_items for sorting', async () => {
+            const indexes = await db.raw(
+                "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='tab_items'",
+            );
+            const indexNames = indexes.map((idx: any) => idx.name);
+            expect(indexNames).toContain('tab_items_tab_id_created_idx');
+        });
+
+        it('should have index on tabs for user queries', async () => {
+            const indexes = await db.raw(
+                "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='tabs'",
+            );
+            const indexNames = indexes.map((idx: any) => idx.name);
+            expect(indexNames).toContain('tabs_user_created_idx');
+        });
+
+        it('should efficiently query tabs with items count', async () => {
+            const { user } = await authenticateAgent(app);
+
+            // Create multiple tabs with items
+            for (let i = 0; i < 5; i++) {
+                const [tab] = await db('tabs')
+                    .insert({ user_id: user.id, title: `Tab ${i}`, trigger: `!tab${i}` })
+                    .returning('*');
+
+                for (let j = 0; j < 3; j++) {
+                    await db('tab_items').insert({
+                        tab_id: tab.id,
+                        title: `Item ${j}`,
+                        url: `https://example${j}.com`,
+                    });
+                }
+            }
+
+            // Query should complete quickly with indexes
+            const startTime = Date.now();
+            const tabs = await db
+                .select('tabs.*')
+                .select(
+                    db.raw(
+                        '(SELECT COUNT(*) FROM tab_items WHERE tab_items.tab_id = tabs.id) as items_count',
+                    ),
+                )
+                .from('tabs')
+                .where('tabs.user_id', user.id);
+            const duration = Date.now() - startTime;
+
+            expect(tabs).toHaveLength(5);
+            expect(tabs[0].items_count).toBe(3);
+            expect(duration).toBeLessThan(100); // Should be very fast with indexes
+        });
+    });
 });
