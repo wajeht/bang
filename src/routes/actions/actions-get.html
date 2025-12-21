@@ -325,6 +325,17 @@ window.addEventListener('load', handleRowHighlight);
                                         >
                                             ✏️ Edit
                                         </a>
+                                        <% if (state.user.hidden_items_password && (data[i].action_type === 'redirect' || data[i].hidden)) { %>
+                                            <form method="POST" action="/actions/<%= data[i].id %>/hide" style="display: inline;">
+                                                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                                                <% if (showHidden) { %>
+                                                    <input type="hidden" name="showHidden" value="true" />
+                                                <% } %>
+                                                <button type="submit" class="no-style-btn" style="text-align: left;" role="menuitem" aria-label="<%= data[i].hidden ? 'Unhide' : 'Hide' %> action <%= utils.stripHtmlTags(data[i].name) %>">
+                                                    <%= data[i].hidden ? '👁️ Unhide' : '🫣 Hide' %>
+                                                </button>
+                                            </form>
+                                        <% } %>
 
                                         <button
                                             type="button"
