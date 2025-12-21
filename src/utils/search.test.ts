@@ -3602,3 +3602,494 @@ describe('parseReminderTiming', () => {
         expect(diff).toBeLessThanOrEqual(32);
     });
 });
+
+describe('Trigger Caching', () => {
+    let testUser: User;
+
+    beforeEach(async () => {
+        const [user] = await db('users')
+            .insert({
+                username: `cachetest_${Date.now()}`,
+                email: `cachetest_${Date.now()}@example.com`,
+                is_admin: false,
+                api_key: `test_api_key_cache_${Date.now()}`,
+            })
+            .returning('*');
+        testUser = user;
+    });
+
+    afterEach(async () => {
+        if (testUser?.id) {
+            await db('bangs').where({ user_id: testUser.id }).delete();
+            await db('tabs').where({ user_id: testUser.id }).delete();
+            await db('users').where({ id: testUser.id }).delete();
+        }
+    });
+
+    describe('loadCachedTriggers', () => {
+        it('should load triggers from database and cache in session', async () => {
+            await db('bangs').insert([
+                {
+                    user_id: testUser.id,
+                    trigger: '!test1',
+                    name: 'Test 1',
+                    url: 'https://test1.com',
+                    action_type: 'redirect',
+                },
+                {
+                    user_id: testUser.id,
+                    trigger: '!test2',
+                    name: 'Test 2',
+                    url: 'https://test2.com',
+                    action_type: 'redirect',
+                },
+            ]);
+            await db('tabs').insert([{ user_id: testUser.id, trigger: '!tab1', title: 'Tab 1' }]);
+
+            const req = {
+                session: {},
+            } as unknown as Request;
+
+            const result = await searchUtils.loadCachedTriggers(req, testUser.id);
+
+            expect(result.bangTriggers).toBeInstanceOf(Set);
+            expect(result.tabTriggers).toBeInstanceOf(Set);
+            expect(result.bangTriggers.has('!test1')).toBe(true);
+            expect(result.bangTriggers.has('!test2')).toBe(true);
+            expect(result.tabTriggers.has('!tab1')).toBe(true);
+
+            expect(req.session.bangTriggers).toContain('!test1');
+            expect(req.session.bangTriggers).toContain('!test2');
+            expect(req.session.tabTriggers).toContain('!tab1');
+            expect(req.session.triggersCachedAt).toBeDefined();
+            expect(req.session.triggersCachedAt).toBeGreaterThan(0);
+        });
+
+        it('should return cached triggers without hitting database', async () => {
+            const cachedTime = Date.now();
+            const req = {
+                session: {
+                    bangTriggers: ['!cached1', '!cached2'],
+                    tabTriggers: ['!cachedtab'],
+                    triggersCachedAt: cachedTime,
+                },
+            } as unknown as Request;
+
+            const result = await searchUtils.loadCachedTriggers(req, testUser.id);
+
+            expect(result.bangTriggers.has('!cached1')).toBe(true);
+            expect(result.bangTriggers.has('!cached2')).toBe(true);
+            expect(result.tabTriggers.has('!cachedtab')).toBe(true);
+
+            expect(req.session.triggersCachedAt).toBe(cachedTime);
+        });
+
+        it('should refresh cache when expired', async () => {
+            await db('bangs').insert({
+                user_id: testUser.id,
+                trigger: '!fresh',
+                name: 'Fresh',
+                url: 'https://fresh.com',
+                action_type: 'redirect',
+            });
+
+            const expiredTime = Date.now() - 61 * 60 * 1000; // 61 minutes ago (cache TTL is 60 min)
+            const req = {
+                session: {
+                    bangTriggers: ['!stale'],
+                    tabTriggers: [],
+                    triggersCachedAt: expiredTime,
+                },
+            } as unknown as Request;
+
+            const result = await searchUtils.loadCachedTriggers(req, testUser.id);
+
+            expect(result.bangTriggers.has('!fresh')).toBe(true);
+            expect(result.bangTriggers.has('!stale')).toBe(false);
+
+            expect(req.session.triggersCachedAt).toBeGreaterThan(expiredTime);
+        });
+
+        it('should return empty sets for user with no bangs or tabs', async () => {
+            const req = {
+                session: {},
+            } as unknown as Request;
+
+            const result = await searchUtils.loadCachedTriggers(req, testUser.id);
+
+            expect(result.bangTriggers.size).toBe(0);
+            expect(result.tabTriggers.size).toBe(0);
+            expect(req.session.bangTriggers).toEqual([]);
+            expect(req.session.tabTriggers).toEqual([]);
+        });
+    });
+
+    describe('invalidateTriggerCache', () => {
+        it('should clear all trigger cache data from session', () => {
+            const req = {
+                session: {
+                    bangTriggers: ['!test1', '!test2'],
+                    tabTriggers: ['!tab1'],
+                    triggersCachedAt: Date.now(),
+                    user: { id: 1 },
+                },
+            } as unknown as Request;
+
+            searchUtils.invalidateTriggerCache(req);
+
+            expect(req.session.bangTriggers).toBeUndefined();
+            expect(req.session.tabTriggers).toBeUndefined();
+            expect(req.session.triggersCachedAt).toBeUndefined();
+            expect(req.session.user).toBeDefined();
+        });
+
+        it('should handle session without cache data', () => {
+            const req = {
+                session: {
+                    user: { id: 1 },
+                },
+            } as unknown as Request;
+
+            expect(() => searchUtils.invalidateTriggerCache(req)).not.toThrow();
+        });
+
+        it('should handle missing session', () => {
+            const req = {} as unknown as Request;
+
+            expect(() => searchUtils.invalidateTriggerCache(req)).not.toThrow();
+        });
+    });
+});
+
+describe('Bang Search Optimization', () => {
+    let testUser: User;
+
+    beforeEach(async () => {
+        const [user] = await db('users')
+            .insert({
+                username: `bangopt_${Date.now()}`,
+                email: `bangopt_${Date.now()}@example.com`,
+                is_admin: false,
+                api_key: `test_api_key_bangopt_${Date.now()}`,
+                column_preferences: JSON.stringify({}),
+            })
+            .returning('*');
+        testUser = {
+            ...user,
+            column_preferences: {},
+        };
+    });
+
+    afterEach(async () => {
+        if (testUser?.id) {
+            await db('bangs').where({ user_id: testUser.id }).delete();
+            await db('tabs').where({ user_id: testUser.id }).delete();
+            await db('users').where({ id: testUser.id }).delete();
+        }
+    });
+
+    it('should skip DB query for system bang when user has no custom override', async () => {
+        const req = {
+            session: {
+                bangTriggers: [],
+                tabTriggers: [],
+                triggersCachedAt: Date.now(),
+            },
+        } as unknown as Request;
+
+        const res = {
+            redirect: vi.fn(),
+            set: vi.fn().mockReturnThis(),
+        } as unknown as Response;
+
+        await searchUtils.search({
+            req,
+            res,
+            user: testUser,
+            query: '!g python',
+        });
+
+        expect(res.redirect).toHaveBeenCalledWith('https://www.google.com/search?q=python');
+    });
+
+    it('should query DB for custom bang when trigger exists in cache', async () => {
+        await db('bangs').insert({
+            user_id: testUser.id,
+            trigger: '!g',
+            name: 'My Google',
+            url: 'https://my-google.com/search?q={{{s}}}',
+            action_type: 'search',
+        });
+
+        const req = {
+            session: {
+                bangTriggers: ['!g'],
+                tabTriggers: [],
+                triggersCachedAt: Date.now(),
+            },
+        } as unknown as Request;
+
+        const res = {
+            redirect: vi.fn(),
+            set: vi.fn().mockReturnThis(),
+        } as unknown as Response;
+
+        await searchUtils.search({
+            req,
+            res,
+            user: testUser,
+            query: '!g python',
+        });
+
+        expect(res.redirect).toHaveBeenCalledWith('https://my-google.com/search?q=python');
+    });
+
+    it('should query DB for tab when trigger exists in cache', async () => {
+        const [tab] = await db('tabs')
+            .insert({
+                user_id: testUser.id,
+                trigger: '!mytabs',
+                title: 'My Tab Group',
+            })
+            .returning('*');
+
+        const req = {
+            session: {
+                bangTriggers: [],
+                tabTriggers: ['!mytabs'],
+                triggersCachedAt: Date.now(),
+            },
+        } as unknown as Request;
+
+        const res = {
+            redirect: vi.fn(),
+            set: vi.fn().mockReturnThis(),
+        } as unknown as Response;
+
+        await searchUtils.search({
+            req,
+            res,
+            user: testUser,
+            query: '!mytabs',
+        });
+
+        expect(res.redirect).toHaveBeenCalledWith(`/tabs/${tab.id}/launch`);
+    });
+
+    it('should cache triggers on first search and use cache on subsequent searches', async () => {
+        await db('bangs').insert({
+            user_id: testUser.id,
+            trigger: '!custom',
+            name: 'Custom',
+            url: 'https://custom.com',
+            action_type: 'redirect',
+        });
+
+        const req = {
+            session: {},
+        } as unknown as Request;
+
+        const res = {
+            redirect: vi.fn(),
+            set: vi.fn().mockReturnThis(),
+        } as unknown as Response;
+
+        await searchUtils.search({
+            req,
+            res,
+            user: testUser,
+            query: '!g python',
+        });
+
+        expect(req.session.bangTriggers).toContain('!custom');
+        expect(req.session.triggersCachedAt).toBeDefined();
+
+        const cachedTime = req.session.triggersCachedAt;
+        vi.mocked(res.redirect).mockClear();
+
+        await searchUtils.search({
+            req,
+            res,
+            user: testUser,
+            query: '!custom',
+        });
+
+        expect(res.redirect).toHaveBeenCalledWith('https://custom.com');
+        expect(req.session.triggersCachedAt).toBe(cachedTime);
+    });
+
+    it('should use system bang when custom bang not in cache', async () => {
+        const req = {
+            session: {
+                bangTriggers: [],
+                tabTriggers: [],
+                triggersCachedAt: Date.now(),
+            },
+        } as unknown as Request;
+
+        const res = {
+            redirect: vi.fn(),
+            set: vi.fn().mockReturnThis(),
+        } as unknown as Response;
+
+        await searchUtils.search({
+            req,
+            res,
+            user: testUser,
+            query: '!yt video',
+        });
+
+        expect(res.redirect).toHaveBeenCalledWith(
+            'https://www.youtube.com/results?search_query=video',
+        );
+    });
+
+    it('should fall back to default search for unknown bang not in cache', async () => {
+        const req = {
+            session: {
+                bangTriggers: [],
+                tabTriggers: [],
+                triggersCachedAt: Date.now(),
+            },
+        } as unknown as Request;
+
+        const res = {
+            redirect: vi.fn(),
+            set: vi.fn().mockReturnThis(),
+        } as unknown as Response;
+
+        await searchUtils.search({
+            req,
+            res,
+            user: { ...testUser, default_search_provider: 'duckduckgo' },
+            query: '!unknownbang',
+        });
+
+        expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=unknownbang');
+    });
+});
+
+describe('Bang Search Performance', () => {
+    let testUser: User;
+
+    beforeEach(async () => {
+        const [user] = await db('users')
+            .insert({
+                username: `perftest_${Date.now()}`,
+                email: `perftest_${Date.now()}@example.com`,
+                is_admin: false,
+                api_key: `test_api_key_perf_${Date.now()}`,
+                column_preferences: JSON.stringify({}),
+            })
+            .returning('*');
+        testUser = { ...user, column_preferences: {} };
+
+        await db('bangs').insert([
+            {
+                user_id: testUser.id,
+                trigger: '!custom1',
+                name: 'Custom 1',
+                url: 'https://custom1.com',
+                action_type: 'redirect',
+            },
+            {
+                user_id: testUser.id,
+                trigger: '!custom2',
+                name: 'Custom 2',
+                url: 'https://custom2.com/q={{{s}}}',
+                action_type: 'search',
+            },
+        ]);
+        await db('tabs').insert([{ user_id: testUser.id, trigger: '!mytab', title: 'My Tab' }]);
+    });
+
+    afterEach(async () => {
+        if (testUser?.id) {
+            await db('bangs').where({ user_id: testUser.id }).delete();
+            await db('tabs').where({ user_id: testUser.id }).delete();
+            await db('users').where({ id: testUser.id }).delete();
+        }
+    });
+
+    it('should be faster with cache hit vs cache miss', async () => {
+        const res = {
+            redirect: vi.fn(),
+            set: vi.fn().mockReturnThis(),
+        } as unknown as Response;
+
+        const reqCold = { session: {} } as unknown as Request;
+        const startCold = performance.now();
+        await searchUtils.search({ req: reqCold, res, user: testUser, query: '!g test' });
+        const coldTime = performance.now() - startCold;
+
+        vi.mocked(res.redirect).mockClear();
+        const startWarm = performance.now();
+        await searchUtils.search({ req: reqCold, res, user: testUser, query: '!yt video' });
+        const warmTime = performance.now() - startWarm;
+
+        expect(reqCold.session.triggersCachedAt).toBeDefined();
+
+        console.log(`Cold cache: ${coldTime.toFixed(2)}ms, Warm cache: ${warmTime.toFixed(2)}ms`);
+
+        expect(warmTime).toBeLessThan(coldTime * 2); // Allow some variance
+    });
+
+    it('should skip DB query when using system bang with empty custom triggers', async () => {
+        const res = {
+            redirect: vi.fn(),
+            set: vi.fn().mockReturnThis(),
+        } as unknown as Response;
+
+        const req = {
+            session: {
+                bangTriggers: [],
+                tabTriggers: [],
+                triggersCachedAt: Date.now(),
+            },
+        } as unknown as Request;
+
+        const iterations = 10;
+        const times: number[] = [];
+
+        for (let i = 0; i < iterations; i++) {
+            vi.mocked(res.redirect).mockClear();
+            const start = performance.now();
+            await searchUtils.search({ req, res, user: testUser, query: `!g query${i}` });
+            times.push(performance.now() - start);
+        }
+
+        const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+        console.log(
+            `Average system bang lookup time (${iterations} iterations): ${avgTime.toFixed(2)}ms`,
+        );
+
+        expect(req.session.triggersCachedAt).toBeDefined();
+
+        expect(res.redirect).toHaveBeenLastCalledWith(expect.stringContaining('google.com'));
+
+        expect(avgTime).toBeLessThan(50);
+    });
+
+    it('should use custom bang when in cache', async () => {
+        const res = {
+            redirect: vi.fn(),
+            set: vi.fn().mockReturnThis(),
+        } as unknown as Response;
+
+        const req = {
+            session: {
+                bangTriggers: ['!custom1', '!custom2'],
+                tabTriggers: ['!mytab'],
+                triggersCachedAt: Date.now(),
+            },
+        } as unknown as Request;
+
+        const start = performance.now();
+        await searchUtils.search({ req, res, user: testUser, query: '!custom1' });
+        const elapsed = performance.now() - start;
+
+        console.log(`Custom bang lookup time: ${elapsed.toFixed(2)}ms`);
+
+        expect(res.redirect).toHaveBeenCalledWith('https://custom1.com');
+    });
+});

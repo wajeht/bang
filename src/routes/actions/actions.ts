@@ -232,6 +232,8 @@ export function ActionsRouter(ctx: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
+        ctx.utils.search.invalidateTriggerCache(req);
+
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({
                 message: `Action ${formattedTrigger} created successfully!`,
@@ -344,6 +346,10 @@ export function ActionsRouter(ctx: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
+        if (currentAction.trigger !== formattedTrigger) {
+            ctx.utils.search.invalidateTriggerCache(req);
+        }
+
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: `Action ${updatedAction.trigger} updated successfully!`,
@@ -389,6 +395,8 @@ export function ActionsRouter(ctx: AppContext) {
         if (!deletedCount) {
             throw new ctx.errors.NotFoundError('Action not found');
         }
+
+        ctx.utils.search.invalidateTriggerCache(req);
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
