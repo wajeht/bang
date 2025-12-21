@@ -566,19 +566,27 @@ export function BookmarksRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
-            const bookmarks = await ctx.db('bookmarks').select('url').where({ user_id: user.id });
+            const bookmarks = await ctx
+                .db('bookmarks')
+                .select('url')
+                .where({ user_id: user.id })
+                .limit(500);
 
             const urls = bookmarks.map((b: { url: string }) => b.url).filter(Boolean);
 
-            setTimeout(() => {
-                Promise.all(
-                    urls.map((url) =>
-                        fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
-                            method: 'HEAD',
-                            headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' },
-                        }).catch(() => {}),
-                    ),
-                );
+            setTimeout(async () => {
+                const batchSize = 10;
+                for (let i = 0; i < urls.length; i += batchSize) {
+                    const batch = urls.slice(i, i + batchSize);
+                    await Promise.all(
+                        batch.map((url) =>
+                            fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
+                                method: 'HEAD',
+                                headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' },
+                            }).catch(() => {}),
+                        ),
+                    );
+                }
             }, 0);
 
             req.flash('success', `Caching ${urls.length} preview images in background...`);

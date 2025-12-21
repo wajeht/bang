@@ -170,9 +170,7 @@ export function SessionMiddleware(ctx: AppContext) {
         cookie: {
             path: '/',
             domain:
-                ctx.config.app.env === 'production'
-                    ? `.${ctx.config.session.domain}`
-                    : undefined,
+                ctx.config.app.env === 'production' ? `.${ctx.config.session.domain}` : undefined,
             maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
             httpOnly: true,
             sameSite: 'lax',

@@ -528,7 +528,11 @@ describe('Bookmarks Routes', () => {
             const { agent, user } = await authenticateAgent(app);
 
             await db('bookmarks').insert([
-                { user_id: user.id, title: 'Crypto Wallet', url: 'https://crypto-wallet.example.com' },
+                {
+                    user_id: user.id,
+                    title: 'Crypto Wallet',
+                    url: 'https://crypto-wallet.example.com',
+                },
                 { user_id: user.id, title: 'Other Bookmark', url: 'https://other.com' },
             ]);
 

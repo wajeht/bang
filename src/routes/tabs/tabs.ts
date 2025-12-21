@@ -593,19 +593,24 @@ export function TabsRouter(ctx: AppContext) {
                 .db('tab_items')
                 .select('tab_items.url')
                 .join('tabs', 'tabs.id', 'tab_items.tab_id')
-                .where('tabs.user_id', user.id);
+                .where('tabs.user_id', user.id)
+                .limit(500);
 
             const urls = tabItems.map((t: { url: string }) => t.url).filter(Boolean);
 
-            setTimeout(() => {
-                Promise.all(
-                    urls.map((url) =>
-                        fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
-                            method: 'HEAD',
-                            headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' },
-                        }).catch(() => {}),
-                    ),
-                );
+            setTimeout(async () => {
+                const batchSize = 10;
+                for (let i = 0; i < urls.length; i += batchSize) {
+                    const batch = urls.slice(i, i + batchSize);
+                    await Promise.all(
+                        batch.map((url) =>
+                            fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
+                                method: 'HEAD',
+                                headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' },
+                            }).catch(() => {}),
+                        ),
+                    );
+                }
             }, 0);
 
             req.flash('success', `Caching ${urls.length} preview images in background...`);

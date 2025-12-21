@@ -165,6 +165,7 @@ export function RemindersRouter(ctx: AppContext) {
                     })
                     .whereNotNull('frequency');
 
+                const updates: { id: number; due_date: string }[] = [];
                 for (const reminder of recurringReminders) {
                     const timing = ctx.utils.search.parseReminderTiming(
                         reminder.frequency.toLowerCase(),
@@ -173,17 +174,24 @@ export function RemindersRouter(ctx: AppContext) {
                     );
 
                     if (timing.isValid && timing.nextDue) {
-                        await ctx
-                            .db('reminders')
-                            .where({ id: reminder.id })
-                            .update({
-                                due_date:
-                                    timing.nextDue instanceof Date
-                                        ? timing.nextDue.toISOString()
-                                        : timing.nextDue,
-                                updated_at: ctx.db.fn.now(),
-                            });
+                        updates.push({
+                            id: reminder.id,
+                            due_date:
+                                timing.nextDue instanceof Date
+                                    ? timing.nextDue.toISOString()
+                                    : timing.nextDue,
+                        });
                     }
+                }
+
+                if (updates.length > 0) {
+                    await ctx.db.transaction(async (trx) => {
+                        for (const update of updates) {
+                            await trx('reminders')
+                                .where({ id: update.id })
+                                .update({ due_date: update.due_date, updated_at: trx.fn.now() });
+                        }
+                    });
                 }
 
                 req.flash('success', `Recalculated ${recurringReminders.length} reminders`);
@@ -501,7 +509,8 @@ export function RemindersRouter(ctx: AppContext) {
             const reminders = await ctx
                 .db('reminders')
                 .select('title', 'content')
-                .where({ user_id: user.id });
+                .where({ user_id: user.id })
+                .limit(500);
 
             const urls: string[] = [];
             for (const r of reminders) {
@@ -513,15 +522,19 @@ export function RemindersRouter(ctx: AppContext) {
                 }
             }
 
-            setTimeout(() => {
-                Promise.all(
-                    urls.map((url) =>
-                        fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
-                            method: 'HEAD',
-                            headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' },
-                        }).catch(() => {}),
-                    ),
-                );
+            setTimeout(async () => {
+                const batchSize = 10;
+                for (let i = 0; i < urls.length; i += batchSize) {
+                    const batch = urls.slice(i, i + batchSize);
+                    await Promise.all(
+                        batch.map((url) =>
+                            fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
+                                method: 'HEAD',
+                                headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' },
+                            }).catch(() => {}),
+                        ),
+                    );
+                }
             }, 0);
 
             req.flash('success', `Caching ${urls.length} preview images in background...`);

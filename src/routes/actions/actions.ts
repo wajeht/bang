@@ -529,19 +529,24 @@ export function ActionsRouter(ctx: AppContext) {
                 .db('bangs')
                 .select('url')
                 .where({ user_id: user.id })
-                .whereNotNull('url');
+                .whereNotNull('url')
+                .limit(500);
 
             const urls = actions.map((a: { url: string }) => a.url).filter(Boolean);
 
-            setTimeout(() => {
-                Promise.all(
-                    urls.map((url) =>
-                        fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
-                            method: 'HEAD',
-                            headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' },
-                        }).catch(() => {}),
-                    ),
-                );
+            setTimeout(async () => {
+                const batchSize = 10;
+                for (let i = 0; i < urls.length; i += batchSize) {
+                    const batch = urls.slice(i, i + batchSize);
+                    await Promise.all(
+                        batch.map((url) =>
+                            fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
+                                method: 'HEAD',
+                                headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' },
+                            }).catch(() => {}),
+                        ),
+                    );
+                }
             }, 0);
 
             req.flash('success', `Caching ${urls.length} preview images in background...`);
