@@ -75,7 +75,8 @@ export async function createServer() {
 
     server.on('listening', async () => {
         const addr: string | AddressInfo | null = server.address();
-        const bind: string = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port; // prettier-ignore
+        const bind: string =
+            typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port;
 
         ctx.logger.info(`Server is listening on ${bind}`);
 
@@ -87,7 +88,10 @@ export async function createServer() {
             throw error;
         }
 
-        const bind: string = typeof config.app.port === 'string' ? 'Pipe ' + config.app.port : 'Port ' + config.app.port; // prettier-ignore
+        const bind: string =
+            typeof config.app.port === 'string'
+                ? 'Pipe ' + config.app.port
+                : 'Port ' + config.app.port;
 
         switch (error.code) {
             case 'EACCES':

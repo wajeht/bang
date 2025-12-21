@@ -1619,8 +1619,13 @@ export function SearchUtils(context: AppContext) {
                     }
 
                     // Parse the timing
-                    const defaultTime = user.column_preferences?.reminders?.default_reminder_time || '09:00'; // prettier-ignore
-                    const timing = this.parseReminderTiming(when.toLowerCase(), defaultTime, user.timezone || 'UTC'); // prettier-ignore
+                    const defaultTime =
+                        user.column_preferences?.reminders?.default_reminder_time || '09:00';
+                    const timing = this.parseReminderTiming(
+                        when.toLowerCase(),
+                        defaultTime,
+                        user.timezone || 'UTC',
+                    );
 
                     if (!timing.isValid) {
                         return this.goBackWithValidationAlert(

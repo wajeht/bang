@@ -457,7 +457,11 @@ export function BookmarksRouter(ctx: AppContext) {
      *
      */
     router.post('/bookmarks/:id/hide', ctx.middleware.authentication, toggleBookmarkHideHandler);
-    router.post('/api/bookmarks/:id/hide', ctx.middleware.authentication, toggleBookmarkHideHandler);
+    router.post(
+        '/api/bookmarks/:id/hide',
+        ctx.middleware.authentication,
+        toggleBookmarkHideHandler,
+    );
     async function toggleBookmarkHideHandler(req: Request, res: Response) {
         const user = req.user as User;
         const bookmarkId = parseInt(req.params.id as unknown as string);

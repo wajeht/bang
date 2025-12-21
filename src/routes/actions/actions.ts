@@ -454,10 +454,7 @@ export function ActionsRouter(ctx: AppContext) {
             return;
         }
 
-        req.flash(
-            'success',
-            `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`,
-        );
+        req.flash('success', `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`);
         const showHidden = req.body.showHidden === 'true';
         return res.redirect('/actions' + (showHidden ? '?hidden=true' : ''));
     }

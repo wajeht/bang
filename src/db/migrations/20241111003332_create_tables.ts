@@ -186,7 +186,13 @@ export async function up(knex: Knex): Promise<void> {
     if (!(await knex.schema.hasTable('reminders'))) {
         await knex.schema.createTable('reminders', (table) => {
             table.increments('id').primary();
-            table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE').notNullable(); // prettier-ignore
+            table
+                .integer('user_id')
+                .unsigned()
+                .references('id')
+                .inTable('users')
+                .onDelete('CASCADE')
+                .notNullable();
             table.string('title').notNullable(); // description/task
             table.text('content').nullable();
             table.string('reminder_type').defaultTo('once'); // once or recurring

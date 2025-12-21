@@ -275,12 +275,20 @@ describe('Bookmarks Routes', () => {
                     })
                     .returning('*');
 
-                await agent.post(`/bookmarks/${bookmark.id}/hide`).type('form').send({}).expect(302);
+                await agent
+                    .post(`/bookmarks/${bookmark.id}/hide`)
+                    .type('form')
+                    .send({})
+                    .expect(302);
 
                 const updatedBookmark = await db('bookmarks').where({ id: bookmark.id }).first();
                 expect(updatedBookmark.hidden).toBe(1);
 
-                await agent.post(`/bookmarks/${bookmark.id}/hide`).type('form').send({}).expect(302);
+                await agent
+                    .post(`/bookmarks/${bookmark.id}/hide`)
+                    .type('form')
+                    .send({})
+                    .expect(302);
 
                 const unhiddenBookmark = await db('bookmarks').where({ id: bookmark.id }).first();
                 expect(unhiddenBookmark.hidden).toBe(0);
@@ -298,7 +306,11 @@ describe('Bookmarks Routes', () => {
                     })
                     .returning('*');
 
-                await agent.post(`/bookmarks/${bookmark.id}/hide`).type('form').send({}).expect(302);
+                await agent
+                    .post(`/bookmarks/${bookmark.id}/hide`)
+                    .type('form')
+                    .send({})
+                    .expect(302);
 
                 const unchangedBookmark = await db('bookmarks').where({ id: bookmark.id }).first();
                 expect(unchangedBookmark.hidden).toBe(0);

@@ -35,7 +35,9 @@ export function ErrorMiddleware(ctx: AppContext) {
 
         const httpError = error as any;
         const statusCode = httpError.statusCode || 500;
-        const message = httpError.message || 'The server encountered an internal error or misconfiguration and was unable to complete your request'; // prettier-ignore
+        const message =
+            httpError.message ||
+            'The server encountered an internal error or misconfiguration and was unable to complete your request';
 
         if (ctx.utils.request.isApiRequest(req)) {
             const responsePayload: any = {
@@ -168,7 +170,10 @@ export function SessionMiddleware(ctx: AppContext) {
         cookie: {
             path: '/',
             // Don't set domain for localhost/127.0.0.1 to avoid cookie issues in tests
-            domain: ctx.config.session.domain === 'production' ? `.${ctx.config.session.domain}` : undefined, // prettier-ignore
+            domain:
+                ctx.config.session.domain === 'production'
+                    ? `.${ctx.config.session.domain}`
+                    : undefined, // prettier-ignore
             maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
             httpOnly: ctx.config.session.domain === 'production',
             sameSite: 'lax',

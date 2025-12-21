@@ -33,7 +33,10 @@ export function HtmlUtils() {
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
 
-            const searchRegex = new RegExp(searchWords.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'gi'); // prettier-ignore
+            const searchRegex = new RegExp(
+                searchWords.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
+                'gi',
+            );
 
             result = result.replace(searchRegex, (match) => `<mark>${match}</mark>`); // prettier-ignore
 

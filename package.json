@@ -2,6 +2,13 @@
     "name": "bang",
     "version": "0.0.1",
     "description": "your personal command center for blazingly fast web navigation",
+    "keywords": [
+        "DuckDuckGo",
+        "band",
+        "wajeht"
+    ],
+    "license": "MIT",
+    "author": "wajeht",
     "main": "dist/src/server.js",
     "scripts": {
         "start": "export APP_ENV=production && node --no-warnings --max-old-space-size=512 ./dist/src/server.js",
@@ -26,11 +33,11 @@
         "test:load": "tsx ./scripts/load-test.ts",
         "test:coverage": "NODE_ENV=testing vitest run --coverage",
         "test:browser:server": "export APP_ENV=testing && node --no-warnings ./dist/src/server.js",
-        "format:check": "prettier --check .",
-        "format:verbose": "prettier --write --cache .",
-        "format": "prettier --write --cache . > /dev/null",
-        "lint:check": "eslint .",
-        "lint": "eslint --fix --cache .",
+        "format:check": "oxfmt --check .",
+        "format:verbose": "oxfmt --write .",
+        "format": "oxfmt --write . > /dev/null",
+        "lint:check": "oxlint .",
+        "lint": "oxlint --fix .",
         "db:pull:prod": "./scripts/db.sh pull",
         "db:push:prod": "./scripts/db.sh push",
         "db:prepare:dev": "npm run db:migrate:latest && npm run db:seed:run",
@@ -44,16 +51,6 @@
         "db:seed:run": "tsx ./node_modules/knex/bin/cli.js seed:run --knexfile=./src/db/knexfile.ts",
         "db:seed:run:prod": "knex seed:run --knexfile=./dist/src/db/knexfile.js",
         "rmds": "find . -name '.DS_Store' -delete"
-    },
-    "keywords": [
-        "wajeht",
-        "DuckDuckGo",
-        "band"
-    ],
-    "author": "wajeht",
-    "license": "MIT",
-    "engines": {
-        "node": ">=24.9.0"
     },
     "dependencies": {
         "bcrypt": "^6.0.0",
@@ -79,7 +76,6 @@
         "nodemailer": "^7.0.10"
     },
     "devDependencies": {
-        "@eslint/js": "^9.39.2",
         "@playwright/test": "^1.57.0",
         "@types/bcrypt": "^6.0.0",
         "@types/clean-css": "^4.2.11",
@@ -99,21 +95,20 @@
         "@wajeht/express-templates-reload": "^2.0.5",
         "clean-css": "^5.3.3",
         "esbuild": "^0.27.2",
-        "eslint": "^9.39.2",
-        "eslint-config-prettier": "^10.1.8",
-        "eslint-plugin-prettier": "^5.5.4",
-        "eslint-plugin-security": "^3.0.1",
         "html-minifier-terser": "^7.2.0",
-        "prettier": "^3.7.4",
+        "oxfmt": "^0.19.0",
+        "oxlint": "^1.34.0",
         "supertest": "^7.1.4",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3",
-        "typescript-eslint": "^8.50.0",
         "vitest": "^4.0.16"
     },
     "overrides": {
         "glob": "^10.4.5",
-        "rimraf": "^6.0.1",
-        "inflight": "npm:@isaacs/inflight@^1.0.1"
+        "inflight": "npm:@isaacs/inflight@^1.0.1",
+        "rimraf": "^6.0.1"
+    },
+    "engines": {
+        "node": ">=24.9.0"
     }
 }
