@@ -43,54 +43,28 @@ export function HtmlUtils() {
             return result;
         },
 
-        sqlHighlightSearchTerm(columnName: string, searchTerm: string | null | undefined): string {
-            if (!searchTerm || !searchTerm.trim()) {
-                return columnName;
-            }
+        /**
+         * Apply search term highlighting to specified fields on an array of objects.
+         * Mutates objects in place for performance.
+         */
+        applyHighlighting<T extends Record<string, any>>(
+            items: T[],
+            fields: (keyof T)[],
+            searchTerm: string | null | undefined,
+        ): T[] {
+            if (!searchTerm || !items.length) return items;
 
-            const searchWords = searchTerm
-                .trim()
-                .split(/\s+/)
-                .filter((word) => word.length > 0);
-
-            if (searchWords.length === 0) {
-                return columnName;
-            }
-
-            let sql = columnName;
-
-            for (const word of searchWords) {
-                // Escape single quotes in the search word for SQL safety
-                const escapedWord = word.replace(/'/g, "''");
-                const lowerWord = escapedWord.toLowerCase();
-                const upperWord = escapedWord.toUpperCase();
-                const titleWord =
-                    escapedWord.charAt(0).toUpperCase() + escapedWord.slice(1).toLowerCase();
-
-                // Apply REPLACE operations, avoiding duplicates
-                sql = `REPLACE(${sql}, '${escapedWord}', X'3C' || 'mark' || X'3E' || '${escapedWord}' || X'3C2F' || 'mark' || X'3E')`;
-
-                // Only do lowercase if different from original
-                if (lowerWord !== escapedWord) {
-                    sql = `REPLACE(${sql}, '${lowerWord}', X'3C' || 'mark' || X'3E' || '${lowerWord}' || X'3C2F' || 'mark' || X'3E')`;
-                }
-
-                // Only do uppercase if different from original and lowercase
-                if (upperWord !== escapedWord && upperWord !== lowerWord) {
-                    sql = `REPLACE(${sql}, '${upperWord}', X'3C' || 'mark' || X'3E' || '${upperWord}' || X'3C2F' || 'mark' || X'3E')`;
-                }
-
-                // Only do title case if different from all others
-                if (
-                    titleWord !== escapedWord &&
-                    titleWord !== lowerWord &&
-                    titleWord !== upperWord
-                ) {
-                    sql = `REPLACE(${sql}, '${titleWord}', X'3C' || 'mark' || X'3E' || '${titleWord}' || X'3C2F' || 'mark' || X'3E')`;
+            for (const item of items) {
+                for (const field of fields) {
+                    if (item[field] != null) {
+                        item[field] = this.highlightSearchTerm(
+                            String(item[field]),
+                            searchTerm,
+                        ) as T[keyof T];
+                    }
                 }
             }
-
-            return sql;
+            return items;
         },
 
         stripHtmlTags(text: string | null | undefined): string {

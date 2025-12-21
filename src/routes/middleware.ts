@@ -298,6 +298,9 @@ export function AppLocalStateMiddleware(ctx: AppContext) {
     };
 }
 
+// Cache TTL for user data in session (5 minutes)
+const USER_CACHE_TTL = 5 * 60 * 1000;
+
 export function AuthenticationMiddleware(ctx: AppContext) {
     return async function authenticationMiddleware(
         req: Request,
@@ -308,16 +311,27 @@ export function AuthenticationMiddleware(ctx: AppContext) {
             const apiKey = ctx.utils.request.extractApiKey(req);
 
             let user: User | null = null;
+            let needsRefresh = false;
 
             if (req.session?.user) {
-                user = await ctx.models.users.read(req.session.user.id);
-                // If user exists in session but not in DB, clear the session
-                if (!user) {
-                    req.session.destroy((err) => {
-                        if (err) {
-                            ctx.logger.error(`Session destruction error: %o`, { err });
-                        }
-                    });
+                const cachedAt = req.session.userCachedAt || 0;
+                const cacheExpired = Date.now() - cachedAt > USER_CACHE_TTL;
+
+                if (!cacheExpired && req.session.user.id) {
+                    // Use cached user data - already has parsed column_preferences
+                    user = req.session.user;
+                } else {
+                    // Cache expired or missing timestamp, refresh from DB
+                    needsRefresh = true;
+                    user = await ctx.models.users.read(req.session.user.id);
+                    // If user exists in session but not in DB, clear the session
+                    if (!user) {
+                        req.session.destroy((err) => {
+                            if (err) {
+                                ctx.logger.error(`Session destruction error: %o`, { err });
+                            }
+                        });
+                    }
                 }
             }
 
@@ -329,6 +343,7 @@ export function AuthenticationMiddleware(ctx: AppContext) {
                 }
 
                 user = await ctx.models.users.read(apiKeyPayload.userId);
+                needsRefresh = true;
             }
 
             if (!user) {
@@ -345,17 +360,26 @@ export function AuthenticationMiddleware(ctx: AppContext) {
                 return;
             }
 
-            const parsedUser = {
-                ...user,
-                column_preferences: user?.column_preferences
-                    ? JSON.parse(user.column_preferences as unknown as string)
-                    : {},
-            } as User;
+            // Only parse column_preferences if we fetched fresh data
+            let parsedUser: User;
+            if (needsRefresh) {
+                parsedUser = {
+                    ...user,
+                    column_preferences: user?.column_preferences
+                        ? JSON.parse(user.column_preferences as unknown as string)
+                        : {},
+                } as User;
+            } else {
+                // Already parsed from session cache
+                parsedUser = user;
+            }
 
             req.user = parsedUser;
 
-            if (req.session) {
+            // Only update session if we refreshed from DB
+            if (req.session && needsRefresh) {
                 req.session.user = parsedUser;
+                req.session.userCachedAt = Date.now();
                 req.session.save();
             }
 

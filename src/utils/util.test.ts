@@ -1189,6 +1189,7 @@ describe('processReminderDigests', () => {
 
         // After first processing, the reminder should have been updated to tomorrow
         const firstDue = new Date(reminder.due_date);
+        expect(firstDue.getTime()).toBeGreaterThan(in5Minutes.getTime());
 
         // Since the reminder was already processed and moved to next day,
         // it won't be due for processing until tomorrow.

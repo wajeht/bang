@@ -59,7 +59,14 @@ export function AuthRouter(ctx: AppContext) {
 
         const token = ctx.utils.auth.generateMagicLink({ email });
 
-        setTimeout(() => ctx.utils.mail.sendMagicLinkEmail({ email, token, req }), 0);
+        // Send magic link email in background with error handling
+        Promise.resolve().then(async () => {
+            try {
+                await ctx.utils.mail.sendMagicLinkEmail({ email, token, req });
+            } catch (error) {
+                ctx.logger.error('Failed to send magic link email: %o', { error, email });
+            }
+        });
 
         req.flash(
             'success',
@@ -132,7 +139,9 @@ export function AuthRouter(ctx: AppContext) {
                 return res.redirect(url.pathname + url.search);
             }
 
-            if (!user.hidden_items_password) {
+            // Check database for current password (not cached session)
+            const dbUser = await ctx.db('users').where({ id: user.id }).first();
+            if (!dbUser?.hidden_items_password) {
                 req.flash(
                     'error',
                     'No password set for hidden items. Please set a password in settings first.',
@@ -142,7 +151,7 @@ export function AuthRouter(ctx: AppContext) {
                 return res.redirect(url.pathname + url.search);
             }
 
-            const isValid = await ctx.libs.bcrypt.compare(password, user.hidden_items_password);
+            const isValid = await ctx.libs.bcrypt.compare(password, dbUser.hidden_items_password);
 
             if (!isValid) {
                 if (resource_type === 'note') {
@@ -166,15 +175,32 @@ export function AuthRouter(ctx: AppContext) {
                 return res.redirect(url.pathname + url.search);
             }
 
-            if (!req.session.verifiedHiddenItems) {
-                req.session.verifiedHiddenItems = {};
+            req.session.verifiedHiddenItems ??= {};
+            const verifiedItems: Record<string, number> = req.session.verifiedHiddenItems;
+
+            // Clean up expired verification keys to prevent memory leak
+            const now = Date.now();
+            for (const [key, expiry] of Object.entries(verifiedItems)) {
+                if (expiry < now) {
+                    delete verifiedItems[key];
+                }
             }
 
             const verificationKey = `${resource_type || 'global'}_${resource_id || 'global'}`;
-            req.session.verifiedHiddenItems[verificationKey] = Date.now() + 30 * 60 * 1000; // 30 minutes
+            verifiedItems[verificationKey] = now + 30 * 60 * 1000; // 30 minutes
 
             req.session.hiddenItemsVerified = true;
-            req.session.hiddenItemsVerifiedAt = Date.now();
+            req.session.hiddenItemsVerifiedAt = now;
+
+            // Explicitly save session after modifications
+            req.session.save((err) => {
+                if (err) {
+                    ctx.logger.error(
+                        'Failed to save session after hidden items verification: %o',
+                        err,
+                    );
+                }
+            });
 
             return res.redirect(redirect_url);
         },

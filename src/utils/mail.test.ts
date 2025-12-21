@@ -359,7 +359,9 @@ describe('Mail Utils', () => {
             const expectedNextDue = dayjs.utc(dueDate).add(1, 'month').date(1);
             const actualNextDue = dayjs.utc(updatedReminder.due_date);
 
+            // Monthly reminders should be rescheduled to the 1st of next month
             expect(actualNextDue.date()).toBe(1);
+            expect(actualNextDue.month()).toBe(expectedNextDue.month());
             expect(actualNextDue.isAfter(dayjs.utc(dueDate))).toBe(true);
         });
 

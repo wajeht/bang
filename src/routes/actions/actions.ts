@@ -193,7 +193,9 @@ export function ActionsRouter(ctx: AppContext) {
         }
 
         if (hidden === 'on' || hidden === true) {
-            if (!user.hidden_items_password) {
+            // Check database for current password status (not cached session)
+            const dbUser = await ctx.db('users').where({ id: user.id }).first();
+            if (!dbUser?.hidden_items_password) {
                 throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
                 });
@@ -298,7 +300,9 @@ export function ActionsRouter(ctx: AppContext) {
         }
 
         if (hidden === 'on' || hidden === true) {
-            if (!user.hidden_items_password) {
+            // Check database for current password status (not cached session)
+            const dbUser = await ctx.db('users').where({ id: user.id }).first();
+            if (!dbUser?.hidden_items_password) {
                 throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
                 });
@@ -423,7 +427,9 @@ export function ActionsRouter(ctx: AppContext) {
         const user = req.user as User;
         const actionId = parseInt(req.params.id as unknown as string);
 
-        if (!user.hidden_items_password) {
+        // Check database for current password status (not cached session)
+        const dbUser = await ctx.db('users').where({ id: user.id }).first();
+        if (!dbUser?.hidden_items_password) {
             throw new ctx.errors.ValidationError({
                 hidden: 'You must set a global password in settings before hiding items',
             });

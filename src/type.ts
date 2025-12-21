@@ -16,6 +16,8 @@ declare module 'express-session' {
         hiddenItemsVerified?: boolean;
         /** Timestamp when hidden items password was verified */
         hiddenItemsVerifiedAt?: number;
+        /** Timestamp when user data was cached in session */
+        userCachedAt?: number;
     }
 }
 
@@ -169,7 +171,6 @@ export type RepositoryQueryParams<Extra = object> = {
     search: string;
     sortKey: string | 'created_at';
     direction: string | 'asc' | 'desc';
-    highlight?: boolean;
 } & Extra;
 
 export type ActionsQueryParams = RepositoryQueryParams<{

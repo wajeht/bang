@@ -299,7 +299,9 @@ export function NotesRouter(ctx: AppContext) {
         const user = req.user as User;
 
         if (hidden === 'on' || hidden === true) {
-            if (!user.hidden_items_password) {
+            // Check database for current password status (not cached session)
+            const dbUser = await ctx.db('users').where({ id: user.id }).first();
+            if (!dbUser?.hidden_items_password) {
                 throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
                 });
@@ -368,7 +370,9 @@ export function NotesRouter(ctx: AppContext) {
         const noteId = parseInt(req.params.id as unknown as string);
 
         if (hidden === 'on' || hidden === true) {
-            if (!user.hidden_items_password) {
+            // Check database for current password status (not cached session)
+            const dbUser = await ctx.db('users').where({ id: user.id }).first();
+            if (!dbUser?.hidden_items_password) {
                 throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
                 });
