@@ -191,7 +191,7 @@ jobs:
               uses: docker/build-push-action@v4
               with:
                   context: .
-                  file: ./Dockerfile.prod
+                  file: ./Dockerfile
                   push: true
                   tags: ${{ steps.image-name.outputs.IMAGE_URL }}
                   cache-from: type=gha
