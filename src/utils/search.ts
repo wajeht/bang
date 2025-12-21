@@ -5,6 +5,10 @@ import type { Bang, Search, ReminderTimingResult, AppContext } from '../type';
 export function SearchUtils(context: AppContext) {
     const searchConfig = {
         /**
+         * Cache TTL for user's bang/tab triggers (60 minutes)
+         */
+        triggersCacheTtl: 60 * 60 * 1000,
+        /**
          * List of bangs that are available to use from the bangs table
          */
         bangs: bangsTable,
@@ -121,6 +125,54 @@ export function SearchUtils(context: AppContext) {
     return {
         searchConfig,
         reminderTimingConfig,
+
+        /**
+         * Load and cache user's bang and tab triggers in session for fast lookup.
+         */
+        async loadCachedTriggers(
+            req: Request,
+            userId: number,
+        ): Promise<{ bangTriggers: Set<string>; tabTriggers: Set<string> }> {
+            const cachedAt = req.session?.triggersCachedAt || 0;
+            const cacheExpired = Date.now() - cachedAt > searchConfig.triggersCacheTtl;
+
+            if (!cacheExpired && req.session?.bangTriggers && req.session?.tabTriggers) {
+                return {
+                    bangTriggers: new Set(req.session.bangTriggers),
+                    tabTriggers: new Set(req.session.tabTriggers),
+                };
+            }
+
+            const [bangRows, tabRows] = await Promise.all([
+                context.db('bangs').select('trigger').where({ user_id: userId }),
+                context.db('tabs').select('trigger').where({ user_id: userId }),
+            ]);
+
+            const bangTriggers = bangRows.map((r: { trigger: string }) => r.trigger);
+            const tabTriggers = tabRows.map((r: { trigger: string }) => r.trigger);
+
+            if (req.session) {
+                req.session.bangTriggers = bangTriggers;
+                req.session.tabTriggers = tabTriggers;
+                req.session.triggersCachedAt = Date.now();
+            }
+
+            return {
+                bangTriggers: new Set(bangTriggers),
+                tabTriggers: new Set(tabTriggers),
+            };
+        },
+
+        /**
+         * Invalidate cached triggers (call when user creates/deletes/edits bangs or tabs)
+         */
+        invalidateTriggerCache(req: Request): void {
+            if (req.session) {
+                delete req.session.bangTriggers;
+                delete req.session.tabTriggers;
+                delete req.session.triggersCachedAt;
+            }
+        },
 
         trackAnonymousUserSearch(req: Request) {
             req.session.searchCount = req.session.searchCount || 0;
@@ -1222,6 +1274,8 @@ export function SearchUtils(context: AppContext) {
                         );
                     }
 
+                    this.invalidateTriggerCache(req);
+
                     setTimeout(
                         () =>
                             context.utils.util.insertPageTitle({
@@ -1285,6 +1339,8 @@ export function SearchUtils(context: AppContext) {
                             `Bang '${bangToDelete}' not found or you don't have permission to delete it`,
                         );
                     }
+
+                    this.invalidateTriggerCache(req);
 
                     return this.goBack(res);
                 }
@@ -1474,6 +1530,10 @@ export function SearchUtils(context: AppContext) {
                                 'Failed to update tab. Please try again.',
                             );
                         }
+                    }
+
+                    if (bangUpdates.trigger || tabUpdates.trigger) {
+                        this.invalidateTriggerCache(req);
                     }
 
                     return this.goBack(res);
@@ -1677,8 +1737,10 @@ export function SearchUtils(context: AppContext) {
                 }
             }
 
+            const { bangTriggers, tabTriggers } = await this.loadCachedTriggers(req, user.id);
+
             // Process user-defined bang commands
-            if (commandType === 'bang' && triggerWithoutPrefix) {
+            if (commandType === 'bang' && trigger && bangTriggers.has(trigger)) {
                 let customBang;
 
                 try {
@@ -1806,27 +1868,28 @@ export function SearchUtils(context: AppContext) {
                 }
             }
 
-            let tab;
+            if (trigger && tabTriggers.has(trigger)) {
+                let tab;
 
-            try {
-                tab = await context.db
-                    .select('*')
-                    .from('tabs')
-                    .where({ user_id: user.id, trigger })
-                    .first();
-            } catch (error) {
-                context.logger.error('Database error fetching tab:', error);
-            }
+                try {
+                    tab = await context.db
+                        .select('id')
+                        .from('tabs')
+                        .where({ user_id: user.id, trigger })
+                        .first();
+                } catch (error) {
+                    context.logger.error('Database error fetching tab:', error);
+                }
 
-            // Process tab commands
-            if (tab) {
-                return this.redirectWithCache(
-                    res,
-                    `/tabs/${tab.id}/launch`,
-                    searchConfig.redirectWithCacheDuration,
-                    'private',
-                    ['Cookie'], // Vary by Cookie for user-specific tabs
-                );
+                if (tab) {
+                    return this.redirectWithCache(
+                        res,
+                        `/tabs/${tab.id}/launch`,
+                        searchConfig.redirectWithCacheDuration,
+                        'private',
+                        ['Cookie'], // Vary by Cookie for user-specific tabs
+                    );
+                }
             }
 
             // Process system-defined bang commands
