@@ -403,6 +403,66 @@ export function ActionsRouter(ctx: AppContext) {
     }
 
     /**
+     * POST /api/actions/{id}/hide
+     *
+     * @tags Actions
+     * @summary Toggle hidden status of an action
+     *
+     * @security BearerAuth
+     *
+     * @param {string} id.path.required - action id
+     *
+     * @return {object} 200 - success response - application/json
+     * @return {object} 400 - Bad request response - application/json
+     * @return {object} 404 - Not found response - application/json
+     *
+     */
+    router.post('/actions/:id/hide', ctx.middleware.authentication, toggleActionHideHandler);
+    router.post('/api/actions/:id/hide', ctx.middleware.authentication, toggleActionHideHandler);
+    async function toggleActionHideHandler(req: Request, res: Response) {
+        const user = req.user as User;
+        const actionId = parseInt(req.params.id as unknown as string);
+
+        if (!user.hidden_items_password) {
+            throw new ctx.errors.ValidationError({
+                hidden: 'You must set a global password in settings before hiding items',
+            });
+        }
+
+        const currentAction = await ctx.models.actions.read(actionId, user.id);
+
+        if (!currentAction) {
+            throw new ctx.errors.NotFoundError('Action not found');
+        }
+
+        if (!currentAction.hidden && currentAction.action_type !== 'redirect') {
+            throw new ctx.errors.ValidationError({
+                hidden: 'Only redirect-type actions can be hidden',
+            });
+        }
+
+        const updatedAction = await ctx.models.actions.update(actionId, user.id, {
+            hidden: !currentAction.hidden,
+            actionType: currentAction.action_type,
+        });
+
+        if (ctx.utils.request.isApiRequest(req)) {
+            res.status(200).json({
+                message: `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`,
+                data: updatedAction,
+            });
+            return;
+        }
+
+        req.flash(
+            'success',
+            `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`,
+        );
+        const showHidden = req.body.showHidden === 'true';
+        return res.redirect('/actions' + (showHidden ? '?hidden=true' : ''));
+    }
+
+    /**
      *
      * GET /api/actions/{id}
      *
