@@ -274,6 +274,204 @@ describe('Actions API', () => {
                 expect(response.body.data[0].trigger).toBe('!public');
             });
         });
+
+        describe('POST /actions/:id/hide - Toggle hidden status', () => {
+            it('should toggle hidden status when global password is set', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                const [action] = await db('bangs')
+                    .insert({
+                        user_id: user.id,
+                        name: 'Test Action',
+                        trigger: '!test',
+                        url: 'https://example.com',
+                        action_type: 'redirect',
+                        hidden: false,
+                    })
+                    .returning('*');
+
+                await agent.post(`/actions/${action.id}/hide`).type('form').send({}).expect(302);
+
+                const updatedAction = await db('bangs').where({ id: action.id }).first();
+                expect(updatedAction.hidden).toBe(1);
+
+                await agent.post(`/actions/${action.id}/hide`).type('form').send({}).expect(302);
+
+                const unhiddenAction = await db('bangs').where({ id: action.id }).first();
+                expect(unhiddenAction.hidden).toBe(0);
+            });
+
+            it('should reject hiding action without global password', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                const [action] = await db('bangs')
+                    .insert({
+                        user_id: user.id,
+                        name: 'Test Action',
+                        trigger: '!test',
+                        url: 'https://example.com',
+                        action_type: 'redirect',
+                        hidden: false,
+                    })
+                    .returning('*');
+
+                await agent.post(`/actions/${action.id}/hide`).type('form').send({}).expect(302);
+
+                const unchangedAction = await db('bangs').where({ id: action.id }).first();
+                expect(unchangedAction.hidden).toBe(0);
+            });
+
+            it('should reject hiding non-redirect type action', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                const [action] = await db('bangs')
+                    .insert({
+                        user_id: user.id,
+                        name: 'Search Action',
+                        trigger: '!search',
+                        url: 'https://example.com/search?q={{query}}',
+                        action_type: 'search',
+                        hidden: false,
+                    })
+                    .returning('*');
+
+                await agent.post(`/actions/${action.id}/hide`).type('form').send({}).expect(302);
+
+                const unchangedAction = await db('bangs').where({ id: action.id }).first();
+                expect(unchangedAction.hidden).toBe(0);
+            });
+
+            it('should preserve showHidden query param in redirect', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                const [action] = await db('bangs')
+                    .insert({
+                        user_id: user.id,
+                        name: 'Test Action',
+                        trigger: '!test',
+                        url: 'https://example.com',
+                        action_type: 'redirect',
+                        hidden: true,
+                    })
+                    .returning('*');
+
+                const response = await agent
+                    .post(`/actions/${action.id}/hide`)
+                    .type('form')
+                    .send({ showHidden: 'true' })
+                    .expect(302);
+
+                expect(response.headers.location).toBe('/actions?hidden=true');
+            });
+
+            it('should return 404 for non-existent action', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                await agent.post('/actions/99999/hide').type('form').send({}).expect(404);
+            });
+        });
+
+        describe('POST /api/actions/:id/hide - Toggle hidden status via API', () => {
+            it('should toggle hidden status via API when global password is set', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                const [action] = await db('bangs')
+                    .insert({
+                        user_id: user.id,
+                        name: 'Test Action',
+                        trigger: '!test',
+                        url: 'https://example.com',
+                        action_type: 'redirect',
+                        hidden: false,
+                    })
+                    .returning('*');
+
+                const response = await agent.post(`/api/actions/${action.id}/hide`).expect(200);
+
+                expect(response.body.message).toContain('hidden successfully');
+
+                const updatedAction = await db('bangs').where({ id: action.id }).first();
+                expect(updatedAction.hidden).toBe(1);
+            });
+
+            it('should reject hiding via API without global password', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                const [action] = await db('bangs')
+                    .insert({
+                        user_id: user.id,
+                        name: 'Test Action',
+                        trigger: '!test',
+                        url: 'https://example.com',
+                        action_type: 'redirect',
+                        hidden: false,
+                    })
+                    .returning('*');
+
+                const response = await agent.post(`/api/actions/${action.id}/hide`).expect(422);
+
+                expect(response.body.message).toContain('Validation');
+
+                const unchangedAction = await db('bangs').where({ id: action.id }).first();
+                expect(unchangedAction.hidden).toBe(0);
+            });
+
+            it('should reject hiding non-redirect type action via API', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                const [action] = await db('bangs')
+                    .insert({
+                        user_id: user.id,
+                        name: 'Search Action',
+                        trigger: '!search',
+                        url: 'https://example.com/search?q={{query}}',
+                        action_type: 'search',
+                        hidden: false,
+                    })
+                    .returning('*');
+
+                const response = await agent.post(`/api/actions/${action.id}/hide`).expect(422);
+
+                expect(response.body.message).toContain('Validation');
+
+                const unchangedAction = await db('bangs').where({ id: action.id }).first();
+                expect(unchangedAction.hidden).toBe(0);
+            });
+
+            it('should return 404 for non-existent action via API', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                await agent.post('/api/actions/99999/hide').expect(404);
+            });
+        });
     });
 
     describe('POST /actions/delete', () => {
