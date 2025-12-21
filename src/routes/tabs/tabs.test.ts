@@ -138,6 +138,143 @@ describe('Tabs Routes', () => {
         });
     });
 
+    describe('Tab Items Security', () => {
+        it('should not allow deleting tab items from other users tabs', async () => {
+            const { agent } = await authenticateApiAgent(app);
+
+            const [otherUser] = await db('users')
+                .insert({
+                    username: 'otheruser',
+                    email: 'other@example.com',
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                })
+                .returning('*');
+
+            const [otherTab] = await db('tabs')
+                .insert({
+                    user_id: otherUser.id,
+                    title: 'Other Tab',
+                    trigger: '!othertab',
+                })
+                .returning('*');
+
+            const [otherTabItem] = await db('tab_items')
+                .insert({
+                    tab_id: otherTab.id,
+                    title: 'Other Item',
+                    url: 'https://example.com',
+                })
+                .returning('*');
+
+            await agent.delete(`/api/tabs/${otherTab.id}/items/${otherTabItem.id}`).expect(404);
+
+            const remainingItems = await db('tab_items').where({ id: otherTabItem.id });
+            expect(remainingItems).toHaveLength(1);
+        });
+
+        it('should allow deleting tab items from own tabs', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            const [myTab] = await db('tabs')
+                .insert({
+                    user_id: user.id,
+                    title: 'My Tab',
+                    trigger: '!mytab',
+                })
+                .returning('*');
+
+            const [myTabItem] = await db('tab_items')
+                .insert({
+                    tab_id: myTab.id,
+                    title: 'My Item',
+                    url: 'https://example.com',
+                })
+                .returning('*');
+
+            await agent.delete(`/api/tabs/${myTab.id}/items/${myTabItem.id}`).expect(200);
+
+            const remainingItems = await db('tab_items').where({ id: myTabItem.id });
+            expect(remainingItems).toHaveLength(0);
+        });
+
+        it('should not allow updating tab items from other users tabs', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const [otherUser] = await db('users')
+                .insert({
+                    username: 'otheruser2',
+                    email: 'other2@example.com',
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                })
+                .returning('*');
+
+            const [otherTab] = await db('tabs')
+                .insert({
+                    user_id: otherUser.id,
+                    title: 'Other Tab',
+                    trigger: '!othertab2',
+                })
+                .returning('*');
+
+            const [otherTabItem] = await db('tab_items')
+                .insert({
+                    tab_id: otherTab.id,
+                    title: 'Original Title',
+                    url: 'https://example.com',
+                })
+                .returning('*');
+
+            await agent
+                .post(`/tabs/${otherTab.id}/items/${otherTabItem.id}/update`)
+                .type('form')
+                .send({ title: 'Hacked Title', url: 'https://hacked.com' })
+                .expect(404);
+
+            const item = await db('tab_items').where({ id: otherTabItem.id }).first();
+            expect(item.title).toBe('Original Title');
+        });
+    });
+
+    describe('Direction Parameter Security', () => {
+        it('should sanitize direction parameter to prevent SQL injection', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            await db('tabs').insert([
+                { user_id: user.id, title: 'Tab A', trigger: '!taba' },
+                { user_id: user.id, title: 'Tab B', trigger: '!tabb' },
+            ]);
+
+            const response = await agent
+                .get('/api/tabs?direction=desc;DROP TABLE tabs;--')
+                .expect(200);
+
+            expect(response.body.data).toHaveLength(2);
+
+            const tabsExist = await db('tabs').where({ user_id: user.id });
+            expect(tabsExist).toHaveLength(2);
+        });
+
+        it('should only allow asc or desc for direction', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            await db('tabs').insert([
+                { user_id: user.id, title: 'Tab A', trigger: '!taba' },
+                { user_id: user.id, title: 'Tab B', trigger: '!tabb' },
+            ]);
+
+            const responseAsc = await agent.get('/api/tabs?direction=asc').expect(200);
+            expect(responseAsc.body.direction).toBe('asc');
+
+            const responseDesc = await agent.get('/api/tabs?direction=desc').expect(200);
+            expect(responseDesc.body.direction).toBe('desc');
+
+            const responseInvalid = await agent.get('/api/tabs?direction=invalid').expect(200);
+            expect(responseInvalid.body.direction).toBe('desc');
+        });
+    });
+
     describe('Search Highlighting', () => {
         it('should highlight search terms in title and trigger', async () => {
             const { agent, user } = await authenticateAgent(app);

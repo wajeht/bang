@@ -27,7 +27,7 @@ export default defineConfig({
     /* Keep sequential in CI to avoid database conflicts */
     workers: 1,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-    reporter: 'html',
+    reporter: process.env.CI ? 'list' : 'html',
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
         /* Base URL to use in actions like `await page.goto('/')`. */

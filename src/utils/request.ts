@@ -52,12 +52,15 @@ export function RequestUtils(context: AppContext) {
                 defaultPerPage = user.column_preferences.users.default_per_page;
             }
 
+            const rawDirection = (req.query.direction as string)?.toLowerCase();
+            const direction = rawDirection === 'asc' ? 'asc' : 'desc';
+
             return {
                 perPage: parseInt(req.query.per_page as string, 10) || defaultPerPage || 10,
                 page: parseInt(req.query.page as string, 10) || 1,
                 search: ((req.query.search as string) || '').toLowerCase(),
                 sortKey: (req.query.sort_key as string) || 'created_at',
-                direction: (req.query.direction as string) || 'desc',
+                direction,
             };
         },
 

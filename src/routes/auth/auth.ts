@@ -122,15 +122,26 @@ export function AuthRouter(ctx: AppContext) {
             column_preferences: columnPreferences,
         };
 
-        req.user = parsedUser;
-        req.session.user = parsedUser;
-
         const redirectTo = req.session.redirectTo || '/actions';
-        delete req.session.redirectTo;
-        req.session.save();
 
-        req.flash('success', `🎉 Welcome ${user.username}! You're now logged in.`);
-        return res.redirect(redirectTo);
+        req.session.regenerate((err) => {
+            if (err) {
+                ctx.logger.error('Failed to regenerate session: %o', { err });
+                throw new ctx.errors.HttpError(500, 'Session error', req);
+            }
+
+            req.user = parsedUser;
+            req.session.user = parsedUser;
+            req.session.userCachedAt = Date.now();
+
+            req.session.save((saveErr) => {
+                if (saveErr) {
+                    ctx.logger.error('Failed to save session: %o', { saveErr });
+                }
+                req.flash('success', `🎉 Welcome ${user.username}! You're now logged in.`);
+                return res.redirect(redirectTo);
+            });
+        });
     });
 
     router.post(
@@ -209,7 +220,8 @@ export function AuthRouter(ctx: AppContext) {
             });
 
             const safeUrl = new URL('http://localhost' + redirect_url);
-            return res.redirect(safeUrl.pathname + safeUrl.search);
+            const safePath = safeUrl.pathname.replace(/^\/+/, '/') + safeUrl.search;
+            return res.redirect(safePath);
         },
     );
 

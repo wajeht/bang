@@ -157,6 +157,124 @@ describe('Auth Routes', () => {
         });
     });
 
+    describe('GET /auth/magic/:token', () => {
+        it('should authenticate user with valid magic link token', async () => {
+            const { ctx } = await createApp();
+
+            await db('users').insert({
+                username: 'magicuser',
+                email: 'magic@example.com',
+                is_admin: false,
+                default_search_provider: 'duckduckgo',
+            });
+
+            const token = ctx.utils.auth.generateMagicLink({ email: 'magic@example.com' });
+
+            const response = await request(app).get(`/auth/magic/${token}`).expect(302);
+
+            expect(response.headers.location).toBe('/actions');
+        });
+
+        it('should reject invalid magic link token', async () => {
+            const response = await request(app).get('/auth/magic/invalid-token').expect(302);
+
+            expect(response.headers.location).toBe('/');
+        });
+
+        it('should reject expired magic link token', async () => {
+            const response = await request(app)
+                .get(
+                    '/auth/magic/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpYXQiOjE2MDAwMDAwMDAsImV4cCI6MTYwMDAwMDAwMX0.invalid',
+                )
+                .expect(302);
+
+            expect(response.headers.location).toBe('/');
+        });
+
+        it('should set user session after successful authentication', async () => {
+            const { ctx } = await createApp();
+
+            await db('users').insert({
+                username: 'sessionuser',
+                email: 'session@example.com',
+                is_admin: false,
+                default_search_provider: 'duckduckgo',
+            });
+
+            const token = ctx.utils.auth.generateMagicLink({ email: 'session@example.com' });
+
+            const agent = request.agent(app);
+            await agent.get(`/auth/magic/${token}`).expect(302);
+
+            const protectedResponse = await agent.get('/actions').expect(200);
+            expect(protectedResponse.text).toContain('Actions');
+        });
+    });
+
+    describe('Open Redirect Protection', () => {
+        it('should convert external URLs to safe local paths', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            await db('users')
+                .where({ id: user.id })
+                .update({ hidden_items_password: hashedPassword });
+
+            const response = await agent
+                .post('/verify-hidden-password')
+                .type('form')
+                .send({
+                    password: 'correct-password',
+                    redirect_url: 'https://evil.com/steal-cookies',
+                })
+                .expect(302);
+
+            expect(response.headers.location).toBe('/evil.com/steal-cookies');
+            expect(response.headers.location).not.toMatch(/^\/\//);
+        });
+
+        it('should prevent protocol-relative URL redirects', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            await db('users')
+                .where({ id: user.id })
+                .update({ hidden_items_password: hashedPassword });
+
+            const response = await agent
+                .post('/verify-hidden-password')
+                .type('form')
+                .send({
+                    password: 'correct-password',
+                    redirect_url: '//evil.com/steal-cookies',
+                })
+                .expect(302);
+
+            expect(response.headers.location).toBe('/evil.com/steal-cookies');
+            expect(response.headers.location).not.toMatch(/^\/\//);
+        });
+
+        it('should handle relative paths correctly', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            await db('users')
+                .where({ id: user.id })
+                .update({ hidden_items_password: hashedPassword });
+
+            const response = await agent
+                .post('/verify-hidden-password')
+                .type('form')
+                .send({
+                    password: 'correct-password',
+                    redirect_url: '/bookmarks?hidden=true',
+                })
+                .expect(302);
+
+            expect(response.headers.location).toBe('/bookmarks?hidden=true');
+        });
+    });
+
     describe('GET /logout', () => {
         it('should log out user and redirect to home', async () => {
             const { agent } = await authenticateAgent(app);

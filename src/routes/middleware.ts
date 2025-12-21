@@ -219,18 +219,15 @@ export function SetupAppLocals(ctx: AppContext) {
 export function CsrfMiddleware(ctx: AppContext) {
     const { csrfSynchronisedProtection, generateToken } = ctx.libs.csrfSync({
         getTokenFromRequest: (req: Request) => {
-            // For form submissions, check body first
             if (req.body && req.body.csrfToken) {
                 return req.body.csrfToken;
             }
 
-            // For AJAX requests, check headers
             if (req.headers['x-csrf-token']) {
                 return req.headers['x-csrf-token'] as string;
             }
 
-            // Fallback to query parameter
-            return req.query.csrfToken as string;
+            return undefined;
         },
         errorConfig: {
             statusCode: 403,

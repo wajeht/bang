@@ -568,11 +568,21 @@ export function TabsRouter(ctx: AppContext) {
         const tabId = parseInt(req.params.id as unknown as string);
         const itemId = parseInt(req.params.itemId as unknown as string);
 
+        const tab = await ctx.db('tabs').where({ id: tabId, user_id: user.id }).first();
+
+        if (!tab) {
+            throw new ctx.errors.NotFoundError('Tab group not found');
+        }
+
+        const tabItem = await ctx.db('tab_items').where({ id: itemId, tab_id: tabId }).first();
+
+        if (!tabItem) {
+            throw new ctx.errors.NotFoundError('Tab item not found');
+        }
+
         await ctx.db.transaction(async (trx) => {
             await trx('tab_items').where({ id: itemId, tab_id: tabId }).delete();
-            await trx('tabs')
-                .where({ id: tabId, user_id: user.id })
-                .update({ updated_at: ctx.db.fn.now() });
+            await trx('tabs').where({ id: tabId }).update({ updated_at: ctx.db.fn.now() });
         });
 
         if (ctx.utils.request.isApiRequest(req)) {
