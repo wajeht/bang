@@ -108,7 +108,7 @@ jobs:
                   retention-days: 30
 
     lint:
-        name: ESLint
+        name: Oxlint
         runs-on: ubuntu-latest
 
         strategy:
@@ -131,7 +131,7 @@ jobs:
 
     format:
         needs: [lint, unit-test, browser-test]
-        name: Prettier format
+        name: Oxfmt format
         runs-on: ubuntu-latest
 
         permissions:
