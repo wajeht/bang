@@ -1,149 +1,74 @@
 <script>
 	if (HTMLScriptElement.supports && HTMLScriptElement.supports("speculationrules")) {
-		// === SPECULATION RULES SETUP ===
-		// Modern replacement for legacy <link rel="prerender"> - provides better control and debugging
-		// Implements 2025 Chrome best practices for instant navigation performance
 		const specScript = document.createElement("script");
 		specScript.type = "speculationrules";
 
+		// AGGRESSIVE SPECULATION RULES - Maximum Speed Configuration
+		// Chrome limits (2025): eager = 10 prerender, 50 prefetch
 		const specRules = {
 			// === PRERENDER RULES ===
-			// Full page rendering in background (like invisible tab)
-			// - Memory intensive but provides instant 0ms navigation
-			// - Chrome limit: 2 concurrent prerenders for moderate/conservative eagerness
-			// - Best for high-confidence user destinations
-			//
-			// WHY ONLY 2 PRERENDERS?
-			// Chrome's built-in limits (2025):
-			//   immediate/eager: 50 prefetch, 10 prerender
-			//   moderate/conservative: 2 prefetch, 2 prerender (FIFO)
-			//
-			// Reasons for the 2-prerender limit:
-			// 1. Memory Management: Each prerender = 10-50MB (like invisible browser tab)
-			// 2. FIFO System: New prerenders cancel old ones to prevent resource abuse
-			// 3. Battery/CPU Protection: Prerendering is expensive (full page parsing/execution)
-			// 4. Network Bandwidth: Protects mobile users' data plans
-			//
-			// Our Strategy: Only prerender TOP 2 most visited pages (/actions, /bookmarks)
-			// Everything else uses prefetch (50-80% speed benefit, 10x less memory)
+			// Full page rendering - instant 0ms navigation
 			"prerender": [
 				{
-					// Core application pages with highest user engagement
-					// Using explicit URLs (not href_matches patterns) for maximum reliability
-					// Avoids complex pattern matching that often fails in production
-					"urls": ["/actions", "/bookmarks"],
-
-					// moderate = 200ms hover delay before triggering prerender
-					// Balances performance benefit vs resource waste
-					// More conservative than "eager" to prevent over-speculation
-					"eagerness": "moderate"
+					// Top pages get immediate prerender on hover
+					"urls": ["/actions", "/bookmarks", "/notes", "/tabs", "/reminders"],
+					"eagerness": "eager" // Triggers immediately on hover - no delay
+				},
+				{
+					// Prerender detail pages on hover
+					"where": {
+						"and": [
+							{ "href_matches": "/*" },
+							{ "not": { "href_matches": "/api/*" } },
+							{ "not": { "href_matches": "/logout" } },
+							{ "not": { "selector_matches": "[data-no-prerender]" } }
+						]
+					},
+					"eagerness": "moderate" // 200ms hover for other internal links
 				}
 			],
 
 			// === PREFETCH RULES ===
-			// Downloads HTML/resources but doesn't render or execute JavaScript
-			// - Lower memory footprint than prerender (~10x less memory usage)
-			// - Still provides 50-80% of prerender speed benefit
-			// - Good fallback for secondary pages
+			// Catch-all: prefetch ANY same-origin link on hover
 			"prefetch": [
 				{
-					// Secondary core features - frequently accessed after main pages
-					// Content management tools users often navigate between
-					// Higher priority than utility pages but lower than prerender candidates
-					"urls": ["/tabs", "/notes"],
-					"eagerness": "moderate" // 200ms hover - good balance for secondary features
-				},
-				{
-					// Static content pages - excellent prefetch candidates because:
-					// 1. Fast to serve (no database queries or complex processing)
-					// 2. Highly cacheable content
-					// 3. Low server resource impact
-					// 4. About page commonly visited for help/documentation
-					// 5. Bangs page for search functionality reference
-					"urls": ["/about", "/bangs"],
-					"eagerness": "moderate" // Static content = reliable performance win
-				},
-				{
-					// Utility/admin pages - occasional use patterns
-					// Settings: Users visit infrequently but when they do, speed matters
-					// Reminders: Periodic feature usage
-					// Conservative eagerness prevents resource waste while still providing benefit
-					"urls": ["/settings", "/reminders"],
-					"eagerness": "conservative" // Only trigger on click/touch down - user intent confirmed
-				},
-				{
-					// Legal/footer pages - very low priority but still beneficial
-					// Users rarely visit but when they do (privacy concerns, ToS), prefetch improves UX
-					// These pages are often required for legal compliance
-					"urls": ["/privacy-policy", "/terms-of-service"],
-					"eagerness": "conservative" // Minimal resource usage for edge cases
-				},
-				{
-					// Dynamic detail pages - individual items within collections
-					// href_matches patterns catch URLs like /actions/123, /bookmarks/456, etc.
-					// More efficient than trying to list every possible ID combination
-					// Covers the "drill-down" navigation pattern common in the app
+					// Prefetch all internal links immediately on hover
 					"where": {
-						"or": [
-							{ "href_matches": "/actions/*" },   // Individual action detail pages
-							{ "href_matches": "/bookmarks/*" }, // Individual bookmark detail pages
-							{ "href_matches": "/notes/*" },     // Individual note detail pages
-							{ "href_matches": "/tabs/*" }       // Individual tab detail pages
+						"and": [
+							{ "href_matches": "/*" },
+							{ "not": { "href_matches": "/api/*" } },
+							{ "not": { "href_matches": "/logout" } },
+							{ "not": { "selector_matches": "[data-no-prefetch]" } }
 						]
 					},
-					// moderate eagerness for detail pages - users hovering show intent
-					// 200ms gives enough signal that user is interested in that specific item
-					"eagerness": "moderate"
+					"eagerness": "eager" // No delay - prefetch starts immediately on hover
 				}
 			]
 		};
 
-		// === SCRIPT INJECTION ===
-		// Dynamic injection required - speculation rules don't work with static HTML insertion
-		// Browser security prevents innerHTML from registering speculation rules
-		// Must use createElement + appendChild pattern
 		specScript.textContent = JSON.stringify(specRules);
 		document.head.appendChild(specScript);
 
-		// === DEBUG LOGGING ===
-		// Enhanced logging for development troubleshooting and performance monitoring
 		console.log('✅ Speculation rules added:', specRules);
 		console.log('🔍 Debug: Check DevTools > Application > Speculative loads');
 
-		// === PRERENDER DETECTION ===
-		// Detect when current page was prerendered and handle activation
-		// Critical for proper analytics, ads, and other deferred functionality
 		if (document.prerendering) {
 			console.log('🚀 Page is being prerendered!');
-
-			// Listen for activation event when user actually navigates to prerendered page
-			// This is when the prerendered page becomes visible and active
-			document.addEventListener("prerenderingchange", (event) => {
+			document.addEventListener("prerenderingchange", () => {
 				console.log('⚡ Page activated from prerender!', {
-					// activationStart shows milliseconds between prerender start and activation
-					// Lower values = faster user experience
-					activationStart: performance.getEntriesByType('navigation')[0]?.activationStart,
-					event: event
+					activationStart: performance.getEntriesByType('navigation')[0]?.activationStart
 				});
-				// This is where you'd trigger deferred analytics, ads, user tracking, etc.
-				// Anything that should only run when user actually sees the page
 			}, { once: true });
 		}
 
-		// === PERFORMANCE MEASUREMENT ===
-		// Measure and log prerender performance impact for optimization
 		document.addEventListener('DOMContentLoaded', () => {
 			const nav = performance.getEntriesByType('navigation')[0];
 			if (nav?.activationStart > 0) {
-				console.log('📊 Page was prerendered! Activation time:', nav.activationStart + 'ms');
-				// This indicates successful prerender - should show very low activation times
-				// Values > 100ms might indicate prerender issues or complex page initialization
+				console.log('📊 Prerendered! Activation:', nav.activationStart + 'ms');
 			}
 		});
 
 	} else {
-		// Graceful degradation for browsers that don't support Speculation Rules API
-		// Mainly older Chrome versions and non-Chromium browsers
-		console.log('❌ Speculation rules are not supported for your browser!');
+		console.log('❌ Speculation rules not supported');
 	}
 </script>
