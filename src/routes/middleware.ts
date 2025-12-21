@@ -169,15 +169,14 @@ export function SessionMiddleware(ctx: AppContext) {
         proxy: ctx.config.app.env === 'production',
         cookie: {
             path: '/',
-            // Don't set domain for localhost/127.0.0.1 to avoid cookie issues in tests
             domain:
-                ctx.config.session.domain === 'production'
+                ctx.config.app.env === 'production'
                     ? `.${ctx.config.session.domain}`
-                    : undefined, // prettier-ignore
+                    : undefined,
             maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-            httpOnly: ctx.config.session.domain === 'production',
+            httpOnly: true,
             sameSite: 'lax',
-            secure: ctx.config.session.domain === 'production',
+            secure: ctx.config.app.env === 'production',
         },
     });
 }
