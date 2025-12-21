@@ -71,7 +71,17 @@ export function AuthRouter(ctx: AppContext) {
             'success',
             `📧 Magic link sent to ${email}! Check your email and click the link to log in.`,
         );
-        return res.redirect(req.headers.referer || '/');
+        const referer = req.headers.referer;
+        if (referer) {
+            try {
+                const refererUrl = new URL(referer);
+                const appUrl = new URL(ctx.config.app.appUrl);
+                if (refererUrl.host === appUrl.host) {
+                    return res.redirect(refererUrl.pathname + refererUrl.search);
+                }
+            } catch {}
+        }
+        return res.redirect('/');
     });
 
     router.get('/auth/magic/:token', async (req: Request, res: Response) => {
@@ -198,7 +208,8 @@ export function AuthRouter(ctx: AppContext) {
                 }
             });
 
-            return res.redirect(redirect_url);
+            const safeUrl = new URL('http://localhost' + redirect_url);
+            return res.redirect(safeUrl.pathname + safeUrl.search);
         },
     );
 
