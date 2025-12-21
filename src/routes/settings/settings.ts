@@ -548,6 +548,20 @@ export function SettingsRouter(ctx: AppContext) {
         },
     );
 
+    router.get(
+        '/api/settings/api-key',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = await ctx.db('users').where({ id: req.session.user?.id }).first();
+
+            if (!user || !user.api_key) {
+                return res.status(404).json({ error: 'API key not found' });
+            }
+
+            return res.json({ api_key: user.api_key });
+        },
+    );
+
     router.post(
         '/settings/hidden-password',
         ctx.middleware.authentication,

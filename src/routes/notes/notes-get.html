@@ -397,13 +397,28 @@ window.addEventListener('load', handleRowHighlight);
             const checked = [...document.querySelectorAll('.note-checkbox:checked')];
             if (!checked.length) return;
 
-            document.getElementById('selected-notes-list').innerHTML =
-                checked.map(cb => `<span>- <strong>${cb.dataset.title}</strong></span>`).join('');
+            const listEl = document.getElementById('selected-notes-list');
+            listEl.textContent = '';
+            checked.forEach(cb => {
+                const span = document.createElement('span');
+                const strong = document.createElement('strong');
+                strong.textContent = cb.dataset.title;
+                span.textContent = '- ';
+                span.appendChild(strong);
+                listEl.appendChild(span);
+            });
 
-            document.getElementById('bulk-delete-checkboxes').innerHTML =
-                checked.map(cb => `<input type="hidden" name="id[]" value="${cb.value}">`).join('');
+            const checkboxesEl = document.getElementById('bulk-delete-checkboxes');
+            checkboxesEl.textContent = '';
+            checked.forEach(cb => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'id[]';
+                input.value = cb.value;
+                checkboxesEl.appendChild(input);
+            });
 
-            document.getElementById("bulk-delete-notes-checkbhoxes-count").innerHTML = checked.length;
+            document.getElementById("bulk-delete-notes-checkbhoxes-count").textContent = checked.length;
 
             document.getElementById('delete-selected-modal').showModal();
         });

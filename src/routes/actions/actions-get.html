@@ -426,13 +426,25 @@ window.addEventListener('load', handleRowHighlight);
             const checked = [...document.querySelectorAll('.action-checkbox:checked')];
             if (!checked.length) return;
 
-            document.getElementById('selected-actions-list').innerHTML =
-                checked.map(cb => `<span>- ${cb.dataset.title}</span>`).join('');
+            const listEl = document.getElementById('selected-actions-list');
+            listEl.textContent = '';
+            checked.forEach(cb => {
+                const span = document.createElement('span');
+                span.textContent = '- ' + cb.dataset.title;
+                listEl.appendChild(span);
+            });
 
-            document.getElementById('bulk-delete-checkboxes').innerHTML =
-                checked.map(cb => `<input type="hidden" name="id[]" value="${cb.value}">`).join('');
+            const checkboxesEl = document.getElementById('bulk-delete-checkboxes');
+            checkboxesEl.textContent = '';
+            checked.forEach(cb => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'id[]';
+                input.value = cb.value;
+                checkboxesEl.appendChild(input);
+            });
 
-            document.getElementById("bulk-delete-action-checkbhoxes-count").innerHTML = checked.length;
+            document.getElementById("bulk-delete-action-checkbhoxes-count").textContent = checked.length;
 
             document.getElementById('delete-selected-modal').showModal();
         });

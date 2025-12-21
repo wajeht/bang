@@ -232,13 +232,26 @@
         return;
       }
 
-      document.getElementById('selected-users-list').innerHTML = checked
-        .map(cb => `<span>- <strong>${cb.dataset.username}</strong></span>`)
-        .join('');
+      const listEl = document.getElementById('selected-users-list');
+      listEl.textContent = '';
+      checked.forEach(cb => {
+          const span = document.createElement('span');
+          const strong = document.createElement('strong');
+          strong.textContent = cb.dataset.username;
+          span.textContent = '- ';
+          span.appendChild(strong);
+          listEl.appendChild(span);
+      });
 
-      document.getElementById('bulk-delete-checkboxes').innerHTML = checked
-        .map(cb => `<input type="hidden" name="id[]" value="${cb.value}">`)
-        .join('');
+      const checkboxesEl = document.getElementById('bulk-delete-checkboxes');
+      checkboxesEl.textContent = '';
+      checked.forEach(cb => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'id[]';
+          input.value = cb.value;
+          checkboxesEl.appendChild(input);
+      });
 
       document.getElementById('delete-selected-modal').showModal();
     });

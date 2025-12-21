@@ -107,6 +107,63 @@
     handleTabRowHighlight();
     previewWebpageOnLinkHover();
     window.addEventListener('load', handleTabRowHighlight);
+
+    document.getElementById('select-all-checkbox')?.addEventListener('change', function() {
+        document.querySelectorAll('.tab-checkbox').forEach(cb => cb.checked = this.checked);
+    });
+
+    document.querySelectorAll('.delete-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabId = this.dataset.tabId;
+            const tabTitle = this.dataset.tabTitle;
+            const items = JSON.parse(this.dataset.tabItems || '[]');
+            showDeleteTabModal(tabId, tabTitle, items);
+        });
+    });
+
+    document.getElementById('delete-selected-btn')?.addEventListener('click', function() {
+        const checked = [...document.querySelectorAll('.tab-checkbox:checked')];
+        if (!checked.length) return;
+
+        const listEl = document.getElementById('selected-tabs-list');
+        listEl.textContent = '';
+        checked.forEach(cb => {
+            const groupDiv = document.createElement('div');
+            groupDiv.style.marginBottom = '10px';
+
+            const strong = document.createElement('strong');
+            strong.textContent = '- ' + cb.dataset.title;
+            groupDiv.appendChild(strong);
+
+            const items = JSON.parse(cb.dataset.items || '[]');
+            if (items.length > 0) {
+                const itemsList = document.createElement('div');
+                itemsList.style.marginLeft = '15px';
+                itemsList.style.fontSize = '0.9em';
+                itemsList.style.color = '#666';
+                items.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.textContent = '- ' + (item.title || item.url);
+                    itemsList.appendChild(itemDiv);
+                });
+                groupDiv.appendChild(itemsList);
+            }
+
+            listEl.appendChild(groupDiv);
+        });
+
+        const checkboxesEl = document.getElementById('bulk-delete-checkboxes');
+        checkboxesEl.textContent = '';
+        checked.forEach(cb => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'id[]';
+            input.value = cb.value;
+            checkboxesEl.appendChild(input);
+        });
+
+        document.getElementById('delete-selected-modal').showModal();
+    });
   });
 
   function toggleAddItemForm(tabId) {
@@ -118,11 +175,27 @@
       }
   }
 
-  function showDeleteTabModal(tabId, tabTitle) {
+  function showDeleteTabModal(tabId, tabTitle, items) {
       const modal = document.getElementById('delete-tab-modal');
       const nameElement = document.getElementById('delete-tab-name');
+      const itemsListElement = document.getElementById('delete-tab-items-list');
       const form = document.getElementById('delete-tab-form');
       nameElement.textContent = tabTitle;
+
+      itemsListElement.textContent = '';
+      if (items && items.length > 0) {
+          items.forEach(item => {
+              const div = document.createElement('div');
+              div.textContent = '- ' + (item.title || item.url);
+              itemsListElement.appendChild(div);
+          });
+      } else {
+          const div = document.createElement('div');
+          div.textContent = '(no items)';
+          div.style.fontStyle = 'italic';
+          itemsListElement.appendChild(div);
+      }
+
       form.action = `/tabs/${tabId}/delete`;
       modal.showModal();
   }
@@ -135,23 +208,6 @@
       form.action = `/tabs/${tabId}/items/${itemId}/delete`;
       modal.showModal();
   }
-
-  document.getElementById('select-all-checkbox')?.addEventListener('change', function() {
-      document.querySelectorAll('.tab-checkbox').forEach(cb => cb.checked = this.checked);
-  });
-
-  document.getElementById('delete-selected-btn')?.addEventListener('click', function() {
-      const checked = [...document.querySelectorAll('.tab-checkbox:checked')];
-      if (!checked.length) return;
-
-      document.getElementById('selected-tabs-list').innerHTML =
-          checked.map(cb => `<span>- <strong>${cb.dataset.title}</strong></span>`).join('');
-
-      document.getElementById('bulk-delete-checkboxes').innerHTML =
-          checked.map(cb => `<input type="hidden" name="id[]" value="${cb.value}">`).join('');
-
-      document.getElementById('delete-selected-modal').showModal();
-  });
   </script>
 
 <style>
@@ -270,7 +326,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                   <% for (let i = 0; i < tabs.length; i++) { %>
                       <tr class="tab-group-row" data-tab-id="<%= tabs[i].id %>" data-id="<%= tabs[i].id %>" style="cursor: pointer;">
                           <td style="padding: 10px;">
-                              <input type="checkbox" name="id[]" value="<%- tabs[i].id %>" class="tab-checkbox" data-title="<%- tabs[i].title || 'Untitled' %>" />
+                              <input type="checkbox" name="id[]" value="<%- tabs[i].id %>" class="tab-checkbox" data-title="<%- tabs[i].title || 'Untitled' %>" data-items="<%= JSON.stringify(tabs[i].items.map(item => ({ title: utils.stripHtmlTags(item.title || ''), url: utils.stripHtmlTags(item.url || '') }))) %>" />
                           </td>
                           <% if (user.column_preferences?.tabs?.title !== false) { %>
                           <td style="padding: 10px;"><%- tabs[i].title %></td>
@@ -300,9 +356,11 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                 <% } %>
                                 <button
                                     type="button"
-                                    class="no-style-btn"
+                                    class="no-style-btn delete-tab-btn"
                                     style="text-align: left;"
-                                    onclick="showDeleteTabModal('<%= tabs[i].id %>', '<%= utils.stripHtmlTags(tabs[i].title || 'Untitled').replace(/'/g, '\\\'') %>')"
+                                    data-tab-id="<%= tabs[i].id %>"
+                                    data-tab-title="<%= utils.stripHtmlTags(tabs[i].title || 'Untitled') %>"
+                                    data-tab-items="<%= JSON.stringify(tabs[i].items.map(item => ({ title: utils.stripHtmlTags(item.title || ''), url: utils.stripHtmlTags(item.url || '') }))) %>"
                                     role="menuitem"
                                 >
                                     🗑️ Delete <%= utils.capitalize(tabs[i].title) %> Group
@@ -466,6 +524,8 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
   <dialog id="delete-tab-modal" aria-labelledby="delete-tab-title">
     <h2 id="delete-tab-title">Confirm</h2>
     <p>Are you sure you want to delete <strong id="delete-tab-name"></strong>?</p>
+    <p style="margin-top: 10px;">This will also delete the following items:</p>
+    <div id="delete-tab-items-list" style="display: flex; flex-direction: column; gap: 5px; margin: 10px 0; max-height: 200px; overflow-y: auto;"></div>
     <form id="delete-tab-form" method="POST">
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
       <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
@@ -490,7 +550,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
   <dialog id="delete-selected-modal" aria-labelledby="delete-selected-title">
     <h2 id="delete-selected-title">Confirm Bulk Delete</h2>
     <p>Are you sure you want to delete the following tab groups?</p>
-    <div id="selected-tabs-list" style="display: flex; flex-direction: column; gap: 5px; margin: 10px 0;"></div>
+    <div id="selected-tabs-list" style="display: flex; flex-direction: column; gap: 5px; margin: 10px 0; max-height: 300px; overflow-y: auto;"></div>
     <form action="/tabs/delete" method="POST">
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
       <div id="bulk-delete-checkboxes"></div>

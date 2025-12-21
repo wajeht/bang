@@ -597,4 +597,51 @@ describe('Settings Routes', () => {
             expect(hiddenAction.hidden).toBe(1);
         });
     });
+
+    describe('GET /api/settings/api-key', () => {
+        it('should require authentication', async () => {
+            await request(app).get('/api/settings/api-key').expect(401);
+        });
+
+        it('should return 404 if user has no API key', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const response = await agent.get('/api/settings/api-key').expect(404);
+
+            expect(response.body.error).toBe('API key not found');
+        });
+
+        it('should return API key if user has one', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('users').where({ id: user.id }).update({
+                api_key: 'test-api-key-12345',
+                api_key_version: 1,
+            });
+
+            const response = await agent.get('/api/settings/api-key').expect(200);
+
+            expect(response.body.api_key).toBe('test-api-key-12345');
+        });
+
+        it('should return fresh data from database not cached session', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('users').where({ id: user.id }).update({
+                api_key: 'initial-key',
+                api_key_version: 1,
+            });
+
+            const response1 = await agent.get('/api/settings/api-key').expect(200);
+            expect(response1.body.api_key).toBe('initial-key');
+
+            await db('users').where({ id: user.id }).update({
+                api_key: 'updated-key',
+                api_key_version: 2,
+            });
+
+            const response2 = await agent.get('/api/settings/api-key').expect(200);
+            expect(response2.body.api_key).toBe('updated-key');
+        });
+    });
 });

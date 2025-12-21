@@ -1,21 +1,42 @@
 <script>
-  function viewApiKey() {
+  let cachedApiKey = null;
+
+  async function fetchApiKey() {
+    if (cachedApiKey) return cachedApiKey;
+    const response = await fetch('/api/settings/api-key');
+    if (!response.ok) {
+      throw new Error('Failed to fetch API key');
+    }
+    const data = await response.json();
+    cachedApiKey = data.api_key;
+    return cachedApiKey;
+  }
+
+  async function viewApiKey() {
     const apiKeyPre = document.getElementById('apiKeyPre');
     const viewOrHideButton = document.getElementById('view-or-hide-button');
     if (apiKeyPre.textContent === '••••••••••••••••••••••••••••••••••••••••••••••••') {
-      apiKeyPre.textContent = '<%= user.api_key %>';
-      viewOrHideButton.textContent = '👁️ Hide';
+      try {
+        const apiKey = await fetchApiKey();
+        apiKeyPre.textContent = apiKey;
+        viewOrHideButton.textContent = '👁️ Hide';
+      } catch (error) {
+        createToast('Failed to fetch API key');
+      }
     } else {
       apiKeyPre.textContent = '••••••••••••••••••••••••••••••••••••••••••••••••';
       viewOrHideButton.textContent = '️👁️ View';
     }
   }
 
-  function copyApiKey() {
-    const apiKey = '<%= user.api_key %>';
-    navigator.clipboard.writeText(apiKey).then(() => {
-      createToast('🔑 API key copied to clipboard!')
-    });
+  async function copyApiKey() {
+    try {
+      const apiKey = await fetchApiKey();
+      await navigator.clipboard.writeText(apiKey);
+      createToast('🔑 API key copied to clipboard!');
+    } catch (error) {
+      createToast('Failed to copy API key');
+    }
   }
 </script>
 
