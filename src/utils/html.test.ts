@@ -33,7 +33,6 @@ describe('HtmlUtils', () => {
 
         it('should be case insensitive', () => {
             const result = htmlUtils.highlightSearchTerm('HELLO world', 'hello');
-            // Both HELLO and world match 'hello' case-insensitively
             expect(result).toContain('<mark>');
             expect(result).toContain('HELLO');
             expect(result).toContain('world');
@@ -132,7 +131,6 @@ describe('HtmlUtils', () => {
         it('should decode common HTML entities', () => {
             expect(htmlUtils.decodeHtmlEntities('&lt;test&gt;')).toBe('<test>');
             expect(htmlUtils.decodeHtmlEntities('&amp;')).toBe('&');
-            // Note: &nbsp; is replaced with space, then trimmed in the function
             expect(htmlUtils.decodeHtmlEntities('hello&nbsp;world')).toBe('hello world');
         });
 

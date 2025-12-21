@@ -31,13 +31,11 @@ describe('Auth Routes', () => {
 
     describe('POST /verify-hidden-password', () => {
         it('should require authentication', async () => {
-            // Unauthenticated POST requests get blocked by CSRF middleware first
             const response = await request(app)
                 .post('/verify-hidden-password')
                 .type('form')
                 .send({ password: 'test' });
 
-            // Either CSRF error (403) or auth redirect (302) is acceptable
             expect([302, 403]).toContain(response.status);
         });
 
@@ -121,7 +119,6 @@ describe('Auth Routes', () => {
                 })
                 .expect(302);
 
-            // Verify session was updated by making another request that uses the session
             const response = await agent.get('/notes').expect(200);
             expect(response.status).toBe(200);
         });
@@ -134,7 +131,6 @@ describe('Auth Routes', () => {
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
 
-            // First verification
             await agent
                 .post('/verify-hidden-password')
                 .type('form')
@@ -146,7 +142,6 @@ describe('Auth Routes', () => {
                 })
                 .expect(302);
 
-            // Second verification - this should trigger cleanup of any expired keys
             const response = await agent
                 .post('/verify-hidden-password')
                 .type('form')

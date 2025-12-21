@@ -230,7 +230,6 @@ export function BookmarksRouter(ctx: AppContext) {
         const user = req.user as User;
 
         if (hidden === 'on' || hidden === true) {
-            // Check database for current password status (not cached session)
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
             if (!dbUser?.hidden_items_password) {
                 throw new ctx.errors.ValidationError({
@@ -246,7 +245,6 @@ export function BookmarksRouter(ctx: AppContext) {
             });
         }
 
-        // Run bookmark insertion in background with error handling
         Promise.resolve().then(async () => {
             try {
                 await ctx.utils.util.insertBookmark({
@@ -321,7 +319,6 @@ export function BookmarksRouter(ctx: AppContext) {
         const bookmarkId = req.params.id as unknown as number;
 
         if (hidden === 'on' || hidden === true) {
-            // Check database for current password status (not cached session)
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
             if (!dbUser?.hidden_items_password) {
                 throw new ctx.errors.ValidationError({
@@ -474,7 +471,6 @@ export function BookmarksRouter(ctx: AppContext) {
         const user = req.user as User;
         const bookmarkId = parseInt(req.params.id as unknown as string);
 
-        // Check database for current password status (not cached session)
         const dbUser = await ctx.db('users').where({ id: user.id }).first();
         if (!dbUser?.hidden_items_password) {
             throw new ctx.errors.ValidationError({
