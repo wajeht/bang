@@ -522,4 +522,66 @@ describe('Bookmarks Routes', () => {
             await agent.post('/api/bookmarks/delete').send({ id: 'not-an-array' }).expect(422);
         });
     });
+
+    describe('Search Highlighting', () => {
+        it('should highlight search terms in title and url', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('bookmarks').insert([
+                { user_id: user.id, title: 'Crypto Wallet', url: 'https://crypto-wallet.example.com' },
+                { user_id: user.id, title: 'Other Bookmark', url: 'https://other.com' },
+            ]);
+
+            const response = await agent.get('/bookmarks?search=cry').expect(200);
+
+            expect(response.text).toContain('<mark>Cry</mark>pto Wallet');
+            expect(response.text).toContain('https://<mark>cry</mark>pto-wallet.example.com');
+            expect(response.text).not.toContain('Other Bookmark');
+        });
+
+        it('should highlight multiple search words', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('bookmarks').insert({
+                user_id: user.id,
+                title: 'My Favorite Website',
+                url: 'https://favorite-site.com',
+            });
+
+            const response = await agent.get('/bookmarks?search=favorite+site').expect(200);
+
+            expect(response.text).toContain('<mark>Favorite</mark>');
+            expect(response.text).toContain('<mark>site</mark>');
+        });
+
+        it('should return all results without highlighting when no search term', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('bookmarks').insert([
+                { user_id: user.id, title: 'Bookmark One', url: 'https://one.com' },
+                { user_id: user.id, title: 'Bookmark Two', url: 'https://two.com' },
+            ]);
+
+            const response = await agent.get('/bookmarks').expect(200);
+
+            expect(response.text).toContain('Bookmark One');
+            expect(response.text).toContain('Bookmark Two');
+            expect(response.text).not.toContain('<mark>');
+        });
+
+        it('should highlight search terms in API response', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            await db('bookmarks').insert({
+                user_id: user.id,
+                title: 'Testing Highlight',
+                url: 'https://highlight-test.com',
+            });
+
+            const response = await agent.get('/api/bookmarks?search=highlight').expect(200);
+
+            expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
+            expect(response.body.data[0].url).toContain('<mark>highlight</mark>');
+        });
+    });
 });

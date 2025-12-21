@@ -637,4 +637,96 @@ describe('Actions API', () => {
             await agent.post('/api/actions/delete').send({ id: 'not-an-array' }).expect(422);
         });
     });
+
+    describe('Search Highlighting', () => {
+        it('should highlight search terms in name, trigger and url', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('bangs').insert([
+                {
+                    user_id: user.id,
+                    name: 'Google Search',
+                    trigger: '!google',
+                    url: 'https://google.com/search?q={{{s}}}',
+                    action_type: 'redirect',
+                },
+                {
+                    user_id: user.id,
+                    name: 'Other Action',
+                    trigger: '!other',
+                    url: 'https://other.com',
+                    action_type: 'redirect',
+                },
+            ]);
+
+            const response = await agent.get('/actions?search=google').expect(200);
+
+            expect(response.text).toContain('<mark>Google</mark> Search');
+            expect(response.text).toContain('!<mark>google</mark>');
+            expect(response.text).toContain('https://<mark>google</mark>.com');
+            expect(response.text).not.toContain('Other Action');
+        });
+
+        it('should highlight multiple search words', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('bangs').insert({
+                user_id: user.id,
+                name: 'GitHub Code Search',
+                trigger: '!ghcode',
+                url: 'https://github.com/search?q={{{s}}}',
+                action_type: 'redirect',
+            });
+
+            const response = await agent.get('/actions?search=github+code').expect(200);
+
+            expect(response.text).toContain('<mark>GitHub</mark>');
+            expect(response.text).toContain('<mark>Code</mark>');
+        });
+
+        it('should return all results without highlighting when no search term', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('bangs').insert([
+                {
+                    user_id: user.id,
+                    name: 'Action One',
+                    trigger: '!one',
+                    url: 'https://one.com',
+                    action_type: 'redirect',
+                },
+                {
+                    user_id: user.id,
+                    name: 'Action Two',
+                    trigger: '!two',
+                    url: 'https://two.com',
+                    action_type: 'redirect',
+                },
+            ]);
+
+            const response = await agent.get('/actions').expect(200);
+
+            expect(response.text).toContain('Action One');
+            expect(response.text).toContain('Action Two');
+            expect(response.text).not.toContain('<mark>');
+        });
+
+        it('should highlight search terms in API response', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            await db('bangs').insert({
+                user_id: user.id,
+                name: 'Testing Highlight',
+                trigger: '!highlight',
+                url: 'https://highlight-test.com',
+                action_type: 'redirect',
+            });
+
+            const response = await agent.get('/api/actions?search=highlight').expect(200);
+
+            expect(response.body.data[0].name).toContain('<mark>Highlight</mark>');
+            expect(response.body.data[0].trigger).toContain('<mark>highlight</mark>');
+            expect(response.body.data[0].url).toContain('<mark>highlight</mark>');
+        });
+    });
 });

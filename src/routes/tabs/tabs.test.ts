@@ -137,4 +137,66 @@ describe('Tabs Routes', () => {
             });
         });
     });
+
+    describe('Search Highlighting', () => {
+        it('should highlight search terms in title and trigger', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('tabs').insert([
+                { user_id: user.id, title: 'Development Tools', trigger: '!devtools' },
+                { user_id: user.id, title: 'Other Tabs', trigger: '!other' },
+            ]);
+
+            const response = await agent.get('/tabs?search=dev').expect(200);
+
+            expect(response.text).toContain('<mark>Dev</mark>elopment Tools');
+            expect(response.text).toContain('!<mark>dev</mark>tools');
+            expect(response.text).not.toContain('Other Tabs');
+        });
+
+        it('should highlight multiple search words', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('tabs').insert({
+                user_id: user.id,
+                title: 'Social Media Apps',
+                trigger: '!social',
+            });
+
+            const response = await agent.get('/tabs?search=social+media').expect(200);
+
+            expect(response.text).toContain('<mark>Social</mark>');
+            expect(response.text).toContain('<mark>Media</mark>');
+        });
+
+        it('should return all results without highlighting when no search term', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('tabs').insert([
+                { user_id: user.id, title: 'Tab One', trigger: '!one' },
+                { user_id: user.id, title: 'Tab Two', trigger: '!two' },
+            ]);
+
+            const response = await agent.get('/tabs').expect(200);
+
+            expect(response.text).toContain('Tab One');
+            expect(response.text).toContain('Tab Two');
+            expect(response.text).not.toContain('<mark>');
+        });
+
+        it('should highlight search terms in API response', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            await db('tabs').insert({
+                user_id: user.id,
+                title: 'Testing Highlight',
+                trigger: '!highlight',
+            });
+
+            const response = await agent.get('/api/tabs?search=highlight').expect(200);
+
+            expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
+            expect(response.body.data[0].trigger).toContain('<mark>highlight</mark>');
+        });
+    });
 });

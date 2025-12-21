@@ -648,4 +648,93 @@ describe('Reminders Routes', () => {
             await agent.post('/api/reminders/delete').send({ id: 'not-an-array' }).expect(422);
         });
     });
+
+    describe('Search Highlighting', () => {
+        it('should highlight search terms in title and content', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('reminders').insert([
+                {
+                    user_id: user.id,
+                    title: 'Doctor Appointment',
+                    content: 'Visit the doctor for annual checkup',
+                    reminder_type: 'once',
+                    due_date: dayjs().add(1, 'day').toISOString(),
+                },
+                {
+                    user_id: user.id,
+                    title: 'Other Reminder',
+                    content: 'Something else',
+                    reminder_type: 'once',
+                    due_date: dayjs().add(2, 'days').toISOString(),
+                },
+            ]);
+
+            const response = await agent.get('/reminders?search=doctor').expect(200);
+
+            expect(response.text).toContain('<mark>Doctor</mark> Appointment');
+            expect(response.text).toContain('<mark>doctor</mark>');
+            expect(response.text).not.toContain('Other Reminder');
+        });
+
+        it('should highlight multiple search words', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('reminders').insert({
+                user_id: user.id,
+                title: 'Team Meeting Reminder',
+                content: 'Weekly team standup meeting',
+                reminder_type: 'recurring',
+                frequency: 'weekly',
+                due_date: dayjs().add(1, 'day').toISOString(),
+            });
+
+            const response = await agent.get('/reminders?search=team+meeting').expect(200);
+
+            expect(response.text).toContain('<mark>Team</mark>');
+            expect(response.text).toContain('<mark>Meeting</mark>');
+        });
+
+        it('should return all results without highlighting when no search term', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('reminders').insert([
+                {
+                    user_id: user.id,
+                    title: 'Reminder One',
+                    reminder_type: 'once',
+                    due_date: dayjs().add(1, 'day').toISOString(),
+                },
+                {
+                    user_id: user.id,
+                    title: 'Reminder Two',
+                    reminder_type: 'once',
+                    due_date: dayjs().add(2, 'days').toISOString(),
+                },
+            ]);
+
+            const response = await agent.get('/reminders').expect(200);
+
+            expect(response.text).toContain('Reminder One');
+            expect(response.text).toContain('Reminder Two');
+            expect(response.text).not.toContain('<mark>');
+        });
+
+        it('should highlight search terms in API response', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            await db('reminders').insert({
+                user_id: user.id,
+                title: 'Testing Highlight',
+                content: 'This reminder is about highlight testing',
+                reminder_type: 'once',
+                due_date: dayjs().add(1, 'day').toISOString(),
+            });
+
+            const response = await agent.get('/api/reminders?search=highlight').expect(200);
+
+            expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
+            expect(response.body.data[0].content).toContain('<mark>highlight</mark>');
+        });
+    });
 });

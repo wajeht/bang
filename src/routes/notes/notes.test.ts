@@ -856,4 +856,70 @@ describe('Notes Routes', () => {
             });
         });
     });
+
+    describe('Search Highlighting', () => {
+        it('should highlight search terms in title and content', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('notes').insert([
+                {
+                    user_id: user.id,
+                    title: 'Meeting Notes',
+                    content: 'Discussed the quarterly meeting schedule',
+                },
+                { user_id: user.id, title: 'Other Note', content: 'Some other content' },
+            ]);
+
+            const response = await agent.get('/notes?search=meeting').expect(200);
+
+            expect(response.text).toContain('<mark>Meeting</mark> Notes');
+            expect(response.text).toContain('<mark>meeting</mark>');
+            expect(response.text).not.toContain('Other Note');
+        });
+
+        it('should highlight multiple search words', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('notes').insert({
+                user_id: user.id,
+                title: 'Project Planning Document',
+                content: 'This document outlines the project plan',
+            });
+
+            const response = await agent.get('/notes?search=project+plan').expect(200);
+
+            expect(response.text).toContain('<mark>Project</mark>');
+            expect(response.text).toContain('<mark>plan</mark>');
+        });
+
+        it('should return all results without highlighting when no search term', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('notes').insert([
+                { user_id: user.id, title: 'Note One', content: 'Content one' },
+                { user_id: user.id, title: 'Note Two', content: 'Content two' },
+            ]);
+
+            const response = await agent.get('/notes').expect(200);
+
+            expect(response.text).toContain('Note One');
+            expect(response.text).toContain('Note Two');
+            expect(response.text).not.toContain('<mark>');
+        });
+
+        it('should highlight search terms in API response', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+
+            await db('notes').insert({
+                user_id: user.id,
+                title: 'Testing Highlight',
+                content: 'This note is about highlight testing',
+            });
+
+            const response = await agent.get('/api/notes?search=highlight').expect(200);
+
+            expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
+            expect(response.body.data[0].content).toContain('<mark>highlight</mark>');
+        });
+    });
 });
