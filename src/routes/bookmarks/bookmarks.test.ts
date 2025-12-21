@@ -257,6 +257,144 @@ describe('Bookmarks Routes', () => {
                 expect(updatedBookmark.hidden).toBe(1); // Should remain hidden
             });
         });
+
+        describe('POST /bookmarks/:id/hide - Toggle hidden status', () => {
+            it('should toggle hidden status when global password is set', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                const [bookmark] = await db('bookmarks')
+                    .insert({
+                        user_id: user.id,
+                        title: 'Test Bookmark',
+                        url: 'https://example.com',
+                        hidden: false,
+                    })
+                    .returning('*');
+
+                await agent.post(`/bookmarks/${bookmark.id}/hide`).type('form').send({}).expect(302);
+
+                const updatedBookmark = await db('bookmarks').where({ id: bookmark.id }).first();
+                expect(updatedBookmark.hidden).toBe(1);
+
+                await agent.post(`/bookmarks/${bookmark.id}/hide`).type('form').send({}).expect(302);
+
+                const unhiddenBookmark = await db('bookmarks').where({ id: bookmark.id }).first();
+                expect(unhiddenBookmark.hidden).toBe(0);
+            });
+
+            it('should reject hiding bookmark without global password', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                const [bookmark] = await db('bookmarks')
+                    .insert({
+                        user_id: user.id,
+                        title: 'Test Bookmark',
+                        url: 'https://example.com',
+                        hidden: false,
+                    })
+                    .returning('*');
+
+                await agent.post(`/bookmarks/${bookmark.id}/hide`).type('form').send({}).expect(302);
+
+                const unchangedBookmark = await db('bookmarks').where({ id: bookmark.id }).first();
+                expect(unchangedBookmark.hidden).toBe(0);
+            });
+
+            it('should preserve showHidden query param in redirect', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                const [bookmark] = await db('bookmarks')
+                    .insert({
+                        user_id: user.id,
+                        title: 'Test Bookmark',
+                        url: 'https://example.com',
+                        hidden: true,
+                    })
+                    .returning('*');
+
+                const response = await agent
+                    .post(`/bookmarks/${bookmark.id}/hide`)
+                    .type('form')
+                    .send({ showHidden: 'true' })
+                    .expect(302);
+
+                expect(response.headers.location).toBe('/bookmarks?hidden=true');
+            });
+
+            it('should return 404 for non-existent bookmark', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                await agent.post('/bookmarks/99999/hide').type('form').send({}).expect(404);
+            });
+        });
+
+        describe('POST /api/bookmarks/:id/hide - Toggle hidden status via API', () => {
+            it('should toggle hidden status via API when global password is set', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                const [bookmark] = await db('bookmarks')
+                    .insert({
+                        user_id: user.id,
+                        title: 'Test Bookmark',
+                        url: 'https://example.com',
+                        hidden: false,
+                    })
+                    .returning('*');
+
+                const response = await agent.post(`/api/bookmarks/${bookmark.id}/hide`).expect(200);
+
+                expect(response.body.message).toContain('hidden successfully');
+
+                const updatedBookmark = await db('bookmarks').where({ id: bookmark.id }).first();
+                expect(updatedBookmark.hidden).toBe(1);
+            });
+
+            it('should reject hiding via API without global password', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                const [bookmark] = await db('bookmarks')
+                    .insert({
+                        user_id: user.id,
+                        title: 'Test Bookmark',
+                        url: 'https://example.com',
+                        hidden: false,
+                    })
+                    .returning('*');
+
+                const response = await agent.post(`/api/bookmarks/${bookmark.id}/hide`).expect(422);
+
+                expect(response.body.message).toContain('Validation');
+
+                const unchangedBookmark = await db('bookmarks').where({ id: bookmark.id }).first();
+                expect(unchangedBookmark.hidden).toBe(0);
+            });
+
+            it('should return 404 for non-existent bookmark via API', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                await db('users')
+                    .where({ id: user.id })
+                    .update({ hidden_items_password: 'hashed_password' });
+
+                await agent.post('/api/bookmarks/99999/hide').expect(404);
+            });
+        });
     });
 
     describe('POST /bookmarks/delete', () => {
