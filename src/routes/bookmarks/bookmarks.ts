@@ -574,20 +574,37 @@ export function BookmarksRouter(ctx: AppContext) {
 
             const urls = bookmarks.map((b: { url: string }) => b.url).filter(Boolean);
 
-            setTimeout(async () => {
-                const batchSize = 10;
+            // Fire and forget - don't await, but process properly in background
+            (async () => {
+                const batchSize = 5;
                 for (let i = 0; i < urls.length; i += batchSize) {
                     const batch = urls.slice(i, i + batchSize);
-                    await Promise.all(
-                        batch.map((url) =>
-                            fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
-                                method: 'HEAD',
-                                headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' },
-                            }).catch(() => {}),
-                        ),
+                    await Promise.allSettled(
+                        batch.map(async (url) => {
+                            const controller = new AbortController();
+                            const timeout = setTimeout(() => controller.abort(), 10000);
+                            try {
+                                const response = await fetch(
+                                    `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`,
+                                    {
+                                        method: 'HEAD',
+                                        headers: {
+                                            'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)',
+                                        },
+                                        signal: controller.signal,
+                                    },
+                                );
+                                // Consume the response to release memory
+                                await response.text().catch(() => {});
+                            } catch {
+                                // Ignore errors
+                            } finally {
+                                clearTimeout(timeout);
+                            }
+                        }),
                     );
                 }
-            }, 0);
+            })();
 
             req.flash('success', `Caching ${urls.length} preview images in background...`);
             return res.redirect('/bookmarks');
