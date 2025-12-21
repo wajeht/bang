@@ -147,6 +147,7 @@ export function ActionsRepository(ctx: AppContext): Actions {
                     'bangs.action_type',
                     'bangs.created_at',
                     'bangs.last_read_at',
+                    'bangs.hidden',
                 )
                 .from('bangs')
                 .where({ 'bangs.id': id, 'bangs.user_id': userId })
