@@ -1,10 +1,20 @@
 import { config } from './config';
 import { Server } from 'node:http';
 import { Context } from './context';
-import { AddressInfo } from 'node:net';
+import { AddressInfo, Socket } from 'node:net';
 import type { AppContext } from './type';
 import { router } from './routes/routes';
 import { expressJSDocSwaggerHandler } from './utils/swagger';
+
+const activeSockets = new Set<Socket>();
+
+export function getActiveSocketsCount(): number {
+    return activeSockets.size;
+}
+
+export function clearActiveSockets(): void {
+    activeSockets.clear();
+}
 
 export async function createApp() {
     const ctx = await Context();
@@ -73,6 +83,11 @@ export async function createServer() {
     server.headersTimeout = 66000; // slightly higher than keepAliveTimeout
     server.requestTimeout = 120000; // same as timeout
 
+    server.on('connection', (socket: Socket) => {
+        activeSockets.add(socket);
+        socket.on('close', () => activeSockets.delete(socket));
+    });
+
     server.on('listening', async () => {
         const addr: string | AddressInfo | null = server.address();
         const bind: string =
@@ -120,15 +135,17 @@ export async function closeServer({ server, ctx }: { server: Server; ctx: AppCon
         await ctx.db.destroy();
         ctx.logger.info('Database connection closed');
 
-        await new Promise<void>((resolve, reject) => {
-            server.keepAliveTimeout = 0;
-            server.headersTimeout = 0;
-            server.timeout = 1;
+        ctx.logger.info(`Closing ${activeSockets.size} active connection(s)...`);
+        for (const socket of activeSockets) {
+            socket.destroy();
+        }
+        activeSockets.clear();
 
+        await new Promise<void>((resolve, reject) => {
             const shutdownTimeout = setTimeout(() => {
                 ctx.logger.error('Could not close connections in time, forcefully shutting down');
                 reject(new Error('Server close timeout'));
-            }, 10000);
+            }, 5000);
 
             server.close((error) => {
                 clearTimeout(shutdownTimeout);
