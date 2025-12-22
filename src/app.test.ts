@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
-import { createApp, getActiveSocketsCount, clearActiveSockets } from './app';
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
+import { createApp, closeServer, getActiveSocketsCount, clearActiveSockets } from './app';
 import { cleanupTestData, cleanupTestDatabase } from './tests/api-test-utils';
 import { db } from './tests/test-setup';
 import request from 'supertest';
@@ -74,9 +74,51 @@ describe('App', () => {
         });
     });
 
-    describe('Server lifecycle', () => {
-        it('should close HTTP server when server.close is called', async () => {
-            const { app } = await createApp();
+    describe('closeServer', () => {
+        it('should stop cron service', async () => {
+            const { app, ctx } = await createApp();
+            const server: Server = app.listen(0);
+
+            await new Promise<void>((resolve) => {
+                if (server.listening) resolve();
+                else server.on('listening', resolve);
+            });
+
+            await ctx.services.crons.start();
+            expect(ctx.services.crons.getStatus().isRunning).toBe(true);
+
+            const cronStopSpy = vi.spyOn(ctx.services.crons, 'stop');
+            const dbDestroySpy = vi.spyOn(ctx.db, 'destroy').mockResolvedValue(undefined);
+
+            await closeServer({ server, ctx });
+
+            expect(cronStopSpy).toHaveBeenCalled();
+            expect(ctx.services.crons.getStatus().isRunning).toBe(false);
+
+            cronStopSpy.mockRestore();
+            dbDestroySpy.mockRestore();
+        });
+
+        it('should destroy database connection', async () => {
+            const { app, ctx } = await createApp();
+            const server: Server = app.listen(0);
+
+            await new Promise<void>((resolve) => {
+                if (server.listening) resolve();
+                else server.on('listening', resolve);
+            });
+
+            const dbDestroySpy = vi.spyOn(ctx.db, 'destroy').mockResolvedValue(undefined);
+
+            await closeServer({ server, ctx });
+
+            expect(dbDestroySpy).toHaveBeenCalled();
+
+            dbDestroySpy.mockRestore();
+        });
+
+        it('should close HTTP server', async () => {
+            const { app, ctx } = await createApp();
             const server: Server = app.listen(0);
 
             await new Promise<void>((resolve) => {
@@ -86,18 +128,78 @@ describe('App', () => {
 
             expect(server.listening).toBe(true);
 
-            await new Promise<void>((resolve) => server.close(() => resolve()));
+            const dbDestroySpy = vi.spyOn(ctx.db, 'destroy').mockResolvedValue(undefined);
+
+            await closeServer({ server, ctx });
 
             expect(server.listening).toBe(false);
+
+            dbDestroySpy.mockRestore();
         });
 
-        it('should start and stop cron service', async () => {
+        it('should clear all active sockets', async () => {
+            const { app, ctx } = await createApp();
+            const server: Server = app.listen(0);
+
+            await new Promise<void>((resolve) => {
+                if (server.listening) resolve();
+                else server.on('listening', resolve);
+            });
+
+            await request(app).get('/healthz').expect(200);
+
+            const dbDestroySpy = vi.spyOn(ctx.db, 'destroy').mockResolvedValue(undefined);
+
+            await closeServer({ server, ctx });
+
+            expect(getActiveSocketsCount()).toBe(0);
+
+            dbDestroySpy.mockRestore();
+        });
+
+        it('should execute shutdown steps in correct order', async () => {
+            const { app, ctx } = await createApp();
+            const server: Server = app.listen(0);
+
+            await new Promise<void>((resolve) => {
+                if (server.listening) resolve();
+                else server.on('listening', resolve);
+            });
+
+            await ctx.services.crons.start();
+
+            const callOrder: string[] = [];
+
+            const cronStopSpy = vi.spyOn(ctx.services.crons, 'stop').mockImplementation(() => {
+                callOrder.push('cron.stop');
+                ctx.services.crons.getStatus = () => ({ isRunning: false, jobCount: 0 });
+            });
+
+            const dbDestroySpy = vi.spyOn(ctx.db, 'destroy').mockImplementation(async () => {
+                callOrder.push('db.destroy');
+            });
+
+            await closeServer({ server, ctx });
+
+            expect(callOrder[0]).toBe('cron.stop');
+            expect(callOrder[1]).toBe('db.destroy');
+            expect(getActiveSocketsCount()).toBe(0);
+            expect(server.listening).toBe(false);
+
+            cronStopSpy.mockRestore();
+            dbDestroySpy.mockRestore();
+        });
+    });
+
+    describe('Server lifecycle', () => {
+        it('should start and stop cron service independently', async () => {
             const { ctx } = await createApp();
 
             expect(ctx.services.crons.getStatus().isRunning).toBe(false);
 
             await ctx.services.crons.start();
             expect(ctx.services.crons.getStatus().isRunning).toBe(true);
+            expect(ctx.services.crons.getStatus().jobCount).toBe(3);
 
             ctx.services.crons.stop();
             expect(ctx.services.crons.getStatus().isRunning).toBe(false);
