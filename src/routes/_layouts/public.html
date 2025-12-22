@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 
-  <%- include('partials/head.html') %>
+  <%~ include('partials/head.html') %>
 
   <body style="display: flex; flex-direction: column; min-height: 100vh; gap: 30px; position: relative;">
 
@@ -42,11 +42,11 @@
 
     <main style="display: flex; justify-content: center; flex: 1">
       <div style="max-width: 1280px; width: 100%; padding: 20px; box-sizing: border-box;">
-        <%- body %>
+        <%~ body %>
       </div>
     </main>
 
-    <%- include('partials/footer.html') %>
+    <%~ include('partials/footer.html') %>
 
     <% if (!state.user) { %>
       <dialog id="login-dialog" style="width: 450px;">
@@ -56,7 +56,7 @@
         <form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
-          <%- include('../_components/inputs/email.html', {
+          <%~ include('../_components/inputs/email.html', {
             id: 'email-input',
             name: 'email',
             label: '📧 Email Address',
@@ -70,7 +70,7 @@
           }) %>
 
           <% if (state.env === 'production') { %>
-            <div class="cf-turnstile" data-sitekey="<%- state.cloudflare_turnstile_site_key %>" data-size="flexible"></div>
+            <div class="cf-turnstile" data-sitekey="<%~ state.cloudflare_turnstile_site_key %>" data-size="flexible"></div>
           <% } %>
 
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
@@ -88,7 +88,7 @@
         document.addEventListener('DOMContentLoaded', () => {
           const emailInput = document.getElementById('email-input');
           const urlParams = new URLSearchParams(window.location.search);
-          const state = JSON.parse(`<%- JSON.stringify(state) %>`);
+          const state = JSON.parse(`<%~ JSON.stringify(state) %>`);
           const localStorageData = getLocalStorageData();
           const authLink = document.getElementById("auth-link");
           const loginDialogAuthHeading = document.getElementById("login-dialog-auth-heading");

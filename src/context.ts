@@ -33,6 +33,7 @@ import { AuthUtils } from './utils/auth';
 import { MailUtils } from './utils/mail';
 import { SearchUtils } from './utils/search';
 import { RequestUtils } from './utils/request';
+import { TemplateUtils } from './utils/template';
 import { ValidationUtils } from './utils/validation';
 import { TabsRepository } from './routes/tabs/tabs.repository';
 import { NotesRepository } from './routes/notes/notes.repository';
@@ -85,6 +86,7 @@ export async function Context(): Promise<AppContext> {
         util: utils,
         mail: MailUtils(partialCtx),
         search: SearchUtils(partialCtx),
+        template: TemplateUtils(partialCtx),
     };
 
     partialCtx.utils = utilities;

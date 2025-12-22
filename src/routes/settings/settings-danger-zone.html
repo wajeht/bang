@@ -33,14 +33,14 @@
             <legend>📧 Email Export Options (Optional)</legend>
 
             <div style="display: flex; flex-direction: column; gap: 5px;">
-              <%- include('../_components/inputs/checkbox.html', {
+              <%~ include('../_components/inputs/checkbox.html', {
                 id: 'json-export-checkbox',
                 name: 'export_options[]',
                 value: 'json',
                 label: '📦 Send complete JSON export (bookmarks, actions, notes, reminders, preferences)'
               }) %>
 
-              <%- include('../_components/inputs/checkbox.html', {
+              <%~ include('../_components/inputs/checkbox.html', {
                 id: 'html-export-checkbox',
                 name: 'export_options[]',
                 value: 'html',
@@ -55,7 +55,7 @@
 
           <fieldset style="margin: 15px 0;">
             <legend>⚠️ Confirmation Required</legend>
-            <%- include('../_components/inputs/text.html', {
+            <%~ include('../_components/inputs/text.html', {
               id: 'delete-account-confirmation',
               name: 'confirmation',
               label: 'To confirm account deletion, type DELETE ACCOUNT below:',
@@ -89,7 +89,7 @@
             <legend>🗑️ Select Data Types to Delete</legend>
 
             <div style="display: flex; flex-direction: column; gap: 8px;">
-              <%- include('../_components/inputs/checkbox.html', {
+              <%~ include('../_components/inputs/checkbox.html', {
                 id: 'delete-actions-checkbox',
                 name: 'delete_options[]',
                 value: 'actions',
@@ -97,7 +97,7 @@
                 checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('actions') : state.input.delete_options === 'actions')
               }) %>
 
-              <%- include('../_components/inputs/checkbox.html', {
+              <%~ include('../_components/inputs/checkbox.html', {
                 id: 'delete-tabs-checkbox',
                 name: 'delete_options[]',
                 value: 'tabs',
@@ -105,7 +105,7 @@
                 checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('tabs') : state.input.delete_options === 'tabs')
               }) %>
 
-              <%- include('../_components/inputs/checkbox.html', {
+              <%~ include('../_components/inputs/checkbox.html', {
                 id: 'delete-bookmarks-checkbox',
                 name: 'delete_options[]',
                 value: 'bookmarks',
@@ -113,7 +113,7 @@
                 checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('bookmarks') : state.input.delete_options === 'bookmarks')
               }) %>
 
-              <%- include('../_components/inputs/checkbox.html', {
+              <%~ include('../_components/inputs/checkbox.html', {
                 id: 'delete-notes-checkbox',
                 name: 'delete_options[]',
                 value: 'notes',
@@ -121,7 +121,7 @@
                 checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('notes') : state.input.delete_options === 'notes')
               }) %>
 
-              <%- include('../_components/inputs/checkbox.html', {
+              <%~ include('../_components/inputs/checkbox.html', {
                 id: 'delete-reminders-checkbox',
                 name: 'delete_options[]',
                 value: 'reminders',
@@ -129,7 +129,7 @@
                 checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('reminders') : state.input.delete_options === 'reminders')
               }) %>
 
-              <%- include('../_components/inputs/checkbox.html', {
+              <%~ include('../_components/inputs/checkbox.html', {
                 id: 'delete-api-keys-checkbox',
                 name: 'delete_options[]',
                 value: 'api_keys',
@@ -149,7 +149,7 @@
 
           <fieldset id="bulk-delete-confirmation" style="margin: 15px 0; display: none;">
             <legend>⚠️ Confirmation Required</legend>
-            <%- include('../_components/inputs/text.html', {
+            <%~ include('../_components/inputs/text.html', {
               id: 'bulk-delete-confirmation-input',
               name: 'confirmation',
               label: 'To confirm bulk deletion, type DELETE DATA below:',

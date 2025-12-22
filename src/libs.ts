@@ -1,4 +1,4 @@
-import ejs from 'ejs';
+import { Eta } from 'eta';
 import knex from 'knex';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
@@ -43,7 +43,7 @@ export const libs = {
     knex,
 
     // Express & middleware
-    ejs,
+    Eta,
     cors,
     flash,
     helmet,

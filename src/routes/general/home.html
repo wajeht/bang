@@ -401,7 +401,7 @@
   <form method="POST" action="/search" style="display: flex; gap: 5px; width: 50%; position: relative;" role="search">
     <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
-    <%- include('../_components/inputs/search.html', {
+    <%~ include('../_components/inputs/search.html', {
       id: 'q',
       name: 'q',
       placeholder: 'Search...',

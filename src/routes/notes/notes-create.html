@@ -14,7 +14,7 @@
 
             <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
-            <%- include('../_components/inputs/text.html', {
+            <%~ include('../_components/inputs/text.html', {
                 id: 'title',
                 name: 'title',
                 label: '📝 Title',
@@ -25,7 +25,7 @@
                 error: state.errors && state.errors.title ? state.errors.title : undefined
             }) %>
 
-            <%- include('./notes-textarea.html', {
+            <%~ include('./notes-textarea.html', {
                 id: 'content',
                 name: 'content',
                 label: '📄 Content',
@@ -37,7 +37,7 @@
                 error: state.errors && state.errors.content ? state.errors.content : undefined
             }) %>
 
-            <%- include('../_components/inputs/checkbox.html', {
+            <%~ include('../_components/inputs/checkbox.html', {
                 id: 'pinned',
                 name: 'pinned',
                 label: '📌 Pin this note',
@@ -46,7 +46,7 @@
                 error: state.errors && state.errors.pinned ? state.errors.pinned : undefined
             }) %>
 
-            <%- include('../_components/inputs/checkbox.html', {
+            <%~ include('../_components/inputs/checkbox.html', {
                 id: 'hidden',
                 name: 'hidden',
                 label: '🔒 Hide this note',

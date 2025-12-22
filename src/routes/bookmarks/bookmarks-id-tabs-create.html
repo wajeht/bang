@@ -16,7 +16,7 @@
             <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
             <% if (tabs && tabs.length > 0) { %>
-                <%- include('../_components/inputs/select.html', {
+                <%~ include('../_components/inputs/select.html', {
                     id: 'tab_id',
                     name: 'tab_id',
                     label: '️🔗 Tab Group',
@@ -29,7 +29,7 @@
                     error: state.errors && state.errors.tab_id ? state.errors.tab_id : undefined
                 }) %>
             <% } else { %>
-                <%- include('../_components/inputs/text.html', {
+                <%~ include('../_components/inputs/text.html', {
                     id: 'disabled_tab',
                     name: 'disabled_tab',
                     value: 'No tab groups available',

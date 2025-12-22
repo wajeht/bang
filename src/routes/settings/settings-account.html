@@ -55,7 +55,7 @@
     <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column;">
       <legend>Account Information</legend>
 
-      <%- include('../_components/inputs/text.html', {
+      <%~ include('../_components/inputs/text.html', {
         id: 'username',
         name: 'username',
         label: '👤 Username',
@@ -65,7 +65,7 @@
         error: state.errors && state.errors.username ? state.errors.username : undefined
       }) %>
 
-      <%- include('../_components/inputs/email.html', {
+      <%~ include('../_components/inputs/email.html', {
         id: 'email',
         name: 'email',
         label: '📧 Email',
@@ -76,7 +76,7 @@
         error: state.errors && state.errors.email ? state.errors.email : undefined
       }) %>
 
-      <%- include('../_components/inputs/select.html', {
+      <%~ include('../_components/inputs/select.html', {
         id: 'default_search_provider',
         name: 'default_search_provider',
         label: '🔎 Default Search Provider',
@@ -90,7 +90,7 @@
         error: state.errors && state.errors.default_search_provider ? state.errors.default_search_provider : undefined
       }) %>
 
-      <%- include('../_components/inputs/select.html', {
+      <%~ include('../_components/inputs/select.html', {
         id: 'timezone',
         name: 'timezone',
         label: '🌍 Timezone',
@@ -117,7 +117,7 @@
         error: state.errors && state.errors.timezone ? state.errors.timezone : undefined
       }) %>
 
-      <%- include('../_components/inputs/checkbox.html', {
+      <%~ include('../_components/inputs/checkbox.html', {
         id: 'autocomplete_search_on_homepage',
         name: 'autocomplete_search_on_homepage',
         label: 'Autocomplete Search on Homepage',
@@ -139,7 +139,7 @@
       <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
       <% if (user.hidden_items_password) { %>
-        <%- include('../_components/inputs/password.html', {
+        <%~ include('../_components/inputs/password.html', {
           id: 'currentPassword',
           name: 'currentPassword',
           label: '🔑 Current Password',
@@ -150,7 +150,7 @@
         }) %>
       <% } %>
 
-      <%- include('../_components/inputs/password.html', {
+      <%~ include('../_components/inputs/password.html', {
         id: 'newPassword',
         name: 'newPassword',
         label: '🔑 New Password',
@@ -162,7 +162,7 @@
       }) %>
 
       <% if (user.hidden_items_password) { %>
-        <%- include('../_components/inputs/password.html', {
+        <%~ include('../_components/inputs/password.html', {
           id: 'confirmPassword',
           name: 'confirmPassword',
           label: '🔑 Confirm New Password',
@@ -172,7 +172,7 @@
           error: state.errors && state.errors.confirmPassword ? state.errors.confirmPassword : undefined
         }) %>
 
-        <%- include('../_components/inputs/checkbox.html', {
+        <%~ include('../_components/inputs/checkbox.html', {
           id: 'removePassword',
           name: 'removePassword',
           label: 'Remove password (this will unhide all items)',

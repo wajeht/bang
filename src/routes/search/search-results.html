@@ -24,7 +24,7 @@
             <% } %>
 
             <form method="GET" action="/search" style="display: flex; gap: 10px;" role="search">
-                <%- include('../_components/inputs/search.html', {
+                <%~ include('../_components/inputs/search.html', {
                     id: 'search',
                     name: 'q',
                     label: 'Global search',
@@ -62,16 +62,16 @@
                             <% results.bookmarks.data.forEach(function(bookmark) { %>
                                 <tr>
                                     <td style="padding: 10px;">
-                                        <a href="/bookmarks?id=<%- bookmark.id %>">⭐️ Bookmark</a>
+                                        <a href="/bookmarks?id=<%~ bookmark.id %>">⭐️ Bookmark</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <%- bookmark.title || 'Untitled' %>
+                                        <%~ bookmark.title || 'Untitled' %>
                                     </td>
                                     <td style="padding: 10px;">-</td>
                                     <td style="padding: 10px;">
                                         <a href="<%= utils.stripHtmlTags(bookmark.url) %>" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= utils.stripHtmlTags(bookmark.title) %>" target="_blank" rel="noopener noreferrer">
-                                            <img loading="lazy" src="<%- utils.getFaviconUrl(utils.stripHtmlTags(bookmark.url)) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                            <%- bookmark.url %>
+                                            <img loading="lazy" src="<%~ utils.getFaviconUrl(utils.stripHtmlTags(bookmark.url)) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                            <%~ bookmark.url %>
                                         </a>
                                     </td>
                                     <td style="padding: 10px;">-</td>
@@ -99,22 +99,22 @@
                             <% results.actions.data.forEach(function(action) { %>
                                 <tr>
                                     <td style="padding: 10px;">
-                                        <a href="/actions?id=<%- action.id %>">🚀 Action</a>
+                                        <a href="/actions?id=<%~ action.id %>">🚀 Action</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <%- action.name %>
+                                        <%~ action.name %>
                                     </td>
                                     <td style="padding: 10px;">
-                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%- action.trigger %></code>
+                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%~ action.trigger %></code>
                                     </td>
                                     <td style="padding: 10px;">
                                         <a href="<%= utils.stripHtmlTags(action.url) %>" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= utils.stripHtmlTags(action.url) %>" target="_blank" rel="noopener noreferrer">
-                                            <img loading="lazy" src="<%- utils.getFaviconUrl(utils.stripHtmlTags(action.url)) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                            <%- action.url %>
+                                            <img loading="lazy" src="<%~ utils.getFaviconUrl(utils.stripHtmlTags(action.url)) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                            <%~ action.url %>
                                         </a>
                                     </td>
                                     <td style="padding: 10px;">
-                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%- action.action_type %></code>
+                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%~ action.action_type %></code>
                                     </td>
                                     <td style="padding: 10px;">
                                         <% if (action.usage_count) { %>
@@ -144,17 +144,17 @@
                             <% results.notes.data.forEach(function(note) { %>
                                 <tr>
                                     <td style="padding: 10px;">
-                                        <a href="/notes?id=<%- note.id %>">📝 Note</a>
+                                        <a href="/notes?id=<%~ note.id %>">📝 Note</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <a href="/notes/<%= note.id %>" title="<%= utils.stripHtmlTags(note.title) %>">
-                                            <%- note.title %>
+                                            <%~ note.title %>
                                         </a>
                                     </td>
                                     <td style="padding: 10px;">-</td>
                                     <td style="padding: 10px;">-</td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <%- note.content ? note.content.substring(0, 100) + (note.content.length > 100 ? '...' : '') : 'No content' %>
+                                        <%~ note.content ? note.content.substring(0, 100) + (note.content.length > 100 ? '...' : '') : 'No content' %>
                                     </td>
                                     <td style="padding: 10px;">
                                         <%= note.pinned ? '📌 Pinned' : '📍 Unpinned' %>
@@ -180,13 +180,13 @@
                             <% results.tabs.forEach(function(tab) { %>
                                 <tr>
                                     <td style="padding: 10px;">
-                                        <a href="/tabs?id=<%- tab.id %>">🔗 Tab</a>
+                                        <a href="/tabs?id=<%~ tab.id %>">🔗 Tab</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <%- tab.title %>
+                                        <%~ tab.title %>
                                     </td>
                                     <td style="padding: 10px;">
-                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%- tab.trigger %></code>
+                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%~ tab.trigger %></code>
                                     </td>
                                     <td style="padding: 10px;">-</td>
                                     <td style="padding: 10px;">
@@ -214,19 +214,19 @@
                             <% results.reminders.data.forEach(function(reminder) { %>
                                 <tr>
                                     <td style="padding: 10px;">
-                                        <a href="/reminders?id=<%- reminder.id %>">⏰ Reminder</a>
+                                        <a href="/reminders?id=<%~ reminder.id %>">⏰ Reminder</a>
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <a href="/reminders?id=<%= reminder.id %>" title="<%= utils.stripHtmlTags(reminder.title) %>">
-                                            <%- reminder.title %>
+                                            <%~ reminder.title %>
                                         </a>
                                     </td>
                                     <td style="padding: 10px;">-</td>
                                     <td style="padding: 10px;">
                                         <% if (reminder.content && reminder.content.startsWith('http')) { %>
                                             <a href="<%= utils.stripHtmlTags(reminder.content) %>" target="_blank" rel="noopener noreferrer" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= utils.stripHtmlTags(reminder.content) %>">
-                                                <img loading="lazy" src="<%- utils.getFaviconUrl(utils.stripHtmlTags(reminder.content)) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                                <%- reminder.content %>
+                                                <img loading="lazy" src="<%~ utils.getFaviconUrl(utils.stripHtmlTags(reminder.content)) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                                <%~ reminder.content %>
                                             </a>
                                         <% } else { %>
                                             -
@@ -234,7 +234,7 @@
                                     </td>
                                     <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <% if (reminder.content && !reminder.content.startsWith('http')) { %>
-                                            <%- reminder.content.substring(0, 100) + (reminder.content.length > 100 ? '...' : '') %>
+                                            <%~ reminder.content.substring(0, 100) + (reminder.content.length > 100 ? '...' : '') %>
                                         <% } else { %>
                                             <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%= reminder.frequency || 'once' %></code>
                                         <% } %>

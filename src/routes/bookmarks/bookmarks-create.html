@@ -14,7 +14,7 @@
 
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
-          <%- include('../_components/inputs/text.html', {
+          <%~ include('../_components/inputs/text.html', {
             id: 'title',
             name: 'title',
             label: '📝 Name',
@@ -24,7 +24,7 @@
             error: state.errors.title
           }) %>
 
-          <%- include('../_components/inputs/url.html', {
+          <%~ include('../_components/inputs/url.html', {
               id: 'url',
               name: 'url',
               label: '🌐 URL',
@@ -35,7 +35,7 @@
               error: state.errors && state.errors.url ? state.errors.url : undefined
           }) %>
 
-          <%- include('../_components/inputs/checkbox.html', {
+          <%~ include('../_components/inputs/checkbox.html', {
               id: 'pinned',
               name: 'pinned',
               label: '📌 Pin this bookmark',
@@ -44,7 +44,7 @@
               error: state.errors && state.errors.pinned ? state.errors.pinned : undefined
           }) %>
 
-          <%- include('../_components/inputs/checkbox.html', {
+          <%~ include('../_components/inputs/checkbox.html', {
               id: 'hidden',
               name: 'hidden',
               label: '🔒 Hide this bookmark',

@@ -376,6 +376,14 @@ export interface Services {
     crons: CronService;
 }
 
+export interface TemplateUtils {
+    engine: (
+        filePath: string,
+        opts: object,
+        callback: (err: Error | null, html?: string) => void,
+    ) => void;
+}
+
 export interface Utilities {
     date: DateUtils;
     html: HtmlUtils;
@@ -385,6 +393,7 @@ export interface Utilities {
     util: UtilUtils;
     search: SearchUtils;
     mail: MailUtils;
+    template: TemplateUtils;
 }
 
 export interface Middlewares {

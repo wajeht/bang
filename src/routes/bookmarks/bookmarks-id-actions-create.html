@@ -17,7 +17,7 @@
 
             <input type="hidden" id="name" name="name" value="<%= bookmark.title %>" />
 
-            <%- include('../_components/inputs/select.html', {
+            <%~ include('../_components/inputs/select.html', {
                 id: 'actionType',
                 name: 'actionType',
                 label: '🏷️ Action Type',
@@ -32,7 +32,7 @@
                 error: state.errors && state.errors.actionType ? state.errors.actionType : undefined
             }) %>
 
-            <%- include('../_components/inputs/text.html', {
+            <%~ include('../_components/inputs/text.html', {
                 id: 'trigger',
                 name: 'trigger',
                 label: '⚡ Trigger',
@@ -43,7 +43,7 @@
                 error: state.errors && state.errors.trigger ? state.errors.trigger : undefined
             }) %>
 
-            <%- include('../_components/inputs/url.html', {
+            <%~ include('../_components/inputs/url.html', {
                 id: 'url',
                 name: 'url',
                 label: '🌐 URL',
