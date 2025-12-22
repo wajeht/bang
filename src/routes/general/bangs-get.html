@@ -1,3 +1,35 @@
+<script>
+function previewWebpageOnLinkHover() {
+    document.querySelectorAll('.preview').forEach(el => {
+        const img = el.querySelector('.preview-img');
+        const loader = document.createElement('div');
+        loader.className = 'preview-loading';
+        loader.textContent = 'Loading...';
+        el.appendChild(loader);
+
+        el.addEventListener('mouseenter', () => {
+            const rect = el.getBoundingClientRect();
+            const left = (rect.left + rect.width / 2) + 'px';
+            const top = (rect.top - 158 - 5) + 'px';
+            img.style.left = left;
+            img.style.top = top;
+            loader.style.left = left;
+            loader.style.top = top;
+            img.style.display = 'block';
+            if (!img.complete) loader.style.display = 'flex';
+        })
+
+        el.addEventListener('mouseleave', () => {
+            img.style.display = 'none';
+            loader.style.display = 'none';
+        })
+
+        img.onload = () => loader.style.display = 'none';
+    })
+}
+
+document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
+</script>
 <section style="display: flex; flex-direction: column; gap: 30px;">
     <header style="display: flex; justify-content: space-between; align-items: center;">
         <div>
@@ -149,9 +181,12 @@
                              <td style="padding: 10px; white-space: nowrap; overflow: auto;">
                                 <div style="display: flex; gap: 5px; align-items: center;">
                                     <img loading="lazy" src= "<%~ utils.getFaviconUrl(data[i].u) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                    <a href="<%~ data[i].u.replace('{{{s}}}', '') %>" style="overflow: auto; white-space: nowrap;" title="<%~ data[i].u %>" target="_blank" rel="noopener noreferrer">
-                                        <%~ data[i].u %>
-                                    </a>
+                                    <span class="preview">
+                                        <a href="<%~ data[i].u.replace('{{{s}}}', '') %>" style="overflow: auto; white-space: nowrap;" title="<%~ data[i].u %>" target="_blank" rel="noopener noreferrer">
+                                            <%~ data[i].u %>
+                                        </a>
+                                        <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].u.replace('{{{s}}}', '')) %>" loading="lazy" alt="Preview">
+                                    </span>
                                 </div>
                             </td>
                              <!-- Category (c) -->
