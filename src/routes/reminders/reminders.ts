@@ -501,11 +501,19 @@ export function RemindersRouter(ctx: AppContext) {
         return res.redirect('/reminders');
     }
 
+    const activePrefetches = new Set<number>();
+
     router.post(
         '/reminders/prefetch',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
+
+            if (activePrefetches.has(user.id)) {
+                req.flash('info', 'Screenshot caching already in progress...');
+                return res.redirect('/reminders');
+            }
+
             const reminders = await ctx
                 .db('reminders')
                 .select('title', 'content')
@@ -522,20 +530,46 @@ export function RemindersRouter(ctx: AppContext) {
                 }
             }
 
-            setTimeout(async () => {
-                const batchSize = 10;
-                for (let i = 0; i < urls.length; i += batchSize) {
-                    const batch = urls.slice(i, i + batchSize);
-                    await Promise.all(
-                        batch.map((url) =>
-                            fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
-                                method: 'HEAD',
-                                headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)' },
-                            }).catch(() => {}),
-                        ),
-                    );
+            if (urls.length === 0) {
+                req.flash('info', 'No URLs to cache');
+                return res.redirect('/reminders');
+            }
+
+            activePrefetches.add(user.id);
+
+            (async () => {
+                try {
+                    const batchSize = 5;
+                    for (let i = 0; i < urls.length; i += batchSize) {
+                        const batch = urls.slice(i, i + batchSize);
+                        await Promise.allSettled(
+                            batch.map(async (url) => {
+                                const controller = new AbortController();
+                                const timeout = setTimeout(() => controller.abort(), 10000);
+                                try {
+                                    const response = await fetch(
+                                        `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`,
+                                        {
+                                            method: 'HEAD',
+                                            headers: {
+                                                'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)',
+                                            },
+                                            signal: controller.signal,
+                                        },
+                                    );
+                                    await response.text().catch(() => {});
+                                } catch {
+                                    // Ignore errors
+                                } finally {
+                                    clearTimeout(timeout);
+                                }
+                            }),
+                        );
+                    }
+                } finally {
+                    activePrefetches.delete(user.id);
                 }
-            }, 0);
+            })();
 
             req.flash('success', `Caching ${urls.length} preview images in background...`);
             return res.redirect('/reminders');

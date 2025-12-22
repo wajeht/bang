@@ -75,13 +75,28 @@ export function CronService(context: AppContext): CronService {
 
             for (let i = 0; i < urlArray.length; i += batchSize) {
                 const batch = urlArray.slice(i, i + batchSize);
-                await Promise.all(
-                    batch.map((url) =>
-                        fetch(`https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`, {
-                            method: 'HEAD',
-                            headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Cron' },
-                        }).catch(() => {}),
-                    ),
+                await Promise.allSettled(
+                    batch.map(async (url) => {
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), 10000);
+                        try {
+                            const response = await fetch(
+                                `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`,
+                                {
+                                    method: 'HEAD',
+                                    headers: {
+                                        'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Cron',
+                                    },
+                                    signal: controller.signal,
+                                },
+                            );
+                            await response.text().catch(() => {});
+                        } catch {
+                            // Ignore errors
+                        } finally {
+                            clearTimeout(timeout);
+                        }
+                    }),
                 );
 
                 if (i + batchSize < urlArray.length) {
