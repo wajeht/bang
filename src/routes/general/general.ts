@@ -2,6 +2,8 @@ import { bangs } from '../../db/bang';
 import type { Request, Response } from 'express';
 import type { Bang, User, AppContext } from '../../type';
 
+const activeBangsPrefetch = new Set<string>();
+
 export function GeneralRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
@@ -106,6 +108,77 @@ export function GeneralRouter(ctx: AppContext) {
             direction,
         });
     });
+
+    router.post(
+        '/bangs/prefetch',
+        ctx.middleware.authentication,
+        ctx.middleware.adminOnly,
+        async (req: Request, res: Response) => {
+            const adminId = 'admin';
+
+            if (activeBangsPrefetch.has(adminId)) {
+                req.flash('info', 'Screenshot caching already in progress...');
+                return res.redirect('/bangs');
+            }
+
+            activeBangsPrefetch.add(adminId);
+
+            try {
+                const bangsArray = Object.values(bangs as Record<string, Bang>);
+                const urls = bangsArray
+                    .map((bang) => bang.u.replace('{{{s}}}', ''))
+                    .filter((url) => url && url.startsWith('http'));
+
+                if (urls.length === 0) {
+                    req.flash('info', 'No URLs to prefetch');
+                    return res.redirect('/bangs');
+                }
+
+                const batchSize = 5;
+                const delayBetweenBatches = 2000;
+
+                for (let i = 0; i < urls.length; i += batchSize) {
+                    const batch = urls.slice(i, i + batchSize);
+                    await Promise.allSettled(
+                        batch.map(async (url) => {
+                            const controller = new AbortController();
+                            const timeout = setTimeout(() => controller.abort(), 10000);
+                            try {
+                                const response = await fetch(
+                                    `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`,
+                                    {
+                                        method: 'HEAD',
+                                        headers: {
+                                            'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)',
+                                        },
+                                        signal: controller.signal,
+                                    },
+                                );
+                                await response.text().catch(() => {});
+                            } catch {
+                                // Ignore errors
+                            } finally {
+                                clearTimeout(timeout);
+                            }
+                        }),
+                    );
+
+                    if (i + batchSize < urls.length) {
+                        await new Promise((resolve) => setTimeout(resolve, delayBetweenBatches));
+                    }
+                }
+
+                req.flash('success', `Cached ${urls.length} screenshots successfully`);
+            } catch (error: any) {
+                ctx.logger.error('Bangs prefetch failed: %o', { error });
+                req.flash('error', 'Failed to cache screenshots');
+            } finally {
+                activeBangsPrefetch.delete(adminId);
+            }
+
+            return res.redirect('/bangs');
+        },
+    );
 
     /**
      * GET /api/collections

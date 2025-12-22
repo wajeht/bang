@@ -60,6 +60,13 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
             </form>
 
             <button type="button" aria-label="View actions" onclick="location.href='/actions'">🚀</button>
+
+            <% if (state.user && state.user.is_admin) { %>
+                <form method="POST" action="/bangs/prefetch" style="display: inline;">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                    <button type="submit" aria-label="Prefetch all previews" title="Cache all preview images (Admin only)">🖼️</button>
+                </form>
+            <% } %>
         </nav>
     </header>
 
