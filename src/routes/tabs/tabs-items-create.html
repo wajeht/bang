@@ -14,7 +14,7 @@
 
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
-      <%- include('../_components/inputs/text.html', {
+      <%~ include('../_components/inputs/text.html', {
         id: 'title',
         name: 'title',
         label: '📝 Tab Title',
@@ -25,7 +25,7 @@
         error: state.errors.title
       }) %>
 
-      <%- include('../_components/inputs/url.html', {
+      <%~ include('../_components/inputs/url.html', {
         id: 'url',
         name: 'url',
         label: '🌐 URL',

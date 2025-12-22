@@ -14,7 +14,7 @@
 
           <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
-          <%- include('../_components/inputs/text.html', {
+          <%~ include('../_components/inputs/text.html', {
               id: 'name',
               name: 'name',
               label: '📝 Name',
@@ -25,7 +25,7 @@
               error: state.errors && state.errors.name ? state.errors.name : undefined
           }) %>
 
-          <%- include('../_components/inputs/text.html', {
+          <%~ include('../_components/inputs/text.html', {
               id: 'trigger',
               name: 'trigger',
               label: '⚡ Trigger',
@@ -36,7 +36,7 @@
               error: state.errors && state.errors.trigger ? state.errors.trigger : undefined
           }) %>
 
-          <%- include('../_components/inputs/url.html', {
+          <%~ include('../_components/inputs/url.html', {
               id: 'url',
               name: 'url',
               label: '🌐 URL',
@@ -47,7 +47,7 @@
               error: state.errors && state.errors.url ? state.errors.url : undefined
           }) %>
 
-          <%- include('../_components/inputs/select.html', {
+          <%~ include('../_components/inputs/select.html', {
               id: 'actionType',
               name: 'actionType',
               label: '🏷️ Action Type',
@@ -62,7 +62,7 @@
           }) %>
 
           <div id="hidden-section" style="display: <%= action.action_type === 'redirect' ? 'block' : 'none' %>;">
-              <%- include('../_components/inputs/checkbox.html', {
+              <%~ include('../_components/inputs/checkbox.html', {
                   id: 'hidden',
                   name: 'hidden',
                   label: '🔒 Hide this action',

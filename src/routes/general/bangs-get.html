@@ -2,8 +2,8 @@
     <header style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <div style="display: flex; align-items: center; gap: 5px;">
-                <h2>❗️ Bangs (<%- pagination.total %>)</h2>
-                <%- include('../_components/question-mark-button.html') %>
+                <h2>❗️ Bangs (<%~ pagination.total %>)</h2>
+                <%~ include('../_components/question-mark-button.html') %>
             </div>
             <p>Discover all the available bangs</p>
         </div>
@@ -14,7 +14,7 @@
             <% } %>
 
             <form method="GET" action="/bangs" style="display: flex; gap: 10px;" role="search">
-                <%- include('../_components/inputs/search.html', {
+                <%~ include('../_components/inputs/search.html', {
                     id: 'search',
                     name: 'search',
                     label: 'Search bangs',
@@ -134,32 +134,32 @@
                     <% for (let i = 0; i < data.length; i++) { %>
                         <tr>
                             <!-- Suggestion/Name (s) -->
-                             <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%- data[i].s %></td>
+                             <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%~ data[i].s %></td>
                             <!-- Trigger (t) -->
                             <td style="padding: 10px;">
-                                <code>!<%- data[i].t %></code>
+                                <code>!<%~ data[i].t %></code>
                             </td>
                             <!-- Domain (d) -->
                             <td style="padding: 10px;">
-                                <a href="https://<%- data[i].d %>" title="<%- data[i].d %>" target="_blank" rel="noopener noreferrer">
-                                    <%- data[i].d %>
+                                <a href="https://<%~ data[i].d %>" title="<%~ data[i].d %>" target="_blank" rel="noopener noreferrer">
+                                    <%~ data[i].d %>
                                 </a>
                             </td>
                              <!-- URL (u) -->
                              <td style="padding: 10px; white-space: nowrap; overflow: auto;">
                                 <div style="display: flex; gap: 5px; align-items: center;">
-                                    <img loading="lazy" src= "<%- utils.getFaviconUrl(data[i].u) %>" style="width: 16px; height: 16px; border-radius: 50%;">
-                                    <a href="<%- data[i].u.replace('{{{s}}}', '') %>" style="overflow: auto; white-space: nowrap;" title="<%- data[i].u %>" target="_blank" rel="noopener noreferrer">
-                                        <%- data[i].u %>
+                                    <img loading="lazy" src= "<%~ utils.getFaviconUrl(data[i].u) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                    <a href="<%~ data[i].u.replace('{{{s}}}', '') %>" style="overflow: auto; white-space: nowrap;" title="<%~ data[i].u %>" target="_blank" rel="noopener noreferrer">
+                                        <%~ data[i].u %>
                                     </a>
                                 </div>
                             </td>
                              <!-- Category (c) -->
-                             <td style="padding: 10px;"><%- data[i].c %></td>
+                             <td style="padding: 10px;"><%~ data[i].c %></td>
                              <!-- Subcategory (sc) -->
-                             <td style="padding: 10px;"><%- data[i].sc %></td>
+                             <td style="padding: 10px;"><%~ data[i].sc %></td>
                              <!-- Rank (r) -->
-                             <td style="padding: 10px;"><%- data[i].r %></td>
+                             <td style="padding: 10px;"><%~ data[i].r %></td>
                         </tr>
                     <% } %>
                 </tbody>
@@ -176,7 +176,7 @@
         <% } %>
     </section>
 
-    <%- include('../_components/pagination.html', {
+    <%~ include('../_components/pagination.html', {
         pagination,
         path,
         perPageDefault: 25,

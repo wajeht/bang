@@ -14,7 +14,7 @@
 
             <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
-            <%- include('../_components/inputs/text.html', {
+            <%~ include('../_components/inputs/text.html', {
                 id: 'title',
                 name: 'title',
                 label: '📝 Title',
@@ -25,7 +25,7 @@
                 error: state.errors && state.errors.title ? state.errors.title : undefined
             }) %>
 
-            <%- include('../_components/inputs/textarea.html', {
+            <%~ include('../_components/inputs/textarea.html', {
                 id: 'content',
                 name: 'content',
                 label: '📝 Content (optional)',
@@ -36,7 +36,7 @@
                 error: state.errors && state.errors.content ? state.errors.content : undefined
             }) %>
 
-            <%- include('../_components/inputs/select.html', {
+            <%~ include('../_components/inputs/select.html', {
                 id: 'when',
                 name: 'when',
                 label: '⏰ When',
@@ -47,7 +47,7 @@
                 error: state.errors && state.errors.when ? state.errors.when : undefined
             }) %>
 
-            <%- include('../_components/inputs/date.html', {
+            <%~ include('../_components/inputs/date.html', {
                 id: 'custom_date',
                 name: 'custom_date',
                 label: '📅 Custom Date',

@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 
-	<%- include('partials/head.html') %>
+	<%~ include('partials/head.html') %>
 
 	<body style="display: flex; flex-direction: column; gap: 30px; min-height: 100vh;">
 
-		<%- include('partials/header.html') %>
+		<%~ include('partials/header.html') %>
 
 		<main style="flex: 1;">
-			<%- body %>
+			<%~ body %>
 		</main>
 
-		<%- include('partials/footer.html') %>
+		<%~ include('partials/footer.html') %>
 
 		<% if (['/actions', '/bangs', '/bookmarks', '/tabs'].includes(path) || path.startsWith('/notes') || path.startsWith('/search')) { %>
-			<%- include('partials/scroll-to-top.html') %>
+			<%~ include('partials/scroll-to-top.html') %>
 		<% } %>
 	</body>
 

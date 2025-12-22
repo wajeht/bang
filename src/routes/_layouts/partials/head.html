@@ -3,7 +3,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<% if (typeof title !== 'undefined') { %>
-		<title>Bang - <%- title %></title>
+		<title>Bang - <%~ title %></title>
 	<% } else { %>
 		<title>Bang</title>
 	<% } %>
@@ -68,17 +68,17 @@
 	</script>
 
 	<!-- 2. Preload and Preconnect -->
-	<link rel="preload" href="/style.css?v=<%- state.version.style %>" as="style">
+	<link rel="preload" href="/style.css?v=<%~ state.version.style %>" as="style">
 
 	<!-- 3. Stylesheets -->
-	<link rel="stylesheet" href="/style.css?v=<%- state.version.style %>">
+	<link rel="stylesheet" href="/style.css?v=<%~ state.version.style %>">
 
 	<!-- 4. Application state (needed by scripts) -->
-	<script type="application/json" id="app-state"><%- JSON.stringify(state) %></script>
+	<script type="application/json" id="app-state"><%~ JSON.stringify(state) %></script>
 
 	<!-- 5. Deferred scripts -->
 	<% if (state.env !== 'testing') { %>
-		<%- include('./speculation-rules.html') %>
+		<%~ include('./speculation-rules.html') %>
 	<% } %>
-	<script defer src="/script.js?v=<%- state.version.script %>"></script>
+	<script defer src="/script.js?v=<%~ state.version.script %>"></script>
 </head>

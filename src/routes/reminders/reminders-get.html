@@ -52,8 +52,8 @@ window.addEventListener('load', handleRowHighlight);
     <header style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <div style="display: flex; align-items: center; gap: 5px;">
-                <h2>⏰ Reminders (<%- pagination.total %>)</h2>
-		        <%- include('../_components/question-mark-button.html') %>
+                <h2>⏰ Reminders (<%~ pagination.total %>)</h2>
+		        <%~ include('../_components/question-mark-button.html') %>
             </div>
             <p>Manage your reminders and reading list</p>
         </div>
@@ -64,7 +64,7 @@ window.addEventListener('load', handleRowHighlight);
             <% } %>
 
             <form method="GET" action="/reminders" style="display: flex; gap: 10px;" role="search">
-                <%- include('../_components/inputs/search.html', {
+                <%~ include('../_components/inputs/search.html', {
                     id: 'search',
                     name: 'search',
                     label: 'Search reminders',
@@ -88,7 +88,7 @@ window.addEventListener('load', handleRowHighlight);
                 <button type="submit" aria-label="Prefetch all previews" title="Cache all preview images">🖼️</button>
             </form>
 
-            <%- include('../_components/column-settings.html') %>
+            <%~ include('../_components/column-settings.html') %>
         </nav>
     </header>
 
@@ -175,24 +175,24 @@ window.addEventListener('load', handleRowHighlight);
                 </thead>
                 <tbody>
                     <% for (let i = 0; i < reminders.length; i++) { %>
-                        <tr data-id="<%- reminders[i].id %>">
+                        <tr data-id="<%~ reminders[i].id %>">
                             <td style="padding: 10px;">
-                                <input type="checkbox" name="id[]" value="<%- reminders[i].id %>" class="reminder-checkbox" data-title="<%- reminders[i].title %>" aria-label="Select <%= utils.stripHtmlTags(reminders[i].title) %>" />
+                                <input type="checkbox" name="id[]" value="<%~ reminders[i].id %>" class="reminder-checkbox" data-title="<%~ reminders[i].title %>" aria-label="Select <%= utils.stripHtmlTags(reminders[i].title) %>" />
                             </td>
                             <% if (state.user.column_preferences?.reminders?.title !== false) { %>
                                 <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                     <% if (reminders[i].title && utils.isUrlLike(reminders[i].title)) { %>
                                         <div style="display: flex; gap: 5px; align-items: center;">
-                                            <img loading="lazy" src="<%- utils.getFaviconUrl(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                            <img loading="lazy" src="<%~ utils.getFaviconUrl(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                             <span class="preview">
                                                 <a href="<%= utils.stripHtmlTags(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
-                                                    <%- reminders[i].title %>
+                                                    <%~ reminders[i].title %>
                                                 </a>
                                                 <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" loading="lazy" alt="Preview">
                                             </span>
                                         </div>
                                     <% } else { %>
-                                        <%- reminders[i].title %>
+                                        <%~ reminders[i].title %>
                                     <% } %>
                                 </td>
                             <% } %>
@@ -201,16 +201,16 @@ window.addEventListener('load', handleRowHighlight);
                                     <% if (reminders[i].content) { %>
                                         <% if (utils.isUrlLike(reminders[i].content)) { %>
                                             <div style="display: flex; gap: 5px; align-items: center;">
-                                                <img loading="lazy" src="<%- utils.getFaviconUrl(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                                <img loading="lazy" src="<%~ utils.getFaviconUrl(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                                 <span class="preview">
                                                     <a href="<%= utils.stripHtmlTags(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
-                                                        <%- reminders[i].content %>
+                                                        <%~ reminders[i].content %>
                                                     </a>
                                                     <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" loading="lazy" alt="Preview">
                                                 </span>
                                             </div>
                                         <% } else { %>
-                                            <%- reminders[i].content %>
+                                            <%~ reminders[i].content %>
                                         <% } %>
                                     <% } else { %>
                                         -
@@ -306,7 +306,7 @@ window.addEventListener('load', handleRowHighlight);
         <% } %>
     </section>
 
-    <%- include('../_components/pagination.html', {
+    <%~ include('../_components/pagination.html', {
         pagination,
         path,
         perPageDefault: state.user.column_preferences.reminders.default_per_page,

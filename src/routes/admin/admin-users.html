@@ -1,7 +1,7 @@
 <section style="display: flex; flex-direction: column; gap: 30px;">
   <header style="display: flex; justify-content: space-between; align-items: center;">
     <div>
-      <h2>👥 Users (<%- pagination.total %>)</h2>
+      <h2>👥 Users (<%~ pagination.total %>)</h2>
       <p>Manage application users</p>
     </div>
 
@@ -11,7 +11,7 @@
       <% } %>
 
       <form method="GET" style="display: flex; gap: 10px;" role="search">
-        <%- include('../_components/inputs/search.html', {
+        <%~ include('../_components/inputs/search.html', {
           id: 'search-input',
           name: 'search',
           label: 'Search users',
@@ -26,7 +26,7 @@
 
       <button type="button" id="delete-selected-btn" style="display: none;" aria-label="Delete selected users">🗑️</button>
 
-      <%- include('../_components/column-settings.html') %>
+      <%~ include('../_components/column-settings.html') %>
 
     </nav>
   </header>
@@ -115,17 +115,17 @@
                 <input
                   type="checkbox"
                   name="id[]"
-                  value="<%- user.id %>"
+                  value="<%~ user.id %>"
                   class="user-checkbox"
-                  data-username="<%- utils.stripHtmlTags(user.username || 'Unknown User') %>"
+                  data-username="<%~ utils.stripHtmlTags(user.username || 'Unknown User') %>"
                   <%= user.is_admin ? 'disabled title="Cannot delete admin users"' : '' %>
                 />
               </td>
               <% if (state.user.column_preferences?.users?.username !== false) { %>
-                <td style="padding: 10px;"><%- utils.highlightSearchTerm(user.username, search) %></td>
+                <td style="padding: 10px;"><%~ utils.highlightSearchTerm(user.username, search) %></td>
               <% } %>
               <% if (state.user.column_preferences?.users?.email !== false) { %>
-                <td style="padding: 10px;"><%- utils.highlightSearchTerm(user.email, search) %></td>
+                <td style="padding: 10px;"><%~ utils.highlightSearchTerm(user.email, search) %></td>
               <% } %>
               <% if (state.user.column_preferences?.users?.is_admin !== false) { %>
                 <td style="padding: 10px;"><%= user.is_admin ? '✅' : '❌' %></td>
@@ -168,7 +168,7 @@
     <% } %>
   </div>
 
-  <%- include('../_components/pagination.html', {
+  <%~ include('../_components/pagination.html', {
     pagination,
     path,
     perPageDefault: state.user.column_preferences.users.default_per_page,

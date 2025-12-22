@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
     <header style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <div style="display: flex; align-items: center; gap: 5px;">
-                <h2>⭐️ Bookmarks (<%- pagination.total %>)</h2>
-		        <%- include('../_components/question-mark-button.html') %>
+                <h2>⭐️ Bookmarks (<%~ pagination.total %>)</h2>
+		        <%~ include('../_components/question-mark-button.html') %>
             </div>
             <p>Manage your saved bookmarks</p>
         </div>
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
                 <% if (showHidden) { %>
                     <input type="hidden" name="hidden" value="true" />
                 <% } %>
-                <%- include('../_components/inputs/search.html', {
+                <%~ include('../_components/inputs/search.html', {
                     id: 'search',
                     name: 'search',
                     label: 'Search bookmarks',
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
             <button type="button" id="delete-selected-btn" style="display: none;" aria-label="Delete selected bookmarks">🗑️</button>
 
             <% if (state.user.hidden_items_password && state.user.column_preferences?.bookmarks?.hidden !== false) { %>
-                <%- include('../_components/hidden-password-modal.html', {
+                <%~ include('../_components/hidden-password-modal.html', {
                     itemType: 'bookmarks',
                     csrfToken,
                     path,
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
                 <button type="submit" aria-label="Prefetch all previews" title="Cache all preview images">🖼️</button>
             </form>
 
-        <%- include('../_components/column-settings.html') %>
+        <%~ include('../_components/column-settings.html') %>
         </nav>
     </header>
 
@@ -191,23 +191,23 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
                 </thead>
                 <tbody>
                     <% for (let i = 0; i < data.length; i++) { %>
-                        <tr data-id="<%- data[i].id %>">
+                        <tr data-id="<%~ data[i].id %>">
                             <td style="padding: 10px;">
-                                <input type="checkbox" name="id[]" value="<%- data[i].id %>" class="bookmark-checkbox" data-title="<%- data[i].title || 'Untitled' %>" aria-label="Select <%= utils.stripHtmlTags(data[i].title || 'Untitled') %>" />
+                                <input type="checkbox" name="id[]" value="<%~ data[i].id %>" class="bookmark-checkbox" data-title="<%~ data[i].title || 'Untitled' %>" aria-label="Select <%= utils.stripHtmlTags(data[i].title || 'Untitled') %>" />
                             </td>
                             <% if (state.user.column_preferences?.bookmarks?.title !== false) { %>
                                 <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                     <% if (data[i].pinned) { %>📌<% } %>
-                                    <%- data[i].title || 'Untitled' %>
+                                    <%~ data[i].title || 'Untitled' %>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.bookmarks?.url !== false) { %>
                                 <td style="padding: 10px;">
                                     <div style="display: flex; gap: 5px; align-items: center;">
-                                        <img loading="lazy" src= "<%- utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                        <img loading="lazy" src= "<%~ utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                         <span class="preview">
                                             <a href="<%= utils.stripHtmlTags(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].title) %>" target="_blank" rel="noopener noreferrer">
-                                                <%- data[i].url %>
+                                                <%~ data[i].url %>
                                             </a>
                                             <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].url) %>" loading="lazy" alt="Preview">
                                         </span>
@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
         <% } %>
     </section>
 
-    <%- include('../_components/pagination.html', {
+    <%~ include('../_components/pagination.html', {
         pagination,
         path,
         perPageDefault: state.user.column_preferences.bookmarks.default_per_page,

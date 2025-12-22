@@ -51,8 +51,8 @@ window.addEventListener('load', handleRowHighlight);
     <header style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <div style="display: flex; align-items: center; gap: 5px;">
-                <h2>🚀 Actions (<%- pagination.total %>)</h2>
-		        <%- include('../_components/question-mark-button.html') %>
+                <h2>🚀 Actions (<%~ pagination.total %>)</h2>
+		        <%~ include('../_components/question-mark-button.html') %>
             </div>
             <p>Manage your actions and shortcuts</p>
         </div>
@@ -66,7 +66,7 @@ window.addEventListener('load', handleRowHighlight);
                 <% if (showHidden) { %>
                     <input type="hidden" name="hidden" value="true" />
                 <% } %>
-                <%- include('../_components/inputs/search.html', {
+                <%~ include('../_components/inputs/search.html', {
                     id: 'search',
                     name: 'search',
                     label: 'Search actions',
@@ -84,7 +84,7 @@ window.addEventListener('load', handleRowHighlight);
             <button type="button" aria-label="View bangs" onclick="location.href='/bangs'">❗️</button>
 
             <% if (state.user.hidden_items_password && state.user.column_preferences?.actions?.hidden !== false) { %>
-                <%- include('../_components/hidden-password-modal.html', {
+                <%~ include('../_components/hidden-password-modal.html', {
                     itemType: 'actions',
                     csrfToken,
                     path,
@@ -105,7 +105,7 @@ window.addEventListener('load', handleRowHighlight);
                 <button type="submit" aria-label="Prefetch all previews" title="Cache all preview images">🖼️</button>
             </form>
 
-        <%- include('../_components/column-settings.html') %>
+        <%~ include('../_components/column-settings.html') %>
         </nav>
     </header>
 
@@ -235,26 +235,26 @@ window.addEventListener('load', handleRowHighlight);
 
                 <tbody>
                     <% for (let i = 0; i < data.length; i++) { %>
-                        <tr data-id="<%- data[i].id %>">
+                        <tr data-id="<%~ data[i].id %>">
                             <td style="padding: 10px;">
-                                <input type="checkbox" name="id[]" value="<%- data[i].id %>" class="action-checkbox" data-title="<%- data[i].name %>" aria-label="Select <%= utils.stripHtmlTags(data[i].name) %>" />
+                                <input type="checkbox" name="id[]" value="<%~ data[i].id %>" class="action-checkbox" data-title="<%~ data[i].name %>" aria-label="Select <%= utils.stripHtmlTags(data[i].name) %>" />
                             </td>
                             <% if (state.user.column_preferences?.actions?.name !== false) { %>
-                                <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%- data[i].name %></td>
+                                <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%~ data[i].name %></td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.trigger !== false) { %>
                                 <td style="padding: 10px;">
-                                    <code><%- data[i].trigger %></code>
+                                    <code><%~ data[i].trigger %></code>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.url !== false) { %>
                                 <td style="padding: 10px;">
                                     <% if (data[i].url) { %>
                                     <div style="display: flex; gap: 5px; align-items: center;">
-                                        <img loading="lazy" src= "<%- utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
+                                        <img loading="lazy" src= "<%~ utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                         <span class="preview">
                                             <a href="<%= utils.stripHtmlTags(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].url) %>" target="_blank" rel="noopener noreferrer">
-                                                <%- data[i].url %>
+                                                <%~ data[i].url %>
                                             </a>
                                             <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].url) %>" loading="lazy" alt="Preview">
                                         </span>
@@ -266,7 +266,7 @@ window.addEventListener('load', handleRowHighlight);
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.action_type !== false) { %>
                                 <td style="padding: 10px;">
-                                    <code><%- data[i].action_type %></code>
+                                    <code><%~ data[i].action_type %></code>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.created_at !== false) { %>
@@ -368,7 +368,7 @@ window.addEventListener('load', handleRowHighlight);
         <% } %>
     </section>
 
-    <%- include('../_components/pagination.html', {
+    <%~ include('../_components/pagination.html', {
         pagination,
         path,
         perPageDefault: state.user.column_preferences.actions.default_per_page,

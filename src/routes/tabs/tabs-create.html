@@ -14,7 +14,7 @@
 
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
-          <%- include('../_components/inputs/text.html', {
+          <%~ include('../_components/inputs/text.html', {
             id: 'title',
             name: 'title',
             label: '📝 Group Name',
@@ -25,7 +25,7 @@
             error: state.errors && state.errors.title ? state.errors.title : undefined
           }) %>
 
-          <%- include('../_components/inputs/text.html', {
+          <%~ include('../_components/inputs/text.html', {
             id: 'trigger',
             name: 'trigger',
             label: '⚡ Trigger',
