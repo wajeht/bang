@@ -4,10 +4,13 @@ import fs from 'node:fs/promises';
 import { Logger } from '../utils/logger';
 
 const logger = Logger();
+const isTesting = process.env.NODE_ENV === 'testing' || process.env.APP_ENV === 'testing';
 
 export class CustomMigrationSource implements Knex.MigrationSource<string> {
     constructor(private migrationsPath: string) {
-        logger.info('Migrations path: %s', migrationsPath);
+        if (!isTesting) {
+            logger.info('Migrations path: %s', migrationsPath);
+        }
     }
 
     async getMigrations(): Promise<string[]> {
@@ -24,12 +27,14 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
                 .map((dirent) => dirent.name)
                 .sort();
 
-            const migrationList = migrations.map((name, index) => ({
-                order: index + 1,
-                filename: name,
-                name: path.parse(name).name,
-            }));
-            logger.table(migrationList);
+            if (!isTesting) {
+                const migrationList = migrations.map((name, index) => ({
+                    order: index + 1,
+                    filename: name,
+                    name: path.parse(name).name,
+                }));
+                logger.table(migrationList);
+            }
             return migrations;
         } catch (error: unknown) {
             logger.error('Error reading migrations directory: %o', error);
@@ -45,7 +50,9 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
     async getMigration(migration: string): Promise<Knex.Migration> {
         try {
             const migrationPath = path.join(this.migrationsPath, migration);
-            logger.info('Loading migration: %s', migrationPath);
+            if (!isTesting) {
+                logger.info('Loading migration: %s', migrationPath);
+            }
             const migrationModule = await import(migrationPath);
 
             // Handle both named exports and default exports

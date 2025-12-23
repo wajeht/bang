@@ -1,15 +1,10 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterAll, afterEach, vi } from 'vitest';
 import { createApp, closeServer, getActiveSocketsCount, clearActiveSockets } from './app';
 import { cleanupTestData, cleanupTestDatabase } from './tests/api-test-utils';
-import { db } from './tests/test-setup';
 import request from 'supertest';
 import type { Server } from 'node:http';
 
 describe('App', () => {
-    beforeAll(async () => {
-        await db.migrate.latest();
-    });
-
     afterEach(async () => {
         await cleanupTestData();
         clearActiveSockets();

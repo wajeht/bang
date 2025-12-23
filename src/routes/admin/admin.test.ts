@@ -7,14 +7,10 @@ import {
 import request from 'supertest';
 import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
 
 describe('Admin Routes', () => {
     let app: any;
-
-    beforeAll(async () => {
-        await db.migrate.latest();
-    });
 
     beforeEach(async () => {
         const { app: expressApp } = await createApp();

@@ -1,10 +1,10 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
-import { config } from '../config';
 import { Logger } from '../utils/logger';
 import { CustomMigrationSource } from './migration-source';
 
 const logger = Logger();
+const isTesting = process.env.NODE_ENV === 'testing' || process.env.APP_ENV === 'testing';
 
 const migrationsPath = path.resolve(__dirname, 'migrations');
 
@@ -78,7 +78,9 @@ let knexConfig: Knex.Config = {
                 // Optimize query planner
                 conn.pragma('optimize');
 
-                logger.info('New database connection established');
+                if (!isTesting) {
+                    logger.info('New database connection established');
+                }
 
                 done(null, conn);
             } catch (err: any) {
@@ -89,18 +91,13 @@ let knexConfig: Knex.Config = {
     },
 };
 
-if (
-    config.app.env === 'testing' ||
-    process.env.NODE_ENV === 'testing' ||
-    process.env.APP_ENV === 'testing'
-) {
+if (isTesting) {
     knexConfig = {
         ...knexConfig,
         connection: {
             filename: ':memory:',
         },
     };
-    logger.info(`Using temporary test database: :memory:`);
 }
 
 export default knexConfig;
