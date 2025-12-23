@@ -92,6 +92,37 @@ export function SearchUtils(context: AppContext) {
             ['@user', '/admin/users'],
             ['@users', '/admin/users'],
         ]),
+        /**
+         * Direct command search paths - maps triggers to their search URL base paths
+         */
+        directCommandSearchPaths: new Map([
+            ['@n', '/notes'],
+            ['@note', '/notes'],
+            ['@notes', '/notes'],
+            ['@b', '/bangs'],
+            ['@bang', '/bangs'],
+            ['@bangs', '/bangs'],
+            ['@bm', '/bookmarks'],
+            ['@bookmark', '/bookmarks'],
+            ['@bookmarks', '/bookmarks'],
+            ['@a', '/actions'],
+            ['@action', '/actions'],
+            ['@actions', '/actions'],
+            ['@t', '/tabs'],
+            ['@tab', '/tabs'],
+            ['@tabs', '/tabs'],
+            ['@r', '/reminders'],
+            ['@reminder', '/reminders'],
+            ['@reminders', '/reminders'],
+        ]),
+        /**
+         * Admin-only direct command search paths
+         */
+        adminOnlySearchPaths: new Set(['@u', '@user', '@users']),
+        /**
+         * URL pattern regex for protocol URLs (pre-compiled)
+         */
+        urlProtocolRegex: /(https?:\/\/[^\s]+|www\.[^\s]+)/i,
     } as const;
 
     const reminderTimingConfig = {
@@ -142,6 +173,38 @@ export function SearchUtils(context: AppContext) {
         },
     } as const;
 
+    /**
+     * Extract URL from text - finds protocol URLs (http/https) or www prefixes
+     * Returns the URL and its position, or null if not found
+     */
+    function extractUrlFromText(
+        text: string,
+    ): { url: string; startIndex: number; endIndex: number } | null {
+        const match = text.match(searchConfig.urlProtocolRegex);
+        if (match && match.index !== undefined) {
+            return {
+                url: match[0],
+                startIndex: match.index,
+                endIndex: match.index + match[0].length,
+            };
+        }
+        return null;
+    }
+
+    /**
+     * Find domain-like URL in word array using isUrlLike validation
+     * Returns index of URL word and the URL, or null if not found
+     */
+    function findDomainUrlInWords(words: string[]): { urlIndex: number; url: string } | null {
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            if (word && context.utils.validation.isUrlLike(word)) {
+                return { urlIndex: i, url: word };
+            }
+        }
+        return null;
+    }
+
     return {
         searchConfig,
         reminderTimingConfig,
@@ -152,14 +215,14 @@ export function SearchUtils(context: AppContext) {
         async loadCachedTriggers(
             req: Request,
             userId: number,
-        ): Promise<{ bangTriggers: Set<string>; tabTriggers: Set<string> }> {
+        ): Promise<{ bangTriggers: Record<string, true>; tabTriggers: Record<string, true> }> {
             const cachedAt = req.session?.triggersCachedAt || 0;
             const cacheExpired = Date.now() - cachedAt > searchConfig.triggersCacheTtl;
 
-            if (!cacheExpired && req.session?.bangTriggers && req.session?.tabTriggers) {
+            if (!cacheExpired && req.session?.bangTriggersMap && req.session?.tabTriggersMap) {
                 return {
-                    bangTriggers: new Set(req.session.bangTriggers),
-                    tabTriggers: new Set(req.session.tabTriggers),
+                    bangTriggers: req.session.bangTriggersMap,
+                    tabTriggers: req.session.tabTriggersMap,
                 };
             }
 
@@ -168,18 +231,25 @@ export function SearchUtils(context: AppContext) {
                 context.db('tabs').select('trigger').where({ user_id: userId }),
             ]);
 
-            const bangTriggers = bangRows.map((r: { trigger: string }) => r.trigger);
-            const tabTriggers = tabRows.map((r: { trigger: string }) => r.trigger);
+            const bangTriggersMap: Record<string, true> = Object.create(null);
+            const tabTriggersMap: Record<string, true> = Object.create(null);
+
+            for (let i = 0; i < bangRows.length; i++) {
+                bangTriggersMap[bangRows[i].trigger] = true;
+            }
+            for (let i = 0; i < tabRows.length; i++) {
+                tabTriggersMap[tabRows[i].trigger] = true;
+            }
 
             if (req.session) {
-                req.session.bangTriggers = bangTriggers;
-                req.session.tabTriggers = tabTriggers;
+                req.session.bangTriggersMap = bangTriggersMap;
+                req.session.tabTriggersMap = tabTriggersMap;
                 req.session.triggersCachedAt = Date.now();
             }
 
             return {
-                bangTriggers: new Set(bangTriggers),
-                tabTriggers: new Set(tabTriggers),
+                bangTriggers: bangTriggersMap,
+                tabTriggers: tabTriggersMap,
             };
         },
 
@@ -188,8 +258,8 @@ export function SearchUtils(context: AppContext) {
          */
         invalidateTriggerCache(req: Request): void {
             if (req.session) {
-                delete req.session.bangTriggers;
-                delete req.session.tabTriggers;
+                delete req.session.bangTriggersMap;
+                delete req.session.tabTriggersMap;
                 delete req.session.triggersCachedAt;
             }
         },
@@ -344,32 +414,27 @@ export function SearchUtils(context: AppContext) {
                 let urlEnd: number = -1;
                 let foundUrl: string | null = null;
 
-                // Look for protocol URLs first - combined search
-                // Search for 'http' once, then check if it's http:// or https://
-                const httpPos = remaining.indexOf('http');
-                if (httpPos !== -1) {
-                    // Check if it's https:// or http://
-                    const afterHttp = remaining.slice(httpPos, httpPos + 8);
-                    if (afterHttp === 'https://') {
-                        urlStart = httpPos;
-                    } else if (remaining.slice(httpPos, httpPos + 7) === 'http://') {
-                        urlStart = httpPos;
-                    }
-                }
+                // Look for protocol URLs first - optimized single pass
+                // Check for both http:// and https:// with minimal string operations
+                const httpsPos = remaining.indexOf('https://');
+                const httpPos = httpsPos === -1 ? remaining.indexOf('http://') : -1;
+                const protocolPos = httpsPos !== -1 ? httpsPos : httpPos;
 
-                if (urlStart !== -1) {
-                    // Find the end of the URL (next space or end of string)
+                if (protocolPos !== -1) {
+                    urlStart = protocolPos;
+                    // Find end of URL (next space or end of string)
                     urlEnd = remaining.indexOf(' ', urlStart);
                     if (urlEnd === -1) urlEnd = remaining.length;
 
-                    foundUrl = remaining.slice(urlStart, urlEnd);
-
-                    // if it throws, foundUrl becomes null
+                    const candidate = remaining.slice(urlStart, urlEnd);
+                    // Validate URL - if it throws, we'll fall through to domain check
                     try {
-                        new URL(foundUrl);
-                    } catch (error) {
-                        context.logger.warn('Invalid URL found in query: %s', foundUrl, error);
-                        foundUrl = null;
+                        new URL(candidate);
+                        foundUrl = candidate;
+                    } catch {
+                        // Invalid URL, reset positions
+                        urlStart = -1;
+                        urlEnd = -1;
                     }
                 }
 
@@ -385,17 +450,11 @@ export function SearchUtils(context: AppContext) {
                             try {
                                 new URL(`https://${token}`);
                                 foundUrl = `https://${token}`;
-                                // position for removal
-                                const tokenStart: number = remaining.indexOf(token);
-                                urlStart = tokenStart;
-                                urlEnd = tokenStart + token.length;
+                                // position for removal - use indexOf starting from expected position
+                                urlStart = remaining.indexOf(token);
+                                urlEnd = urlStart + token.length;
                                 break;
-                            } catch (error) {
-                                context.logger.warn(
-                                    'Invalid domain-like token in query: %s',
-                                    token,
-                                    error,
-                                );
+                            } catch {
                                 // next token
                             }
                         }
@@ -404,14 +463,12 @@ export function SearchUtils(context: AppContext) {
 
                 if (foundUrl) {
                     url = foundUrl;
-                    // remove URL from search term
+                    // remove URL from search term - optimized concatenation
                     if (urlStart === 0) {
-                        // at beginning
                         searchTerm = remaining.slice(urlEnd).trim();
                     } else {
-                        // in middle or end
-                        const beforeUrl: string = remaining.slice(0, urlStart).trim();
-                        const afterUrl: string = remaining.slice(urlEnd).trim();
+                        const beforeUrl = remaining.slice(0, urlStart).trimEnd();
+                        const afterUrl = remaining.slice(urlEnd).trimStart();
                         searchTerm = beforeUrl + (beforeUrl && afterUrl ? ' ' : '') + afterUrl;
                     }
                 }
@@ -606,22 +663,52 @@ export function SearchUtils(context: AppContext) {
             description: string;
             content: string | null;
         } {
+            const defaultTiming =
+                user.column_preferences?.reminders?.default_reminder_timing || 'daily';
+
+            /**
+             * Helper to extract URL and description from text
+             * Tries protocol URLs first, then domain-like patterns
+             */
+            const extractUrlAndDescription = (
+                text: string,
+            ): { description: string; url: string | null } => {
+                // Try protocol URL first
+                const protocolUrl = extractUrlFromText(text);
+                if (protocolUrl) {
+                    const desc = text.slice(0, protocolUrl.startIndex).trim();
+                    return { description: desc || 'Untitled', url: protocolUrl.url };
+                }
+
+                // Try domain-like patterns
+                const words = text.split(' ');
+                const domainUrl = findDomainUrlInWords(words);
+                if (domainUrl) {
+                    const desc = words.slice(0, domainUrl.urlIndex).join(' ');
+                    return { description: desc || 'Untitled', url: domainUrl.url };
+                }
+
+                return { description: text, url: null };
+            };
+
+            /**
+             * Check if word is a valid timing keyword or date pattern
+             */
+            const isValidTiming = (word: string): boolean =>
+                reminderTimingConfig.validKeywords.has(word) ||
+                reminderTimingConfig.datePattern.test(word);
+
             // Handle pipe-separated format: !remind [timing] description | content
             if (reminderContent.includes('|')) {
-                // Imperative loop instead of .map() for splitting
                 const rawParts = reminderContent.split('|');
                 const parts: string[] = [];
                 for (let i = 0; i < rawParts.length; i++) {
                     parts.push(rawParts[i]!.trim());
                 }
                 const firstPart = parts[0] || '';
-
                 const firstWord = firstPart.split(' ')[0]?.toLowerCase() || '';
-                const isValidTiming =
-                    reminderTimingConfig.validKeywords.has(firstWord) ||
-                    reminderTimingConfig.datePattern.test(firstWord);
 
-                if (isValidTiming) {
+                if (isValidTiming(firstWord)) {
                     const remainingFirstPart = firstPart.split(' ').slice(1).join(' ').trim();
 
                     if (remainingFirstPart) {
@@ -631,173 +718,55 @@ export function SearchUtils(context: AppContext) {
                             description: remainingFirstPart,
                             content: parts[1] || null,
                         };
-                    } else {
-                        // Format: !remind daily | description [| content]
-                        return {
-                            when: firstWord,
-                            description: parts[1] || '',
-                            content: parts.length > 2 ? parts[2] || null : null,
-                        };
                     }
-                } else {
-                    // No timing keyword, use default timing
+                    // Format: !remind daily | description [| content]
                     return {
-                        when:
-                            user.column_preferences?.reminders?.default_reminder_timing || 'daily',
-                        description: firstPart,
-                        content: parts[1] || null,
+                        when: firstWord,
+                        description: parts[1] || '',
+                        content: parts.length > 2 ? parts[2] || null : null,
                     };
                 }
+
+                // No timing keyword, use default timing
+                return {
+                    when: defaultTiming,
+                    description: firstPart,
+                    content: parts[1] || null,
+                };
             }
 
             // Handle space-separated format with timing keyword: !remind daily description
             const words = reminderContent.split(' ');
             const firstWord = words[0]?.toLowerCase() || '';
 
-            if (
-                reminderTimingConfig.validKeywords.has(firstWord) ||
-                reminderTimingConfig.datePattern.test(firstWord)
-            ) {
+            if (isValidTiming(firstWord)) {
                 const remainingText = words.slice(1).join(' ');
-
-                // Look for URLs with protocols or www prefix in the remaining text
-                const urlMatch = remainingText.match(/(https?:\/\/[^\s]+|www\.[^\s]+)/i);
-
-                if (urlMatch) {
-                    const url = urlMatch[0];
-                    const urlStartIndex = remainingText.indexOf(url);
-                    const description = remainingText.slice(0, urlStartIndex).trim();
-
-                    if (!description) {
-                        return {
-                            when: firstWord,
-                            description: 'Untitled',
-                            content: url,
-                        };
-                    }
-
-                    return {
-                        when: firstWord,
-                        description: description,
-                        content: url,
-                    };
-                }
-
-                // Look for domain-like patterns (e.g., google.com)
-                const remainingWords = words.slice(1);
-                let urlIndex = -1;
-                for (let i = 0; i < remainingWords.length; i++) {
-                    const word = remainingWords[i];
-                    if (word && context.utils.validation.isUrlLike(word)) {
-                        urlIndex = i;
-                        break;
-                    }
-                }
-
-                if (urlIndex !== -1) {
-                    const description = remainingWords.slice(0, urlIndex).join(' ');
-                    const url = remainingWords[urlIndex] || '';
-
-                    if (!description) {
-                        return {
-                            when: firstWord,
-                            description: 'Untitled',
-                            content: url,
-                        };
-                    }
-
-                    return {
-                        when: firstWord,
-                        description: description,
-                        content: url,
-                    };
-                }
+                const { description, url } = extractUrlAndDescription(remainingText);
 
                 return {
                     when: firstWord,
-                    description: remainingText,
-                    content: null,
+                    description,
+                    content: url,
                 };
             }
 
             // Handle URL-only input (for automatic title fetching)
-            if (context.utils.validation.isUrlLike(reminderContent.trim())) {
+            const trimmedContent = reminderContent.trim();
+            if (context.utils.validation.isUrlLike(trimmedContent)) {
                 return {
-                    when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
+                    when: defaultTiming,
                     description: 'Untitled',
-                    content: reminderContent.trim(),
+                    content: trimmedContent,
                 };
             }
 
-            // Look for URLs with protocols or www prefix in simple format
-            const urlMatch = reminderContent.match(/(https?:\/\/[^\s]+|www\.[^\s]+)/i);
-
-            if (urlMatch) {
-                const url = urlMatch[0];
-                const urlStartIndex = reminderContent.indexOf(url);
-                const description = reminderContent.slice(0, urlStartIndex).trim();
-
-                if (!description) {
-                    return {
-                        when:
-                            user.column_preferences?.reminders?.default_reminder_timing || 'daily',
-                        description: 'Untitled',
-                        content: url,
-                    };
-                }
-
-                return {
-                    when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
-                    description: description,
-                    content: url,
-                };
-            }
-
-            // Look for domain-like patterns in simple format
-            const words2 = reminderContent.split(' ');
-            let urlIndex = -1;
-            for (let i = 0; i < words2.length; i++) {
-                const word = words2[i];
-                if (word && context.utils.validation.isUrlLike(word)) {
-                    urlIndex = i;
-                    break;
-                }
-            }
-
-            if (urlIndex !== -1) {
-                const description = words2.slice(0, urlIndex).join(' ');
-                const url = words2[urlIndex] || '';
-
-                // Single URL word - set up for title fetching
-                if (!description && words2.length === 1) {
-                    return {
-                        when:
-                            user.column_preferences?.reminders?.default_reminder_timing || 'daily',
-                        description: 'Untitled',
-                        content: url,
-                    };
-                }
-
-                if (!description) {
-                    return {
-                        when:
-                            user.column_preferences?.reminders?.default_reminder_timing || 'daily',
-                        description: 'Untitled',
-                        content: url,
-                    };
-                }
-
-                return {
-                    when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
-                    description: description,
-                    content: url,
-                };
-            }
+            // Try to extract URL from content (no timing keyword)
+            const { description, url } = extractUrlAndDescription(reminderContent);
 
             return {
-                when: user.column_preferences?.reminders?.default_reminder_timing || 'daily',
-                description: reminderContent,
-                content: null,
+                when: defaultTiming,
+                description,
+                content: url,
             };
         },
 
@@ -1036,56 +1005,29 @@ export function SearchUtils(context: AppContext) {
                 }
 
                 // For commands with search terms like @notes search query
-                if (searchTerm && trigger?.toLowerCase()) {
-                    let redirectPath: string | null = null;
+                if (searchTerm && trigger) {
+                    const lowerTrigger = trigger.toLowerCase();
 
-                    switch (trigger) {
-                        case '@n':
-                        case '@note':
-                        case '@notes':
-                            redirectPath = `/notes?search=${encodeURIComponent(searchTerm)}`;
-                            break;
-                        case '@b':
-                        case '@bang':
-                        case '@bangs':
-                            redirectPath = `/bangs?search=${encodeURIComponent(searchTerm)}`;
-                            break;
-                        case '@bm':
-                        case '@bookmark':
-                        case '@bookmarks':
-                            redirectPath = `/bookmarks?search=${encodeURIComponent(searchTerm)}`;
-                            break;
-                        case '@a':
-                        case '@action':
-                        case '@actions':
-                            redirectPath = `/actions?search=${encodeURIComponent(searchTerm)}`;
-                            break;
-                        case '@t':
-                        case '@tab':
-                        case '@tabs':
-                            redirectPath = `/tabs?search=${encodeURIComponent(searchTerm)}`;
-                            break;
-                        case '@r':
-                        case '@reminder':
-                        case '@reminders':
-                            redirectPath = `/reminders?search=${encodeURIComponent(searchTerm)}`;
-                            break;
-                        case '@u':
-                        case '@user':
-                        case '@users':
-                            if (!user.is_admin) {
-                                throw new context.errors.UnauthorizedError(
-                                    'You are not authorized to access this page',
-                                );
-                            }
-                            redirectPath = `/admin/users?search=${encodeURIComponent(searchTerm)}`;
-                            break;
-                    }
-
-                    if (redirectPath) {
+                    // Check admin-only paths first
+                    if (searchConfig.adminOnlySearchPaths.has(lowerTrigger)) {
+                        if (!user.is_admin) {
+                            throw new context.errors.UnauthorizedError(
+                                'You are not authorized to access this page',
+                            );
+                        }
                         return this.redirectWithCache(
                             res,
-                            redirectPath,
+                            `/admin/users?search=${encodeURIComponent(searchTerm)}`,
+                            searchConfig.redirectWithCacheDuration,
+                            'private',
+                        );
+                    }
+
+                    const basePath = searchConfig.directCommandSearchPaths.get(lowerTrigger);
+                    if (basePath) {
+                        return this.redirectWithCache(
+                            res,
+                            `${basePath}?search=${encodeURIComponent(searchTerm)}`,
                             searchConfig.redirectWithCacheDuration,
                             'private',
                         );
@@ -1769,7 +1711,7 @@ export function SearchUtils(context: AppContext) {
             const { bangTriggers, tabTriggers } = await this.loadCachedTriggers(req, user.id);
 
             // Process user-defined bang commands
-            if (commandType === 'bang' && trigger && bangTriggers.has(trigger)) {
+            if (commandType === 'bang' && trigger && bangTriggers[trigger]) {
                 let customBang;
 
                 try {
@@ -1897,7 +1839,7 @@ export function SearchUtils(context: AppContext) {
                 }
             }
 
-            if (trigger && tabTriggers.has(trigger)) {
+            if (trigger && tabTriggers[trigger]) {
                 let tab;
 
                 try {

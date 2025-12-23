@@ -3652,15 +3652,15 @@ describe('Trigger Caching', () => {
 
             const result = await searchUtils.loadCachedTriggers(req, testUser.id);
 
-            expect(result.bangTriggers).toBeInstanceOf(Set);
-            expect(result.tabTriggers).toBeInstanceOf(Set);
-            expect(result.bangTriggers.has('!test1')).toBe(true);
-            expect(result.bangTriggers.has('!test2')).toBe(true);
-            expect(result.tabTriggers.has('!tab1')).toBe(true);
+            expect(typeof result.bangTriggers).toBe('object');
+            expect(typeof result.tabTriggers).toBe('object');
+            expect(result.bangTriggers['!test1']).toBe(true);
+            expect(result.bangTriggers['!test2']).toBe(true);
+            expect(result.tabTriggers['!tab1']).toBe(true);
 
-            expect(req.session.bangTriggers).toContain('!test1');
-            expect(req.session.bangTriggers).toContain('!test2');
-            expect(req.session.tabTriggers).toContain('!tab1');
+            expect(req.session.bangTriggersMap?.['!test1']).toBe(true);
+            expect(req.session.bangTriggersMap?.['!test2']).toBe(true);
+            expect(req.session.tabTriggersMap?.['!tab1']).toBe(true);
             expect(req.session.triggersCachedAt).toBeDefined();
             expect(req.session.triggersCachedAt).toBeGreaterThan(0);
         });
@@ -3669,17 +3669,17 @@ describe('Trigger Caching', () => {
             const cachedTime = Date.now();
             const req = {
                 session: {
-                    bangTriggers: ['!cached1', '!cached2'],
-                    tabTriggers: ['!cachedtab'],
+                    bangTriggersMap: { '!cached1': true, '!cached2': true },
+                    tabTriggersMap: { '!cachedtab': true },
                     triggersCachedAt: cachedTime,
                 },
             } as unknown as Request;
 
             const result = await searchUtils.loadCachedTriggers(req, testUser.id);
 
-            expect(result.bangTriggers.has('!cached1')).toBe(true);
-            expect(result.bangTriggers.has('!cached2')).toBe(true);
-            expect(result.tabTriggers.has('!cachedtab')).toBe(true);
+            expect(result.bangTriggers['!cached1']).toBe(true);
+            expect(result.bangTriggers['!cached2']).toBe(true);
+            expect(result.tabTriggers['!cachedtab']).toBe(true);
 
             expect(req.session.triggersCachedAt).toBe(cachedTime);
         });
@@ -3696,31 +3696,31 @@ describe('Trigger Caching', () => {
             const expiredTime = Date.now() - 61 * 60 * 1000; // 61 minutes ago (cache TTL is 60 min)
             const req = {
                 session: {
-                    bangTriggers: ['!stale'],
-                    tabTriggers: [],
+                    bangTriggersMap: { '!stale': true },
+                    tabTriggersMap: {},
                     triggersCachedAt: expiredTime,
                 },
             } as unknown as Request;
 
             const result = await searchUtils.loadCachedTriggers(req, testUser.id);
 
-            expect(result.bangTriggers.has('!fresh')).toBe(true);
-            expect(result.bangTriggers.has('!stale')).toBe(false);
+            expect(result.bangTriggers['!fresh']).toBe(true);
+            expect(result.bangTriggers['!stale']).toBeUndefined();
 
             expect(req.session.triggersCachedAt).toBeGreaterThan(expiredTime);
         });
 
-        it('should return empty sets for user with no bangs or tabs', async () => {
+        it('should return empty objects for user with no bangs or tabs', async () => {
             const req = {
                 session: {},
             } as unknown as Request;
 
             const result = await searchUtils.loadCachedTriggers(req, testUser.id);
 
-            expect(result.bangTriggers.size).toBe(0);
-            expect(result.tabTriggers.size).toBe(0);
-            expect(req.session.bangTriggers).toEqual([]);
-            expect(req.session.tabTriggers).toEqual([]);
+            expect(Object.keys(result.bangTriggers).length).toBe(0);
+            expect(Object.keys(result.tabTriggers).length).toBe(0);
+            expect(req.session.bangTriggersMap).toEqual({});
+            expect(req.session.tabTriggersMap).toEqual({});
         });
     });
 
@@ -3728,8 +3728,8 @@ describe('Trigger Caching', () => {
         it('should clear all trigger cache data from session', () => {
             const req = {
                 session: {
-                    bangTriggers: ['!test1', '!test2'],
-                    tabTriggers: ['!tab1'],
+                    bangTriggersMap: { '!test1': true, '!test2': true },
+                    tabTriggersMap: { '!tab1': true },
                     triggersCachedAt: Date.now(),
                     user: { id: 1 },
                 },
@@ -3737,8 +3737,8 @@ describe('Trigger Caching', () => {
 
             searchUtils.invalidateTriggerCache(req);
 
-            expect(req.session.bangTriggers).toBeUndefined();
-            expect(req.session.tabTriggers).toBeUndefined();
+            expect(req.session.bangTriggersMap).toBeUndefined();
+            expect(req.session.tabTriggersMap).toBeUndefined();
             expect(req.session.triggersCachedAt).toBeUndefined();
             expect(req.session.user).toBeDefined();
         });
@@ -3901,7 +3901,7 @@ describe('Bang Search Optimization', () => {
             query: '!g python',
         });
 
-        expect(req.session.bangTriggers).toContain('!custom');
+        expect(req.session.bangTriggersMap?.['!custom']).toBe(true);
         expect(req.session.triggersCachedAt).toBeDefined();
 
         const cachedTime = req.session.triggersCachedAt;
@@ -3921,8 +3921,8 @@ describe('Bang Search Optimization', () => {
     it('should use system bang when custom bang not in cache', async () => {
         const req = {
             session: {
-                bangTriggers: [],
-                tabTriggers: [],
+                bangTriggersMap: {},
+                tabTriggersMap: {},
                 triggersCachedAt: Date.now(),
             },
         } as unknown as Request;

@@ -18,10 +18,10 @@ declare module 'express-session' {
         hiddenItemsVerifiedAt?: number;
         /** Timestamp when user data was cached in session */
         userCachedAt?: number;
-        /** Cached set of user's custom bang triggers for fast lookup */
-        bangTriggers?: string[];
-        /** Cached set of user's tab triggers for fast lookup */
-        tabTriggers?: string[];
+        /** Cached map of user's custom bang triggers for O(1) lookup */
+        bangTriggersMap?: Record<string, true>;
+        /** Cached map of user's tab triggers for O(1) lookup */
+        tabTriggersMap?: Record<string, true>;
         /** Timestamp when bang/tab triggers were cached */
         triggersCachedAt?: number;
     }
