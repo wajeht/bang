@@ -4,6 +4,7 @@ export function ValidationUtils() {
     const REGEX_WWW_PREFIX = /^www\./i;
     const REGEX_DOMAIN_PATTERN =
         /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/i;
+    const REGEX_URL_PROTOCOL = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
 
     function isValidUrl(url: string): boolean {
         try {
@@ -53,10 +54,44 @@ export function ValidationUtils() {
         return false;
     }
 
+    /**
+     * Extract URL from text - finds protocol URLs (http/https) or www prefixes
+     * Returns the URL and its position, or null if not found
+     */
+    function extractUrlFromText(
+        text: string,
+    ): { url: string; startIndex: number; endIndex: number } | null {
+        const match = text.match(REGEX_URL_PROTOCOL);
+        if (match && match.index !== undefined) {
+            return {
+                url: match[0],
+                startIndex: match.index,
+                endIndex: match.index + match[0].length,
+            };
+        }
+        return null;
+    }
+
+    /**
+     * Find domain-like URL in word array
+     * Returns index of URL word and the URL, or null if not found
+     */
+    function findDomainUrlInWords(words: string[]): { urlIndex: number; url: string } | null {
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            if (word && isUrlLike(word)) {
+                return { urlIndex: i, url: word };
+            }
+        }
+        return null;
+    }
+
     return {
         isValidUrl,
         isValidEmail,
         isOnlyLettersAndNumbers,
         isUrlLike,
+        extractUrlFromText,
+        findDomainUrlInWords,
     };
 }

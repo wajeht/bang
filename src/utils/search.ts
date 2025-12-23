@@ -119,10 +119,6 @@ export function SearchUtils(context: AppContext) {
          * Admin-only direct command search paths
          */
         adminOnlySearchPaths: new Set(['@u', '@user', '@users']),
-        /**
-         * URL pattern regex for protocol URLs (pre-compiled)
-         */
-        urlProtocolRegex: /(https?:\/\/[^\s]+|www\.[^\s]+)/i,
     } as const;
 
     const reminderTimingConfig = {
@@ -172,38 +168,6 @@ export function SearchUtils(context: AppContext) {
             return this.allValues;
         },
     } as const;
-
-    /**
-     * Extract URL from text - finds protocol URLs (http/https) or www prefixes
-     * Returns the URL and its position, or null if not found
-     */
-    function extractUrlFromText(
-        text: string,
-    ): { url: string; startIndex: number; endIndex: number } | null {
-        const match = text.match(searchConfig.urlProtocolRegex);
-        if (match && match.index !== undefined) {
-            return {
-                url: match[0],
-                startIndex: match.index,
-                endIndex: match.index + match[0].length,
-            };
-        }
-        return null;
-    }
-
-    /**
-     * Find domain-like URL in word array using isUrlLike validation
-     * Returns index of URL word and the URL, or null if not found
-     */
-    function findDomainUrlInWords(words: string[]): { urlIndex: number; url: string } | null {
-        for (let i = 0; i < words.length; i++) {
-            const word = words[i];
-            if (word && context.utils.validation.isUrlLike(word)) {
-                return { urlIndex: i, url: word };
-            }
-        }
-        return null;
-    }
 
     return {
         searchConfig,
@@ -674,7 +638,7 @@ export function SearchUtils(context: AppContext) {
                 text: string,
             ): { description: string; url: string | null } => {
                 // Try protocol URL first
-                const protocolUrl = extractUrlFromText(text);
+                const protocolUrl = context.utils.validation.extractUrlFromText(text);
                 if (protocolUrl) {
                     const desc = text.slice(0, protocolUrl.startIndex).trim();
                     return { description: desc || 'Untitled', url: protocolUrl.url };
@@ -682,7 +646,7 @@ export function SearchUtils(context: AppContext) {
 
                 // Try domain-like patterns
                 const words = text.split(' ');
-                const domainUrl = findDomainUrlInWords(words);
+                const domainUrl = context.utils.validation.findDomainUrlInWords(words);
                 if (domainUrl) {
                     const desc = words.slice(0, domainUrl.urlIndex).join(' ');
                     return { description: desc || 'Untitled', url: domainUrl.url };
