@@ -1,10 +1,19 @@
 import { bangs } from '../../db/bang';
 import type { Request, Response } from 'express';
-import type { Bang, User, AppContext } from '../../type';
-
-const activeBangsPrefetch = new Set<string>();
+import type { Bang, User, AppContext, BangWithLowercase } from '../../type';
 
 export function GeneralRouter(ctx: AppContext) {
+    const activeBangsPrefetch = new Set<string>();
+
+    const bangsArray = Object.values(bangs as Record<string, Bang>);
+
+    const bangsWithLowercase: BangWithLowercase[] = bangsArray.map((bang) => ({
+        ...bang,
+        _tLower: bang.t.toLowerCase(),
+        _sLower: bang.s.toLowerCase(),
+        _dLower: bang.d.toLowerCase(),
+    }));
+
     const router = ctx.libs.express.Router();
 
     router.get('/healthz', async (req: Request, res: Response) => {
@@ -63,21 +72,42 @@ export function GeneralRouter(ctx: AppContext) {
             per_page = 100,
         } = req.query;
 
-        const bangsArray = Object.values(bangs as Record<string, Bang>);
+        const searchStr = String(searchTerm).toLowerCase();
+        const hasSearch = searchStr.length > 0;
+        const key = sort_key as keyof Bang;
+        const isAsc = direction === 'asc';
+        const sortMultiplier = isAsc ? 1 : -1;
 
-        const filteredBangs = bangsArray.filter(
-            (bang) =>
-                bang.t.toLowerCase().includes(String(searchTerm).toLowerCase()) ||
-                bang.s.toLowerCase().includes(String(searchTerm).toLowerCase()) ||
-                bang.d.toLowerCase().includes(String(searchTerm).toLowerCase()),
-        );
+        let filteredBangs: BangWithLowercase[];
 
-        const sortedBangs = filteredBangs.sort((a, b) => {
-            const key = sort_key as keyof Bang;
-            if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
-            if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
-            return 0;
-        });
+        if (hasSearch) {
+            filteredBangs = [];
+            const len = bangsWithLowercase.length;
+            for (let i = 0; i < len; i++) {
+                const bang = bangsWithLowercase[i]!;
+                if (
+                    bang._tLower.includes(searchStr) ||
+                    bang._sLower.includes(searchStr) ||
+                    bang._dLower.includes(searchStr)
+                ) {
+                    filteredBangs.push(bang);
+                }
+            }
+        } else {
+            filteredBangs = bangsWithLowercase;
+        }
+
+        const sortedBangs = hasSearch
+            ? filteredBangs.sort((a, b) => {
+                  if (a[key] < b[key]) return -sortMultiplier;
+                  if (a[key] > b[key]) return sortMultiplier;
+                  return 0;
+              })
+            : [...filteredBangs].sort((a, b) => {
+                  if (a[key] < b[key]) return -sortMultiplier;
+                  if (a[key] > b[key]) return sortMultiplier;
+                  return 0;
+              });
 
         const { data, ...pagination } = ctx.utils.util.paginate(sortedBangs, {
             page: Number(page),
@@ -85,17 +115,28 @@ export function GeneralRouter(ctx: AppContext) {
             total: sortedBangs.length,
         });
 
-        const highlightedData = searchTerm
-            ? data.map((bang: Bang) => ({
-                  ...bang,
-                  s: ctx.utils.html.highlightSearchTerm(bang.s, String(searchTerm)),
-                  t: ctx.utils.html.highlightSearchTerm(bang.t, String(searchTerm)),
-                  d: ctx.utils.html.highlightSearchTerm(bang.d, String(searchTerm)),
-                  u: ctx.utils.html.highlightSearchTerm(bang.u, String(searchTerm)),
-                  c: ctx.utils.html.highlightSearchTerm(bang.c, String(searchTerm)),
-                  sc: ctx.utils.html.highlightSearchTerm(bang.sc, String(searchTerm)),
-              }))
-            : data;
+        // Only highlight the paginated data
+        let highlightedData: Bang[];
+        if (hasSearch) {
+            const dataLen = data.length;
+            // oxlint-disable-next-line unicorn/no-new-array
+            highlightedData = new Array(dataLen);
+            const searchTermStr = String(searchTerm);
+            for (let i = 0; i < dataLen; i++) {
+                const bang = data[i]!;
+                highlightedData[i] = {
+                    c: ctx.utils.html.highlightSearchTerm(bang.c, searchTermStr) ?? bang.c,
+                    d: ctx.utils.html.highlightSearchTerm(bang.d, searchTermStr) ?? bang.d,
+                    r: bang.r,
+                    s: ctx.utils.html.highlightSearchTerm(bang.s, searchTermStr) ?? bang.s,
+                    sc: ctx.utils.html.highlightSearchTerm(bang.sc, searchTermStr) ?? bang.sc,
+                    t: ctx.utils.html.highlightSearchTerm(bang.t, searchTermStr) ?? bang.t,
+                    u: ctx.utils.html.highlightSearchTerm(bang.u, searchTermStr) ?? bang.u,
+                };
+            }
+        } else {
+            highlightedData = data;
+        }
 
         return res.render('general/bangs-get.html', {
             layout: '_layouts/auth.html',
@@ -124,10 +165,16 @@ export function GeneralRouter(ctx: AppContext) {
             activeBangsPrefetch.add(adminId);
 
             try {
-                const bangsArray = Object.values(bangs as Record<string, Bang>);
-                const urls = bangsArray
-                    .map((bang) => bang.u.replace('{{{s}}}', ''))
-                    .filter((url) => url && url.startsWith('http'));
+                const urls: string[] = [];
+                const len = bangsArray.length;
+                for (let i = 0; i < len; i++) {
+                    const bang = bangsArray[i];
+                    if (!bang) continue;
+                    const url = bang.u.replace('{{{s}}}', '');
+                    if (url && url.startsWith('http')) {
+                        urls.push(url);
+                    }
+                }
 
                 if (urls.length === 0) {
                     req.flash('info', 'No URLs to prefetch');

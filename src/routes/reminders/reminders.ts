@@ -2,6 +2,8 @@ import type { Request, Response } from 'express';
 import type { User, AppContext } from '../../type';
 
 export function RemindersRouter(ctx: AppContext) {
+    const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+
     const router = ctx.libs.express.Router();
 
     /**
@@ -317,13 +319,10 @@ export function RemindersRouter(ctx: AppContext) {
             throw new ctx.errors.ValidationError({ when: 'When is required' });
         }
 
-        if (custom_time) {
-            const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-            if (!timeRegex.test(custom_time)) {
-                throw new ctx.errors.ValidationError({
-                    custom_time: 'Invalid time format. Must be HH:MM (24-hour format)',
-                });
-            }
+        if (custom_time && !REGEX_TIME_FORMAT.test(custom_time)) {
+            throw new ctx.errors.ValidationError({
+                custom_time: 'Invalid time format. Must be HH:MM (24-hour format)',
+            });
         }
 
         const timeInput = when === 'custom' ? custom_date : when;
@@ -403,13 +402,10 @@ export function RemindersRouter(ctx: AppContext) {
             throw new ctx.errors.ValidationError({ when: 'When is required' });
         }
 
-        if (custom_time) {
-            const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-            if (!timeRegex.test(custom_time)) {
-                throw new ctx.errors.ValidationError({
-                    custom_time: 'Invalid time format. Must be HH:MM (24-hour format)',
-                });
-            }
+        if (custom_time && !REGEX_TIME_FORMAT.test(custom_time)) {
+            throw new ctx.errors.ValidationError({
+                custom_time: 'Invalid time format. Must be HH:MM (24-hour format)',
+            });
         }
 
         const timeInput = when === 'custom' ? custom_date : when;

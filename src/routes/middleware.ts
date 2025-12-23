@@ -282,6 +282,8 @@ export function CsrfMiddleware(ctx: AppContext) {
 }
 
 export function AppLocalStateMiddleware(ctx: AppContext) {
+    const FORM_DATA_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
+
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
             // Skip for API routes - they don't need template locals
@@ -290,7 +292,7 @@ export function AppLocalStateMiddleware(ctx: AppContext) {
             }
 
             // Set session input for form data before setting up locals
-            if (/^(POST|PATCH|PUT|DELETE)$/.test(req.method) && req.session) {
+            if (FORM_DATA_METHODS.has(req.method) && req.session) {
                 req.session.input = req.body as Record<string, any>;
             }
 

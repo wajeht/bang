@@ -1,4 +1,10 @@
 export function ValidationUtils() {
+    const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const REGEX_ALPHANUMERIC = /^[a-zA-Z0-9]+$/;
+    const REGEX_WWW_PREFIX = /^www\./i;
+    const REGEX_DOMAIN_PATTERN =
+        /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/i;
+
     function isValidUrl(url: string): boolean {
         try {
             new URL(url);
@@ -9,12 +15,11 @@ export function ValidationUtils() {
     }
 
     function isValidEmail(email: string): boolean {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+        return REGEX_EMAIL.test(email);
     }
 
     function isOnlyLettersAndNumbers(str: string): boolean {
-        return /^[a-zA-Z0-9]+$/.test(str);
+        return REGEX_ALPHANUMERIC.test(str);
     }
 
     function isUrlLike(str: string): boolean {
@@ -26,7 +31,7 @@ export function ValidationUtils() {
         if (isValidUrl(trimmed)) return true;
 
         // Check for www.* patterns (case insensitive)
-        if (/^www\./i.test(trimmed)) {
+        if (REGEX_WWW_PREFIX.test(trimmed)) {
             try {
                 new URL(`https://${trimmed}`);
                 return true;
@@ -36,10 +41,7 @@ export function ValidationUtils() {
         }
 
         // Check for domain-like patterns (e.g., google.com, Google.COM)
-        const domainPattern =
-            /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/i;
-
-        if (domainPattern.test(trimmed)) {
+        if (REGEX_DOMAIN_PATTERN.test(trimmed)) {
             try {
                 new URL(`https://${trimmed}`);
                 return true;

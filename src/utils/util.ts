@@ -649,7 +649,7 @@ export function Utils(context: AppContext) {
             type: 'bookmarks' | 'bangs',
             id: number,
         ): Promise<void> {
-            if (!['bookmarks', 'bangs'].includes(type)) {
+            if (type !== 'bookmarks' && type !== 'bangs') {
                 throw new errors.ValidationError({
                     type: 'Invalid type, must be either "bookmarks" or "bangs"',
                 });

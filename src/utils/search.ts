@@ -36,26 +36,25 @@ export function SearchUtils(context: AppContext) {
          * Default search providers
          */
         defaultSearchProviders: {
-            duckduckgo: `https://duckduckgo.com/?q={{{s}}}`,
-            google: `https://www.google.com/search?q={{{s}}}`,
-            yahoo: `https://search.yahoo.com/search?p={{{s}}}`,
-            bing: `https://www.bing.com/search?q={{{s}}}`,
-        } as const,
+            duckduckgo: 'https://duckduckgo.com/?q={{{s}}}',
+            google: 'https://www.google.com/search?q={{{s}}}',
+            yahoo: 'https://search.yahoo.com/search?p={{{s}}}',
+            bing: 'https://www.bing.com/search?q={{{s}}}',
+        },
         /**
-         * Regular expressions for parsing search queries
+         * Valid search provider keys
+         */
+        validSearchProviders: new Set(['duckduckgo', 'google', 'yahoo', 'bing']),
+        /**
+         * Character codes for string comparison
+         */
+        charCodes: { bang: 33, at: 64 },
+        /**
+         * Regular expressions for parsing
          */
         regex: {
-            /**
-             * Regular expression for matching triggers
-             */
             trigger: /^([!@]\S+)/,
-            /**
-             * Regular expression for matching domains
-             */
             domain: /^[a-zA-Z0-9][\w.-]*\.[a-zA-Z]{2,}/,
-            /**
-             * Regular expression for matching whitespace
-             */
             whitespace: /\s+/g,
         },
         /**
@@ -109,16 +108,37 @@ export function SearchUtils(context: AppContext) {
          */
         custom: [{ value: 'custom', text: 'Custom Date...' }],
         /**
+         * All timing options combined for UI dropdowns (pre-computed)
+         */
+        allOptions: [
+            { value: 'daily', text: 'Daily (recurring)' },
+            { value: 'weekly', text: 'Weekly (recurring)' },
+            { value: 'monthly', text: 'Monthly (recurring)' },
+            { value: 'custom', text: 'Custom Date...' },
+        ],
+        /**
+         * All timing values for validation
+         */
+        allValues: ['daily', 'weekly', 'monthly', 'custom'],
+        /**
+         * Valid timing keywords
+         */
+        validKeywords: new Set(['daily', 'weekly', 'monthly']),
+        /**
+         * Regex for date pattern matching
+         */
+        datePattern: /^(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/\d{4}|\w{3}-\d{1,2})$/,
+        /**
          * Get all timing options combined for UI dropdowns
          */
         getAllOptions() {
-            return [...this.recurring, ...this.custom];
+            return this.allOptions;
         },
         /**
          * Get all supported timing values for validation
          */
         getAllValues() {
-            return this.getAllOptions().map((option) => option.value);
+            return this.allValues;
         },
     } as const;
 
@@ -299,7 +319,10 @@ export function SearchUtils(context: AppContext) {
             }
 
             const trigger: string = triggerMatch[0];
-            const commandType: 'bang' | 'direct' = trigger[0] === '!' ? 'bang' : 'direct';
+            // Use char code comparison for faster type detection
+            const firstCharCode = trigger.charCodeAt(0);
+            const commandType: 'bang' | 'direct' =
+                firstCharCode === searchConfig.charCodes.bang ? 'bang' : 'direct';
             const remaining: string = trimmed.slice(trigger.length).trim();
 
             // direct commands
@@ -321,19 +344,20 @@ export function SearchUtils(context: AppContext) {
                 let urlEnd: number = -1;
                 let foundUrl: string | null = null;
 
-                // Look for protocol URLs first
-                const httpIndex: number = remaining.indexOf('http://');
-                const httpsIndex: number = remaining.indexOf('https://');
+                // Look for protocol URLs first - combined search
+                // Search for 'http' once, then check if it's http:// or https://
+                const httpPos = remaining.indexOf('http');
+                if (httpPos !== -1) {
+                    // Check if it's https:// or http://
+                    const afterHttp = remaining.slice(httpPos, httpPos + 8);
+                    if (afterHttp === 'https://') {
+                        urlStart = httpPos;
+                    } else if (remaining.slice(httpPos, httpPos + 7) === 'http://') {
+                        urlStart = httpPos;
+                    }
+                }
 
-                if (httpIndex !== -1 || httpsIndex !== -1) {
-                    // Find the earliest protocol occurrence
-                    urlStart =
-                        httpIndex === -1
-                            ? httpsIndex
-                            : httpsIndex === -1
-                              ? httpIndex
-                              : Math.min(httpIndex, httpsIndex);
-
+                if (urlStart !== -1) {
                     // Find the end of the URL (next space or end of string)
                     urlEnd = remaining.indexOf(' ', urlStart);
                     if (urlEnd === -1) urlEnd = remaining.length;
@@ -582,18 +606,20 @@ export function SearchUtils(context: AppContext) {
             description: string;
             content: string | null;
         } {
-            const validTimingKeywords = ['daily', 'weekly', 'monthly'];
-            const datePattern = /^(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/\d{4}|\w{3}-\d{1,2})$/;
-
             // Handle pipe-separated format: !remind [timing] description | content
             if (reminderContent.includes('|')) {
-                const parts = reminderContent.split('|').map((part) => part.trim());
+                // Imperative loop instead of .map() for splitting
+                const rawParts = reminderContent.split('|');
+                const parts: string[] = [];
+                for (let i = 0; i < rawParts.length; i++) {
+                    parts.push(rawParts[i]!.trim());
+                }
                 const firstPart = parts[0] || '';
 
-                // Check if first word is a timing keyword
                 const firstWord = firstPart.split(' ')[0]?.toLowerCase() || '';
                 const isValidTiming =
-                    validTimingKeywords.includes(firstWord) || datePattern.test(firstWord);
+                    reminderTimingConfig.validKeywords.has(firstWord) ||
+                    reminderTimingConfig.datePattern.test(firstWord);
 
                 if (isValidTiming) {
                     const remainingFirstPart = firstPart.split(' ').slice(1).join(' ').trim();
@@ -628,7 +654,10 @@ export function SearchUtils(context: AppContext) {
             const words = reminderContent.split(' ');
             const firstWord = words[0]?.toLowerCase() || '';
 
-            if (validTimingKeywords.includes(firstWord) || datePattern.test(firstWord)) {
+            if (
+                reminderTimingConfig.validKeywords.has(firstWord) ||
+                reminderTimingConfig.datePattern.test(firstWord)
+            ) {
                 const remainingText = words.slice(1).join(' ');
 
                 // Look for URLs with protocols or www prefix in the remaining text

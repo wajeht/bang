@@ -1,12 +1,37 @@
 export function HtmlUtils() {
+    const REGEX_WHITESPACE = /\s+/;
+    const REGEX_ESCAPE_SPECIAL = /[.*+?^${}()|[\]\\]/g;
+    const REGEX_HTML_TAGS = /<[^>]*>/g;
+    const REGEX_MULTI_WHITESPACE = /\s+/g;
+    const REGEX_SPACE_DOT = /\s*\.\s*/g;
+    const REGEX_SPACE_SLASH = /\s*\/\s*/g;
+    const REGEX_SPACE_COLON = /\s*:\s*/g;
+    const REGEX_NBSP = /&nbsp;/g;
+    const REGEX_LT_ENTITY = /&lt;/g;
+    const REGEX_GT_ENTITY = /&gt;/g;
+    const REGEX_AMP_ENTITY = /&amp;/g;
+    const REGEX_NL2BR = /(?:\r\n|\r|\n|\t| )/g;
+    const REGEX_HTML_CHARS = /[&<>"']/g;
+
+    const HTML_ENTITIES: Record<string, string> = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+    };
+
+    const NL2BR_MAP: Record<string, string> = {
+        '\r\n': '<br>',
+        '\r': '<br>',
+        '\n': '<br>',
+        '\t': '&nbsp;&nbsp;&nbsp;&nbsp;',
+        ' ': '&nbsp;',
+    };
+
     return {
         escapeHtml(text: string): string {
-            return text
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
+            return text.replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES[char] || char);
         },
 
         highlightSearchTerm(
@@ -16,31 +41,32 @@ export function HtmlUtils() {
             if (!searchTerm || !text) return text;
 
             const original = String(text || '');
+            const trimmedSearch = searchTerm.trim();
 
-            if (!searchTerm.trim()) return original;
+            if (!trimmedSearch) return original;
 
-            const searchWords = searchTerm
-                .trim()
-                .split(/\s+/)
-                .filter((word) => word.length > 0);
+            const searchWords = trimmedSearch.split(REGEX_WHITESPACE);
+            const wordCount = searchWords.length;
 
-            if (searchWords.length === 0) return original;
+            let hasValidWords = false;
+            const escapedWords: string[] = [];
+            for (let i = 0; i < wordCount; i++) {
+                const word = searchWords[i];
+                if (word && word.length > 0) {
+                    escapedWords.push(word.replace(REGEX_ESCAPE_SPECIAL, '\\$&'));
+                    hasValidWords = true;
+                }
+            }
 
-            let result = original
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
+            if (!hasValidWords) return original;
 
-            const searchRegex = new RegExp(
-                searchWords.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
-                'gi',
+            const escaped = original.replace(
+                REGEX_HTML_CHARS,
+                (char) => HTML_ENTITIES[char] || char,
             );
 
-            result = result.replace(searchRegex, (match) => `<mark>${match}</mark>`); // prettier-ignore
-
-            return result;
+            const searchRegex = new RegExp(escapedWords.join('|'), 'gi');
+            return escaped.replace(searchRegex, (match) => `<mark>${match}</mark>`);
         },
 
         /**
@@ -70,21 +96,21 @@ export function HtmlUtils() {
         stripHtmlTags(text: string | null | undefined): string {
             if (!text) return '';
             return String(text)
-                .replace(/<[^>]*>/g, '') // Remove HTML tags
-                .replace(/\s+/g, ' ') // Normalize multiple whitespace to single space
-                .replace(/\s*\.\s*/g, '.') // Remove spaces around dots (for URLs like "bang. jaw .dev")
-                .replace(/\s*\/\s*/g, '/') // Remove spaces around slashes
-                .replace(/\s*:\s*/g, ':') // Remove spaces around colons
-                .trim(); // Remove leading/trailing whitespace
+                .replace(REGEX_HTML_TAGS, '')
+                .replace(REGEX_MULTI_WHITESPACE, ' ')
+                .replace(REGEX_SPACE_DOT, '.')
+                .replace(REGEX_SPACE_SLASH, '/')
+                .replace(REGEX_SPACE_COLON, ':')
+                .trim();
         },
 
         decodeHtmlEntities(html: string): string {
             return html
-                .replace(/<[^>]*>/g, '') // Remove HTML tags
-                .replace(/&nbsp;/g, ' ') // Replace nbsp
-                .replace(/&lt;/g, '<')
-                .replace(/&gt;/g, '>')
-                .replace(/&amp;/g, '&')
+                .replace(REGEX_HTML_TAGS, '')
+                .replace(REGEX_NBSP, ' ')
+                .replace(REGEX_LT_ENTITY, '<')
+                .replace(REGEX_GT_ENTITY, '>')
+                .replace(REGEX_AMP_ENTITY, '&')
                 .trim();
         },
 
@@ -93,22 +119,7 @@ export function HtmlUtils() {
                 return '';
             }
 
-            const safeStr = String(str);
-
-            return safeStr.replace(/(?:\r\n|\r|\n|\t| )/g, (match: string) => {
-                switch (match) {
-                    case '\r\n':
-                    case '\r':
-                    case '\n':
-                        return '<br>';
-                    case '\t':
-                        return '&nbsp;&nbsp;&nbsp;&nbsp;'; // 4 spaces for a tab
-                    case ' ':
-                        return '&nbsp;'; // Non-breaking space
-                    default:
-                        return match; // Handle any other characters matched
-                }
-            });
+            return String(str).replace(REGEX_NL2BR, (match) => NL2BR_MAP[match] || match);
         },
     };
 }
