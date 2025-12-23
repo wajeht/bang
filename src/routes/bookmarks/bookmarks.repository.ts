@@ -1,6 +1,10 @@
 import type { Bookmark, Bookmarks, BookmarksQueryParams, AppContext } from '../../type';
 
 export function BookmarksRepository(ctx: AppContext): Bookmarks {
+    const REGEX_WHITESPACE = /\s+/;
+    const ALLOWED_SORT_KEYS = new Set(['title', 'url', 'created_at', 'pinned', 'hidden']);
+    const ALLOWED_UPDATE_FIELDS = new Set(['title', 'url', 'pinned', 'hidden']);
+
     return {
         all: async ({
             user,
@@ -31,30 +35,34 @@ export function BookmarksRepository(ctx: AppContext): Bookmarks {
             }
 
             if (search) {
-                const searchTerms = search
-                    .toLowerCase()
-                    .trim()
-                    .split(/\s+/) // Split on whitespace
-                    .filter((term) => term.length > 0)
-                    .map((term) => term.replace(/[%_]/g, '\\$&')); // Escape LIKE special chars
+                // Split search into terms and escape SQL wildcards
+                const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
+                const searchTerms: string[] = [];
+                for (let i = 0; i < rawTerms.length; i++) {
+                    const term = rawTerms[i];
+                    if (term && term.length > 0) {
+                        searchTerms.push(term.replace(/[%_]/g, '\\$&'));
+                    }
+                }
 
+                // Each term must match either title or url
                 query.where((q: any) => {
-                    // Each term must match either title or url
-                    searchTerms.forEach((term) => {
+                    for (let i = 0; i < searchTerms.length; i++) {
+                        const term = searchTerms[i]!;
                         q.andWhere((subQ: any) => {
                             subQ.whereRaw('LOWER(title) LIKE ?', [`%${term}%`]).orWhereRaw(
                                 'LOWER(url) LIKE ?',
                                 [`%${term}%`],
                             );
                         });
-                    });
+                    }
                 });
             }
 
             // Always sort by pinned first (pinned bookmarks at top), then by the requested sort
             query.orderBy('pinned', 'desc');
 
-            if (['title', 'url', 'created_at', 'pinned', 'hidden'].includes(sortKey)) {
+            if (ALLOWED_SORT_KEYS.has(sortKey)) {
                 query.orderBy(sortKey, direction);
             } else {
                 query.orderBy('created_at', 'desc');
@@ -87,11 +95,17 @@ export function BookmarksRepository(ctx: AppContext): Bookmarks {
         },
 
         update: async (id: number, userId: number, updates: Partial<Bookmark>) => {
-            const allowedFields = ['title', 'url', 'pinned', 'hidden'];
-
-            const updateData = Object.fromEntries(
-                Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
-            );
+            // Filter to only allowed update fields
+            const updateData: Record<string, unknown> = {};
+            const entries = Object.entries(updates);
+            for (let i = 0; i < entries.length; i++) {
+                const entry = entries[i];
+                if (!entry) continue;
+                const [key, value] = entry;
+                if (ALLOWED_UPDATE_FIELDS.has(key)) {
+                    updateData[key] = value;
+                }
+            }
 
             if (Object.keys(updateData).length === 0) {
                 throw new Error('No valid fields provided for update');

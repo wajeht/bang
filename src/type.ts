@@ -461,3 +461,9 @@ export interface AppContext {
     utils: Utilities;
     middleware: Middlewares;
 }
+
+export interface BangWithLowercase extends Bang {
+    _tLower: string;
+    _sLower: string;
+    _dLower: string;
+}

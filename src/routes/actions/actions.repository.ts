@@ -1,6 +1,20 @@
 import type { Action, Actions, ActionsQueryParams, AppContext } from '../../type';
 
 export function ActionsRepository(ctx: AppContext): Actions {
+    const REGEX_WHITESPACE = /\s+/;
+    const ALLOWED_SORT_KEYS = new Set([
+        'name',
+        'trigger',
+        'url',
+        'created_at',
+        'action_type',
+        'last_read_at',
+        'usage_count',
+        'hidden',
+    ]);
+    const ALLOWED_UPDATE_FIELDS = new Set(['name', 'trigger', 'url', 'actionType', 'hidden']);
+    const VALID_ACTION_TYPES = new Set(['search', 'redirect']);
+
     return {
         all: async ({
             user,
@@ -48,37 +62,30 @@ export function ActionsRepository(ctx: AppContext): Actions {
             }
 
             if (search) {
-                const searchTerms = search
-                    .toLowerCase()
-                    .trim()
-                    .split(/\s+/)
-                    .filter((term) => term.length > 0)
-                    .map((term) => term.replace(/[%_]/g, '\\$&'));
+                // Split search into terms and escape SQL wildcards
+                const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
+                const searchTerms: string[] = [];
+                for (let i = 0; i < rawTerms.length; i++) {
+                    const term = rawTerms[i];
+                    if (term && term.length > 0) {
+                        searchTerms.push(term.replace(/[%_]/g, '\\$&'));
+                    }
+                }
 
+                // Each term must match name, trigger, or url
                 query.where((q: any) => {
-                    // Each term must match name, trigger, or url
-                    searchTerms.forEach((term) => {
+                    for (let i = 0; i < searchTerms.length; i++) {
+                        const term = searchTerms[i]!;
                         q.andWhere((subQ: any) => {
                             subQ.whereRaw('LOWER(bangs.name) LIKE ?', [`%${term}%`])
                                 .orWhereRaw('LOWER(bangs.trigger) LIKE ?', [`%${term}%`])
                                 .orWhereRaw('LOWER(bangs.url) LIKE ?', [`%${term}%`]);
                         });
-                    });
+                    }
                 });
             }
 
-            if (
-                [
-                    'name',
-                    'trigger',
-                    'url',
-                    'created_at',
-                    'action_type',
-                    'last_read_at',
-                    'usage_count',
-                    'hidden',
-                ].includes(sortKey)
-            ) {
+            if (ALLOWED_SORT_KEYS.has(sortKey)) {
                 query.orderBy(`bangs.${sortKey}`, direction);
             } else {
                 query.orderBy('bangs.created_at', 'desc');
@@ -98,7 +105,7 @@ export function ActionsRepository(ctx: AppContext): Actions {
                 throw new Error('Missing required fields to create an action');
             }
 
-            if (!['search', 'redirect'].includes(action.actionType)) {
+            if (!VALID_ACTION_TYPES.has(action.actionType)) {
                 throw new Error('Invalid action type');
             }
 
@@ -136,17 +143,23 @@ export function ActionsRepository(ctx: AppContext): Actions {
             userId: number,
             updates: Partial<Action> & { actionType: string },
         ) => {
-            const allowedFields = ['name', 'trigger', 'url', 'actionType', 'hidden'];
-
-            const updateData = Object.fromEntries(
-                Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
-            );
+            // Filter to only allowed update fields
+            const updateData: Record<string, unknown> = {};
+            const entries = Object.entries(updates);
+            for (let i = 0; i < entries.length; i++) {
+                const entry = entries[i];
+                if (!entry) continue;
+                const [key, value] = entry;
+                if (ALLOWED_UPDATE_FIELDS.has(key)) {
+                    updateData[key] = value;
+                }
+            }
 
             if (Object.keys(updateData).length === 0) {
                 throw new Error('No valid fields provided for update');
             }
 
-            if (!['search', 'redirect'].includes(updates.actionType)) {
+            if (!VALID_ACTION_TYPES.has(updates.actionType)) {
                 throw new Error('Invalid action type');
             }
 

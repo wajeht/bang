@@ -4,6 +4,8 @@ import type { User, AppContext } from '../type';
 import type { Attachment } from 'nodemailer/lib/mailer';
 
 export function MailUtils(context: AppContext) {
+    const DEV_ENVIRONMENTS = new Set(['development', 'staging', 'test', 'testing', 'ci', 'dev']);
+
     const emailTransporter = context.libs.nodemailer.createTransport({
         host: context.config.email.host,
         port: context.config.email.port,
@@ -20,9 +22,7 @@ export function MailUtils(context: AppContext) {
     return {
         async sendEmailWithFallback(mailOptions: any, emailType: string): Promise<void> {
             if (
-                ['development', 'staging', 'test', 'testing', 'ci', 'dev'].includes(
-                    context.config.app.env,
-                ) &&
+                DEV_ENVIRONMENTS.has(context.config.app.env) &&
                 (await this.isMailpitRunning()) === false
             ) {
                 this.logEmailToConsole(mailOptions, emailType);

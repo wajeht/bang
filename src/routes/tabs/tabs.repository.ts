@@ -1,6 +1,10 @@
 import type { Tab, Tabs, TabsQueryParams, AppContext } from '../../type';
 
 export function TabsRepository(ctx: AppContext): Tabs {
+    const REGEX_WHITESPACE = /\s+/;
+    const ALLOWED_SORT_KEYS = new Set(['title', 'trigger', 'created_at', 'items_count']);
+    const ALLOWED_UPDATE_FIELDS = new Set(['title', 'trigger']);
+
     return {
         all: async ({
             user,
@@ -28,15 +32,20 @@ export function TabsRepository(ctx: AppContext): Tabs {
                 .where('tabs.user_id', user.id);
 
             if (search) {
-                const searchTerms = search
-                    .toLowerCase()
-                    .trim()
-                    .split(/\s+/)
-                    .filter((term) => term.length > 0)
-                    .map((term) => term.replace(/[%_]/g, '\\$&'));
+                // Split search into terms and escape SQL wildcards
+                const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
+                const searchTerms: string[] = [];
+                for (let i = 0; i < rawTerms.length; i++) {
+                    const term = rawTerms[i];
+                    if (term && term.length > 0) {
+                        searchTerms.push(term.replace(/[%_]/g, '\\$&'));
+                    }
+                }
 
+                // Each term must match title, trigger, or tab item title/url
                 query.where((q: any) => {
-                    searchTerms.forEach((term) => {
+                    for (let i = 0; i < searchTerms.length; i++) {
+                        const term = searchTerms[i]!;
                         q.andWhere((subQ: any) => {
                             subQ.whereRaw('LOWER(tabs.title) LIKE ?', [`%${term}%`])
                                 .orWhereRaw('LOWER(tabs.trigger) LIKE ?', [`%${term}%`])
@@ -56,11 +65,11 @@ export function TabsRepository(ctx: AppContext): Tabs {
                                         });
                                 });
                         });
-                    });
+                    }
                 });
             }
 
-            if (['title', 'trigger', 'created_at', 'items_count'].includes(sortKey)) {
+            if (ALLOWED_SORT_KEYS.has(sortKey)) {
                 if (sortKey === 'items_count') {
                     query.orderByRaw('items_count ' + direction);
                 } else {
@@ -76,9 +85,13 @@ export function TabsRepository(ctx: AppContext): Tabs {
                 isLengthAware: true,
             });
 
-            // Fetch tab items for all tabs if needed
+            // Fetch tab items for all tabs
             if (result.data.length > 0) {
-                const tabIds = result.data.map((tab: any) => tab.id);
+                // Collect all tab IDs for batch query
+                const tabIds: number[] = [];
+                for (let i = 0; i < result.data.length; i++) {
+                    tabIds.push((result.data[i] as any).id);
+                }
 
                 let itemsQuery = ctx.db
                     .select('id', 'tab_id', 'created_at', 'updated_at', 'title', 'url')
@@ -86,29 +99,28 @@ export function TabsRepository(ctx: AppContext): Tabs {
                     .whereIn('tab_id', tabIds);
 
                 if (search) {
+                    const searchLower = search.toLowerCase();
                     itemsQuery = itemsQuery.where((builder: any) => {
                         builder
-                            .whereRaw('LOWER(tab_items.title) LIKE ?', [
-                                `%${search.toLowerCase()}%`,
-                            ])
-                            .orWhereRaw('LOWER(tab_items.url) LIKE ?', [
-                                `%${search.toLowerCase()}%`,
-                            ]);
+                            .whereRaw('LOWER(tab_items.title) LIKE ?', [`%${searchLower}%`])
+                            .orWhereRaw('LOWER(tab_items.url) LIKE ?', [`%${searchLower}%`]);
                     });
                 }
 
                 const allItems = await itemsQuery.orderBy('created_at', 'asc');
 
-                // Group items by tab_id
-                const itemsByTab = allItems.reduce((acc: any, item: any) => {
-                    if (!acc[item.tab_id]) acc[item.tab_id] = [];
-                    acc[item.tab_id].push(item);
-                    return acc;
-                }, {});
+                // Group items by tab_id for efficient assignment
+                const itemsByTab: Record<number, any[]> = {};
+                for (let i = 0; i < allItems.length; i++) {
+                    const item = allItems[i]!;
+                    if (!itemsByTab[item.tab_id]) itemsByTab[item.tab_id] = [];
+                    itemsByTab[item.tab_id]!.push(item);
+                }
 
                 // Assign items to tabs
-                for (const tab of result.data) {
-                    (tab as any).items = itemsByTab[(tab as any).id] || [];
+                for (let i = 0; i < result.data.length; i++) {
+                    const tab = result.data[i] as any;
+                    tab.items = itemsByTab[tab.id] || [];
                 }
             }
 
@@ -159,11 +171,17 @@ export function TabsRepository(ctx: AppContext): Tabs {
         },
 
         update: async (id: number, userId: number, updates: Partial<Tab>) => {
-            const allowedFields = ['title', 'trigger'];
-
-            const updateData = Object.fromEntries(
-                Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
-            );
+            // Filter to only allowed update fields
+            const updateData: Record<string, unknown> = {};
+            const entries = Object.entries(updates);
+            for (let i = 0; i < entries.length; i++) {
+                const entry = entries[i];
+                if (!entry) continue;
+                const [key, value] = entry;
+                if (ALLOWED_UPDATE_FIELDS.has(key)) {
+                    updateData[key] = value;
+                }
+            }
 
             if (Object.keys(updateData).length === 0) {
                 throw new Error('No valid fields provided for update');

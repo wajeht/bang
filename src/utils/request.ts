@@ -2,6 +2,16 @@ import type { Request } from 'express';
 import type { User, PageType, AppContext } from '../type';
 
 export function RequestUtils(context: AppContext) {
+    type PreferenceKey = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders' | 'users';
+    const PAGE_TYPE_TO_PREFERENCE: Record<PageType | 'admin', PreferenceKey> = {
+        actions: 'actions',
+        bookmarks: 'bookmarks',
+        notes: 'notes',
+        tabs: 'tabs',
+        reminders: 'reminders',
+        admin: 'users',
+    };
+
     return {
         async extractUser(req: Request): Promise<User> {
             if (this.isApiRequest(req) && req.apiKeyPayload) {
@@ -26,31 +36,10 @@ export function RequestUtils(context: AppContext) {
 
         extractPaginationParams(req: Request, pageType: PageType | 'admin') {
             const user = req.user as User;
-            let defaultPerPage = 10;
 
-            if (pageType === 'actions') {
-                defaultPerPage = user.column_preferences.actions.default_per_page;
-            }
-
-            if (pageType === 'bookmarks') {
-                defaultPerPage = user.column_preferences.bookmarks.default_per_page;
-            }
-
-            if (pageType === 'notes') {
-                defaultPerPage = user.column_preferences.notes.default_per_page;
-            }
-
-            if (pageType === 'tabs') {
-                defaultPerPage = user.column_preferences.tabs?.default_per_page || 10;
-            }
-
-            if (pageType === 'reminders') {
-                defaultPerPage = user.column_preferences.reminders?.default_per_page || 20;
-            }
-
-            if (pageType === 'admin') {
-                defaultPerPage = user.column_preferences.users.default_per_page;
-            }
+            const prefKey = PAGE_TYPE_TO_PREFERENCE[pageType];
+            const prefs = user.column_preferences[prefKey];
+            const defaultPerPage = prefs?.default_per_page || (pageType === 'reminders' ? 20 : 10);
 
             const rawDirection = (req.query.direction as string)?.toLowerCase();
             const direction = rawDirection === 'asc' ? 'asc' : 'desc';
@@ -75,9 +64,14 @@ export function RequestUtils(context: AppContext) {
             // Check if IDs are provided in body (for bulk delete)
             if (req.body.id) {
                 if (Array.isArray(req.body.id)) {
-                    ids = req.body.id
-                        .map((id: string) => parseInt(id))
-                        .filter((id: number) => !isNaN(id));
+                    const bodyIds = req.body.id;
+                    ids = [];
+                    for (let i = 0; i < bodyIds.length; i++) {
+                        const parsed = parseInt(bodyIds[i]);
+                        if (!isNaN(parsed)) {
+                            ids.push(parsed);
+                        }
+                    }
                 } else {
                     // If params.id is not set and body.id is not an array, it's an error
                     if (!req.params.id) {

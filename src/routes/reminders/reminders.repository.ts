@@ -1,6 +1,16 @@
 import type { Reminder, Reminders, RemindersQueryParams, AppContext } from '../../type';
 
 export function RemindersRepository(ctx: AppContext): Reminders {
+    const REGEX_WHITESPACE = /\s+/;
+    const ALLOWED_SORT_KEYS = new Set(['title', 'content', 'due_date', 'frequency', 'created_at']);
+    const ALLOWED_UPDATE_FIELDS = new Set([
+        'title',
+        'content',
+        'reminder_type',
+        'frequency',
+        'due_date',
+    ]);
+
     return {
         all: async ({
             user,
@@ -25,26 +35,30 @@ export function RemindersRepository(ctx: AppContext): Reminders {
             query.from('reminders').where('user_id', user.id);
 
             if (search) {
-                const searchTerms = search
-                    .toLowerCase()
-                    .trim()
-                    .split(/\s+/)
-                    .filter((term) => term.length > 0)
-                    .map((term) => term.replace(/[%_]/g, '\\$&'));
+                // Split search into terms and escape SQL wildcards
+                const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
+                const searchTerms: string[] = [];
+                for (let i = 0; i < rawTerms.length; i++) {
+                    const term = rawTerms[i];
+                    if (term && term.length > 0) {
+                        searchTerms.push(term.replace(/[%_]/g, '\\$&'));
+                    }
+                }
 
+                // Each term must match title, content, or frequency
                 query.where((q: any) => {
-                    // Each term must match title, content, or frequency
-                    searchTerms.forEach((term) => {
+                    for (let i = 0; i < searchTerms.length; i++) {
+                        const term = searchTerms[i]!;
                         q.andWhere((subQ: any) => {
                             subQ.whereRaw('LOWER(title) LIKE ?', [`%${term}%`])
                                 .orWhereRaw('LOWER(content) LIKE ?', [`%${term}%`])
                                 .orWhereRaw('LOWER(frequency) LIKE ?', [`%${term}%`]);
                         });
-                    });
+                    }
                 });
             }
 
-            if (['title', 'content', 'due_date', 'frequency', 'created_at'].includes(sortKey)) {
+            if (ALLOWED_SORT_KEYS.has(sortKey)) {
                 query.orderBy(sortKey, direction);
             } else {
                 query.orderBy('due_date', 'asc');
@@ -77,11 +91,17 @@ export function RemindersRepository(ctx: AppContext): Reminders {
         },
 
         update: async (id: number, userId: number, updates: Partial<Reminder>) => {
-            const allowedFields = ['title', 'content', 'reminder_type', 'frequency', 'due_date'];
-
-            const updateData = Object.fromEntries(
-                Object.entries(updates).filter(([key]) => allowedFields.includes(key)),
-            );
+            // Filter to only allowed update fields
+            const updateData: Record<string, unknown> = {};
+            const entries = Object.entries(updates);
+            for (let i = 0; i < entries.length; i++) {
+                const entry = entries[i];
+                if (!entry) continue;
+                const [key, value] = entry;
+                if (ALLOWED_UPDATE_FIELDS.has(key)) {
+                    updateData[key] = value;
+                }
+            }
 
             if (Object.keys(updateData).length === 0) {
                 throw new Error('No valid fields provided for update');

@@ -2,6 +2,25 @@ import type { Request, Response } from 'express';
 import type { User, ApiKeyPayload, AppContext } from '../../type';
 
 export function SettingsRouter(ctx: AppContext) {
+    const VALID_TIMEZONES = new Set([
+        'UTC',
+        'America/New_York',
+        'America/Chicago',
+        'America/Denver',
+        'America/Los_Angeles',
+        'Europe/London',
+        'Europe/Paris',
+        'Europe/Berlin',
+        'Asia/Tokyo',
+        'Asia/Shanghai',
+        'Asia/Kolkata',
+        'Australia/Sydney',
+    ]);
+    const VALID_REMINDER_TIMINGS = new Set(['daily', 'weekly', 'monthly']);
+    const VALID_NOTE_VIEW_TYPES = new Set(['card', 'table']);
+    const VALID_ACTION_TYPES = new Set(['search', 'redirect']);
+    const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+
     const router = ctx.libs.express.Router();
 
     router.get('/settings', ctx.middleware.authentication, async (_req: Request, res: Response) => {
@@ -82,11 +101,7 @@ export function SettingsRouter(ctx: AppContext) {
                 });
             }
 
-            if (
-                !Object.keys(ctx.utils.search.searchConfig.defaultSearchProviders).includes(
-                    default_search_provider,
-                )
-            ) {
+            if (!ctx.utils.search.searchConfig.validSearchProviders.has(default_search_provider)) {
                 throw new ctx.errors.ValidationError({
                     default_search_provider: 'Invalid search provider selected',
                 });
@@ -96,21 +111,7 @@ export function SettingsRouter(ctx: AppContext) {
                 throw new ctx.errors.ValidationError({ timezone: 'Timezone is required' });
             }
 
-            const validTimezones = [
-                'UTC',
-                'America/New_York',
-                'America/Chicago',
-                'America/Denver',
-                'America/Los_Angeles',
-                'Europe/London',
-                'Europe/Paris',
-                'Europe/Berlin',
-                'Asia/Tokyo',
-                'Asia/Shanghai',
-                'Asia/Kolkata',
-                'Australia/Sydney',
-            ];
-            if (!validTimezones.includes(timezone)) {
+            if (!VALID_TIMEZONES.has(timezone)) {
                 throw new ctx.errors.ValidationError({ timezone: 'Invalid timezone selected' });
             }
 
@@ -290,10 +291,9 @@ export function SettingsRouter(ctx: AppContext) {
             column_preferences.notes.pinned = column_preferences.notes.pinned === 'on';
             column_preferences.notes.hidden = column_preferences.notes.hidden === 'on';
 
-            // Handle view_type preference
             if (
                 column_preferences.notes.view_type &&
-                !['card', 'table'].includes(column_preferences.notes.view_type)
+                !VALID_NOTE_VIEW_TYPES.has(column_preferences.notes.view_type)
             ) {
                 column_preferences.notes.view_type = 'table'; // Default to table if invalid
             }
@@ -443,11 +443,11 @@ export function SettingsRouter(ctx: AppContext) {
                     });
                 }
 
-                // Validate default_reminder_timing
                 if (column_preferences.reminders.default_reminder_timing) {
-                    const validTimings = ['daily', 'weekly', 'monthly'];
                     if (
-                        !validTimings.includes(column_preferences.reminders.default_reminder_timing)
+                        !VALID_REMINDER_TIMINGS.has(
+                            column_preferences.reminders.default_reminder_timing,
+                        )
                     ) {
                         throw new ctx.errors.ValidationError({
                             reminders: 'Invalid reminder timing. Must be daily, weekly, or monthly',
@@ -457,8 +457,9 @@ export function SettingsRouter(ctx: AppContext) {
 
                 // Validate default_reminder_time (HH:MM format)
                 if (column_preferences.reminders.default_reminder_time) {
-                    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-                    if (!timeRegex.test(column_preferences.reminders.default_reminder_time)) {
+                    if (
+                        !REGEX_TIME_FORMAT.test(column_preferences.reminders.default_reminder_time)
+                    ) {
                         throw new ctx.errors.ValidationError({
                             reminders:
                                 'Invalid reminder time format. Must be HH:MM (24-hour format)',
@@ -485,18 +486,19 @@ export function SettingsRouter(ctx: AppContext) {
 
             // Merge submitted preferences with existing user preferences to preserve unmodified sections
             const updatedPreferences = { ...user.column_preferences } as any;
-            Object.keys(column_preferences).forEach((section) => {
+            const sections = Object.keys(column_preferences);
+            for (let i = 0; i < sections.length; i++) {
+                const section = sections[i] as keyof typeof column_preferences;
                 if (
-                    column_preferences[section as keyof typeof column_preferences] &&
-                    typeof column_preferences[section as keyof typeof column_preferences] ===
-                        'object'
+                    column_preferences[section] &&
+                    typeof column_preferences[section] === 'object'
                 ) {
                     updatedPreferences[section] = {
                         ...updatedPreferences[section],
-                        ...column_preferences[section as keyof typeof column_preferences],
+                        ...column_preferences[section],
                     };
                 }
-            });
+            }
 
             await ctx
                 .db('users')
@@ -749,7 +751,7 @@ export function SettingsRouter(ctx: AppContext) {
                     // Import actions
                     if (importData.actions?.length > 0) {
                         for (const action of importData.actions) {
-                            if (['search', 'redirect'].includes(action.action_type)) {
+                            if (VALID_ACTION_TYPES.has(action.action_type)) {
                                 // Check if action already exists for this user
                                 const existingAction = await trx('bangs')
                                     .where({
@@ -883,22 +885,7 @@ export function SettingsRouter(ctx: AppContext) {
                                     : JSON.stringify(userPrefs.column_preferences);
                         }
                         if (userPrefs.timezone) {
-                            // Validate timezone before importing
-                            const validTimezones = [
-                                'UTC',
-                                'America/New_York',
-                                'America/Chicago',
-                                'America/Denver',
-                                'America/Los_Angeles',
-                                'Europe/London',
-                                'Europe/Paris',
-                                'Europe/Berlin',
-                                'Asia/Tokyo',
-                                'Asia/Shanghai',
-                                'Asia/Kolkata',
-                                'Australia/Sydney',
-                            ];
-                            if (validTimezones.includes(userPrefs.timezone)) {
+                            if (VALID_TIMEZONES.has(userPrefs.timezone)) {
                                 updateData.timezone = userPrefs.timezone;
                             }
                         }
