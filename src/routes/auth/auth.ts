@@ -63,7 +63,7 @@ export function AuthRouter(ctx: AppContext) {
             try {
                 await ctx.utils.mail.sendMagicLinkEmail({ email, token, req });
             } catch (error) {
-                ctx.logger.error('Failed to send magic link email: %o', { error, email });
+                ctx.logger.error('Failed to send magic link email', { error, email });
             }
         });
 
@@ -126,7 +126,7 @@ export function AuthRouter(ctx: AppContext) {
 
         req.session.regenerate((err) => {
             if (err) {
-                ctx.logger.error('Failed to regenerate session: %o', { err });
+                ctx.logger.error('Failed to regenerate session', { error: err });
                 throw new ctx.errors.HttpError(500, 'Session error', req);
             }
 
@@ -136,7 +136,7 @@ export function AuthRouter(ctx: AppContext) {
 
             req.session.save((saveErr) => {
                 if (saveErr) {
-                    ctx.logger.error('Failed to save session: %o', { saveErr });
+                    ctx.logger.error('Failed to save session', { error: saveErr });
                 }
                 req.flash('success', `🎉 Welcome ${user.username}! You're now logged in.`);
                 return res.redirect(redirectTo);
