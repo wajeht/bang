@@ -136,9 +136,9 @@ https://github.com/wajeht/bang`,
 
             try {
                 await this.sendEmailWithFallback(mailOptions, 'Magic Link');
-                context.logger.info(`Magic link sent to ${email}`);
+                context.logger.info('Magic link sent', { email });
             } catch (error) {
-                context.logger.error(`Failed to send magic link email: %o`, { error });
+                context.logger.error('Failed to send magic link email', { error, email });
             }
         },
 
@@ -177,9 +177,12 @@ https://github.com/wajeht/bang`,
 
             try {
                 await this.sendEmailWithFallback(mailOptions, 'Verification Reminder');
-                context.logger.info(`Verification reminder sent to ${email}`);
+                context.logger.info('Verification reminder sent', { email });
             } catch (error) {
-                context.logger.error(`Failed to send verification reminder email: %o`, { error });
+                context.logger.error('Failed to send verification reminder email', {
+                    error,
+                    email,
+                });
             }
         },
 
@@ -275,11 +278,12 @@ https://github.com/wajeht/bang`,
                 };
 
                 await this.sendEmailWithFallback(mailOptions, 'Data Export');
-                context.logger.info(
-                    `Data export email sent to ${email} before account deletion with ${attachments.length} attachment(s)`,
-                );
+                context.logger.info('Data export email sent', {
+                    email,
+                    attachmentCount: attachments.length,
+                });
             } catch (error) {
-                context.logger.error(`Failed to send data export email: %o`, { error });
+                context.logger.error('Failed to send data export email', { error, email });
             }
         },
 
@@ -366,11 +370,12 @@ ${formatReminderListHTML}
                     { ...mailOptions, text: emailBodyHTML },
                     'Reminder Digest',
                 );
-                context.logger.info(
-                    `Reminder digest email sent to ${email} with ${reminders.length} reminders`,
-                );
+                context.logger.info('Reminder digest email sent', {
+                    email,
+                    reminderCount: reminders.length,
+                });
             } catch (error) {
-                context.logger.error(`Failed to send reminder digest email: %o`, { error });
+                context.logger.error('Failed to send reminder digest email', { error, email });
             }
         },
 
@@ -511,11 +516,11 @@ ${formatReminderListHTML}
                     reminderCount: userData.reminders.length,
                 }));
                 context.logger.table(userSummary);
-                context.logger.info(
-                    `Processed reminder digests for ${Object.keys(remindersByUser).length} users`,
-                );
+                context.logger.info('Processed reminder digests', {
+                    userCount: Object.keys(remindersByUser).length,
+                });
             } catch (error) {
-                context.logger.error(`Failed to process reminder digests: %o`, { error });
+                context.logger.error('Failed to process reminder digests', { error });
             }
         },
 
@@ -536,9 +541,9 @@ ${formatReminderListHTML}
                     return;
                 }
 
-                context.logger.info(
-                    `Found ${unverifiedUsers.length} unverified user(s) who registered 7+ days ago`,
-                );
+                context.logger.info('Found unverified users needing reminders', {
+                    count: unverifiedUsers.length,
+                });
 
                 const emailsSent: string[] = [];
                 for (const user of unverifiedUsers) {
@@ -559,11 +564,11 @@ ${formatReminderListHTML}
                     username: user.username,
                 }));
                 context.logger.table(userSummary);
-                context.logger.info(
-                    `Sent verification reminders to ${emailsSent.length} unverified user(s)`,
-                );
+                context.logger.info('Sent verification reminders', {
+                    count: emailsSent.length,
+                });
             } catch (error) {
-                context.logger.error(`Failed to process verification reminders: %o`, { error });
+                context.logger.error('Failed to process verification reminders', { error });
             }
         },
     };
