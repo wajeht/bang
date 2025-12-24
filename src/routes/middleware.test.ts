@@ -3,7 +3,12 @@ import { db } from '../tests/test-setup';
 import { Session } from 'express-session';
 import type { User, AppContext } from '../type';
 import type { Request, Response, NextFunction } from 'express';
-import { AuthenticationMiddleware, ErrorMiddleware, AppLocalStateMiddleware } from './middleware';
+import {
+    AuthenticationMiddleware,
+    ErrorMiddleware,
+    AppLocalStateMiddleware,
+    RequestLoggerMiddleware,
+} from './middleware';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from '../error';
 
@@ -587,5 +592,205 @@ describe('AppLocalStateMiddleware', () => {
         expect((res.locals as any).utils).toHaveProperty('stripHtmlTags');
         expect((res.locals as any).utils).toHaveProperty('highlightSearchTerm');
         expect((res.locals as any).utils).toHaveProperty('formatDateInTimezone');
+    });
+});
+
+describe('RequestLoggerMiddleware', () => {
+    let req: Partial<Request>;
+    let res: Partial<Response> & { on: ReturnType<typeof vi.fn>; get: ReturnType<typeof vi.fn> };
+    let next: NextFunction;
+    let ctx: AppContext;
+    let requestLoggerMiddleware: ReturnType<typeof RequestLoggerMiddleware>;
+    let finishHandler: (() => void) | null = null;
+
+    beforeAll(async () => {
+        ctx = await Context();
+        vi.spyOn(ctx.logger, 'info').mockImplementation(() => {});
+        vi.spyOn(ctx.logger, 'clone').mockReturnValue({
+            tag: vi.fn().mockReturnThis(),
+            info: vi.fn(),
+            debug: vi.fn(),
+            warn: vi.fn(),
+            error: vi.fn(),
+            clone: vi.fn().mockReturnThis(),
+            time: vi.fn(),
+            table: vi.fn(),
+            box: vi.fn(),
+        });
+        requestLoggerMiddleware = RequestLoggerMiddleware(ctx);
+    });
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        finishHandler = null;
+
+        req = {
+            method: 'GET',
+            path: '/test',
+            query: {},
+            ip: '127.0.0.1',
+            socket: { remoteAddress: '127.0.0.1' } as any,
+            user: undefined,
+            get: vi.fn().mockReturnValue(undefined),
+        };
+
+        res = {
+            statusCode: 200,
+            on: vi.fn((event: string, handler: () => void) => {
+                if (event === 'finish') {
+                    finishHandler = handler;
+                }
+            }),
+            get: vi.fn().mockReturnValue(undefined),
+        };
+
+        next = vi.fn();
+    });
+
+    it('should add logger to request object', () => {
+        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+
+        expect(req.logger).toBeDefined();
+        expect(typeof req.logger?.info).toBe('function');
+    });
+
+    it('should call next', () => {
+        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('should register finish handler on response', () => {
+        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+
+        expect(res.on).toHaveBeenCalledWith('finish', expect.any(Function));
+    });
+
+    it('should clone logger with requestId and method tags', () => {
+        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+
+        expect(ctx.logger.clone).toHaveBeenCalled();
+
+        const clonedLogger = (ctx.logger.clone as ReturnType<typeof vi.fn>).mock.results[0].value;
+        expect(clonedLogger.tag).toHaveBeenCalledWith('requestId', expect.any(String));
+        expect(clonedLogger.tag).toHaveBeenCalledWith('method', 'GET');
+    });
+
+    it('should generate 8-character requestId', () => {
+        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+
+        const clonedLogger = (ctx.logger.clone as ReturnType<typeof vi.fn>).mock.results[0].value;
+        const requestIdCall = clonedLogger.tag.mock.calls.find(
+            (call: string[]) => call[0] === 'requestId',
+        );
+        expect(requestIdCall[1]).toHaveLength(8);
+    });
+
+    it('should log request on finish', () => {
+        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+
+        expect(finishHandler).not.toBeNull();
+        finishHandler!();
+
+        expect(req.logger?.info).toHaveBeenCalledWith(
+            'request',
+            expect.objectContaining({
+                path: '/test',
+                status: 200,
+            }),
+        );
+    });
+
+    it('should include query string when present', () => {
+        req.query = { search: 'test', page: '1' };
+
+        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        finishHandler!();
+
+        expect(req.logger?.info).toHaveBeenCalledWith(
+            'request',
+            expect.objectContaining({
+                query: expect.stringContaining('search'),
+            }),
+        );
+    });
+
+    it('should not include query when empty', () => {
+        req.query = {};
+
+        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        finishHandler!();
+
+        expect(req.logger?.info).toHaveBeenCalledWith(
+            'request',
+            expect.objectContaining({
+                query: undefined,
+            }),
+        );
+    });
+
+    it('should include userId when user is authenticated', () => {
+        req.user = { id: 42 } as any;
+
+        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        finishHandler!();
+
+        expect(req.logger?.info).toHaveBeenCalledWith(
+            'request',
+            expect.objectContaining({
+                userId: 42,
+            }),
+        );
+    });
+
+    it('should use anon for userId when not authenticated', () => {
+        req.user = undefined;
+
+        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        finishHandler!();
+
+        expect(req.logger?.info).toHaveBeenCalledWith(
+            'request',
+            expect.objectContaining({
+                userId: 'anon',
+            }),
+        );
+    });
+
+    it('should include content-length as size when present', () => {
+        res.get = vi.fn().mockReturnValue('1234');
+
+        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        finishHandler!();
+
+        expect(req.logger?.info).toHaveBeenCalledWith(
+            'request',
+            expect.objectContaining({
+                size: '1234b',
+            }),
+        );
+    });
+
+    it('should mark slow requests', async () => {
+        // Mock a slow request by manipulating Date.now
+        const originalDateNow = Date.now;
+        let callCount = 0;
+        vi.spyOn(Date, 'now').mockImplementation(() => {
+            callCount++;
+            // First call is at middleware start, second is at finish
+            return callCount === 1 ? 0 : ctx.config.app.slowRequestMs + 100;
+        });
+
+        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        finishHandler!();
+
+        expect(req.logger?.info).toHaveBeenCalledWith(
+            'request',
+            expect.objectContaining({
+                slow: 'true',
+            }),
+        );
+
+        Date.now = originalDateNow;
     });
 });

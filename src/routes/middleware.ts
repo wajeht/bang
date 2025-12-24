@@ -2,6 +2,36 @@ import type { Request, Response, NextFunction } from 'express';
 import type { LayoutOptions, User, AppContext } from '../type';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 
+export function RequestLoggerMiddleware(ctx: AppContext) {
+    return (req: Request, res: Response, next: NextFunction) => {
+        const requestId = ctx.libs.crypto.randomUUID().slice(0, 8);
+        const start = Date.now();
+
+        req.logger = ctx.logger.clone().tag('requestId', requestId).tag('method', req.method);
+
+        res.on('finish', () => {
+            const duration = Date.now() - start;
+            const size = res.get('content-length');
+            const hasQuery = req.query && Object.keys(req.query).length > 0;
+
+            req.logger.info('request', {
+                path: req.path,
+                query: hasQuery ? JSON.stringify(req.query) : undefined,
+                status: res.statusCode,
+                duration: `${duration}ms`,
+                size: size ? `${size}b` : undefined,
+                userId: req.user?.id || 'anon',
+                ip: req.ip || req.socket.remoteAddress,
+                slow: duration >= ctx.config.app.slowRequestMs ? 'true' : undefined,
+                ua: req.get('user-agent')?.slice(0, 50),
+                ref: req.get('referer')?.slice(0, 100),
+            });
+        });
+
+        next();
+    };
+}
+
 export function NotFoundMiddleware(ctx: AppContext) {
     return (req: Request, _res: Response, _next: NextFunction) => {
         throw new ctx.errors.NotFoundError(
@@ -12,17 +42,11 @@ export function NotFoundMiddleware(ctx: AppContext) {
 
 export function ErrorMiddleware(ctx: AppContext) {
     return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
-        ctx.logger.error(`${req.method} ${req.path} - ${error.message}`, {
-            error: {
-                stack: error.stack,
-                name: error.name,
-                cause: error.cause,
-            },
-            request: {
-                url: req.url,
-                method: req.method,
-                userId: req.user?.id || req.session?.user?.id,
-            },
+        const logger = req.logger || ctx.logger;
+        logger.error(`${req.method} ${req.path} - ${error.message}`, {
+            error,
+            url: req.url,
+            userId: req.user?.id || req.session?.user?.id,
         });
 
         if ((error as { code?: string }).code === 'EBADCSRFTOKEN') {
@@ -342,7 +366,7 @@ export function AuthenticationMiddleware(ctx: AppContext) {
                     if (!user) {
                         req.session.destroy((err) => {
                             if (err) {
-                                ctx.logger.error(`Session destruction error: %o`, { err });
+                                ctx.logger.error('Session destruction error', { error: err });
                             }
                         });
                     }

@@ -25,7 +25,7 @@ export async function createApp() {
         try {
             await ctx.database.inittializeDatabase();
         } catch (error) {
-            ctx.logger.error('Database connection or migration error: %o', { error: error as any });
+            ctx.logger.error('Database connection or migration error', { error });
             throw error;
         }
     }
@@ -48,6 +48,7 @@ export async function createApp() {
 
     app.set('trust proxy', 1)
         .use(ctx.middleware.session)
+        .use(ctx.middleware.requestLogger)
         .use(ctx.libs.flash())
         .use(ctx.libs.compression())
         .use(ctx.libs.cors())
@@ -93,7 +94,7 @@ export async function createServer() {
         const bind: string =
             typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port;
 
-        ctx.logger.info(`Server is listening on ${bind}`);
+        ctx.logger.info('Server is listening', { bind });
 
         await ctx.services.crons.start();
     });
@@ -110,11 +111,11 @@ export async function createServer() {
 
         switch (error.code) {
             case 'EACCES':
-                ctx.logger.error(`${bind} requires elevated privileges`);
+                ctx.logger.error('Port requires elevated privileges', { bind });
                 process.exit(1);
             // eslint-disable-next-line no-fallthrough
             case 'EADDRINUSE':
-                ctx.logger.error(`${bind} is already in use`);
+                ctx.logger.error('Port is already in use', { bind });
                 process.exit(1);
             // eslint-disable-next-line no-fallthrough
             default:
@@ -126,7 +127,7 @@ export async function createServer() {
 }
 
 export async function closeServer({ server, ctx }: { server: Server; ctx: AppContext }) {
-    ctx.logger.info('Shutting down server gracefully...');
+    ctx.logger.info('Shutting down server gracefully');
 
     try {
         ctx.services.crons.stop();
@@ -135,7 +136,7 @@ export async function closeServer({ server, ctx }: { server: Server; ctx: AppCon
         await ctx.db.destroy();
         ctx.logger.info('Database connection closed');
 
-        ctx.logger.info(`Closing ${activeSockets.size} active connection(s)...`);
+        ctx.logger.info('Closing active connections', { count: activeSockets.size });
         for (const socket of activeSockets) {
             socket.destroy();
         }
@@ -150,7 +151,7 @@ export async function closeServer({ server, ctx }: { server: Server; ctx: AppCon
             server.close((error) => {
                 clearTimeout(shutdownTimeout);
                 if (error) {
-                    ctx.logger.error('Error closing HTTP server: %o', error);
+                    ctx.logger.error('Error closing HTTP server', { error });
                     reject(error);
                 } else {
                     ctx.logger.info('HTTP server closed');
@@ -161,7 +162,7 @@ export async function closeServer({ server, ctx }: { server: Server; ctx: AppCon
 
         ctx.logger.info('Server shutdown complete');
     } catch (error) {
-        ctx.logger.error('Error during graceful shutdown: %o', error);
+        ctx.logger.error('Error during graceful shutdown', { error });
         throw error;
     }
 }
