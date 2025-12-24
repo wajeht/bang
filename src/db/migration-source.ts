@@ -3,13 +3,13 @@ import type { Knex } from 'knex';
 import fs from 'node:fs/promises';
 import { Logger } from '../utils/logger';
 
-const logger = Logger();
+const logger = Logger({ service: 'migrations' });
 const isTesting = process.env.NODE_ENV === 'testing' || process.env.APP_ENV === 'testing';
 
 export class CustomMigrationSource implements Knex.MigrationSource<string> {
     constructor(private migrationsPath: string) {
         if (!isTesting) {
-            logger.info('Migrations path: %s', migrationsPath);
+            logger.info('Migrations path', { path: migrationsPath });
         }
     }
 
@@ -36,9 +36,9 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
                 logger.table(migrationList);
             }
             return migrations;
-        } catch (error: unknown) {
-            logger.error('Error reading migrations directory: %o', error);
-            logger.info('Attempted path: %s', this.migrationsPath);
+        } catch (error) {
+            logger.error('Error reading migrations directory', { error });
+            logger.info('Attempted path', { path: this.migrationsPath });
             throw error;
         }
     }
@@ -51,7 +51,7 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
         try {
             const migrationPath = path.join(this.migrationsPath, migration);
             if (!isTesting) {
-                logger.info('Loading migration: %s', migrationPath);
+                logger.info('Loading migration', { path: migrationPath });
             }
             const migrationModule = await import(migrationPath);
 
@@ -66,8 +66,8 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
             } else {
                 throw new Error(`Migration ${migration} does not export up and down functions`);
             }
-        } catch (error: unknown) {
-            logger.error('Error loading migration: %o', error);
+        } catch (error) {
+            logger.error('Error loading migration', { error });
             throw error;
         }
     }
