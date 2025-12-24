@@ -938,7 +938,7 @@ export function SearchUtils(context: AppContext) {
         },
 
         async search({ res, req, user, query }: Parameters<Search>[0]): ReturnType<Search> {
-            const log = (req.logger || context.logger).clone().tag('fn', 'search');
+            const log = req.logger.clone().tag('fn', 'search');
             const timer = log.time('search');
 
             const { commandType, trigger, triggerWithoutPrefix, url, searchTerm } =

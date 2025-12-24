@@ -14,6 +14,16 @@ let insertBookmark: any;
 let insertPageTitle: any;
 let checkDuplicateBookmarkUrl: any;
 
+const mockLogger = () => ({
+    clone: () => mockLogger(),
+    tag: () => mockLogger(),
+    time: () => ({ stop: () => {} }),
+    debug: () => {},
+    info: () => {},
+    warn: () => {},
+    error: () => {},
+});
+
 describe('search', () => {
     beforeAll(async () => {
         ctx = await Context();
@@ -36,6 +46,7 @@ describe('search', () => {
     describe('unauthenticated', () => {
         it('should redirect to google when !g is used', async () => {
             const req = {
+                logger: mockLogger(),
                 session: {
                     searchCount: 0,
                 },
@@ -71,6 +82,7 @@ describe('search', () => {
 
         it('should redirect to google when !g is used without a search term', async () => {
             const req = {
+                logger: mockLogger(),
                 session: {
                     searchCount: 0,
                 },
@@ -101,6 +113,7 @@ describe('search', () => {
 
         it('should redirect ddg without a exclamation mark when !doesnotexistanywhere is used', async () => {
             const req = {
+                logger: mockLogger(),
                 session: {
                     searchCount: 0,
                 },
@@ -129,6 +142,7 @@ describe('search', () => {
 
         it('should not redirect to bang service homepage when bang has invalid URL for bang-only queries', async () => {
             const req = {
+                logger: mockLogger(),
                 session: {
                     searchCount: 0,
                 },
@@ -162,6 +176,7 @@ describe('search', () => {
 
         it('should redirect back with a warning when a user has reached to its 10th search', async () => {
             const req = {
+                logger: mockLogger(),
                 session: {
                     searchCount: 10,
                     cumulativeDelay: 5000,
@@ -196,6 +211,7 @@ describe('search', () => {
 
         it('should redirect back with a warning when a user has reached to its 60th search', async () => {
             const req = {
+                logger: mockLogger(),
                 session: {
                     searchCount: 60,
                     cumulativeDelay: 5000,
@@ -232,6 +248,7 @@ describe('search', () => {
             'should have slow down the search when a user has reached more than 60 searches',
             async () => {
                 const req = {
+                    logger: mockLogger(),
                     session: {
                         searchCount: 61,
                         cumulativeDelay: 5000,
@@ -327,7 +344,7 @@ describe('search', () => {
         } as User;
 
         it('should handle direct navigation commands', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -351,7 +368,7 @@ describe('search', () => {
         });
 
         it('should handle uppercased direct commands', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -371,7 +388,7 @@ describe('search', () => {
         });
 
         it('should handle direct commands with search terms for @notes', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -395,7 +412,7 @@ describe('search', () => {
         });
 
         it('should handle direct commands with search terms for @bookmarks', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -420,7 +437,7 @@ describe('search', () => {
         });
 
         it('should handle direct commands with search terms for @actions', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -440,7 +457,7 @@ describe('search', () => {
         });
 
         it('should handle special characters in search terms', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -463,7 +480,7 @@ describe('search', () => {
         });
 
         it('should handle bookmark creation with title', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -503,7 +520,7 @@ describe('search', () => {
         });
 
         it('should handle bookmark creation without title', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -532,7 +549,7 @@ describe('search', () => {
         });
 
         it('should handle invalid bookmark URLs', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -553,7 +570,7 @@ describe('search', () => {
         });
 
         it('should reject bookmark creation with title longer than 255 characters', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -592,7 +609,7 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -625,7 +642,7 @@ describe('search', () => {
                     hidden_items_password: null,
                 };
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -655,7 +672,7 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -687,7 +704,7 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -714,7 +731,7 @@ describe('search', () => {
         });
 
         it('should handle custom bang creation', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -743,7 +760,7 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -777,7 +794,7 @@ describe('search', () => {
                     hidden_items_password: null,
                 };
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -810,7 +827,7 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -842,7 +859,7 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -891,7 +908,7 @@ describe('search', () => {
                 .onConflict(['user_id', 'trigger'])
                 .ignore();
 
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -921,7 +938,7 @@ describe('search', () => {
                 url: 'https://query-example.com/search?q={query}',
             });
 
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -955,7 +972,7 @@ describe('search', () => {
                 url: 'https://s-example.com/search?q={{{s}}}',
             });
 
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1004,7 +1021,7 @@ describe('search', () => {
                 })
                 .onConflict(['user_id', 'trigger'])
                 .ignore();
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1026,7 +1043,7 @@ describe('search', () => {
         });
 
         it('should use default search provider when no bang matches', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1048,7 +1065,7 @@ describe('search', () => {
         });
 
         it('should handle non-existent bang as search term', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1093,7 +1110,7 @@ describe('search', () => {
                 })
                 .onConflict(['user_id', 'trigger'])
                 .ignore();
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn().mockReturnThis(),
@@ -1115,7 +1132,7 @@ describe('search', () => {
         });
 
         it('should prevent creation of system bang commands', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -1136,7 +1153,7 @@ describe('search', () => {
         });
 
         it('should handle malformed !add command', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -1157,7 +1174,7 @@ describe('search', () => {
         });
 
         it('should handle !bm with multi-word title', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1189,7 +1206,7 @@ describe('search', () => {
         });
 
         it('should handle !add with implicit bang prefix', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -1213,7 +1230,7 @@ describe('search', () => {
                 default_search_provider: 'google',
             } as User;
 
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1237,7 +1254,7 @@ describe('search', () => {
         });
 
         it('should handle bookmark creation errors', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -1270,7 +1287,7 @@ describe('search', () => {
             });
 
             it('should create note with title and content using pipe format', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1297,7 +1314,7 @@ describe('search', () => {
             });
 
             it('should create note with just content (no title)', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1324,7 +1341,7 @@ describe('search', () => {
             });
 
             it('should create notes with pinned defaulting to false', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1348,7 +1365,7 @@ describe('search', () => {
             });
 
             it('should reject note creation with title longer than 255 characters', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1375,7 +1392,7 @@ describe('search', () => {
             });
 
             it('should handle note creation with empty content after pipe', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1396,7 +1413,7 @@ describe('search', () => {
             });
 
             it('should handle note creation with empty content after pipe (whitespace only)', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1417,7 +1434,7 @@ describe('search', () => {
             });
 
             it('should reject note creation with no content', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1438,7 +1455,7 @@ describe('search', () => {
             });
 
             it('should reject note creation with only whitespace content', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1459,7 +1476,7 @@ describe('search', () => {
             });
 
             it('should handle note creation with special characters in title and content', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1483,7 +1500,7 @@ describe('search', () => {
             });
 
             it('should handle note creation with multiple pipes (only first pipe is used as separator)', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1515,7 +1532,7 @@ describe('search', () => {
                 ];
 
                 for (const query of queries) {
-                    const req = {} as Request;
+                    const req = { logger: mockLogger() } as unknown as Request;
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
@@ -1568,7 +1585,7 @@ describe('search', () => {
                         hidden_items_password: '$2b$10$test-hash',
                     } as User;
 
-                    const req = {} as Request;
+                    const req = { logger: mockLogger() } as unknown as Request;
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
@@ -1601,7 +1618,7 @@ describe('search', () => {
                         hidden_items_password: null,
                     } as User;
 
-                    const req = {} as Request;
+                    const req = { logger: mockLogger() } as unknown as Request;
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
@@ -1634,7 +1651,7 @@ describe('search', () => {
                         hidden_items_password: '$2b$10$test-hash',
                     } as User;
 
-                    const req = {} as Request;
+                    const req = { logger: mockLogger() } as unknown as Request;
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
@@ -1677,7 +1694,7 @@ describe('search', () => {
             });
 
             it('should successfully delete an existing bang', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1712,7 +1729,7 @@ describe('search', () => {
                     url: 'https://delete-test2.com',
                 });
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1735,7 +1752,7 @@ describe('search', () => {
             });
 
             it('should return error when trying to delete non-existent bang', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1758,7 +1775,7 @@ describe('search', () => {
             });
 
             it('should return error when no trigger is provided', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1779,9 +1796,7 @@ describe('search', () => {
             });
 
             it('should return error when user is not authenticated', async () => {
-                const req = {
-                    session: {} as any,
-                } as Request;
+                const req = { logger: mockLogger(), session: {} as any } as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     redirect: vi.fn(),
@@ -1816,7 +1831,7 @@ describe('search', () => {
                     updated_at: dayjs().toDate(),
                 });
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1878,7 +1893,7 @@ describe('search', () => {
             });
 
             it('should successfully edit bang trigger only', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1905,7 +1920,7 @@ describe('search', () => {
             });
 
             it('should successfully edit bang URL only', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1942,7 +1957,7 @@ describe('search', () => {
             });
 
             it('should successfully edit both trigger and URL', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1976,7 +1991,7 @@ describe('search', () => {
             });
 
             it('should return error when trying to edit non-existent bang', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1999,7 +2014,7 @@ describe('search', () => {
             });
 
             it('should return error with invalid format', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2022,7 +2037,7 @@ describe('search', () => {
             });
 
             it('should return error when trying to use system command as new trigger', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2045,7 +2060,7 @@ describe('search', () => {
             });
 
             it('should return error when new trigger already exists', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2068,7 +2083,7 @@ describe('search', () => {
             });
 
             it('should return error with invalid URL format', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2091,7 +2106,7 @@ describe('search', () => {
             });
 
             it('should return error when trigger contains invalid characters', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2114,9 +2129,7 @@ describe('search', () => {
             });
 
             it('should return error when user is not authenticated', async () => {
-                const req = {
-                    session: {} as any,
-                } as Request;
+                const req = { logger: mockLogger(), session: {} as any } as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     redirect: vi.fn(),
@@ -2142,7 +2155,7 @@ describe('search', () => {
             });
 
             it('should handle editing with trigger without ! prefix', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2183,7 +2196,7 @@ describe('search', () => {
                     updated_at: dayjs().toDate(),
                 });
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2219,7 +2232,7 @@ describe('search', () => {
         });
 
         it('should handle all direct navigation commands', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -2250,7 +2263,7 @@ describe('search', () => {
         });
 
         it('should not redirect to bang service homepage when bang has invalid URL for authenticated bang-only queries', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -2291,7 +2304,7 @@ describe('search', () => {
             });
 
             it('should detect duplicate URL and show error with title', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2326,7 +2339,7 @@ describe('search', () => {
             });
 
             it('should detect duplicate URL and show error without title', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2366,7 +2379,7 @@ describe('search', () => {
                     title: 'Test "Quotes" & Special Chars',
                 });
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2401,7 +2414,7 @@ describe('search', () => {
             });
 
             it('should allow bookmark creation with unique URL', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -2440,7 +2453,7 @@ describe('search', () => {
                     id: 2,
                 } as User;
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -2496,7 +2509,7 @@ describe('search', () => {
             });
 
             it('should create reminder with default timing (simple format)', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2526,7 +2539,7 @@ describe('search', () => {
             });
 
             it('should create reminder with timing keyword (space-separated format)', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2555,7 +2568,7 @@ describe('search', () => {
             });
 
             it('should create reminder with pipe-separated format', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2584,7 +2597,7 @@ describe('search', () => {
             });
 
             it('should create reminder with specific date', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2617,7 +2630,7 @@ describe('search', () => {
                 const timingKeywords = ['daily', 'weekly', 'monthly'];
 
                 for (const timing of timingKeywords) {
-                    const req = {} as Request;
+                    const req = { logger: mockLogger() } as unknown as Request;
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
@@ -2645,7 +2658,7 @@ describe('search', () => {
             });
 
             it('should reject reminder with no content', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2666,7 +2679,7 @@ describe('search', () => {
             });
 
             it('should reject reminder with empty description', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2688,7 +2701,7 @@ describe('search', () => {
 
             it('should treat invalid timing as description when not a valid keyword', async () => {
                 isValidUrl.mockRestore();
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2726,7 +2739,7 @@ describe('search', () => {
                     timezone: null,
                 } as unknown as User;
 
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2750,7 +2763,7 @@ describe('search', () => {
             });
 
             it('should handle reminder with URL in content', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2775,7 +2788,7 @@ describe('search', () => {
             });
 
             it('should detect URL as description without pipe (daily timing)', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2800,7 +2813,7 @@ describe('search', () => {
             });
 
             it('should detect URL as description without pipe (weekly timing)', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2825,7 +2838,7 @@ describe('search', () => {
             });
 
             it('should detect URL as description with default timing', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2851,7 +2864,7 @@ describe('search', () => {
 
             it('should split description and URL content when text precedes URL', async () => {
                 isValidUrl.mockRestore();
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2876,7 +2889,7 @@ describe('search', () => {
             });
 
             it('should split description and URL content with timing keyword', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2901,7 +2914,7 @@ describe('search', () => {
             });
 
             it('should handle reminder with special characters', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2925,7 +2938,7 @@ describe('search', () => {
             });
 
             it('should handle pipe format without timing keyword (uses default timing)', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2950,7 +2963,7 @@ describe('search', () => {
             });
 
             it('should handle pipe format with URL as content', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2975,7 +2988,7 @@ describe('search', () => {
             });
 
             it('should handle pipe format with timing and URL domain', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3000,7 +3013,7 @@ describe('search', () => {
             });
 
             it('should handle URL-only reminder with default timing and set title to Untitled', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3029,7 +3042,7 @@ describe('search', () => {
             });
 
             it('should handle URL-only reminder with https protocol and set title to Untitled', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3058,7 +3071,7 @@ describe('search', () => {
             });
 
             it('should call insertPageTitle for URL-only reminders', async () => {
-                const req = {} as Request;
+                const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3344,9 +3357,7 @@ describe('parseSearchQuery', () => {
 
 describe('processDelayedSearch', () => {
     it('should not delay if no cumulative delay is set', async () => {
-        const req = {
-            session: {},
-        } as unknown as Request;
+        const req = { logger: mockLogger(), session: {} } as unknown as Request;
 
         const start = Date.now();
         await searchUtils.processDelayedSearch(req);
@@ -3358,6 +3369,7 @@ describe('processDelayedSearch', () => {
     it('should delay for the specified time', async () => {
         const delayMs = 10;
         const req = {
+            logger: mockLogger(),
             session: {
                 cumulativeDelay: delayMs,
             },
@@ -3373,6 +3385,7 @@ describe('processDelayedSearch', () => {
     it('should not block other operations while waiting', async () => {
         const delayMs = 20;
         const req = {
+            logger: mockLogger(),
             session: {
                 cumulativeDelay: delayMs,
             },
@@ -3399,6 +3412,7 @@ describe('processDelayedSearch', () => {
 describe('handleAnonymousSearch', () => {
     it('should track search history synchronously', async () => {
         const req = {
+            logger: mockLogger(),
             session: {
                 searchCount: 1,
             },
@@ -3473,7 +3487,7 @@ describe('search command handling', () => {
 
     describe('direct commands handling', () => {
         it('should handle direct commands with explicit commandType', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -3499,7 +3513,7 @@ describe('search command handling', () => {
 
     describe('search function with commandType', () => {
         it('should handle bang commandType with unknown bang', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -3525,7 +3539,7 @@ describe('search command handling', () => {
         });
 
         it('should handle regular search with null commandType', async () => {
-            const req = {} as Request;
+            const req = { logger: mockLogger() } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -3646,9 +3660,7 @@ describe('Trigger Caching', () => {
             ]);
             await db('tabs').insert([{ user_id: testUser.id, trigger: '!tab1', title: 'Tab 1' }]);
 
-            const req = {
-                session: {},
-            } as unknown as Request;
+            const req = { logger: mockLogger(), session: {} } as unknown as Request;
 
             const result = await searchUtils.loadCachedTriggers(req, testUser.id);
 
@@ -3668,6 +3680,7 @@ describe('Trigger Caching', () => {
         it('should return cached triggers without hitting database', async () => {
             const cachedTime = Date.now();
             const req = {
+                logger: mockLogger(),
                 session: {
                     bangTriggersMap: { '!cached1': true, '!cached2': true },
                     tabTriggersMap: { '!cachedtab': true },
@@ -3695,6 +3708,7 @@ describe('Trigger Caching', () => {
 
             const expiredTime = Date.now() - 61 * 60 * 1000; // 61 minutes ago (cache TTL is 60 min)
             const req = {
+                logger: mockLogger(),
                 session: {
                     bangTriggersMap: { '!stale': true },
                     tabTriggersMap: {},
@@ -3711,9 +3725,7 @@ describe('Trigger Caching', () => {
         });
 
         it('should return empty objects for user with no bangs or tabs', async () => {
-            const req = {
-                session: {},
-            } as unknown as Request;
+            const req = { logger: mockLogger(), session: {} } as unknown as Request;
 
             const result = await searchUtils.loadCachedTriggers(req, testUser.id);
 
@@ -3727,6 +3739,7 @@ describe('Trigger Caching', () => {
     describe('invalidateTriggerCache', () => {
         it('should clear all trigger cache data from session', () => {
             const req = {
+                logger: mockLogger(),
                 session: {
                     bangTriggersMap: { '!test1': true, '!test2': true },
                     tabTriggersMap: { '!tab1': true },
@@ -3745,6 +3758,7 @@ describe('Trigger Caching', () => {
 
         it('should handle session without cache data', () => {
             const req = {
+                logger: mockLogger(),
                 session: {
                     user: { id: 1 },
                 },
@@ -3790,6 +3804,7 @@ describe('Bang Search Optimization', () => {
 
     it('should skip DB query for system bang when user has no custom override', async () => {
         const req = {
+            logger: mockLogger(),
             session: {
                 bangTriggers: [],
                 tabTriggers: [],
@@ -3822,6 +3837,7 @@ describe('Bang Search Optimization', () => {
         });
 
         const req = {
+            logger: mockLogger(),
             session: {
                 bangTriggers: ['!g'],
                 tabTriggers: [],
@@ -3854,6 +3870,7 @@ describe('Bang Search Optimization', () => {
             .returning('*');
 
         const req = {
+            logger: mockLogger(),
             session: {
                 bangTriggers: [],
                 tabTriggers: ['!mytabs'],
@@ -3885,9 +3902,7 @@ describe('Bang Search Optimization', () => {
             action_type: 'redirect',
         });
 
-        const req = {
-            session: {},
-        } as unknown as Request;
+        const req = { logger: mockLogger(), session: {} } as unknown as Request;
 
         const res = {
             redirect: vi.fn(),
@@ -3920,6 +3935,7 @@ describe('Bang Search Optimization', () => {
 
     it('should use system bang when custom bang not in cache', async () => {
         const req = {
+            logger: mockLogger(),
             session: {
                 bangTriggersMap: {},
                 tabTriggersMap: {},
@@ -3946,6 +3962,7 @@ describe('Bang Search Optimization', () => {
 
     it('should fall back to default search for unknown bang not in cache', async () => {
         const req = {
+            logger: mockLogger(),
             session: {
                 bangTriggers: [],
                 tabTriggers: [],
@@ -4017,7 +4034,7 @@ describe('Bang Search Performance', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        const reqCold = { session: {} } as unknown as Request;
+        const reqCold = { logger: mockLogger(), session: {} } as unknown as Request;
         const startCold = performance.now();
         await searchUtils.search({ req: reqCold, res, user: testUser, query: '!g test' });
         const coldTime = performance.now() - startCold;
@@ -4041,6 +4058,7 @@ describe('Bang Search Performance', () => {
         } as unknown as Response;
 
         const req = {
+            logger: mockLogger(),
             session: {
                 bangTriggers: [],
                 tabTriggers: [],
@@ -4077,6 +4095,7 @@ describe('Bang Search Performance', () => {
         } as unknown as Response;
 
         const req = {
+            logger: mockLogger(),
             session: {
                 bangTriggers: ['!custom1', '!custom2'],
                 tabTriggers: ['!mytab'],
