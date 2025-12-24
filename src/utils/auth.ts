@@ -21,8 +21,8 @@ export function AuthUtils(context: AppContext) {
                 if (!app) return null;
 
                 return decodedApiKeyPayload;
-            } catch (error: unknown) {
-                context.logger.error(`[verifyApiKey]: failed to verify api key: %o`, { error });
+            } catch (error) {
+                context.logger.error('Failed to verify API key', { error });
                 return null;
             }
         },
@@ -37,10 +37,8 @@ export function AuthUtils(context: AppContext) {
                     token,
                     context.config.app.secretSalt,
                 ) as MagicLinkPayload;
-            } catch (error: unknown) {
-                context.logger.error(`[verifyMagicLink]: failed to verify magic link token: %o`, {
-                    error,
-                });
+            } catch (error) {
+                context.logger.error('Failed to verify magic link token', { error });
                 return null;
             }
         },
