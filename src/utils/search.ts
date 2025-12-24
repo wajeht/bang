@@ -1302,7 +1302,13 @@ export function SearchUtils(context: AppContext) {
 
                     this.invalidateTriggerCache(req);
 
-                    timer.stop({ outcome: 'system-bang', trigger, action: 'deleted', bangs: deletedBangs, tabs: deletedTabs });
+                    timer.stop({
+                        outcome: 'system-bang',
+                        trigger,
+                        action: 'deleted',
+                        bangs: deletedBangs,
+                        tabs: deletedTabs,
+                    });
                     return this.goBack(res);
                 }
 
@@ -1721,7 +1727,12 @@ export function SearchUtils(context: AppContext) {
                         );
                     }
 
-                    timer.stop({ outcome: 'system-bang', trigger, action: 'reminder-created', timing: timing.type });
+                    timer.stop({
+                        outcome: 'system-bang',
+                        trigger,
+                        action: 'reminder-created',
+                        timing: timing.type,
+                    });
                     return this.goBack(res);
                 }
             }
@@ -1779,7 +1790,11 @@ export function SearchUtils(context: AppContext) {
                                 const safeUrl = context.utils.html.escapeHtml(customBang.url);
                                 const csrfToken = res.locals.csrfToken || '';
 
-                                timer.stop({ outcome: 'user-bang', trigger, action: 'password-prompt' });
+                                timer.stop({
+                                    outcome: 'user-bang',
+                                    trigger,
+                                    action: 'password-prompt',
+                                });
                                 return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
                             <!DOCTYPE html>
                             <html>

@@ -1,33 +1,20 @@
 import { styleText, format } from 'node:util';
+import type { LogLevel, Logger, LoggerOptions } from '../type';
 
-export type Level = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
-
-export type Logger = {
-    debug(message: string, ...args: any[]): void;
-    info(message: string, ...args: any[]): void;
-    warn(message: string, ...args: any[]): void;
-    error(message: string, ...args: any[]): void;
-    tag(key: string, value: string): Logger;
-    clone(): Logger;
-    time(message: string, extra?: Record<string, any>): { stop(extra?: Record<string, any>): void };
-    table(tabularData: any, properties?: readonly string[]): void;
-    box(title: string, content: string | string[]): void;
-};
-
-export type LoggerOptions = {
-    service?: string;
-    level?: Level;
-};
+export type { LoggerOptions, LogLevel };
 
 export const Log = {
     state: {
         appMetadata: {} as Record<string, string>,
-        globalLevel: 'INFO' as Level,
+        globalLevel: 'INFO' as LogLevel,
         loggers: new Map<string, Logger>(),
     },
 
-    priority: { DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3 } as Record<Level, number>,
-    colors: { DEBUG: 'blue', INFO: 'green', WARN: 'yellow', ERROR: 'red' } as Record<Level, 'blue' | 'green' | 'yellow' | 'red'>,
+    priority: { DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3 } as Record<LogLevel, number>,
+    colors: { DEBUG: 'blue', INFO: 'green', WARN: 'yellow', ERROR: 'red' } as Record<
+        LogLevel,
+        'blue' | 'green' | 'yellow' | 'red'
+    >,
 
     create(options: LoggerOptions = {}): Logger {
         const tags: Record<string, string> = {};
@@ -41,7 +28,7 @@ export const Log = {
             if (cached) return cached;
         }
 
-        const self = this;
+        const { state, colors, priority } = this;
 
         function formatError(error: Error, depth = 0): string {
             const result = error.message;
@@ -63,7 +50,12 @@ export const Log = {
         }
 
         function isPlainObject(value: unknown): value is Record<string, any> {
-            return typeof value === 'object' && value !== null && !Array.isArray(value) && !(value instanceof Error);
+            return (
+                typeof value === 'object' &&
+                value !== null &&
+                !Array.isArray(value) &&
+                !(value instanceof Error)
+            );
         }
 
         function buildTags(obj: Record<string, any>): string[] {
@@ -90,9 +82,9 @@ export const Log = {
             return result;
         }
 
-        function build(level: Level, message: string, args: any[]): string {
+        function build(level: LogLevel, message: string, args: any[]): string {
             const timestamp = styleText('dim', new Date().toISOString().split('.')[0] ?? '');
-            const levelLabel = styleText(self.colors[level], level.padEnd(5));
+            const levelLabel = styleText(colors[level], level.padEnd(5));
 
             let formattedMessage = message;
             let extraTags: string[] = [];
@@ -105,7 +97,7 @@ export const Log = {
                 formattedMessage = message + ' ' + args.map(formatValue).join(' ');
             }
 
-            const allTags = [...buildTags(self.state.appMetadata), ...buildTags(tags), ...extraTags];
+            const allTags = [...buildTags(state.appMetadata), ...buildTags(tags), ...extraTags];
             const tagsStr = allTags.length > 0 ? styleText('cyan', allTags.join(' ')) : '';
 
             const parts: string[] = [];
@@ -117,8 +109,8 @@ export const Log = {
             return parts.join(' ');
         }
 
-        function log(level: Level, message: string, args: any[]): void {
-            if (self.priority[level] < self.priority[self.state.globalLevel]) return;
+        function log(level: LogLevel, message: string, args: any[]): void {
+            if (priority[level] < priority[state.globalLevel]) return;
             const output = build(level, message, args);
             if (level === 'ERROR') {
                 console.error(output);
@@ -141,7 +133,7 @@ export const Log = {
             },
 
             clone(): Logger {
-                const cloned = self.create({ level: self.state.globalLevel });
+                const cloned = Log.create({ level: state.globalLevel });
                 for (const key in tags) {
                     cloned.tag(key, tags[key]!);
                 }
@@ -152,7 +144,11 @@ export const Log = {
                 const start = Date.now();
                 return {
                     stop(stopExtra?: Record<string, any>) {
-                        logger.info(message, { ...extra, ...stopExtra, duration: `${Date.now() - start}ms` });
+                        logger.info(message, {
+                            ...extra,
+                            ...stopExtra,
+                            duration: `${Date.now() - start}ms`,
+                        });
                     },
                 };
             },
@@ -167,11 +163,14 @@ export const Log = {
                 const width = process.stdout.columns || 100;
                 const maxLen = width - 4;
                 const border = styleText('dim', '│');
+                // eslint-disable-next-line no-control-regex
                 const regex = /\x1b\[[0-9;]*m/g;
 
-                const drawLine = (char: string) => styleText('dim', `${char}${'─'.repeat(width - 2)}${char}`);
+                const drawLine = (char: string) =>
+                    styleText('dim', `${char}${'─'.repeat(width - 2)}${char}`);
                 const stripAnsi = (str: string) => str.replace(regex, '');
-                const pad = (line: string) => line + ' '.repeat(Math.max(0, maxLen - stripAnsi(line).length));
+                const pad = (line: string) =>
+                    line + ' '.repeat(Math.max(0, maxLen - stripAnsi(line).length));
 
                 console.log('');
                 console.log(drawLine('┌'));
@@ -193,16 +192,16 @@ export const Log = {
             },
         };
 
-        if (service) self.state.loggers.set(service, logger);
+        if (service) state.loggers.set(service, logger);
 
         return logger;
     },
 
-    setLevel(level: Level) {
+    setLevel(level: LogLevel) {
         this.state.globalLevel = level;
     },
 
-    getLevel(): Level {
+    getLevel(): LogLevel {
         return this.state.globalLevel;
     },
 };
