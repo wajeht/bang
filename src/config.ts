@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { libs } from './libs';
 import type { Env } from './type';
+import packageJson from '../package.json';
 
 libs.dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')), quiet: true });
 
@@ -8,10 +9,12 @@ export const config = {
     app: {
         port: parseInt(process.env.APP_PORT || '80', 10),
         env: (process.env.APP_ENV || process.env.NODE_ENV || 'development') as Env,
+        version: packageJson.version,
         appUrl: process.env.APP_URL || 'localhost',
         adminEmail: process.env.APP_ADMIN_EMAIL || '',
         secretSalt: process.env.APP_SECRET_SALT || 'bang',
         apiKeySecret: process.env.APP_API_KEY_SECRET || 'bang',
+        slowRequestMs: parseInt(process.env.APP_SLOW_REQUEST_MS || '1000', 10),
     } as const,
 
     email: {
