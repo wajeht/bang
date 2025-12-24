@@ -58,55 +58,64 @@ export const Log = {
             );
         }
 
-        function buildTags(obj: Record<string, any>): string[] {
-            const result: string[] = [];
+        function appendTags(result: string, obj: Record<string, any>): string {
             for (const key in obj) {
                 const value = obj[key];
                 if (value !== undefined && value !== null) {
-                    result.push(`${key}=${value}`);
+                    result = result ? result + ' ' + key + '=' + value : key + '=' + value;
                 }
             }
             return result;
         }
 
-        function buildExtraTags(obj: Record<string, any>): string[] {
-            const result: string[] = [];
+        function appendExtraTags(result: string, obj: Record<string, any>): string {
             for (const key in obj) {
                 const value = obj[key];
                 if (value !== undefined && value !== null) {
                     const formatted = formatValue(value);
-                    const needsQuotes = typeof value === 'string' && value.includes(' ');
-                    result.push(`${key}=${needsQuotes ? `"${formatted}"` : formatted}`);
+                    const tag =
+                        typeof value === 'string' && value.includes(' ')
+                            ? key + '="' + formatted + '"'
+                            : key + '=' + formatted;
+                    result = result ? result + ' ' + tag : tag;
                 }
             }
             return result;
         }
 
         function build(level: LogLevel, message: string, args: any[]): string {
-            const timestamp = styleText('dim', new Date().toISOString().split('.')[0] ?? '');
+            const timestamp = styleText('dim', new Date().toISOString().slice(0, 19));
             const levelLabel = styleText(colors[level], level.padEnd(5));
 
             let formattedMessage = message;
-            let extraTags: string[] = [];
+            let extraTagsStr = '';
 
-            if (/%[osj]/.test(message) && args.length > 0) {
-                formattedMessage = format(message, ...args);
-            } else if (args.length === 1 && isPlainObject(args[0])) {
-                extraTags = buildExtraTags(args[0]);
-            } else if (args.length > 0) {
-                formattedMessage = message + ' ' + args.map(formatValue).join(' ');
+            if (args.length > 0) {
+                if (/%[osj]/.test(message)) {
+                    formattedMessage = format(message, ...args);
+                } else if (args.length === 1 && isPlainObject(args[0])) {
+                    extraTagsStr = appendExtraTags('', args[0]);
+                } else {
+                    let argsStr = '';
+                    for (let i = 0; i < args.length; i++) {
+                        argsStr = argsStr
+                            ? argsStr + ' ' + formatValue(args[i])
+                            : formatValue(args[i]);
+                    }
+                    formattedMessage = message + ' ' + argsStr;
+                }
             }
 
-            const allTags = [...buildTags(state.appMetadata), ...buildTags(tags), ...extraTags];
-            const tagsStr = allTags.length > 0 ? styleText('cyan', allTags.join(' ')) : '';
+            let tagsStr = appendTags('', state.appMetadata);
+            tagsStr = appendTags(tagsStr, tags);
+            if (extraTagsStr) tagsStr = tagsStr ? tagsStr + ' ' + extraTagsStr : extraTagsStr;
+            const coloredTags = tagsStr ? styleText('cyan', tagsStr) : '';
 
-            const parts: string[] = [];
-            if (timestamp) parts.push(timestamp);
-            if (levelLabel) parts.push(levelLabel);
-            if (tagsStr) parts.push(tagsStr);
-            if (formattedMessage) parts.push(formattedMessage);
+            let result = timestamp + ' ' + levelLabel;
+            if (coloredTags) result = result + ' ' + coloredTags;
+            if (formattedMessage) result = result + ' ' + formattedMessage;
 
-            return parts.join(' ');
+            return result;
         }
 
         function log(level: LogLevel, message: string, args: any[]): void {
@@ -154,9 +163,9 @@ export const Log = {
             },
 
             table(tabularData: any, properties?: readonly string[]) {
-                const timestamp = styleText('dim', new Date().toISOString().split('.')[0] ?? '');
-                console.log(`${timestamp} ${styleText('cyan', 'TABLE:')}`);
-                console.table(tabularData, properties ? [...properties] : undefined);
+                const timestamp = styleText('dim', new Date().toISOString().slice(0, 19));
+                console.log(timestamp + ' ' + styleText('cyan', 'TABLE:'));
+                console.table(tabularData, properties as string[] | undefined);
             },
 
             box(title: string, content: string | string[]) {
