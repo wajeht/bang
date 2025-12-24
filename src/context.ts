@@ -20,13 +20,14 @@ import {
     AppLocalStateMiddleware,
     AuthenticationMiddleware,
     SpeculationRulesMiddleware,
+    RequestLoggerMiddleware,
 } from './routes/middleware';
 import { libs } from './libs';
 import { config } from './config';
 import { Database } from './db/db';
 import { Utils } from './utils/util';
 import { CronService } from './crons';
-import { Logger } from './utils/logger';
+import { Logger, Log } from './utils/logger';
 import { DateUtils } from './utils/date';
 import { HtmlUtils } from './utils/html';
 import { AuthUtils } from './utils/auth';
@@ -48,7 +49,9 @@ export async function Context(): Promise<AppContext> {
         throw new Error('Configuration required for app context');
     }
 
-    const logger = Logger();
+    Log.setLevel(config.app.env === 'development' ? 'DEBUG' : 'INFO');
+    Log.setAppMetadata({ version: config.app.version, env: config.app.env });
+    const logger = Logger({ service: 'bang' });
 
     const errors = {
         HttpError,
@@ -116,6 +119,7 @@ export async function Context(): Promise<AppContext> {
         authentication: AuthenticationMiddleware(partialCtx),
         speculationRules: SpeculationRulesMiddleware(),
         layout: LayoutMiddleware({ layoutsDir: '_layouts', defaultLayout: '_layouts/public.html' }),
+        requestLogger: RequestLoggerMiddleware(partialCtx),
     };
 
     partialCtx.middleware = middlewares;
