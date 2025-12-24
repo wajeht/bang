@@ -256,7 +256,7 @@ export function BookmarksRouter(ctx: AppContext) {
                     req,
                 });
             } catch (error) {
-                ctx.logger.error('Background bookmark insertion failed: %o', { error, url, title });
+                ctx.logger.error('Background bookmark insertion failed', { error, url, title });
             }
         });
 
