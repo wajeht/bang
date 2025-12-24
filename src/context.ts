@@ -50,7 +50,6 @@ export async function Context(): Promise<AppContext> {
     }
 
     Log.setLevel(config.app.env === 'development' ? 'DEBUG' : 'INFO');
-    Log.setAppMetadata({ version: config.app.version, env: config.app.env });
     const logger = Logger({ service: 'bang' });
 
     const errors = {

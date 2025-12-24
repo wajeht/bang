@@ -757,20 +757,6 @@ describe('RequestLoggerMiddleware', () => {
         );
     });
 
-    it('should include content-length as size when present', () => {
-        res.get = vi.fn().mockReturnValue('1234');
-
-        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
-        finishHandler!();
-
-        expect(req.logger?.info).toHaveBeenCalledWith(
-            'request',
-            expect.objectContaining({
-                size: '1234b',
-            }),
-        );
-    });
-
     it('should mark slow requests', async () => {
         // Mock a slow request by manipulating Date.now
         const originalDateNow = Date.now;

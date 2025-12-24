@@ -212,11 +212,6 @@ export const Log = {
     getLevel(): Level {
         return this.state.globalLevel;
     },
-
-    setAppMetadata(metadata: { version?: string; env?: string }) {
-        if (metadata.version) this.state.appMetadata.version = metadata.version;
-        if (metadata.env) this.state.appMetadata.env = metadata.env;
-    },
 };
 
 export function Logger(options: LoggerOptions = {}): Logger {

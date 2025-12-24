@@ -11,7 +11,6 @@ export function RequestLoggerMiddleware(ctx: AppContext) {
 
         res.on('finish', () => {
             const duration = Date.now() - start;
-            const size = res.get('content-length');
             const hasQuery = req.query && Object.keys(req.query).length > 0;
 
             req.logger.info('request', {
@@ -19,7 +18,6 @@ export function RequestLoggerMiddleware(ctx: AppContext) {
                 query: hasQuery ? JSON.stringify(req.query) : undefined,
                 status: res.statusCode,
                 duration: `${duration}ms`,
-                size: size ? `${size}b` : undefined,
                 userId: req.user?.id || 'anon',
                 ip: req.ip || req.socket.remoteAddress,
                 slow: duration >= ctx.config.app.slowRequestMs ? 'true' : undefined,

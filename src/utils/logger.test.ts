@@ -243,26 +243,6 @@ describe('Logger', () => {
         });
     });
 
-    describe('Log.setAppMetadata', () => {
-        it('should set version metadata', () => {
-            Log.setAppMetadata({ version: '1.0.0' });
-            const logger = Log.create();
-            logger.info('test');
-
-            const output = consoleSpy.log.mock.calls[0][0];
-            expect(output).toContain('version=1.0.0');
-        });
-
-        it('should set env metadata', () => {
-            Log.setAppMetadata({ env: 'production' });
-            const logger = Log.create();
-            logger.info('test');
-
-            const output = consoleSpy.log.mock.calls[0][0];
-            expect(output).toContain('env=production');
-        });
-    });
-
     describe('printf-style formatting', () => {
         it('should support %s string substitution', () => {
             const logger = Log.create();
