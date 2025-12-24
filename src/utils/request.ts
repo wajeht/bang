@@ -22,7 +22,7 @@ export function RequestUtils(context: AppContext) {
                         .where({ id: req.apiKeyPayload.userId })
                         .first();
                 } catch (error) {
-                    context.logger.error(`Failed to extract user: %o`, { error });
+                    context.logger.error('Failed to extract user', { error });
                     throw new context.errors.HttpError(500, 'Failed to extract user!', req);
                 }
             }
