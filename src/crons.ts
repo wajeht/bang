@@ -4,10 +4,7 @@ import { type ScheduledTask } from 'node-cron';
 export interface CronService {
     start: () => Promise<void>;
     stop: () => void;
-    getStatus: () => {
-        isRunning: boolean;
-        jobCount: number;
-    };
+    getStatus: () => { isRunning: boolean; jobCount: number };
 }
 
 export function CronService(context: AppContext): CronService {
@@ -15,27 +12,30 @@ export function CronService(context: AppContext): CronService {
     let isRunning = false;
 
     async function reminderCheckTask() {
-        context.logger.info('Checking for due reminders...');
+        const log = context.logger.clone().tag('job', 'reminder-check');
+        const timer = log.time('job');
         try {
             await context.utils.mail.processReminderDigests();
-            context.logger.info('Reminder check completed');
-        } catch (error: any) {
-            context.logger.error('Reminder check failed: %o', { error });
+            timer.stop({ status: 'success' });
+        } catch (error) {
+            log.error('job failed', { error });
         }
     }
 
     async function verificationReminderTask() {
-        context.logger.info('Checking for unverified users...');
+        const log = context.logger.clone().tag('job', 'verification-reminder');
+        const timer = log.time('job');
         try {
             await context.utils.mail.processVerificationReminders(context.config.app.appUrl);
-            context.logger.info('Verification reminder check completed');
-        } catch (error: any) {
-            context.logger.error('Verification reminder check failed: %o', { error });
+            timer.stop({ status: 'success' });
+        } catch (error) {
+            log.error('job failed', { error });
         }
     }
 
     async function screenshotPrefetchTask() {
-        context.logger.info('Starting daily screenshot prefetch...');
+        const log = context.logger.clone().tag('job', 'screenshot-prefetch');
+        const timer = log.time('job');
         try {
             const [bookmarks, actions, tabItems, reminders] = await Promise.all([
                 context.db('bookmarks').select('url'),
@@ -68,10 +68,8 @@ export function CronService(context: AppContext): CronService {
             });
 
             const urlArray = Array.from(urls);
-            context.logger.info(`Prefetching ${urlArray.length} screenshots...`);
-
             const batchSize = 5;
-            const delayBetweenBatches = 2000; // 2 seconds between batches
+            const delayBetweenBatches = 2000;
 
             for (let i = 0; i < urlArray.length; i += batchSize) {
                 const batch = urlArray.slice(i, i + batchSize);
@@ -92,7 +90,7 @@ export function CronService(context: AppContext): CronService {
                             );
                             await response.text().catch(() => {});
                         } catch {
-                            // Ignore errors
+                            // Ignore fetch errors
                         } finally {
                             clearTimeout(timeout);
                         }
@@ -104,72 +102,47 @@ export function CronService(context: AppContext): CronService {
                 }
             }
 
-            context.logger.info(`Screenshot prefetch completed: ${urlArray.length} URLs processed`);
-        } catch (error: any) {
-            context.logger.error('Screenshot prefetch failed: %o', { error });
+            timer.stop({ status: 'success', urls: urlArray.length });
+        } catch (error) {
+            log.error('job failed', { error });
         }
     }
 
     async function start() {
-        const reminderJob = context.libs.cron.schedule(
-            // every 15 minutes
-            '*/15 * * * *',
-            reminderCheckTask,
-            {
-                timezone: 'UTC',
-            },
-        );
-        cronJobs.push(reminderJob);
-        context.logger.info('Reminder check scheduled every 15 minutes');
+        const log = context.logger.clone().tag('service', 'cron');
 
-        const verificationReminderJob = context.libs.cron.schedule(
-            // every monday at 9am
-            '0 9 * * 1',
-            verificationReminderTask,
-            {
-                timezone: 'UTC',
-            },
+        // every 15 minutes
+        cronJobs.push(
+            context.libs.cron.schedule('*/15 * * * *', reminderCheckTask, { timezone: 'UTC' }),
         );
-        cronJobs.push(verificationReminderJob);
-        context.logger.info('Verification reminder scheduled for Mondays at 9am UTC');
 
-        const screenshotPrefetchJob = context.libs.cron.schedule(
-            // every day at 3am UTC
-            '0 3 * * *',
-            screenshotPrefetchTask,
-            {
-                timezone: 'UTC',
-            },
+        // every monday at 9am
+        cronJobs.push(
+            context.libs.cron.schedule('0 9 * * 1', verificationReminderTask, { timezone: 'UTC' }),
         );
-        cronJobs.push(screenshotPrefetchJob);
-        context.logger.info('Screenshot prefetch scheduled daily at 3am UTC');
+
+        // every day at 3am UTC
+        cronJobs.push(
+            context.libs.cron.schedule('0 3 * * *', screenshotPrefetchTask, { timezone: 'UTC' }),
+        );
 
         isRunning = true;
-        context.logger.info(`Cron service started with ${cronJobs.length} job(s)`);
+        log.info('started', { jobs: cronJobs.length });
     }
 
     function stop() {
         cronJobs.forEach((job) => {
-            if (job) {
-                job.stop();
-                job.destroy();
-            }
+            job.stop();
+            job.destroy();
         });
         cronJobs = [];
         isRunning = false;
-        context.logger.info('Cron service stopped');
+        context.logger.clone().tag('service', 'cron').info('stopped');
     }
 
     function getStatus() {
-        return {
-            isRunning,
-            jobCount: cronJobs.length,
-        };
+        return { isRunning, jobCount: cronJobs.length };
     }
 
-    return {
-        start,
-        stop,
-        getStatus,
-    };
+    return { start, stop, getStatus };
 }
