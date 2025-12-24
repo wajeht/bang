@@ -216,8 +216,8 @@ export function GeneralRouter(ctx: AppContext) {
                 }
 
                 req.flash('success', `Cached ${urls.length} screenshots successfully`);
-            } catch (error: any) {
-                ctx.logger.error('Bangs prefetch failed: %o', { error });
+            } catch (error) {
+                ctx.logger.error('Bangs prefetch failed', { error });
                 req.flash('error', 'Failed to cache screenshots');
             } finally {
                 activeBangsPrefetch.delete(adminId);
