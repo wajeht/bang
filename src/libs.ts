@@ -1,6 +1,7 @@
 import { Eta } from 'eta';
 import knex from 'knex';
 import cors from 'cors';
+import crypto from 'node:crypto';
 import bcrypt from 'bcrypt';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
@@ -29,6 +30,7 @@ export const libs = {
     jwt,
     dayjs,
     bcrypt,
+    crypto,
     dotenv,
     nodemailer,
 
