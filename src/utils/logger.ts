@@ -23,7 +23,6 @@ export const Log = {
     state: {
         appMetadata: {} as Record<string, string>,
         globalLevel: 'INFO' as Level,
-        lastLogTime: Date.now(),
         loggers: new Map<string, Logger>(),
     },
 
@@ -92,12 +91,7 @@ export const Log = {
         }
 
         function build(level: Level, message: string, args: any[]): string {
-            const now = new Date();
-            const diff = now.getTime() - self.state.lastLogTime;
-            self.state.lastLogTime = now.getTime();
-
-            const timestamp = styleText('dim', now.toISOString().split('.')[0] ?? '');
-            const duration = styleText('dim', `+${diff}ms`);
+            const timestamp = styleText('dim', new Date().toISOString().split('.')[0] ?? '');
             const levelLabel = styleText(self.colors[level], level.padEnd(5));
 
             let formattedMessage = message;
@@ -116,7 +110,6 @@ export const Log = {
 
             const parts: string[] = [];
             if (timestamp) parts.push(timestamp);
-            if (duration) parts.push(duration);
             if (levelLabel) parts.push(levelLabel);
             if (tagsStr) parts.push(tagsStr);
             if (formattedMessage) parts.push(formattedMessage);
