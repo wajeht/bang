@@ -221,9 +221,7 @@ export function Utils(context: AppContext) {
                         usage_count: db.raw('usage_count + 1'),
                     });
             } catch (error) {
-                logger.error(`[updateUserBangLastReadAt]: error updating bang last read at, %o`, {
-                    error,
-                });
+                logger.error('Error updating bang last read at', { error });
             }
         },
 
@@ -231,9 +229,7 @@ export function Utils(context: AppContext) {
             try {
                 return await db('bookmarks').where({ user_id: userId, url }).first();
             } catch (error) {
-                logger.error(`[checkDuplicateBookmarkUrl]: error checking duplicate URL, %o`, {
-                    error,
-                });
+                logger.error('Error checking duplicate bookmark URL', { error, url });
                 return null;
             }
         },
@@ -271,7 +267,7 @@ export function Utils(context: AppContext) {
                     );
                 }
             } catch (error) {
-                logger.error(`[insertBookmark]: error inserting bookmark, %o`, { error });
+                logger.error('Error inserting bookmark', { error, url });
             }
         },
 
@@ -307,7 +303,7 @@ export function Utils(context: AppContext) {
                         .where({ id: bookmarkId })
                         .update({ title, updated_at: db.fn.now() });
                 } catch (error) {
-                    logger.error(`[insertPageTitle]: error updating bookmark title, %o`, { error });
+                    logger.error('Error updating bookmark title', { error, bookmarkId });
                 }
             }
 
@@ -317,7 +313,7 @@ export function Utils(context: AppContext) {
                         .where({ id: actionId })
                         .update({ name: title, updated_at: db.fn.now() });
                 } catch (error) {
-                    logger.error(`[insertPageTitle]: error updating bangs name, %o`, { error });
+                    logger.error('Error updating action name', { error, actionId });
                 }
             }
 
@@ -327,7 +323,7 @@ export function Utils(context: AppContext) {
                         .where({ id: reminderId })
                         .update({ title, updated_at: db.fn.now() });
                 } catch (error) {
-                    logger.error(`[insertPageTitle]: error updating reminder title, %o`, { error });
+                    logger.error('Error updating reminder title', { error, reminderId });
                 }
             }
         },
@@ -367,14 +363,10 @@ export function Utils(context: AppContext) {
 
                 if (!n.ok) {
                     const text = await n.text();
-                    logger.error(
-                        `[sendNotification]: Notification service responded with status ${n.status}: ${text}`,
-                    );
+                    logger.error('Notification service error response', { status: n.status, text });
                 }
             } catch (error) {
-                logger.error(`[sendNotification]: failed to send error notification: %o`, {
-                    error,
-                });
+                logger.error('Failed to send error notification', { error });
             }
         },
 
@@ -542,7 +534,7 @@ export function Utils(context: AppContext) {
                 if (bookmarksResult.status === 'fulfilled') {
                     exportData.bookmarks = bookmarksResult.value;
                 } else {
-                    logger.error('Failed to fetch bookmarks: %o', bookmarksResult.reason);
+                    logger.error('Failed to fetch bookmarks', { error: bookmarksResult.reason });
                 }
             }
 
@@ -550,7 +542,7 @@ export function Utils(context: AppContext) {
                 if (actionsResult.status === 'fulfilled') {
                     exportData.actions = actionsResult.value;
                 } else {
-                    logger.error('Failed to fetch actions: %o', actionsResult.reason);
+                    logger.error('Failed to fetch actions', { error: actionsResult.reason });
                 }
             }
 
@@ -558,7 +550,7 @@ export function Utils(context: AppContext) {
                 if (notesResult.status === 'fulfilled') {
                     exportData.notes = notesResult.value;
                 } else {
-                    logger.error('Failed to fetch notes: %o', notesResult.reason);
+                    logger.error('Failed to fetch notes', { error: notesResult.reason });
                 }
             }
 
@@ -569,16 +561,15 @@ export function Utils(context: AppContext) {
                         try {
                             userPrefs.column_preferences = JSON.parse(userPrefs.column_preferences);
                         } catch (error) {
-                            logger.error('Failed to parse column_preferences: %o', error);
+                            logger.error('Failed to parse column_preferences', { error });
                             userPrefs.column_preferences = {};
                         }
                     }
                     exportData.user_preferences = userPrefs;
                 } else if (userPreferencesResult.status === 'rejected') {
-                    logger.error(
-                        'Failed to fetch user preferences: %o',
-                        userPreferencesResult.reason,
-                    );
+                    logger.error('Failed to fetch user preferences', {
+                        error: userPreferencesResult.reason,
+                    });
                 }
             }
 
@@ -586,7 +577,7 @@ export function Utils(context: AppContext) {
                 if (tabsResult.status === 'fulfilled') {
                     exportData.tabs = tabsResult.value;
                 } else {
-                    logger.error('Failed to fetch tabs: %o', tabsResult.reason);
+                    logger.error('Failed to fetch tabs', { error: tabsResult.reason });
                 }
             }
 
@@ -594,7 +585,7 @@ export function Utils(context: AppContext) {
                 if (remindersResult.status === 'fulfilled') {
                     exportData.reminders = remindersResult.value;
                 } else {
-                    logger.error('Failed to fetch reminders: %o', remindersResult.reason);
+                    logger.error('Failed to fetch reminders', { error: remindersResult.reason });
                 }
             }
 
