@@ -915,7 +915,7 @@ export function SettingsRouter(ctx: AppContext) {
 
                 req.flash('success', 'Data imported successfully!');
             } catch (error) {
-                ctx.logger.error('Import error: %o', error);
+                ctx.logger.error('Import error', { error });
                 req.flash('error', 'Failed to import data. Please check the format and try again.');
             }
 
@@ -958,7 +958,7 @@ export function SettingsRouter(ctx: AppContext) {
                         includeHtml,
                     });
                 } catch (error) {
-                    ctx.logger.error('Failed to send export email before account deletion: %o', {
+                    ctx.logger.error('Failed to send export email before account deletion', {
                         error,
                     });
                 }
@@ -1115,7 +1115,7 @@ export function SettingsRouter(ctx: AppContext) {
                     }
                 });
             } catch (error) {
-                ctx.logger.error('Bulk delete error: %o', error);
+                ctx.logger.error('Bulk delete error', { error });
                 req.flash('error', 'Failed to delete data. Please try again.');
             }
 
