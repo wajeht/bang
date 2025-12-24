@@ -33,6 +33,7 @@ declare global {
         interface Request {
             user: User | undefined;
             apiKeyPayload: ApiKeyPayload | null;
+            logger: import('./utils/logger').Logger;
         }
     }
 }
@@ -320,14 +321,8 @@ export type TurnstileVerifyResponse = {
     cdata?: string;
 };
 
-export type Logger = {
-    debug: (message: string, ...args: unknown[]) => void;
-    error: (message: string, ...args: unknown[]) => void;
-    warn: (message: string, ...args: unknown[]) => void;
-    info: (message: string, ...args: unknown[]) => void;
-    table: (tabularData: any, properties?: readonly string[]) => void;
-    box: (title: string, content: string | string[]) => void;
-};
+import type { Logger } from './utils/logger';
+export type { Logger };
 
 export type PaginateArrayOptions = {
     page: number;
@@ -410,6 +405,7 @@ export interface Middlewares {
     staticAssets: express.RequestHandler;
     speculationRules: express.RequestHandler;
     layout: express.RequestHandler;
+    requestLogger: express.RequestHandler;
 }
 
 export interface ErrorClasses {

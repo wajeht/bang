@@ -98,8 +98,8 @@ export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
             }
 
             deps.logger.info('Database optimization completed');
-        } catch (error: unknown) {
-            deps.logger.error(`Error optimizing database: %o`, { error });
+        } catch (error) {
+            deps.logger.error('Error optimizing database', { error });
         }
     }
 
@@ -109,8 +109,8 @@ export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
             await optimizeDatabase();
             await runProductionMigration();
             deps.logger.info('Database migrations completed successfully');
-        } catch (error: unknown) {
-            deps.logger.error('Error while initalizing databse: %o', { error });
+        } catch (error) {
+            deps.logger.error('Error while initializing database', { error });
         }
     }
 
@@ -140,8 +140,8 @@ export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
             deps.logger.table(healthInfo);
 
             return true;
-        } catch (error: unknown) {
-            deps.logger.error(`Database health check failed: %o`, { error });
+        } catch (error) {
+            deps.logger.error('Database health check failed', { error });
             return false;
         }
     }
@@ -166,30 +166,30 @@ export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
             }
 
             const version = await db.migrate.currentVersion();
-            deps.logger.info(`current database version ${version}`);
+            deps.logger.info('Current database version', { version });
 
-            deps.logger.info('checking for database upgrades');
-            deps.logger.info(`looking for migrations in: ${dbConfig.directory}`);
+            deps.logger.info('Checking for database upgrades');
+            deps.logger.info('Looking for migrations', { directory: dbConfig.directory });
 
             const [batchNo, migrations] = await db.migrate.latest(dbConfig);
 
             if (migrations.length === 0) {
-                deps.logger.info('database upgrade not required');
+                deps.logger.info('Database upgrade not required');
                 return;
             }
 
             migrations.forEach((migration: string) => {
-                deps.logger.info(`running migration file: ${migration}`);
+                deps.logger.info('Running migration file', { migration });
             });
 
             const migrationList = migrations
                 .map((migration: string) => migration.split('_')[1]?.split('.')[0] ?? '')
                 .join(', ');
 
-            deps.logger.info(`database upgrades completed for ${migrationList} schema`);
-            deps.logger.info(`batch ${batchNo} run: ${migrations.length} migrations`);
-        } catch (error: unknown) {
-            deps.logger.error(`error running migrations: %o`, { error });
+            deps.logger.info('Database upgrades completed', { schema: migrationList });
+            deps.logger.info('Migrations completed', { batchNo, count: migrations.length });
+        } catch (error) {
+            deps.logger.error('Error running migrations', { error });
             throw error;
         }
     }
