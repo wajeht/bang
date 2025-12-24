@@ -27,6 +27,7 @@
     },
     "exclude": [
         "node_modules",
+        "opencode",
         "**/*.test.ts",
         "**/*.test.mts",
         "**/*.test.mjs",

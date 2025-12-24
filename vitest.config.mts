@@ -8,6 +8,7 @@ export default defineConfig({
         setupFiles: ['./src/tests/test-setup.ts'],
         exclude: [
             'node_modules',
+            './opencode',
             './src/tests/browser',
             '**/*.browser-test.ts',
             './dist',
