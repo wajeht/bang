@@ -86,20 +86,20 @@ function _createKnexInstance(libs: Libs): Knex {
     return _db;
 }
 
-export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
-    const db: Knex = _createKnexInstance(deps.libs);
+export function Database(ctx: { config: Config; logger: Logger; libs: Libs }) {
+    const db: Knex = _createKnexInstance(ctx.libs);
 
     async function optimizeDatabase() {
         try {
             await db.raw('ANALYZE');
             await db.raw('PRAGMA optimize');
-            if (deps.config.app.env !== 'production') {
+            if (ctx.config.app.env !== 'production') {
                 await db.raw('VACUUM');
             }
 
-            deps.logger.info('Database optimization completed');
+            ctx.logger.info('Database optimization completed');
         } catch (error) {
-            deps.logger.error('Error optimizing database', { error });
+            ctx.logger.error('Error optimizing database', { error });
         }
     }
 
@@ -108,9 +108,9 @@ export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
             await checkDatabaseHealth();
             await optimizeDatabase();
             await runProductionMigration();
-            deps.logger.info('Database migrations completed successfully');
+            ctx.logger.info('Database migrations completed successfully');
         } catch (error) {
-            deps.logger.error('Error while initializing database', { error });
+            ctx.logger.error('Error while initializing database', { error });
         }
     }
 
@@ -137,19 +137,19 @@ export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
                           : 'FULL',
             };
 
-            deps.logger.table(healthInfo);
+            ctx.logger.table(healthInfo);
 
             return true;
         } catch (error) {
-            deps.logger.error('Database health check failed', { error });
+            ctx.logger.error('Database health check failed', { error });
             return false;
         }
     }
 
     async function runProductionMigration(force: boolean = false) {
         try {
-            if (deps.config.app.env !== 'production' && force !== true) {
-                deps.logger.info('cannot run auto database migration on non production');
+            if (ctx.config.app.env !== 'production' && force !== true) {
+                ctx.logger.info('cannot run auto database migration on non production');
                 return;
             }
 
@@ -159,37 +159,37 @@ export function Database(deps: { config: Config; logger: Logger; libs: Libs }) {
                 ),
             };
 
-            if (deps.config.app.env !== 'production') {
+            if (ctx.config.app.env !== 'production') {
                 dbConfig.directory = path.resolve(
                     path.join(process.cwd(), 'src', 'db', 'migrations'),
                 );
             }
 
             const version = await db.migrate.currentVersion();
-            deps.logger.info('Current database version', { version });
+            ctx.logger.info('Current database version', { version });
 
-            deps.logger.info('Checking for database upgrades');
-            deps.logger.info('Looking for migrations', { directory: dbConfig.directory });
+            ctx.logger.info('Checking for database upgrades');
+            ctx.logger.info('Looking for migrations', { directory: dbConfig.directory });
 
             const [batchNo, migrations] = await db.migrate.latest(dbConfig);
 
             if (migrations.length === 0) {
-                deps.logger.info('Database upgrade not required');
+                ctx.logger.info('Database upgrade not required');
                 return;
             }
 
             migrations.forEach((migration: string) => {
-                deps.logger.info('Running migration file', { migration });
+                ctx.logger.info('Running migration file', { migration });
             });
 
             const migrationList = migrations
                 .map((migration: string) => migration.split('_')[1]?.split('.')[0] ?? '')
                 .join(', ');
 
-            deps.logger.info('Database upgrades completed', { schema: migrationList });
-            deps.logger.info('Migrations completed', { batchNo, count: migrations.length });
+            ctx.logger.info('Database upgrades completed', { schema: migrationList });
+            ctx.logger.info('Migrations completed', { batchNo, count: migrations.length });
         } catch (error) {
-            deps.logger.error('Error running migrations', { error });
+            ctx.logger.error('Error running migrations', { error });
             throw error;
         }
     }
