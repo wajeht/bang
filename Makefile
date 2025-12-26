@@ -112,6 +112,9 @@ db-reset:
 	@$(MAKE) db-migrate
 	@$(MAKE) db-seed
 
+db-clean:
+	@trash ./src/db/sqlite/db.sqlite*
+
 pull-prod-db:
 	@./scripts/db.sh pull
 
