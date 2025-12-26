@@ -82,6 +82,8 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
 
             <button type="button" id="delete-selected-btn" style="display: none;" aria-label="Delete selected bookmarks">🗑️</button>
 
+            <button type="button" aria-label="Create new bookmark" onclick="location.href='/bookmarks/create<%= showHidden ? '?hidden=true' : '' %>'">➕</button>
+
             <% if (state.user.hidden_items_password && state.user.column_preferences?.bookmarks?.hidden !== false) { %>
                 <%~ include('../_components/hidden-password-modal.html', {
                     itemType: 'bookmarks',
@@ -96,8 +98,6 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
                     state
                 }) %>
             <% } %>
-
-            <button type="button" aria-label="Create new bookmark" onclick="location.href='/bookmarks/create<%= showHidden ? '?hidden=true' : '' %>'">➕</button>
 
             <form method="POST" action="/bookmarks/prefetch" style="display: inline;">
                 <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
