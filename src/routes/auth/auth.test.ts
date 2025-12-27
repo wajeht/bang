@@ -3,12 +3,12 @@ import {
     authenticateAgent,
     cleanupTestDatabase,
 } from '../../tests/api-test-utils';
+import bcrypt from 'bcrypt';
 import request from 'supertest';
 import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
-import bcrypt from 'bcrypt';
 import type { AppContext } from '../../type';
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 
 describe('Auth Routes', () => {
     let app: any;

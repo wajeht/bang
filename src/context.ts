@@ -17,10 +17,10 @@ import {
     RateLimitMiddleware,
     AdminOnlyMiddleware,
     StaticAssetsMiddleware,
+    RequestLoggerMiddleware,
     AppLocalStateMiddleware,
     AuthenticationMiddleware,
     SpeculationRulesMiddleware,
-    RequestLoggerMiddleware,
 } from './routes/middleware';
 import { libs } from './libs';
 import { config } from './config';

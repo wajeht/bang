@@ -1,9 +1,9 @@
 import { config } from './config';
 import { Server } from 'node:http';
 import { Context } from './context';
-import { AddressInfo, Socket } from 'node:net';
 import type { AppContext } from './type';
 import { router } from './routes/routes';
+import { AddressInfo, Socket } from 'node:net';
 import { expressJSDocSwaggerHandler } from './utils/swagger';
 
 const activeSockets = new Set<Socket>();

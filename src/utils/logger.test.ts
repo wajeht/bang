@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { Log, Logger } from './logger';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 
 describe('Logger', () => {
     let consoleSpy: {

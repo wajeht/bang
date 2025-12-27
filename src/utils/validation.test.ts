@@ -1,5 +1,5 @@
-import { ValidationUtils } from './validation';
 import { describe, expect, it } from 'vitest';
+import { ValidationUtils } from './validation';
 
 const validationUtils = ValidationUtils();
 

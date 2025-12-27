@@ -1,7 +1,6 @@
 import { Eta } from 'eta';
 import knex from 'knex';
 import cors from 'cors';
-import crypto from 'node:crypto';
 import bcrypt from 'bcrypt';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
@@ -11,6 +10,7 @@ import dayjsBase from 'dayjs';
 import jwt from 'jsonwebtoken';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
+import crypto from 'node:crypto';
 import flash from 'connect-flash';
 import utc from 'dayjs/plugin/utc';
 import nodemailer from 'nodemailer';
