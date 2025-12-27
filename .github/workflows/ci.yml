@@ -130,7 +130,7 @@ jobs:
               run: npm run lint
 
     format:
-        needs: [lint, unit-test, browser-test]
+        needs: [lint]
         name: Oxfmt format
         runs-on: ubuntu-latest
 
@@ -198,7 +198,7 @@ jobs:
                   cache-to: type=gha,mode=max
 
     deploy:
-        needs: [lint, format, build, browser-test]
+        needs: [unit-test, browser-test, format, build]
         name: Deploy to Production
         runs-on: ubuntu-latest
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
