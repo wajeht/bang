@@ -8,6 +8,7 @@ import {
     ErrorMiddleware,
     AppLocalStateMiddleware,
     RequestLoggerMiddleware,
+    CsrfMiddleware,
 } from './middleware';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from '../error';
@@ -520,7 +521,7 @@ describe('AppLocalStateMiddleware', () => {
     });
 
     it('should skip setting up locals for API routes', async () => {
-        req.path = '/api/settings/api-key';
+        (req as any).path = '/api/settings/api-key';
 
         await appLocalStateMiddleware(req as Request, res as Response, next);
 
@@ -529,7 +530,7 @@ describe('AppLocalStateMiddleware', () => {
     });
 
     it('should skip setting up locals for nested API routes', async () => {
-        req.path = '/api/notes/render-markdown';
+        (req as any).path = '/api/notes/render-markdown';
 
         await appLocalStateMiddleware(req as Request, res as Response, next);
 
@@ -538,7 +539,7 @@ describe('AppLocalStateMiddleware', () => {
     });
 
     it('should set up locals for non-API routes', async () => {
-        req.path = '/dashboard';
+        (req as any).path = '/dashboard';
 
         await appLocalStateMiddleware(req as Request, res as Response, next);
 
@@ -550,7 +551,7 @@ describe('AppLocalStateMiddleware', () => {
     });
 
     it('should set up locals for HTML page routes', async () => {
-        req.path = '/bookmarks';
+        (req as any).path = '/bookmarks';
 
         await appLocalStateMiddleware(req as Request, res as Response, next);
 
@@ -560,7 +561,7 @@ describe('AppLocalStateMiddleware', () => {
     });
 
     it('should cache static values across multiple calls', async () => {
-        req.path = '/notes';
+        (req as any).path = '/notes';
 
         await appLocalStateMiddleware(req as Request, res as Response, next);
 
@@ -569,7 +570,7 @@ describe('AppLocalStateMiddleware', () => {
 
         // Reset and call again
         res.locals = {};
-        req.path = '/reminders';
+        (req as any).path = '/reminders';
 
         await appLocalStateMiddleware(req as Request, res as Response, next);
 
@@ -581,7 +582,7 @@ describe('AppLocalStateMiddleware', () => {
     });
 
     it('should provide utility functions in locals', async () => {
-        req.path = '/tabs';
+        (req as any).path = '/tabs';
 
         await appLocalStateMiddleware(req as Request, res as Response, next);
 
@@ -778,5 +779,121 @@ describe('RequestLoggerMiddleware', () => {
         );
 
         Date.now = originalDateNow;
+    });
+});
+
+describe('CsrfMiddleware', () => {
+    let req: Partial<Request>;
+    let res: Partial<Response>;
+    let next: NextFunction;
+    let ctx: AppContext;
+    let csrfMiddleware: ReturnType<typeof CsrfMiddleware>;
+
+    beforeAll(async () => {
+        ctx = await Context();
+        vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});
+        csrfMiddleware = CsrfMiddleware(ctx);
+    });
+
+    beforeEach(() => {
+        vi.resetAllMocks();
+
+        req = {
+            method: 'GET',
+            path: '/test',
+            body: {},
+            headers: {},
+            session: {
+                destroy: vi.fn((callback) => callback(null)),
+                save: vi.fn((callback) => callback && callback(null)),
+                regenerate: vi.fn(),
+                reload: vi.fn(),
+                touch: vi.fn(),
+                id: 'test-session-id',
+                cookie: { maxAge: 30000 },
+            } as unknown as Session,
+            header: vi.fn((name: string) => {
+                const headers = (req as any).headers || {};
+                return headers[name.toLowerCase()];
+            }),
+        };
+
+        res = {
+            locals: {},
+        };
+
+        next = vi.fn();
+    });
+
+    it('should generate CSRF token and save session', async () => {
+        csrfMiddleware[0](req as Request, res as Response, next);
+        expect(next).toHaveBeenCalled();
+
+        vi.resetAllMocks();
+
+        csrfMiddleware[1](req as Request, res as Response, next);
+
+        expect(res.locals).toHaveProperty('csrfToken');
+        expect(typeof res.locals!.csrfToken).toBe('string');
+        expect(res.locals!.csrfToken.length).toBeGreaterThan(0);
+        expect(req.session!.save).toHaveBeenCalled();
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('should save session after CSRF token generation for new visitors', async () => {
+        req.session = {
+            destroy: vi.fn((callback) => callback(null)),
+            save: vi.fn((callback) => callback && callback(null)),
+            regenerate: vi.fn(),
+            reload: vi.fn(),
+            touch: vi.fn(),
+            id: 'new-session-id',
+            cookie: { maxAge: 30000 },
+        } as unknown as Session;
+
+        csrfMiddleware[1](req as Request, res as Response, next);
+
+        expect(req.session!.save).toHaveBeenCalled();
+        expect(res.locals!.csrfToken).toBeDefined();
+    });
+
+    it('should skip CSRF protection for API routes', () => {
+        (req as any).path = '/api/test';
+        req.method = 'POST';
+
+        csrfMiddleware[0](req as Request, res as Response, next);
+
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('should skip CSRF protection for GET requests', () => {
+        req.method = 'GET';
+
+        csrfMiddleware[0](req as Request, res as Response, next);
+
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('should log error if session save fails', async () => {
+        const saveError = new Error('Session save failed');
+        req.session!.save = vi.fn((callback) => callback && callback(saveError));
+
+        csrfMiddleware[1](req as Request, res as Response, next);
+
+        await vi.waitFor(() => {
+            expect(ctx.logger.error).toHaveBeenCalledWith(
+                'Failed to save session after CSRF token generation',
+                expect.objectContaining({ error: saveError }),
+            );
+        });
+    });
+
+    it('should set empty token and continue if token generation fails', () => {
+        req.session = undefined as any;
+
+        csrfMiddleware[1](req as Request, res as Response, next);
+
+        expect(res.locals!.csrfToken).toBe('');
+        expect(next).toHaveBeenCalled();
     });
 });

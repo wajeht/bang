@@ -278,12 +278,10 @@ export function CsrfMiddleware(ctx: AppContext) {
 
     return [
         (req: Request, res: Response, next: NextFunction) => {
-            // Skip CSRF protection for API routes
             if (req.path.startsWith('/api/')) {
                 return next();
             }
 
-            // Skip CSRF protection if API key is provided
             if (ctx.utils.request.extractApiKey(req)) {
                 return next();
             }
@@ -298,6 +296,18 @@ export function CsrfMiddleware(ctx: AppContext) {
         (req: Request, res: Response, next: NextFunction) => {
             try {
                 res.locals.csrfToken = generateToken(req);
+                // Ensure session is saved after CSRF token generation
+                // This is needed because saveUninitialized: false means
+                // the session won't auto-save for new visitors
+                if (req.session) {
+                    req.session.save((err) => {
+                        if (err) {
+                            ctx.logger.error('Failed to save session after CSRF token generation', {
+                                error: err,
+                            });
+                        }
+                    });
+                }
                 next();
             } catch (error) {
                 ctx.logger.error('CSRF token generation failed', { error });
