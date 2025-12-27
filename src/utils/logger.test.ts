@@ -172,17 +172,19 @@ describe('Logger', () => {
             expect(typeof timer.stop).toBe('function');
         });
 
-        it('should log duration when stopped', async () => {
+        it('should log duration when stopped', () => {
+            vi.useFakeTimers();
             const logger = Log.create();
             const timer = logger.time('timed operation');
 
-            await new Promise((resolve) => setTimeout(resolve, 10));
+            vi.advanceTimersByTime(10);
             timer.stop();
 
             expect(consoleSpy.log).toHaveBeenCalledTimes(1);
             const output = consoleSpy.log.mock.calls[0][0];
             expect(output).toContain('timed operation');
             expect(output).toMatch(/duration=\d+ms/);
+            vi.useRealTimers();
         });
 
         it('should include extra data when stopped', () => {

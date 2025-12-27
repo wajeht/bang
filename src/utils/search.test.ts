@@ -500,7 +500,7 @@ describe('search', () => {
                 query,
             });
 
-            await new Promise((resolve) => setTimeout(resolve, 10));
+            await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
             expect(insertBookmark).toHaveBeenCalledWith({
                 url: 'https://example.com',
@@ -624,7 +624,7 @@ describe('search', () => {
                     query: '!bm Secret Site https://secret.com --hide',
                 });
 
-                await new Promise((resolve) => setTimeout(resolve, 10));
+                await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
                 expect(insertBookmark).toHaveBeenCalledWith({
                     url: 'https://secret.com',
@@ -686,7 +686,7 @@ describe('search', () => {
                     query: '!bm https://secret.com --hide',
                 });
 
-                await new Promise((resolve) => setTimeout(resolve, 10));
+                await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
                 expect(insertBookmark).toHaveBeenCalledWith({
                     url: 'https://secret.com',
@@ -719,7 +719,7 @@ describe('search', () => {
                     query: '!bm Title with --hide in middle https://example.com',
                 });
 
-                await new Promise((resolve) => setTimeout(resolve, 10));
+                await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
                 expect(insertBookmark).toHaveBeenCalledWith({
                     url: 'https://example.com',
@@ -1939,7 +1939,7 @@ describe('search', () => {
                     expect.stringContaining('window.history.back()'),
                 );
 
-                await new Promise((resolve) => setTimeout(resolve, 10));
+                await vi.waitFor(() => expect(insertPageTitle).toHaveBeenCalled());
 
                 expect(insertPageTitle).toHaveBeenCalledWith({
                     actionId: 1001,
@@ -2430,7 +2430,7 @@ describe('search', () => {
                     query: '!bm Unique Title https://unique.com',
                 });
 
-                await new Promise((resolve) => setTimeout(resolve, 10));
+                await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
                 expect(insertBookmark).toHaveBeenCalledWith({
                     url: 'https://unique.com',
@@ -2469,7 +2469,7 @@ describe('search', () => {
                     query: '!bm Same URL https://existing.com', // Same URL as user 1's bookmark
                 });
 
-                await new Promise((resolve) => setTimeout(resolve, 10));
+                await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
                 expect(insertBookmark).toHaveBeenCalledWith({
                     url: 'https://existing.com',
@@ -3094,7 +3094,7 @@ describe('search', () => {
                     .first();
                 expect(createdReminder).toBeDefined();
 
-                await new Promise((resolve) => setTimeout(resolve, 10));
+                await vi.waitFor(() => expect(insertPageTitle).toHaveBeenCalled());
 
                 expect(insertPageTitle).toHaveBeenCalledWith({
                     reminderId: createdReminder.id,

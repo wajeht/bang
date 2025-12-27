@@ -10,7 +10,7 @@ import https from 'node:https';
 import type { Request } from 'express';
 
 export function Utils(context: AppContext) {
-    const { db, logger, config, utils, errors } = context;
+    const { db, logger, config, errors } = context;
 
     const ACTION_TYPES = ['search', 'redirect'] as const;
 
@@ -106,8 +106,8 @@ export function Utils(context: AppContext) {
         },
 
         createBookmarkHtml(bookmark: BookmarkToExport): string {
-            const escapedUrl = utils.html.escapeHtml(bookmark.url);
-            const escapedTitle = utils.html.escapeHtml(bookmark.title);
+            const escapedUrl = context.utils.html.escapeHtml(bookmark.url);
+            const escapedTitle = context.utils.html.escapeHtml(bookmark.title);
             return `<DT><A HREF="${escapedUrl}" ADD_DATE="${bookmark.add_date}">${escapedTitle}</A>`;
         },
 

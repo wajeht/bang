@@ -6,7 +6,7 @@ import {
 } from '../../tests/api-test-utils';
 import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, afterAll, vi } from 'vitest';
 
 describe('Bookmarks Routes', () => {
     let app: any;
@@ -60,10 +60,14 @@ describe('Bookmarks Routes', () => {
                     })
                     .expect(302);
 
-                await new Promise((resolve) => setTimeout(resolve, 100));
-
-                const bookmark = await db('bookmarks').where({ user_id: user.id }).first();
-                expect(bookmark).toBeDefined();
+                const bookmark = await vi.waitFor(
+                    async () => {
+                        const result = await db('bookmarks').where({ user_id: user.id }).first();
+                        expect(result).toBeDefined();
+                        return result;
+                    },
+                    { timeout: 1000 },
+                );
                 expect(bookmark.title).toBe('Hidden Bookmark');
                 expect(bookmark.hidden).toBe(1);
             });
@@ -130,10 +134,14 @@ describe('Bookmarks Routes', () => {
 
                 expect(response.body.message).toContain('created successfully');
 
-                await new Promise((resolve) => setTimeout(resolve, 100));
-
-                const bookmark = await db('bookmarks').where({ user_id: user.id }).first();
-                expect(bookmark).toBeDefined();
+                const bookmark = await vi.waitFor(
+                    async () => {
+                        const result = await db('bookmarks').where({ user_id: user.id }).first();
+                        expect(result).toBeDefined();
+                        return result;
+                    },
+                    { timeout: 1000 },
+                );
                 expect(bookmark?.hidden).toBe(1);
             });
         });
