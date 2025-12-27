@@ -5,6 +5,7 @@ import { db } from '../tests/test-setup';
 import { Request, Response } from 'express';
 import { SearchUtils } from '../utils/search';
 import type { User, AppContext } from '../type';
+import type { SessionData } from 'express-session';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let ctx: AppContext;
@@ -1796,7 +1797,10 @@ describe('search', () => {
             });
 
             it('should return error when user is not authenticated', async () => {
-                const req = { logger: mockLogger(), session: {} as any } as Request;
+                const req = {
+                    logger: mockLogger(),
+                    session: {} as SessionData,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     redirect: vi.fn(),
@@ -2129,7 +2133,10 @@ describe('search', () => {
             });
 
             it('should return error when user is not authenticated', async () => {
-                const req = { logger: mockLogger(), session: {} as any } as Request;
+                const req = {
+                    logger: mockLogger(),
+                    session: {} as SessionData,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     redirect: vi.fn(),
