@@ -4045,9 +4045,6 @@ describe('Bang Search Performance', () => {
         const warmTime = performance.now() - startWarm;
 
         expect(reqCold.session.triggersCachedAt).toBeDefined();
-
-        console.log(`Cold cache: ${coldTime.toFixed(2)}ms, Warm cache: ${warmTime.toFixed(2)}ms`);
-
         expect(warmTime).toBeLessThan(coldTime * 2); // Allow some variance
     });
 
@@ -4077,9 +4074,6 @@ describe('Bang Search Performance', () => {
         }
 
         const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
-        console.log(
-            `Average system bang lookup time (${iterations} iterations): ${avgTime.toFixed(2)}ms`,
-        );
 
         expect(req.session.triggersCachedAt).toBeDefined();
 
@@ -4103,11 +4097,7 @@ describe('Bang Search Performance', () => {
             },
         } as unknown as Request;
 
-        const start = performance.now();
         await searchUtils.search({ req, res, user: testUser, query: '!custom1' });
-        const elapsed = performance.now() - start;
-
-        console.log(`Custom bang lookup time: ${elapsed.toFixed(2)}ms`);
 
         expect(res.redirect).toHaveBeenCalledWith('https://custom1.com');
     });
