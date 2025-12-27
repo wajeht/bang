@@ -1084,16 +1084,14 @@ export function SearchUtils(context: AppContext) {
                             );
                         }
 
-                        setTimeout(
-                            () =>
-                                context.utils.util.insertBookmark({
-                                    url,
-                                    title: titleSection || '',
-                                    userId: user.id,
-                                    hidden: shouldHide,
-                                }),
-                            0,
-                        );
+                        void context.utils.util
+                            .insertBookmark({
+                                url,
+                                userId: user.id,
+                                title: titleSection || '',
+                                hidden: shouldHide,
+                            })
+                            .catch((error) => log.error('Error inserting bookmark', { error }));
 
                         timer.stop({ outcome: 'system-bang', trigger, action: 'bookmark-created' });
                         return this.redirectWithCache(
@@ -1232,15 +1230,15 @@ export function SearchUtils(context: AppContext) {
 
                     this.invalidateTriggerCache(req);
 
-                    setTimeout(
-                        () =>
-                            context.utils.util.insertPageTitle({
-                                actionId: bangs[0].id,
-                                url: bangUrl,
-                                req,
-                            }),
-                        0,
-                    );
+                    void context.utils.util
+                        .insertPageTitle({
+                            actionId: bangs[0].id,
+                            url: bangUrl,
+                            req,
+                        })
+                        .catch((error) =>
+                            log.error('Error inserting page title', { error, url: bangUrl }),
+                        );
 
                     timer.stop({ outcome: 'system-bang', trigger, action: 'bang-created' });
                     return this.goBack(res);
@@ -1473,15 +1471,18 @@ export function SearchUtils(context: AppContext) {
                                 .update(bangUpdates);
 
                             if (bangUpdates.url) {
-                                setTimeout(
-                                    () =>
-                                        context.utils.util.insertPageTitle({
-                                            actionId: existingBang.id,
-                                            url: bangUpdates.url || ('' as string),
-                                            req,
+                                void context.utils.util
+                                    .insertPageTitle({
+                                        actionId: existingBang.id,
+                                        url: bangUpdates.url || ('' as string),
+                                        req,
+                                    })
+                                    .catch((error) =>
+                                        log.error('Error inserting page title', {
+                                            error,
+                                            url: bangUpdates.url,
                                         }),
-                                    0,
-                                );
+                                    );
                             }
                         } catch (error) {
                             log.error('bang update failed', { error });
@@ -1708,15 +1709,18 @@ export function SearchUtils(context: AppContext) {
                             content &&
                             context.utils.validation.isValidUrl(content)
                         ) {
-                            setTimeout(
-                                () =>
-                                    context.utils.util.insertPageTitle({
-                                        reminderId: createdReminder.id,
+                            void context.utils.util
+                                .insertPageTitle({
+                                    reminderId: createdReminder.id,
+                                    url: content,
+                                    req,
+                                })
+                                .catch((error) =>
+                                    log.error('Error inserting page title', {
+                                        error,
                                         url: content,
-                                        req,
                                     }),
-                                0,
-                            );
+                                );
                         }
                     } catch (error) {
                         log.error('reminder creation failed', { error });
@@ -1754,14 +1758,14 @@ export function SearchUtils(context: AppContext) {
                 }
 
                 if (customBang) {
-                    setTimeout(
-                        () =>
-                            context.utils.util.updateUserBangLastReadAt({
-                                userId: user.id,
-                                bangId: customBang.id,
-                            }),
-                        0,
-                    );
+                    void context.utils.util
+                        .updateUserBangLastReadAt({
+                            userId: user.id,
+                            bangId: customBang.id,
+                        })
+                        .catch((error) =>
+                            log.error('Error updating user bang last read at', { error }),
+                        );
 
                     if (customBang.action_type === 'search') {
                         let url = customBang.url;

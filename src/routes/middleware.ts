@@ -156,7 +156,12 @@ export function HelmetMiddleware(ctx: AppContext) {
                     'bang.jaw.dev',
                     '*.cloudflare.com',
                 ],
-                'script-src-elem': ["'self'", "'unsafe-inline'", '*.cloudflare.com', '*.cloudflareinsights.com'],
+                'script-src-elem': [
+                    "'self'",
+                    "'unsafe-inline'",
+                    '*.cloudflare.com',
+                    '*.cloudflareinsights.com',
+                ],
                 'frame-src': ["'self'", '*.cloudflare.com'],
                 'style-src': ["'self'", "'unsafe-inline'", '*.cloudflare.com'],
 

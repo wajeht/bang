@@ -120,17 +120,15 @@ export function RemindersRouter(ctx: AppContext) {
                 });
             }
 
-            setTimeout(
-                () =>
-                    ctx.utils.util.insertBookmark({
-                        url,
-                        userId: user.id,
-                        title,
-                        pinned: pinned === 'on' || pinned === true,
-                        req,
-                    }),
-                0,
-            );
+            void ctx.utils.util
+                .insertBookmark({
+                    url,
+                    userId: user.id,
+                    title,
+                    pinned: pinned === 'on' || pinned === true,
+                    req,
+                })
+                .catch((error) => ctx.logger.error('Failed to insert bookmark', { error }));
 
             // Delete reminder if requested
             if (delete_reminder === 'on' || delete_reminder === true) {

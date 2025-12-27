@@ -261,9 +261,8 @@ export function Utils(context: AppContext) {
                     .returning('*');
 
                 if (!title) {
-                    setTimeout(
-                        () => this.insertPageTitle({ bookmarkId: bookmark.id, url, req }),
-                        0,
+                    void this.insertPageTitle({ bookmarkId: bookmark.id, url, req }).catch(
+                        (error) => logger.error('Error inserting page title', { error, url }),
                     );
                 }
             } catch (error) {
