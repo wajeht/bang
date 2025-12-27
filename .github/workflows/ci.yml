@@ -112,7 +112,7 @@ jobs:
                   retention-days: 30
 
     lint:
-        name: Oxlint
+        name: Lint
         runs-on: ubuntu-latest
 
         steps:
@@ -130,7 +130,7 @@ jobs:
               run: npm run lint
 
     format:
-        name: Oxfmt format
+        name: Format
         runs-on: ubuntu-latest
 
         permissions:
@@ -160,7 +160,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     build:
-        name: Build Docker Image
+        name: Build
         runs-on: ubuntu-latest
         steps:
             - name: Check out repository
@@ -194,7 +194,7 @@ jobs:
 
     deploy:
         needs: [lint, unit-test, browser-test, format, build]
-        name: Deploy to Production
+        name: Deploy
         runs-on: ubuntu-latest
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
