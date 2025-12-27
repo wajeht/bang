@@ -49,7 +49,11 @@ export async function Context(): Promise<AppContext> {
         throw new Error('Configuration required for app context');
     }
 
-    Log.setLevel(config.app.env === 'development' ? 'DEBUG' : 'INFO');
+    if (process.env.NODE_ENV === 'testing' || config.app.env === 'testing') {
+        Log.setLevel('SILENT');
+    } else {
+        Log.setLevel(config.app.env === 'development' ? 'DEBUG' : 'INFO');
+    }
     const logger = Logger({ service: 'bang' });
 
     const errors = {

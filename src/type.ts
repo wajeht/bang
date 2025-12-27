@@ -321,7 +321,7 @@ export type TurnstileVerifyResponse = {
     cdata?: string;
 };
 
-export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'SILENT';
 
 export type Logger = {
     debug(message: string, ...args: any[]): void;

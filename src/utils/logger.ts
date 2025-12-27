@@ -10,7 +10,7 @@ export const Log = {
         loggers: new Map<string, Logger>(),
     },
 
-    priority: { DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3 } as Record<LogLevel, number>,
+    priority: { DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3, SILENT: 4 } as Record<LogLevel, number>,
     colors: { DEBUG: 'blue', INFO: 'green', WARN: 'yellow', ERROR: 'red' } as Record<
         LogLevel,
         'blue' | 'green' | 'yellow' | 'red'
@@ -163,6 +163,7 @@ export const Log = {
             },
 
             table(tabularData: any, properties?: readonly string[]) {
+                if (state.globalLevel === 'SILENT') return;
                 const timestamp = styleText('dim', new Date().toISOString().slice(0, 19));
                 console.log(timestamp + ' ' + styleText('cyan', 'TABLE:'));
                 console.table(tabularData, properties as string[] | undefined);
