@@ -156,11 +156,34 @@ export function HelmetMiddleware(ctx: AppContext) {
                     'bang.jaw.dev',
                     '*.cloudflare.com',
                 ],
+<<<<<<< HEAD
                 'script-src-elem': ["'self'", "'unsafe-inline'", '*.cloudflare.com'],
+||||||| parent of 63bc7b78 (build: add cloudflareinsights to CSP connect-src and script-src)
+                'script-src-elem': [
+                    "'self'",
+                    "'unsafe-inline'",
+                    'https://plausible.jaw.dev',
+                    '*.cloudflare.com',
+                ],
+=======
+                'script-src-elem': [
+                    "'self'",
+                    "'unsafe-inline'",
+                    'https://plausible.jaw.dev',
+                    '*.cloudflare.com',
+                    '*.cloudflareinsights.com',
+                ],
+>>>>>>> 63bc7b78 (build: add cloudflareinsights to CSP connect-src and script-src)
                 'frame-src': ["'self'", '*.cloudflare.com'],
                 'style-src': ["'self'", "'unsafe-inline'", '*.cloudflare.com'],
 
+<<<<<<< HEAD
                 'connect-src': ["'self'", '*.cloudflare.com'],
+||||||| parent of 63bc7b78 (build: add cloudflareinsights to CSP connect-src and script-src)
+                'connect-src': ["'self'", 'plausible.jaw.dev', '*.cloudflare.com'],
+=======
+                'connect-src': ["'self'", 'plausible.jaw.dev', '*.cloudflare.com', '*.cloudflareinsights.com'],
+>>>>>>> 63bc7b78 (build: add cloudflareinsights to CSP connect-src and script-src)
                 'script-src-attr': ["'self'", "'unsafe-inline'"],
                 'form-action': ["'self'", '*'],
             },
