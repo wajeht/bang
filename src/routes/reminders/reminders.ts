@@ -165,6 +165,11 @@ export function RemindersRouter(ctx: AppContext) {
                     })
                     .whereNotNull('frequency');
 
+                if (recurringReminders.length === 0) {
+                    req.flash('warning', "You don't have any recurring reminders at the moment!");
+                    return res.redirect('/reminders');
+                }
+
                 const updates: { id: number; due_date: string }[] = [];
                 for (const reminder of recurringReminders) {
                     const timing = ctx.utils.search.parseReminderTiming(
