@@ -44,23 +44,19 @@ jobs:
         name: Unit tests
         runs-on: ubuntu-latest
 
-        strategy:
-            matrix:
-                node-version: [24.x]
-
         steps:
             - uses: actions/checkout@v4
-            - name: Use Node.js ${{ matrix.node-version }}
+            - name: Use Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: ${{ matrix.node-version }}
+                  node-version: 24
                   cache: 'npm'
 
             - name: Create .env file from .env.ci
               run: cp .env.ci .env
 
             - name: Install dependencies
-              run: npm i
+              run: npm ci
 
             - name: Migrate dev database
               run: npm run db:prepare:dev
@@ -72,26 +68,34 @@ jobs:
         name: Browser tests
         runs-on: ubuntu-latest
 
-        strategy:
-            matrix:
-                node-version: [24.x]
-
         steps:
             - uses: actions/checkout@v4
-            - name: Use Node.js ${{ matrix.node-version }}
+            - name: Use Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: ${{ matrix.node-version }}
+                  node-version: 24
                   cache: 'npm'
 
             - name: Create .env file from .env.ci
               run: cp .env.ci .env
 
             - name: Install dependencies
-              run: npm i
+              run: npm ci
+
+            - name: Cache Playwright browsers
+              uses: actions/cache@v4
+              id: playwright-cache
+              with:
+                  path: ~/.cache/ms-playwright
+                  key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
             - name: Install Playwright browsers
+              if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps chromium
+
+            - name: Install Playwright deps only
+              if: steps.playwright-cache.outputs.cache-hit == 'true'
+              run: npx playwright install-deps chromium
 
             - name: Migrate dev database
               run: npm run db:prepare:dev
@@ -111,20 +115,16 @@ jobs:
         name: Oxlint
         runs-on: ubuntu-latest
 
-        strategy:
-            matrix:
-                node-version: [24.x]
-
         steps:
             - uses: actions/checkout@v4
-            - name: Use Node.js ${{ matrix.node-version }}
+            - name: Use Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: ${{ matrix.node-version }}
+                  node-version: 24
                   cache: 'npm'
 
             - name: Install dependencies
-              run: npm i
+              run: npm ci
 
             - name: Lint codes
               run: npm run lint
@@ -138,20 +138,16 @@ jobs:
             contents: write
             actions: write
 
-        strategy:
-            matrix:
-                node-version: [24.x]
-
         steps:
             - uses: actions/checkout@v4
-            - name: Use Node.js ${{ matrix.node-version }}
+            - name: Use Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: ${{ matrix.node-version }}
+                  node-version: 24
                   cache: 'npm'
 
             - name: Install dependencies
-              run: npm i
+              run: npm ci
 
             - name: Format codes
               run: npm run format
