@@ -7,12 +7,12 @@ import {
 import request from 'supertest';
 import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 
 describe('Settings Routes', () => {
     let app: any;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         const { app: expressApp } = await createApp();
         app = expressApp;
     });

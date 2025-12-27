@@ -6,12 +6,12 @@ import {
 } from '../../tests/api-test-utils';
 import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeEach, afterEach, afterAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, afterAll, vi } from 'vitest';
 
 describe('Bookmarks Routes', () => {
     let app: any;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         const { app: expressApp } = await createApp();
         app = expressApp;
     });

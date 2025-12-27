@@ -6,15 +6,18 @@ import {
 import request from 'supertest';
 import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 import bcrypt from 'bcrypt';
+import type { AppContext } from '../../type';
 
 describe('Auth Routes', () => {
     let app: any;
+    let ctx: AppContext;
 
-    beforeEach(async () => {
-        const { app: expressApp } = await createApp();
-        app = expressApp;
+    beforeAll(async () => {
+        const result = await createApp();
+        app = result.app;
+        ctx = result.ctx;
     });
 
     afterEach(async () => {
@@ -155,8 +158,6 @@ describe('Auth Routes', () => {
 
     describe('GET /auth/magic/:token', () => {
         it('should authenticate user with valid magic link token', async () => {
-            const { ctx } = await createApp();
-
             await db('users').insert({
                 username: 'magicuser',
                 email: 'magic@example.com',
@@ -188,8 +189,6 @@ describe('Auth Routes', () => {
         });
 
         it('should set user session after successful authentication', async () => {
-            const { ctx } = await createApp();
-
             await db('users').insert({
                 username: 'sessionuser',
                 email: 'session@example.com',
