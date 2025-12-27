@@ -216,11 +216,12 @@ let cachedStaticLocals: {
 export function SetupAppLocals(ctx: AppContext) {
     if (!cachedStaticLocals) {
         const isProd = ctx.config.app.env === 'production';
+        const assetVersions = isProd ? ctx.utils.assets.getAssetVersions() : null;
         cachedStaticLocals = {
             copyRightYear: ctx.libs.dayjs().year(),
             version: {
-                style: isProd ? '0.41' : Math.random(),
-                script: isProd ? '0.20' : Math.random(),
+                style: assetVersions?.style ?? Math.random(),
+                script: assetVersions?.script ?? Math.random(),
             },
             utils: {
                 nl2br: ctx.utils.html.nl2br,

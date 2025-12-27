@@ -27,11 +27,12 @@ import { config } from './config';
 import { Database } from './db/db';
 import { Utils } from './utils/util';
 import { CronService } from './crons';
-import { Logger, Log } from './utils/logger';
 import { DateUtils } from './utils/date';
 import { HtmlUtils } from './utils/html';
 import { AuthUtils } from './utils/auth';
 import { MailUtils } from './utils/mail';
+import { AssetUtils } from './utils/assets';
+import { Logger, Log } from './utils/logger';
 import { SearchUtils } from './utils/search';
 import { RequestUtils } from './utils/request';
 import { TemplateUtils } from './utils/template';
@@ -82,11 +83,13 @@ export async function Context(): Promise<AppContext> {
     const utils = Utils(partialCtx);
     const validation = ValidationUtils();
     const request = RequestUtils(partialCtx);
+    const assets = AssetUtils();
 
     const utilities: Utilities = {
         date,
         html,
         auth,
+        assets,
         request,
         validation,
         util: utils,
