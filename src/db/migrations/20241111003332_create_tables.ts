@@ -105,6 +105,7 @@ export async function up(knex: Knex): Promise<void> {
 
             table.index(['user_id', 'created_at']);
             table.index(['user_id', 'pinned', 'created_at']);
+            table.index(['user_id', 'hidden'], 'bookmarks_user_hidden_idx');
         });
     }
 
@@ -134,6 +135,7 @@ export async function up(knex: Knex): Promise<void> {
             table.index(['action_type'], 'bangs_action_type_idx');
             table.index(['user_id', 'usage_count'], 'bangs_user_usage_idx');
             table.index(['user_id', 'trigger', 'last_read_at'], 'bangs_user_trigger_last_read_idx');
+            table.index(['user_id', 'hidden'], 'bangs_user_hidden_idx');
         });
     }
 
@@ -154,6 +156,7 @@ export async function up(knex: Knex): Promise<void> {
 
             table.index(['user_id', 'created_at']);
             table.index(['user_id', 'pinned', 'created_at']);
+            table.index(['user_id', 'hidden'], 'notes_user_hidden_idx');
         });
     }
 
@@ -170,6 +173,8 @@ export async function up(knex: Knex): Promise<void> {
             table.string('title').notNullable(); // e.g., 'Work Tabs'
             table.unique(['user_id', 'trigger']);
             table.timestamps(true, true);
+
+            table.index(['user_id', 'created_at'], 'tabs_user_created_idx');
         });
     }
 
@@ -180,6 +185,9 @@ export async function up(knex: Knex): Promise<void> {
             table.string('title').notNullable();
             table.text('url').notNullable();
             table.timestamps(true, true);
+
+            table.index(['tab_id'], 'tab_items_tab_id_idx');
+            table.index(['tab_id', 'created_at'], 'tab_items_tab_id_created_idx');
         });
     }
 
@@ -201,6 +209,7 @@ export async function up(knex: Knex): Promise<void> {
             table.timestamps(true, true);
 
             table.index(['user_id', 'due_date']); // finding due reminders
+            table.index(['user_id', 'reminder_type'], 'reminders_user_type_idx');
         });
     }
 }
