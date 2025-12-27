@@ -513,7 +513,8 @@ export function SettingsRouter(ctx: AppContext) {
 
             req.flash('success', 'Column settings updated');
 
-            const redirectUrl = hidden === 'true' ? `${path}?hidden=true` : path;
+            const basePath = path || '/settings/preferences';
+            const redirectUrl = hidden === 'true' ? `${basePath}?hidden=true` : basePath;
             return res.redirect(redirectUrl);
         },
     );
