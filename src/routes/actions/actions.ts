@@ -548,6 +548,11 @@ export function ActionsRouter(ctx: AppContext) {
                 .whereNotNull('url')
                 .limit(500);
 
+            if (actions.length === 0) {
+                req.flash('warning', "You don't have any actions at the moment!");
+                return res.redirect('/actions');
+            }
+
             const urls = actions.map((a: { url: string }) => a.url).filter(Boolean);
 
             if (urls.length === 0) {
