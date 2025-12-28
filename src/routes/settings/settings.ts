@@ -615,6 +615,11 @@ export function SettingsRouter(ctx: AppContext) {
                     await trx('bangs').where({ user_id: user.id }).update({ hidden: false });
                 });
 
+                if (req.session?.user) {
+                    req.session.user.hidden_items_password = null;
+                    req.session.save();
+                }
+
                 req.flash('success', '🔓 Password removed and all items unhidden');
                 return res.redirect('/settings/account');
             }
@@ -666,6 +671,11 @@ export function SettingsRouter(ctx: AppContext) {
                 .db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
+
+            if (req.session?.user) {
+                req.session.user.hidden_items_password = hashedPassword;
+                req.session.save();
+            }
 
             req.flash(
                 'success',
