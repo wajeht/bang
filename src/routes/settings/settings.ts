@@ -955,7 +955,8 @@ export function SettingsRouter(ctx: AppContext) {
                                     req.user.username = updateData.username;
                                 }
                                 if (updateData.default_search_provider) {
-                                    req.user.default_search_provider = updateData.default_search_provider;
+                                    req.user.default_search_provider =
+                                        updateData.default_search_provider;
                                 }
                                 if (updateData.autocomplete_search_on_homepage !== undefined) {
                                     req.user.autocomplete_search_on_homepage =

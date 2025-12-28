@@ -504,7 +504,7 @@ describe('Settings Routes', () => {
         });
 
         it('should update session when importing user preferences', async () => {
-            const { agent, user } = await authenticateAgent(app);
+            const { agent } = await authenticateAgent(app);
 
             const importData = {
                 version: '1.0',

@@ -417,7 +417,9 @@ export function AuthenticationMiddleware(ctx: AppContext) {
             if (needsRefresh) {
                 parsedUser = {
                     ...user,
-                    column_preferences: ctx.utils.util.parseColumnPreferences(user?.column_preferences),
+                    column_preferences: ctx.utils.util.parseColumnPreferences(
+                        user?.column_preferences,
+                    ),
                 } as User;
             } else {
                 // Already parsed from session cache
