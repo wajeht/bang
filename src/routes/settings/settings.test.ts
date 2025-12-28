@@ -502,6 +502,27 @@ describe('Settings Routes', () => {
             const actions = await db('bangs').where({ user_id: user.id });
             expect(actions[0].hidden).toBe(0);
         });
+
+        it('should update session when importing user preferences', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const importData = {
+                version: '1.0',
+                user_preferences: {
+                    default_search_provider: 'google',
+                    timezone: 'America/Los_Angeles',
+                },
+            };
+
+            await agent
+                .post('/settings/data/import')
+                .send({ config: JSON.stringify(importData) })
+                .expect(302);
+
+            const response = await agent.get('/settings/account').expect(200);
+            expect(response.text).toContain('"default_search_provider":"google"');
+            expect(response.text).toContain('"timezone":"America/Los_Angeles"');
+        });
     });
 
     describe('POST /settings/data/export', () => {
@@ -773,6 +794,30 @@ describe('Settings Routes', () => {
 
             const response2 = await agent.get('/api/settings/api-key').expect(200);
             expect(response2.body.api_key).toBe('updated-key');
+        });
+    });
+
+    describe('POST /settings/danger-zone/bulk-delete', () => {
+        it('should update session when deleting API keys', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await agent.post('/settings/create-api-key').send({}).expect(302);
+
+            const userWithKey = await db('users').where({ id: user.id }).first();
+            expect(userWithKey.api_key).not.toBeNull();
+
+            await agent
+                .post('/settings/danger-zone/bulk-delete')
+                .send({ delete_options: ['api_keys'] })
+                .expect(302);
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.api_key).toBeNull();
+            expect(updatedUser.api_key_version).toBe(0);
+
+            const response = await agent.get('/settings/account').expect(200);
+            expect(response.text).toContain('click to generate api key');
+            expect(response.text).not.toContain('Regenerate');
         });
     });
 });

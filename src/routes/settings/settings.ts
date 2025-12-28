@@ -914,8 +914,18 @@ export function SettingsRouter(ctx: AppContext) {
                         if (Object.keys(updateData).length > 0) {
                             await trx('users').where('id', userId).update(updateData);
 
-                            // Update session with new preferences
                             if (req.session?.user) {
+                                if (updateData.username) {
+                                    req.session.user.username = updateData.username;
+                                }
+                                if (updateData.default_search_provider) {
+                                    req.session.user.default_search_provider =
+                                        updateData.default_search_provider;
+                                }
+                                if (updateData.autocomplete_search_on_homepage !== undefined) {
+                                    req.session.user.autocomplete_search_on_homepage =
+                                        updateData.autocomplete_search_on_homepage;
+                                }
                                 if (updateData.column_preferences) {
                                     try {
                                         req.session.user.column_preferences =
@@ -929,6 +939,7 @@ export function SettingsRouter(ctx: AppContext) {
                                 if (updateData.timezone) {
                                     req.session.user.timezone = updateData.timezone;
                                 }
+                                req.session.save();
                             }
                         }
                     }
@@ -1098,7 +1109,14 @@ export function SettingsRouter(ctx: AppContext) {
                             api_key_version: 0,
                             api_key_created_at: null,
                         });
-                        deleteCounts.api_keys = 1; // Always 1 since it's per user
+                        deleteCounts.api_keys = 1;
+
+                        if (req.session?.user) {
+                            req.session.user.api_key = null;
+                            req.session.user.api_key_version = 0;
+                            req.session.user.api_key_created_at = null;
+                            req.session.save();
+                        }
                     }
 
                     const processedItems = [];
