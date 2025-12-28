@@ -355,8 +355,7 @@ export function AppLocalStateMiddleware(ctx: AppContext) {
     };
 }
 
-// Cache TTL for user data in session (5 minutes)
-const USER_CACHE_TTL = 5 * 60 * 1000;
+const USER_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export function AuthenticationMiddleware(ctx: AppContext) {
     return async function authenticationMiddleware(
