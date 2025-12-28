@@ -537,14 +537,24 @@ export function SettingsRouter(ctx: AppContext) {
 
             const payload: ApiKeyPayload = { userId: user.id, apiKeyVersion: newKeyVersion };
 
-            await ctx
+            const [updatedUser] = await ctx
                 .db('users')
                 .where({ id: req.session?.user?.id })
                 .update({
                     api_key: await ctx.utils.auth.generateApiKey(payload),
                     api_key_version: newKeyVersion,
                     api_key_created_at: ctx.db.fn.now(),
-                });
+                })
+                .returning('*');
+
+            if (req.session?.user) {
+                req.session.user = updatedUser as User;
+                req.session.save();
+            }
+
+            if (req.user) {
+                req.user = updatedUser as User;
+            }
 
             req.flash('success', '📱 api key created');
             return res.redirect(`/settings/account`);

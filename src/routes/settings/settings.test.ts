@@ -594,6 +594,64 @@ describe('Settings Routes', () => {
         });
     });
 
+    describe('POST /settings/create-api-key', () => {
+        it('should require authentication', async () => {
+            const agent = await createUnauthenticatedAgent(app);
+            await agent
+                .post('/settings/create-api-key')
+                .send({})
+                .expect(302)
+                .expect('Location', '/?modal=login');
+        });
+
+        it('should create an API key and update the database', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const initialUser = await db('users').where({ id: user.id }).first();
+            expect(initialUser.api_key).toBeNull();
+            expect(initialUser.api_key_version).toBe(0);
+
+            await agent
+                .post('/settings/create-api-key')
+                .send({})
+                .expect(302)
+                .expect('Location', '/settings/account');
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.api_key).not.toBeNull();
+            expect(updatedUser.api_key_version).toBe(1);
+            expect(updatedUser.api_key_created_at).not.toBeNull();
+        });
+
+        it('should update session so account page shows API key UI', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            await agent.post('/settings/create-api-key').send({}).expect(302);
+
+            const response = await agent.get('/settings/account').expect(200);
+
+            expect(response.text).toContain('view-or-hide-button');
+            expect(response.text).toContain('Regenerate');
+            expect(response.text).not.toContain('click to generate api key');
+        });
+
+        it('should increment api_key_version on regeneration', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await agent.post('/settings/create-api-key').send({}).expect(302);
+
+            const firstUser = await db('users').where({ id: user.id }).first();
+            expect(firstUser.api_key_version).toBe(1);
+            const firstKey = firstUser.api_key;
+
+            await agent.post('/settings/create-api-key').send({}).expect(302);
+
+            const secondUser = await db('users').where({ id: user.id }).first();
+            expect(secondUser.api_key_version).toBe(2);
+            expect(secondUser.api_key).not.toBe(firstKey);
+        });
+    });
+
     describe('GET /api/settings/api-key', () => {
         it('should require authentication', async () => {
             await request(app).get('/api/settings/api-key').expect(401);
