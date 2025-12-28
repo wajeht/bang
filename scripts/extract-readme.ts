@@ -26,7 +26,6 @@ async function extractReadmeUsage(): Promise<ExtractionResult> {
             };
         }
 
-        // Skip if output exists and README hasn't changed
         if (fs.existsSync(outputPath)) {
             const readmeStat = fs.statSync(readmePath);
             const outputStat = fs.statSync(outputPath);
