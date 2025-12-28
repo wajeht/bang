@@ -95,18 +95,22 @@ export function AuthRouter(ctx: AppContext) {
             });
         }
 
-        const user = await ctx.db('users').where({ email: decoded.email }).first();
-
-        if (user) {
-            user.is_admin = Boolean(user.is_admin);
-            user.autocomplete_search_on_homepage = Boolean(user.autocomplete_search_on_homepage);
-        }
+        let user = await ctx.db('users').where({ email: decoded.email }).first();
 
         if (!user) {
             throw new ctx.errors.ValidationError({ email: 'User not found' });
         }
 
-        await ctx.db('users').where({ id: user.id }).update({ email_verified_at: ctx.db.fn.now() });
+        if (!user.email_verified_at) {
+            [user] = await ctx
+                .db('users')
+                .where({ id: user.id })
+                .update({ email_verified_at: ctx.db.fn.now() })
+                .returning('*');
+        }
+
+        user.is_admin = Boolean(user.is_admin);
+        user.autocomplete_search_on_homepage = Boolean(user.autocomplete_search_on_homepage);
 
         let columnPreferences = {};
         if (user.column_preferences) {
