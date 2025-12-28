@@ -14,6 +14,11 @@ const env = dotenv.config({
 
 export async function seed(knex: Knex): Promise<void> {
     try {
+        const [{ count }] = (await knex('users').count('* as count')) as any;
+        if (count > 0) {
+            return;
+        }
+
         await knex('tab_items').del();
         await knex('tabs').del();
         await knex('reminders').del();
