@@ -594,6 +594,83 @@ describe('Settings Routes', () => {
         });
     });
 
+    describe('POST /settings/hidden-password', () => {
+        it('should require authentication', async () => {
+            const agent = await createUnauthenticatedAgent(app);
+            await agent
+                .post('/settings/hidden-password')
+                .send({ newPassword: 'test1234' })
+                .expect(302)
+                .expect('Location', '/?modal=login');
+        });
+
+        it('should set a new password and update the session', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await agent
+                .post('/settings/hidden-password')
+                .send({ newPassword: 'test1234' })
+                .expect(302);
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.hidden_items_password).not.toBeNull();
+
+            const response = await agent.get('/settings/account').expect(200);
+            expect(response.text).toContain('Current Password');
+            expect(response.text).toContain('Update Password');
+        });
+
+        it('should update password and update the session', async () => {
+            const { agent, user } = await authenticateAgent(app);
+            const bcrypt = await import('bcrypt');
+
+            await agent
+                .post('/settings/hidden-password')
+                .send({ newPassword: 'oldpass' })
+                .expect(302);
+
+            await agent
+                .post('/settings/hidden-password')
+                .send({
+                    currentPassword: 'oldpass',
+                    newPassword: 'newpass1234',
+                    confirmPassword: 'newpass1234',
+                })
+                .expect(302);
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            const isNewPassword = await bcrypt.compare(
+                'newpass1234',
+                updatedUser.hidden_items_password,
+            );
+            expect(isNewPassword).toBe(true);
+        });
+
+        it('should remove password and update the session', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await agent
+                .post('/settings/hidden-password')
+                .send({ newPassword: 'testpass' })
+                .expect(302);
+
+            await agent
+                .post('/settings/hidden-password')
+                .send({
+                    currentPassword: 'testpass',
+                    removePassword: 'on',
+                })
+                .expect(302);
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.hidden_items_password).toBeNull();
+
+            const response = await agent.get('/settings/account').expect(200);
+            expect(response.text).toContain('Set Password');
+            expect(response.text).not.toContain('Update Password');
+        });
+    });
+
     describe('POST /settings/create-api-key', () => {
         it('should require authentication', async () => {
             const agent = await createUnauthenticatedAgent(app);
