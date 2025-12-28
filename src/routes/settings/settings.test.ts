@@ -690,6 +690,22 @@ describe('Settings Routes', () => {
             expect(response.text).toContain('Set Password');
             expect(response.text).not.toContain('Update Password');
         });
+
+        it('should sync hidden_items_password to session after setting', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const responseBefore = await agent.get('/settings/account').expect(200);
+            expect(responseBefore.text).toContain('"hidden_items_password":null');
+
+            await agent
+                .post('/settings/hidden-password')
+                .send({ newPassword: 'newpass123' })
+                .expect(302);
+
+            const responseAfter = await agent.get('/settings/account').expect(200);
+            expect(responseAfter.text).not.toContain('"hidden_items_password":null');
+            expect(responseAfter.text).toMatch(/"hidden_items_password":"\$2[aby]\$/);
+        });
     });
 
     describe('POST /settings/create-api-key', () => {
@@ -818,6 +834,25 @@ describe('Settings Routes', () => {
             const response = await agent.get('/settings/account').expect(200);
             expect(response.text).toContain('click to generate api key');
             expect(response.text).not.toContain('Regenerate');
+        });
+
+        it('should sync api key fields to session after bulk delete', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            await agent.post('/settings/create-api-key').send({}).expect(302);
+
+            const responseWithKey = await agent.get('/settings/account').expect(200);
+            expect(responseWithKey.text).toContain('"api_key_version":1');
+            expect(responseWithKey.text).not.toContain('"api_key":null');
+
+            await agent
+                .post('/settings/danger-zone/bulk-delete')
+                .send({ delete_options: ['api_keys'] })
+                .expect(302);
+
+            const responseAfterDelete = await agent.get('/settings/account').expect(200);
+            expect(responseAfterDelete.text).toContain('"api_key":null');
+            expect(responseAfterDelete.text).toContain('"api_key_version":0');
         });
     });
 });

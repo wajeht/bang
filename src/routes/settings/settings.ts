@@ -620,6 +620,10 @@ export function SettingsRouter(ctx: AppContext) {
                     req.session.save();
                 }
 
+                if (req.user) {
+                    req.user.hidden_items_password = null;
+                }
+
                 req.flash('success', '🔓 Password removed and all items unhidden');
                 return res.redirect('/settings/account');
             }
@@ -675,6 +679,10 @@ export function SettingsRouter(ctx: AppContext) {
             if (req.session?.user) {
                 req.session.user.hidden_items_password = hashedPassword;
                 req.session.save();
+            }
+
+            if (req.user) {
+                req.user.hidden_items_password = hashedPassword;
             }
 
             req.flash(
@@ -941,6 +949,32 @@ export function SettingsRouter(ctx: AppContext) {
                                 }
                                 req.session.save();
                             }
+
+                            if (req.user) {
+                                if (updateData.username) {
+                                    req.user.username = updateData.username;
+                                }
+                                if (updateData.default_search_provider) {
+                                    req.user.default_search_provider = updateData.default_search_provider;
+                                }
+                                if (updateData.autocomplete_search_on_homepage !== undefined) {
+                                    req.user.autocomplete_search_on_homepage =
+                                        updateData.autocomplete_search_on_homepage;
+                                }
+                                if (updateData.column_preferences) {
+                                    try {
+                                        req.user.column_preferences =
+                                            typeof updateData.column_preferences === 'string'
+                                                ? JSON.parse(updateData.column_preferences)
+                                                : updateData.column_preferences;
+                                    } catch {
+                                        // Handle parsing error gracefully
+                                    }
+                                }
+                                if (updateData.timezone) {
+                                    req.user.timezone = updateData.timezone;
+                                }
+                            }
                         }
                     }
                 });
@@ -1116,6 +1150,12 @@ export function SettingsRouter(ctx: AppContext) {
                             req.session.user.api_key_version = 0;
                             req.session.user.api_key_created_at = null;
                             req.session.save();
+                        }
+
+                        if (req.user) {
+                            req.user.api_key = null;
+                            req.user.api_key_version = 0;
+                            req.user.api_key_created_at = null;
                         }
                     }
 
