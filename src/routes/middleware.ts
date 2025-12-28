@@ -106,6 +106,8 @@ export function ErrorMiddleware(ctx: AppContext) {
 
         if (!res.locals.state) {
             SetupAppLocals(ctx)(req, res);
+            // Load branding for error pages
+            res.locals.state.branding = await ctx.models.settings.getBranding();
         }
 
         if (typeof res.locals.csrfToken === 'undefined') {
@@ -335,6 +337,9 @@ export function AppLocalStateMiddleware(ctx: AppContext) {
             }
 
             SetupAppLocals(ctx)(req, res);
+
+            // Load branding settings from database (cached in repository)
+            res.locals.state.branding = await ctx.models.settings.getBranding();
 
             // Clear session input and errors after setting locals
             // This ensures they're available for the current request only

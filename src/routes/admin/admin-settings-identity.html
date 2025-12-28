@@ -1,0 +1,42 @@
+<section style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
+
+  <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <h2 style="margin: 0;">📛 Identity</h2>
+      <p>Customize your instance name and URL.</p>
+    </div>
+  </header>
+
+  <form action="/admin/settings/identity" method="POST">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+    <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column;">
+      <legend>App Identity</legend>
+
+      <%~ include('../_components/inputs/text.html', {
+        id: 'app_name',
+        name: 'app_name',
+        label: '📛 App Name',
+        value: branding.appName,
+        placeholder: 'Bang',
+        required: false,
+        helpText: 'The name displayed in page titles, headers, and emails',
+        error: state.errors && state.errors.app_name ? state.errors.app_name : undefined
+      }) %>
+
+      <%~ include('../_components/inputs/text.html', {
+        id: 'app_url',
+        name: 'app_url',
+        label: '🔗 App URL',
+        value: branding.appUrl,
+        placeholder: 'https://example.com',
+        required: false,
+        helpText: 'Your instance URL for meta tags and example links (leave empty to use APP_URL from config)',
+        error: state.errors && state.errors.app_url ? state.errors.app_url : undefined
+      }) %>
+
+      <button type="submit">💾 Save</button>
+    </fieldset>
+  </form>
+
+</section>

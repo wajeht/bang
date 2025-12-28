@@ -1,5 +1,5 @@
 import type { AppContext } from '../../type';
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 export function AdminRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
@@ -10,6 +10,85 @@ export function AdminRouter(ctx: AppContext) {
         ctx.middleware.adminOnly,
         async (_req: Request, res: Response) => {
             return res.redirect('/admin/users');
+        },
+    );
+
+    // Identity settings
+    router.get(
+        '/admin/settings/identity',
+        ctx.middleware.authentication,
+        ctx.middleware.adminOnly,
+        async (req: Request, res: Response) => {
+            const branding = await ctx.models.settings.getBranding();
+
+            return res.render('admin/admin-settings-identity.html', {
+                user: req.session?.user,
+                title: 'Admin / Identity',
+                path: '/admin/settings/identity',
+                layout: '_layouts/admin.html',
+                branding,
+            });
+        },
+    );
+
+    router.post(
+        '/admin/settings/identity',
+        ctx.middleware.authentication,
+        ctx.middleware.adminOnly,
+        async (req: Request, res: Response, next: NextFunction) => {
+            try {
+                const { app_name, app_url } = req.body;
+
+                await ctx.models.settings.setMany({
+                    'branding.app_name': (app_name as string)?.trim() || 'Bang',
+                    'branding.app_url': (app_url as string)?.trim() || '',
+                });
+
+                req.flash('success', 'Identity settings updated successfully');
+                return res.redirect('/admin/settings/identity');
+            } catch (error) {
+                next(error);
+            }
+        },
+    );
+
+    // Visibility settings
+    router.get(
+        '/admin/settings/visibility',
+        ctx.middleware.authentication,
+        ctx.middleware.adminOnly,
+        async (req: Request, res: Response) => {
+            const branding = await ctx.models.settings.getBranding();
+
+            return res.render('admin/admin-settings-visibility.html', {
+                user: req.session?.user,
+                title: 'Admin / Visibility',
+                path: '/admin/settings/visibility',
+                layout: '_layouts/admin.html',
+                branding,
+            });
+        },
+    );
+
+    router.post(
+        '/admin/settings/visibility',
+        ctx.middleware.authentication,
+        ctx.middleware.adminOnly,
+        async (req: Request, res: Response, next: NextFunction) => {
+            try {
+                const { show_footer, show_search_page, show_about_page } = req.body;
+
+                await ctx.models.settings.setMany({
+                    'branding.show_footer': show_footer === 'on' ? 'true' : 'false',
+                    'branding.show_search_page': show_search_page === 'on' ? 'true' : 'false',
+                    'branding.show_about_page': show_about_page === 'on' ? 'true' : 'false',
+                });
+
+                req.flash('success', 'Visibility settings updated successfully');
+                return res.redirect('/admin/settings/visibility');
+            } catch (error) {
+                next(error);
+            }
         },
     );
 

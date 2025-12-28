@@ -7,7 +7,7 @@ import {
 import request from 'supertest';
 import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, afterAll, beforeEach } from 'vitest';
 
 describe('Admin Routes', () => {
     let app: any;
@@ -36,7 +36,6 @@ describe('Admin Routes', () => {
         });
 
         it('should allow admin users', async () => {
-            // Create admin user
             const adminUser = await ensureTestUserExists('admin@example.com');
             await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
 
@@ -155,6 +154,197 @@ describe('Admin Routes', () => {
                 const { agent } = await authenticateAgent(app, 'admin@example.com');
 
                 await agent.post('/admin/users/delete').type('form').send({}).expect(302);
+            });
+        });
+    });
+
+    describe('Identity Settings', () => {
+        beforeEach(async () => {
+            await db('settings')
+                .insert({ key: 'branding.app_name', value: 'Bang' })
+                .onConflict('key')
+                .merge();
+            await db('settings')
+                .insert({ key: 'branding.app_url', value: '' })
+                .onConflict('key')
+                .merge();
+        });
+
+        describe('GET /admin/settings/identity', () => {
+            it('should require authentication', async () => {
+                await request(app)
+                    .get('/admin/settings/identity')
+                    .expect(302)
+                    .expect('Location', '/?modal=login');
+            });
+
+            it('should require admin privileges', async () => {
+                const { agent } = await authenticateAgent(app);
+                await agent.get('/admin/settings/identity').expect(401);
+            });
+
+            it('should show identity settings for admin', async () => {
+                const adminUser = await ensureTestUserExists('admin@example.com');
+                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
+
+                const { agent } = await authenticateAgent(app, 'admin@example.com');
+
+                const response = await agent.get('/admin/settings/identity').expect(200);
+                expect(response.text).toContain('Identity');
+                expect(response.text).toContain('App Name');
+                expect(response.text).toContain('App URL');
+            });
+        });
+
+        describe('POST /admin/settings/identity', () => {
+            it('should require admin privileges', async () => {
+                const { agent } = await authenticateAgent(app);
+                await agent
+                    .post('/admin/settings/identity')
+                    .send({ app_name: 'Test', app_url: 'https://test.com' })
+                    .expect(401);
+            });
+
+            it('should update identity settings', async () => {
+                const adminUser = await ensureTestUserExists('admin@example.com');
+                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
+
+                const { agent } = await authenticateAgent(app, 'admin@example.com');
+
+                await agent
+                    .post('/admin/settings/identity')
+                    .send({ app_name: 'MyApp', app_url: 'https://myapp.com' })
+                    .expect(302)
+                    .expect('Location', '/admin/settings/identity');
+
+                const appName = await db('settings').where({ key: 'branding.app_name' }).first();
+                const appUrl = await db('settings').where({ key: 'branding.app_url' }).first();
+
+                expect(appName?.value).toBe('MyApp');
+                expect(appUrl?.value).toBe('https://myapp.com');
+            });
+
+            it('should default to Bang if app_name is empty', async () => {
+                const adminUser = await ensureTestUserExists('admin@example.com');
+                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
+
+                const { agent } = await authenticateAgent(app, 'admin@example.com');
+
+                await agent
+                    .post('/admin/settings/identity')
+                    .send({ app_name: '', app_url: '' })
+                    .expect(302);
+
+                const appName = await db('settings').where({ key: 'branding.app_name' }).first();
+                expect(appName?.value).toBe('Bang');
+            });
+        });
+    });
+
+    describe('Visibility Settings', () => {
+        beforeEach(async () => {
+            await db('settings')
+                .insert({ key: 'branding.show_footer', value: 'true' })
+                .onConflict('key')
+                .merge();
+            await db('settings')
+                .insert({ key: 'branding.show_search_page', value: 'true' })
+                .onConflict('key')
+                .merge();
+            await db('settings')
+                .insert({ key: 'branding.show_about_page', value: 'true' })
+                .onConflict('key')
+                .merge();
+        });
+
+        describe('GET /admin/settings/visibility', () => {
+            it('should require authentication', async () => {
+                await request(app)
+                    .get('/admin/settings/visibility')
+                    .expect(302)
+                    .expect('Location', '/?modal=login');
+            });
+
+            it('should require admin privileges', async () => {
+                const { agent } = await authenticateAgent(app);
+                await agent.get('/admin/settings/visibility').expect(401);
+            });
+
+            it('should show visibility settings for admin', async () => {
+                const adminUser = await ensureTestUserExists('admin@example.com');
+                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
+
+                const { agent } = await authenticateAgent(app, 'admin@example.com');
+
+                const response = await agent.get('/admin/settings/visibility').expect(200);
+                expect(response.text).toContain('Visibility');
+                expect(response.text).toContain('Show Footer');
+                expect(response.text).toContain('Show Search Link');
+                expect(response.text).toContain('Show About Link');
+            });
+        });
+
+        describe('POST /admin/settings/visibility', () => {
+            it('should require admin privileges', async () => {
+                const { agent } = await authenticateAgent(app);
+                await agent
+                    .post('/admin/settings/visibility')
+                    .send({ show_footer: 'on' })
+                    .expect(401);
+            });
+
+            it('should update visibility settings', async () => {
+                const adminUser = await ensureTestUserExists('admin@example.com');
+                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
+
+                const { agent } = await authenticateAgent(app, 'admin@example.com');
+
+                await agent
+                    .post('/admin/settings/visibility')
+                    .send({
+                        show_footer: 'on',
+                        show_search_page: 'on',
+                        // show_about_page not sent (unchecked)
+                    })
+                    .expect(302)
+                    .expect('Location', '/admin/settings/visibility');
+
+                const showFooter = await db('settings')
+                    .where({ key: 'branding.show_footer' })
+                    .first();
+                const showSearch = await db('settings')
+                    .where({ key: 'branding.show_search_page' })
+                    .first();
+                const showAbout = await db('settings')
+                    .where({ key: 'branding.show_about_page' })
+                    .first();
+
+                expect(showFooter?.value).toBe('true');
+                expect(showSearch?.value).toBe('true');
+                expect(showAbout?.value).toBe('false');
+            });
+
+            it('should set all to false when none checked', async () => {
+                const adminUser = await ensureTestUserExists('admin@example.com');
+                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
+
+                const { agent } = await authenticateAgent(app, 'admin@example.com');
+
+                await agent.post('/admin/settings/visibility').send({}).expect(302);
+
+                const showFooter = await db('settings')
+                    .where({ key: 'branding.show_footer' })
+                    .first();
+                const showSearch = await db('settings')
+                    .where({ key: 'branding.show_search_page' })
+                    .first();
+                const showAbout = await db('settings')
+                    .where({ key: 'branding.show_about_page' })
+                    .first();
+
+                expect(showFooter?.value).toBe('false');
+                expect(showSearch?.value).toBe('false');
+                expect(showAbout?.value).toBe('false');
             });
         });
     });

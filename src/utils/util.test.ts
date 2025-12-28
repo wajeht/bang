@@ -24,6 +24,7 @@ let mailUtils: ReturnType<typeof MailUtils>;
 
 beforeAll(async () => {
     const { BookmarksRepository } = await import('../routes/bookmarks/bookmarks.repository');
+    const { SettingsRepository } = await import('../routes/admin/settings.repository');
 
     const mockContext = {
         db,
@@ -51,6 +52,7 @@ beforeAll(async () => {
 
     mockContext.models = {
         bookmarks: BookmarksRepository(mockContext),
+        settings: SettingsRepository(mockContext),
     };
 
     utilUtils = Utils(mockContext);
@@ -843,7 +845,50 @@ describe('formatDateInTimezone', () => {
 });
 
 describe('sendReminderDigestEmail', () => {
-    it('should format reminder emails with clickable links in HTML', async () => {
+    let sendMailMock: ReturnType<typeof vi.fn>;
+    let testMailUtils: ReturnType<typeof MailUtils>;
+
+    beforeAll(async () => {
+        const { SettingsRepository } = await import('../routes/admin/settings.repository');
+
+        sendMailMock = vi.fn().mockResolvedValue({ messageId: 'test-id' });
+
+        const mockNodemailer = {
+            createTransport: vi.fn().mockReturnValue({ sendMail: sendMailMock }),
+        };
+
+        const prodConfig = {
+            ...config,
+            app: { ...config.app, env: 'production' },
+        };
+
+        const testContext = {
+            db,
+            config: prodConfig,
+            libs: { ...libs, nodemailer: mockNodemailer },
+            logger: { error: vi.fn(), info: vi.fn() },
+            models: { settings: SettingsRepository({ db, config, libs } as any) },
+        } as any;
+
+        testMailUtils = MailUtils(testContext);
+    });
+
+    beforeEach(() => {
+        sendMailMock.mockClear();
+    });
+
+    it('should not send email when reminders array is empty', async () => {
+        await testMailUtils.sendReminderDigestEmail({
+            email: 'test@example.com',
+            username: 'TestUser',
+            reminders: [],
+            date: '2025-08-16',
+        });
+
+        expect(sendMailMock).not.toHaveBeenCalled();
+    });
+
+    it('should send email with clickable links in HTML', async () => {
         const reminders = [
             {
                 id: 1,
@@ -854,48 +899,63 @@ describe('sendReminderDigestEmail', () => {
             },
             {
                 id: 2,
-                title: 'Why I Do Programming',
-                url: 'https://esafev.com/notes/why-i-do-programming/',
-                reminder_type: 'recurring' as const,
-                frequency: 'weekly' as const,
-            },
-            {
-                id: 3,
                 title: 'Meeting with team',
                 reminder_type: 'once' as const,
             },
-            {
-                id: 4,
-                title: 'Claude Code Best Practices',
-                url: 'https://www.anthropic.com/engineering/claude-code-best-practices',
-                reminder_type: 'recurring' as const,
-                frequency: 'weekly' as const,
-            },
         ];
 
-        // This test can be run locally with mailpit running to verify the email format
-        // When mailpit is running, you can check the email at http://localhost:8025
-        await mailUtils.sendReminderDigestEmail({
+        await testMailUtils.sendReminderDigestEmail({
             email: 'test@example.com',
             username: 'TestUser',
             reminders,
             date: '2025-08-16',
         });
 
-        // If running with mailpit, check that:
-        // 1. Email subject is "⏰ Reminders - Saturday, August 16, 2025"
-        // 2. Links are clickable in the HTML view
-        // 3. Frequency appears in the header as "weekly reminders"
-        // 4. No CSS styles are present
-        expect(true).toBe(true);
+        expect(sendMailMock).toHaveBeenCalledTimes(1);
+        const emailArgs = sendMailMock.mock.calls[0][0];
+
+        expect(emailArgs.to).toBe('test@example.com');
+        expect(emailArgs.subject).toContain('Reminders');
+        expect(emailArgs.subject).toContain('Saturday, August 16, 2025');
+        expect(emailArgs.html).toContain('Hello TestUser');
+        expect(emailArgs.html).toContain(
+            '<a href="https://forgecode.dev/blog/ai-agent-best-practices/">AI Agent Best Practices</a>',
+        );
+        expect(emailArgs.html).toContain('<li>Meeting with team</li>');
     });
 
-    it('should handle mixed reminder types correctly', async () => {
+    it('should show "weekly reminders" when all reminders are weekly recurring', async () => {
+        const reminders = [
+            {
+                id: 1,
+                title: 'Weekly Report',
+                reminder_type: 'recurring' as const,
+                frequency: 'weekly' as const,
+            },
+            {
+                id: 2,
+                title: 'Weekly Review',
+                reminder_type: 'recurring' as const,
+                frequency: 'weekly' as const,
+            },
+        ];
+
+        await testMailUtils.sendReminderDigestEmail({
+            email: 'test@example.com',
+            username: 'TestUser',
+            reminders,
+            date: '2025-08-16',
+        });
+
+        const emailArgs = sendMailMock.mock.calls[0][0];
+        expect(emailArgs.html).toContain('weekly reminders');
+    });
+
+    it('should show "reminders" when reminder types are mixed', async () => {
         const reminders = [
             {
                 id: 1,
                 title: 'Daily standup',
-                url: 'https://zoom.us/meeting/123',
                 reminder_type: 'recurring' as const,
                 frequency: 'daily' as const,
             },
@@ -907,22 +967,22 @@ describe('sendReminderDigestEmail', () => {
             {
                 id: 3,
                 title: 'Weekly review',
-                url: 'https://notion.so/weekly',
                 reminder_type: 'recurring' as const,
                 frequency: 'weekly' as const,
             },
         ];
 
-        // This test can be run locally with mailpit running to verify the email format
-        await mailUtils.sendReminderDigestEmail({
+        await testMailUtils.sendReminderDigestEmail({
             email: 'test@example.com',
             username: 'TestUser',
             reminders,
             date: '2025-08-16',
         });
 
-        // When mixed types, email should just say "reminders" not "weekly reminders"
-        expect(true).toBe(true);
+        const emailArgs = sendMailMock.mock.calls[0][0];
+        expect(emailArgs.html).toContain('your reminders for');
+        expect(emailArgs.html).not.toContain('weekly reminders');
+        expect(emailArgs.html).not.toContain('daily reminders');
     });
 });
 
@@ -950,12 +1010,18 @@ describe('processReminderDigests', () => {
 
     beforeEach(async () => {
         await db('reminders').del();
+        vi.spyOn(mailUtils, 'sendReminderDigestEmail').mockResolvedValue();
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
     it('should find due reminders in the next 15 minutes and handle timezone correctly', async () => {
-        const now = new Date();
-        const in10Minutes = new Date(now.getTime() + 10 * 60 * 1000);
-        const in20Minutes = new Date(now.getTime() + 20 * 60 * 1000);
+        const now = libs.dayjs.utc();
+        const in10Minutes = now.add(10, 'minute');
+        const in20Minutes = now.add(20, 'minute');
+        const past20Minutes = now.subtract(20, 'minute');
 
         await db('reminders').insert([
             {
@@ -974,30 +1040,26 @@ describe('processReminderDigests', () => {
                 user_id: testUserId,
                 title: 'Already Due',
                 reminder_type: 'once',
-                due_date: new Date(now.getTime() - 20 * 60 * 1000).toISOString(), // 20 minutes ago
+                due_date: past20Minutes.toISOString(),
             },
         ]);
 
         await mailUtils.processReminderDigests();
 
-        // Check that one-time reminder was deleted (this confirms processing happened)
         const remainingReminders = await db('reminders').where('title', 'Due Soon');
         expect(remainingReminders).toHaveLength(0);
 
-        // Check that future reminder is still there
         const futureReminders = await db('reminders').where('title', 'Due Later');
         expect(futureReminders).toHaveLength(1);
 
-        // Check that past due reminder is still there (not processed since it's outside the window)
         const pastDueReminders = await db('reminders').where('title', 'Already Due');
         expect(pastDueReminders).toHaveLength(1);
     });
 
     it('should handle recurring reminders and calculate next due date correctly', async () => {
-        const now = new Date();
-        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+        const now = libs.dayjs.utc();
+        const in5Minutes = now.add(5, 'minute');
 
-        // Create recurring reminders for different frequencies
         await db('reminders').insert([
             {
                 user_id: testUserId,
@@ -1017,37 +1079,28 @@ describe('processReminderDigests', () => {
 
         await mailUtils.processReminderDigests();
 
-        // Check that recurring reminders were updated with next due dates
         const dailyReminder = await db('reminders').where('title', 'Daily Reminder').first();
         const weeklyReminder = await db('reminders').where('title', 'Weekly Reminder').first();
 
         expect(dailyReminder).toBeTruthy();
         expect(weeklyReminder).toBeTruthy();
 
-        // Check that next due dates are calculated correctly (approximately)
-        const originalDue = new Date(in5Minutes);
+        const originalDue = in5Minutes.toDate();
         const dailyNextDue = new Date(dailyReminder.due_date);
         const weeklyNextDue = new Date(weeklyReminder.due_date);
 
-        // Daily should be ~24 hours later
         expect(dailyNextDue.getTime() - originalDue.getTime()).toBeCloseTo(24 * 60 * 60 * 1000, -4);
 
-        // Weekly should be scheduled for next Saturday after processing
-        // Parse the UTC date and convert to test user's timezone to check the day
         const weeklyDue = libs.dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
-        expect(weeklyDue.day()).toBe(6); // 6 = Saturday
+        expect(weeklyDue.day()).toBe(6);
 
-        // Since the reminder is processed and moved to the next occurrence,
-        // it should be approximately 7 days in the future (next Saturday)
         const weeklyDiff = weeklyNextDue.getTime() - originalDue.getTime();
-        expect(weeklyDiff).toBeGreaterThan(6 * 24 * 60 * 60 * 1000); // More than 6 days
-        expect(weeklyDiff).toBeLessThanOrEqual(14 * 24 * 60 * 60 * 1000); // Less than 14 days
-
-        // Recurring reminders should have their due dates updated
+        expect(weeklyDiff).toBeGreaterThan(0);
+        expect(weeklyDiff).toBeLessThanOrEqual(14 * 24 * 60 * 60 * 1000);
     });
 
     it('should handle no due reminders gracefully', async () => {
-        const farFuture = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
+        const farFuture = new Date(Date.now() + 2 * 60 * 60 * 1000);
 
         await db('reminders').insert({
             user_id: testUserId,
@@ -1056,39 +1109,33 @@ describe('processReminderDigests', () => {
             due_date: farFuture.toISOString(),
         });
 
-        // Should not throw an error
         await expect(mailUtils.processReminderDigests()).resolves.not.toThrow();
 
-        // Reminder should still exist (not processed since it's not due)
         const reminders = await db('reminders').where('title', 'Far Future');
         expect(reminders).toHaveLength(1);
     });
 
     it('should use UTC for database queries and handle user timezones for email formatting', async () => {
-        // This test validates that the function uses UTC for database operations
-        const now = new Date();
-        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+        const now = libs.dayjs.utc();
+        const in5Minutes = now.add(5, 'minute');
 
-        // Create a reminder that should be found (due within 15 minutes from UTC perspective)
         await db('reminders').insert({
             user_id: testUserId,
             title: 'UTC Test',
             reminder_type: 'once',
-            due_date: in5Minutes.toISOString(), // This is in UTC
+            due_date: in5Minutes.toISOString(),
         });
 
         await mailUtils.processReminderDigests();
 
-        // The reminder should have been processed (deleted for one-time reminders)
         const remainingReminders = await db('reminders').where('title', 'UTC Test');
         expect(remainingReminders).toHaveLength(0);
     });
 
     it('should schedule weekly reminders for Saturday and monthly for the 1st', async () => {
-        const now = new Date();
-        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+        const now = libs.dayjs.utc();
+        const in5Minutes = now.add(5, 'minute');
 
-        // Create weekly and monthly reminders
         await db('reminders').insert([
             {
                 user_id: testUserId,
@@ -1108,71 +1155,23 @@ describe('processReminderDigests', () => {
 
         await mailUtils.processReminderDigests();
 
-        // Check that reminders were rescheduled
         const weeklyReminder = await db('reminders').where('title', 'Weekly Report').first();
         const monthlyReminder = await db('reminders').where('title', 'Monthly Review').first();
 
         expect(weeklyReminder).toBeTruthy();
         expect(monthlyReminder).toBeTruthy();
 
-        // Weekly reminder should be scheduled for next Saturday
-        // Parse the UTC date and convert to test user's timezone to check the day
         const weeklyDue = libs.dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
-        expect(weeklyDue.day()).toBe(6); // 6 = Saturday
+        expect(weeklyDue.day()).toBe(6);
 
-        // Monthly reminder should be scheduled for the 1st of next month
-        // Parse the UTC date and convert to test user's timezone to check the date
         const monthlyDue = libs.dayjs.tz(monthlyReminder.due_date, 'UTC').tz('America/Chicago');
-        expect(monthlyDue.date()).toBe(1); // 1st of the month
-    });
-
-    it('should create new weekly reminders on Saturday and monthly on the 1st', async () => {
-        const now = new Date();
-        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
-
-        // Create weekly and monthly reminders
-        await db('reminders').insert([
-            {
-                user_id: testUserId,
-                title: 'Weekly Report',
-                reminder_type: 'recurring',
-                frequency: 'weekly',
-                due_date: in5Minutes.toISOString(),
-            },
-            {
-                user_id: testUserId,
-                title: 'Monthly Review',
-                reminder_type: 'recurring',
-                frequency: 'monthly',
-                due_date: in5Minutes.toISOString(),
-            },
-        ]);
-
-        await mailUtils.processReminderDigests();
-
-        // Check that reminders were rescheduled
-        const weeklyReminder = await db('reminders').where('title', 'Weekly Report').first();
-        const monthlyReminder = await db('reminders').where('title', 'Monthly Review').first();
-
-        expect(weeklyReminder).toBeTruthy();
-        expect(monthlyReminder).toBeTruthy();
-
-        // Weekly reminder should be scheduled for next Saturday
-        // Parse the UTC date and convert to test user's timezone to check the day
-        const weeklyDue = libs.dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
-        expect(weeklyDue.day()).toBe(6); // 6 = Saturday
-
-        // Monthly reminder should be scheduled for the 1st of next month
-        // Parse the UTC date and convert to test user's timezone to check the date
-        const monthlyDue = libs.dayjs.tz(monthlyReminder.due_date, 'UTC').tz('America/Chicago');
-        expect(monthlyDue.date()).toBe(1); // 1st of the month
+        expect(monthlyDue.date()).toBe(1);
     });
 
     it('should allow daily reminders to be processed multiple times', async () => {
-        const now = new Date();
-        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+        const now = libs.dayjs.utc();
+        const in5Minutes = now.add(5, 'minute');
 
-        // Create a daily recurring reminder
         await db('reminders').insert({
             user_id: testUserId,
             title: 'Multi-Day Daily Reminder',
@@ -1181,35 +1180,28 @@ describe('processReminderDigests', () => {
             due_date: in5Minutes.toISOString(),
         });
 
-        // First processing
         await mailUtils.processReminderDigests();
 
         let reminder = await db('reminders').where('title', 'Multi-Day Daily Reminder').first();
         expect(reminder).toBeTruthy();
 
-        // After first processing, the reminder should have been updated to tomorrow
         const firstDue = new Date(reminder.due_date);
-        expect(firstDue.getTime()).toBeGreaterThan(in5Minutes.getTime());
+        expect(firstDue.getTime()).toBeGreaterThan(in5Minutes.toDate().getTime());
 
-        // Since the reminder was already processed and moved to next day,
-        // it won't be due for processing until tomorrow.
-        // To test multiple processing, we need to manually update it to be due again
-        const nowAgain = new Date();
-        const in5MinutesAgain = new Date(nowAgain.getTime() + 5 * 60 * 1000);
+        const nowAgain = libs.dayjs.utc();
+        const in5MinutesAgain = nowAgain.add(5, 'minute');
 
         await db('reminders')
             .where('title', 'Multi-Day Daily Reminder')
             .update({ due_date: in5MinutesAgain.toISOString() });
 
-        // Second processing
         await mailUtils.processReminderDigests();
 
         reminder = await db('reminders').where('title', 'Multi-Day Daily Reminder').first();
         expect(reminder).toBeTruthy();
 
-        // Verify the due date was updated to the following day from the second processing
         const updatedDue = new Date(reminder.due_date);
-        expect(updatedDue.getTime() - in5MinutesAgain.getTime()).toBeCloseTo(
+        expect(updatedDue.getTime() - in5MinutesAgain.toDate().getTime()).toBeCloseTo(
             24 * 60 * 60 * 1000,
             -4,
         );

@@ -47,7 +47,9 @@
 
     </main>
 
-		<%~ include('partials/footer.html') %>
+		<% if (state.branding.showFooter) { %>
+			<%~ include('partials/footer.html') %>
+		<% } %>
 
 	</body>
 

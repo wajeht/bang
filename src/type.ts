@@ -305,6 +305,21 @@ export type Users = {
     readByEmail: (email: string) => Promise<User | null>;
 };
 
+export type Settings = {
+    getAll: () => Promise<Record<string, string>>;
+    get: (key: string) => Promise<string | null>;
+    set: (key: string, value: string) => Promise<void>;
+    setMany: (settings: Record<string, string>) => Promise<void>;
+    invalidateCache: () => void;
+    getBranding: () => Promise<{
+        appName: string;
+        appUrl: string;
+        showFooter: boolean;
+        showSearchPage: boolean;
+        showAboutPage: boolean;
+    }>;
+};
+
 export type LayoutOptions = {
     /** Default layout file path relative to views directory */
     defaultLayout?: string;
@@ -383,6 +398,7 @@ export interface Models {
     tabs: Tabs;
     reminders: Reminders;
     users: Users;
+    settings: Settings;
 }
 
 export interface Services {
