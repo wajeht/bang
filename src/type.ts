@@ -83,6 +83,7 @@ export type ColumnPreferences = {
         default_per_page: number;
         created_at: boolean;
         pinned: boolean;
+        hidden: boolean;
     };
     actions: {
         name: boolean;
@@ -93,6 +94,7 @@ export type ColumnPreferences = {
         default_per_page: number;
         created_at: boolean;
         last_read_at: boolean;
+        hidden: boolean;
     };
     notes: {
         title: boolean;
@@ -101,6 +103,7 @@ export type ColumnPreferences = {
         created_at: boolean;
         pinned: boolean;
         view_type: 'table' | 'list';
+        hidden: boolean;
     };
     tabs: {
         title: boolean;
@@ -137,9 +140,9 @@ export type User = {
     default_search_provider: DefaultSearchProviders;
     bookmarks_per_page: number;
     actions_per_page: number;
-    api_key: string;
+    api_key: string | null;
     api_key_version: number;
-    api_key_created_at: string;
+    api_key_created_at: string | null;
     created_at: string;
     updated_at: string;
     column_preferences: ColumnPreferences;

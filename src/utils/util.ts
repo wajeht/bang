@@ -4,6 +4,7 @@ import type {
     BookmarkToExport,
     PaginateArrayOptions,
     TurnstileVerifyResponse,
+    ColumnPreferences,
 } from '../type';
 import http from 'node:http';
 import https from 'node:https';
@@ -14,8 +15,87 @@ export function Utils(context: AppContext) {
 
     const ACTION_TYPES = ['search', 'redirect'] as const;
 
+    const DEFAULT_COLUMN_PREFERENCES: ColumnPreferences = {
+        bookmarks: {
+            title: true,
+            url: true,
+            default_per_page: 10,
+            created_at: true,
+            pinned: true,
+            hidden: true,
+        },
+        actions: {
+            name: true,
+            trigger: true,
+            url: true,
+            action_type: true,
+            default_per_page: 10,
+            last_read_at: true,
+            usage_count: true,
+            created_at: true,
+            hidden: true,
+        },
+        notes: {
+            title: true,
+            content: true,
+            default_per_page: 10,
+            created_at: true,
+            pinned: true,
+            view_type: 'table',
+            hidden: true,
+        },
+        tabs: {
+            title: true,
+            trigger: true,
+            items_count: true,
+            default_per_page: 10,
+            created_at: true,
+        },
+        reminders: {
+            title: true,
+            content: true,
+            due_date: true,
+            frequency: true,
+            default_per_page: 10,
+            created_at: true,
+            default_reminder_timing: 'daily',
+            default_reminder_time: '09:00',
+        },
+        users: {
+            username: true,
+            email: true,
+            is_admin: true,
+            default_per_page: 10,
+            email_verified_at: true,
+            created_at: true,
+        },
+    };
+
     return {
         ACTION_TYPES,
+
+        parseColumnPreferences(raw: string | object | null | undefined): ColumnPreferences {
+            let parsed: Partial<ColumnPreferences> = {};
+
+            if (typeof raw === 'string') {
+                try {
+                    parsed = JSON.parse(raw);
+                } catch {
+                    parsed = {};
+                }
+            } else if (raw && typeof raw === 'object') {
+                parsed = raw as Partial<ColumnPreferences>;
+            }
+
+            return {
+                bookmarks: { ...DEFAULT_COLUMN_PREFERENCES.bookmarks, ...parsed.bookmarks },
+                actions: { ...DEFAULT_COLUMN_PREFERENCES.actions, ...parsed.actions },
+                notes: { ...DEFAULT_COLUMN_PREFERENCES.notes, ...parsed.notes },
+                tabs: { ...DEFAULT_COLUMN_PREFERENCES.tabs, ...parsed.tabs },
+                reminders: { ...DEFAULT_COLUMN_PREFERENCES.reminders, ...parsed.reminders },
+                users: { ...DEFAULT_COLUMN_PREFERENCES.users, ...parsed.users },
+            };
+        },
 
         paginate<T>(array: T[], options: PaginateArrayOptions) {
             const { page, perPage, total } = options;
