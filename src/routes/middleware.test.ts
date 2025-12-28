@@ -99,9 +99,11 @@ describe('authenticationMiddleware', () => {
                 id: testUser.id,
                 username: testUser.username,
                 email: testUser.email,
-                column_preferences: { bookmarks: { title: true } },
             }),
         );
+        expect(req.user!.column_preferences.bookmarks.title).toBe(true);
+        expect(req.user!.column_preferences.bookmarks.default_per_page).toBe(10);
+        expect(req.user!.column_preferences.actions.default_per_page).toBe(10);
 
         expect(req.session!.save).toHaveBeenCalled();
 
@@ -147,9 +149,11 @@ describe('authenticationMiddleware', () => {
                 id: testUser.id,
                 username: testUser.username,
                 email: testUser.email,
-                column_preferences: { bookmarks: { title: true } },
             }),
         );
+        expect(req.user!.column_preferences.bookmarks.title).toBe(true);
+        expect(req.user!.column_preferences.bookmarks.default_per_page).toBe(10);
+        expect(req.user!.column_preferences.actions.default_per_page).toBe(10);
 
         expect(req.session!.user).toBeDefined();
         expect(req.session!.save).toHaveBeenCalled();
@@ -221,9 +225,12 @@ describe('authenticationMiddleware', () => {
                 id: nullPrefUser.id,
                 username: nullPrefUser.username,
                 email: nullPrefUser.email,
-                column_preferences: {},
             }),
         );
+        expect(req.user!.column_preferences.bookmarks.default_per_page).toBe(10);
+        expect(req.user!.column_preferences.actions.default_per_page).toBe(10);
+        expect(req.user!.column_preferences.notes.default_per_page).toBe(10);
+        expect(req.user!.column_preferences.reminders.default_per_page).toBe(10);
 
         expect(next).toHaveBeenCalledWith();
 

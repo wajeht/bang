@@ -112,18 +112,9 @@ export function AuthRouter(ctx: AppContext) {
         user.is_admin = Boolean(user.is_admin);
         user.autocomplete_search_on_homepage = Boolean(user.autocomplete_search_on_homepage);
 
-        let columnPreferences = {};
-        if (user.column_preferences) {
-            try {
-                columnPreferences = JSON.parse(user.column_preferences);
-            } catch {
-                columnPreferences = {};
-            }
-        }
-
         const parsedUser = {
             ...user,
-            column_preferences: columnPreferences,
+            column_preferences: ctx.utils.util.parseColumnPreferences(user.column_preferences),
         };
 
         const redirectTo = req.session.redirectTo || '/actions';
