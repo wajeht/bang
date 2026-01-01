@@ -452,6 +452,59 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=action%20query');
         });
 
+        it('should handle direct commands with search terms for @reminders', async () => {
+            const req = { logger: mockLogger() } as unknown as Request;
+            const res = {
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
+
+            await searchUtils.search({
+                req,
+                res,
+                user: testUser,
+                query: '@reminders search query',
+            });
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'private, max-age=3600',
+                }),
+            );
+            expect(res.redirect).toHaveBeenCalledWith('/reminders?search=search%20query');
+
+            vi.mocked(res.redirect).mockClear();
+            await searchUtils.search({ req, res, user: testUser, query: '@r reminder query' });
+            expect(res.redirect).toHaveBeenCalledWith('/reminders?search=reminder%20query');
+
+            vi.mocked(res.redirect).mockClear();
+            await searchUtils.search({ req, res, user: testUser, query: '@remind test' });
+            expect(res.redirect).toHaveBeenCalledWith('/reminders?search=test');
+        });
+
+        it('should handle direct commands with search terms for @tabs', async () => {
+            const req = { logger: mockLogger() } as unknown as Request;
+            const res = {
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
+
+            await searchUtils.search({ req, res, user: testUser, query: '@tabs search query' });
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'private, max-age=3600',
+                }),
+            );
+            expect(res.redirect).toHaveBeenCalledWith('/tabs?search=search%20query');
+
+            vi.mocked(res.redirect).mockClear();
+            await searchUtils.search({ req, res, user: testUser, query: '@t tab query' });
+            expect(res.redirect).toHaveBeenCalledWith('/tabs?search=tab%20query');
+
+            vi.mocked(res.redirect).mockClear();
+            await searchUtils.search({ req, res, user: testUser, query: '@tab my tabs' });
+            expect(res.redirect).toHaveBeenCalledWith('/tabs?search=my%20tabs');
+        });
+
         it('should handle special characters in search terms', async () => {
             const req = { logger: mockLogger() } as unknown as Request;
             const res = {
@@ -1318,6 +1371,110 @@ describe('search', () => {
             vi.resetModules();
         });
 
+        describe('!find command', () => {
+            it('should redirect to global search page with search term', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!find javascript',
+                });
+
+                expect(res.set).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        'Cache-Control': 'private, max-age=3600',
+                    }),
+                );
+                expect(res.redirect).toHaveBeenCalledWith('/search?q=javascript&type=global');
+            });
+
+            it('should handle multi-word search terms', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!find react hooks tutorial',
+                });
+
+                expect(res.redirect).toHaveBeenCalledWith(
+                    '/search?q=react%20hooks%20tutorial&type=global',
+                );
+            });
+
+            it('should reject !find without search term', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!find',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Please provide a search term for global search'),
+                );
+            });
+
+            it('should reject !find with only whitespace', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!find   ',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Please provide a search term for global search'),
+                );
+            });
+
+            it('should encode special characters in search term', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!find test & special + characters?',
+                });
+
+                expect(res.redirect).toHaveBeenCalledWith(
+                    '/search?q=test%20%26%20special%20%2B%20characters%3F&type=global',
+                );
+            });
+        });
+
         describe('!note command', () => {
             afterEach(async () => {
                 await db('notes').where({ user_id: testUser.id }).delete();
@@ -1709,6 +1866,69 @@ describe('search', () => {
                         .first();
                     expect(createdNote).toBeDefined();
                     expect(createdNote.content).toBe('Content with  flag in middle'); // --hide removed leaves double space
+                    expect(createdNote.hidden).toBe(1);
+                });
+
+                it('should create hidden note without title using --hide flag', async () => {
+                    const userWithPassword = {
+                        ...testUser,
+                        hidden_items_password: '$2b$10$test-hash',
+                    } as User;
+
+                    const req = { logger: mockLogger() } as unknown as Request;
+                    const res = {
+                        set: vi.fn().mockReturnThis(),
+                        status: vi.fn().mockReturnThis(),
+                        send: vi.fn(),
+                    } as unknown as Response;
+
+                    await searchUtils.search({
+                        req,
+                        res,
+                        user: userWithPassword,
+                        query: '!note --hide this is hidden content without title',
+                    });
+
+                    expect(res.status).toHaveBeenCalledWith(200);
+                    expect(res.send).toHaveBeenCalledWith(
+                        expect.stringContaining('window.history.back()'),
+                    );
+
+                    const createdNote = await db('notes')
+                        .where({ user_id: testUser.id, title: 'Untitled' })
+                        .first();
+                    expect(createdNote).toBeDefined();
+                    expect(createdNote.content).toBe('this is hidden content without title');
+                    expect(createdNote.hidden).toBe(1);
+                });
+
+                it('should create hidden note with --hide at beginning of pipe format', async () => {
+                    const userWithPassword = {
+                        ...testUser,
+                        hidden_items_password: '$2b$10$test-hash',
+                    } as User;
+
+                    const req = { logger: mockLogger() } as unknown as Request;
+                    const res = {
+                        set: vi.fn().mockReturnThis(),
+                        status: vi.fn().mockReturnThis(),
+                        send: vi.fn(),
+                    } as unknown as Response;
+
+                    await searchUtils.search({
+                        req,
+                        res,
+                        user: userWithPassword,
+                        query: '!note --hide Secret Title | Secret content here',
+                    });
+
+                    expect(res.status).toHaveBeenCalledWith(200);
+
+                    const createdNote = await db('notes')
+                        .where({ user_id: testUser.id, title: 'Secret Title' })
+                        .first();
+                    expect(createdNote).toBeDefined();
+                    expect(createdNote.content).toBe('Secret content here');
                     expect(createdNote.hidden).toBe(1);
                 });
             });
