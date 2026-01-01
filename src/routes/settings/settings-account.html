@@ -157,6 +157,7 @@
         placeholder: 'Enter new password (min 4 characters)',
         value: '',
         required: !user.hidden_items_password,
+        autocomplete: 'new-password',
         helpText: user.hidden_items_password ? 'Leave blank to keep current password' : 'Set a password to enable hiding items',
         error: state.errors && state.errors.newPassword ? state.errors.newPassword : undefined
       }) %>
@@ -168,6 +169,7 @@
           label: '🔑 Confirm New Password',
           placeholder: 'Re-enter new password',
           value: '',
+          autocomplete: 'new-password',
           helpText: 'Must match the new password',
           error: state.errors && state.errors.confirmPassword ? state.errors.confirmPassword : undefined
         }) %>
