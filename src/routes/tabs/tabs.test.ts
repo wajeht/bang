@@ -6,7 +6,7 @@ import {
 } from '../../tests/api-test-utils';
 import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, afterAll, vi } from 'vitest';
 
 describe('Tabs Routes', () => {
     let app: any;
@@ -391,7 +391,48 @@ describe('Tabs Routes', () => {
 
             expect(tabs).toHaveLength(5);
             expect(tabs[0].items_count).toBe(3);
-            expect(duration).toBeLessThan(100); // Should be very fast with indexes
+            expect(duration).toBeLessThan(100);
+        });
+    });
+
+    describe('Tab Item Creation', () => {
+        it('should prefetch assets when creating tab item', async () => {
+            const { agent, user } = await authenticateApiAgent(app);
+            const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+                text: () => Promise.resolve(''),
+            } as unknown as globalThis.Response);
+
+            const [tab] = await db('tabs')
+                .insert({
+                    user_id: user.id,
+                    title: 'Prefetch Test Tab',
+                    trigger: '!prefetchtest',
+                })
+                .returning('*');
+
+            await agent
+                .post(`/api/tabs/${tab.id}/items`)
+                .send({
+                    title: 'Prefetch Item',
+                    url: 'https://prefetch-tab-item.com',
+                })
+                .expect(201);
+
+            await vi.waitFor(() => {
+                expect(fetchSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('screenshot.jaw.dev'),
+                    expect.any(Object),
+                );
+            });
+
+            await vi.waitFor(() => {
+                expect(fetchSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('favicon.jaw.dev'),
+                    expect.any(Object),
+                );
+            });
+
+            fetchSpy.mockRestore();
         });
     });
 });

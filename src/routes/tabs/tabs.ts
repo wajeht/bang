@@ -458,6 +458,8 @@ export function TabsRouter(ctx: AppContext) {
             url,
         });
 
+        ctx.utils.util.prefetchAssets(url);
+
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({ message: 'Tab item created successfully' });
             return;
