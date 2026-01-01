@@ -256,7 +256,7 @@ window.addEventListener('load', handleRowHighlight);
                                             <a href="<%= utils.stripHtmlTags(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].url) %>" target="_blank" rel="noopener noreferrer">
                                                 <%~ data[i].url %>
                                             </a>
-                                            <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].url) %>" loading="lazy" alt="Preview">
+                                            <img class="preview-img" src="<%= utils.getScreenshotUrl(data[i].url) %>" loading="lazy" alt="Preview">
                                         </span>
                                     </div>
                                     <% } else { %>

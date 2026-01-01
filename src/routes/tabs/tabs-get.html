@@ -443,7 +443,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                                 <a href="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" target="_blank" rel="noopener noreferrer">
                                                     <%~ tabs[i].items[j].url %>
                                                 </a>
-                                                <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(tabs[i].items[j].url) %>" loading="lazy" alt="Preview">
+                                                <img class="preview-img" src="<%= utils.getScreenshotUrl(tabs[i].items[j].url) %>" loading="lazy" alt="Preview">
                                             </span>
                                         </div>
                                      </td>
