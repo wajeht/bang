@@ -733,4 +733,78 @@ describe('Reminders Routes', () => {
             expect(response.body.data[0].content).toContain('<mark>highlight</mark>');
         });
     });
+
+    describe('POST /reminders/:id/bookmarks - Create Bookmark from Reminder', () => {
+        it('should allow creating bookmark with same URL but different title from existing bookmark', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('bookmarks').insert({
+                user_id: user.id,
+                title: 'Original Bookmark',
+                url: 'https://example.com',
+            });
+
+            const [reminder] = await db('reminders')
+                .insert({
+                    user_id: user.id,
+                    title: 'Test Reminder',
+                    reminder_type: 'once',
+                    due_date: dayjs().add(1, 'day').toISOString(),
+                })
+                .returning('*');
+
+            await agent
+                .post(`/reminders/${reminder.id}/bookmarks`)
+                .type('form')
+                .send({
+                    title: 'Different Title From Reminder',
+                    url: 'https://example.com',
+                })
+                .expect(302);
+
+            const bookmarks = await new Promise<any[]>((resolve) => {
+                setTimeout(async () => {
+                    const result = await db('bookmarks').where({ user_id: user.id });
+                    resolve(result);
+                }, 100);
+            });
+
+            expect(bookmarks).toHaveLength(2);
+            expect(bookmarks.map((b: any) => b.title).sort()).toEqual([
+                'Different Title From Reminder',
+                'Original Bookmark',
+            ]);
+        });
+
+        it('should reject creating bookmark with same URL and same title from reminder', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('bookmarks').insert({
+                user_id: user.id,
+                title: 'Same Title',
+                url: 'https://example.com',
+            });
+
+            const [reminder] = await db('reminders')
+                .insert({
+                    user_id: user.id,
+                    title: 'Test Reminder',
+                    reminder_type: 'once',
+                    due_date: dayjs().add(1, 'day').toISOString(),
+                })
+                .returning('*');
+
+            await agent
+                .post(`/reminders/${reminder.id}/bookmarks`)
+                .type('form')
+                .send({
+                    title: 'Same Title',
+                    url: 'https://example.com',
+                })
+                .expect(302);
+
+            const bookmarks = await db('bookmarks').where({ user_id: user.id });
+            expect(bookmarks).toHaveLength(1);
+        });
+    });
 });
