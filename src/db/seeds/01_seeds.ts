@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 import { dayjs } from '../../libs';
 import { Logger } from '../../utils/logger';
 
-const logger = Logger();
+const logger = Logger({ service: 'seeds' });
 
 const env = dotenv.config({
     path: path.resolve(path.join(process.cwd(), '..', '..', '.env')),
