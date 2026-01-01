@@ -3,7 +3,7 @@ import type { Knex } from 'knex';
 import { Logger } from '../utils/logger';
 import { CustomMigrationSource } from './migration-source';
 
-const logger = Logger();
+const logger = Logger({ service: 'knexfile' });
 const isTesting = process.env.NODE_ENV === 'testing' || process.env.APP_ENV === 'testing';
 
 const migrationsPath = path.resolve(__dirname, 'migrations');

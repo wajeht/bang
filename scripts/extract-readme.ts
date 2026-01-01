@@ -3,12 +3,12 @@ import path from 'path';
 import { marked } from 'marked';
 import { Logger } from '../src/utils/logger';
 
-const logger = Logger();
+const logger = Logger({ service: 'extract-readme script' });
 
 interface ExtractionResult {
+    error?: string;
     success: boolean;
     outputPath?: string;
-    error?: string;
     usageLength?: number;
     htmlLength?: number;
 }

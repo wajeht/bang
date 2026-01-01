@@ -5,7 +5,7 @@ import CleanCSS from 'clean-css';
 import { Logger } from '../src/utils/logger';
 import { minify as minifyHtml } from 'html-minifier-terser';
 
-const logger = Logger();
+const logger = Logger({ service: 'minify script' });
 
 const distDir = path.join(__dirname, '..', 'dist');
 const viewsDir = path.join(__dirname, '..', 'src', 'routes');

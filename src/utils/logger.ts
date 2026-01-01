@@ -141,8 +141,11 @@ export const Log = {
                 return logger;
             },
 
-            clone(): Logger {
-                const cloned = Log.create({ level: state.globalLevel });
+            clone(loggerOptions?: LoggerOptions): Logger {
+                const cloned = Log.create({
+                    level: loggerOptions?.level || state.globalLevel,
+                    service: loggerOptions?.service || service,
+                });
                 for (const key in tags) {
                     cloned.tag(key, tags[key]!);
                 }

@@ -347,7 +347,7 @@ export type Logger = {
     warn(message: string, ...args: any[]): void;
     error(message: string, ...args: any[]): void;
     tag(key: string, value: string): Logger;
-    clone(): Logger;
+    clone(loggerOptions?: LoggerOptions): Logger;
     time(message: string, extra?: Record<string, any>): { stop(extra?: Record<string, any>): void };
     table(tabularData: any, properties?: readonly string[]): void;
     box(title: string, content: string | string[]): void;
