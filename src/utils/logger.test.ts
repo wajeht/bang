@@ -39,7 +39,7 @@ describe('Logger', () => {
 
             expect(consoleSpy.log).toHaveBeenCalledTimes(1);
             const output = consoleSpy.log.mock.calls[0][0];
-            expect(output).toContain('service=test-service');
+            expect(output).toContain('[test-service]');
             expect(output).toContain('test message');
         });
 
@@ -54,6 +54,21 @@ describe('Logger', () => {
             const logger2 = Log.create();
             expect(logger1).not.toBe(logger2);
         });
+
+        it('should create a logger with initial tags', () => {
+            const logger = Log.create({ tags: { requestId: 'abc', method: 'GET' } });
+            logger.info('test');
+
+            const output = consoleSpy.log.mock.calls[0][0];
+            expect(output).toContain('[abc]'); // requestId in context bracket
+            expect(output).toContain('method=GET'); // other tags in metadata
+        });
+
+        it('should not cache loggers when tags are provided', () => {
+            const logger1 = Log.create({ service: 'test', tags: { requestId: 'abc' } });
+            const logger2 = Log.create({ service: 'test', tags: { requestId: 'def' } });
+            expect(logger1).not.toBe(logger2);
+        });
     });
 
     describe('Logger function', () => {
@@ -63,7 +78,7 @@ describe('Logger', () => {
 
             expect(consoleSpy.log).toHaveBeenCalledTimes(1);
             const output = consoleSpy.log.mock.calls[0][0];
-            expect(output).toContain('service=func-test');
+            expect(output).toContain('[func-test]');
         });
     });
 
@@ -122,7 +137,7 @@ describe('Logger', () => {
             logger.tag('requestId', 'abc123').info('tagged message');
 
             const output = consoleSpy.log.mock.calls[0][0];
-            expect(output).toContain('requestId=abc123');
+            expect(output).toContain('[abc123]'); // requestId in context bracket (no service)
             expect(output).toContain('tagged message');
         });
 
@@ -135,31 +150,47 @@ describe('Logger', () => {
             expect(output).toContain('key2=val2');
         });
 
-        it('should return the logger for chaining', () => {
+        it('should return a new logger (immutable)', () => {
             const logger = Log.create();
-            const result = logger.tag('key', 'value');
-            expect(result).toBe(logger);
+            const tagged = logger.tag('key', 'value');
+            expect(tagged).not.toBe(logger);
         });
-    });
 
-    describe('clone', () => {
-        it('should create an independent copy of the logger', () => {
-            const logger = Log.create();
-            logger.tag('original', 'true');
-
-            const cloned = logger.clone();
-            cloned.tag('cloned', 'true');
+        it('should not mutate the original logger', () => {
+            const logger = Log.create({ service: 'original' });
+            const tagged = logger.tag('requestId', 'abc123');
 
             logger.info('original log');
-            cloned.info('cloned log');
+            tagged.info('tagged log');
 
             const originalOutput = consoleSpy.log.mock.calls[0][0];
-            const clonedOutput = consoleSpy.log.mock.calls[1][0];
+            const taggedOutput = consoleSpy.log.mock.calls[1][0];
 
-            expect(originalOutput).toContain('original=true');
-            expect(originalOutput).not.toContain('cloned=true');
-            expect(clonedOutput).toContain('original=true');
-            expect(clonedOutput).toContain('cloned=true');
+            expect(originalOutput).toContain('[original]');
+            expect(originalOutput).not.toContain('abc123');
+            expect(taggedOutput).toContain('[original:abc123]');
+        });
+
+        it('should allow overriding service via tag', () => {
+            const logger = Log.create({ service: 'original-service' });
+            const tagged = logger.tag('service', 'new-service');
+
+            tagged.info('tagged message');
+
+            const output = consoleSpy.log.mock.calls[0][0];
+            expect(output).toContain('[new-service]');
+            expect(output).not.toContain('original-service');
+        });
+
+        it('should preserve existing tags when adding new ones', () => {
+            const logger = Log.create({ service: 'my-service' });
+            const tagged = logger.tag('requestId', 'abc').tag('method', 'GET');
+
+            tagged.info('request');
+
+            const output = consoleSpy.log.mock.calls[0][0];
+            expect(output).toContain('[my-service:abc]');
+            expect(output).toContain('method=GET');
         });
     });
 

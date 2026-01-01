@@ -20,10 +20,15 @@ export const Log = {
         const tags: Record<string, string> = {};
 
         if (options.service) tags['service'] = options.service;
+        if (options.tags) {
+            for (const key in options.tags) {
+                tags[key] = options.tags[key]!;
+            }
+        }
         if (options.level) this.state.globalLevel = options.level;
 
         const service = options.service;
-        if (service) {
+        if (service && !options.tags) {
             const cached = this.state.loggers.get(service);
             if (cached) return cached;
         }
@@ -85,37 +90,36 @@ export const Log = {
 
         function build(level: LogLevel, message: string, args: any[]): string {
             const timestamp = styleText('dim', new Date().toISOString().slice(0, 19));
-            const levelLabel = styleText(colors[level], level.padEnd(5));
+            const levelLabel = styleText(colors[level], level.padStart(5));
 
-            let formattedMessage = message;
-            let extraTagsStr = '';
+            let msg = message;
+            let extra = '';
 
             if (args.length > 0) {
                 if (/%[osj]/.test(message)) {
-                    formattedMessage = format(message, ...args);
+                    msg = format(message, ...args);
                 } else if (args.length === 1 && isPlainObject(args[0])) {
-                    extraTagsStr = appendExtraTags('', args[0]);
+                    extra = appendExtraTags('', args[0]);
                 } else {
-                    let argsStr = '';
-                    for (let i = 0; i < args.length; i++) {
-                        argsStr = argsStr
-                            ? argsStr + ' ' + formatValue(args[i])
-                            : formatValue(args[i]);
-                    }
-                    formattedMessage = message + ' ' + argsStr;
+                    msg = message + ' ' + args.map(formatValue).join(' ');
                 }
             }
 
-            let tagsStr = appendTags('', state.appMetadata);
-            tagsStr = appendTags(tagsStr, tags);
-            if (extraTagsStr) tagsStr = tagsStr ? tagsStr + ' ' + extraTagsStr : extraTagsStr;
-            const coloredTags = tagsStr ? styleText('cyan', tagsStr) : '';
+            const allTags = { ...state.appMetadata, ...tags };
+            const { service, requestId, ...rest } = allTags;
 
-            let result = timestamp + ' ' + levelLabel;
-            if (coloredTags) result = result + ' ' + coloredTags;
-            if (formattedMessage) result = result + ' ' + formattedMessage;
+            const ctx = [service, requestId].filter(Boolean).join(':');
+            const meta = [appendTags('', rest), extra].filter(Boolean).join(' ');
 
-            return result;
+            return [
+                timestamp,
+                levelLabel,
+                ctx && styleText('cyan', `[${ctx}]`),
+                msg,
+                meta && styleText('dim', meta),
+            ]
+                .filter(Boolean)
+                .join(' ');
         }
 
         function log(level: LogLevel, message: string, args: any[]): void {
@@ -137,19 +141,10 @@ export const Log = {
             error: (message, ...args) => log('ERROR', message, args),
 
             tag(key: string, value: string): Logger {
-                tags[key] = value;
-                return logger;
-            },
-
-            clone(loggerOptions?: LoggerOptions): Logger {
-                const cloned = Log.create({
-                    level: loggerOptions?.level || state.globalLevel,
-                    service: loggerOptions?.service || service,
+                return Log.create({
+                    level: state.globalLevel,
+                    tags: { ...tags, [key]: value },
                 });
-                for (const key in tags) {
-                    cloned.tag(key, tags[key]!);
-                }
-                return cloned;
             },
 
             time(message: string, extra?: Record<string, any>) {

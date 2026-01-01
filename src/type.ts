@@ -332,7 +332,6 @@ export type Logger = {
     warn(message: string, ...args: any[]): void;
     error(message: string, ...args: any[]): void;
     tag(key: string, value: string): Logger;
-    clone(loggerOptions?: LoggerOptions): Logger;
     time(message: string, extra?: Record<string, any>): { stop(extra?: Record<string, any>): void };
     table(tabularData: any, properties?: readonly string[]): void;
     box(title: string, content: string | string[]): void;
@@ -341,6 +340,7 @@ export type Logger = {
 export type LoggerOptions = {
     service?: string;
     level?: LogLevel;
+    tags?: Record<string, string>;
 };
 
 export type PaginateArrayOptions = {

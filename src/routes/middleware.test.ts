@@ -23,10 +23,6 @@ describe('authenticationMiddleware', () => {
 
     beforeAll(async () => {
         ctx = await Context();
-
-        vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});
-        vi.spyOn(ctx.logger, 'info').mockImplementation(() => {});
-
         authenticationMiddleware = AuthenticationMiddleware(ctx);
         await db('users').where('email', 'like', '%test%').delete();
 
@@ -50,7 +46,10 @@ describe('authenticationMiddleware', () => {
     });
 
     beforeEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
+        vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});
+        vi.spyOn(ctx.logger, 'info').mockImplementation(() => {});
+        vi.spyOn(ctx.logger, 'tag').mockReturnValue(ctx.logger);
 
         req = {
             session: {
@@ -613,17 +612,16 @@ describe('RequestLoggerMiddleware', () => {
     beforeAll(async () => {
         ctx = await Context();
         vi.spyOn(ctx.logger, 'info').mockImplementation(() => {});
-        vi.spyOn(ctx.logger, 'clone').mockReturnValue({
+        vi.spyOn(ctx.logger, 'tag').mockReturnValue({
             tag: vi.fn().mockReturnThis(),
             info: vi.fn(),
             debug: vi.fn(),
             warn: vi.fn(),
             error: vi.fn(),
-            clone: vi.fn().mockReturnThis(),
             time: vi.fn(),
             table: vi.fn(),
             box: vi.fn(),
-        });
+        } as any);
         requestLoggerMiddleware = RequestLoggerMiddleware(ctx);
     });
 
@@ -673,24 +671,18 @@ describe('RequestLoggerMiddleware', () => {
         expect(res.on).toHaveBeenCalledWith('finish', expect.any(Function));
     });
 
-    it('should clone logger with requestId and method tags', () => {
+    it('should create logger with requestId and method tags', () => {
         requestLoggerMiddleware(req as Request, res as unknown as Response, next);
 
-        expect(ctx.logger.clone).toHaveBeenCalled();
-
-        const clonedLogger = (ctx.logger.clone as ReturnType<typeof vi.fn>).mock.results[0].value;
-        expect(clonedLogger.tag).toHaveBeenCalledWith('requestId', expect.any(String));
-        expect(clonedLogger.tag).toHaveBeenCalledWith('method', 'GET');
+        expect(ctx.logger.tag).toHaveBeenCalledWith('requestId', expect.any(String));
     });
 
     it('should generate 8-character requestId', () => {
         requestLoggerMiddleware(req as Request, res as unknown as Response, next);
 
-        const clonedLogger = (ctx.logger.clone as ReturnType<typeof vi.fn>).mock.results[0].value;
-        const requestIdCall = clonedLogger.tag.mock.calls.find(
-            (call: string[]) => call[0] === 'requestId',
-        );
-        expect(requestIdCall[1]).toHaveLength(8);
+        const tagCall = (ctx.logger.tag as ReturnType<typeof vi.fn>).mock.calls[0];
+        expect(tagCall[0]).toBe('requestId');
+        expect(tagCall[1]).toHaveLength(8);
     });
 
     it('should log request on finish', () => {
@@ -797,12 +789,13 @@ describe('CsrfMiddleware', () => {
 
     beforeAll(async () => {
         ctx = await Context();
-        vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});
         csrfMiddleware = CsrfMiddleware(ctx);
     });
 
     beforeEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
+        vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});
+        vi.spyOn(ctx.logger, 'tag').mockReturnValue(ctx.logger);
 
         req = {
             method: 'GET',

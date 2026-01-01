@@ -15,8 +15,7 @@ let insertBookmark: any;
 let insertPageTitle: any;
 let checkDuplicateBookmarkUrl: any;
 
-const mockLogger = () => ({
-    clone: () => mockLogger(),
+const mockLogger = (): any => ({
     tag: () => mockLogger(),
     time: () => ({ stop: () => {} }),
     debug: () => {},

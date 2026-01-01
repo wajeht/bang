@@ -88,6 +88,7 @@ function _createKnexInstance(libs: Libs): Knex {
 
 export function Database(ctx: { config: Config; logger: Logger; libs: Libs }) {
     const db: Knex = _createKnexInstance(ctx.libs);
+    const logger = ctx.logger.tag('service', 'db');
 
     async function optimizeDatabase() {
         try {
@@ -97,9 +98,9 @@ export function Database(ctx: { config: Config; logger: Logger; libs: Libs }) {
                 await db.raw('VACUUM');
             }
 
-            ctx.logger.info('Database optimization completed');
+            logger.info('Database optimization completed');
         } catch (error) {
-            ctx.logger.error('Error optimizing database', { error });
+            logger.error('Error optimizing database', { error });
         }
     }
 
@@ -108,9 +109,9 @@ export function Database(ctx: { config: Config; logger: Logger; libs: Libs }) {
             await checkDatabaseHealth();
             await optimizeDatabase();
             await runProductionMigration();
-            ctx.logger.info('Database migrations completed successfully');
+            logger.info('Database migrations completed successfully');
         } catch (error) {
-            ctx.logger.error('Error while initializing database', { error });
+            logger.error('Error while initializing database', { error });
         }
     }
 
@@ -137,11 +138,11 @@ export function Database(ctx: { config: Config; logger: Logger; libs: Libs }) {
                           : 'FULL',
             };
 
-            ctx.logger.table(healthInfo);
+            logger.table(healthInfo);
 
             return true;
         } catch (error) {
-            ctx.logger.error('Database health check failed', { error });
+            logger.error('Database health check failed', { error });
             return false;
         }
     }
@@ -149,7 +150,7 @@ export function Database(ctx: { config: Config; logger: Logger; libs: Libs }) {
     async function runProductionMigration(force: boolean = false) {
         try {
             if (ctx.config.app.env !== 'production' && force !== true) {
-                ctx.logger.info('cannot run auto database migration on non production');
+                logger.info('cannot run auto database migration on non production');
                 return;
             }
 
@@ -166,30 +167,30 @@ export function Database(ctx: { config: Config; logger: Logger; libs: Libs }) {
             }
 
             const version = await db.migrate.currentVersion();
-            ctx.logger.info('Current database version', { version });
+            logger.info('Current database version', { version });
 
-            ctx.logger.info('Checking for database upgrades');
-            ctx.logger.info('Looking for migrations', { directory: dbConfig.directory });
+            logger.info('Checking for database upgrades');
+            logger.info('Looking for migrations', { directory: dbConfig.directory });
 
             const [batchNo, migrations] = await db.migrate.latest(dbConfig);
 
             if (migrations.length === 0) {
-                ctx.logger.info('Database upgrade not required');
+                logger.info('Database upgrade not required');
                 return;
             }
 
             migrations.forEach((migration: string) => {
-                ctx.logger.info('Running migration file', { migration });
+                logger.info('Running migration file', { migration });
             });
 
             const migrationList = migrations
                 .map((migration: string) => migration.split('_')[1]?.split('.')[0] ?? '')
                 .join(', ');
 
-            ctx.logger.info('Database upgrades completed', { schema: migrationList });
-            ctx.logger.info('Migrations completed', { batchNo, count: migrations.length });
+            logger.info('Database upgrades completed', { schema: migrationList });
+            logger.info('Migrations completed', { batchNo, count: migrations.length });
         } catch (error) {
-            ctx.logger.error('Error running migrations', { error });
+            logger.error('Error running migrations', { error });
             throw error;
         }
     }
