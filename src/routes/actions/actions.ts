@@ -232,6 +232,10 @@ export function ActionsRouter(ctx: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
+        if (actionType === 'redirect') {
+            ctx.utils.util.prefetchAssets(url);
+        }
+
         ctx.utils.search.invalidateTriggerCache(req);
 
         if (ctx.utils.request.isApiRequest(req)) {
