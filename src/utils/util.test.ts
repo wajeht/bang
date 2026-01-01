@@ -151,6 +151,122 @@ describe.concurrent('isUrlLike', () => {
     });
 });
 
+describe.concurrent('normalizeUrl', () => {
+    it('should return valid https URL as-is', () => {
+        expect(utilUtils.normalizeUrl('https://example.com')).toBe('https://example.com');
+    });
+
+    it('should return valid http URL as-is', () => {
+        expect(utilUtils.normalizeUrl('http://example.com')).toBe('http://example.com');
+    });
+
+    it('should prepend https:// when URL has no protocol', () => {
+        expect(utilUtils.normalizeUrl('example.com')).toBe('https://example.com');
+    });
+
+    it('should prepend https:// for www URLs without protocol', () => {
+        expect(utilUtils.normalizeUrl('www.example.com')).toBe('https://www.example.com');
+    });
+
+    it('should not double-prepend for URLs starting with http', () => {
+        expect(utilUtils.normalizeUrl('http://example.com')).toBe('http://example.com');
+    });
+
+    it('should handle empty string', () => {
+        expect(utilUtils.normalizeUrl('')).toBe('https://');
+    });
+});
+
+describe.concurrent('getFaviconUrl', () => {
+    it('should extract hostname from valid https URL', () => {
+        expect(utilUtils.getFaviconUrl('https://example.com/path/to/page')).toBe(
+            'https://favicon.jaw.dev/?url=example.com',
+        );
+    });
+
+    it('should extract hostname from valid http URL', () => {
+        expect(utilUtils.getFaviconUrl('http://example.com')).toBe(
+            'https://favicon.jaw.dev/?url=example.com',
+        );
+    });
+
+    it('should handle URL with subdomain', () => {
+        expect(utilUtils.getFaviconUrl('https://www.example.com')).toBe(
+            'https://favicon.jaw.dev/?url=www.example.com',
+        );
+    });
+
+    it('should handle URL with port', () => {
+        expect(utilUtils.getFaviconUrl('https://example.com:8080/path')).toBe(
+            'https://favicon.jaw.dev/?url=example.com',
+        );
+    });
+
+    it('should normalize and extract hostname when URL has no protocol', () => {
+        expect(utilUtils.getFaviconUrl('example.com')).toBe(
+            'https://favicon.jaw.dev/?url=example.com',
+        );
+    });
+
+    it('should normalize and extract hostname for www URLs', () => {
+        expect(utilUtils.getFaviconUrl('www.example.com')).toBe(
+            'https://favicon.jaw.dev/?url=www.example.com',
+        );
+    });
+
+    it('should handle empty string', () => {
+        expect(utilUtils.getFaviconUrl('')).toBe('https://favicon.jaw.dev/?url=');
+    });
+});
+
+describe.concurrent('getScreenshotUrl', () => {
+    it('should encode valid https URL', () => {
+        expect(utilUtils.getScreenshotUrl('https://example.com')).toBe(
+            'https://screenshot.jaw.dev?url=https%3A%2F%2Fexample.com',
+        );
+    });
+
+    it('should encode valid http URL', () => {
+        expect(utilUtils.getScreenshotUrl('http://example.com')).toBe(
+            'https://screenshot.jaw.dev?url=http%3A%2F%2Fexample.com',
+        );
+    });
+
+    it('should encode URL with path and query params', () => {
+        expect(utilUtils.getScreenshotUrl('https://example.com/path?foo=bar')).toBe(
+            'https://screenshot.jaw.dev?url=https%3A%2F%2Fexample.com%2Fpath%3Ffoo%3Dbar',
+        );
+    });
+
+    it('should prepend https:// when URL has no protocol', () => {
+        expect(utilUtils.getScreenshotUrl('example.com')).toBe(
+            'https://screenshot.jaw.dev?url=https%3A%2F%2Fexample.com',
+        );
+    });
+
+    it('should prepend https:// for www URLs without protocol', () => {
+        expect(utilUtils.getScreenshotUrl('www.example.com')).toBe(
+            'https://screenshot.jaw.dev?url=https%3A%2F%2Fwww.example.com',
+        );
+    });
+
+    it('should not double-prepend for URLs starting with http', () => {
+        expect(utilUtils.getScreenshotUrl('http://example.com')).toBe(
+            'https://screenshot.jaw.dev?url=http%3A%2F%2Fexample.com',
+        );
+    });
+
+    it('should handle empty string by falling back to original', () => {
+        expect(utilUtils.getScreenshotUrl('')).toBe('https://screenshot.jaw.dev?url=');
+    });
+
+    it('should encode special characters in URL', () => {
+        expect(utilUtils.getScreenshotUrl('https://example.com/path with spaces')).toBe(
+            'https://screenshot.jaw.dev?url=https%3A%2F%2Fexample.com%2Fpath%20with%20spaces',
+        );
+    });
+});
+
 describe.concurrent('createBookmarkHTML', () => {
     it('should create correct HTML for a single bookmark', () => {
         const bm: BookmarkToExport = {
@@ -709,6 +825,34 @@ describe('insertBookmark', () => {
         expect(bookmark.title).toBe('Fetching title...');
         expect(bookmark.url).toBe('https://example2.com');
         expect(bookmark.user_id).toBe(1);
+    });
+
+    it('should call prefetchAssets when bookmark is inserted', async () => {
+        const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+            text: () => Promise.resolve(''),
+        } as Response);
+
+        await utilUtils.insertBookmark({
+            url: 'https://prefetch-test.com',
+            userId: 1,
+            title: 'Prefetch Test',
+        });
+
+        await vi.waitFor(() => {
+            expect(fetchSpy).toHaveBeenCalledWith(
+                expect.stringContaining('screenshot.jaw.dev'),
+                expect.any(Object),
+            );
+        });
+
+        await vi.waitFor(() => {
+            expect(fetchSpy).toHaveBeenCalledWith(
+                expect.stringContaining('favicon.jaw.dev'),
+                expect.any(Object),
+            );
+        });
+
+        fetchSpy.mockRestore();
     });
 });
 
