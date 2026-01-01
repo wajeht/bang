@@ -13,11 +13,14 @@ import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 describe('Auth Routes', () => {
     let app: any;
     let ctx: AppContext;
+    let preHashedPassword: string;
 
     beforeAll(async () => {
         const result = await createApp();
         app = result.app;
         ctx = result.ctx;
+        // Pre-hash password once with low cost for tests (bcrypt cost 4 is ~16x faster than cost 10)
+        preHashedPassword = await bcrypt.hash('correct-password', 4);
     });
 
     afterEach(async () => {
@@ -65,7 +68,7 @@ describe('Auth Routes', () => {
         it('should return error if password is invalid', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -82,7 +85,7 @@ describe('Auth Routes', () => {
         it('should verify password and redirect on success', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -102,7 +105,7 @@ describe('Auth Routes', () => {
         it('should set verification key with resource type and id', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -125,7 +128,7 @@ describe('Auth Routes', () => {
         it('should clean up expired verification keys', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -243,7 +246,7 @@ describe('Auth Routes', () => {
         it('should convert external URLs to safe local paths', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -264,7 +267,7 @@ describe('Auth Routes', () => {
         it('should prevent protocol-relative URL redirects', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -285,7 +288,7 @@ describe('Auth Routes', () => {
         it('should handle relative paths correctly', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });

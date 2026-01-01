@@ -244,53 +244,49 @@ describe('search', () => {
             expect(req.session.user).toBeUndefined();
         });
 
-        it.skipIf(config.app.env === 'development')(
-            'should have slow down the search when a user has reached more than 60 searches',
-            async () => {
-                const req = {
-                    logger: mockLogger(),
-                    session: {
-                        searchCount: 61,
-                        cumulativeDelay: 5000,
-                    },
-                } as unknown as Request;
+        it('should have slow down the search when a user has reached more than 60 searches', async () => {
+            const req = {
+                logger: mockLogger(),
+                session: {
+                    searchCount: 61,
+                    cumulativeDelay: 5000,
+                },
+            } as unknown as Request;
 
-                const res = {
-                    status: vi.fn().mockReturnThis(),
-                    redirect: vi.fn(),
-                    set: vi.fn(),
-                    setHeader: vi.fn().mockReturnThis(),
-                    send: vi.fn(),
-                } as unknown as Response;
+            const res = {
+                status: vi.fn().mockReturnThis(),
+                redirect: vi.fn(),
+                set: vi.fn().mockReturnThis(),
+                send: vi.fn().mockReturnThis(),
+            } as unknown as Response;
 
-                const processDelayedSpy = vi.mocked(searchUtils.processDelayedSearch);
-                processDelayedSpy.mockResolvedValue(undefined);
+            const processDelayedSpy = vi
+                .spyOn(searchUtils, 'processDelayedSearch')
+                .mockResolvedValue(undefined);
 
-                try {
-                    await searchUtils.search({ req, res, user: undefined, query: '!g python' });
+            try {
+                await searchUtils.search({ req, res, user: undefined, query: '!g python' });
 
-                    expect(processDelayedSpy).toHaveBeenCalled();
-
-                    expect(res.status).toHaveBeenCalledWith(200);
-                    expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
-                    expect(res.send).toHaveBeenCalledWith(
-                        expect.stringContaining(
-                            'This search was delayed by 10 seconds due to rate limiting.',
-                        ),
-                    );
-                    expect(res.send).toHaveBeenCalledWith(
-                        expect.stringContaining(
-                            'window.location.href = "https://www.google.com/search?q=python"',
-                        ),
-                    );
-                    expect(req.session.searchCount).toBe(62);
-                    expect(req.session.cumulativeDelay).toBe(10000);
-                    expect(req.session.user).toBeUndefined();
-                } finally {
-                    processDelayedSpy.mockRestore();
-                }
-            },
-        );
+                expect(processDelayedSpy).toHaveBeenCalled();
+                expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'This search was delayed by 10 seconds due to rate limiting.',
+                    ),
+                );
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'window.location.href = "https://www.google.com/search?q=python"',
+                    ),
+                );
+                expect(req.session.searchCount).toBe(62);
+                expect(req.session.cumulativeDelay).toBe(10000);
+                expect(req.session.user).toBeUndefined();
+            } finally {
+                processDelayedSpy.mockRestore();
+            }
+        });
     });
 
     describe('authenticated', () => {
