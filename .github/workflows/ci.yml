@@ -46,6 +46,8 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
             - name: Use Node.js
               uses: actions/setup-node@v4
               with:
@@ -70,6 +72,8 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
             - name: Use Node.js
               uses: actions/setup-node@v4
               with:
@@ -117,6 +121,8 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
             - name: Use Node.js
               uses: actions/setup-node@v4
               with:
@@ -139,6 +145,8 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
             - name: Use Node.js
               uses: actions/setup-node@v4
               with:
@@ -166,6 +174,8 @@ jobs:
         steps:
             - name: Check out repository
               uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
@@ -184,7 +194,7 @@ jobs:
                   echo "IMAGE_URL=$IMAGE_URL" >> $GITHUB_OUTPUT
 
             - name: Build and push Docker Image
-              uses: docker/build-push-action@v4
+              uses: docker/build-push-action@v6
               with:
                   context: .
                   file: ./Dockerfile
@@ -192,6 +202,8 @@ jobs:
                   tags: ${{ steps.image-name.outputs.IMAGE_URL }}
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
+                  provenance: false
+                  sbom: false
 
     deploy:
         needs: [lint, unit-test, browser-test, format, build]
