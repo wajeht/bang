@@ -7,7 +7,7 @@ test.describe('Actions', () => {
     });
 
     test.beforeEach(async ({ page }) => {
-        await loginUser(page, 'test@example.com');
+        await loginUser(page, 'actions-test@example.com');
     });
 
     test('can create a new action', async ({ page }) => {

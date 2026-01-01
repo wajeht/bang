@@ -7,7 +7,7 @@ test.describe('Notes', () => {
     });
 
     test.beforeEach(async ({ page }) => {
-        await loginUser(page, 'test@example.com');
+        await loginUser(page, 'notes-test@example.com');
     });
 
     test('can create a new note', async ({ page }) => {
