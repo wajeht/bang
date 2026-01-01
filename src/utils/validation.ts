@@ -54,10 +54,6 @@ export function ValidationUtils() {
         return false;
     }
 
-    /**
-     * Extract URL from text - finds protocol URLs (http/https) or www prefixes
-     * Returns the URL and its position, or null if not found
-     */
     function extractUrlFromText(
         text: string,
     ): { url: string; startIndex: number; endIndex: number } | null {
@@ -72,10 +68,6 @@ export function ValidationUtils() {
         return null;
     }
 
-    /**
-     * Find domain-like URL in word array
-     * Returns index of URL word and the URL, or null if not found
-     */
     function findDomainUrlInWords(words: string[]): { urlIndex: number; url: string } | null {
         for (let i = 0; i < words.length; i++) {
             const word = words[i];
