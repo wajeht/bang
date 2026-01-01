@@ -175,14 +175,62 @@ export function Utils(context: AppContext) {
             return truncated + '...';
         },
 
-        getFaviconUrl(url: string): string {
-            let domain = '';
+        normalizeUrl(url: string): string {
             try {
-                domain = new URL(url).hostname;
+                new URL(url);
+                return url;
             } catch {
-                domain = url;
+                return url.startsWith('http') ? url : `https://${url}`;
             }
-            return `https://favicon.jaw.dev/?url=${domain}`;
+        },
+
+        getFaviconUrl(url: string): string {
+            try {
+                return `https://favicon.jaw.dev/?url=${encodeURIComponent(new URL(url).hostname)}`;
+            } catch {
+                const withHttps = url.startsWith('http') ? url : `https://${url}`;
+                try {
+                    return `https://favicon.jaw.dev/?url=${encodeURIComponent(new URL(withHttps).hostname)}`;
+                } catch {
+                    return `https://favicon.jaw.dev/?url=${encodeURIComponent(url)}`;
+                }
+            }
+        },
+
+        getScreenshotUrl(url: string): string {
+            try {
+                new URL(url);
+                return `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`;
+            } catch {
+                const withHttps = url.startsWith('http') ? url : `https://${url}`;
+                try {
+                    new URL(withHttps);
+                    return `https://screenshot.jaw.dev?url=${encodeURIComponent(withHttps)}`;
+                } catch {
+                    return `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`;
+                }
+            }
+        },
+
+        prefetchAssets(url: string): void {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000);
+
+            const screenshotUrl = this.getScreenshotUrl(url);
+            const faviconUrl = this.getFaviconUrl(url);
+
+            Promise.allSettled([
+                fetch(screenshotUrl, {
+                    method: 'HEAD',
+                    headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Prefetch' },
+                    signal: controller.signal,
+                }).then((res) => res.text().catch(() => {})),
+                fetch(faviconUrl, {
+                    method: 'HEAD',
+                    headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Prefetch' },
+                    signal: controller.signal,
+                }).then((res) => res.text().catch(() => {})),
+            ]).finally(() => clearTimeout(timeout));
         },
 
         createBookmarkHtml(bookmark: BookmarkToExport): string {
@@ -352,6 +400,8 @@ export function Utils(context: AppContext) {
                         (error) => logger.error('Error inserting page title', { error, url }),
                     );
                 }
+
+                this.prefetchAssets(url);
             } catch (error) {
                 logger.error('Error inserting bookmark', { error, url });
             }
