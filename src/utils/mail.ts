@@ -4,6 +4,7 @@ import type { User, AppContext } from '../type';
 import type { Attachment } from 'nodemailer/lib/mailer';
 
 export function MailUtils(context: AppContext) {
+    const logger = context.logger.tag('service', 'mail');
     const DEV_ENVIRONMENTS = new Set(['development', 'staging', 'test', 'testing', 'ci', 'dev']);
 
     const emailTransporter = context.libs.nodemailer.createTransport({
@@ -90,7 +91,7 @@ export function MailUtils(context: AppContext) {
                 ' ' +
                 styleText('dim', `@ ${timestamp}`);
 
-            context.logger.box(title, allLines);
+            logger.box(title, allLines);
         },
 
         async isMailpitRunning(): Promise<boolean> {
@@ -137,9 +138,9 @@ ${branding.appUrl}`,
 
             try {
                 await this.sendEmailWithFallback(mailOptions, 'Magic Link');
-                context.logger.info('Magic link sent', { email });
+                logger.info('Magic link sent', { email });
             } catch (error) {
-                context.logger.error('Failed to send magic link email', { error, email });
+                logger.error('Failed to send magic link email', { error, email });
             }
         },
 
@@ -179,9 +180,9 @@ ${branding.appUrl}`,
 
             try {
                 await this.sendEmailWithFallback(mailOptions, 'Verification Reminder');
-                context.logger.info('Verification reminder sent', { email });
+                logger.info('Verification reminder sent', { email });
             } catch (error) {
-                context.logger.error('Failed to send verification reminder email', {
+                logger.error('Failed to send verification reminder email', {
                     error,
                     email,
                 });
@@ -203,9 +204,7 @@ ${branding.appUrl}`,
         }): Promise<void> {
             try {
                 if (!includeJson && !includeHtml) {
-                    context.logger.info(
-                        `No export options selected for ${email}, skipping export email`,
-                    );
+                    logger.info(`No export options selected for ${email}, skipping export email`);
                     return;
                 }
 
@@ -282,12 +281,12 @@ ${branding.appUrl}`,
                 };
 
                 await this.sendEmailWithFallback(mailOptions, 'Data Export');
-                context.logger.info('Data export email sent', {
+                logger.info('Data export email sent', {
                     email,
                     attachmentCount: attachments.length,
                 });
             } catch (error) {
-                context.logger.error('Failed to send data export email', { error, email });
+                logger.error('Failed to send data export email', { error, email });
             }
         },
 
@@ -375,12 +374,12 @@ ${formatReminderListHTML}
                     { ...mailOptions, text: emailBodyHTML },
                     'Reminder Digest',
                 );
-                context.logger.info('Reminder digest email sent', {
+                logger.info('Reminder digest email sent', {
                     email,
                     reminderCount: reminders.length,
                 });
             } catch (error) {
-                context.logger.error('Failed to send reminder digest email', { error, email });
+                logger.error('Failed to send reminder digest email', { error, email });
             }
         },
 
@@ -404,7 +403,7 @@ ${formatReminderListHTML}
                     .orderBy('reminders.created_at');
 
                 if (dueReminders.length === 0) {
-                    context.logger.info('No reminders due in the next 15 minutes');
+                    logger.info('No reminders due in the next 15 minutes');
                     return;
                 }
 
@@ -520,12 +519,12 @@ ${formatReminderListHTML}
                     username: userData.username,
                     reminderCount: userData.reminders.length,
                 }));
-                context.logger.table(userSummary);
-                context.logger.info('Processed reminder digests', {
+                logger.table(userSummary);
+                logger.info('Processed reminder digests', {
                     userCount: Object.keys(remindersByUser).length,
                 });
             } catch (error) {
-                context.logger.error('Failed to process reminder digests', { error });
+                logger.error('Failed to process reminder digests', { error });
             }
         },
 
@@ -542,11 +541,11 @@ ${formatReminderListHTML}
                     .orderBy('created_at', 'asc');
 
                 if (unverifiedUsers.length === 0) {
-                    context.logger.info('No unverified users found who need reminders');
+                    logger.info('No unverified users found who need reminders');
                     return;
                 }
 
-                context.logger.info('Found unverified users needing reminders', {
+                logger.info('Found unverified users needing reminders', {
                     count: unverifiedUsers.length,
                 });
 
@@ -568,12 +567,12 @@ ${formatReminderListHTML}
                     email: user.email,
                     username: user.username,
                 }));
-                context.logger.table(userSummary);
-                context.logger.info('Sent verification reminders', {
+                logger.table(userSummary);
+                logger.info('Sent verification reminders', {
                     count: emailsSent.length,
                 });
             } catch (error) {
-                context.logger.error('Failed to process verification reminders', { error });
+                logger.error('Failed to process verification reminders', { error });
             }
         },
     };

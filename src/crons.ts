@@ -12,7 +12,7 @@ export function CronService(context: AppContext): CronService {
     let isRunning = false;
 
     async function reminderCheckTask() {
-        const log = context.logger.clone().tag('job', 'reminder-check');
+        const log = context.logger.tag('job', 'reminder-check');
         const timer = log.time('job');
         try {
             await context.utils.mail.processReminderDigests();
@@ -23,7 +23,7 @@ export function CronService(context: AppContext): CronService {
     }
 
     async function verificationReminderTask() {
-        const log = context.logger.clone().tag('job', 'verification-reminder');
+        const log = context.logger.tag('job', 'verification-reminder');
         const timer = log.time('job');
         try {
             await context.utils.mail.processVerificationReminders(context.config.app.appUrl);
@@ -34,7 +34,7 @@ export function CronService(context: AppContext): CronService {
     }
 
     async function screenshotPrefetchTask() {
-        const log = context.logger.clone().tag('job', 'screenshot-prefetch');
+        const log = context.logger.tag('job', 'screenshot-prefetch');
         const timer = log.time('job');
         try {
             const [bookmarks, actions, tabItems, reminders] = await Promise.all([
@@ -109,7 +109,7 @@ export function CronService(context: AppContext): CronService {
     }
 
     async function start() {
-        const log = context.logger.clone().tag('service', 'cron');
+        const log = context.logger.tag('service', 'cron');
 
         // every 15 minutes
         cronJobs.push(
@@ -137,7 +137,7 @@ export function CronService(context: AppContext): CronService {
         });
         cronJobs = [];
         isRunning = false;
-        context.logger.clone().tag('service', 'cron').info('stopped');
+        context.logger.tag('service', 'cron').info('stopped');
     }
 
     function getStatus() {

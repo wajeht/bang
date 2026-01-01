@@ -1,6 +1,7 @@
 import type { ApiKeyPayload, MagicLinkPayload, AppContext } from '../type';
 
 export function AuthUtils(context: AppContext) {
+    const logger = context.logger.tag('service', 'auth');
     return {
         async verifyApiKey(apiKey: string): Promise<ApiKeyPayload | null> {
             try {
@@ -22,7 +23,7 @@ export function AuthUtils(context: AppContext) {
 
                 return decodedApiKeyPayload;
             } catch (error) {
-                context.logger.error('Failed to verify API key', { error });
+                logger.error('Failed to verify API key', { error });
                 return null;
             }
         },
@@ -38,7 +39,7 @@ export function AuthUtils(context: AppContext) {
                     context.config.app.secretSalt,
                 ) as MagicLinkPayload;
             } catch (error) {
-                context.logger.error('Failed to verify magic link token', { error });
+                logger.error('Failed to verify magic link token', { error });
                 return null;
             }
         },

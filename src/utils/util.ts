@@ -11,7 +11,8 @@ import https from 'node:https';
 import type { Request } from 'express';
 
 export function Utils(context: AppContext) {
-    const { db, logger, config, errors } = context;
+    const { db, config, errors } = context;
+    const logger = context.logger.tag('service', 'util');
 
     const ACTION_TYPES = ['search', 'redirect'] as const;
 

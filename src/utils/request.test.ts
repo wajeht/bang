@@ -9,11 +9,16 @@ import { describe, expect, it, beforeAll, vi } from 'vitest';
 let requestUtils: ReturnType<typeof RequestUtils>;
 
 beforeAll(async () => {
+    const mockLogger = {
+        error: vi.fn(),
+        info: vi.fn(),
+        tag: vi.fn().mockReturnThis(),
+    };
     const mockContext = {
         db,
         config,
         libs,
-        logger: { error: vi.fn(), info: vi.fn() },
+        logger: mockLogger,
         utils: {} as any,
         models: {} as any,
         errors: {

@@ -7,7 +7,7 @@ export function RequestLoggerMiddleware(ctx: AppContext) {
         const requestId = ctx.libs.crypto.randomUUID().slice(0, 8);
         const start = Date.now();
 
-        req.logger = ctx.logger.clone().tag('requestId', requestId).tag('method', req.method);
+        req.logger = ctx.logger.tag('requestId', requestId).tag('method', req.method);
 
         res.on('finish', () => {
             const duration = Date.now() - start;
@@ -306,15 +306,19 @@ export function CsrfMiddleware(ctx: AppContext) {
                 if (req.session) {
                     req.session.save((err) => {
                         if (err) {
-                            ctx.logger.error('Failed to save session after CSRF token generation', {
-                                error: err,
-                            });
+                            ctx.logger
+                                .tag('middleware', 'csrf')
+                                .error('Failed to save session after CSRF token generation', {
+                                    error: err,
+                                });
                         }
                     });
                 }
                 next();
             } catch (error) {
-                ctx.logger.error('CSRF token generation failed', { error });
+                ctx.logger
+                    .tag('middleware', 'csrf')
+                    .error('CSRF token generation failed', { error });
                 res.locals.csrfToken = '';
                 next();
             }
@@ -385,7 +389,9 @@ export function AuthenticationMiddleware(ctx: AppContext) {
                     if (!user) {
                         req.session.destroy((err) => {
                             if (err) {
-                                ctx.logger.error('Session destruction error', { error: err });
+                                ctx.logger
+                                    .tag('middleware', 'auth')
+                                    .error('Session destruction error', { error: err });
                             }
                         });
                     }
@@ -442,13 +448,15 @@ export function AuthenticationMiddleware(ctx: AppContext) {
 
             next();
         } catch (error) {
-            ctx.logger.error(`Authentication error: ${(error as Error).message}`, {
-                error: {
-                    name: (error as Error).name,
-                    message: (error as Error).message,
-                    stack: (error as Error).stack,
-                },
-            });
+            ctx.logger
+                .tag('middleware', 'auth')
+                .error(`Authentication error: ${(error as Error).message}`, {
+                    error: {
+                        name: (error as Error).name,
+                        message: (error as Error).message,
+                        stack: (error as Error).stack,
+                    },
+                });
             next(error);
         }
     };
@@ -517,7 +525,9 @@ export function TurnstileMiddleware(ctx: AppContext) {
     return async function turnstileMiddleware(req: Request, _res: Response, next: NextFunction) {
         try {
             if (ctx.config.app.env !== 'production') {
-                ctx.logger.info('Skipping turnstile middleware in non-production environment');
+                req.logger
+                    .tag('middleware', 'turnstile')
+                    .info('Skipping in non-production environment');
                 return next();
             }
 

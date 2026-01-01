@@ -30,7 +30,7 @@ beforeAll(async () => {
         db,
         config,
         libs,
-        logger: { error: vi.fn(), info: vi.fn() },
+        logger: { error: vi.fn(), info: vi.fn(), tag: vi.fn().mockReturnThis() },
         utils: {} as any,
         models: {} as any,
         errors: {} as any,
