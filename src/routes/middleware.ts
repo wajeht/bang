@@ -230,6 +230,7 @@ export function SetupAppLocals(ctx: AppContext) {
                 truncateString: ctx.utils.util.truncateString,
                 capitalize: ctx.utils.util.capitalize,
                 getFaviconUrl: ctx.utils.util.getFaviconUrl,
+                getScreenshotUrl: ctx.utils.util.getScreenshotUrl,
                 isUrlLike: ctx.utils.validation.isUrlLike,
                 stripHtmlTags: ctx.utils.html.stripHtmlTags,
                 highlightSearchTerm: ctx.utils.html.highlightSearchTerm,
