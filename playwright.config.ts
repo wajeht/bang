@@ -64,7 +64,7 @@ export default defineConfig({
 
     /* Run your local dev server before starting the tests */
     webServer: {
-        command: 'npm run dev',
+        command: process.env.CI ? 'npm run dev:only' : 'npm run dev',
         url: `http://127.0.0.1:${config.app.port}`,
         reuseExistingServer: !process.env.CI,
         timeout: process.env.CI ? 120_000 : 60_000,
