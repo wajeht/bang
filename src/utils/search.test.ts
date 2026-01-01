@@ -1,5 +1,4 @@
 import { dayjs } from '../libs';
-import { config } from '../config';
 import { Context } from '../context';
 import { db } from '../tests/test-setup';
 import { Request, Response } from 'express';

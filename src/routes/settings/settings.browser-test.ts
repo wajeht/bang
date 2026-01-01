@@ -7,7 +7,7 @@ test.describe('Settings', () => {
     });
 
     test.beforeEach(async ({ page }) => {
-        await loginUser(page, 'test@example.com');
+        await loginUser(page, 'settings-test@example.com');
     });
 
     test('can access settings and update account', async ({ page }) => {

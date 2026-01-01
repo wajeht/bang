@@ -7,7 +7,7 @@ test.describe('Bookmarks', () => {
     });
 
     test.beforeEach(async ({ page }) => {
-        await loginUser(page, 'test@example.com');
+        await loginUser(page, 'bookmarks-test@example.com');
     });
 
     test('can create a new bookmark', async ({ page }) => {
