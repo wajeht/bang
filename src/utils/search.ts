@@ -1056,6 +1056,7 @@ export function SearchUtils(context: AppContext) {
                         const existingBookmark = await context.utils.util.checkDuplicateBookmarkUrl(
                             user.id,
                             url,
+                            titleSection || '',
                         );
 
                         if (existingBookmark) {

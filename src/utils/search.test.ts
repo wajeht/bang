@@ -2487,6 +2487,70 @@ describe('search', () => {
 
                 expect(res.redirect).toHaveBeenCalledWith('https://existing.com');
             });
+
+            it('should allow same URL with different title', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                isValidUrl.mockReturnValue(true);
+                checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate because title is different
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!bm Different Title https://existing.com', // Same URL, different title
+                });
+
+                await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
+
+                expect(insertBookmark).toHaveBeenCalledWith({
+                    url: 'https://existing.com',
+                    title: 'Different Title',
+                    userId: testUser.id,
+                    hidden: false,
+                });
+
+                expect(res.redirect).toHaveBeenCalledWith('https://existing.com');
+            });
+
+            it('should reject same URL with same title as duplicate', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                isValidUrl.mockReturnValue(true);
+                checkDuplicateBookmarkUrl.mockResolvedValue({
+                    id: 999,
+                    user_id: 1,
+                    title: 'Same Title',
+                    url: 'https://existing.com',
+                    created_at: dayjs().toISOString(),
+                });
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!bm Same Title https://existing.com', // Same URL, same title
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'URL already bookmarked as Same Title. Use a different URL or update the existing bookmark.',
+                    ),
+                );
+
+                isValidUrl.mockReset();
+                checkDuplicateBookmarkUrl.mockReset();
+            });
         });
 
         describe('!remind command', () => {
