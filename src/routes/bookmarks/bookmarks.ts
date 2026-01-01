@@ -237,7 +237,11 @@ export function BookmarksRouter(ctx: AppContext) {
                 });
             }
         }
-        const existingBookmark = await ctx.utils.util.checkDuplicateBookmarkUrl(user.id, url);
+        const existingBookmark = await ctx.utils.util.checkDuplicateBookmarkUrl(
+            user.id,
+            url,
+            title || '',
+        );
 
         if (existingBookmark) {
             throw new ctx.errors.ValidationError({
