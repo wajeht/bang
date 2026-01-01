@@ -1241,6 +1241,8 @@ export function SearchUtils(context: AppContext) {
                             log.error('Error inserting page title', { error, url: bangUrl }),
                         );
 
+                    context.utils.util.prefetchAssets(bangUrl);
+
                     timer.stop({ outcome: 'system-bang', trigger, action: 'bang-created' });
                     return this.goBack(res);
                 }
@@ -1484,6 +1486,8 @@ export function SearchUtils(context: AppContext) {
                                             url: bangUpdates.url,
                                         }),
                                     );
+
+                                context.utils.util.prefetchAssets(bangUpdates.url);
                             }
                         } catch (error) {
                             log.error('bang update failed', { error });

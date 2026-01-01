@@ -885,6 +885,47 @@ describe('search', () => {
             });
         });
 
+        it('should prefetch assets when creating bang with !add', async () => {
+            const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+                text: () => Promise.resolve(''),
+            } as unknown as globalThis.Response);
+
+            await db('bangs').where({ user_id: testUser.id, trigger: '!prefetchadd' }).delete();
+
+            const req = { logger: mockLogger() } as unknown as Request;
+            const res = {
+                set: vi.fn().mockReturnThis(),
+                status: vi.fn().mockReturnThis(),
+                send: vi.fn(),
+            } as unknown as Response;
+
+            await searchUtils.search({
+                req,
+                res,
+                user: testUser,
+                query: '!add !prefetchadd https://prefetch-add-test.com',
+            });
+
+            expect(res.status).toHaveBeenCalledWith(200);
+
+            await vi.waitFor(() => {
+                expect(fetchSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('screenshot.jaw.dev'),
+                    expect.any(Object),
+                );
+            });
+
+            await vi.waitFor(() => {
+                expect(fetchSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('favicon.jaw.dev'),
+                    expect.any(Object),
+                );
+            });
+
+            await db('bangs').where({ user_id: testUser.id, trigger: '!prefetchadd' }).delete();
+            fetchSpy.mockRestore();
+        });
+
         it('should handle custom search bang', async () => {
             await db('users')
                 .insert({
@@ -1958,6 +1999,46 @@ describe('search', () => {
                 expect(updatedBang.url).toBe('https://new-url.com');
 
                 vi.restoreAllMocks();
+            });
+
+            it('should prefetch assets when editing bang URL with !edit', async () => {
+                const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+                    text: () => Promise.resolve(''),
+                } as unknown as globalThis.Response);
+
+                isValidUrl.mockReturnValue(true);
+
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit !editme https://prefetch-edit-test.com',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+
+                await vi.waitFor(() => {
+                    expect(fetchSpy).toHaveBeenCalledWith(
+                        expect.stringContaining('screenshot.jaw.dev'),
+                        expect.any(Object),
+                    );
+                });
+
+                await vi.waitFor(() => {
+                    expect(fetchSpy).toHaveBeenCalledWith(
+                        expect.stringContaining('favicon.jaw.dev'),
+                        expect.any(Object),
+                    );
+                });
+
+                fetchSpy.mockRestore();
             });
 
             it('should successfully edit both trigger and URL', async () => {
