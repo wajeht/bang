@@ -6,6 +6,13 @@ import { Logger } from '../utils/logger';
 const logger = Logger();
 
 async function globalSetup() {
+    // In CI, migrations are run via `npm run db:prepare:dev` before playwright starts
+    // Skip here to avoid duplicate work and TypeScript import issues with plain Node.js
+    if (process.env.CI) {
+        console.log('Skipping database setup in CI (already done via npm run db:prepare:dev)');
+        return;
+    }
+
     console.log('Setting up test database...');
 
     const database = Database({ config, logger, libs });

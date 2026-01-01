@@ -97,6 +97,9 @@ jobs:
               if: steps.playwright-cache.outputs.cache-hit == 'true'
               run: npx playwright install-deps chromium
 
+            - name: Migrate dev database
+              run: npm run db:prepare:dev
+
             - name: Run browser tests
               run: npm run test:browser:headless
 
