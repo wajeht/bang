@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
                                         <a href="<%~ data[i].u.replace('{{{s}}}', '') %>" style="overflow: auto; white-space: nowrap;" title="<%~ data[i].u %>" target="_blank" rel="noopener noreferrer">
                                             <%~ data[i].u %>
                                         </a>
-                                        <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].u.replace('{{{s}}}', '')) %>" loading="lazy" alt="Preview">
+                                        <img class="preview-img" src="<%= utils.getScreenshotUrl(data[i].u.replace('{{{s}}}', '')) %>" loading="lazy" alt="Preview">
                                     </span>
                                 </div>
                             </td>
