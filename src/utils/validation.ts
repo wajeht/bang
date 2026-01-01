@@ -1,10 +1,10 @@
 export function ValidationUtils() {
+    const REGEX_WWW_PREFIX = /^www\./i;
     const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const REGEX_ALPHANUMERIC = /^[a-zA-Z0-9]+$/;
-    const REGEX_WWW_PREFIX = /^www\./i;
+    const REGEX_URL_PROTOCOL = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
     const REGEX_DOMAIN_PATTERN =
         /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/i;
-    const REGEX_URL_PROTOCOL = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
 
     function isValidUrl(url: string): boolean {
         try {

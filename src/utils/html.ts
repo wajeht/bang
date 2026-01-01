@@ -69,10 +69,6 @@ export function HtmlUtils() {
             return escaped.replace(searchRegex, (match) => `<mark>${match}</mark>`);
         },
 
-        /**
-         * Apply search term highlighting to specified fields on an array of objects.
-         * Mutates objects in place for performance.
-         */
         applyHighlighting<T extends Record<string, any>>(
             items: T[],
             fields: (keyof T)[],

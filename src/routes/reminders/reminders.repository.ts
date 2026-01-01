@@ -6,9 +6,9 @@ export function RemindersRepository(ctx: AppContext): Reminders {
     const ALLOWED_UPDATE_FIELDS = new Set([
         'title',
         'content',
-        'reminder_type',
-        'frequency',
         'due_date',
+        'frequency',
+        'reminder_type',
     ]);
 
     return {

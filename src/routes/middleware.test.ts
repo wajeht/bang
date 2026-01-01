@@ -1,15 +1,15 @@
+import {
+    CsrfMiddleware,
+    ErrorMiddleware,
+    AuthenticationMiddleware,
+    AppLocalStateMiddleware,
+    RequestLoggerMiddleware,
+} from './middleware';
 import { Context } from '../context';
 import { db } from '../tests/test-setup';
 import { Session } from 'express-session';
 import type { User, AppContext } from '../type';
 import type { Request, Response, NextFunction } from 'express';
-import {
-    AuthenticationMiddleware,
-    ErrorMiddleware,
-    AppLocalStateMiddleware,
-    RequestLoggerMiddleware,
-    CsrfMiddleware,
-} from './middleware';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from '../error';
 
@@ -24,7 +24,6 @@ describe('authenticationMiddleware', () => {
     beforeAll(async () => {
         ctx = await Context();
 
-        // Spy on context logger instead of mocking the module
         vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});
         vi.spyOn(ctx.logger, 'info').mockImplementation(() => {});
 
