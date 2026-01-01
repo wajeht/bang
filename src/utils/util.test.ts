@@ -832,7 +832,7 @@ describe('insertBookmark', () => {
     it('should call prefetchAssets when bookmark is inserted', async () => {
         const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
             text: () => Promise.resolve(''),
-        } as Response);
+        } as unknown as globalThis.Response);
 
         await utilUtils.insertBookmark({
             url: 'https://prefetch-test.com',
