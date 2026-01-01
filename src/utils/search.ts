@@ -112,6 +112,7 @@ export function SearchUtils(context: AppContext) {
             ['@tab', '/tabs'],
             ['@tabs', '/tabs'],
             ['@r', '/reminders'],
+            ['@remind', '/reminders'],
             ['@reminder', '/reminders'],
             ['@reminders', '/reminders'],
         ]),
