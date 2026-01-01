@@ -714,6 +714,78 @@ describe('insertBookmark', () => {
     });
 });
 
+describe('checkDuplicateBookmarkUrl', () => {
+    beforeAll(async () => {
+        await db('bookmarks').del();
+        await db('users').del();
+        await db('users').insert({
+            id: 1,
+            username: 'Test User',
+            email: 'testuser@example.com',
+            is_admin: false,
+            default_search_provider: 'duckduckgo',
+            column_preferences: JSON.stringify({
+                bookmarks: { default_per_page: 10 },
+                actions: { default_per_page: 10 },
+                notes: { default_per_page: 10 },
+            }),
+        });
+        await db('bookmarks').insert({
+            user_id: 1,
+            url: 'https://example.com',
+            title: 'Original Title',
+        });
+    });
+
+    afterAll(async () => {
+        await db('bookmarks').del();
+        await db('users').where({ id: 1 }).delete();
+    });
+
+    it('should find duplicate when URL matches and no title is provided', async () => {
+        const result = await utilUtils.checkDuplicateBookmarkUrl(1, 'https://example.com');
+        expect(result).not.toBeNull();
+        expect(result?.url).toBe('https://example.com');
+        expect(result?.title).toBe('Original Title');
+    });
+
+    it('should find duplicate when URL matches and empty title is provided', async () => {
+        const result = await utilUtils.checkDuplicateBookmarkUrl(1, 'https://example.com', '');
+        expect(result).not.toBeNull();
+        expect(result?.url).toBe('https://example.com');
+    });
+
+    it('should find duplicate when both URL and title match', async () => {
+        const result = await utilUtils.checkDuplicateBookmarkUrl(
+            1,
+            'https://example.com',
+            'Original Title',
+        );
+        expect(result).not.toBeNull();
+        expect(result?.url).toBe('https://example.com');
+        expect(result?.title).toBe('Original Title');
+    });
+
+    it('should NOT find duplicate when URL matches but title is different', async () => {
+        const result = await utilUtils.checkDuplicateBookmarkUrl(
+            1,
+            'https://example.com',
+            'Different Title',
+        );
+        expect(result).toBeFalsy();
+    });
+
+    it('should NOT find duplicate when URL does not exist', async () => {
+        const result = await utilUtils.checkDuplicateBookmarkUrl(1, 'https://nonexistent.com');
+        expect(result).toBeFalsy();
+    });
+
+    it('should NOT find duplicate for different user', async () => {
+        const result = await utilUtils.checkDuplicateBookmarkUrl(999, 'https://example.com');
+        expect(result).toBeFalsy();
+    });
+});
+
 describe.concurrent('.dockerignore', () => {
     it('cannot have README.md or *.md', async () => {
         const result = await fs.readFile(
