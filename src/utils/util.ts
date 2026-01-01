@@ -305,8 +305,15 @@ export function Utils(context: AppContext) {
             }
         },
 
-        async checkDuplicateBookmarkUrl(userId: number, url: string): Promise<Bookmark | null> {
+        async checkDuplicateBookmarkUrl(
+            userId: number,
+            url: string,
+            title?: string,
+        ): Promise<Bookmark | null> {
             try {
+                if (title) {
+                    return await db('bookmarks').where({ user_id: userId, url, title }).first();
+                }
                 return await db('bookmarks').where({ user_id: userId, url }).first();
             } catch (error) {
                 logger.error('Error checking duplicate bookmark URL', { error, url });
