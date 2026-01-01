@@ -7,7 +7,7 @@
     <% if (typeof placeholder !== 'undefined') { %>placeholder="<%= placeholder %>"<% } %>
     <% if (typeof value !== 'undefined') { %>value="<%= value %>"<% } %>
     <% if (typeof required !== 'undefined' && required) { %>required<% } %>
-    <% if (typeof autocomplete !== 'undefined') { %>autocomplete="<%= autocomplete %>"<% } %>
+    autocomplete="<%= typeof autocomplete !== 'undefined' ? autocomplete : 'email' %>"
     <% if (typeof autofocus !== 'undefined' && autofocus) { %>autofocus<% } %>
     <% if (typeof style !== 'undefined') { %>style="<%= style %>"<% } %>
     aria-describedby="<%= id %>-help<% if (typeof error !== 'undefined' && error) { %> <%= id %>-error<% } %>"

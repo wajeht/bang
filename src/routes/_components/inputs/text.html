@@ -8,6 +8,7 @@
     <% if (typeof value !== 'undefined') { %>value="<%= value %>"<% } %>
     <% if (typeof required !== 'undefined' && required) { %>required<% } %>
     <% if (typeof readonly !== 'undefined' && readonly) { %>readonly<% } %>
+    <% if (typeof autocomplete !== 'undefined') { %>autocomplete="<%= autocomplete %>"<% } %>
     <% if (typeof style !== 'undefined') { %>style="<%= style %>"<% } %>
     aria-describedby="<%= id %>-help<% if (typeof error !== 'undefined' && error) { %> <%= id %>-error<% } %>"
   >
