@@ -3,9 +3,9 @@ import {
     authenticateAgent,
     cleanupTestDatabase,
     createUnauthenticatedAgent,
+    getSharedApp,
 } from '../../tests/api-test-utils';
 import request from 'supertest';
-import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
 import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 
@@ -13,8 +13,7 @@ describe('Settings Routes', () => {
     let app: any;
 
     beforeAll(async () => {
-        const { app: expressApp } = await createApp();
-        app = expressApp;
+        ({ app } = await getSharedApp());
     });
 
     afterEach(async () => {

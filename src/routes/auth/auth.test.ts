@@ -2,10 +2,10 @@ import {
     cleanupTestData,
     authenticateAgent,
     cleanupTestDatabase,
+    getSharedApp,
 } from '../../tests/api-test-utils';
 import bcrypt from 'bcrypt';
 import request from 'supertest';
-import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
 import type { AppContext } from '../../type';
 import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
@@ -16,9 +16,7 @@ describe('Auth Routes', () => {
     let preHashedPassword: string;
 
     beforeAll(async () => {
-        const result = await createApp();
-        app = result.app;
-        ctx = result.ctx;
+        ({ app, ctx } = await getSharedApp());
         // Pre-hash password once with low cost for tests (bcrypt cost 4 is ~16x faster than cost 10)
         preHashedPassword = await bcrypt.hash('correct-password', 4);
     });

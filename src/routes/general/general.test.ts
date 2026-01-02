@@ -2,17 +2,16 @@ import {
     cleanupTestData,
     authenticateAgent,
     cleanupTestDatabase,
+    getSharedApp,
 } from '../../tests/api-test-utils';
 import request from 'supertest';
-import { createApp } from '../../app';
 import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 
 describe('General Routes', () => {
     let app: any;
 
     beforeAll(async () => {
-        const { app: expressApp } = await createApp();
-        app = expressApp;
+        ({ app } = await getSharedApp());
     });
 
     afterEach(async () => {

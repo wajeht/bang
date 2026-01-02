@@ -5,14 +5,25 @@ import { Context } from '../context';
 import type { Test } from 'supertest';
 import type { AppContext } from '../type';
 import type { Application } from 'express';
+import { createApp } from '../app';
 
 let testContext: AppContext | null = null;
+let sharedApp: Application | null = null;
 
 async function getTestContext(): Promise<AppContext> {
     if (!testContext) {
         testContext = await Context();
     }
     return testContext;
+}
+
+export async function getSharedApp(): Promise<{ app: Application; ctx: any }> {
+    if (!sharedApp) {
+        const { app, ctx } = await createApp();
+        sharedApp = app;
+        testContext = ctx;
+    }
+    return { app: sharedApp, ctx: testContext! };
 }
 
 export async function ensureTestUserExists(email: string = 'test@example.com') {

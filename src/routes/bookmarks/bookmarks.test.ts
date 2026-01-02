@@ -3,8 +3,8 @@ import {
     authenticateAgent,
     cleanupTestDatabase,
     authenticateApiAgent,
+    getSharedApp,
 } from '../../tests/api-test-utils';
-import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
 import { describe, it, expect, beforeAll, afterEach, afterAll, vi } from 'vitest';
 
@@ -12,8 +12,7 @@ describe('Bookmarks Routes', () => {
     let app: any;
 
     beforeAll(async () => {
-        const { app: expressApp } = await createApp();
-        app = expressApp;
+        ({ app } = await getSharedApp());
     });
 
     afterEach(async () => {
