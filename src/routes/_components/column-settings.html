@@ -24,7 +24,7 @@
             type="number"
             id="actions_per_page"
             name="column_preferences[actions][default_per_page]"
-            value="<%= state.input.actions_per_page ?? state.user.column_preferences.actions.default_per_page %>"
+            value="<%= state.input.actions_per_page ?? state.user.column_preferences?.actions?.default_per_page ?? 10 %>"
             min="1"
             required
           >
@@ -115,7 +115,7 @@
             type="number"
             id="bookmarks_per_page"
             name="column_preferences[bookmarks][default_per_page]"
-            value="<%= state.input.bookmarks_per_page ?? state.user.column_preferences.bookmarks.default_per_page %>"
+            value="<%= state.input.bookmarks_per_page ?? state.user.column_preferences?.bookmarks?.default_per_page ?? 10 %>"
             min="1"
             required
           >
@@ -183,7 +183,7 @@
               type="number"
               id="notes_per_page"
               name="column_preferences[notes][default_per_page]"
-              value="<%= state.input.notes_per_page ?? state.user.column_preferences.notes.default_per_page %>"
+              value="<%= state.input.notes_per_page ?? state.user.column_preferences?.notes?.default_per_page ?? 10 %>"
               min="1"
               required
             >
