@@ -183,6 +183,25 @@ describe('Settings Routes', () => {
                 })
                 .expect(302);
         });
+
+        it('should have parsed column_preferences in session after update', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await agent
+                .post('/settings/account')
+                .send({
+                    username: user.username,
+                    email: user.email,
+                    default_search_provider: 'duckduckgo',
+                    timezone: 'UTC',
+                    theme: 'dark',
+                })
+                .expect(302);
+
+            const actionsResponse = await agent.get('/actions').expect(200);
+            expect(actionsResponse.text).toContain('Actions');
+            expect(actionsResponse.text).not.toContain('Cannot read properties');
+        });
     });
 
     describe('POST /settings/display', () => {

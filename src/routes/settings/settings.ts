@@ -176,12 +176,22 @@ export function SettingsRouter(ctx: AppContext) {
                 .returning('*');
 
             if (req.session?.user) {
-                req.session.user = updatedUser[0] as User;
+                req.session.user = {
+                    ...updatedUser[0],
+                    column_preferences: ctx.utils.util.parseColumnPreferences(
+                        updatedUser[0].column_preferences,
+                    ),
+                } as User;
                 req.session.save();
             }
 
             if (req.user) {
-                req.user = updatedUser[0] as User;
+                req.user = {
+                    ...updatedUser[0],
+                    column_preferences: ctx.utils.util.parseColumnPreferences(
+                        updatedUser[0].column_preferences,
+                    ),
+                } as User;
             }
 
             req.flash('success', '🔄 updated!');
@@ -555,12 +565,22 @@ export function SettingsRouter(ctx: AppContext) {
                 .returning('*');
 
             if (req.session?.user) {
-                req.session.user = updatedUser as User;
+                req.session.user = {
+                    ...updatedUser,
+                    column_preferences: ctx.utils.util.parseColumnPreferences(
+                        updatedUser.column_preferences,
+                    ),
+                } as User;
                 req.session.save();
             }
 
             if (req.user) {
-                req.user = updatedUser as User;
+                req.user = {
+                    ...updatedUser,
+                    column_preferences: ctx.utils.util.parseColumnPreferences(
+                        updatedUser.column_preferences,
+                    ),
+                } as User;
             }
 
             req.flash('success', '📱 api key created');

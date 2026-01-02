@@ -292,7 +292,7 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
     <%~ include('../_components/pagination.html', {
         pagination,
         path,
-        perPageDefault: state.user.column_preferences?.bookmarks?.default_per_page || 10,
+        perPageDefault: state.user.column_preferences.bookmarks.default_per_page,
         sortKey,
         direction,
         search

@@ -240,10 +240,21 @@ export function SetupAppLocals(ctx: AppContext) {
     }
 
     return (req: Request, res: Response) => {
+        // Ensure column_preferences is always parsed for session user
+        const sessionUser = req.session?.user;
+        const userWithParsedPrefs = sessionUser
+            ? {
+                  ...sessionUser,
+                  column_preferences: ctx.utils.util.parseColumnPreferences(
+                      sessionUser.column_preferences,
+                  ),
+              }
+            : undefined;
+
         res.locals.state = {
             cloudflare_turnstile_site_key: ctx.config.cloudflare.turnstileSiteKey,
             env: ctx.config.app.env,
-            user: req.user ?? req.session?.user,
+            user: req.user ?? userWithParsedPrefs,
             copyRightYear: cachedStaticLocals!.copyRightYear,
             input: (req.session?.input as Record<string, string>) || {},
             errors: (req.session?.errors as Record<string, string>) || {},
@@ -423,19 +434,11 @@ export function AuthenticationMiddleware(ctx: AppContext) {
                 return;
             }
 
-            // Only parse column_preferences if we fetched fresh data
-            let parsedUser: User;
-            if (needsRefresh) {
-                parsedUser = {
-                    ...user,
-                    column_preferences: ctx.utils.util.parseColumnPreferences(
-                        user?.column_preferences,
-                    ),
-                } as User;
-            } else {
-                // Already parsed from session cache
-                parsedUser = user;
-            }
+            // Always ensure column_preferences is properly parsed
+            const parsedUser: User = {
+                ...user,
+                column_preferences: ctx.utils.util.parseColumnPreferences(user?.column_preferences),
+            } as User;
 
             req.user = parsedUser;
 
