@@ -28,7 +28,7 @@ export function GeneralRouter(ctx: AppContext) {
         return;
     });
 
-    router.get('/metrics', ctx.middleware.adminOnly, async (_req: Request, res: Response) => {
+    router.get('/metrics', ctx.middleware.authentication, ctx.middleware.adminOnly, async (_req: Request, res: Response) => {
         const mem = process.memoryUsage();
         const cpuUsage = process.cpuUsage();
 
