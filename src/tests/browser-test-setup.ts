@@ -1,22 +1,13 @@
-import { libs } from '../libs';
-import { config } from '../config';
-import { Database } from '../db/db';
-import { Logger } from '../utils/logger';
+import { createDb } from './test-db';
 
-const logger = Logger();
-
-async function globalSetup() {
-    // In CI, migrations are run via `npm run db:prepare:dev` before playwright starts
-    // Skip here to avoid duplicate work and TypeScript import issues with plain Node.js
+export default async function globalSetup() {
     if (process.env.CI) {
         console.log('Skipping database setup in CI (already done via npm run db:prepare:dev)');
         return;
     }
 
     console.log('Setting up test database...');
-
-    const database = Database({ config, logger, libs });
-    const db = database.instance;
+    const db = createDb();
 
     try {
         await db.migrate.latest();
@@ -29,5 +20,3 @@ async function globalSetup() {
         throw error;
     }
 }
-
-export default globalSetup;

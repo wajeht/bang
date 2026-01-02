@@ -1,11 +1,10 @@
 import request from 'supertest';
 import { db, ctx, createTestUser } from './test-setup';
-import type { UrlObject } from 'url';
 import type { Test } from 'supertest';
 import type { Application } from 'express';
 
 type Agent = ReturnType<typeof request.agent>;
-type UrlArg = string | URL | UrlObject;
+type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 function extractCsrfToken(html: string): string {
     const match =
@@ -15,47 +14,56 @@ function extractCsrfToken(html: string): string {
     return match?.[1] ?? '';
 }
 
-async function wrapAgentWithCsrf(agent: Agent, csrfPage: string) {
-    const res = await agent.get(csrfPage);
-    const csrfToken = extractCsrfToken(res.text);
-
-    for (const method of ['post', 'put', 'patch', 'delete'] as const) {
-        const original = agent[method].bind(agent) as (url: UrlArg) => Test;
-        agent[method] = function (url: UrlArg) {
-            const req = original(url);
-            const originalSend = req.send.bind(req);
-            req.send = function (data: any) {
-                const urlString = typeof url === 'string' ? url : url.toString();
-                if (csrfToken && typeof data === 'object' && !urlString.startsWith('/api/')) {
-                    data.csrfToken = csrfToken;
-                }
-                return originalSend(data);
-            };
-            return req;
-        };
+function wrapMethods<T extends HttpMethod>(
+    agent: Agent,
+    methods: readonly T[],
+    wrap: (req: Test, method: T) => Test,
+) {
+    for (const method of methods) {
+        const original = agent[method].bind(agent);
+        agent[method] = (url: string) => wrap(original(url), method);
     }
 }
 
-async function authenticateWithMagicLink(app: Application, email: string, isAdmin: boolean) {
-    const user = await createTestUser(email, isAdmin);
+async function addCsrfToAgent(agent: Agent, csrfPage: string) {
+    const { text } = await agent.get(csrfPage);
+    const csrfToken = extractCsrfToken(text);
+
+    wrapMethods(agent, ['post', 'put', 'patch', 'delete'] as const, (req, _method) => {
+        const originalSend = req.send.bind(req);
+        req.send = (data: Record<string, unknown>) => {
+            if (csrfToken && typeof data === 'object') {
+                data.csrfToken = csrfToken;
+            }
+            return originalSend(data);
+        };
+        return req;
+    });
+}
+
+export interface AuthOptions {
+    admin?: boolean;
+    email?: string;
+}
+
+export async function authenticateAgent(app: Application, options: AuthOptions = {}) {
+    const { admin = false, email = admin ? 'admin@example.com' : 'test@example.com' } = options;
+
+    const user = await createTestUser(email, admin);
     const agent = request.agent(app);
     const token = ctx.utils.auth.generateMagicLink({ email });
+
     await agent.get(`/auth/magic/${token}`).expect(302);
-    await wrapAgentWithCsrf(agent, '/reminders');
+    await addCsrfToAgent(agent, '/reminders');
+
     return { agent, user };
 }
 
-export async function authenticateAgent(app: Application) {
-    return authenticateWithMagicLink(app, 'test@example.com', false);
-}
-
-export async function authenticateAdminAgent(app: Application) {
-    return authenticateWithMagicLink(app, 'admin@example.com', true);
-}
+export const authenticateAdminAgent = (app: Application) => authenticateAgent(app, { admin: true });
 
 export async function createUnauthenticatedAgent(app: Application) {
     const agent = request.agent(app);
-    await wrapAgentWithCsrf(agent, '/');
+    await addCsrfToAgent(agent, '/');
     return agent;
 }
 
@@ -73,19 +81,14 @@ export async function authenticateApiAgent(app: Application) {
 
     const agent = request.agent(app);
 
-    for (const method of ['get', 'post', 'put', 'delete'] as const) {
-        const original = agent[method].bind(agent) as (url: UrlArg) => Test;
-        const needsContentType = method === 'post' || method === 'put';
-        agent[method] = function (url: UrlArg) {
-            let req = original(url)
-                .set('Authorization', `Bearer ${apiKey}`)
-                .set('Accept', 'application/json');
-            if (needsContentType) {
-                req = req.set('Content-Type', 'application/json');
-            }
-            return req;
-        };
-    }
+    wrapMethods(agent, ['get', 'post', 'put', 'delete'] as const, (req, method) => {
+        let r = req.set('Authorization', `Bearer ${apiKey}`).set('Accept', 'application/json');
+
+        if (method === 'post' || method === 'put') {
+            r = r.set('Content-Type', 'application/json');
+        }
+        return r;
+    });
 
     return { agent, user };
 }

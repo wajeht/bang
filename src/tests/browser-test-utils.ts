@@ -1,106 +1,25 @@
-import { libs } from '../libs';
-import { config } from '../config';
-import { Database } from '../db/db';
 import { Context } from '../context';
-import { Logger } from '../utils/logger';
-import type { AppContext } from '../type';
 import { Page, expect } from '@playwright/test';
+import { createDb, createUser, cleanupUserData } from './test-db';
+import type { AppContext } from '../type';
 
-const logger = Logger();
-const database = Database({ config, logger, libs });
-const db = database.instance;
+const db = createDb();
 
-let testContext: AppContext | null = null;
+let cachedContext: AppContext | null = null;
+const getContext = async () => cachedContext ?? (cachedContext = await Context());
 
-async function getTestContext(): Promise<AppContext> {
-    if (!testContext) {
-        testContext = await Context();
-    }
-    return testContext;
+export async function ensureTestUserExists(email = 'test@example.com') {
+    return createUser(db, email);
 }
 
-export async function ensureTestUserExists(email: string = 'test@example.com') {
-    let user = await db('users').where({ email }).first();
-
-    if (!user) {
-        try {
-            const username = email.split('@')[0];
-            [user] = await db('users')
-                .insert({
-                    username,
-                    email,
-                    is_admin: false,
-                    autocomplete_search_on_homepage: false,
-                    default_search_provider: 'duckduckgo',
-                    theme: 'system',
-                    column_preferences: JSON.stringify({
-                        bookmarks: {
-                            title: true,
-                            url: true,
-                            default_per_page: 10,
-                            created_at: true,
-                            pinned: true,
-                        },
-                        actions: {
-                            name: true,
-                            trigger: true,
-                            url: true,
-                            default_per_page: 10,
-                            last_read_at: true,
-                            usage_count: true,
-                            created_at: true,
-                        },
-                        notes: {
-                            title: true,
-                            content: true,
-                            default_per_page: 10,
-                            created_at: true,
-                            pinned: true,
-                            view_type: 'table',
-                        },
-                        tabs: {
-                            title: true,
-                            trigger: true,
-                            items_count: true,
-                            default_per_page: 10,
-                            created_at: true,
-                        },
-                        reminders: {
-                            title: true,
-                            content: true,
-                            due_date: true,
-                            frequency: true,
-                            default_per_page: 10,
-                            created_at: true,
-                            default_reminder_timing: 'daily',
-                            default_reminder_time: '09:00',
-                        },
-                        users: {
-                            username: true,
-                            email: true,
-                            is_admin: true,
-                            default_per_page: 10,
-                            email_verified_at: true,
-                            created_at: true,
-                        },
-                    }),
-                })
-                .returning('*');
-        } catch (error) {
-            user = await db('users').where({ email }).first();
-            if (!user) throw error;
-        }
-    }
-
-    return user;
-}
-
-export async function authenticateUser(page: Page, email: string = 'test@example.com') {
+export async function authenticateUser(page: Page, email = 'test@example.com') {
     const user = await ensureTestUserExists(email);
-    const ctx = await getTestContext();
+    const ctx = await getContext();
     const token = ctx.utils.auth.generateMagicLink({ email });
+
     await page.goto(`/auth/magic/${token}`);
     await page.waitForURL('/actions', { timeout: 5000 });
+
     return user;
 }
 
@@ -110,14 +29,14 @@ export async function openLoginDialog(page: Page) {
     await expect(page.getByText('🚀 Send')).toBeVisible();
 }
 
-export async function submitEmailForMagicLink(page: Page, email: string = 'test@example.com') {
+export async function submitEmailForMagicLink(page: Page, email = 'test@example.com') {
     await openLoginDialog(page);
     await page.getByLabel('📧 Email Address').fill(email);
     await page.getByRole('button', { name: '🚀 Send' }).click();
     await page.waitForURL('/', { timeout: 5000 }).catch(() => {});
 }
 
-export async function loginUser(page: Page, email: string = 'test@example.com') {
+export async function loginUser(page: Page, email = 'test@example.com') {
     await authenticateUser(page, email);
     await expect(page).toHaveURL('/actions');
 }
@@ -138,41 +57,5 @@ export async function logoutUser(page: Page) {
 }
 
 export async function cleanupTestData() {
-    try {
-        await db.transaction(async (trx) => {
-            const testUsers = await trx('users')
-                .where('email', 'like', '%@example.com')
-                .select('id');
-            const userIds = testUsers.map((u) => u.id);
-
-            if (userIds.length > 0) {
-                await Promise.all([
-                    trx('bangs')
-                        .whereIn('user_id', userIds)
-                        .del()
-                        .catch(() => {}),
-                    trx('bookmarks')
-                        .whereIn('user_id', userIds)
-                        .del()
-                        .catch(() => {}),
-                    trx('notes')
-                        .whereIn('user_id', userIds)
-                        .del()
-                        .catch(() => {}),
-                    trx('reminders')
-                        .whereIn('user_id', userIds)
-                        .del()
-                        .catch(() => {}),
-                    trx('sessions')
-                        .where('sess', 'like', '%test@example.com%')
-                        .del()
-                        .catch(() => {}),
-                ]);
-
-                await trx('users').whereIn('id', userIds).del();
-            }
-        });
-    } catch (error) {
-        // ...
-    }
+    await cleanupUserData(db);
 }
