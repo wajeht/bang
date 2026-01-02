@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { build } from 'esbuild';
+import { minify as terserMinify } from 'terser';
 import CleanCSS from 'clean-css';
 import { Logger } from '../src/utils/logger';
 import { minify as minifyHtml } from 'html-minifier-terser';
@@ -152,7 +153,7 @@ async function minifyJavaScript(): Promise<MinificationSummary> {
             const isBrowserFile = file.startsWith(publicDir);
 
             if (isBrowserFile) {
-                // Use esbuild but preserve global functions for HTML onclick handlers
+                // Use esbuild for browser files - preserves global functions for HTML onclick handlers
                 await build({
                     entryPoints: [file],
                     outfile: file,
@@ -167,19 +168,16 @@ async function minifyJavaScript(): Promise<MinificationSummary> {
                     logLevel: 'error',
                 });
             } else {
-                // Node.js settings for server files
-                await build({
-                    entryPoints: [file],
-                    outfile: file,
-                    allowOverwrite: true,
-                    minify: true,
-                    keepNames: true,
-                    sourcemap: false,
-                    target: 'node22',
-                    platform: 'node',
-                    format: 'cjs',
-                    logLevel: 'error',
+                // Use terser for server files - preserves JSDoc comments for swagger
+                const code = fs.readFileSync(file, 'utf8');
+                const out = await terserMinify(code, {
+                    compress: true,
+                    mangle: true,
+                    format: {
+                        comments: true,
+                    },
                 });
+                fs.writeFileSync(file, out.code ?? code, 'utf8');
             }
 
             const minifiedSize = fs.statSync(file).size;
@@ -187,7 +185,7 @@ async function minifyJavaScript(): Promise<MinificationSummary> {
 
             const reduction = ((1 - minifiedSize / originalSize) * 100).toFixed(1);
 
-            const baseDir = file.startsWith(publicDir) ? publicDir : distDir;
+            const baseDir = isBrowserFile ? publicDir : distDir;
             results.push({
                 file: path.relative(baseDir, file),
                 originalSize,
@@ -205,7 +203,7 @@ async function minifyJavaScript(): Promise<MinificationSummary> {
                 status: 'error',
                 error: error instanceof Error ? error.message : 'Unknown error',
             });
-            totalMinifiedSize += originalSize; // Add original size if minification failed
+            totalMinifiedSize += originalSize;
         }
     }
 
