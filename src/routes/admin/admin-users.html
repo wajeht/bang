@@ -171,7 +171,7 @@
   <%~ include('../_components/pagination.html', {
     pagination,
     path,
-    perPageDefault: state.user.column_preferences.users.default_per_page,
+    perPageDefault: state.user.column_preferences?.users?.default_per_page || 10,
     sortKey,
     direction,
     search,
