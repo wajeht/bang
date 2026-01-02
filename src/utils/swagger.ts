@@ -1,11 +1,18 @@
 import { Application } from 'express';
 import type { AppContext } from '../type';
 import type { Options } from 'express-jsdoc-swagger';
-import expressJSDocSwagger from 'express-jsdoc-swagger';
 import { AuthenticationMiddleware } from '../routes/middleware';
 import { config } from '../config';
 
 export async function expressJSDocSwaggerHandler(app: Application, context: AppContext) {
+    // Skip swagger in testing - it's a heavy library not needed for tests
+    if (context.config.app.env === 'testing') {
+        return;
+    }
+
+    // Dynamic import to avoid loading swagger-ui in tests
+    const { default: expressJSDocSwagger } = await import('express-jsdoc-swagger');
+
     const branding = await context.models.settings.getBranding();
 
     const swaggerConfig = {
