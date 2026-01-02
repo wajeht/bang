@@ -28,6 +28,33 @@ export function GeneralRouter(ctx: AppContext) {
         return;
     });
 
+    router.get('/metrics', ctx.middleware.adminOnly, async (_req: Request, res: Response) => {
+        const mem = process.memoryUsage();
+        const cpuUsage = process.cpuUsage();
+
+        res.json({
+            memory: {
+                rss: `${Math.round(mem.rss / 1024 / 1024)} MB`, // Total memory allocated
+                heapTotal: `${Math.round(mem.heapTotal / 1024 / 1024)} MB`, // V8 heap size
+                heapUsed: `${Math.round(mem.heapUsed / 1024 / 1024)} MB`, // V8 heap used
+                external: `${Math.round(mem.external / 1024 / 1024)} MB`, // C++ objects
+                arrayBuffers: `${Math.round((mem.arrayBuffers || 0) / 1024 / 1024)} MB`,
+            },
+            cpu: {
+                user: `${Math.round(cpuUsage.user / 1000)} ms`, // CPU time in user mode
+                system: `${Math.round(cpuUsage.system / 1000)} ms`, // CPU time in kernel mode
+            },
+            process: {
+                uptime: `${Math.round(process.uptime())} seconds`,
+                pid: process.pid,
+                nodeVersion: process.version,
+                platform: process.platform,
+                arch: process.arch,
+            },
+            env: ctx.config.app.env,
+        });
+    });
+
     router.get('/', async (req: Request, res: Response) => {
         const query = req.query.q?.toString().trim() || '';
         const user = req.session.user as User | undefined;
