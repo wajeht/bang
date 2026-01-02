@@ -844,7 +844,7 @@ export function SearchUtils(context: AppContext) {
 
                     if (pattern === datePatterns[0] && match[1] && match[2] && match[3]) {
                         // YYYY-MM-DD
-                        targetDate = context.libs.dayjs
+                        let targetDayjs = context.libs.dayjs
                             .tz(undefined, userTimezone)
                             .year(parseInt(match[1]))
                             .month(parseInt(match[2]) - 1)
@@ -852,12 +852,16 @@ export function SearchUtils(context: AppContext) {
                             .hour(defaultHour)
                             .minute(defaultMinute)
                             .second(0)
-                            .millisecond(0)
-                            .utc()
-                            .toDate();
+                            .millisecond(0);
+
+                        // If the date has already passed, use next year
+                        if (targetDayjs.isBefore(nowInUserTz)) {
+                            targetDayjs = targetDayjs.add(1, 'year');
+                        }
+                        targetDate = targetDayjs.utc().toDate();
                     } else if (pattern === datePatterns[1] && match[1] && match[2] && match[3]) {
                         // MM/DD/YYYY
-                        targetDate = context.libs.dayjs
+                        let targetDayjs = context.libs.dayjs
                             .tz(undefined, userTimezone)
                             .year(parseInt(match[3]))
                             .month(parseInt(match[1]) - 1)
@@ -865,9 +869,13 @@ export function SearchUtils(context: AppContext) {
                             .hour(defaultHour)
                             .minute(defaultMinute)
                             .second(0)
-                            .millisecond(0)
-                            .utc()
-                            .toDate();
+                            .millisecond(0);
+
+                        // If the date has already passed, use next year
+                        if (targetDayjs.isBefore(nowInUserTz)) {
+                            targetDayjs = targetDayjs.add(1, 'year');
+                        }
+                        targetDate = targetDayjs.utc().toDate();
                     } else if (pattern === datePatterns[2] && match[1] && match[2]) {
                         // Jan-15
                         const monthMap: { [key: string]: number } = {
