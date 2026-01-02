@@ -113,6 +113,7 @@ describe('Settings Routes', () => {
                     default_search_provider: 'google',
                     autocomplete_search_on_homepage: 'on',
                     timezone: 'UTC',
+                    theme: 'dark',
                 })
                 .expect(302);
 
@@ -120,6 +121,7 @@ describe('Settings Routes', () => {
             expect(updatedUser.username).toBe('updateduser');
             expect(updatedUser.default_search_provider).toBe('google');
             expect(updatedUser.autocomplete_search_on_homepage).toBe(1);
+            expect(updatedUser.theme).toBe('dark');
         });
 
         it('should allow updating profile while keeping same username', async () => {
@@ -133,6 +135,7 @@ describe('Settings Routes', () => {
                     default_search_provider: 'google',
                     autocomplete_search_on_homepage: 'on',
                     timezone: 'America/New_York',
+                    theme: 'light',
                 })
                 .expect(302);
 
@@ -141,6 +144,7 @@ describe('Settings Routes', () => {
             expect(updatedUser.email).toBe(user.email);
             expect(updatedUser.default_search_provider).toBe('google');
             expect(updatedUser.timezone).toBe('America/New_York');
+            expect(updatedUser.theme).toBe('light');
         });
 
         it('should validate email format', async () => {
@@ -153,6 +157,7 @@ describe('Settings Routes', () => {
                     email: 'invalid-email',
                     default_search_provider: 'duckduckgo',
                     timezone: 'UTC',
+                    theme: 'system',
                 })
                 .expect(302);
         });
@@ -174,6 +179,7 @@ describe('Settings Routes', () => {
                     email: 'test@example.com',
                     default_search_provider: 'duckduckgo',
                     timezone: 'UTC',
+                    theme: 'system',
                 })
                 .expect(302);
         });
@@ -523,9 +529,63 @@ describe('Settings Routes', () => {
             expect(response.text).toContain('"default_search_provider":"google"');
             expect(response.text).toContain('"timezone":"America/Los_Angeles"');
         });
+
+        it('should import theme preference', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const importData = {
+                version: '1.0',
+                user_preferences: {
+                    theme: 'dark',
+                },
+            };
+
+            await agent
+                .post('/settings/data/import')
+                .send({ config: JSON.stringify(importData) })
+                .expect(302);
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.theme).toBe('dark');
+        });
+
+        it('should reject invalid theme values during import', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('users').where({ id: user.id }).update({ theme: 'light' });
+
+            const importData = {
+                version: '1.0',
+                user_preferences: {
+                    theme: 'invalid-theme',
+                },
+            };
+
+            await agent
+                .post('/settings/data/import')
+                .send({ config: JSON.stringify(importData) })
+                .expect(302);
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.theme).toBe('light');
+        });
     });
 
     describe('POST /settings/data/export', () => {
+        it('should export theme in user preferences', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('users').where({ id: user.id }).update({ theme: 'dark' });
+
+            const response = await agent
+                .post('/settings/data/export')
+                .send({ options: ['user_preferences'] })
+                .expect(200);
+
+            const exportData = JSON.parse(response.text);
+            expect(exportData.user_preferences.theme).toBe('dark');
+        });
+
         it('should export data including hidden field', async () => {
             const { agent, user } = await authenticateAgent(app);
 

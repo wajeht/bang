@@ -79,6 +79,7 @@ export function SettingsRouter(ctx: AppContext) {
                 default_search_provider,
                 autocomplete_search_on_homepage,
                 timezone,
+                theme,
             } = req.body;
 
             if (!username) {
@@ -127,6 +128,11 @@ export function SettingsRouter(ctx: AppContext) {
                 parsedAutocompleteSearchOnHomepage = true;
             }
 
+            const validThemes = ['system', 'light', 'dark'];
+            if (!theme || !validThemes.includes(theme)) {
+                throw new ctx.errors.ValidationError({ theme: 'Invalid theme selected' });
+            }
+
             // Check if username is being changed and if it's already taken by another user
             const currentUserId = (req.user as User).id;
             if (username !== (req.user as User).username) {
@@ -164,6 +170,7 @@ export function SettingsRouter(ctx: AppContext) {
                     default_search_provider,
                     autocomplete_search_on_homepage: parsedAutocompleteSearchOnHomepage,
                     timezone,
+                    theme,
                 })
                 .where({ id: currentUserId })
                 .returning('*');
@@ -920,6 +927,12 @@ export function SettingsRouter(ctx: AppContext) {
                                 updateData.timezone = userPrefs.timezone;
                             }
                         }
+                        if (userPrefs.theme) {
+                            const validThemes = ['system', 'light', 'dark'];
+                            if (validThemes.includes(userPrefs.theme)) {
+                                updateData.theme = userPrefs.theme;
+                            }
+                        }
 
                         if (Object.keys(updateData).length > 0) {
                             await trx('users').where('id', userId).update(updateData);
@@ -949,6 +962,9 @@ export function SettingsRouter(ctx: AppContext) {
                                 if (updateData.timezone) {
                                     req.session.user.timezone = updateData.timezone;
                                 }
+                                if (updateData.theme) {
+                                    req.session.user.theme = updateData.theme;
+                                }
                                 req.session.save();
                             }
 
@@ -976,6 +992,9 @@ export function SettingsRouter(ctx: AppContext) {
                                 }
                                 if (updateData.timezone) {
                                     req.user.timezone = updateData.timezone;
+                                }
+                                if (updateData.theme) {
+                                    req.user.theme = updateData.theme;
                                 }
                             }
                         }

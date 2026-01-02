@@ -126,6 +126,20 @@
         error: state.errors && state.errors.autocomplete_search_on_homepage ? state.errors.autocomplete_search_on_homepage : undefined
       }) %>
 
+      <%~ include('../_components/inputs/select.html', {
+        id: 'theme',
+        name: 'theme',
+        label: '🎨 Theme',
+        options: [
+          { value: 'system', text: 'System (auto)', selected: (state.input?.theme || user.theme || 'system') === 'system' },
+          { value: 'light', text: 'Light', selected: (state.input?.theme || user.theme) === 'light' },
+          { value: 'dark', text: 'Dark', selected: (state.input?.theme || user.theme) === 'dark' }
+        ],
+        required: true,
+        helpText: 'Choose your preferred color theme',
+        error: state.errors?.theme
+      }) %>
+
       <button type="submit">💾 Save</button>
     </fieldset>
   </form>

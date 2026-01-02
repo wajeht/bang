@@ -54,17 +54,24 @@
 			} catch {}
 		};
 
-		const { theme } = window.getLocalStorageData();
-		if (
-			theme === 'dark' ||
-			(!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)
-		) {
-			document.documentElement.setAttribute('data-theme', 'dark');
-			window.setLocalStorageData({ theme: 'dark' });
-		} else {
-			document.documentElement.setAttribute('data-theme', 'light');
-			window.setLocalStorageData({ theme: 'light' });
-		}
+		(function() {
+			const userTheme = '<%= state.user?.theme || "" %>';
+			const localTheme = window.getLocalStorageData().theme;
+			let resolvedTheme;
+
+			if (userTheme === 'light' || userTheme === 'dark') {
+				resolvedTheme = userTheme;
+			} else if (userTheme === 'system' || !userTheme) {
+				if (localTheme === 'light' || localTheme === 'dark') {
+					resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				} else {
+					resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				}
+			}
+
+			document.documentElement.setAttribute('data-theme', resolvedTheme);
+			window.setLocalStorageData({ theme: resolvedTheme });
+		})();
 	</script>
 
 	<!-- 2. Preload and Preconnect -->

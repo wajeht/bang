@@ -38,6 +38,7 @@ export async function seed(knex: Knex): Promise<void> {
                 autocomplete_search_on_homepage: true,
                 default_search_provider: 'duckduckgo',
                 timezone: 'America/Chicago',
+                theme: 'system',
                 hidden_items_password: hiddenPassword,
                 column_preferences: JSON.stringify({
                     bookmarks: {

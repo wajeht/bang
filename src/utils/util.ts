@@ -647,6 +647,7 @@ export function Utils(context: AppContext) {
                               'autocomplete_search_on_homepage',
                               'column_preferences',
                               'timezone',
+                              'theme',
                           )
                           .first()
                     : Promise.resolve(null);

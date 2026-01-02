@@ -7,7 +7,7 @@ import {
 import request from 'supertest';
 import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, afterAll, beforeEach } from 'vitest';
 import { SettingsRepository } from './settings.repository';
 import { config } from '../../config';
 import { libs } from '../../libs';

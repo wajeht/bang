@@ -32,6 +32,7 @@ export async function ensureTestUserExists(email: string = 'test@example.com') {
                     is_admin: false,
                     autocomplete_search_on_homepage: false,
                     default_search_provider: 'duckduckgo',
+                    theme: 'system',
                     column_preferences: JSON.stringify({
                         bookmarks: {
                             title: true,

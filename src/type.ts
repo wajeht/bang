@@ -150,6 +150,7 @@ export type User = {
     autocomplete_search_on_homepage: boolean;
     timezone: string;
     hidden_items_password?: string | null;
+    theme: 'system' | 'light' | 'dark';
 };
 
 export type BookmarkToExport = {
