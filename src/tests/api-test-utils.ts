@@ -26,7 +26,10 @@ export async function getSharedApp(): Promise<{ app: Application; ctx: any }> {
     return { app: sharedApp, ctx: testContext! };
 }
 
-export async function ensureTestUserExists(email: string = 'test@example.com') {
+export async function ensureTestUserExists(
+    email: string = 'test@example.com',
+    isAdmin: boolean = false,
+) {
     let user = await db('users').where({ email }).first();
 
     if (!user) {
@@ -36,7 +39,7 @@ export async function ensureTestUserExists(email: string = 'test@example.com') {
                 .insert({
                     username,
                     email,
-                    is_admin: false,
+                    is_admin: isAdmin,
                     autocomplete_search_on_homepage: false,
                     default_search_provider: 'duckduckgo',
                     theme: 'system',
@@ -186,6 +189,30 @@ export async function authenticateAgent(app: Application, email: string = 'test@
         // Use /reminders which should be accessible for authenticated users
         const res = await agent.get('/reminders');
         // Extract CSRF token from the HTML (looking for hidden input or meta tag)
+        const csrfMatch =
+            res.text.match(/name="csrfToken"\s+value="([^"]+)"/) ||
+            res.text.match(/data-csrf="([^"]+)"/) ||
+            res.text.match(/csrfToken['"]:\s*['"]([^'"]+)['"]/);
+        return csrfMatch ? csrfMatch[1] : '';
+    };
+
+    await wrapAgentWithCsrf(agent, getCsrfToken);
+
+    return { agent, user };
+}
+
+export async function authenticateAdminAgent(
+    app: Application,
+    email: string = 'admin@example.com',
+) {
+    const user = await ensureTestUserExists(email, true);
+    const agent = request.agent(app);
+    const ctx = await getTestContext();
+    const token = ctx.utils.auth.generateMagicLink({ email });
+    await agent.get(`/auth/magic/${token}`).expect(302);
+
+    const getCsrfToken = async () => {
+        const res = await agent.get('/reminders');
         const csrfMatch =
             res.text.match(/name="csrfToken"\s+value="([^"]+)"/) ||
             res.text.match(/data-csrf="([^"]+)"/) ||

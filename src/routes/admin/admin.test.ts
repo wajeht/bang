@@ -1,8 +1,8 @@
 import {
     cleanupTestData,
     authenticateAgent,
+    authenticateAdminAgent,
     cleanupTestDatabase,
-    ensureTestUserExists,
     getSharedApp,
 } from '../../tests/api-test-utils';
 import request from 'supertest';
@@ -38,11 +38,7 @@ describe('Admin Routes', () => {
         });
 
         it('should allow admin users', async () => {
-            const adminUser = await ensureTestUserExists('admin@example.com');
-            await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
-
-            const { agent } = await authenticateAgent(app, 'admin@example.com');
-
+            const { agent } = await authenticateAdminAgent(app);
             await agent.get('/admin').expect(302).expect('Location', '/admin/users');
         });
     });
@@ -54,11 +50,7 @@ describe('Admin Routes', () => {
         });
 
         it('should show users list for admin', async () => {
-            const adminUser = await ensureTestUserExists('admin@example.com');
-            await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
-
-            const { agent } = await authenticateAgent(app, 'admin@example.com');
-
+            const { agent } = await authenticateAdminAgent(app);
             const response = await agent.get('/admin/users').expect(200);
             expect(response.text).toContain('Users');
         });
@@ -67,9 +59,6 @@ describe('Admin Routes', () => {
     describe('Bulk Delete', () => {
         describe('POST /admin/users/delete', () => {
             it('should delete multiple non-admin users', async () => {
-                const adminUser = await ensureTestUserExists('admin@example.com');
-                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
-
                 const [user1] = await db('users')
                     .insert({
                         username: 'user1',
@@ -88,7 +77,7 @@ describe('Admin Routes', () => {
                     })
                     .returning('*');
 
-                const { agent } = await authenticateAgent(app, 'admin@example.com');
+                const { agent } = await authenticateAdminAgent(app);
 
                 await agent
                     .post('/admin/users/delete')
@@ -103,9 +92,6 @@ describe('Admin Routes', () => {
             });
 
             it('should not delete admin users', async () => {
-                const adminUser = await ensureTestUserExists('admin@example.com');
-                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
-
                 const [adminUser2] = await db('users')
                     .insert({
                         username: 'admin2',
@@ -124,7 +110,7 @@ describe('Admin Routes', () => {
                     })
                     .returning('*');
 
-                const { agent } = await authenticateAgent(app, 'admin@example.com');
+                const { agent } = await authenticateAdminAgent(app);
 
                 await agent
                     .post('/admin/users/delete')
@@ -150,11 +136,7 @@ describe('Admin Routes', () => {
             });
 
             it('should require id array', async () => {
-                const adminUser = await ensureTestUserExists('admin@example.com');
-                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
-
-                const { agent } = await authenticateAgent(app, 'admin@example.com');
-
+                const { agent } = await authenticateAdminAgent(app);
                 await agent.post('/admin/users/delete').type('form').send({}).expect(302);
             });
         });
@@ -186,11 +168,7 @@ describe('Admin Routes', () => {
             });
 
             it('should show identity settings for admin', async () => {
-                const adminUser = await ensureTestUserExists('admin@example.com');
-                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
-
-                const { agent } = await authenticateAgent(app, 'admin@example.com');
-
+                const { agent } = await authenticateAdminAgent(app);
                 const response = await agent.get('/admin/settings/identity').expect(200);
                 expect(response.text).toContain('Identity');
                 expect(response.text).toContain('App Name');
@@ -208,10 +186,7 @@ describe('Admin Routes', () => {
             });
 
             it('should update identity settings', async () => {
-                const adminUser = await ensureTestUserExists('admin@example.com');
-                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
-
-                const { agent } = await authenticateAgent(app, 'admin@example.com');
+                const { agent } = await authenticateAdminAgent(app);
 
                 await agent
                     .post('/admin/settings/identity')
@@ -227,10 +202,7 @@ describe('Admin Routes', () => {
             });
 
             it('should default to Bang if app_name is empty', async () => {
-                const adminUser = await ensureTestUserExists('admin@example.com');
-                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
-
-                const { agent } = await authenticateAgent(app, 'admin@example.com');
+                const { agent } = await authenticateAdminAgent(app);
 
                 await agent
                     .post('/admin/settings/identity')
@@ -273,11 +245,7 @@ describe('Admin Routes', () => {
             });
 
             it('should show visibility settings for admin', async () => {
-                const adminUser = await ensureTestUserExists('admin@example.com');
-                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
-
-                const { agent } = await authenticateAgent(app, 'admin@example.com');
-
+                const { agent } = await authenticateAdminAgent(app);
                 const response = await agent.get('/admin/settings/visibility').expect(200);
                 expect(response.text).toContain('Visibility');
                 expect(response.text).toContain('Show Footer');
@@ -296,10 +264,7 @@ describe('Admin Routes', () => {
             });
 
             it('should update visibility settings', async () => {
-                const adminUser = await ensureTestUserExists('admin@example.com');
-                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
-
-                const { agent } = await authenticateAgent(app, 'admin@example.com');
+                const { agent } = await authenticateAdminAgent(app);
 
                 await agent
                     .post('/admin/settings/visibility')
@@ -327,10 +292,7 @@ describe('Admin Routes', () => {
             });
 
             it('should set all to false when none checked', async () => {
-                const adminUser = await ensureTestUserExists('admin@example.com');
-                await db('users').where({ id: adminUser.id }).update({ is_admin: 1 });
-
-                const { agent } = await authenticateAgent(app, 'admin@example.com');
+                const { agent } = await authenticateAdminAgent(app);
 
                 await agent.post('/admin/settings/visibility').send({}).expect(302);
 

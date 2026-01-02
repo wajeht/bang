@@ -1,6 +1,7 @@
 import {
     cleanupTestData,
     authenticateAgent,
+    authenticateAdminAgent,
     cleanupTestDatabase,
     getSharedApp,
 } from '../../tests/api-test-utils';
@@ -66,6 +67,40 @@ describe('General Routes', () => {
 
         it('should handle empty search query', async () => {
             await request(app).get('/search').expect(302);
+        });
+    });
+
+    describe('GET /metrics', () => {
+        it('should redirect unauthenticated requests to login', async () => {
+            const response = await request(app).get('/metrics').expect(302);
+            expect(response.headers.location).toContain('login');
+        });
+
+        it('should return 401 for non-admin users', async () => {
+            const { agent } = await authenticateAgent(app);
+            await agent.get('/metrics').expect(401);
+        });
+
+        it('should return metrics for admin users', async () => {
+            const { agent } = await authenticateAdminAgent(app);
+            const response = await agent.get('/metrics').expect(200);
+
+            expect(response.body).toHaveProperty('memory');
+            expect(response.body.memory).toHaveProperty('rss');
+            expect(response.body.memory).toHaveProperty('heapTotal');
+            expect(response.body.memory).toHaveProperty('heapUsed');
+            expect(response.body.memory).toHaveProperty('external');
+
+            expect(response.body).toHaveProperty('cpu');
+            expect(response.body.cpu).toHaveProperty('user');
+            expect(response.body.cpu).toHaveProperty('system');
+
+            expect(response.body).toHaveProperty('process');
+            expect(response.body.process).toHaveProperty('uptime');
+            expect(response.body.process).toHaveProperty('pid');
+            expect(response.body.process).toHaveProperty('nodeVersion');
+
+            expect(response.body).toHaveProperty('env');
         });
     });
 
