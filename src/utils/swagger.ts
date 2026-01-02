@@ -3,6 +3,7 @@ import type { AppContext } from '../type';
 import type { Options } from 'express-jsdoc-swagger';
 import expressJSDocSwagger from 'express-jsdoc-swagger';
 import { AuthenticationMiddleware } from '../routes/middleware';
+import { config } from '../config';
 
 const swaggerConfig = {
     info: {
@@ -19,8 +20,8 @@ const swaggerConfig = {
         },
         version: '0.0.1',
     },
-    baseDir: './src',
-    filesPattern: ['**/routes/**/*.ts', '**/routes/**/*.js'],
+    baseDir: config.app.env === 'production' ? './dist/src' : './src',
+    filesPattern: config.app.env === 'production' ? ['**/routes/**/*.js'] : ['**/routes/**/*.ts'],
     swaggerUIPath: '/api-docs',
     exposeSwaggerUI: true,
     notRequiredAsNullable: false,
