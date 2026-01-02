@@ -43,6 +43,7 @@ import { UsersRepository } from './routes/admin/admin.repository';
 import { ActionsRepository } from './routes/actions/actions.repository';
 import { BookmarksRepository } from './routes/bookmarks/bookmarks.repository';
 import { RemindersRepository } from './routes/reminders/reminders.repository';
+import { SettingsRepository } from './routes/admin/settings.repository';
 import type { AppContext, Models, Services, Utilities, Middlewares } from './type';
 
 export async function Context(): Promise<AppContext> {
@@ -107,6 +108,7 @@ export async function Context(): Promise<AppContext> {
         actions: ActionsRepository(partialCtx),
         bookmarks: BookmarksRepository(partialCtx),
         reminders: RemindersRepository(partialCtx),
+        settings: SettingsRepository(partialCtx),
     };
 
     partialCtx.models = models;

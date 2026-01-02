@@ -8,9 +8,15 @@
     <header>
       <!-- top left -->
       <nav style="position: absolute; left: 0; display: flex; gap: 20px; margin-left: 1rem;" aria-label="Main navigation">
-        <a href="/" style="font-weight: <%= path === '/' ? 'bold' : 'normal' %>; <%= path === '/' ? 'text-decoration: underline;' : '' %>">🔎 Search</a>
-        <span aria-hidden="true" style="color: var(--link-divider-color);">|</span>
-        <a href="/about" style="font-weight: <%= path === '/about' ? 'bold' : 'normal' %>; <%= path === '/about' ? 'text-decoration: underline;' : '' %>">❓About</a>
+        <% if (state.branding.showSearchPage) { %>
+          <a href="/" style="font-weight: <%= path === '/' ? 'bold' : 'normal' %>; <%= path === '/' ? 'text-decoration: underline;' : '' %>">🔎 Search</a>
+        <% } %>
+        <% if (state.branding.showSearchPage && state.branding.showAboutPage) { %>
+          <span aria-hidden="true" style="color: var(--link-divider-color);">|</span>
+        <% } %>
+        <% if (state.branding.showAboutPage) { %>
+          <a href="/about" style="font-weight: <%= path === '/about' ? 'bold' : 'normal' %>; <%= path === '/about' ? 'text-decoration: underline;' : '' %>">❓About</a>
+        <% } %>
       </nav>
 
       <!-- top right -->
@@ -46,7 +52,9 @@
       </div>
     </main>
 
-    <%~ include('partials/footer.html') %>
+    <% if (state.branding.showFooter) { %>
+      <%~ include('partials/footer.html') %>
+    <% } %>
 
     <% if (!state.user) { %>
       <dialog id="login-dialog" style="width: 450px;">

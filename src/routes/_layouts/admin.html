@@ -22,6 +22,14 @@
               </li>
               <hr aria-hidden="true" style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;">
               <li>
+                <a style="font-weight: <%= path === '/admin/settings/identity' ? 'bold' : 'normal' %>; <%= path === '/admin/settings/identity' ? 'text-decoration: underline' : '' %>; display: block;" href="/admin/settings/identity">📛 Identity</a>
+              </li>
+              <hr aria-hidden="true" style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;">
+              <li>
+                <a style="font-weight: <%= path === '/admin/settings/visibility' ? 'bold' : 'normal' %>; <%= path === '/admin/settings/visibility' ? 'text-decoration: underline' : '' %>; display: block;" href="/admin/settings/visibility">👁️ Visibility</a>
+              </li>
+              <hr aria-hidden="true" style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;">
+              <li>
                 <a style="font-weight: normal; display: block;" href="/settings">⚙️ Settings</a>
               </li>
             </ul>
@@ -34,7 +42,9 @@
       </div>
     </main>
 
-    <%~ include('partials/footer.html') %>
+    <% if (state.branding.showFooter) { %>
+      <%~ include('partials/footer.html') %>
+    <% } %>
 
   </body>
 

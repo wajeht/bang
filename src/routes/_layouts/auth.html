@@ -11,7 +11,9 @@
 			<%~ body %>
 		</main>
 
-		<%~ include('partials/footer.html') %>
+		<% if (state.branding.showFooter) { %>
+			<%~ include('partials/footer.html') %>
+		<% } %>
 
 		<% if (['/actions', '/bangs', '/bookmarks', '/tabs'].includes(path) || path.startsWith('/notes') || path.startsWith('/search')) { %>
 			<%~ include('partials/scroll-to-top.html') %>

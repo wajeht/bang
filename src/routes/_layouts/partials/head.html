@@ -3,29 +3,29 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<% if (typeof title !== 'undefined') { %>
-		<title>Bang - <%~ title %></title>
+		<title><%= state.branding.appName %> - <%~ title %></title>
 	<% } else { %>
-		<title>Bang</title>
+		<title><%= state.branding.appName %></title>
 	<% } %>
 
 	<meta name="description" content="your personal command center for blazingly fast web navigation">
-	<meta name="keywords" content="bang, action, duck duck go, search">
+	<meta name="keywords" content="<%= state.branding.appName.toLowerCase() %>, action, search, bookmarks">
 	<meta name="author" content="wajeht">
 	<meta name="robots" content="noindex, nofollow">
 
 	<!-- Open Graph -->
 	<meta property="og:type" content="website">
-	<meta property="og:url" content="https://bang.jaw.dev/">
-	<meta property="og:title" content="Bang">
+	<meta property="og:url" content="<%= state.branding.appUrl %>">
+	<meta property="og:title" content="<%= state.branding.appName %>">
 	<meta property="og:description" content="your personal command center for blazingly fast web navigation">
-	<meta property="og:image" content="https://bang.jaw.dev/og.png">
+	<meta property="og:image" content="<%= state.branding.appUrl %>/og.png">
 
 	<!-- Twitter -->
 	<meta property="twitter:card" content="summary_large_image">
-	<meta property="twitter:url" content="https://bang.jaw.dev/">
-	<meta property="twitter:title" content="Bang">
+	<meta property="twitter:url" content="<%= state.branding.appUrl %>">
+	<meta property="twitter:title" content="<%= state.branding.appName %>">
 	<meta property="twitter:description" content="your personal command center for blazingly fast web navigation">
-	<meta property="twitter:image" content="https://bang.jaw.dev/og.png">
+	<meta property="twitter:image" content="<%= state.branding.appUrl %>/og.png">
 
 	<!-- Icons -->
 	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -34,13 +34,13 @@
 	<link rel="manifest" href="/site.webmanifest">
 
 	<!-- SEO -->
-	<link rel="canonical" href="https://bang.jaw.dev/">
+	<link rel="canonical" href="<%= state.branding.appUrl %>">
 
 	<!-- 1. Critical inline script (theme detection - must run immediately) -->
 	<script>
 		window.getLocalStorageData = function() {
 			try {
-				const data = localStorage.getItem('bang-app-data');
+				const data = localStorage.getItem('<%= state.branding.appName.toLowerCase() %>-app-data');
 				return data ? JSON.parse(data) : {};
 			} catch {
 				return {};
@@ -50,7 +50,7 @@
 		window.setLocalStorageData = function(newData) {
 			try {
 				const currentData = window.getLocalStorageData();
-				localStorage.setItem('bang-app-data', JSON.stringify({ ...currentData, ...newData }));
+				localStorage.setItem('<%= state.branding.appName.toLowerCase() %>-app-data', JSON.stringify({ ...currentData, ...newData }));
 			} catch {}
 		};
 

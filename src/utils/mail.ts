@@ -117,13 +117,14 @@ export function MailUtils(context: AppContext) {
             token: string;
             req: Request;
         }): Promise<void> {
+            const branding = await context.models.settings.getBranding();
             const magicLink = `${req.protocol}://${req.get('host')}/auth/magic/${token}`;
 
             const mailOptions = {
-                from: `Bang <${context.config.email.from}>`,
+                from: `${branding.appName} <${context.config.email.from}>`,
                 to: email,
-                subject: '🔗 Your Bang Magic Link',
-                text: `Your Bang Magic Link
+                subject: `🔗 Your ${branding.appName} Magic Link`,
+                text: `Your ${branding.appName} Magic Link
 
 Click this link to log in:
 ${magicLink}
@@ -131,8 +132,8 @@ ${magicLink}
 This link will expire in 15 minutes. If you didn't request this, you can safely ignore this email.
 
 --
-Bang Team
-https://github.com/wajeht/bang`,
+${branding.appName} Team
+${branding.appUrl}`,
             };
 
             try {
@@ -154,26 +155,27 @@ https://github.com/wajeht/bang`,
             token: string;
             baseUrl: string;
         }): Promise<void> {
+            const branding = await context.models.settings.getBranding();
             const magicLink = `${baseUrl}/auth/magic/${token}`;
 
             const mailOptions = {
-                from: `Bang <${context.config.email.from}>`,
+                from: `${branding.appName} <${context.config.email.from}>`,
                 to: email,
-                subject: '👋 Verify your Bang account',
+                subject: `👋 Verify your ${branding.appName} account`,
                 text: `Hello ${username},
 
-We noticed you haven't verified your Bang account yet. Verifying your email helps secure your account and ensures you can receive important updates.
+We noticed you haven't verified your ${branding.appName} account yet. Verifying your email helps secure your account and ensures you can receive important updates.
 
 Click this link to verify your account:
 ${magicLink}
 
 This link will expire in 15 minutes.
 
-If you didn't create a Bang account, you can safely ignore this email.
+If you didn't create a ${branding.appName} account, you can safely ignore this email.
 
 --
-Bang Team
-https://github.com/wajeht/bang`,
+${branding.appName} Team
+${branding.appUrl}`,
             };
 
             try {
@@ -206,10 +208,12 @@ https://github.com/wajeht/bang`,
                     return;
                 }
 
+                const branding = await context.models.settings.getBranding();
                 const userId = (req.user as User).id;
                 const currentDate = context.libs.dayjs().format('YYYY-MM-DD');
                 const attachments: Attachment[] = [];
                 const exportTypes: string[] = [];
+                const appNameLower = branding.appName.toLowerCase();
 
                 if (includeJson) {
                     const jsonExportData = await context.utils.util.generateUserDataExport(userId, {
@@ -222,12 +226,12 @@ https://github.com/wajeht/bang`,
                     });
                     const jsonBuffer = Buffer.from(JSON.stringify(jsonExportData, null, 2));
                     attachments.push({
-                        filename: `bang-data-export-${currentDate}.json`,
+                        filename: `${appNameLower}-data-export-${currentDate}.json`,
                         content: jsonBuffer,
                         contentType: 'application/json',
                     });
                     exportTypes.push(
-                        'bang-data-export-' +
+                        `${appNameLower}-data-export-` +
                             currentDate +
                             '.json - Complete data export including bookmarks, actions, notes, and user preferences',
                     );
@@ -254,25 +258,25 @@ https://github.com/wajeht/bang`,
                     .join('\n');
 
                 const mailOptions = {
-                    from: `Bang <${context.config.email.from}>`,
+                    from: `${branding.appName} <${context.config.email.from}>`,
                     to: email,
-                    subject: '📦 Your Bang Data Export - Account Deletion',
+                    subject: `📦 Your ${branding.appName} Data Export - Account Deletion`,
                     text: `Hello ${username},
 
-As requested, we have prepared your data export from Bang before proceeding with your account deletion.
+As requested, we have prepared your data export from ${branding.appName} before proceeding with your account deletion.
 
 Attached to this email you will find:
 ${attachmentsList}
 
 Your account has been deleted as requested. This action cannot be undone.
 
-We hope Bang was useful to you. If you ever want to return, you can always create a new account.
+We hope ${branding.appName} was useful to you. If you ever want to return, you can always create a new account.
 
-Thank you for using Bang!
+Thank you for using ${branding.appName}!
 
 --
-Bang Team
-https://github.com/wajeht/bang`,
+${branding.appName} Team
+${branding.appUrl}`,
                     attachments,
                 };
 
@@ -305,6 +309,7 @@ https://github.com/wajeht/bang`,
         }): Promise<void> {
             if (reminders.length === 0) return;
 
+            const branding = await context.models.settings.getBranding();
             const formatDate = context.libs.dayjs(date).format('dddd, MMMM D, YYYY');
 
             // Determine the frequency type for the header
@@ -347,18 +352,18 @@ https://github.com/wajeht/bang`,
 ${formatReminderListHTML}
     </ol>
 
-    <p>You can manage your reminders at your Bang dashboard.</p>
+    <p>You can manage your reminders at your ${branding.appName} dashboard.</p>
 
     <p>
         --<br>
-        Bang Team<br>
-        <a href="https://github.com/wajeht/bang">https://github.com/wajeht/bang</a>
+        ${branding.appName} Team<br>
+        <a href="${branding.appUrl}">${branding.appUrl}</a>
     </p>
 </body>
 </html>`;
 
             const mailOptions = {
-                from: `Bang <${context.config.email.from}>`,
+                from: `${branding.appName} <${context.config.email.from}>`,
                 to: email,
                 subject: `⏰ Reminders - ${formatDate}`,
                 html: emailBodyHTML,

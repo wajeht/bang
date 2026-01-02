@@ -1,0 +1,47 @@
+<section style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
+
+  <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+    <div style="display: flex; flex-direction: column; gap: 5px;">
+      <h2 style="margin: 0;">👁️ Visibility</h2>
+      <p>Control which elements are visible on your instance.</p>
+    </div>
+  </header>
+
+  <form action="/admin/settings/visibility" method="POST">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+    <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column;">
+      <legend>Visibility Settings</legend>
+
+      <%~ include('../_components/inputs/checkbox.html', {
+        id: 'show_footer',
+        name: 'show_footer',
+        label: 'Show Footer',
+        checked: branding.showFooter,
+        helpText: 'Display the copyright footer on all pages',
+        error: state.errors && state.errors.show_footer ? state.errors.show_footer : undefined
+      }) %>
+
+      <%~ include('../_components/inputs/checkbox.html', {
+        id: 'show_search_page',
+        name: 'show_search_page',
+        label: 'Show Search Link',
+        checked: branding.showSearchPage,
+        helpText: 'Display the search link in the public navigation',
+        error: state.errors && state.errors.show_search_page ? state.errors.show_search_page : undefined
+      }) %>
+
+      <%~ include('../_components/inputs/checkbox.html', {
+        id: 'show_about_page',
+        name: 'show_about_page',
+        label: 'Show About Link',
+        checked: branding.showAboutPage,
+        helpText: 'Display the about link in the public navigation',
+        error: state.errors && state.errors.show_about_page ? state.errors.show_about_page : undefined
+      }) %>
+
+      <button type="submit">💾 Save</button>
+    </fieldset>
+  </form>
+
+</section>
