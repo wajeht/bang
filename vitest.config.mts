@@ -6,6 +6,11 @@ export default defineConfig({
         clearMocks: true,
         globals: true,
         setupFiles: ['./src/tests/test-setup.ts'],
+        server: {
+            deps: {
+                inline: [/node-cron/],
+            },
+        },
         exclude: [
             'node_modules',
             './opencode',
