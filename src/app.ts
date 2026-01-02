@@ -66,7 +66,11 @@ export async function createApp() {
         .use(ctx.middleware.appLocalState)
         .use(router(ctx));
 
-    await expressJSDocSwaggerHandler(app, ctx);
+    try {
+        await expressJSDocSwaggerHandler(app, ctx);
+    } catch (error) {
+        ctx.logger.error('Error initializing Swagger', { error });
+    }
 
     app.use(ctx.middleware.notFound);
     app.use(ctx.middleware.errorHandler);

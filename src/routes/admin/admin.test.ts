@@ -422,9 +422,9 @@ describe('SettingsRepository', () => {
     describe('setMany', () => {
         it('should set multiple settings at once', async () => {
             await settingsRepo.setMany({
-                'key1': 'value1',
-                'key2': 'value2',
-                'key3': 'value3',
+                key1: 'value1',
+                key2: 'value2',
+                key3: 'value3',
             });
 
             expect(await settingsRepo.get('key1')).toBe('value1');
@@ -435,8 +435,8 @@ describe('SettingsRepository', () => {
         it('should update existing settings in batch', async () => {
             await settingsRepo.set('key1', 'old1');
             await settingsRepo.setMany({
-                'key1': 'new1',
-                'key2': 'new2',
+                key1: 'new1',
+                key2: 'new2',
             });
 
             expect(await settingsRepo.get('key1')).toBe('new1');
