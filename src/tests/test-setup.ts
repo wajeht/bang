@@ -92,7 +92,39 @@ async function cleanupAllTables() {
     });
 }
 
+export async function createTestUser(email: string, isAdmin: boolean = false) {
+    let user = await db('users').where({ email }).first();
+
+    if (!user) {
+        [user] = await db('users')
+            .insert({
+                username: email.split('@')[0],
+                email,
+                is_admin: isAdmin,
+                default_search_provider: 'duckduckgo',
+                timezone: 'America/Chicago',
+                theme: 'system',
+                column_preferences: defaultColumnPreferences,
+            })
+            .onConflict('email')
+            .ignore()
+            .returning('*');
+
+        if (!user) {
+            user = await db('users').where({ email }).first();
+        }
+    }
+
+    if (isAdmin && !user.is_admin) {
+        await db('users').where({ id: user.id }).update({ is_admin: true });
+        user.is_admin = true;
+    }
+
+    return user;
+}
+
 async function seedTestUser() {
+    // Use id=1 explicitly since some tests reference this user by id
     await db('users')
         .insert({
             id: 1,
