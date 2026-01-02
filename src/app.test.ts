@@ -1,13 +1,9 @@
 import request from 'supertest';
 import type { Server } from 'node:http';
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createApp, closeServer, getActiveSocketsCount, clearActiveSockets } from './app';
 
 describe('App', () => {
-    afterEach(() => {
-        clearActiveSockets();
-    });
-
     describe('createApp', () => {
         it('should create an Express app with context', async () => {
             const { app, ctx } = await createApp();
