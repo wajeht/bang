@@ -7,7 +7,10 @@ import {
 import request from 'supertest';
 import { createApp } from '../../app';
 import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, afterAll, beforeEach, vi } from 'vitest';
+import { SettingsRepository } from './settings.repository';
+import { config } from '../../config';
+import { libs } from '../../libs';
 
 describe('Admin Routes', () => {
     let app: any;
@@ -346,6 +349,202 @@ describe('Admin Routes', () => {
                 expect(showSearch?.value).toBe('false');
                 expect(showAbout?.value).toBe('false');
             });
+        });
+    });
+
+    describe('Branding in Pages', () => {
+        beforeEach(async () => {
+            await db('settings')
+                .insert({ key: 'branding.app_name', value: 'CustomBrand' })
+                .onConflict('key')
+                .merge();
+            await db('settings')
+                .insert({ key: 'branding.app_url', value: 'https://custom.example.com' })
+                .onConflict('key')
+                .merge();
+        });
+
+        it('should display custom app name in terms of service page', async () => {
+            const response = await request(app).get('/terms-of-service').expect(200);
+            expect(response.text).toContain('CustomBrand');
+        });
+
+        it('should display custom app name in privacy policy page', async () => {
+            const response = await request(app).get('/privacy-policy').expect(200);
+            expect(response.text).toContain('CustomBrand');
+        });
+
+        it('should display custom app name in page title', async () => {
+            const response = await request(app).get('/').expect(200);
+            expect(response.text).toContain('<title>');
+            expect(response.text).toContain('CustomBrand');
+        });
+    });
+});
+
+describe('SettingsRepository', () => {
+    let settingsRepo: ReturnType<typeof SettingsRepository>;
+
+    beforeAll(() => {
+        const ctx = { db, config, libs } as any;
+        settingsRepo = SettingsRepository(ctx);
+    });
+
+    beforeEach(async () => {
+        await db('settings').del();
+        settingsRepo.invalidateCache();
+    });
+
+    afterAll(async () => {
+        await db('settings').del();
+    });
+
+    describe('get and set', () => {
+        it('should set and get a single setting', async () => {
+            await settingsRepo.set('test.key', 'test-value');
+            const value = await settingsRepo.get('test.key');
+            expect(value).toBe('test-value');
+        });
+
+        it('should return null for non-existent key', async () => {
+            const value = await settingsRepo.get('nonexistent.key');
+            expect(value).toBeNull();
+        });
+
+        it('should update existing setting', async () => {
+            await settingsRepo.set('test.key', 'initial');
+            await settingsRepo.set('test.key', 'updated');
+            const value = await settingsRepo.get('test.key');
+            expect(value).toBe('updated');
+        });
+    });
+
+    describe('setMany', () => {
+        it('should set multiple settings at once', async () => {
+            await settingsRepo.setMany({
+                'key1': 'value1',
+                'key2': 'value2',
+                'key3': 'value3',
+            });
+
+            expect(await settingsRepo.get('key1')).toBe('value1');
+            expect(await settingsRepo.get('key2')).toBe('value2');
+            expect(await settingsRepo.get('key3')).toBe('value3');
+        });
+
+        it('should update existing settings in batch', async () => {
+            await settingsRepo.set('key1', 'old1');
+            await settingsRepo.setMany({
+                'key1': 'new1',
+                'key2': 'new2',
+            });
+
+            expect(await settingsRepo.get('key1')).toBe('new1');
+            expect(await settingsRepo.get('key2')).toBe('new2');
+        });
+    });
+
+    describe('getAll', () => {
+        it('should return all settings as key-value object', async () => {
+            await settingsRepo.setMany({
+                'branding.app_name': 'TestApp',
+                'branding.app_url': 'https://test.com',
+            });
+
+            const all = await settingsRepo.getAll();
+            expect(all['branding.app_name']).toBe('TestApp');
+            expect(all['branding.app_url']).toBe('https://test.com');
+        });
+
+        it('should return empty object when no settings exist', async () => {
+            const all = await settingsRepo.getAll();
+            expect(Object.keys(all).length).toBe(0);
+        });
+    });
+
+    describe('getBranding', () => {
+        it('should return default values when no settings exist', async () => {
+            const branding = await settingsRepo.getBranding();
+
+            expect(branding.appName).toBe('Bang');
+            expect(branding.appUrl).toBe(config.app.appUrl);
+            expect(branding.showFooter).toBe(true);
+            expect(branding.showSearchPage).toBe(true);
+            expect(branding.showAboutPage).toBe(true);
+        });
+
+        it('should return custom values when settings exist', async () => {
+            await settingsRepo.setMany({
+                'branding.app_name': 'MyCustomApp',
+                'branding.app_url': 'https://mycustomapp.com',
+                'branding.show_footer': 'false',
+                'branding.show_search_page': 'false',
+                'branding.show_about_page': 'false',
+            });
+
+            const branding = await settingsRepo.getBranding();
+
+            expect(branding.appName).toBe('MyCustomApp');
+            expect(branding.appUrl).toBe('https://mycustomapp.com');
+            expect(branding.showFooter).toBe(false);
+            expect(branding.showSearchPage).toBe(false);
+            expect(branding.showAboutPage).toBe(false);
+        });
+
+        it('should handle partial settings with defaults', async () => {
+            await settingsRepo.set('branding.app_name', 'PartialApp');
+
+            const branding = await settingsRepo.getBranding();
+
+            expect(branding.appName).toBe('PartialApp');
+            expect(branding.showFooter).toBe(true);
+            expect(branding.showSearchPage).toBe(true);
+        });
+    });
+
+    describe('cache behavior', () => {
+        it('should cache settings after first fetch', async () => {
+            await settingsRepo.set('cache.test', 'cached-value');
+
+            const first = await settingsRepo.getAll();
+            expect(first['cache.test']).toBe('cached-value');
+
+            await db('settings').where({ key: 'cache.test' }).update({ value: 'db-updated' });
+
+            const second = await settingsRepo.getAll();
+            expect(second['cache.test']).toBe('cached-value');
+        });
+
+        it('should invalidate cache when set is called', async () => {
+            await settingsRepo.set('cache.test', 'initial');
+            await settingsRepo.getAll();
+
+            await settingsRepo.set('cache.test', 'updated');
+
+            const result = await settingsRepo.getAll();
+            expect(result['cache.test']).toBe('updated');
+        });
+
+        it('should invalidate cache when setMany is called', async () => {
+            await settingsRepo.set('cache.test', 'initial');
+            await settingsRepo.getAll();
+
+            await settingsRepo.setMany({ 'cache.test': 'batch-updated' });
+
+            const result = await settingsRepo.getAll();
+            expect(result['cache.test']).toBe('batch-updated');
+        });
+
+        it('should invalidate cache when invalidateCache is called', async () => {
+            await settingsRepo.set('cache.test', 'initial');
+            await settingsRepo.getAll();
+
+            await db('settings').where({ key: 'cache.test' }).update({ value: 'db-updated' });
+
+            settingsRepo.invalidateCache();
+
+            const result = await settingsRepo.getAll();
+            expect(result['cache.test']).toBe('db-updated');
         });
     });
 });
