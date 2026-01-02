@@ -1,17 +1,11 @@
 import request from 'supertest';
 import type { Server } from 'node:http';
-import { describe, it, expect, afterAll, afterEach, vi } from 'vitest';
-import { cleanupTestData, cleanupTestDatabase } from './tests/api-test-utils';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { createApp, closeServer, getActiveSocketsCount, clearActiveSockets } from './app';
 
 describe('App', () => {
-    afterEach(async () => {
-        await cleanupTestData();
+    afterEach(() => {
         clearActiveSockets();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
     });
 
     describe('createApp', () => {

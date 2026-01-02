@@ -1,28 +1,8 @@
-import {
-    cleanupTestData,
-    authenticateAgent,
-    cleanupTestDatabase,
-    authenticateApiAgent,
-    getSharedApp,
-} from '../../tests/api-test-utils';
-import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll, vi } from 'vitest';
+import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils';
+import { db, app } from '../../tests/test-setup';
+import { describe, it, expect, vi } from 'vitest';
 
 describe('Bookmarks Routes', () => {
-    let app: any;
-
-    beforeAll(async () => {
-        ({ app } = await getSharedApp());
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
-    });
-
     describe('Hidden Items Functionality', () => {
         describe('POST /bookmarks - Hidden field', () => {
             it('should reject creating hidden bookmark without global password', async () => {

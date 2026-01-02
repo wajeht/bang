@@ -16,7 +16,7 @@ test.afterEach(async () => {
 
 test('can get / page', async ({ page }) => {
     await page.goto('/');
-    await expect(page).toHaveTitle(/Bang - Search/);
+    await expect(page).toHaveTitle(/Search/);
 });
 
 test('can open login dialog', async ({ page }) => {
@@ -66,7 +66,7 @@ test('redirects authenticated users to actions page', async ({ page }) => {
     await loginUser(page, 'general-test@example.com');
 
     await page.goto('/');
-    await expect(page).toHaveTitle(/Bang - Search/);
+    await expect(page).toHaveTitle(/Search/);
     await expect(page).toHaveURL('/');
 
     await expect(page.locator('summary')).toContainText('👤');

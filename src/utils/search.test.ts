@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 import { SearchUtils } from '../utils/search';
 import type { User, AppContext } from '../type';
 import type { SessionData } from 'express-session';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let ctx: AppContext;
 let searchUtils: ReturnType<typeof SearchUtils>;
@@ -289,20 +289,7 @@ describe('search', () => {
     });
 
     describe('authenticated', () => {
-        beforeAll(async () => {
-            await db('reminders').del();
-            await db('bookmarks').del();
-            await db('bangs').del();
-            await db('users').del();
-
-            await db('users').insert({
-                id: 1,
-                username: 'Test User',
-                email: 'test@example.com',
-                is_admin: false,
-                default_search_provider: 'duckduckgo',
-            });
-
+        beforeEach(async () => {
             await db('bangs').insert([
                 {
                     user_id: 1,
@@ -321,13 +308,6 @@ describe('search', () => {
                     hidden: false,
                 },
             ]);
-        });
-
-        afterAll(async () => {
-            await db('reminders').del();
-            await db('bookmarks').del();
-            await db('bangs').del();
-            await db('users').del();
         });
 
         const testUser = {
@@ -646,11 +626,6 @@ describe('search', () => {
         });
 
         describe('!bm command with --hide flag', () => {
-            afterEach(async () => {
-                await db('bookmarks').where({ user_id: testUser.id }).delete();
-                vi.restoreAllMocks();
-            });
-
             it('should create hidden bookmark with --hide flag when global password is set', async () => {
                 const userWithPassword = {
                     ...testUser,
@@ -798,10 +773,6 @@ describe('search', () => {
         });
 
         describe('!add command with --hide flag', () => {
-            afterEach(async () => {
-                await db('bangs').where({ user_id: testUser.id }).delete();
-            });
-
             it('should create hidden redirect action with --hide flag when global password is set', async () => {
                 const userWithPassword = {
                     ...testUser,
@@ -1475,10 +1446,6 @@ describe('search', () => {
         });
 
         describe('!note command', () => {
-            afterEach(async () => {
-                await db('notes').where({ user_id: testUser.id }).delete();
-            });
-
             it('should create note with title and content using pipe format', async () => {
                 const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
@@ -1766,12 +1733,6 @@ describe('search', () => {
                     });
                 });
 
-                afterEach(async () => {
-                    await db('users').where({ id: testUser.id }).update({
-                        hidden_items_password: null,
-                    });
-                });
-
                 it('should create hidden note with --hide flag when global password is set', async () => {
                     const userWithPassword = {
                         ...testUser,
@@ -1934,7 +1895,7 @@ describe('search', () => {
         });
 
         describe('!del command', () => {
-            beforeAll(async () => {
+            beforeEach(async () => {
                 await db('bangs').insert({
                     id: 999,
                     user_id: 1,
@@ -1943,10 +1904,6 @@ describe('search', () => {
                     action_type: 'redirect',
                     url: 'https://delete-test.com',
                 });
-            });
-
-            afterAll(async () => {
-                await db('bangs').where({ id: 999 }).delete();
             });
 
             it('should successfully delete an existing bang', async () => {
@@ -1977,7 +1934,6 @@ describe('search', () => {
 
             it('should handle deletion with trigger without ! prefix', async () => {
                 await db('bangs').insert({
-                    id: 1000,
                     user_id: 1,
                     trigger: '!deleteme2',
                     name: 'Delete Test 2',
@@ -2003,8 +1959,6 @@ describe('search', () => {
                 expect(res.send).toHaveBeenCalledWith(
                     expect.stringContaining('window.history.back()'),
                 );
-
-                await db('bangs').where({ id: 1000 }).delete();
             });
 
             it('should return error when trying to delete non-existent bang', async () => {
@@ -2119,7 +2073,7 @@ describe('search', () => {
         });
 
         describe('!edit command', () => {
-            beforeAll(async () => {
+            beforeEach(async () => {
                 await db('bangs').insert([
                     {
                         id: 1001,
@@ -2138,17 +2092,6 @@ describe('search', () => {
                         url: 'https://existing.com',
                     },
                 ]);
-            });
-
-            beforeEach(async () => {
-                await db('bangs').where({ id: 1001 }).update({
-                    trigger: '!editme',
-                    url: 'https://edit-test.com',
-                });
-            });
-
-            afterAll(async () => {
-                await db('bangs').whereIn('id', [1001, 1002]).delete();
             });
 
             it('should successfully edit bang trigger only', async () => {
@@ -2601,10 +2544,6 @@ describe('search', () => {
                 });
             });
 
-            afterEach(async () => {
-                await db('bookmarks').del();
-            });
-
             it('should detect duplicate URL and show error with title', async () => {
                 const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
@@ -2866,11 +2805,6 @@ describe('search', () => {
 
             beforeEach(async () => {
                 // Clean up any existing reminders before each test
-                await db('reminders').where({ user_id: testUser.id }).delete();
-            });
-
-            afterEach(async () => {
-                // Clean up reminders after each test
                 await db('reminders').where({ user_id: testUser.id }).delete();
             });
 
@@ -3998,14 +3932,6 @@ describe('Trigger Caching', () => {
         testUser = user;
     });
 
-    afterEach(async () => {
-        if (testUser?.id) {
-            await db('bangs').where({ user_id: testUser.id }).delete();
-            await db('tabs').where({ user_id: testUser.id }).delete();
-            await db('users').where({ id: testUser.id }).delete();
-        }
-    });
-
     describe('loadCachedTriggers', () => {
         it('should load triggers from database and cache in session', async () => {
             await db('bangs').insert([
@@ -4158,14 +4084,6 @@ describe('Bang Search Optimization', () => {
             ...user,
             column_preferences: {},
         };
-    });
-
-    afterEach(async () => {
-        if (testUser?.id) {
-            await db('bangs').where({ user_id: testUser.id }).delete();
-            await db('tabs').where({ user_id: testUser.id }).delete();
-            await db('users').where({ id: testUser.id }).delete();
-        }
     });
 
     it('should skip DB query for system bang when user has no custom override', async () => {
@@ -4384,14 +4302,6 @@ describe('Bang Search Performance', () => {
             },
         ]);
         await db('tabs').insert([{ user_id: testUser.id, trigger: '!mytab', title: 'My Tab' }]);
-    });
-
-    afterEach(async () => {
-        if (testUser?.id) {
-            await db('bangs').where({ user_id: testUser.id }).delete();
-            await db('tabs').where({ user_id: testUser.id }).delete();
-            await db('users').where({ id: testUser.id }).delete();
-        }
     });
 
     it('should be faster with cache hit vs cache miss', async () => {

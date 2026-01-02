@@ -10,7 +10,7 @@ import { db } from '../tests/test-setup';
 import { Session } from 'express-session';
 import type { User, AppContext } from '../type';
 import type { Request, Response, NextFunction } from 'express';
-import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from '../error';
 
 describe('authenticationMiddleware', () => {
@@ -24,28 +24,11 @@ describe('authenticationMiddleware', () => {
     beforeAll(async () => {
         ctx = await Context();
         authenticationMiddleware = AuthenticationMiddleware(ctx);
-        await db('users').where('email', 'like', '%test%').delete();
-
-        [testUser] = await db('users')
-            .insert({
-                username: 'testuser',
-                email: 'test@example.com',
-                is_admin: false,
-                default_search_provider: 'duckduckgo',
-                column_preferences: JSON.stringify({
-                    bookmarks: {
-                        title: true,
-                    },
-                }),
-            })
-            .returning('*');
     });
 
-    afterAll(async () => {
-        await db('users').where('email', 'like', '%test%').delete();
-    });
+    beforeEach(async () => {
+        testUser = await db('users').where({ id: 1 }).first();
 
-    beforeEach(() => {
         vi.clearAllMocks();
         vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});
         vi.spyOn(ctx.logger, 'info').mockImplementation(() => {});

@@ -1,29 +1,9 @@
-import {
-    cleanupTestData,
-    authenticateAgent,
-    cleanupTestDatabase,
-    createUnauthenticatedAgent,
-    getSharedApp,
-} from '../../tests/api-test-utils';
+import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/api-test-utils';
 import request from 'supertest';
-import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { db, app } from '../../tests/test-setup';
+import { describe, it, expect } from 'vitest';
 
 describe('Settings Routes', () => {
-    let app: any;
-
-    beforeAll(async () => {
-        ({ app } = await getSharedApp());
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
-    });
-
     describe('GET /settings', () => {
         it('should require authentication', async () => {
             await request(app).get('/settings').expect(302).expect('Location', '/?modal=login');

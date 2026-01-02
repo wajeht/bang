@@ -697,7 +697,7 @@ export function SettingsRouter(ctx: AppContext) {
             }
 
             // NOTE: this will make testing way faster
-            const saltRounds = ctx.config.app.env === 'testing' ? 4 : 10;
+            const saltRounds = ctx.config.app.env === 'testing' ? 1 : 10;
             const hashedPassword = await ctx.libs.bcrypt.hash(newPassword, saltRounds);
 
             await ctx

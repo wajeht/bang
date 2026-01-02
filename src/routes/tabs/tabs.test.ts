@@ -1,28 +1,8 @@
-import {
-    cleanupTestData,
-    authenticateAgent,
-    cleanupTestDatabase,
-    authenticateApiAgent,
-    getSharedApp,
-} from '../../tests/api-test-utils';
-import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll, vi } from 'vitest';
+import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils';
+import { db, app } from '../../tests/test-setup';
+import { describe, it, expect, vi } from 'vitest';
 
 describe('Tabs Routes', () => {
-    let app: any;
-
-    beforeAll(async () => {
-        ({ app } = await getSharedApp());
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
-    });
-
     describe('Bulk Delete', () => {
         describe('POST /tabs/delete', () => {
             it('should delete multiple tab groups', async () => {

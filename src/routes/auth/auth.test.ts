@@ -1,32 +1,14 @@
-import {
-    cleanupTestData,
-    authenticateAgent,
-    cleanupTestDatabase,
-    getSharedApp,
-} from '../../tests/api-test-utils';
+import { authenticateAgent } from '../../tests/api-test-utils';
 import bcrypt from 'bcrypt';
 import request from 'supertest';
-import { db } from '../../tests/test-setup';
-import type { AppContext } from '../../type';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { db, app, ctx } from '../../tests/test-setup';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 describe('Auth Routes', () => {
-    let app: any;
-    let ctx: AppContext;
     let preHashedPassword: string;
 
     beforeAll(async () => {
-        ({ app, ctx } = await getSharedApp());
-        // Pre-hash password once with low cost for tests (bcrypt cost 4 is ~16x faster than cost 10)
-        preHashedPassword = await bcrypt.hash('correct-password', 4);
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
+        preHashedPassword = await bcrypt.hash('correct-password', 1);
     });
 
     describe('POST /verify-hidden-password', () => {

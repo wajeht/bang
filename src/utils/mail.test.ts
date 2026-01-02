@@ -21,12 +21,7 @@ describe('Mail Utils', () => {
 
     const mailUtils = MailUtils(mockContext);
 
-    beforeEach(async () => {
-        await db('users').del();
-    });
-
-    afterEach(async () => {
-        await db('users').del();
+    afterEach(() => {
         vi.restoreAllMocks();
     });
 
@@ -223,14 +218,12 @@ describe('Mail Utils', () => {
         let testUser: any;
 
         beforeEach(async () => {
-            [testUser] = await db('users')
-                .insert({
-                    username: 'testuser',
-                    email: 'testuser@example.com',
-                    email_verified_at: dayjs().toISOString(),
-                    timezone: 'UTC',
-                })
-                .returning('*');
+            // Update the global test user for this test suite's needs
+            await db('users').where({ id: 1 }).update({
+                email_verified_at: dayjs().toISOString(),
+                timezone: 'UTC',
+            });
+            testUser = await db('users').where({ id: 1 }).first();
         });
 
         it('should process one-time reminders and delete them', async () => {
@@ -252,7 +245,7 @@ describe('Mail Utils', () => {
             expect(sendEmailSpy).toHaveBeenCalledTimes(1);
             expect(sendEmailSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    email: 'testuser@example.com',
+                    email: 'test@example.com',
                     username: 'testuser',
                     reminders: expect.arrayContaining([
                         expect.objectContaining({
@@ -400,7 +393,7 @@ describe('Mail Utils', () => {
             expect(sendEmailSpy).toHaveBeenCalledTimes(1);
             expect(sendEmailSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    email: 'testuser@example.com',
+                    email: 'test@example.com',
                     reminders: expect.arrayContaining([
                         expect.objectContaining({ title: 'Reminder 1' }),
                         expect.objectContaining({ title: 'Reminder 2' }),
@@ -447,7 +440,7 @@ describe('Mail Utils', () => {
             expect(sendEmailSpy).toHaveBeenCalledTimes(2);
             expect(sendEmailSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    email: 'testuser@example.com',
+                    email: 'test@example.com',
                 }),
             );
             expect(sendEmailSpy).toHaveBeenCalledWith(

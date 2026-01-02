@@ -12,7 +12,7 @@ import { RequestUtils } from './request';
 import { db } from '../tests/test-setup';
 import { ValidationUtils } from './validation';
 import type { ApiKeyPayload, BookmarkToExport } from '../type';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let validationUtils: ReturnType<typeof ValidationUtils>;
 let authUtils: ReturnType<typeof AuthUtils>;
@@ -557,22 +557,7 @@ describe.concurrent('extractPagination', () => {
 });
 
 describe('api', () => {
-    beforeAll(async () => {
-        await db('users').del();
-        await db('users').insert({
-            id: 1,
-            username: 'Test User',
-            email: 'testuser@example.com',
-            api_key: 'test-api-key',
-            api_key_version: 1,
-        });
-    });
-
-    afterAll(async () => {
-        await db('users').where({ id: 1 }).delete();
-    });
-
-    afterEach(async () => {
+    beforeEach(async () => {
         await db('users').where({ id: 1 }).update({
             api_key: 'test-api-key',
             api_key_version: 1,
@@ -780,28 +765,6 @@ describe.concurrent('isOnlyLettersAndNumbers', () => {
 });
 
 describe('insertBookmark', () => {
-    beforeAll(async () => {
-        await db('bookmarks').del();
-        await db('users').del();
-        await db('users').insert({
-            id: 1,
-            username: 'Test User',
-            email: 'testuser@example.com',
-            is_admin: false,
-            default_search_provider: 'duckduckgo',
-            column_preferences: JSON.stringify({
-                bookmarks: { default_per_page: 10 },
-                actions: { default_per_page: 10 },
-                notes: { default_per_page: 10 },
-            }),
-        });
-    });
-
-    afterAll(async () => {
-        await db('bookmarks').del();
-        await db('users').where({ id: 1 }).delete();
-    });
-
     it('should insert bookmark with provided title', async () => {
         await utilUtils.insertBookmark({
             url: 'https://example.com',
@@ -859,31 +822,12 @@ describe('insertBookmark', () => {
 });
 
 describe('checkDuplicateBookmarkUrl', () => {
-    beforeAll(async () => {
-        await db('bookmarks').del();
-        await db('users').del();
-        await db('users').insert({
-            id: 1,
-            username: 'Test User',
-            email: 'testuser@example.com',
-            is_admin: false,
-            default_search_provider: 'duckduckgo',
-            column_preferences: JSON.stringify({
-                bookmarks: { default_per_page: 10 },
-                actions: { default_per_page: 10 },
-                notes: { default_per_page: 10 },
-            }),
-        });
+    beforeEach(async () => {
         await db('bookmarks').insert({
             user_id: 1,
             url: 'https://example.com',
             title: 'Original Title',
         });
-    });
-
-    afterAll(async () => {
-        await db('bookmarks').del();
-        await db('users').where({ id: 1 }).delete();
     });
 
     it('should find duplicate when URL matches and no title is provided', async () => {
@@ -1211,29 +1155,9 @@ describe('sendReminderDigestEmail', () => {
 });
 
 describe('processReminderDigests', () => {
-    let testUserId: number;
-
-    beforeAll(async () => {
-        await db('reminders').del();
-        await db('users').del();
-
-        const [user] = await db('users')
-            .insert({
-                username: 'testuser',
-                email: 'test@example.com',
-                timezone: 'America/Chicago',
-            })
-            .returning('id');
-        testUserId = user.id;
-    });
-
-    afterAll(async () => {
-        await db('reminders').del();
-        await db('users').del();
-    });
+    const testUserId = 1;
 
     beforeEach(async () => {
-        await db('reminders').del();
         vi.spyOn(mailUtils, 'sendReminderDigestEmail').mockResolvedValue();
     });
 

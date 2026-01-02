@@ -3,7 +3,7 @@ import { config } from '../config';
 import { AuthUtils } from './auth';
 import { db } from '../tests/test-setup';
 import type { ApiKeyPayload, MagicLinkPayload } from '../type';
-import { describe, expect, it, beforeAll, afterAll, vi } from 'vitest';
+import { describe, expect, it, beforeAll, vi } from 'vitest';
 
 let authUtils: ReturnType<typeof AuthUtils>;
 
@@ -19,24 +19,12 @@ beforeAll(async () => {
     } as any;
 
     authUtils = AuthUtils(mockContext);
-
-    await db('users').insert({
-        id: 999,
-        username: 'test-auth-user',
-        email: 'test-auth@example.com',
-        api_key: 'will-be-set-in-test',
-        api_key_version: 1,
-    });
-});
-
-afterAll(async () => {
-    await db('users').where({ id: 999 }).delete();
 });
 
 describe.concurrent('generateApiKey', () => {
     it('should generate a valid JWT API key', async () => {
         const payload: ApiKeyPayload = {
-            userId: 999,
+            userId: 1,
             apiKeyVersion: 1,
         };
 
@@ -76,32 +64,32 @@ describe.concurrent('generateApiKey', () => {
 describe('verifyApiKey', () => {
     it('should verify a valid API key that exists in database', async () => {
         const payload: ApiKeyPayload = {
-            userId: 999,
+            userId: 1,
             apiKeyVersion: 1,
         };
 
         const apiKey = await authUtils.generateApiKey(payload);
 
         // Update user with the generated API key
-        await db('users').where({ id: 999 }).update({ api_key: apiKey });
+        await db('users').where({ id: 1 }).update({ api_key: apiKey, api_key_version: 1 });
 
         const result = await authUtils.verifyApiKey(apiKey);
 
         expect(result).not.toBeNull();
-        expect(result?.userId).toBe(999);
+        expect(result?.userId).toBe(1);
         expect(result?.apiKeyVersion).toBe(1);
     });
 
     it('should return null for API key not in database', async () => {
         const payload: ApiKeyPayload = {
-            userId: 999,
+            userId: 1,
             apiKeyVersion: 1,
         };
 
         const apiKey = await authUtils.generateApiKey(payload);
         // Don't update the database, so the key is valid JWT but not in DB
 
-        await db('users').where({ id: 999 }).update({ api_key: 'different-key' });
+        await db('users').where({ id: 1 }).update({ api_key: 'different-key' });
 
         const result = await authUtils.verifyApiKey(apiKey);
 
@@ -116,14 +104,14 @@ describe('verifyApiKey', () => {
 
     it('should return null for API key with wrong version', async () => {
         const payload: ApiKeyPayload = {
-            userId: 999,
+            userId: 1,
             apiKeyVersion: 1,
         };
 
         const apiKey = await authUtils.generateApiKey(payload);
 
         // Update user with the API key but different version
-        await db('users').where({ id: 999 }).update({ api_key: apiKey, api_key_version: 2 });
+        await db('users').where({ id: 1 }).update({ api_key: apiKey, api_key_version: 2 });
 
         const result = await authUtils.verifyApiKey(apiKey);
 

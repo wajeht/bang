@@ -1,32 +1,12 @@
-import {
-    cleanupTestData,
-    authenticateAgent,
-    authenticateAdminAgent,
-    cleanupTestDatabase,
-    getSharedApp,
-} from '../../tests/api-test-utils';
+import { authenticateAgent, authenticateAdminAgent } from '../../tests/api-test-utils';
 import request from 'supertest';
-import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll, beforeEach } from 'vitest';
+import { db, app } from '../../tests/test-setup';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { SettingsRepository } from './settings.repository';
 import { config } from '../../config';
 import { libs } from '../../libs';
 
 describe('Admin Routes', () => {
-    let app: any;
-
-    beforeAll(async () => {
-        ({ app } = await getSharedApp());
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
-    });
-
     describe('GET /admin', () => {
         it('should require authentication', async () => {
             await request(app).get('/admin').expect(302).expect('Location', '/?modal=login');

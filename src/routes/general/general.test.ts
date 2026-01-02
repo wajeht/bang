@@ -1,28 +1,9 @@
-import {
-    cleanupTestData,
-    authenticateAgent,
-    authenticateAdminAgent,
-    cleanupTestDatabase,
-    getSharedApp,
-} from '../../tests/api-test-utils';
+import { authenticateAgent, authenticateAdminAgent } from '../../tests/api-test-utils';
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { app } from '../../tests/test-setup';
+import { describe, it, expect } from 'vitest';
 
 describe('General Routes', () => {
-    let app: any;
-
-    beforeAll(async () => {
-        ({ app } = await getSharedApp());
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
-    });
-
     describe('GET /', () => {
         it('should return home page', async () => {
             const response = await request(app).get('/').expect(200);

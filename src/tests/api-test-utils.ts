@@ -1,105 +1,36 @@
 import request from 'supertest';
-import { db } from './test-setup';
+import { db, ctx } from './test-setup';
 import type { UrlObject } from 'url';
-import { Context } from '../context';
 import type { Test } from 'supertest';
-import type { AppContext } from '../type';
 import type { Application } from 'express';
-import { createApp } from '../app';
 
-let testContext: AppContext | null = null;
-let sharedApp: Application | null = null;
-
-async function getTestContext(): Promise<AppContext> {
-    if (!testContext) {
-        testContext = await Context();
-    }
-    return testContext;
-}
-
-export async function getSharedApp(): Promise<{ app: Application; ctx: any }> {
-    if (!sharedApp) {
-        const { app, ctx } = await createApp();
-        sharedApp = app;
-        testContext = ctx;
-    }
-    return { app: sharedApp, ctx: testContext! };
-}
-
-export async function ensureTestUserExists(
-    email: string = 'test@example.com',
-    isAdmin: boolean = false,
-) {
+async function getOrCreateTestUser(email: string = 'test@example.com', isAdmin: boolean = false) {
     let user = await db('users').where({ email }).first();
 
     if (!user) {
-        try {
-            const username = email.split('@')[0];
-            [user] = await db('users')
-                .insert({
-                    username,
-                    email,
-                    is_admin: isAdmin,
-                    autocomplete_search_on_homepage: false,
-                    default_search_provider: 'duckduckgo',
-                    theme: 'system',
-                    column_preferences: JSON.stringify({
-                        bookmarks: {
-                            title: true,
-                            url: true,
-                            default_per_page: 10,
-                            created_at: true,
-                            pinned: true,
-                        },
-                        actions: {
-                            name: true,
-                            trigger: true,
-                            url: true,
-                            default_per_page: 10,
-                            last_read_at: true,
-                            usage_count: true,
-                            created_at: true,
-                        },
-                        notes: {
-                            title: true,
-                            content: true,
-                            default_per_page: 10,
-                            created_at: true,
-                            pinned: true,
-                            view_type: 'table',
-                        },
-                        tabs: {
-                            title: true,
-                            trigger: true,
-                            items_count: true,
-                            default_per_page: 10,
-                            created_at: true,
-                        },
-                        reminders: {
-                            title: true,
-                            content: true,
-                            due_date: true,
-                            frequency: true,
-                            default_per_page: 10,
-                            created_at: true,
-                            default_reminder_timing: 'daily',
-                            default_reminder_time: '09:00',
-                        },
-                        users: {
-                            username: true,
-                            email: true,
-                            is_admin: true,
-                            default_per_page: 10,
-                            email_verified_at: true,
-                            created_at: true,
-                        },
-                    }),
-                })
-                .returning('*');
-        } catch (error) {
+        const username = email.split('@')[0];
+        [user] = await db('users')
+            .insert({
+                username,
+                email,
+                is_admin: isAdmin,
+                default_search_provider: 'duckduckgo',
+                theme: 'system',
+            })
+            .onConflict('email')
+            .ignore()
+            .returning('*');
+
+        // If insert was ignored due to conflict, fetch the existing user
+        if (!user) {
             user = await db('users').where({ email }).first();
-            if (!user) throw error;
         }
+    }
+
+    // Update is_admin if needed (e.g., for admin tests)
+    if (isAdmin && !user.is_admin) {
+        await db('users').where({ id: user.id }).update({ is_admin: true });
+        user.is_admin = true;
     }
 
     return user;
@@ -178,9 +109,8 @@ async function wrapAgentWithCsrf(
 }
 
 export async function authenticateAgent(app: Application, email: string = 'test@example.com') {
-    const user = await ensureTestUserExists(email);
+    const user = await getOrCreateTestUser(email);
     const agent = request.agent(app);
-    const ctx = await getTestContext();
     const token = ctx.utils.auth.generateMagicLink({ email });
     await agent.get(`/auth/magic/${token}`).expect(302);
 
@@ -205,9 +135,8 @@ export async function authenticateAdminAgent(
     app: Application,
     email: string = 'admin@example.com',
 ) {
-    const user = await ensureTestUserExists(email, true);
+    const user = await getOrCreateTestUser(email, true);
     const agent = request.agent(app);
-    const ctx = await getTestContext();
     const token = ctx.utils.auth.generateMagicLink({ email });
     await agent.get(`/auth/magic/${token}`).expect(302);
 
@@ -223,64 +152,6 @@ export async function authenticateAdminAgent(
     await wrapAgentWithCsrf(agent, getCsrfToken);
 
     return { agent, user };
-}
-
-export async function cleanupTestData() {
-    try {
-        await db.transaction(async (trx) => {
-            const testUsers = await trx('users')
-                .where('email', 'like', '%@example.com')
-                .select('id');
-            const userIds = testUsers.map((u) => u.id);
-
-            if (userIds.length > 0) {
-                await Promise.all([
-                    trx('bangs')
-                        .whereIn('user_id', userIds)
-                        .del()
-                        .catch(() => {}),
-                    trx('bookmarks')
-                        .whereIn('user_id', userIds)
-                        .del()
-                        .catch(() => {}),
-                    trx('notes')
-                        .whereIn('user_id', userIds)
-                        .del()
-                        .catch(() => {}),
-                    trx('tabs')
-                        .whereIn('user_id', userIds)
-                        .del()
-                        .catch(() => {}),
-                    trx('reminders')
-                        .whereIn('user_id', userIds)
-                        .del()
-                        .catch(() => {}),
-                    trx('sessions')
-                        .where('sess', 'like', '%test@example.com%')
-                        .del()
-                        .catch(() => {}),
-                ]);
-
-                await trx('users').whereIn('id', userIds).del();
-            }
-        });
-    } catch (error) {
-        // ...
-    }
-}
-
-export async function cleanupTestDatabase() {
-    try {
-        const fs = await import('node:fs/promises');
-        const dbConfig = db.client.config.connection as { filename: string };
-        if (dbConfig.filename && dbConfig.filename.includes('test-')) {
-            await fs.unlink(dbConfig.filename);
-            await fs.unlink(dbConfig.filename + '-wal');
-            await fs.unlink(dbConfig.filename + '-shm');
-        }
-    } catch (error) {
-        // ...
-    }
 }
 
 export async function createUnauthenticatedAgent(app: Application) {
@@ -301,9 +172,8 @@ export async function createUnauthenticatedAgent(app: Application) {
 }
 
 export async function authenticateApiAgent(app: Application, email: string = 'test@example.com') {
-    const user = await ensureTestUserExists(email);
+    const user = await getOrCreateTestUser(email);
 
-    const ctx = await getTestContext();
     const apiKeyVersion = 1;
     const apiKey = await ctx.utils.auth.generateApiKey({ userId: user.id, apiKeyVersion });
 

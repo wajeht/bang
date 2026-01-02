@@ -1,29 +1,9 @@
-import {
-    cleanupTestData,
-    authenticateAgent,
-    cleanupTestDatabase,
-    authenticateApiAgent,
-    getSharedApp,
-} from '../../tests/api-test-utils';
+import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils';
 import request from 'supertest';
-import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll, vi } from 'vitest';
+import { db, app } from '../../tests/test-setup';
+import { describe, it, expect, vi } from 'vitest';
 
 describe('Actions API', () => {
-    let app: any;
-
-    beforeAll(async () => {
-        ({ app } = await getSharedApp());
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
-    });
-
     describe('GET /api/actions', () => {
         it('should require authentication', async () => {
             await request(app).get('/api/actions').expect(401);
