@@ -223,7 +223,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
             <h2>🔗 Tab Groups (<%~ pagination.total %>)</h2>
             <%~ include('../_components/question-mark-button.html') %>
           </div>
-          <p>Manage your saved tab groups <span style="color: red">(using Tabs requires you to have popup allowed/redirect on <code>https://bang.jaw.dev</code> )</span></p>
+          <p>Manage your saved tab groups <span style="color: red">(using Tabs requires you to have popup allowed/redirect on <code><%= state.branding.appUrl %></code> )</span></p>
       </div>
       <div style="display: flex; gap: 10px;">
         <% if (search) { %>

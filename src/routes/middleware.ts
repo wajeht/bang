@@ -147,7 +147,7 @@ export function HelmetMiddleware(ctx: AppContext) {
             useDefaults: true,
             directives: {
                 ...ctx.libs.helmet.contentSecurityPolicy.getDefaultDirectives(),
-                'default-src': ["'self'", 'bang.jaw.dev', '*.cloudflare.com'],
+                'default-src': ["'self'", ctx.config.app.appUrl, '*.cloudflare.com'],
                 'img-src': ["'self'", '*'],
                 'script-src': [
                     "'self'",
@@ -155,7 +155,7 @@ export function HelmetMiddleware(ctx: AppContext) {
                     "'unsafe-eval'",
                     'text/javascript',
                     'blob:',
-                    'bang.jaw.dev',
+                    ctx.config.app.appUrl,
                     '*.cloudflare.com',
                 ],
                 'script-src-elem': [

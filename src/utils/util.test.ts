@@ -1078,11 +1078,19 @@ describe('sendReminderDigestEmail', () => {
             app: { ...config.app, env: 'production' },
         };
 
+        const mockLogger = {
+            error: vi.fn(),
+            info: vi.fn(),
+            box: vi.fn(),
+            table: vi.fn(),
+            tag: vi.fn().mockReturnThis(),
+        };
+
         const testContext = {
             db,
             config: prodConfig,
             libs: { ...libs, nodemailer: mockNodemailer },
-            logger: { error: vi.fn(), info: vi.fn() },
+            logger: mockLogger,
             models: { settings: SettingsRepository({ db, config, libs } as any) },
         } as any;
 
