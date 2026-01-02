@@ -1,18 +1,14 @@
 import {
+    test,
+    expect,
     loginUser,
     logoutUser,
     openLoginDialog,
-    cleanupTestData,
     authenticateUser,
     expectUserLoggedIn,
     expectUserLoggedOut,
     submitEmailForMagicLink,
-} from '../../tests/browser-test-utils';
-import { test, expect } from '@playwright/test';
-
-test.afterEach(async () => {
-    await cleanupTestData();
-});
+} from '../../tests/browser-test-fixtures';
 
 test('can get / page', async ({ page }) => {
     await page.goto('/');

@@ -1,12 +1,21 @@
-import { Context } from '../context';
-import { Page, expect } from '@playwright/test';
+import { test as base, expect, Page } from '@playwright/test';
 import { createDb, createUser, cleanupUserData } from './test-db';
+import { Context } from '../context';
 import type { AppContext } from '../type';
 
 const db = createDb();
 
 let cachedContext: AppContext | null = null;
 const getContext = async () => cachedContext ?? (cachedContext = await Context());
+
+export const test = base.extend({
+    page: async ({ page }, use) => {
+        await use(page);
+        await cleanupUserData(db);
+    },
+});
+
+export { expect };
 
 export async function ensureTestUserExists(email = 'test@example.com') {
     return createUser(db, email);
@@ -23,6 +32,11 @@ export async function authenticateUser(page: Page, email = 'test@example.com') {
     return user;
 }
 
+export async function loginUser(page: Page, email = 'test@example.com') {
+    await authenticateUser(page, email);
+    await expect(page).toHaveURL('/actions');
+}
+
 export async function openLoginDialog(page: Page) {
     await page.goto('/');
     await page.getByRole('link', { name: '🔑 Login' }).click();
@@ -34,11 +48,6 @@ export async function submitEmailForMagicLink(page: Page, email = 'test@example.
     await page.getByLabel('📧 Email Address').fill(email);
     await page.getByRole('button', { name: '🚀 Send' }).click();
     await page.waitForURL('/', { timeout: 5000 }).catch(() => {});
-}
-
-export async function loginUser(page: Page, email = 'test@example.com') {
-    await authenticateUser(page, email);
-    await expect(page).toHaveURL('/actions');
 }
 
 export async function expectUserLoggedIn(page: Page) {
@@ -54,8 +63,4 @@ export async function logoutUser(page: Page) {
     await page.locator('summary').click();
     await page.locator('a[href="/logout"]').click();
     await expect(page).toHaveURL('/');
-}
-
-export async function cleanupTestData() {
-    await cleanupUserData(db);
 }
