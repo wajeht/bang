@@ -1,6 +1,6 @@
 import type { AppContext, Settings } from '../../type';
 
-const SETTINGS_CACHE_TTL = 5 * 60 * 1000;
+const SETTINGS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 let settingsCache: { data: Record<string, string>; cachedAt: number } | null = null;
 
