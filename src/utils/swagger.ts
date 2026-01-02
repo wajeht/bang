@@ -11,7 +11,11 @@ export async function expressJSDocSwaggerHandler(app: Application, context: AppC
     }
 
     // Dynamic import to avoid loading swagger-ui in tests
-    const { default: expressJSDocSwagger } = await import('express-jsdoc-swagger');
+    const expressJSDocSwaggerModule = await import('express-jsdoc-swagger');
+    // Type assertion needed for tsgo - CJS/ESM interop issue with express-jsdoc-swagger types
+    const expressJSDocSwagger = expressJSDocSwaggerModule.default as unknown as (
+        app: Application
+    ) => (options: Options) => void;
 
     const branding = await context.models.settings.getBranding();
 
