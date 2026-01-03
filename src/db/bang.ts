@@ -88133,9 +88133,9 @@ export const bangs: Record<string, any> = {
     sklearn: {
         s: 'Scikit-Learn (Kagi Search)',
         d: 'kagi.com',
-        ad: 'scikit-learn.org/stable/modules/generated/',
+        ad: 'scikit-learn.org/stable/',
         t: 'sklearn',
-        u: '/search?q={{{s}}}+site:http://scikit-learn.org/stable/modules/generated/',
+        u: '/search?q={{{s}}}+site:https://scikit-learn.org/stable/',
         c: 'Research',
         sc: 'Academic (math/cs)',
     },
@@ -113512,9 +113512,9 @@ export const bangs: Record<string, any> = {
     },
     copilot: {
         s: 'Microsoft Copilot',
-        d: 'bing.com',
+        d: 'copilot.microsoft.com',
         t: 'copilot',
-        u: 'https://bing.com/chat?q={{{s}}}&sendquery=1',
+        u: 'https://copilot.microsoft.com/?q={{{s}}}&bypassredir=1',
         c: 'Online Services',
         sc: 'Tools',
     },
