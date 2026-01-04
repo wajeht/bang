@@ -7,7 +7,7 @@ export interface CronService {
     getStatus: () => { isRunning: boolean; jobCount: number };
 }
 
-export function CronService(context: AppContext): CronService {
+export function createCronService(context: AppContext): CronService {
     let cronJobs: ScheduledTask[] = [];
     let isRunning = false;
 

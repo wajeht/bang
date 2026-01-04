@@ -1,6 +1,6 @@
 import type { Note, Notes, NotesQueryParams, AppContext } from '../../type';
 
-export function NotesRepository(ctx: AppContext): Notes {
+export function createNotesRepository(ctx: AppContext): Notes {
     const REGEX_WHITESPACE = /\s+/;
     const ALLOWED_UPDATE_FIELDS = new Set(['title', 'content', 'pinned', 'hidden']);
     const ALLOWED_SORT_KEYS = new Set(['title', 'content', 'created_at', 'pinned', 'hidden']);

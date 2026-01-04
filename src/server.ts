@@ -1,7 +1,7 @@
-import { Logger } from './utils/logger';
+import { createLogger } from './utils/logger';
 import { createServer, closeServer } from './app';
 
-const logger = Logger({ service: 'server' });
+const logger = createLogger({ service: 'server' });
 
 async function gracefulShutdown(
     signal: string,

@@ -2,7 +2,7 @@ import { bangs as bangsTable } from '../db/bang';
 import type { Request, Response } from 'express';
 import type { Bang, Search, ReminderTimingResult, AppContext } from '../type';
 
-export function SearchUtils(context: AppContext) {
+export function createSearch(context: AppContext) {
     const searchConfig = {
         /**
          * Cache TTL for user's bang/tab triggers (60 minutes)

@@ -3,9 +3,9 @@ import { Knex } from 'knex';
 import path from 'node:path';
 import bcrypt from 'bcrypt';
 import { dayjs } from '../../libs';
-import { Logger } from '../../utils/logger';
+import { createLogger } from '../../utils/logger';
 
-const logger = Logger({ service: 'seeds' });
+const logger = createLogger({ service: 'seeds' });
 
 const env = dotenv.config({
     path: path.resolve(path.join(process.cwd(), '..', '..', '.env')),

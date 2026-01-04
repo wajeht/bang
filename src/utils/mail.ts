@@ -3,7 +3,7 @@ import type { Request } from 'express';
 import type { User, AppContext } from '../type';
 import type { Attachment } from 'nodemailer/lib/mailer';
 
-export function MailUtils(context: AppContext) {
+export function createMail(context: AppContext) {
     const logger = context.logger.tag('service', 'mail');
     const DEV_ENVIRONMENTS = new Set(['development', 'staging', 'test', 'testing', 'ci', 'dev']);
 

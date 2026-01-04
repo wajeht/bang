@@ -1,10 +1,10 @@
 import path from 'node:path';
 import { libs } from '../libs';
 import { config } from '../config';
-import { TemplateUtils } from './template';
+import { createTemplate } from './template';
 import { describe, expect, it, beforeAll, vi } from 'vitest';
 
-let templateUtils: ReturnType<typeof TemplateUtils>;
+let templateUtils: ReturnType<typeof createTemplate>;
 
 beforeAll(() => {
     const mockContext = {
@@ -13,7 +13,7 @@ beforeAll(() => {
         logger: { error: vi.fn(), info: vi.fn() },
     } as any;
 
-    templateUtils = TemplateUtils(mockContext);
+    templateUtils = createTemplate(mockContext);
 });
 
 function renderTemplate(filePath: string, opts: object): Promise<string> {
@@ -164,7 +164,7 @@ describe('TemplateUtils', () => {
                 logger: { error: vi.fn(), info: vi.fn() },
             } as any;
 
-            const prodTemplateUtils = TemplateUtils(prodContext);
+            const prodTemplateUtils = createTemplate(prodContext);
             expect(prodTemplateUtils).toBeDefined();
             expect(prodTemplateUtils.engine).toBeDefined();
         });

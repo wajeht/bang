@@ -2,7 +2,7 @@ import { authenticateAgent, authenticateAdminAgent } from '../../tests/api-test-
 import request from 'supertest';
 import { db, app } from '../../tests/test-setup';
 import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
-import { SettingsRepository } from './settings.repository';
+import { createSettingsRepository } from './settings.repository';
 import { config } from '../../config';
 import { libs } from '../../libs';
 
@@ -324,11 +324,11 @@ describe('Admin Routes', () => {
 });
 
 describe('SettingsRepository', () => {
-    let settingsRepo: ReturnType<typeof SettingsRepository>;
+    let settingsRepo: ReturnType<typeof createSettingsRepository>;
 
     beforeAll(() => {
         const ctx = { db, config, libs } as any;
-        settingsRepo = SettingsRepository(ctx);
+        settingsRepo = createSettingsRepository(ctx);
     });
 
     beforeEach(() => {

@@ -1,12 +1,12 @@
 import { test as base, expect, Page } from '@playwright/test';
 import { createDb, createUser, cleanupUserData } from './test-db';
-import { Context } from '../context';
+import { createContext } from '../context';
 import type { AppContext } from '../type';
 
 const db = createDb();
 
 let cachedContext: AppContext | null = null;
-const getContext = async () => cachedContext ?? (cachedContext = await Context());
+const getContext = async () => cachedContext ?? (cachedContext = await createContext());
 
 export const test = base.extend({
     page: async ({ page }, use) => {

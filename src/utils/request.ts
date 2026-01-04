@@ -1,7 +1,7 @@
 import type { Request } from 'express';
 import type { User, PageType, AppContext } from '../type';
 
-export function RequestUtils(context: AppContext) {
+export function createRequest(context: AppContext) {
     const logger = context.logger.tag('service', 'request');
     type PreferenceKey = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders' | 'users';
     const PAGE_TYPE_TO_PREFERENCE: Record<PageType | 'admin', PreferenceKey> = {

@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import type { LayoutOptions, User, AppContext } from '../type';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 
-export function RequestLoggerMiddleware(ctx: AppContext) {
+export function createRequestLoggerMiddleware(ctx: AppContext) {
     return (req: Request, res: Response, next: NextFunction) => {
         const requestId = ctx.libs.crypto.randomUUID().slice(0, 8);
         const start = Date.now();
@@ -30,7 +30,7 @@ export function RequestLoggerMiddleware(ctx: AppContext) {
     };
 }
 
-export function NotFoundMiddleware(ctx: AppContext) {
+export function createNotFoundMiddleware(ctx: AppContext) {
     return (req: Request, _res: Response, _next: NextFunction) => {
         throw new ctx.errors.NotFoundError(
             `Sorry, the ${ctx.utils.request.isApiRequest(req) ? 'resource' : 'page'} you are looking for could not be found.`,
@@ -38,7 +38,7 @@ export function NotFoundMiddleware(ctx: AppContext) {
     };
 }
 
-export function ErrorMiddleware(ctx: AppContext) {
+export function createErrorMiddleware(ctx: AppContext) {
     return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
         const logger = req.logger || ctx.logger;
         logger.error(`${req.method} ${req.path} - ${error.message}`, {
@@ -105,7 +105,7 @@ export function ErrorMiddleware(ctx: AppContext) {
         }
 
         if (!res.locals.state) {
-            SetupAppLocals(ctx)(req, res);
+            createSetupAppLocals(ctx)(req, res);
             // Load branding for error pages
             res.locals.state.branding = await ctx.models.settings.getBranding();
         }
@@ -123,7 +123,7 @@ export function ErrorMiddleware(ctx: AppContext) {
     };
 }
 
-export function AdminOnlyMiddleware(ctx: AppContext) {
+export function createAdminOnlyMiddleware(ctx: AppContext) {
     return async (req: Request, _res: Response, next: NextFunction) => {
         try {
             if (!req.user || !req.user.is_admin) {
@@ -141,7 +141,7 @@ export function AdminOnlyMiddleware(ctx: AppContext) {
     };
 }
 
-export function HelmetMiddleware(ctx: AppContext) {
+export function createHelmetMiddleware(ctx: AppContext) {
     return ctx.libs.helmet({
         contentSecurityPolicy: {
             useDefaults: true,
@@ -178,14 +178,14 @@ export function HelmetMiddleware(ctx: AppContext) {
     });
 }
 
-export function SpeculationRulesMiddleware() {
+export function createSpeculationRulesMiddleware() {
     return (_req: Request, res: Response, next: NextFunction) => {
         res.setHeader('Supports-Loading-Mode', 'credentialed-prerender');
         next();
     };
 }
 
-export function SessionMiddleware(ctx: AppContext) {
+export function createSessionMiddleware(ctx: AppContext) {
     return ctx.libs.session({
         secret: ctx.config.session.secret,
         resave: false,
@@ -215,7 +215,7 @@ let cachedStaticLocals: {
     utils: Record<string, any>;
 } | null = null;
 
-export function SetupAppLocals(ctx: AppContext) {
+export function createSetupAppLocals(ctx: AppContext) {
     if (!cachedStaticLocals) {
         const isProd = ctx.config.app.env === 'production';
         const assetVersions = isProd ? ctx.utils.assets.getAssetVersions() : null;
@@ -271,7 +271,7 @@ export function SetupAppLocals(ctx: AppContext) {
     };
 }
 
-export function CsrfMiddleware(ctx: AppContext) {
+export function createCsrfMiddleware(ctx: AppContext) {
     const { csrfSynchronisedProtection, generateToken } = ctx.libs.csrfSync({
         getTokenFromRequest: (req: Request) => {
             if (req.body && req.body.csrfToken) {
@@ -337,7 +337,7 @@ export function CsrfMiddleware(ctx: AppContext) {
     ];
 }
 
-export function AppLocalStateMiddleware(ctx: AppContext) {
+export function createAppLocalStateMiddleware(ctx: AppContext) {
     const FORM_DATA_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
 
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -352,7 +352,7 @@ export function AppLocalStateMiddleware(ctx: AppContext) {
                 req.session.input = req.body as Record<string, any>;
             }
 
-            SetupAppLocals(ctx)(req, res);
+            createSetupAppLocals(ctx)(req, res);
 
             // Load branding settings from database (cached in repository)
             res.locals.state.branding = await ctx.models.settings.getBranding();
@@ -373,7 +373,7 @@ export function AppLocalStateMiddleware(ctx: AppContext) {
 
 const USER_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-export function AuthenticationMiddleware(ctx: AppContext) {
+export function createAuthenticationMiddleware(ctx: AppContext) {
     return async function authenticationMiddleware(
         req: Request,
         res: Response,
@@ -465,7 +465,7 @@ export function AuthenticationMiddleware(ctx: AppContext) {
     };
 }
 
-export function RateLimitMiddleware(ctx: AppContext) {
+export function createRateLimitMiddleware(ctx: AppContext) {
     return ctx.libs.rateLimit({
         windowMs: 15 * 60 * 1000, // 15 minutes
         max: 100, // Limit each IP to 100 requests per windowMs
@@ -481,7 +481,7 @@ export function RateLimitMiddleware(ctx: AppContext) {
     });
 }
 
-export function LayoutMiddleware(options: LayoutOptions = {}) {
+export function createLayoutMiddleware(options: LayoutOptions = {}) {
     const defaultOptions: LayoutOptions = {
         defaultLayout: '_layouts/public.html',
         layoutsDir: '_layouts',
@@ -524,7 +524,7 @@ export function LayoutMiddleware(options: LayoutOptions = {}) {
     };
 }
 
-export function TurnstileMiddleware(ctx: AppContext) {
+export function createTurnstileMiddleware(ctx: AppContext) {
     return async function turnstileMiddleware(req: Request, _res: Response, next: NextFunction) {
         try {
             if (ctx.config.app.env !== 'production') {
@@ -555,7 +555,7 @@ export function TurnstileMiddleware(ctx: AppContext) {
     };
 }
 
-export function StaticAssetsMiddleware(ctx: AppContext) {
+export function createStaticAssetsMiddleware(ctx: AppContext) {
     return ctx.libs.express.static('./public', {
         maxAge: '365d', // 1 year
         etag: true,

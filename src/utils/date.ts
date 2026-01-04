@@ -1,6 +1,6 @@
 import type { AppContext } from '../type';
 
-export function DateUtils(context: AppContext) {
+export function createDate(context: AppContext) {
     return {
         convertToUTC(localDateTimeString: string, timezone: string = 'UTC'): string {
             try {

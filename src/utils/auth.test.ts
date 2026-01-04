@@ -1,11 +1,11 @@
 import { libs } from '../libs';
 import { config } from '../config';
-import { AuthUtils } from './auth';
+import { createAuth } from './auth';
 import { db } from '../tests/test-setup';
 import type { ApiKeyPayload, MagicLinkPayload } from '../type';
 import { describe, expect, it, beforeAll, vi } from 'vitest';
 
-let authUtils: ReturnType<typeof AuthUtils>;
+let authUtils: ReturnType<typeof createAuth>;
 
 beforeAll(async () => {
     const mockContext = {
@@ -18,7 +18,7 @@ beforeAll(async () => {
         errors: {} as any,
     } as any;
 
-    authUtils = AuthUtils(mockContext);
+    authUtils = createAuth(mockContext);
 });
 
 describe.concurrent('generateApiKey', () => {

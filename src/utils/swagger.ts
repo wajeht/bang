@@ -1,18 +1,15 @@
 import { Application } from 'express';
 import type { AppContext } from '../type';
 import type { Options } from 'express-jsdoc-swagger';
-import { AuthenticationMiddleware } from '../routes/middleware';
+import { createAuthenticationMiddleware } from '../routes/middleware';
 import { config } from '../config';
 
 export async function expressJSDocSwaggerHandler(app: Application, context: AppContext) {
-    // Skip swagger in testing - it's a heavy library not needed for tests
     if (context.config.app.env === 'testing') {
         return;
     }
 
-    // Dynamic import to avoid loading swagger-ui in tests
     const expressJSDocSwaggerModule = await import('express-jsdoc-swagger');
-    // Type assertion needed for tsgo - CJS/ESM interop issue with express-jsdoc-swagger types
     const expressJSDocSwagger = expressJSDocSwaggerModule.default as unknown as (
         app: Application,
     ) => (options: Options) => void;
@@ -53,6 +50,6 @@ export async function expressJSDocSwaggerHandler(app: Application, context: AppC
         multiple: {},
     } as unknown as Options;
 
-    app.use('/api-docs', AuthenticationMiddleware(context));
+    app.use('/api-docs', createAuthenticationMiddleware(context));
     expressJSDocSwagger(app)(swaggerConfig);
 }

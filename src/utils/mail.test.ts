@@ -1,12 +1,12 @@
 import { config } from '../config';
-import { MailUtils } from './mail';
-import { AuthUtils } from './auth';
+import { createMail } from './mail';
+import { createAuth } from './auth';
 import { dayjs, libs } from '../libs';
 import { db } from '../tests/test-setup';
-import { Logger } from '../utils/logger';
+import { createLogger } from '../utils/logger';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-const logger = Logger();
+const logger = createLogger();
 
 describe('Mail Utils', () => {
     const mockContext = {
@@ -15,11 +15,11 @@ describe('Mail Utils', () => {
         logger,
         db,
         utils: {
-            auth: AuthUtils({ libs, config, logger, db } as any),
+            auth: createAuth({ libs, config, logger, db } as any),
         },
     } as any;
 
-    const mailUtils = MailUtils(mockContext);
+    const mailUtils = createMail(mockContext);
 
     afterEach(() => {
         vi.restoreAllMocks();

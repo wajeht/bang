@@ -214,6 +214,6 @@ export const Log = {
     },
 };
 
-export function Logger(options: LoggerOptions = {}): Logger {
+export function createLogger(options: LoggerOptions = {}): Logger {
     return Log.create(options);
 }

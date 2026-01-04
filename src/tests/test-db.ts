@@ -1,7 +1,7 @@
 import { libs } from '../libs';
 import { config } from '../config';
-import { Database } from '../db/db';
-import { Logger } from '../utils/logger';
+import { createDatabase } from '../db/db';
+import { createLogger } from '../utils/logger';
 import type { Knex } from 'knex';
 
 const defaultColumnPreferences = {
@@ -61,8 +61,8 @@ const defaultUserProps = {
 };
 
 export function createDb() {
-    const logger = Logger();
-    return Database({ config, logger, libs }).instance;
+    const logger = createLogger();
+    return createDatabase({ config, logger, libs }).instance;
 }
 
 export interface CreateUserOptions {

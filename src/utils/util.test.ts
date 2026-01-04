@@ -1,30 +1,30 @@
 import path from 'node:path';
-import { Utils } from './util';
+import { createUtil } from './util';
 import { libs } from '../libs';
 import fs from 'node:fs/promises';
 import { Request } from 'express';
 import { config } from '../config';
-import { AuthUtils } from './auth';
-import { HtmlUtils } from './html';
-import { DateUtils } from './date';
-import { MailUtils } from './mail';
-import { RequestUtils } from './request';
+import { createAuth } from './auth';
+import { createHtml } from './html';
+import { createDate } from './date';
+import { createMail } from './mail';
+import { createRequest } from './request';
 import { db } from '../tests/test-setup';
-import { ValidationUtils } from './validation';
+import { createValidation } from './validation';
 import type { ApiKeyPayload, BookmarkToExport } from '../type';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-let validationUtils: ReturnType<typeof ValidationUtils>;
-let authUtils: ReturnType<typeof AuthUtils>;
-let utilUtils: ReturnType<typeof Utils>;
-let htmlUtils: ReturnType<typeof HtmlUtils>;
-let dateUtils: ReturnType<typeof DateUtils>;
-let requestUtils: ReturnType<typeof RequestUtils>;
-let mailUtils: ReturnType<typeof MailUtils>;
+let validationUtils: ReturnType<typeof createValidation>;
+let authUtils: ReturnType<typeof createAuth>;
+let utilUtils: ReturnType<typeof createUtil>;
+let htmlUtils: ReturnType<typeof createHtml>;
+let dateUtils: ReturnType<typeof createDate>;
+let requestUtils: ReturnType<typeof createRequest>;
+let mailUtils: ReturnType<typeof createMail>;
 
 beforeAll(async () => {
-    const { BookmarksRepository } = await import('../routes/bookmarks/bookmarks.repository');
-    const { SettingsRepository } = await import('../routes/admin/settings.repository');
+    const { createBookmarksRepository } = await import('../routes/bookmarks/bookmarks.repository');
+    const { createSettingsRepository } = await import('../routes/admin/settings.repository');
 
     const mockContext = {
         db,
@@ -36,11 +36,11 @@ beforeAll(async () => {
         errors: {} as any,
     } as any;
 
-    validationUtils = ValidationUtils();
-    authUtils = AuthUtils(mockContext);
-    htmlUtils = HtmlUtils();
-    dateUtils = DateUtils(mockContext);
-    requestUtils = RequestUtils(mockContext);
+    validationUtils = createValidation();
+    authUtils = createAuth(mockContext);
+    htmlUtils = createHtml();
+    dateUtils = createDate(mockContext);
+    requestUtils = createRequest(mockContext);
 
     mockContext.utils = {
         validation: validationUtils,
@@ -51,12 +51,12 @@ beforeAll(async () => {
     };
 
     mockContext.models = {
-        bookmarks: BookmarksRepository(mockContext),
-        settings: SettingsRepository(mockContext),
+        bookmarks: createBookmarksRepository(mockContext),
+        settings: createSettingsRepository(mockContext),
     };
 
-    utilUtils = Utils(mockContext);
-    mailUtils = MailUtils(mockContext);
+    utilUtils = createUtil(mockContext);
+    mailUtils = createMail(mockContext);
 
     mockContext.utils.util = utilUtils;
     mockContext.utils.mail = mailUtils;
@@ -1006,10 +1006,10 @@ describe('formatDateInTimezone', () => {
 
 describe('sendReminderDigestEmail', () => {
     let sendMailMock: ReturnType<typeof vi.fn>;
-    let testMailUtils: ReturnType<typeof MailUtils>;
+    let testMailUtils: ReturnType<typeof createMail>;
 
     beforeAll(async () => {
-        const { SettingsRepository } = await import('../routes/admin/settings.repository');
+        const { createSettingsRepository } = await import('../routes/admin/settings.repository');
 
         sendMailMock = vi.fn().mockResolvedValue({ messageId: 'test-id' });
 
@@ -1035,10 +1035,10 @@ describe('sendReminderDigestEmail', () => {
             config: prodConfig,
             libs: { ...libs, nodemailer: mockNodemailer },
             logger: mockLogger,
-            models: { settings: SettingsRepository({ db, config, libs } as any) },
+            models: { settings: createSettingsRepository({ db, config, libs } as any) },
         } as any;
 
-        testMailUtils = MailUtils(testContext);
+        testMailUtils = createMail(testContext);
     });
 
     beforeEach(() => {

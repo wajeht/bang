@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { User, AppContext } from '../../type';
 
-export function TabsRouter(ctx: AppContext) {
+export function createTabsRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     /**
@@ -20,7 +20,7 @@ export function TabsRouter(ctx: AppContext) {
         '/tabs/create',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            return res.render('tabs/tabs-create.html', {
+            return res.render('tabs/tabs-new.html', {
                 title: 'Tabs / Create',
                 path: '/tabs/create',
                 layout: '_layouts/auth.html',
@@ -86,7 +86,7 @@ export function TabsRouter(ctx: AppContext) {
                 throw new ctx.errors.NotFoundError('Tab group not found');
             }
 
-            return res.render('tabs/tabs-items-create.html', {
+            return res.render('tabs/tabs-items-new.html', {
                 title: 'Add Tab Item',
                 path: `/tabs/${tabId}/items/create`,
                 layout: '_layouts/auth.html',
@@ -176,7 +176,7 @@ export function TabsRouter(ctx: AppContext) {
             return;
         }
 
-        return res.render('tabs/tabs-get.html', {
+        return res.render('tabs/tabs-index.html', {
             title: 'Tabs',
             path: '/tabs',
             layout: '_layouts/auth.html',

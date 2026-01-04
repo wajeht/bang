@@ -2,7 +2,7 @@ import { bangs } from '../../db/bang';
 import type { Request, Response } from 'express';
 import type { Bang, User, AppContext, BangWithLowercase } from '../../type';
 
-export function GeneralRouter(ctx: AppContext) {
+export function createGeneralRouter(ctx: AppContext) {
     const activeBangsPrefetch = new Set<string>();
 
     const bangsArray = Object.values(bangs as Record<string, Bang>);
@@ -170,7 +170,7 @@ export function GeneralRouter(ctx: AppContext) {
             highlightedData = data;
         }
 
-        return res.render('general/bangs-get.html', {
+        return res.render('general/bangs-index.html', {
             layout: '_layouts/auth.html',
             user: req.session.user,
             path: req.path,

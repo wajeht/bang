@@ -4,7 +4,7 @@ const SETTINGS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 let settingsCache: { data: Record<string, string>; cachedAt: number } | null = null;
 
-export function SettingsRepository(ctx: AppContext): Settings {
+export function createSettingsRepository(ctx: AppContext): Settings {
     async function getAll(): Promise<Record<string, string>> {
         if (settingsCache && Date.now() - settingsCache.cachedAt < SETTINGS_CACHE_TTL) {
             return settingsCache.data;

@@ -1,6 +1,6 @@
 import type { Reminder, Reminders, RemindersQueryParams, AppContext } from '../../type';
 
-export function RemindersRepository(ctx: AppContext): Reminders {
+export function createRemindersRepository(ctx: AppContext): Reminders {
     const REGEX_WHITESPACE = /\s+/;
     const ALLOWED_SORT_KEYS = new Set(['title', 'content', 'due_date', 'frequency', 'created_at']);
     const ALLOWED_UPDATE_FIELDS = new Set([

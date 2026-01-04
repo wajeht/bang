@@ -86,7 +86,7 @@ function _createKnexInstance(libs: Libs): Knex {
     return _db;
 }
 
-export function Database(ctx: { config: Config; logger: Logger; libs: Libs }) {
+export function createDatabase(ctx: { config: Config; logger: Logger; libs: Libs }) {
     const db: Knex = _createKnexInstance(ctx.libs);
     const logger = ctx.logger.tag('service', 'db');
 

@@ -1,6 +1,6 @@
 import type { Tab, Tabs, TabsQueryParams, AppContext } from '../../type';
 
-export function TabsRepository(ctx: AppContext): Tabs {
+export function createTabsRepository(ctx: AppContext): Tabs {
     const REGEX_WHITESPACE = /\s+/;
     const ALLOWED_UPDATE_FIELDS = new Set(['title', 'trigger']);
     const ALLOWED_SORT_KEYS = new Set(['title', 'trigger', 'created_at', 'items_count']);

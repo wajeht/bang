@@ -1,7 +1,7 @@
-import { HtmlUtils } from './html';
+import { createHtml } from './html';
 import { describe, expect, it } from 'vitest';
 
-const htmlUtils = HtmlUtils();
+const htmlUtils = createHtml();
 
 describe('HtmlUtils', () => {
     describe('escapeHtml', () => {

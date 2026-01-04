@@ -1,8 +1,8 @@
 import { config } from './config';
 import { Server } from 'node:http';
-import { Context } from './context';
+import { createContext } from './context';
 import type { AppContext } from './type';
-import { router } from './routes/routes';
+import { createRouter } from './routes/routes';
 import { AddressInfo, Socket } from 'node:net';
 import { expressJSDocSwaggerHandler } from './utils/swagger';
 
@@ -17,7 +17,7 @@ export function clearActiveSockets(): void {
 }
 
 export async function createApp() {
-    const ctx = await Context();
+    const ctx = await createContext();
 
     const app = ctx.libs.express();
 
@@ -64,7 +64,7 @@ export async function createApp() {
         .use(ctx.middleware.layout)
         .use(...ctx.middleware.csrf)
         .use(ctx.middleware.appLocalState)
-        .use(router(ctx));
+        .use(createRouter(ctx));
 
     try {
         await expressJSDocSwaggerHandler(app, ctx);

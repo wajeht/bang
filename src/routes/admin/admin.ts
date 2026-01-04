@@ -1,7 +1,7 @@
 import type { AppContext } from '../../type';
 import type { Request, Response, NextFunction } from 'express';
 
-export function AdminRouter(ctx: AppContext) {
+export function createAdminRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     router.get(
@@ -114,7 +114,7 @@ export function AdminRouter(ctx: AppContext) {
                 .orderBy(sortKey || 'created_at', direction || 'desc')
                 .paginate({ perPage, currentPage: page, isLengthAware: true });
 
-            return res.render('admin/admin-users.html', {
+            return res.render('admin/admin-users-index.html', {
                 user: req.session?.user,
                 title: 'Admin / Users',
                 path: '/admin/users',

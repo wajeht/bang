@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { marked } from 'marked';
-import { Logger } from '../src/utils/logger';
+import { createLogger } from '../src/utils/logger';
 
-const logger = Logger({ service: 'extract-readme script' });
+const logger = createLogger({ service: 'extract-readme script' });
 
 interface ExtractionResult {
     error?: string;

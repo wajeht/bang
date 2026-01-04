@@ -1,6 +1,6 @@
 import type { ApiKeyPayload, MagicLinkPayload, AppContext } from '../type';
 
-export function AuthUtils(context: AppContext) {
+export function createAuth(context: AppContext) {
     const logger = context.logger.tag('service', 'auth');
     return {
         async verifyApiKey(apiKey: string): Promise<ApiKeyPayload | null> {

@@ -1,4 +1,4 @@
-export function ValidationUtils() {
+export function createValidation() {
     const REGEX_WWW_PREFIX = /^www\./i;
     const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const REGEX_ALPHANUMERIC = /^[a-zA-Z0-9]+$/;

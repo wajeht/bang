@@ -1,14 +1,14 @@
 import { dayjs } from '../libs';
-import { Context } from '../context';
+import { createContext } from '../context';
 import { db } from '../tests/test-setup';
 import { Request, Response } from 'express';
-import { SearchUtils } from '../utils/search';
+import { createSearch } from '../utils/search';
 import type { User, AppContext } from '../type';
 import type { SessionData } from 'express-session';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let ctx: AppContext;
-let searchUtils: ReturnType<typeof SearchUtils>;
+let searchUtils: ReturnType<typeof createSearch>;
 let isValidUrl: any;
 let insertBookmark: any;
 let insertPageTitle: any;
@@ -25,8 +25,8 @@ const mockLogger = (): any => ({
 
 describe('search', () => {
     beforeAll(async () => {
-        ctx = await Context();
-        searchUtils = SearchUtils(ctx);
+        ctx = await createContext();
+        searchUtils = createSearch(ctx);
     });
 
     beforeEach(() => {

@@ -10,7 +10,7 @@ import http from 'node:http';
 import https from 'node:https';
 import type { Request } from 'express';
 
-export function Utils(context: AppContext) {
+export function createUtil(context: AppContext) {
     const { db, config, errors } = context;
     const logger = context.logger.tag('service', 'util');
 

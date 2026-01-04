@@ -1,11 +1,11 @@
 import {
-    CsrfMiddleware,
-    ErrorMiddleware,
-    AuthenticationMiddleware,
-    AppLocalStateMiddleware,
-    RequestLoggerMiddleware,
+    createCsrfMiddleware,
+    createErrorMiddleware,
+    createAuthenticationMiddleware,
+    createAppLocalStateMiddleware,
+    createRequestLoggerMiddleware,
 } from './middleware';
-import { Context } from '../context';
+import { createContext } from '../context';
 import { db } from '../tests/test-setup';
 import { Session } from 'express-session';
 import type { User, AppContext } from '../type';
@@ -22,8 +22,8 @@ describe('authenticationMiddleware', () => {
     let authenticationMiddleware: any;
 
     beforeAll(async () => {
-        ctx = await Context();
-        authenticationMiddleware = AuthenticationMiddleware(ctx);
+        ctx = await createContext();
+        authenticationMiddleware = createAuthenticationMiddleware(ctx);
     });
 
     beforeEach(async () => {
@@ -247,13 +247,13 @@ describe('errorMiddleware', () => {
     let errorMiddleware: any;
 
     beforeAll(async () => {
-        ctx = await Context();
+        ctx = await createContext();
 
         // Spy on context logger instead of mocking the module
         vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});
         vi.spyOn(ctx.logger, 'info').mockImplementation(() => {});
 
-        errorMiddleware = ErrorMiddleware(ctx);
+        errorMiddleware = createErrorMiddleware(ctx);
     });
 
     beforeEach(() => {
@@ -476,8 +476,8 @@ describe('AppLocalStateMiddleware', () => {
     let appLocalStateMiddleware: any;
 
     beforeAll(async () => {
-        ctx = await Context();
-        appLocalStateMiddleware = AppLocalStateMiddleware(ctx);
+        ctx = await createContext();
+        appLocalStateMiddleware = createAppLocalStateMiddleware(ctx);
     });
 
     beforeEach(() => {
@@ -589,11 +589,11 @@ describe('RequestLoggerMiddleware', () => {
     let res: Partial<Response> & { on: ReturnType<typeof vi.fn>; get: ReturnType<typeof vi.fn> };
     let next: NextFunction;
     let ctx: AppContext;
-    let requestLoggerMiddleware: ReturnType<typeof RequestLoggerMiddleware>;
+    let requestLoggerMiddleware: ReturnType<typeof createRequestLoggerMiddleware>;
     let finishHandler: (() => void) | null = null;
 
     beforeAll(async () => {
-        ctx = await Context();
+        ctx = await createContext();
         vi.spyOn(ctx.logger, 'info').mockImplementation(() => {});
         vi.spyOn(ctx.logger, 'tag').mockReturnValue({
             tag: vi.fn().mockReturnThis(),
@@ -605,7 +605,7 @@ describe('RequestLoggerMiddleware', () => {
             table: vi.fn(),
             box: vi.fn(),
         } as any);
-        requestLoggerMiddleware = RequestLoggerMiddleware(ctx);
+        requestLoggerMiddleware = createRequestLoggerMiddleware(ctx);
     });
 
     beforeEach(() => {
@@ -768,11 +768,11 @@ describe('CsrfMiddleware', () => {
     let res: Partial<Response>;
     let next: NextFunction;
     let ctx: AppContext;
-    let csrfMiddleware: ReturnType<typeof CsrfMiddleware>;
+    let csrfMiddleware: ReturnType<typeof createCsrfMiddleware>;
 
     beforeAll(async () => {
-        ctx = await Context();
-        csrfMiddleware = CsrfMiddleware(ctx);
+        ctx = await createContext();
+        csrfMiddleware = createCsrfMiddleware(ctx);
     });
 
     beforeEach(() => {

@@ -1,4 +1,4 @@
-export function HtmlUtils() {
+export function createHtml() {
     const REGEX_WHITESPACE = /\s+/;
     const REGEX_ESCAPE_SPECIAL = /[.*+?^${}()|[\]\\]/g;
     const REGEX_HTML_TAGS = /<[^>]*>/g;

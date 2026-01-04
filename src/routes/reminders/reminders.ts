@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { User, AppContext } from '../../type';
 
-export function RemindersRouter(ctx: AppContext) {
+export function createRemindersRouter(ctx: AppContext) {
     const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
     const router = ctx.libs.express.Router();
@@ -23,7 +23,7 @@ export function RemindersRouter(ctx: AppContext) {
         '/reminders/create',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            return res.render('reminders/reminders-create.html', {
+            return res.render('reminders/reminders-new.html', {
                 title: 'Reminders / New',
                 path: '/reminders/create',
                 layout: '_layouts/auth.html',
@@ -70,7 +70,7 @@ export function RemindersRouter(ctx: AppContext) {
                 throw new ctx.errors.NotFoundError('Reminder not found');
             }
 
-            return res.render('reminders/reminders-id-bookmarks-create.html', {
+            return res.render('reminders/reminders-bookmarks-new.html', {
                 title: `Reminders / ${reminderId} / Bookmarks / Create`,
                 path: `/reminders/${reminderId}/bookmarks/create`,
                 layout: '_layouts/auth.html',
@@ -246,7 +246,7 @@ export function RemindersRouter(ctx: AppContext) {
             return;
         }
 
-        return res.render('reminders/reminders-get.html', {
+        return res.render('reminders/reminders-index.html', {
             user: req.user,
             title: 'Reminders',
             path: '/reminders',

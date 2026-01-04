@@ -1,4 +1,4 @@
-import { Log, Logger } from './logger';
+import { Log, createLogger } from './logger';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 
 describe('Logger', () => {
@@ -71,9 +71,9 @@ describe('Logger', () => {
         });
     });
 
-    describe('Logger function', () => {
-        it('should create a logger using Logger function', () => {
-            const logger = Logger({ service: 'func-test' });
+    describe('createLogger function', () => {
+        it('should create a logger using createLogger function', () => {
+            const logger = createLogger({ service: 'func-test' });
             logger.info('hello');
 
             expect(consoleSpy.log).toHaveBeenCalledTimes(1);

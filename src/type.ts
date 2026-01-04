@@ -367,33 +367,33 @@ export type PaginateArrayOptions = {
 
 import type { Knex } from 'knex';
 
-import { DateUtils as DateUtilsType } from './utils/date';
-import { HtmlUtils as HtmlUtilsType } from './utils/html';
-import { AuthUtils as AuthUtilsType } from './utils/auth';
-import { MailUtils as MailUtilsType } from './utils/mail';
-import { Utils as UtilsType } from './utils/util';
-import { SearchUtils as SearchUtilsType } from './utils/search';
-import { RequestUtils as RequestUtilsType } from './utils/request';
-import { ValidationUtils as ValidationUtilsType } from './utils/validation';
-import { AssetUtils as AssetUtilsType } from './utils/assets';
-import { CronService as CronServiceType } from './crons';
-import { Database as DatabaseType } from './db/db';
+import { createDate } from './utils/date';
+import { createHtml } from './utils/html';
+import { createAuth } from './utils/auth';
+import { createMail } from './utils/mail';
+import { createUtil } from './utils/util';
+import { createSearch } from './utils/search';
+import { createRequest } from './utils/request';
+import { createValidation } from './utils/validation';
+import { createAssets } from './utils/assets';
+import type { CronService as CronServiceType } from './crons';
+import { createDatabase } from './db/db';
 import type { config } from './config';
 import type { Libs } from './libs';
 
-export type DateUtils = ReturnType<typeof DateUtilsType>;
-export type HtmlUtils = ReturnType<typeof HtmlUtilsType>;
-export type ValidationUtils = ReturnType<typeof ValidationUtilsType>;
-export type AssetUtils = ReturnType<typeof AssetUtilsType>;
-export type AuthUtils = ReturnType<typeof AuthUtilsType>;
-export type RequestUtils = ReturnType<typeof RequestUtilsType>;
-export type UtilUtils = ReturnType<typeof UtilsType>;
-export type SearchUtils = ReturnType<typeof SearchUtilsType>;
-export type MailUtils = ReturnType<typeof MailUtilsType>;
+export type DateUtils = ReturnType<typeof createDate>;
+export type HtmlUtils = ReturnType<typeof createHtml>;
+export type ValidationUtils = ReturnType<typeof createValidation>;
+export type AssetUtils = ReturnType<typeof createAssets>;
+export type AuthUtils = ReturnType<typeof createAuth>;
+export type RequestUtils = ReturnType<typeof createRequest>;
+export type UtilUtils = ReturnType<typeof createUtil>;
+export type SearchUtils = ReturnType<typeof createSearch>;
+export type MailUtils = ReturnType<typeof createMail>;
 
 export type Config = typeof config;
-export type CronService = ReturnType<typeof CronServiceType>;
-export type Database = ReturnType<typeof DatabaseType>;
+export type CronService = CronServiceType;
+export type Database = ReturnType<typeof createDatabase>;
 
 export interface Models {
     actions: Actions;
