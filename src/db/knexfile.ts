@@ -101,3 +101,5 @@ if (isTesting) {
 }
 
 export { knexConfig };
+
+export default knexConfig
