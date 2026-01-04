@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
-import knexConfig from './knexfile';
+import { knexConfig } from './knexfile';
 import type { Libs } from '../libs';
 import type { Config, Logger } from '../type';
 
@@ -179,9 +179,9 @@ export function createDatabase(ctx: { config: Config; logger: Logger; libs: Libs
                 return;
             }
 
-            migrations.forEach((migration: string) => {
+            for (const migration of migrations) {
                 logger.info('Running migration file', { migration });
-            });
+            }
 
             const migrationList = migrations
                 .map((migration: string) => migration.split('_')[1]?.split('.')[0] ?? '')

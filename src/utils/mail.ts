@@ -49,13 +49,17 @@ export function createMail(context: AppContext) {
             if (mailOptions.attachments && mailOptions.attachments.length > 0) {
                 headerLines.push(divider);
                 headerLines.push(styleText('blue', '📎 Attachments:'));
-                mailOptions.attachments.forEach((att: any, index: number) => {
+                for (let i = 0; i < mailOptions.attachments.length; i++) {
+                    const att = mailOptions.attachments[i] as {
+                        filename: string;
+                        contentType: string;
+                    };
                     headerLines.push(
-                        styleText('dim', `  ${index + 1}. `) +
+                        styleText('dim', `  ${i + 1}. `) +
                             styleText('white', att.filename) +
                             styleText('dim', ` (${att.contentType})`),
                     );
-                });
+                }
             }
 
             headerLines.push(divider);

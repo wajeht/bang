@@ -740,7 +740,7 @@ describe('Mail Utils', () => {
                 expect(new Set(dueDates).size).toBe(1); // All same
 
                 // Check they're all scheduled for the next day at the same local time
-                dueDates.forEach((nextDueDate: string) => {
+                for (const nextDueDate of dueDates) {
                     const originalChicagoTime = dayjs.tz(dueDate, 'UTC').tz('America/Chicago');
                     const nextChicagoTime = dayjs.tz(nextDueDate, 'UTC').tz('America/Chicago');
 
@@ -751,7 +751,7 @@ describe('Mail Utils', () => {
                     // Should be approximately 1 day later
                     const daysDiff = nextChicagoTime.diff(originalChicagoTime, 'days');
                     expect(daysDiff).toBe(1);
-                });
+                }
             });
         });
     });

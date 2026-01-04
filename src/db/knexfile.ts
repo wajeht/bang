@@ -100,4 +100,4 @@ if (isTesting) {
     };
 }
 
-export default knexConfig;
+export { knexConfig };

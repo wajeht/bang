@@ -180,7 +180,7 @@ describe('authenticationMiddleware', () => {
     });
 
     it('should handle null column_preferences correctly', async () => {
-        const nullPrefUser = await db('users')
+        const users = await db('users')
             .insert({
                 username: 'nullprefs',
                 email: 'null@example.com',
@@ -188,8 +188,8 @@ describe('authenticationMiddleware', () => {
                 default_search_provider: 'duckduckgo',
                 column_preferences: null,
             })
-            .returning('*')
-            .then((users: any) => users[0]);
+            .returning('*');
+        const nullPrefUser = users[0];
 
         const sessionUser = {
             id: nullPrefUser.id,

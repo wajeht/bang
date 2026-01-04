@@ -46,26 +46,26 @@ export function createCronService(context: AppContext): CronService {
 
             const urls = new Set<string>();
 
-            bookmarks.forEach((b: { url: string }) => {
+            for (const b of bookmarks) {
                 if (b.url) urls.add(b.url);
-            });
+            }
 
-            actions.forEach((a: { url: string }) => {
+            for (const a of actions) {
                 if (a.url) urls.add(a.url);
-            });
+            }
 
-            tabItems.forEach((t: { url: string }) => {
+            for (const t of tabItems) {
                 if (t.url) urls.add(t.url);
-            });
+            }
 
-            reminders.forEach((r: { title: string; content: string | null }) => {
+            for (const r of reminders) {
                 if (r.title && context.utils.validation.isUrlLike(r.title)) {
                     urls.add(r.title.startsWith('http') ? r.title : `https://${r.title}`);
                 }
                 if (r.content && context.utils.validation.isUrlLike(r.content)) {
                     urls.add(r.content.startsWith('http') ? r.content : `https://${r.content}`);
                 }
-            });
+            }
 
             const urlArray = Array.from(urls);
             const batchSize = 5;
@@ -131,10 +131,10 @@ export function createCronService(context: AppContext): CronService {
     }
 
     function stop() {
-        cronJobs.forEach((job) => {
+        for (const job of cronJobs) {
             job.stop();
             job.destroy();
-        });
+        }
         cronJobs = [];
         isRunning = false;
         context.logger.tag('service', 'cron').info('stopped');
