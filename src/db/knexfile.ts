@@ -20,10 +20,8 @@ let knexConfig: Knex.Config = {
     seeds: { directory: path.resolve(__dirname, './seeds') },
     // debug: _developmentEnvironmentOnly,
     pool: {
-        // WAL mode allows multiple concurrent readers, so increase pool size
-        // for better read concurrency. Writes are still serialized by SQLite.
-        min: 1, // Keep 1 connection warm
-        max: 4, // Allow 4 concurrent readers with WAL mode
+        min: 0, // No idle connections for SQLite
+        max: 1, // Only 1 connection per container (SQLite is single-file)
         acquireTimeoutMillis: 120000, // 2 minutes (increased for lock contention)
         createTimeoutMillis: 30000, // 30 seconds
         idleTimeoutMillis: 30000, // 30 seconds (close idle connections quickly)
