@@ -55,22 +55,23 @@
 		};
 
 		(function() {
+			const isAuthenticated = <%= state.user ? 'true' : 'false' %>;
+
+			if (!isAuthenticated) {
+				document.documentElement.setAttribute('data-theme', 'light');
+				return;
+			}
+
 			const userTheme = '<%= state.user?.theme || "" %>';
-			const localTheme = window.getLocalStorageData().theme;
-			let resolvedTheme;
+			let resolvedTheme = 'light';
 
 			if (userTheme === 'light' || userTheme === 'dark') {
 				resolvedTheme = userTheme;
-			} else if (userTheme === 'system' || !userTheme) {
-				if (localTheme === 'light' || localTheme === 'dark') {
-					resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-				} else {
-					resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-				}
+			} else if (userTheme === 'system') {
+				resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 			}
 
 			document.documentElement.setAttribute('data-theme', resolvedTheme);
-			window.setLocalStorageData({ theme: resolvedTheme });
 		})();
 	</script>
 

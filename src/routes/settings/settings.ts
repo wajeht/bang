@@ -537,6 +537,32 @@ export function createSettingsRouter(ctx: AppContext) {
     );
 
     router.post(
+        '/api/settings/theme',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const { theme } = req.body;
+            const validThemes = ['light', 'dark'];
+
+            if (!theme || !validThemes.includes(theme)) {
+                return res.status(400).json({ error: 'Invalid theme' });
+            }
+
+            const user = req.user as User;
+            await ctx.db('users').where('id', user.id).update({ theme });
+
+            req.session.user!.theme = theme;
+            req.user!.theme = theme;
+
+            return new Promise<void>((resolve) => {
+                req.session.save(() => {
+                    res.json({ success: true, theme });
+                    resolve();
+                });
+            });
+        },
+    );
+
+    router.post(
         '/settings/create-api-key',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {

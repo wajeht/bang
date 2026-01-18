@@ -766,6 +766,73 @@ describe('Settings Routes', () => {
         });
     });
 
+    describe('POST /api/settings/theme', () => {
+        it('should require authentication', async () => {
+            const agent = await createUnauthenticatedAgent(app);
+            await agent.post('/api/settings/theme').send({ theme: 'dark' }).expect(401);
+        });
+
+        it('should update theme to dark', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const response = await agent
+                .post('/api/settings/theme')
+                .send({ theme: 'dark' })
+                .expect(200);
+
+            expect(response.body).toEqual({ success: true, theme: 'dark' });
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.theme).toBe('dark');
+        });
+
+        it('should update theme to light', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('users').where({ id: user.id }).update({ theme: 'dark' });
+
+            const response = await agent
+                .post('/api/settings/theme')
+                .send({ theme: 'light' })
+                .expect(200);
+
+            expect(response.body).toEqual({ success: true, theme: 'light' });
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.theme).toBe('light');
+        });
+
+        it('should reject invalid theme', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const response = await agent
+                .post('/api/settings/theme')
+                .send({ theme: 'invalid' })
+                .expect(400);
+
+            expect(response.body).toEqual({ error: 'Invalid theme' });
+        });
+
+        it('should reject system theme', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const response = await agent
+                .post('/api/settings/theme')
+                .send({ theme: 'system' })
+                .expect(400);
+
+            expect(response.body).toEqual({ error: 'Invalid theme' });
+        });
+
+        it('should reject missing theme', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const response = await agent.post('/api/settings/theme').send({}).expect(400);
+
+            expect(response.body).toEqual({ error: 'Invalid theme' });
+        });
+    });
+
     describe('POST /settings/create-api-key', () => {
         it('should require authentication', async () => {
             const agent = await createUnauthenticatedAgent(app);
