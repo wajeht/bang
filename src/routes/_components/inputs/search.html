@@ -6,7 +6,7 @@
     type="search"
     id="<%= id %>"
     name="<%= name %>"
-    style="flex: 1; padding-right: 2rem;<% if (typeof style !== 'undefined') { %> <%= style %><% } %>"
+    style="flex: 1; padding-right: 2rem; <%= typeof style !== 'undefined' ? style : '' %>"
     <% if (typeof placeholder !== 'undefined') { %>placeholder="<%= placeholder %>"<% } %>
     <% if (typeof value !== 'undefined') { %>value="<%= value %>"<% } %>
     <% if (typeof ariaLabel !== 'undefined') { %>aria-label="<%= ariaLabel %>"<% } %>
