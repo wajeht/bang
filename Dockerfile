@@ -1,4 +1,4 @@
-FROM node:24-slim AS build
+FROM node:25-slim AS build
 
 WORKDIR /usr/src/app
 
@@ -30,7 +30,7 @@ RUN npm run build:prod && \
     rm -rf eslint.config.* && \
     rm -rf playwright.config.*
 
-FROM node:24-slim
+FROM node:25-slim
 
 # Combine RUN commands
 RUN apt-get update && \
