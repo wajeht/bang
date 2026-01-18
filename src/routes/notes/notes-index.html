@@ -37,10 +37,6 @@ window.addEventListener('load', handleRowHighlight);
         </div>
 
         <nav style="display: flex; gap: 10px;" aria-label="Note management controls">
-            <% if (search) { %>
-                <button type="button" class="no-style-btn" onclick="location.href='/notes<%= showHidden ? '?hidden=true' : '' %>'">❌ Clear</button>
-            <% } %>
-
             <form method="GET" action="/notes" style="display: flex; gap: 10px;" role="search">
                 <% if (showHidden) { %>
                     <input type="hidden" name="hidden" value="true" />

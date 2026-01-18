@@ -59,10 +59,6 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
         </div>
 
         <nav style="display: flex; gap: 10px;" aria-label="Bookmark management controls">
-            <% if (search) { %>
-                <button type="button" class="no-style-btn" onclick="location.href='/bookmarks<%= showHidden ? '?hidden=true' : '' %>'">❌ Clear</button>
-            <% } %>
-
             <form method="GET" action="/bookmarks" style="display: flex; gap: 10px;" role="search">
                 <% if (showHidden) { %>
                     <input type="hidden" name="hidden" value="true" />

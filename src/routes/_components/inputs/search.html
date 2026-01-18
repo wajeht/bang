@@ -1,14 +1,26 @@
-<% if (typeof label !== 'undefined') { %>
-  <label for="<%= id %>" style="position: absolute; left: -10000px;"><%= label %></label>
-<% } %>
-<input
-  type="search"
-  id="<%= id %>"
-  name="<%= name %>"
-  <% if (typeof placeholder !== 'undefined') { %>placeholder="<%= placeholder %>"<% } %>
-  <% if (typeof value !== 'undefined') { %>value="<%= value %>"<% } %>
-  <% if (typeof ariaLabel !== 'undefined') { %>aria-label="<%= ariaLabel %>"<% } %>
-  <% if (typeof required !== 'undefined' && required) { %>required<% } %>
-  <% if (typeof autofocus !== 'undefined' && autofocus) { %>autofocus<% } %>
-  <% if (typeof style !== 'undefined') { %>style="<%= style %>"<% } %>
->
+<search style="position: relative; display: flex; flex: 1;">
+  <% if (typeof label !== 'undefined') { %>
+    <label for="<%= id %>" style="position: absolute; left: -10000px;"><%= label %></label>
+  <% } %>
+  <input
+    type="search"
+    id="<%= id %>"
+    name="<%= name %>"
+    style="flex: 1; padding-right: 2rem;<% if (typeof style !== 'undefined') { %> <%= style %><% } %>"
+    <% if (typeof placeholder !== 'undefined') { %>placeholder="<%= placeholder %>"<% } %>
+    <% if (typeof value !== 'undefined') { %>value="<%= value %>"<% } %>
+    <% if (typeof ariaLabel !== 'undefined') { %>aria-label="<%= ariaLabel %>"<% } %>
+    <% if (typeof required !== 'undefined' && required) { %>required<% } %>
+    <% if (typeof autofocus !== 'undefined' && autofocus) { %>autofocus<% } %>
+    autocomplete="off"
+    oninput="this.nextElementSibling.style.display=this.value?'flex':'none'"
+  >
+  <button
+    type="button"
+    style="position: absolute; right: 0.25rem; top: 50%; transform: translateY(-50%); padding: 0.25rem; background: none; border: none; cursor: pointer; font-size: 0.7em; align-items: center; justify-content: center; display: <%= (typeof value !== 'undefined' && value) ? 'flex' : 'none' %>;"
+    aria-label="Clear search"
+    aria-controls="<%= id %>"
+    onclick="var i=this.previousElementSibling;i.value='';i.form.submit()"
+  >❌</button>
+</search>
+<style>input[type="search"]::-webkit-search-cancel-button{display:none}</style>

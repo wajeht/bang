@@ -58,10 +58,6 @@ window.addEventListener('load', handleRowHighlight);
         </div>
 
         <nav style="display: flex; gap: 10px;" aria-label="Action management controls">
-            <% if (search) { %>
-                <button class="no-style-btn" type="button" onclick="location.href='/actions<%= showHidden ? '?hidden=true' : '' %>'">❌ Clear</button>
-            <% } %>
-
             <form method="GET" action="/actions" style="display: flex; gap: 10px;" role="search">
                 <% if (showHidden) { %>
                     <input type="hidden" name="hidden" value="true" />

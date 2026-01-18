@@ -226,10 +226,6 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
           <p>Manage your saved tab groups <span style="color: red">(using Tabs requires you to have popup allowed/redirect on <code><%= state.branding.appUrl %></code> )</span></p>
       </div>
       <div style="display: flex; gap: 10px;">
-        <% if (search) { %>
-            <button type="button" class="no-style-btn" onclick="location.href='/tabs'">❌ Clear</button>
-        <% } %>
-
         <form method="GET" action="/tabs" style="display: flex; gap: 10px;" role="search">
             <%~ include('../_components/inputs/search.html', {
                 id: 'search',

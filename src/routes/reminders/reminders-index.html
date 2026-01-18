@@ -59,10 +59,6 @@ window.addEventListener('load', handleRowHighlight);
         </div>
 
         <nav style="display: flex; gap: 10px;" aria-label="Reminder management controls">
-            <% if (search) { %>
-                <button type="button" class="no-style-btn" onclick="location.href='/reminders'">❌ Clear</button>
-            <% } %>
-
             <form method="GET" action="/reminders" style="display: flex; gap: 10px;" role="search">
                 <%~ include('../_components/inputs/search.html', {
                     id: 'search',

@@ -6,10 +6,6 @@
     </div>
 
     <nav style="display: flex; gap: 10px;" aria-label="User management controls">
-      <% if (search) { %>
-        <button class="no-style-btn" type="button" onclick="location.href='/admin/users'">❌ Clear</button>
-      <% } %>
-
       <form method="GET" style="display: flex; gap: 10px;" role="search">
         <%~ include('../_components/inputs/search.html', {
           id: 'search-input',
