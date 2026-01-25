@@ -10,7 +10,7 @@
   <form action="/admin/settings/visibility" method="POST">
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
 
-    <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column;">
+    <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; background-color: var(--background-color);">
       <legend>Visibility Settings</legend>
 
       <%~ include('../_components/inputs/checkbox.html', {

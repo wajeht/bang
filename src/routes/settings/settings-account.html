@@ -52,7 +52,7 @@
   <form action="/settings/account" method="POST" >
     <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
-    <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column;">
+    <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; background-color: var(--background-color);">
       <legend>Account Information</legend>
 
       <%~ include('../_components/inputs/text.html', {
@@ -144,7 +144,7 @@
     </fieldset>
   </form>
 
-  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; background-color: var(--background-color);">
     <legend>🔐 Hidden Items Password</legend>
 
     <p>Set a password to protect all your hidden items (notes, bookmarks, and actions). This password will be required to view any hidden content.</p>
@@ -204,7 +204,7 @@
     </form>
   </fieldset>
 
-  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; background-color: var(--background-color);">
     <legend>🔑 API Key <% if (user.api_key_version > 0) { %>(v<%= user.api_key_version %>)<% } %></legend>
 
     <% if (user.api_key) { %>
