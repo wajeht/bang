@@ -14,7 +14,7 @@ html {
 }
 
 :root {
-    --dot-color: #dddddd;
+    --dot-color: #dedede;
     --text-color: #333333;
     --background-color: #ffffff;
     --pre-background: #f8f9fa;
@@ -37,7 +37,7 @@ html {
 }
 
 [data-theme='dark'] {
-    --dot-color: #333333;
+    --dot-color: #2a2a2a;
     --text-color: #e0e0e0;
     --background-color: #1a1a1a;
     --pre-background: #2a2a2a;
