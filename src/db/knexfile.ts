@@ -30,6 +30,7 @@ let knexConfig: Knex.Config = {
         propagateCreateError: false, // Don't fail immediately on connection errors
         afterCreate: (conn: any, done: (err: Error | null, conn: any) => void) => {
             try {
+                logger.info('afterCreate: configuring connection');
                 // Enable foreign key constraints
                 conn.pragma('foreign_keys = ON');
 
@@ -81,7 +82,7 @@ let knexConfig: Knex.Config = {
                 if (!isTesting) {
                     logger.info('New database connection established');
                 }
-
+                logger.info('afterCreate: calling done callback');
                 done(null, conn);
             } catch (err: any) {
                 logger.error('Error establishing database connection', { error: err });

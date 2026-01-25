@@ -15,6 +15,7 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
 
     async getMigrations(): Promise<string[]> {
         try {
+            logger.info('Reading migrations directory');
             const dirents = await fs.readdir(this.migrationsPath, {
                 withFileTypes: true,
             });
@@ -34,6 +35,7 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
                     name: path.parse(name).name,
                 }));
                 logger.table(migrationList);
+                logger.info('getMigrations returning', { count: migrations.length });
             }
             return migrations;
         } catch (error) {
