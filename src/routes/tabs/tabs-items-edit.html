@@ -9,7 +9,7 @@
     action="/tabs/<%= tabItem.tab_id %>/items/<%= tabItem.id %>/update"
     style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
   >
-    <fieldset style="display: flex; flex-direction: column;">
+    <fieldset style="display: flex; flex-direction: column; background-color: var(--background-color);">
       <legend>Edit Tab Item Details</legend>
 
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
