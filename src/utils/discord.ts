@@ -36,14 +36,16 @@ export function createDiscord(ctx: AppContext) {
             if (!ctx.config.notify.url) return;
 
             const user = req.session?.user || req.user;
-            const stack = error.stack?.split('\n').slice(0, 6).join('\n') || 'No stack trace';
+            const stackLines = error.stack?.split('\n') || [];
+            const appLines = stackLines.filter((line) => !line.includes('node_modules'));
+            const stack = appLines.slice(0, 8).join('\n') || 'No stack trace';
             const query = Object.keys(req.query).length > 0 ? JSON.stringify(req.query) : null;
             const body = sanitizeObject(req.body);
             const bodyStr =
                 body && Object.keys(body as object).length > 0 ? JSON.stringify(body) : null;
 
             const embed = {
-                title: `${statusCode} Error`,
+                title: `${statusCode >= 500 ? '🔴' : '🟠'} ${statusCode} Error`,
                 description: truncate(error.message, 256),
                 color: statusCode >= 500 ? 0xff0000 : 0xffa500,
                 fields: [
