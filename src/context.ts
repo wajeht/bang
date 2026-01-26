@@ -31,6 +31,7 @@ import { createDate } from './utils/date';
 import { createHtml } from './utils/html';
 import { createAuth } from './utils/auth';
 import { createMail } from './utils/mail';
+import { createDiscord } from './utils/discord';
 import { createAssets } from './utils/assets';
 import { createLogger, Log } from './utils/logger';
 import { createSearch } from './utils/search';
@@ -97,6 +98,7 @@ export async function createContext(): Promise<AppContext> {
         mail: createMail(partialCtx),
         search: createSearch(partialCtx),
         template: createTemplate(partialCtx),
+        discord: createDiscord(partialCtx),
     };
 
     partialCtx.utils = utilities;

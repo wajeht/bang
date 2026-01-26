@@ -114,6 +114,8 @@ export function createErrorMiddleware(ctx: AppContext) {
             res.locals.csrfToken = '';
         }
 
+        ctx.utils.discord.sendErrorNotification(req, error, statusCode);
+
         return res.status(statusCode).render('general/error.html', {
             path: req.path,
             title: 'Error',

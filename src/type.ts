@@ -371,6 +371,7 @@ import { createDate } from './utils/date';
 import { createHtml } from './utils/html';
 import { createAuth } from './utils/auth';
 import { createMail } from './utils/mail';
+import { createDiscord } from './utils/discord';
 import { createUtil } from './utils/util';
 import { createSearch } from './utils/search';
 import { createRequest } from './utils/request';
@@ -390,6 +391,7 @@ export type RequestUtils = ReturnType<typeof createRequest>;
 export type UtilUtils = ReturnType<typeof createUtil>;
 export type SearchUtils = ReturnType<typeof createSearch>;
 export type MailUtils = ReturnType<typeof createMail>;
+export type DiscordUtils = ReturnType<typeof createDiscord>;
 
 export type Config = typeof config;
 export type CronService = CronServiceType;
@@ -428,6 +430,7 @@ export interface Utilities {
     search: SearchUtils;
     mail: MailUtils;
     template: TemplateUtils;
+    discord: DiscordUtils;
 }
 
 export interface Middlewares {
