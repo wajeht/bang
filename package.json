@@ -75,7 +75,7 @@
         "knex": "^3.1.0",
         "marked": "^17.0.1",
         "node-cron": "^4.2.1",
-        "nodemailer": "^7.0.12"
+        "nodemailer": "^7.0.13"
     },
     "devDependencies": {
         "@playwright/test": "^1.58.0",
@@ -88,17 +88,17 @@
         "@types/express-session": "^1.18.2",
         "@types/html-minifier-terser": "^7.0.2",
         "@types/jsonwebtoken": "^9.0.10",
-        "@types/node": "^25.0.10",
+        "@types/node": "^25.1.0",
         "@types/node-cron": "^3.0.11",
-        "@types/nodemailer": "^7.0.5",
+        "@types/nodemailer": "^7.0.9",
         "@types/supertest": "^6.0.3",
         "@typescript/native-preview": "^7.0.0-dev.20260101.1",
         "@vitest/coverage-v8": "^4.0.18",
         "@wajeht/express-templates-reload": "^2.0.5",
         "clean-css": "^5.3.3",
         "html-minifier-terser": "^7.2.0",
-        "oxfmt": "^0.26.0",
-        "oxlint": "^1.41.0",
+        "oxfmt": "^0.27.0",
+        "oxlint": "^1.42.0",
         "supertest": "^7.2.2",
         "tsx": "^4.21.0",
         "vitest": "^4.0.18"
