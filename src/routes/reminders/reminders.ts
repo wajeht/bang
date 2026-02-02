@@ -38,7 +38,7 @@ export function createRemindersRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
-            const reminderId = parseInt(req.params.id || '', 10);
+            const reminderId = parseInt(String(req.params.id ?? ''), 10);
 
             const reminder = await ctx.models.reminders.read(reminderId, user.id);
 
@@ -62,7 +62,7 @@ export function createRemindersRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user as User;
-            const reminderId = parseInt(req.params.id || '', 10);
+            const reminderId = parseInt(String(req.params.id ?? ''), 10);
 
             const reminder = await ctx.models.reminders.read(reminderId, user.id);
 
@@ -85,7 +85,7 @@ export function createRemindersRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user as User;
-            const reminderId = parseInt(req.params.id || '', 10);
+            const reminderId = parseInt(String(req.params.id ?? ''), 10);
             const { url, title, pinned, delete_reminder } = req.body;
 
             const reminder = await ctx.models.reminders.read(reminderId, user.id);

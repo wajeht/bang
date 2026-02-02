@@ -85,9 +85,9 @@ export function createAuthRouter(ctx: AppContext) {
     });
 
     router.get('/auth/magic/:token', async (req: Request, res: Response) => {
-        const { token } = req.params;
+        const token = String(req.params.token ?? '');
 
-        const decoded = ctx.utils.auth.verifyMagicLink(token!);
+        const decoded = ctx.utils.auth.verifyMagicLink(token);
 
         if (!decoded || !decoded.email) {
             throw new ctx.errors.ValidationError({
