@@ -78,7 +78,7 @@
         "nodemailer": "^7.0.13"
     },
     "devDependencies": {
-        "@playwright/test": "^1.58.0",
+        "@playwright/test": "^1.58.1",
         "@types/bcrypt": "^6.0.0",
         "@types/clean-css": "^4.2.11",
         "@types/compression": "^1.8.1",
@@ -88,7 +88,7 @@
         "@types/express-session": "^1.18.2",
         "@types/html-minifier-terser": "^7.0.2",
         "@types/jsonwebtoken": "^9.0.10",
-        "@types/node": "^25.1.0",
+        "@types/node": "^25.2.0",
         "@types/node-cron": "^3.0.11",
         "@types/nodemailer": "^7.0.9",
         "@types/supertest": "^6.0.3",
