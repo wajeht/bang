@@ -171,6 +171,8 @@ jobs:
         name: Build
         runs-on: ubuntu-latest
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        outputs:
+            tag: ${{ steps.image-name.outputs.TAG }}
         steps:
             - name: Check out repository
               uses: actions/checkout@v4
@@ -190,8 +192,10 @@ jobs:
             - name: Generate Image Name
               id: image-name
               run: |
-                  IMAGE_URL=$(echo ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:$(echo ${{ github.sha }} | cut -c1-7) | tr '[:upper:]' '[:lower:]')
+                  TAG=$(echo ${{ github.sha }} | cut -c1-7)
+                  IMAGE_URL=$(echo ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:$TAG | tr '[:upper:]' '[:lower:]')
                   echo "IMAGE_URL=$IMAGE_URL" >> $GITHUB_OUTPUT
+                  echo "TAG=$TAG" >> $GITHUB_OUTPUT
 
             - name: Build and push Docker Image
               uses: docker/build-push-action@v6
@@ -208,23 +212,9 @@ jobs:
     deploy:
         needs: [lint, unit-test, browser-test, format, build]
         name: Deploy
-        runs-on: ubuntu-latest
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-        environment:
-            name: production
-            url: https://bang.jaw.dev/
-
-        steps:
-            - name: Generate Image Name
-              id: image-name
-              run: |
-                  IMAGE_URL=$(echo ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:$(echo ${{ github.sha }} | cut -c1-7) | tr '[:upper:]' '[:lower:]')
-                  echo "IMAGE_URL=$IMAGE_URL" >> $GITHUB_OUTPUT
-            - name: Deploy Image to Server
-              uses: caprover/deploy-from-github@v1.1.2
-              with:
-                  server: '${{ secrets.CAPROVER_SERVER }}'
-                  app: '${{ secrets.APP_NAME }}'
-                  token: '${{ secrets.APP_TOKEN }}'
-                  image: ${{ steps.image-name.outputs.IMAGE_URL }}
+        uses: wajeht/doco-deploy-workflow/.github/workflows/deploy.yaml@main
+        with:
+            app-path: apps/bang
+            tag: ${{ needs.build.outputs.tag }}
+        secrets:
+            GH_TOKEN: ${{ secrets.GH_TOKEN }}
