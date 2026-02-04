@@ -37,8 +37,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends curl tree && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    groupadd -g 1001 nodejs && \
-    useradd -r -u 1001 -g nodejs nodejs
+    groupadd -g 1000 nodejs && \
+    useradd -r -u 1000 -g nodejs nodejs
 
 WORKDIR /usr/src/app
 
