@@ -153,26 +153,12 @@ export function createAdminOnlyMiddleware(ctx: AppContext) {
 }
 
 export function createHelmetMiddleware(ctx: AppContext) {
-    // Extract origin from APP_URL for CSP (CSP doesn't accept trailing slashes/paths)
-    const getAppOrigin = () => {
-        try {
-            const url = ctx.config.app.appUrl;
-            if (url.includes('://')) {
-                return new URL(url).origin;
-            }
-            return url; // localhost or hostname without protocol
-        } catch {
-            return ctx.config.app.appUrl;
-        }
-    };
-    const appOrigin = getAppOrigin();
-
     return ctx.libs.helmet({
         contentSecurityPolicy: {
             useDefaults: true,
             directives: {
                 ...ctx.libs.helmet.contentSecurityPolicy.getDefaultDirectives(),
-                'default-src': ["'self'", appOrigin, '*.cloudflare.com'],
+                'default-src': ["'self'", ctx.config.app.appUrl, '*.cloudflare.com'],
                 'img-src': ["'self'", '*'],
                 'script-src': [
                     "'self'",
@@ -180,7 +166,7 @@ export function createHelmetMiddleware(ctx: AppContext) {
                     "'unsafe-eval'",
                     'text/javascript',
                     'blob:',
-                    appOrigin,
+                    ctx.config.app.appUrl,
                     '*.cloudflare.com',
                 ],
                 'script-src-elem': [
