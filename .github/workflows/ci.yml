@@ -214,7 +214,7 @@ jobs:
         name: Deploy
         uses: wajeht/doco-deploy-workflow/.github/workflows/deploy.yaml@main
         with:
-            app-path: apps/bang
+            app-path: apps/swarm/bang
             tag: ${{ needs.build.outputs.tag }}
         secrets:
             GH_TOKEN: ${{ secrets.GH_TOKEN }}
