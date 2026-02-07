@@ -96236,9 +96236,9 @@ export const bangs: Record<string, any> = {
     },
     tidal: {
         s: 'Tidal',
-        d: 'listen.tidal.com',
+        d: 'tidal.com',
         t: 'tidal',
-        u: 'https://listen.tidal.com/search/{{{s}}}',
+        u: 'https://tidal.com/search/?q={{{s}}}',
         c: 'Multimedia',
         sc: 'Music',
     },
@@ -104784,7 +104784,7 @@ export const bangs: Record<string, any> = {
         sc: 'Weather',
     },
     web1913: {
-        s: "Webster's Dictionary (1913) !websters Webster's Dictionary 1828 - Online Edition !owd Merriam-Webster Dictionary !mw Merriam-Webster Pronunciation !say Merriam-Webster's Learner's Dictionary !mwl Webster's Revised Unabridged Dictionary (1913)",
+        s: "Webster's Dictionary (1913)",
         d: 'www.websters1913.com',
         t: 'web1913',
         u: 'https://www.websters1913.com/words/{{{s}}}',
