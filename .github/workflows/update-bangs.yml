@@ -112,7 +112,7 @@ jobs:
     deploy:
         needs: [build]
         name: Deploy
-        uses: wajeht/doco-deploy-workflow/.github/workflows/deploy.yaml@main
+        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/deploy.yaml@main
         with:
             app-path: apps/swarm/bang
             tag: ${{ needs.build.outputs.tag }}
