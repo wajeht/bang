@@ -114,7 +114,7 @@ jobs:
         name: Deploy
         uses: wajeht/docker-cd-deploy-workflow/.github/workflows/deploy.yaml@main
         with:
-            app-path: apps/swarm/bang
+            app-path: apps/bang
             tag: ${{ needs.build.outputs.tag }}
         secrets:
             GH_TOKEN: ${{ secrets.GH_TOKEN }}
