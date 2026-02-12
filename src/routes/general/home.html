@@ -346,7 +346,7 @@
 
       // Start loading on focus (when user clicks input)
       input.addEventListener('focus', startDataLoad, { once: true });
-      
+
       // ADDITIONAL OPTIMIZATION: Start preloading on hover
       // Many users hover before clicking, giving us extra time to load
       input.addEventListener('mouseenter', startDataLoad, { once: true });
@@ -397,7 +397,7 @@
 <% } %>
 
 <section style="margin-top: 10em; display: flex; justify-content: center; flex-direction: column; gap: 40px; align-items: center; width: 100%;">
-  <h1 style="font-size: 2em; font-weight: 900;">⚡️ <%= state.branding.appName %></h1>
+  <h1 style="font-size: 2em; font-weight: 900;">⚡️ <%= state.branding.appName %> testing 1 2 3</h1>
   <form method="POST" action="/search" style="display: flex; gap: 5px; width: 50%; position: relative;" role="search">
     <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
