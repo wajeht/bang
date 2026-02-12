@@ -104,7 +104,7 @@
         "vitest": "^4.0.18"
     },
     "overrides": {
-        "glob": "^10.4.5",
+        "glob": "^13.0.0",
         "inflight": "npm:@isaacs/inflight@^1.0.1",
         "rimraf": "^6.0.1"
     },
