@@ -223,7 +223,9 @@ jobs:
 
     temp-build:
         name: Temp Build
-        if: github.event.action == 'labeled' && github.event.label.name == 'temp-deploy'
+        if: >
+            (github.event.action == 'labeled' && github.event.label.name == 'temp-deploy') ||
+            (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'temp-deploy'))
         runs-on: ubuntu-latest
         outputs:
             tag: ${{ steps.image-name.outputs.TAG }}
@@ -265,7 +267,9 @@ jobs:
 
     temp-deploy:
         name: Temp Deploy
-        if: github.event.action == 'labeled' && github.event.label.name == 'temp-deploy'
+        if: >
+            (github.event.action == 'labeled' && github.event.label.name == 'temp-deploy') ||
+            (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'temp-deploy'))
         needs: temp-build
         uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-deploy.yaml@main
         with:
