@@ -210,6 +210,7 @@ jobs:
                   sbom: false
 
     deploy:
+        if: github.event_name == 'push'
         needs: [lint, unit-test, browser-test, format, build]
         name: Deploy
         uses: wajeht/docker-cd-deploy-workflow/.github/workflows/deploy.yaml@main
