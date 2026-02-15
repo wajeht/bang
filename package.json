@@ -97,7 +97,7 @@
         "@wajeht/express-templates-reload": "^2.0.5",
         "clean-css": "^5.3.3",
         "html-minifier-terser": "^7.2.0",
-        "oxfmt": "^0.28.0",
+        "oxfmt": "^0.31.0",
         "oxlint": "^1.43.0",
         "supertest": "^7.2.2",
         "tsx": "^4.21.0",
