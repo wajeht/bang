@@ -169,7 +169,7 @@ jobs:
 
     build:
         name: Build
-        runs-on: ${{ vars.WALKER || 'ubuntu-latest' }}
+        runs-on: ubuntu-latest
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         outputs:
             tag: ${{ steps.image-name.outputs.TAG }}
