@@ -69,7 +69,7 @@ jobs:
     build:
         needs: [update-bangs]
         name: Build
-        runs-on: ${{ vars.WALKER || 'ubuntu-latest' }}
+        runs-on: ubuntu-latest
         if: needs.update-bangs.outputs.changed == 'true'
         outputs:
             tag: ${{ steps.image-name.outputs.TAG }}
