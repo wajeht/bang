@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { ValidationUtils } from './validation';
+import { createValidation } from './validation';
 
-const validationUtils = ValidationUtils();
+const validationUtils = createValidation();
 
 describe('ValidationUtils', () => {
     describe('isValidUrl', () => {

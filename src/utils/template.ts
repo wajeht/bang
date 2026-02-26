@@ -1,7 +1,7 @@
 import path from 'node:path';
 import type { AppContext } from '../type';
 
-export function TemplateUtils(context: AppContext) {
+export function createTemplate(context: AppContext) {
     const { libs, config } = context;
 
     const viewsDir = path.join(process.cwd(), 'src/routes');

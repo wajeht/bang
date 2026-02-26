@@ -1,13 +1,8 @@
-import { test, expect } from '@playwright/test';
-import { loginUser, cleanupTestData } from '../../tests/browser-test-utils';
+import { test, expect, loginUser } from '../../tests/browser-test-fixtures';
 
 test.describe('Bookmarks', () => {
-    test.afterEach(async () => {
-        await cleanupTestData();
-    });
-
     test.beforeEach(async ({ page }) => {
-        await loginUser(page, 'test@example.com');
+        await loginUser(page, 'bookmarks-test@example.com');
     });
 
     test('can create a new bookmark', async ({ page }) => {

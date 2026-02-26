@@ -15,7 +15,7 @@ on:
 jobs:
     update-bangs:
         name: Update bangs from Kagi and DuckDuckGo
-        runs-on: ubuntu-latest
+        runs-on: ${{ vars.WALKER || 'ubuntu-latest' }}
         outputs:
             changed: ${{ steps.verify-changed-files.outputs.changed }}
 
@@ -24,7 +24,7 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [24.x]
+                node-version: [25.x]
 
         steps:
             - uses: actions/checkout@v4
@@ -66,18 +66,18 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    deploy:
+    build:
         needs: [update-bangs]
-        name: Deploy to Production
+        name: Build
         runs-on: ubuntu-latest
         if: needs.update-bangs.outputs.changed == 'true'
-
-        environment:
-            name: production
-            url: https://bang.jaw.dev/
+        outputs:
+            tag: ${{ steps.image-name.outputs.TAG }}
 
         steps:
             - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
@@ -92,11 +92,13 @@ jobs:
             - name: Generate Image Name
               id: image-name
               run: |
-                  IMAGE_URL=$(echo ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:$(echo ${{ github.sha }} | cut -c1-7) | tr '[:upper:]' '[:lower:]')
+                  TAG=$(echo ${{ github.sha }} | cut -c1-7)
+                  IMAGE_URL=$(echo ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:$TAG | tr '[:upper:]' '[:lower:]')
                   echo "IMAGE_URL=$IMAGE_URL" >> $GITHUB_OUTPUT
+                  echo "TAG=$TAG" >> $GITHUB_OUTPUT
 
             - name: Build and push Docker Image
-              uses: docker/build-push-action@v4
+              uses: docker/build-push-action@v6
               with:
                   context: .
                   file: ./Dockerfile
@@ -104,11 +106,15 @@ jobs:
                   tags: ${{ steps.image-name.outputs.IMAGE_URL }}
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
+                  provenance: false
+                  sbom: false
 
-            - name: Deploy Image to Server
-              uses: caprover/deploy-from-github@v1.1.2
-              with:
-                  server: '${{ secrets.CAPROVER_SERVER }}'
-                  app: '${{ secrets.APP_NAME }}'
-                  token: '${{ secrets.APP_TOKEN }}'
-                  image: ${{ steps.image-name.outputs.IMAGE_URL }}
+    deploy:
+        needs: [build]
+        name: Deploy
+        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/deploy.yaml@main
+        with:
+            app-path: apps/bang
+            tag: ${{ needs.build.outputs.tag }}
+        secrets:
+            GH_TOKEN: ${{ secrets.GH_TOKEN }}

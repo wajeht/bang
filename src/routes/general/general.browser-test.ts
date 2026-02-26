@@ -1,22 +1,18 @@
 import {
+    test,
+    expect,
     loginUser,
     logoutUser,
     openLoginDialog,
-    cleanupTestData,
     authenticateUser,
     expectUserLoggedIn,
     expectUserLoggedOut,
     submitEmailForMagicLink,
-} from '../../tests/browser-test-utils';
-import { test, expect } from '@playwright/test';
-
-test.afterEach(async () => {
-    await cleanupTestData();
-});
+} from '../../tests/browser-test-fixtures';
 
 test('can get / page', async ({ page }) => {
     await page.goto('/');
-    await expect(page).toHaveTitle(/Bang - Search/);
+    await expect(page).toHaveTitle(/Search/);
 });
 
 test('can open login dialog', async ({ page }) => {
@@ -31,13 +27,13 @@ test('can open login dialog', async ({ page }) => {
 
 test('can submit email for magic link', async ({ page }) => {
     await page.goto('/');
-    await submitEmailForMagicLink(page, 'test@example.com');
+    await submitEmailForMagicLink(page, 'general-test@example.com');
 
-    await expect(page.locator('body')).toContainText('Magic link sent to test@example.com');
+    await expect(page.locator('body')).toContainText('Magic link sent to general-test@example.com');
 });
 
 test('can authenticate with magic link', async ({ page }) => {
-    await authenticateUser(page, 'test@example.com');
+    await authenticateUser(page, 'general-test@example.com');
 
     await expect(page).toHaveURL('/actions');
 });
@@ -53,7 +49,7 @@ test('handles invalid magic link', async ({ page }) => {
 });
 
 test('can logout user', async ({ page }) => {
-    await loginUser(page, 'test@example.com');
+    await loginUser(page, 'general-test@example.com');
     await expectUserLoggedIn(page);
 
     await logoutUser(page);
@@ -63,10 +59,10 @@ test('can logout user', async ({ page }) => {
 });
 
 test('redirects authenticated users to actions page', async ({ page }) => {
-    await loginUser(page, 'test@example.com');
+    await loginUser(page, 'general-test@example.com');
 
     await page.goto('/');
-    await expect(page).toHaveTitle(/Bang - Search/);
+    await expect(page).toHaveTitle(/Search/);
     await expect(page).toHaveURL('/');
 
     await expect(page.locator('summary')).toContainText('👤');
@@ -74,7 +70,7 @@ test('redirects authenticated users to actions page', async ({ page }) => {
 });
 
 test('can navigate through user menu', async ({ page }) => {
-    await loginUser(page, 'test@example.com');
+    await loginUser(page, 'general-test@example.com');
     await page.goto('/');
 
     await page.locator('summary').click();

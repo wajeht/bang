@@ -2,12 +2,12 @@ import type { Request, Response, NextFunction } from 'express';
 import type { LayoutOptions, User, AppContext } from '../type';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 
-export function RequestLoggerMiddleware(ctx: AppContext) {
+export function createRequestLoggerMiddleware(ctx: AppContext) {
     return (req: Request, res: Response, next: NextFunction) => {
         const requestId = ctx.libs.crypto.randomUUID().slice(0, 8);
         const start = Date.now();
 
-        req.logger = ctx.logger.clone().tag('requestId', requestId).tag('method', req.method);
+        req.logger = ctx.logger.tag('requestId', requestId).tag('method', req.method);
 
         res.on('finish', () => {
             const duration = Date.now() - start;
@@ -30,7 +30,7 @@ export function RequestLoggerMiddleware(ctx: AppContext) {
     };
 }
 
-export function NotFoundMiddleware(ctx: AppContext) {
+export function createNotFoundMiddleware(ctx: AppContext) {
     return (req: Request, _res: Response, _next: NextFunction) => {
         throw new ctx.errors.NotFoundError(
             `Sorry, the ${ctx.utils.request.isApiRequest(req) ? 'resource' : 'page'} you are looking for could not be found.`,
@@ -38,7 +38,7 @@ export function NotFoundMiddleware(ctx: AppContext) {
     };
 }
 
-export function ErrorMiddleware(ctx: AppContext) {
+export function createErrorMiddleware(ctx: AppContext) {
     return async (error: Error, req: Request, res: Response, _next: NextFunction) => {
         const logger = req.logger || ctx.logger;
         logger.error(`${req.method} ${req.path} - ${error.message}`, {
@@ -105,11 +105,24 @@ export function ErrorMiddleware(ctx: AppContext) {
         }
 
         if (!res.locals.state) {
-            SetupAppLocals(ctx)(req, res);
+            createSetupAppLocals(ctx)(req, res);
+            // Load branding for error pages
+            res.locals.state.branding = await ctx.models.settings.getBranding();
         }
 
         if (typeof res.locals.csrfToken === 'undefined') {
             res.locals.csrfToken = '';
+        }
+
+        if (ctx.config.app.env === 'production') {
+            ctx.utils.discord.sendErrorNotification(req, error, statusCode);
+        } else {
+            ctx.logger.info('Discord error notification suppressed (non-production environment)', {
+                error,
+                statusCode,
+                message,
+                stack: error.stack,
+            });
         }
 
         return res.status(statusCode).render('general/error.html', {
@@ -121,7 +134,7 @@ export function ErrorMiddleware(ctx: AppContext) {
     };
 }
 
-export function AdminOnlyMiddleware(ctx: AppContext) {
+export function createAdminOnlyMiddleware(ctx: AppContext) {
     return async (req: Request, _res: Response, next: NextFunction) => {
         try {
             if (!req.user || !req.user.is_admin) {
@@ -139,13 +152,13 @@ export function AdminOnlyMiddleware(ctx: AppContext) {
     };
 }
 
-export function HelmetMiddleware(ctx: AppContext) {
+export function createHelmetMiddleware(ctx: AppContext) {
     return ctx.libs.helmet({
         contentSecurityPolicy: {
             useDefaults: true,
             directives: {
                 ...ctx.libs.helmet.contentSecurityPolicy.getDefaultDirectives(),
-                'default-src': ["'self'", 'bang.jaw.dev', '*.cloudflare.com'],
+                'default-src': ["'self'", ctx.config.app.appUrl, '*.cloudflare.com'],
                 'img-src': ["'self'", '*'],
                 'script-src': [
                     "'self'",
@@ -153,7 +166,7 @@ export function HelmetMiddleware(ctx: AppContext) {
                     "'unsafe-eval'",
                     'text/javascript',
                     'blob:',
-                    'bang.jaw.dev',
+                    ctx.config.app.appUrl,
                     '*.cloudflare.com',
                 ],
                 'script-src-elem': [
@@ -176,14 +189,14 @@ export function HelmetMiddleware(ctx: AppContext) {
     });
 }
 
-export function SpeculationRulesMiddleware() {
+export function createSpeculationRulesMiddleware() {
     return (_req: Request, res: Response, next: NextFunction) => {
         res.setHeader('Supports-Loading-Mode', 'credentialed-prerender');
         next();
     };
 }
 
-export function SessionMiddleware(ctx: AppContext) {
+export function createSessionMiddleware(ctx: AppContext) {
     return ctx.libs.session({
         secret: ctx.config.session.secret,
         resave: false,
@@ -213,7 +226,7 @@ let cachedStaticLocals: {
     utils: Record<string, any>;
 } | null = null;
 
-export function SetupAppLocals(ctx: AppContext) {
+export function createSetupAppLocals(ctx: AppContext) {
     if (!cachedStaticLocals) {
         const isProd = ctx.config.app.env === 'production';
         const assetVersions = isProd ? ctx.utils.assets.getAssetVersions() : null;
@@ -228,6 +241,7 @@ export function SetupAppLocals(ctx: AppContext) {
                 truncateString: ctx.utils.util.truncateString,
                 capitalize: ctx.utils.util.capitalize,
                 getFaviconUrl: ctx.utils.util.getFaviconUrl,
+                getScreenshotUrl: ctx.utils.util.getScreenshotUrl,
                 isUrlLike: ctx.utils.validation.isUrlLike,
                 stripHtmlTags: ctx.utils.html.stripHtmlTags,
                 highlightSearchTerm: ctx.utils.html.highlightSearchTerm,
@@ -237,10 +251,21 @@ export function SetupAppLocals(ctx: AppContext) {
     }
 
     return (req: Request, res: Response) => {
+        // Ensure column_preferences is always parsed for session user
+        const sessionUser = req.session?.user;
+        const userWithParsedPrefs = sessionUser
+            ? {
+                  ...sessionUser,
+                  column_preferences: ctx.utils.util.parseColumnPreferences(
+                      sessionUser.column_preferences,
+                  ),
+              }
+            : undefined;
+
         res.locals.state = {
             cloudflare_turnstile_site_key: ctx.config.cloudflare.turnstileSiteKey,
             env: ctx.config.app.env,
-            user: req.user ?? req.session?.user,
+            user: req.user ?? userWithParsedPrefs,
             copyRightYear: cachedStaticLocals!.copyRightYear,
             input: (req.session?.input as Record<string, string>) || {},
             errors: (req.session?.errors as Record<string, string>) || {},
@@ -257,7 +282,7 @@ export function SetupAppLocals(ctx: AppContext) {
     };
 }
 
-export function CsrfMiddleware(ctx: AppContext) {
+export function createCsrfMiddleware(ctx: AppContext) {
     const { csrfSynchronisedProtection, generateToken } = ctx.libs.csrfSync({
         getTokenFromRequest: (req: Request) => {
             if (req.body && req.body.csrfToken) {
@@ -303,15 +328,19 @@ export function CsrfMiddleware(ctx: AppContext) {
                 if (req.session) {
                     req.session.save((err) => {
                         if (err) {
-                            ctx.logger.error('Failed to save session after CSRF token generation', {
-                                error: err,
-                            });
+                            ctx.logger
+                                .tag('middleware', 'csrf')
+                                .error('Failed to save session after CSRF token generation', {
+                                    error: err,
+                                });
                         }
                     });
                 }
                 next();
             } catch (error) {
-                ctx.logger.error('CSRF token generation failed', { error });
+                ctx.logger
+                    .tag('middleware', 'csrf')
+                    .error('CSRF token generation failed', { error });
                 res.locals.csrfToken = '';
                 next();
             }
@@ -319,7 +348,7 @@ export function CsrfMiddleware(ctx: AppContext) {
     ];
 }
 
-export function AppLocalStateMiddleware(ctx: AppContext) {
+export function createAppLocalStateMiddleware(ctx: AppContext) {
     const FORM_DATA_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
 
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -334,7 +363,10 @@ export function AppLocalStateMiddleware(ctx: AppContext) {
                 req.session.input = req.body as Record<string, any>;
             }
 
-            SetupAppLocals(ctx)(req, res);
+            createSetupAppLocals(ctx)(req, res);
+
+            // Load branding settings from database (cached in repository)
+            res.locals.state.branding = await ctx.models.settings.getBranding();
 
             // Clear session input and errors after setting locals
             // This ensures they're available for the current request only
@@ -350,10 +382,9 @@ export function AppLocalStateMiddleware(ctx: AppContext) {
     };
 }
 
-// Cache TTL for user data in session (5 minutes)
-const USER_CACHE_TTL = 5 * 60 * 1000;
+const USER_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-export function AuthenticationMiddleware(ctx: AppContext) {
+export function createAuthenticationMiddleware(ctx: AppContext) {
     return async function authenticationMiddleware(
         req: Request,
         res: Response,
@@ -380,7 +411,9 @@ export function AuthenticationMiddleware(ctx: AppContext) {
                     if (!user) {
                         req.session.destroy((err) => {
                             if (err) {
-                                ctx.logger.error('Session destruction error', { error: err });
+                                ctx.logger
+                                    .tag('middleware', 'auth')
+                                    .error('Session destruction error', { error: err });
                             }
                         });
                     }
@@ -412,19 +445,11 @@ export function AuthenticationMiddleware(ctx: AppContext) {
                 return;
             }
 
-            // Only parse column_preferences if we fetched fresh data
-            let parsedUser: User;
-            if (needsRefresh) {
-                parsedUser = {
-                    ...user,
-                    column_preferences: user?.column_preferences
-                        ? JSON.parse(user.column_preferences as unknown as string)
-                        : {},
-                } as User;
-            } else {
-                // Already parsed from session cache
-                parsedUser = user;
-            }
+            // Always ensure column_preferences is properly parsed
+            const parsedUser: User = {
+                ...user,
+                column_preferences: ctx.utils.util.parseColumnPreferences(user?.column_preferences),
+            } as User;
 
             req.user = parsedUser;
 
@@ -437,19 +462,21 @@ export function AuthenticationMiddleware(ctx: AppContext) {
 
             next();
         } catch (error) {
-            ctx.logger.error(`Authentication error: ${(error as Error).message}`, {
-                error: {
-                    name: (error as Error).name,
-                    message: (error as Error).message,
-                    stack: (error as Error).stack,
-                },
-            });
+            ctx.logger
+                .tag('middleware', 'auth')
+                .error(`Authentication error: ${(error as Error).message}`, {
+                    error: {
+                        name: (error as Error).name,
+                        message: (error as Error).message,
+                        stack: (error as Error).stack,
+                    },
+                });
             next(error);
         }
     };
 }
 
-export function RateLimitMiddleware(ctx: AppContext) {
+export function createRateLimitMiddleware(ctx: AppContext) {
     return ctx.libs.rateLimit({
         windowMs: 15 * 60 * 1000, // 15 minutes
         max: 100, // Limit each IP to 100 requests per windowMs
@@ -465,7 +492,7 @@ export function RateLimitMiddleware(ctx: AppContext) {
     });
 }
 
-export function LayoutMiddleware(options: LayoutOptions = {}) {
+export function createLayoutMiddleware(options: LayoutOptions = {}) {
     const defaultOptions: LayoutOptions = {
         defaultLayout: '_layouts/public.html',
         layoutsDir: '_layouts',
@@ -508,11 +535,13 @@ export function LayoutMiddleware(options: LayoutOptions = {}) {
     };
 }
 
-export function TurnstileMiddleware(ctx: AppContext) {
+export function createTurnstileMiddleware(ctx: AppContext) {
     return async function turnstileMiddleware(req: Request, _res: Response, next: NextFunction) {
         try {
             if (ctx.config.app.env !== 'production') {
-                ctx.logger.info('Skipping turnstile middleware in non-production environment');
+                req.logger
+                    .tag('middleware', 'turnstile')
+                    .info('Skipping in non-production environment');
                 return next();
             }
 
@@ -537,7 +566,7 @@ export function TurnstileMiddleware(ctx: AppContext) {
     };
 }
 
-export function StaticAssetsMiddleware(ctx: AppContext) {
+export function createStaticAssetsMiddleware(ctx: AppContext) {
     return ctx.libs.express.static('./public', {
         maxAge: '365d', // 1 year
         etag: true,

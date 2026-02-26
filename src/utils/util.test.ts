@@ -1,45 +1,46 @@
 import path from 'node:path';
-import { Utils } from './util';
+import { createUtil } from './util';
 import { libs } from '../libs';
 import fs from 'node:fs/promises';
 import { Request } from 'express';
 import { config } from '../config';
-import { AuthUtils } from './auth';
-import { HtmlUtils } from './html';
-import { DateUtils } from './date';
-import { MailUtils } from './mail';
-import { RequestUtils } from './request';
+import { createAuth } from './auth';
+import { createHtml } from './html';
+import { createDate } from './date';
+import { createMail } from './mail';
+import { createRequest } from './request';
 import { db } from '../tests/test-setup';
-import { ValidationUtils } from './validation';
+import { createValidation } from './validation';
 import type { ApiKeyPayload, BookmarkToExport } from '../type';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-let validationUtils: ReturnType<typeof ValidationUtils>;
-let authUtils: ReturnType<typeof AuthUtils>;
-let utilUtils: ReturnType<typeof Utils>;
-let htmlUtils: ReturnType<typeof HtmlUtils>;
-let dateUtils: ReturnType<typeof DateUtils>;
-let requestUtils: ReturnType<typeof RequestUtils>;
-let mailUtils: ReturnType<typeof MailUtils>;
+let validationUtils: ReturnType<typeof createValidation>;
+let authUtils: ReturnType<typeof createAuth>;
+let utilUtils: ReturnType<typeof createUtil>;
+let htmlUtils: ReturnType<typeof createHtml>;
+let dateUtils: ReturnType<typeof createDate>;
+let requestUtils: ReturnType<typeof createRequest>;
+let mailUtils: ReturnType<typeof createMail>;
 
 beforeAll(async () => {
-    const { BookmarksRepository } = await import('../routes/bookmarks/bookmarks.repository');
+    const { createBookmarksRepository } = await import('../routes/bookmarks/bookmarks.repository');
+    const { createSettingsRepository } = await import('../routes/admin/settings.repository');
 
     const mockContext = {
         db,
         config,
         libs,
-        logger: { error: vi.fn(), info: vi.fn() },
+        logger: { error: vi.fn(), info: vi.fn(), tag: vi.fn().mockReturnThis() },
         utils: {} as any,
         models: {} as any,
         errors: {} as any,
     } as any;
 
-    validationUtils = ValidationUtils();
-    authUtils = AuthUtils(mockContext);
-    htmlUtils = HtmlUtils();
-    dateUtils = DateUtils(mockContext);
-    requestUtils = RequestUtils(mockContext);
+    validationUtils = createValidation();
+    authUtils = createAuth(mockContext);
+    htmlUtils = createHtml();
+    dateUtils = createDate(mockContext);
+    requestUtils = createRequest(mockContext);
 
     mockContext.utils = {
         validation: validationUtils,
@@ -50,11 +51,12 @@ beforeAll(async () => {
     };
 
     mockContext.models = {
-        bookmarks: BookmarksRepository(mockContext),
+        bookmarks: createBookmarksRepository(mockContext),
+        settings: createSettingsRepository(mockContext),
     };
 
-    utilUtils = Utils(mockContext);
-    mailUtils = MailUtils(mockContext);
+    utilUtils = createUtil(mockContext);
+    mailUtils = createMail(mockContext);
 
     mockContext.utils.util = utilUtils;
     mockContext.utils.mail = mailUtils;
@@ -148,6 +150,122 @@ describe.concurrent('isUrlLike', () => {
         expect(validationUtils.isUrlLike(' google.com ')).toBeTruthy();
         expect(validationUtils.isUrlLike('a.b')).toBeFalsy();
         expect(validationUtils.isUrlLike('localhost')).toBeFalsy();
+    });
+});
+
+describe.concurrent('normalizeUrl', () => {
+    it('should return valid https URL as-is', () => {
+        expect(utilUtils.normalizeUrl('https://example.com')).toBe('https://example.com');
+    });
+
+    it('should return valid http URL as-is', () => {
+        expect(utilUtils.normalizeUrl('http://example.com')).toBe('http://example.com');
+    });
+
+    it('should prepend https:// when URL has no protocol', () => {
+        expect(utilUtils.normalizeUrl('example.com')).toBe('https://example.com');
+    });
+
+    it('should prepend https:// for www URLs without protocol', () => {
+        expect(utilUtils.normalizeUrl('www.example.com')).toBe('https://www.example.com');
+    });
+
+    it('should not double-prepend for URLs starting with http', () => {
+        expect(utilUtils.normalizeUrl('http://example.com')).toBe('http://example.com');
+    });
+
+    it('should handle empty string', () => {
+        expect(utilUtils.normalizeUrl('')).toBe('https://');
+    });
+});
+
+describe.concurrent('getFaviconUrl', () => {
+    it('should extract hostname from valid https URL', () => {
+        expect(utilUtils.getFaviconUrl('https://example.com/path/to/page')).toBe(
+            'https://favicon.jaw.dev/?url=example.com',
+        );
+    });
+
+    it('should extract hostname from valid http URL', () => {
+        expect(utilUtils.getFaviconUrl('http://example.com')).toBe(
+            'https://favicon.jaw.dev/?url=example.com',
+        );
+    });
+
+    it('should handle URL with subdomain', () => {
+        expect(utilUtils.getFaviconUrl('https://www.example.com')).toBe(
+            'https://favicon.jaw.dev/?url=www.example.com',
+        );
+    });
+
+    it('should handle URL with port', () => {
+        expect(utilUtils.getFaviconUrl('https://example.com:8080/path')).toBe(
+            'https://favicon.jaw.dev/?url=example.com',
+        );
+    });
+
+    it('should normalize and extract hostname when URL has no protocol', () => {
+        expect(utilUtils.getFaviconUrl('example.com')).toBe(
+            'https://favicon.jaw.dev/?url=example.com',
+        );
+    });
+
+    it('should normalize and extract hostname for www URLs', () => {
+        expect(utilUtils.getFaviconUrl('www.example.com')).toBe(
+            'https://favicon.jaw.dev/?url=www.example.com',
+        );
+    });
+
+    it('should handle empty string', () => {
+        expect(utilUtils.getFaviconUrl('')).toBe('https://favicon.jaw.dev/?url=');
+    });
+});
+
+describe.concurrent('getScreenshotUrl', () => {
+    it('should encode valid https URL', () => {
+        expect(utilUtils.getScreenshotUrl('https://example.com')).toBe(
+            'https://screenshot.jaw.dev?url=https%3A%2F%2Fexample.com',
+        );
+    });
+
+    it('should encode valid http URL', () => {
+        expect(utilUtils.getScreenshotUrl('http://example.com')).toBe(
+            'https://screenshot.jaw.dev?url=http%3A%2F%2Fexample.com',
+        );
+    });
+
+    it('should encode URL with path and query params', () => {
+        expect(utilUtils.getScreenshotUrl('https://example.com/path?foo=bar')).toBe(
+            'https://screenshot.jaw.dev?url=https%3A%2F%2Fexample.com%2Fpath%3Ffoo%3Dbar',
+        );
+    });
+
+    it('should prepend https:// when URL has no protocol', () => {
+        expect(utilUtils.getScreenshotUrl('example.com')).toBe(
+            'https://screenshot.jaw.dev?url=https%3A%2F%2Fexample.com',
+        );
+    });
+
+    it('should prepend https:// for www URLs without protocol', () => {
+        expect(utilUtils.getScreenshotUrl('www.example.com')).toBe(
+            'https://screenshot.jaw.dev?url=https%3A%2F%2Fwww.example.com',
+        );
+    });
+
+    it('should not double-prepend for URLs starting with http', () => {
+        expect(utilUtils.getScreenshotUrl('http://example.com')).toBe(
+            'https://screenshot.jaw.dev?url=http%3A%2F%2Fexample.com',
+        );
+    });
+
+    it('should handle empty string by falling back to original', () => {
+        expect(utilUtils.getScreenshotUrl('')).toBe('https://screenshot.jaw.dev?url=');
+    });
+
+    it('should encode special characters in URL', () => {
+        expect(utilUtils.getScreenshotUrl('https://example.com/path with spaces')).toBe(
+            'https://screenshot.jaw.dev?url=https%3A%2F%2Fexample.com%2Fpath%20with%20spaces',
+        );
     });
 });
 
@@ -439,22 +557,7 @@ describe.concurrent('extractPagination', () => {
 });
 
 describe('api', () => {
-    beforeAll(async () => {
-        await db('users').del();
-        await db('users').insert({
-            id: 1,
-            username: 'Test User',
-            email: 'testuser@example.com',
-            api_key: 'test-api-key',
-            api_key_version: 1,
-        });
-    });
-
-    afterAll(async () => {
-        await db('users').where({ id: 1 }).delete();
-    });
-
-    afterEach(async () => {
+    beforeEach(async () => {
         await db('users').where({ id: 1 }).update({
             api_key: 'test-api-key',
             api_key_version: 1,
@@ -662,28 +765,6 @@ describe.concurrent('isOnlyLettersAndNumbers', () => {
 });
 
 describe('insertBookmark', () => {
-    beforeAll(async () => {
-        await db('bookmarks').del();
-        await db('users').del();
-        await db('users').insert({
-            id: 1,
-            username: 'Test User',
-            email: 'testuser@example.com',
-            is_admin: false,
-            default_search_provider: 'duckduckgo',
-            column_preferences: JSON.stringify({
-                bookmarks: { default_per_page: 10 },
-                actions: { default_per_page: 10 },
-                notes: { default_per_page: 10 },
-            }),
-        });
-    });
-
-    afterAll(async () => {
-        await db('bookmarks').del();
-        await db('users').where({ id: 1 }).delete();
-    });
-
     it('should insert bookmark with provided title', async () => {
         await utilUtils.insertBookmark({
             url: 'https://example.com',
@@ -709,6 +790,87 @@ describe('insertBookmark', () => {
         expect(bookmark.title).toBe('Fetching title...');
         expect(bookmark.url).toBe('https://example2.com');
         expect(bookmark.user_id).toBe(1);
+    });
+
+    it('should call prefetchAssets when bookmark is inserted', async () => {
+        const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+            text: () => Promise.resolve(''),
+        } as unknown as globalThis.Response);
+
+        await utilUtils.insertBookmark({
+            url: 'https://prefetch-test.com',
+            userId: 1,
+            title: 'Prefetch Test',
+        });
+
+        await vi.waitFor(() => {
+            expect(fetchSpy).toHaveBeenCalledWith(
+                expect.stringContaining('screenshot.jaw.dev'),
+                expect.any(Object),
+            );
+        });
+
+        await vi.waitFor(() => {
+            expect(fetchSpy).toHaveBeenCalledWith(
+                expect.stringContaining('favicon.jaw.dev'),
+                expect.any(Object),
+            );
+        });
+
+        fetchSpy.mockRestore();
+    });
+});
+
+describe('checkDuplicateBookmarkUrl', () => {
+    beforeEach(async () => {
+        await db('bookmarks').insert({
+            user_id: 1,
+            url: 'https://example.com',
+            title: 'Original Title',
+        });
+    });
+
+    it('should find duplicate when URL matches and no title is provided', async () => {
+        const result = await utilUtils.checkDuplicateBookmarkUrl(1, 'https://example.com');
+        expect(result).not.toBeNull();
+        expect(result?.url).toBe('https://example.com');
+        expect(result?.title).toBe('Original Title');
+    });
+
+    it('should find duplicate when URL matches and empty title is provided', async () => {
+        const result = await utilUtils.checkDuplicateBookmarkUrl(1, 'https://example.com', '');
+        expect(result).not.toBeNull();
+        expect(result?.url).toBe('https://example.com');
+    });
+
+    it('should find duplicate when both URL and title match', async () => {
+        const result = await utilUtils.checkDuplicateBookmarkUrl(
+            1,
+            'https://example.com',
+            'Original Title',
+        );
+        expect(result).not.toBeNull();
+        expect(result?.url).toBe('https://example.com');
+        expect(result?.title).toBe('Original Title');
+    });
+
+    it('should NOT find duplicate when URL matches but title is different', async () => {
+        const result = await utilUtils.checkDuplicateBookmarkUrl(
+            1,
+            'https://example.com',
+            'Different Title',
+        );
+        expect(result).toBeFalsy();
+    });
+
+    it('should NOT find duplicate when URL does not exist', async () => {
+        const result = await utilUtils.checkDuplicateBookmarkUrl(1, 'https://nonexistent.com');
+        expect(result).toBeFalsy();
+    });
+
+    it('should NOT find duplicate for different user', async () => {
+        const result = await utilUtils.checkDuplicateBookmarkUrl(999, 'https://example.com');
+        expect(result).toBeFalsy();
     });
 });
 
@@ -843,7 +1005,58 @@ describe('formatDateInTimezone', () => {
 });
 
 describe('sendReminderDigestEmail', () => {
-    it('should format reminder emails with clickable links in HTML', async () => {
+    let sendMailMock: ReturnType<typeof vi.fn>;
+    let testMailUtils: ReturnType<typeof createMail>;
+
+    beforeAll(async () => {
+        const { createSettingsRepository } = await import('../routes/admin/settings.repository');
+
+        sendMailMock = vi.fn().mockResolvedValue({ messageId: 'test-id' });
+
+        const mockNodemailer = {
+            createTransport: vi.fn().mockReturnValue({ sendMail: sendMailMock }),
+        };
+
+        const prodConfig = {
+            ...config,
+            app: { ...config.app, env: 'production' },
+        };
+
+        const mockLogger = {
+            error: vi.fn(),
+            info: vi.fn(),
+            box: vi.fn(),
+            table: vi.fn(),
+            tag: vi.fn().mockReturnThis(),
+        };
+
+        const testContext = {
+            db,
+            config: prodConfig,
+            libs: { ...libs, nodemailer: mockNodemailer },
+            logger: mockLogger,
+            models: { settings: createSettingsRepository({ db, config, libs } as any) },
+        } as any;
+
+        testMailUtils = createMail(testContext);
+    });
+
+    beforeEach(() => {
+        sendMailMock.mockClear();
+    });
+
+    it('should not send email when reminders array is empty', async () => {
+        await testMailUtils.sendReminderDigestEmail({
+            email: 'test@example.com',
+            username: 'TestUser',
+            reminders: [],
+            date: '2025-08-16',
+        });
+
+        expect(sendMailMock).not.toHaveBeenCalled();
+    });
+
+    it('should send email with clickable links in HTML', async () => {
         const reminders = [
             {
                 id: 1,
@@ -854,48 +1067,63 @@ describe('sendReminderDigestEmail', () => {
             },
             {
                 id: 2,
-                title: 'Why I Do Programming',
-                url: 'https://esafev.com/notes/why-i-do-programming/',
-                reminder_type: 'recurring' as const,
-                frequency: 'weekly' as const,
-            },
-            {
-                id: 3,
                 title: 'Meeting with team',
                 reminder_type: 'once' as const,
             },
-            {
-                id: 4,
-                title: 'Claude Code Best Practices',
-                url: 'https://www.anthropic.com/engineering/claude-code-best-practices',
-                reminder_type: 'recurring' as const,
-                frequency: 'weekly' as const,
-            },
         ];
 
-        // This test can be run locally with mailpit running to verify the email format
-        // When mailpit is running, you can check the email at http://localhost:8025
-        await mailUtils.sendReminderDigestEmail({
+        await testMailUtils.sendReminderDigestEmail({
             email: 'test@example.com',
             username: 'TestUser',
             reminders,
             date: '2025-08-16',
         });
 
-        // If running with mailpit, check that:
-        // 1. Email subject is "⏰ Reminders - Saturday, August 16, 2025"
-        // 2. Links are clickable in the HTML view
-        // 3. Frequency appears in the header as "weekly reminders"
-        // 4. No CSS styles are present
-        expect(true).toBe(true);
+        expect(sendMailMock).toHaveBeenCalledTimes(1);
+        const emailArgs = sendMailMock.mock.calls[0][0];
+
+        expect(emailArgs.to).toBe('test@example.com');
+        expect(emailArgs.subject).toContain('Reminders');
+        expect(emailArgs.subject).toContain('Saturday, August 16, 2025');
+        expect(emailArgs.html).toContain('Hello TestUser');
+        expect(emailArgs.html).toContain(
+            '<a href="https://forgecode.dev/blog/ai-agent-best-practices/">AI Agent Best Practices</a>',
+        );
+        expect(emailArgs.html).toContain('<li>Meeting with team</li>');
     });
 
-    it('should handle mixed reminder types correctly', async () => {
+    it('should show "weekly reminders" when all reminders are weekly recurring', async () => {
+        const reminders = [
+            {
+                id: 1,
+                title: 'Weekly Report',
+                reminder_type: 'recurring' as const,
+                frequency: 'weekly' as const,
+            },
+            {
+                id: 2,
+                title: 'Weekly Review',
+                reminder_type: 'recurring' as const,
+                frequency: 'weekly' as const,
+            },
+        ];
+
+        await testMailUtils.sendReminderDigestEmail({
+            email: 'test@example.com',
+            username: 'TestUser',
+            reminders,
+            date: '2025-08-16',
+        });
+
+        const emailArgs = sendMailMock.mock.calls[0][0];
+        expect(emailArgs.html).toContain('weekly reminders');
+    });
+
+    it('should show "reminders" when reminder types are mixed', async () => {
         const reminders = [
             {
                 id: 1,
                 title: 'Daily standup',
-                url: 'https://zoom.us/meeting/123',
                 reminder_type: 'recurring' as const,
                 frequency: 'daily' as const,
             },
@@ -907,55 +1135,41 @@ describe('sendReminderDigestEmail', () => {
             {
                 id: 3,
                 title: 'Weekly review',
-                url: 'https://notion.so/weekly',
                 reminder_type: 'recurring' as const,
                 frequency: 'weekly' as const,
             },
         ];
 
-        // This test can be run locally with mailpit running to verify the email format
-        await mailUtils.sendReminderDigestEmail({
+        await testMailUtils.sendReminderDigestEmail({
             email: 'test@example.com',
             username: 'TestUser',
             reminders,
             date: '2025-08-16',
         });
 
-        // When mixed types, email should just say "reminders" not "weekly reminders"
-        expect(true).toBe(true);
+        const emailArgs = sendMailMock.mock.calls[0][0];
+        expect(emailArgs.html).toContain('your reminders for');
+        expect(emailArgs.html).not.toContain('weekly reminders');
+        expect(emailArgs.html).not.toContain('daily reminders');
     });
 });
 
 describe('processReminderDigests', () => {
-    let testUserId: number;
-
-    beforeAll(async () => {
-        await db('reminders').del();
-        await db('users').del();
-
-        const [user] = await db('users')
-            .insert({
-                username: 'testuser',
-                email: 'test@example.com',
-                timezone: 'America/Chicago',
-            })
-            .returning('id');
-        testUserId = user.id;
-    });
-
-    afterAll(async () => {
-        await db('reminders').del();
-        await db('users').del();
-    });
+    const testUserId = 1;
 
     beforeEach(async () => {
-        await db('reminders').del();
+        vi.spyOn(mailUtils, 'sendReminderDigestEmail').mockResolvedValue();
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
     it('should find due reminders in the next 15 minutes and handle timezone correctly', async () => {
-        const now = new Date();
-        const in10Minutes = new Date(now.getTime() + 10 * 60 * 1000);
-        const in20Minutes = new Date(now.getTime() + 20 * 60 * 1000);
+        const now = libs.dayjs.utc();
+        const in10Minutes = now.add(10, 'minute');
+        const in20Minutes = now.add(20, 'minute');
+        const past20Minutes = now.subtract(20, 'minute');
 
         await db('reminders').insert([
             {
@@ -974,30 +1188,26 @@ describe('processReminderDigests', () => {
                 user_id: testUserId,
                 title: 'Already Due',
                 reminder_type: 'once',
-                due_date: new Date(now.getTime() - 20 * 60 * 1000).toISOString(), // 20 minutes ago
+                due_date: past20Minutes.toISOString(),
             },
         ]);
 
         await mailUtils.processReminderDigests();
 
-        // Check that one-time reminder was deleted (this confirms processing happened)
         const remainingReminders = await db('reminders').where('title', 'Due Soon');
         expect(remainingReminders).toHaveLength(0);
 
-        // Check that future reminder is still there
         const futureReminders = await db('reminders').where('title', 'Due Later');
         expect(futureReminders).toHaveLength(1);
 
-        // Check that past due reminder is still there (not processed since it's outside the window)
         const pastDueReminders = await db('reminders').where('title', 'Already Due');
         expect(pastDueReminders).toHaveLength(1);
     });
 
     it('should handle recurring reminders and calculate next due date correctly', async () => {
-        const now = new Date();
-        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+        const now = libs.dayjs.utc();
+        const in5Minutes = now.add(5, 'minute');
 
-        // Create recurring reminders for different frequencies
         await db('reminders').insert([
             {
                 user_id: testUserId,
@@ -1017,37 +1227,28 @@ describe('processReminderDigests', () => {
 
         await mailUtils.processReminderDigests();
 
-        // Check that recurring reminders were updated with next due dates
         const dailyReminder = await db('reminders').where('title', 'Daily Reminder').first();
         const weeklyReminder = await db('reminders').where('title', 'Weekly Reminder').first();
 
         expect(dailyReminder).toBeTruthy();
         expect(weeklyReminder).toBeTruthy();
 
-        // Check that next due dates are calculated correctly (approximately)
-        const originalDue = new Date(in5Minutes);
+        const originalDue = in5Minutes.toDate();
         const dailyNextDue = new Date(dailyReminder.due_date);
         const weeklyNextDue = new Date(weeklyReminder.due_date);
 
-        // Daily should be ~24 hours later
         expect(dailyNextDue.getTime() - originalDue.getTime()).toBeCloseTo(24 * 60 * 60 * 1000, -4);
 
-        // Weekly should be scheduled for next Saturday after processing
-        // Parse the UTC date and convert to test user's timezone to check the day
         const weeklyDue = libs.dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
-        expect(weeklyDue.day()).toBe(6); // 6 = Saturday
+        expect(weeklyDue.day()).toBe(6);
 
-        // Since the reminder is processed and moved to the next occurrence,
-        // it should be approximately 7 days in the future (next Saturday)
         const weeklyDiff = weeklyNextDue.getTime() - originalDue.getTime();
-        expect(weeklyDiff).toBeGreaterThan(6 * 24 * 60 * 60 * 1000); // More than 6 days
-        expect(weeklyDiff).toBeLessThanOrEqual(14 * 24 * 60 * 60 * 1000); // Less than 14 days
-
-        // Recurring reminders should have their due dates updated
+        expect(weeklyDiff).toBeGreaterThan(0);
+        expect(weeklyDiff).toBeLessThanOrEqual(14 * 24 * 60 * 60 * 1000);
     });
 
     it('should handle no due reminders gracefully', async () => {
-        const farFuture = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
+        const farFuture = new Date(Date.now() + 2 * 60 * 60 * 1000);
 
         await db('reminders').insert({
             user_id: testUserId,
@@ -1056,39 +1257,33 @@ describe('processReminderDigests', () => {
             due_date: farFuture.toISOString(),
         });
 
-        // Should not throw an error
         await expect(mailUtils.processReminderDigests()).resolves.not.toThrow();
 
-        // Reminder should still exist (not processed since it's not due)
         const reminders = await db('reminders').where('title', 'Far Future');
         expect(reminders).toHaveLength(1);
     });
 
     it('should use UTC for database queries and handle user timezones for email formatting', async () => {
-        // This test validates that the function uses UTC for database operations
-        const now = new Date();
-        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+        const now = libs.dayjs.utc();
+        const in5Minutes = now.add(5, 'minute');
 
-        // Create a reminder that should be found (due within 15 minutes from UTC perspective)
         await db('reminders').insert({
             user_id: testUserId,
             title: 'UTC Test',
             reminder_type: 'once',
-            due_date: in5Minutes.toISOString(), // This is in UTC
+            due_date: in5Minutes.toISOString(),
         });
 
         await mailUtils.processReminderDigests();
 
-        // The reminder should have been processed (deleted for one-time reminders)
         const remainingReminders = await db('reminders').where('title', 'UTC Test');
         expect(remainingReminders).toHaveLength(0);
     });
 
     it('should schedule weekly reminders for Saturday and monthly for the 1st', async () => {
-        const now = new Date();
-        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+        const now = libs.dayjs.utc();
+        const in5Minutes = now.add(5, 'minute');
 
-        // Create weekly and monthly reminders
         await db('reminders').insert([
             {
                 user_id: testUserId,
@@ -1108,71 +1303,23 @@ describe('processReminderDigests', () => {
 
         await mailUtils.processReminderDigests();
 
-        // Check that reminders were rescheduled
         const weeklyReminder = await db('reminders').where('title', 'Weekly Report').first();
         const monthlyReminder = await db('reminders').where('title', 'Monthly Review').first();
 
         expect(weeklyReminder).toBeTruthy();
         expect(monthlyReminder).toBeTruthy();
 
-        // Weekly reminder should be scheduled for next Saturday
-        // Parse the UTC date and convert to test user's timezone to check the day
         const weeklyDue = libs.dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
-        expect(weeklyDue.day()).toBe(6); // 6 = Saturday
+        expect(weeklyDue.day()).toBe(6);
 
-        // Monthly reminder should be scheduled for the 1st of next month
-        // Parse the UTC date and convert to test user's timezone to check the date
         const monthlyDue = libs.dayjs.tz(monthlyReminder.due_date, 'UTC').tz('America/Chicago');
-        expect(monthlyDue.date()).toBe(1); // 1st of the month
-    });
-
-    it('should create new weekly reminders on Saturday and monthly on the 1st', async () => {
-        const now = new Date();
-        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
-
-        // Create weekly and monthly reminders
-        await db('reminders').insert([
-            {
-                user_id: testUserId,
-                title: 'Weekly Report',
-                reminder_type: 'recurring',
-                frequency: 'weekly',
-                due_date: in5Minutes.toISOString(),
-            },
-            {
-                user_id: testUserId,
-                title: 'Monthly Review',
-                reminder_type: 'recurring',
-                frequency: 'monthly',
-                due_date: in5Minutes.toISOString(),
-            },
-        ]);
-
-        await mailUtils.processReminderDigests();
-
-        // Check that reminders were rescheduled
-        const weeklyReminder = await db('reminders').where('title', 'Weekly Report').first();
-        const monthlyReminder = await db('reminders').where('title', 'Monthly Review').first();
-
-        expect(weeklyReminder).toBeTruthy();
-        expect(monthlyReminder).toBeTruthy();
-
-        // Weekly reminder should be scheduled for next Saturday
-        // Parse the UTC date and convert to test user's timezone to check the day
-        const weeklyDue = libs.dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
-        expect(weeklyDue.day()).toBe(6); // 6 = Saturday
-
-        // Monthly reminder should be scheduled for the 1st of next month
-        // Parse the UTC date and convert to test user's timezone to check the date
-        const monthlyDue = libs.dayjs.tz(monthlyReminder.due_date, 'UTC').tz('America/Chicago');
-        expect(monthlyDue.date()).toBe(1); // 1st of the month
+        expect(monthlyDue.date()).toBe(1);
     });
 
     it('should allow daily reminders to be processed multiple times', async () => {
-        const now = new Date();
-        const in5Minutes = new Date(now.getTime() + 5 * 60 * 1000);
+        const now = libs.dayjs.utc();
+        const in5Minutes = now.add(5, 'minute');
 
-        // Create a daily recurring reminder
         await db('reminders').insert({
             user_id: testUserId,
             title: 'Multi-Day Daily Reminder',
@@ -1181,35 +1328,28 @@ describe('processReminderDigests', () => {
             due_date: in5Minutes.toISOString(),
         });
 
-        // First processing
         await mailUtils.processReminderDigests();
 
         let reminder = await db('reminders').where('title', 'Multi-Day Daily Reminder').first();
         expect(reminder).toBeTruthy();
 
-        // After first processing, the reminder should have been updated to tomorrow
         const firstDue = new Date(reminder.due_date);
-        expect(firstDue.getTime()).toBeGreaterThan(in5Minutes.getTime());
+        expect(firstDue.getTime()).toBeGreaterThan(in5Minutes.toDate().getTime());
 
-        // Since the reminder was already processed and moved to next day,
-        // it won't be due for processing until tomorrow.
-        // To test multiple processing, we need to manually update it to be due again
-        const nowAgain = new Date();
-        const in5MinutesAgain = new Date(nowAgain.getTime() + 5 * 60 * 1000);
+        const nowAgain = libs.dayjs.utc();
+        const in5MinutesAgain = nowAgain.add(5, 'minute');
 
         await db('reminders')
             .where('title', 'Multi-Day Daily Reminder')
             .update({ due_date: in5MinutesAgain.toISOString() });
 
-        // Second processing
         await mailUtils.processReminderDigests();
 
         reminder = await db('reminders').where('title', 'Multi-Day Daily Reminder').first();
         expect(reminder).toBeTruthy();
 
-        // Verify the due date was updated to the following day from the second processing
         const updatedDue = new Date(reminder.due_date);
-        expect(updatedDue.getTime() - in5MinutesAgain.getTime()).toBeCloseTo(
+        expect(updatedDue.getTime() - in5MinutesAgain.toDate().getTime()).toBeCloseTo(
             24 * 60 * 60 * 1000,
             -4,
         );

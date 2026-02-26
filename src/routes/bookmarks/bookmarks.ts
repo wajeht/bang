@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { User, BookmarkToExport, AppContext } from '../../type';
 
-export function BookmarksRouter(ctx: AppContext) {
+export function createBookmarksRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     /**
@@ -57,7 +57,7 @@ export function BookmarksRouter(ctx: AppContext) {
             return;
         }
 
-        return res.render('bookmarks/bookmarks-get.html', {
+        return res.render('bookmarks/bookmarks-index.html', {
             user: req.session?.user,
             title: 'Bookmarks',
             path: '/bookmarks',
@@ -76,7 +76,7 @@ export function BookmarksRouter(ctx: AppContext) {
         '/bookmarks/create',
         ctx.middleware.authentication,
         async (_req: Request, res: Response) => {
-            return res.render('bookmarks/bookmarks-create.html', {
+            return res.render('bookmarks/bookmarks-new.html', {
                 title: 'Bookmarks / New',
                 path: '/bookmarks/create',
                 layout: '_layouts/auth.html',
@@ -156,7 +156,7 @@ export function BookmarksRouter(ctx: AppContext) {
 
             const tabs = await ctx.db('tabs').where({ user_id: req.session.user?.id });
 
-            return res.render('bookmarks/bookmarks-id-tabs-create.html', {
+            return res.render('bookmarks/bookmarks-tabs-new.html', {
                 title: `Bookmarks / ${id} / Tabs / Create`,
                 path: `/bookmarks/${id}/tabs/create`,
                 layout: '_layouts/auth.html',
@@ -178,7 +178,7 @@ export function BookmarksRouter(ctx: AppContext) {
                 })
                 .first();
 
-            return res.render('bookmarks/bookmarks-id-actions-create.html', {
+            return res.render('bookmarks/bookmarks-actions-new.html', {
                 title: `Bookmarks / ${req.params.id} / Actions / Create`,
                 path: `/bookmarks/${req.params.id}/actions/create`,
                 layout: '_layouts/auth.html',
@@ -237,7 +237,11 @@ export function BookmarksRouter(ctx: AppContext) {
                 });
             }
         }
-        const existingBookmark = await ctx.utils.util.checkDuplicateBookmarkUrl(user.id, url);
+        const existingBookmark = await ctx.utils.util.checkDuplicateBookmarkUrl(
+            user.id,
+            url,
+            title || '',
+        );
 
         if (existingBookmark) {
             throw new ctx.errors.ValidationError({

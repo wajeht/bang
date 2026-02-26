@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { AppContext, User } from '../../type';
 
-export function AuthRouter(ctx: AppContext) {
+export function createAuthRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     router.get('/logout', async (req: Request, res: Response) => {
@@ -85,9 +85,9 @@ export function AuthRouter(ctx: AppContext) {
     });
 
     router.get('/auth/magic/:token', async (req: Request, res: Response) => {
-        const { token } = req.params;
+        const token = String(req.params.token ?? '');
 
-        const decoded = ctx.utils.auth.verifyMagicLink(token!);
+        const decoded = ctx.utils.auth.verifyMagicLink(token);
 
         if (!decoded || !decoded.email) {
             throw new ctx.errors.ValidationError({
@@ -95,31 +95,26 @@ export function AuthRouter(ctx: AppContext) {
             });
         }
 
-        const user = await ctx.db('users').where({ email: decoded.email }).first();
-
-        if (user) {
-            user.is_admin = Boolean(user.is_admin);
-            user.autocomplete_search_on_homepage = Boolean(user.autocomplete_search_on_homepage);
-        }
+        let user = await ctx.db('users').where({ email: decoded.email }).first();
 
         if (!user) {
             throw new ctx.errors.ValidationError({ email: 'User not found' });
         }
 
-        await ctx.db('users').where({ id: user.id }).update({ email_verified_at: ctx.db.fn.now() });
-
-        let columnPreferences = {};
-        if (user.column_preferences) {
-            try {
-                columnPreferences = JSON.parse(user.column_preferences);
-            } catch {
-                columnPreferences = {};
-            }
+        if (!user.email_verified_at) {
+            [user] = await ctx
+                .db('users')
+                .where({ id: user.id })
+                .update({ email_verified_at: ctx.db.fn.now() })
+                .returning('*');
         }
+
+        user.is_admin = Boolean(user.is_admin);
+        user.autocomplete_search_on_homepage = Boolean(user.autocomplete_search_on_homepage);
 
         const parsedUser = {
             ...user,
-            column_preferences: columnPreferences,
+            column_preferences: ctx.utils.util.parseColumnPreferences(user.column_preferences),
         };
 
         const redirectTo = req.session.redirectTo || '/actions';

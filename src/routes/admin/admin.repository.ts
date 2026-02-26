@@ -1,6 +1,6 @@
 import type { AppContext } from '../../type';
 
-export function UsersRepository(ctx: AppContext) {
+export function createUsersRepository(ctx: AppContext) {
     return {
         read: async (id: number) => {
             try {

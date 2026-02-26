@@ -1,4 +1,4 @@
-FROM node:24-slim AS build
+FROM node:25-slim@sha256:32f45869cf02c26971de72c383d5f99cab002905ed8b515b56df925007941782 AS build
 
 WORKDIR /usr/src/app
 
@@ -30,34 +30,32 @@ RUN npm run build:prod && \
     rm -rf eslint.config.* && \
     rm -rf playwright.config.*
 
-FROM node:24-slim
+FROM node:25-slim@sha256:32f45869cf02c26971de72c383d5f99cab002905ed8b515b56df925007941782
 
-# Combine RUN commands
+# Install dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl tree && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    groupadd -g 1001 nodejs && \
-    useradd -r -u 1001 -g nodejs nodejs
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
 
 # Copy only production dependencies and built files
-COPY --chown=nodejs:nodejs package*.json ./
+COPY --chown=node:node package*.json ./
 RUN npm ci --only=production --no-audit --no-fund && \
     npm cache clean --force
 
 # Copy built application
-COPY --chown=nodejs:nodejs --from=build /usr/src/app/dist ./dist
-COPY --chown=nodejs:nodejs --from=build /usr/src/app/public ./public
-COPY --chown=nodejs:nodejs --from=build /usr/src/app/src/routes ./src/routes
-COPY --chown=nodejs:nodejs --from=build /usr/src/app/README.md ./
+COPY --chown=node:node --from=build /usr/src/app/dist ./dist
+COPY --chown=node:node --from=build /usr/src/app/public ./public
+COPY --chown=node:node --from=build /usr/src/app/src/routes ./src/routes
+COPY --chown=node:node --from=build /usr/src/app/README.md ./
 
 # Display directory structure excluding node_modules
 RUN echo "Build time: $(date)" && \
     ls -d */ | grep -v node_modules | xargs -I {} tree {}
 
-USER nodejs
+USER node
 
 EXPOSE 80
 

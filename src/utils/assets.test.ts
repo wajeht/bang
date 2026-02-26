@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { AssetUtils } from './assets';
+import { createAssets } from './assets';
 import { describe, expect, it, afterAll } from 'vitest';
 
-const assetUtils = AssetUtils();
+const assetUtils = createAssets();
 
 describe.concurrent('AssetUtils', () => {
     describe.concurrent('computeFileHash', () => {
@@ -59,12 +59,12 @@ describe.concurrent('AssetUtils', () => {
 
         it('should cache hash and detect changes with fresh instance', () => {
             fs.writeFileSync(testFilePath, 'content-a');
-            const utils1 = AssetUtils();
+            const utils1 = createAssets();
             const hash1 = utils1.computeFileHash('test-asset.txt');
 
             fs.writeFileSync(testFilePath, 'content-b');
             const hash1Cached = utils1.computeFileHash('test-asset.txt');
-            const hash2Fresh = AssetUtils().computeFileHash('test-asset.txt');
+            const hash2Fresh = createAssets().computeFileHash('test-asset.txt');
 
             expect(hash1).toBe(hash1Cached);
             expect(hash1).not.toBe(hash2Fresh);

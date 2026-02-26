@@ -1,36 +1,4 @@
 /**
- * Updates the text content of the theme toggle button.
- * @param {string} theme - The current theme, either 'light' or 'dark'.
- */
-function updateButtonText(theme) {
-    const button = /** @type {HTMLButtonElement} */ (document.getElementById('theme-toggle'));
-    if (button) {
-        button.textContent = theme === 'dark' ? '🌓 Light' : '🌓 Dark';
-    }
-}
-
-/**
- * Toggles the theme between light and dark modes.
- */
-function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-
-    document.documentElement.setAttribute('data-theme', newTheme);
-    setLocalStorageData({ theme: newTheme });
-    updateButtonText(newTheme);
-}
-
-/**
- * Initializes the theme based on the saved preference.
- */
-function initializeTheme() {
-    const { theme = 'light' } = getLocalStorageData();
-    document.documentElement.setAttribute('data-theme', theme);
-    updateButtonText(theme);
-}
-
-/**
  * Creates a toast notification with the given message.
  * @param {string} message - The message to display in the toast.
  */
@@ -224,10 +192,39 @@ const getLocalStorageData = window.getLocalStorageData;
 // @ts-ignore - defined globally in head.html
 const setLocalStorageData = window.setLocalStorageData;
 
+/**
+ * Updates the text content of the theme toggle button.
+ * @param {string} theme - The current theme, either 'light' or 'dark'.
+ */
+function updateButtonText(theme) {
+    const button = /** @type {HTMLButtonElement} */ (document.getElementById('theme-toggle'));
+    if (button) {
+        button.textContent = theme === 'dark' ? '🌓 Light' : '🌓 Dark';
+    }
+}
+
+/**
+ * Toggles between light and dark theme, saves to backend
+ */
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    updateButtonText(newTheme);
+
+    fetch('/api/settings/theme', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ theme: newTheme }),
+    })
+        .then((r) => r.json())
+        .then((data) => console.log('Theme saved:', data))
+        .catch((err) => console.error('Theme save failed:', err));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeToast();
-    const { theme = 'light' } = getLocalStorageData();
-    updateButtonText(theme);
     initializeDetailsElements();
 
     const { user } = getAppLocalState();
@@ -236,5 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // save this to local storage so we can pre-fill the email input on login page
         setLocalStorageData({ user: { email: user.email } });
         initializeKeyboardShortcuts();
+        // update button text based on current theme
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        updateButtonText(currentTheme);
     }
 });

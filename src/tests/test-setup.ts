@@ -1,32 +1,34 @@
 process.env.APP_ENV = 'testing';
 process.env.NODE_ENV = 'testing';
 
-import { libs } from '../libs';
-import { config } from '../config';
-import { Database } from '../db/db';
-import { Log, Logger } from '../utils/logger';
-import { beforeAll, afterAll } from 'vitest';
+import { createApp } from '../app';
+import { Log } from '../utils/logger';
+import { beforeAll, beforeEach, afterAll } from 'vitest';
+import { createDb, createUser, cleanupTables } from './test-db';
+import type { Application } from 'express';
+import type { AppContext } from '../type';
 
 Log.setLevel('SILENT');
 
-const logger = Logger();
-const database = Database({ config, logger, libs });
-export const db = database.instance;
+export const db = createDb();
+export let app: Application;
+export let ctx: AppContext;
+
+export const createTestUser = (email: string, isAdmin = false) =>
+    createUser(db, email, { isAdmin });
 
 beforeAll(async () => {
-    try {
-        await db.migrate.latest();
-    } catch (error) {
-        console.error('Error setting up test database:', error);
-        throw error;
+    await db.migrate.latest();
+    if (!app) {
+        ({ app, ctx } = await createApp());
     }
 });
 
+beforeEach(async () => {
+    await cleanupTables(db);
+    await createUser(db, 'test@example.com', { id: 1, username: 'testuser' });
+});
+
 afterAll(async () => {
-    try {
-        await db.destroy();
-    } catch (error) {
-        console.error('Error cleaning up test database:', error);
-        throw error;
-    }
+    await db.destroy();
 });

@@ -1,16 +1,17 @@
 <section style="display: flex; flex-direction: column; gap: 30px;">
     <header>
-        <h2>⚡ Actions / <%= action.id %> / Tabs / Create</h2>
-        <p>Create a new tab for action <%= action.id %></p>
+        <h2>⚡ Bookmarks / <%= bookmark.id %> / Tabs / Create</h2>
+        <p>Create a new tab for bookmark <%= bookmark.id %></p>
     </header>
 
     <form
         method="POST"
-        action="/actions/<%= action.id %>/tabs"
+        action="/bookmarks/<%= bookmark.id %>/tabs"
         style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;"
+
     >
-        <fieldset style="display: flex; flex-direction: column;">
-            <legend>Create tab for <%= action.name %></legend>
+        <fieldset style="display: flex; flex-direction: column; background-color: var(--background-color);">
+            <legend>Create tab for <%= bookmark.title %></legend>
 
             <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
@@ -24,7 +25,7 @@
                         text: t.title,
                     })),
                     required: true,
-                    helpText: 'Select the tab group to add this action to',
+                    helpText: 'Select the tab group to add this bookmark to',
                     error: state.errors && state.errors.tab_id ? state.errors.tab_id : undefined
                 }) %>
             <% } else { %>
@@ -42,7 +43,7 @@
         </fieldset>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-            <button type="button" onclick="location.href='/actions'">❌ Cancel</button>
+            <button type="button" onclick="location.href='/bookmarks'">❌ Cancel</button>
             <button type="submit">💾 Save</button>
         </div>
     </form>

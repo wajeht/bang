@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { User, ApiKeyPayload, AppContext } from '../../type';
 
-export function SettingsRouter(ctx: AppContext) {
+export function createSettingsRouter(ctx: AppContext) {
     const VALID_TIMEZONES = new Set([
         'UTC',
         'America/New_York',
@@ -79,6 +79,7 @@ export function SettingsRouter(ctx: AppContext) {
                 default_search_provider,
                 autocomplete_search_on_homepage,
                 timezone,
+                theme,
             } = req.body;
 
             if (!username) {
@@ -127,6 +128,11 @@ export function SettingsRouter(ctx: AppContext) {
                 parsedAutocompleteSearchOnHomepage = true;
             }
 
+            const validThemes = ['system', 'light', 'dark'];
+            if (!theme || !validThemes.includes(theme)) {
+                throw new ctx.errors.ValidationError({ theme: 'Invalid theme selected' });
+            }
+
             // Check if username is being changed and if it's already taken by another user
             const currentUserId = (req.user as User).id;
             if (username !== (req.user as User).username) {
@@ -164,17 +170,28 @@ export function SettingsRouter(ctx: AppContext) {
                     default_search_provider,
                     autocomplete_search_on_homepage: parsedAutocompleteSearchOnHomepage,
                     timezone,
+                    theme,
                 })
                 .where({ id: currentUserId })
                 .returning('*');
 
             if (req.session?.user) {
-                req.session.user = updatedUser[0] as User;
+                req.session.user = {
+                    ...updatedUser[0],
+                    column_preferences: ctx.utils.util.parseColumnPreferences(
+                        updatedUser[0].column_preferences,
+                    ),
+                } as User;
                 req.session.save();
             }
 
             if (req.user) {
-                req.user = updatedUser[0] as User;
+                req.user = {
+                    ...updatedUser[0],
+                    column_preferences: ctx.utils.util.parseColumnPreferences(
+                        updatedUser[0].column_preferences,
+                    ),
+                } as User;
             }
 
             req.flash('success', '🔄 updated!');
@@ -520,6 +537,32 @@ export function SettingsRouter(ctx: AppContext) {
     );
 
     router.post(
+        '/api/settings/theme',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const { theme } = req.body;
+            const validThemes = ['light', 'dark'];
+
+            if (!theme || !validThemes.includes(theme)) {
+                return res.status(400).json({ error: 'Invalid theme' });
+            }
+
+            const user = req.user as User;
+            await ctx.db('users').where('id', user.id).update({ theme });
+
+            req.session.user!.theme = theme;
+            req.user!.theme = theme;
+
+            return new Promise<void>((resolve) => {
+                req.session.save(() => {
+                    res.json({ success: true, theme });
+                    resolve();
+                });
+            });
+        },
+    );
+
+    router.post(
         '/settings/create-api-key',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
@@ -537,14 +580,34 @@ export function SettingsRouter(ctx: AppContext) {
 
             const payload: ApiKeyPayload = { userId: user.id, apiKeyVersion: newKeyVersion };
 
-            await ctx
+            const [updatedUser] = await ctx
                 .db('users')
                 .where({ id: req.session?.user?.id })
                 .update({
                     api_key: await ctx.utils.auth.generateApiKey(payload),
                     api_key_version: newKeyVersion,
                     api_key_created_at: ctx.db.fn.now(),
-                });
+                })
+                .returning('*');
+
+            if (req.session?.user) {
+                req.session.user = {
+                    ...updatedUser,
+                    column_preferences: ctx.utils.util.parseColumnPreferences(
+                        updatedUser.column_preferences,
+                    ),
+                } as User;
+                req.session.save();
+            }
+
+            if (req.user) {
+                req.user = {
+                    ...updatedUser,
+                    column_preferences: ctx.utils.util.parseColumnPreferences(
+                        updatedUser.column_preferences,
+                    ),
+                } as User;
+            }
 
             req.flash('success', '📱 api key created');
             return res.redirect(`/settings/account`);
@@ -605,6 +668,15 @@ export function SettingsRouter(ctx: AppContext) {
                     await trx('bangs').where({ user_id: user.id }).update({ hidden: false });
                 });
 
+                if (req.session?.user) {
+                    req.session.user.hidden_items_password = null;
+                    req.session.save();
+                }
+
+                if (req.user) {
+                    req.user.hidden_items_password = null;
+                }
+
                 req.flash('success', '🔓 Password removed and all items unhidden');
                 return res.redirect('/settings/account');
             }
@@ -650,12 +722,23 @@ export function SettingsRouter(ctx: AppContext) {
                 });
             }
 
-            const hashedPassword = await ctx.libs.bcrypt.hash(newPassword, 10);
+            // NOTE: this will make testing way faster
+            const saltRounds = ctx.config.app.env === 'testing' ? 1 : 10;
+            const hashedPassword = await ctx.libs.bcrypt.hash(newPassword, saltRounds);
 
             await ctx
                 .db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
+
+            if (req.session?.user) {
+                req.session.user.hidden_items_password = hashedPassword;
+                req.session.save();
+            }
+
+            if (req.user) {
+                req.user.hidden_items_password = hashedPassword;
+            }
 
             req.flash(
                 'success',
@@ -890,12 +973,28 @@ export function SettingsRouter(ctx: AppContext) {
                                 updateData.timezone = userPrefs.timezone;
                             }
                         }
+                        if (userPrefs.theme) {
+                            const validThemes = ['system', 'light', 'dark'];
+                            if (validThemes.includes(userPrefs.theme)) {
+                                updateData.theme = userPrefs.theme;
+                            }
+                        }
 
                         if (Object.keys(updateData).length > 0) {
                             await trx('users').where('id', userId).update(updateData);
 
-                            // Update session with new preferences
                             if (req.session?.user) {
+                                if (updateData.username) {
+                                    req.session.user.username = updateData.username;
+                                }
+                                if (updateData.default_search_provider) {
+                                    req.session.user.default_search_provider =
+                                        updateData.default_search_provider;
+                                }
+                                if (updateData.autocomplete_search_on_homepage !== undefined) {
+                                    req.session.user.autocomplete_search_on_homepage =
+                                        updateData.autocomplete_search_on_homepage;
+                                }
                                 if (updateData.column_preferences) {
                                     try {
                                         req.session.user.column_preferences =
@@ -908,6 +1007,40 @@ export function SettingsRouter(ctx: AppContext) {
                                 }
                                 if (updateData.timezone) {
                                     req.session.user.timezone = updateData.timezone;
+                                }
+                                if (updateData.theme) {
+                                    req.session.user.theme = updateData.theme;
+                                }
+                                req.session.save();
+                            }
+
+                            if (req.user) {
+                                if (updateData.username) {
+                                    req.user.username = updateData.username;
+                                }
+                                if (updateData.default_search_provider) {
+                                    req.user.default_search_provider =
+                                        updateData.default_search_provider;
+                                }
+                                if (updateData.autocomplete_search_on_homepage !== undefined) {
+                                    req.user.autocomplete_search_on_homepage =
+                                        updateData.autocomplete_search_on_homepage;
+                                }
+                                if (updateData.column_preferences) {
+                                    try {
+                                        req.user.column_preferences =
+                                            typeof updateData.column_preferences === 'string'
+                                                ? JSON.parse(updateData.column_preferences)
+                                                : updateData.column_preferences;
+                                    } catch {
+                                        // Handle parsing error gracefully
+                                    }
+                                }
+                                if (updateData.timezone) {
+                                    req.user.timezone = updateData.timezone;
+                                }
+                                if (updateData.theme) {
+                                    req.user.theme = updateData.theme;
                                 }
                             }
                         }
@@ -1078,7 +1211,20 @@ export function SettingsRouter(ctx: AppContext) {
                             api_key_version: 0,
                             api_key_created_at: null,
                         });
-                        deleteCounts.api_keys = 1; // Always 1 since it's per user
+                        deleteCounts.api_keys = 1;
+
+                        if (req.session?.user) {
+                            req.session.user.api_key = null;
+                            req.session.user.api_key_version = 0;
+                            req.session.user.api_key_created_at = null;
+                            req.session.save();
+                        }
+
+                        if (req.user) {
+                            req.user.api_key = null;
+                            req.user.api_key_version = 0;
+                            req.user.api_key_created_at = null;
+                        }
                     }
 
                     const processedItems = [];

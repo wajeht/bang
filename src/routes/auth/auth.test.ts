@@ -1,31 +1,14 @@
-import {
-    cleanupTestData,
-    authenticateAgent,
-    cleanupTestDatabase,
-} from '../../tests/api-test-utils';
+import { authenticateAgent } from '../../tests/api-test-utils';
 import bcrypt from 'bcrypt';
 import request from 'supertest';
-import { createApp } from '../../app';
-import { db } from '../../tests/test-setup';
-import type { AppContext } from '../../type';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { db, app, ctx } from '../../tests/test-setup';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 describe('Auth Routes', () => {
-    let app: any;
-    let ctx: AppContext;
+    let preHashedPassword: string;
 
     beforeAll(async () => {
-        const result = await createApp();
-        app = result.app;
-        ctx = result.ctx;
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
+        preHashedPassword = await bcrypt.hash('correct-password', 1);
     });
 
     describe('POST /verify-hidden-password', () => {
@@ -65,7 +48,7 @@ describe('Auth Routes', () => {
         it('should return error if password is invalid', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -82,7 +65,7 @@ describe('Auth Routes', () => {
         it('should verify password and redirect on success', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -102,7 +85,7 @@ describe('Auth Routes', () => {
         it('should set verification key with resource type and id', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -125,7 +108,7 @@ describe('Auth Routes', () => {
         it('should clean up expired verification keys', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -204,13 +187,46 @@ describe('Auth Routes', () => {
             const protectedResponse = await agent.get('/actions').expect(200);
             expect(protectedResponse.text).toContain('Actions');
         });
+
+        it('should set email_verified_at in session on first login only', async () => {
+            const [user] = await db('users')
+                .insert({
+                    username: 'verifyuser',
+                    email: 'verify@example.com',
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                    email_verified_at: null,
+                })
+                .returning('*');
+
+            expect(user.email_verified_at).toBeNull();
+
+            const token1 = ctx.utils.auth.generateMagicLink({ email: 'verify@example.com' });
+
+            const agent = request.agent(app);
+            await agent.get(`/auth/magic/${token1}`).expect(302);
+
+            const response = await agent.get('/settings/account').expect(200);
+            expect(response.text).toContain('"email_verified_at"');
+            expect(response.text).not.toContain('"email_verified_at":null');
+
+            const verifiedUser = await db('users').where({ id: user.id }).first();
+            expect(verifiedUser.email_verified_at).not.toBeNull();
+            const firstVerificationTime = verifiedUser.email_verified_at;
+
+            const token2 = ctx.utils.auth.generateMagicLink({ email: 'verify@example.com' });
+            await agent.get(`/auth/magic/${token2}`).expect(302);
+
+            const userAfterSecondLogin = await db('users').where({ id: user.id }).first();
+            expect(userAfterSecondLogin.email_verified_at).toBe(firstVerificationTime);
+        });
     });
 
     describe('Open Redirect Protection', () => {
         it('should convert external URLs to safe local paths', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -231,7 +247,7 @@ describe('Auth Routes', () => {
         it('should prevent protocol-relative URL redirects', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
@@ -252,7 +268,7 @@ describe('Auth Routes', () => {
         it('should handle relative paths correctly', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const hashedPassword = await bcrypt.hash('correct-password', 10);
+            const hashedPassword = preHashedPassword;
             await db('users')
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });

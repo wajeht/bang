@@ -1,9 +1,9 @@
 import type { Bookmark, Bookmarks, BookmarksQueryParams, AppContext } from '../../type';
 
-export function BookmarksRepository(ctx: AppContext): Bookmarks {
+export function createBookmarksRepository(ctx: AppContext): Bookmarks {
     const REGEX_WHITESPACE = /\s+/;
-    const ALLOWED_SORT_KEYS = new Set(['title', 'url', 'created_at', 'pinned', 'hidden']);
     const ALLOWED_UPDATE_FIELDS = new Set(['title', 'url', 'pinned', 'hidden']);
+    const ALLOWED_SORT_KEYS = new Set(['title', 'url', 'created_at', 'pinned', 'hidden']);
 
     return {
         all: async ({

@@ -59,10 +59,6 @@ window.addEventListener('load', handleRowHighlight);
         </div>
 
         <nav style="display: flex; gap: 10px;" aria-label="Reminder management controls">
-            <% if (search) { %>
-                <button type="button" class="no-style-btn" onclick="location.href='/reminders'">❌ Clear</button>
-            <% } %>
-
             <form method="GET" action="/reminders" style="display: flex; gap: 10px;" role="search">
                 <%~ include('../_components/inputs/search.html', {
                     id: 'search',
@@ -94,7 +90,7 @@ window.addEventListener('load', handleRowHighlight);
 
     <section style="display: flex; flex-direction: column; gap: 10px;">
         <% if (reminders && reminders.length > 0) { %>
-            <table style="width: 100%; border-collapse: collapse;">
+            <table style="width: 100%; border-collapse: collapse; background-color: var(--background-color);">
                 <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
                     <tr>
                         <th scope="col" style="text-align: left; padding: 10px; width: 40px;">
@@ -188,7 +184,7 @@ window.addEventListener('load', handleRowHighlight);
                                                 <a href="<%= utils.stripHtmlTags(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
                                                     <%~ reminders[i].title %>
                                                 </a>
-                                                <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" loading="lazy" alt="Preview">
+                                                <img class="preview-img" src="<%= utils.getScreenshotUrl(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" loading="lazy" alt="Preview">
                                             </span>
                                         </div>
                                     <% } else { %>
@@ -206,7 +202,7 @@ window.addEventListener('load', handleRowHighlight);
                                                     <a href="<%= utils.stripHtmlTags(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
                                                         <%~ reminders[i].content %>
                                                     </a>
-                                                    <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" loading="lazy" alt="Preview">
+                                                    <img class="preview-img" src="<%= utils.getScreenshotUrl(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" loading="lazy" alt="Preview">
                                                 </span>
                                             </div>
                                         <% } else { %>

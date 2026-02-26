@@ -2,7 +2,7 @@ import { bangs as bangsTable } from '../db/bang';
 import type { Request, Response } from 'express';
 import type { Bang, Search, ReminderTimingResult, AppContext } from '../type';
 
-export function SearchUtils(context: AppContext) {
+export function createSearch(context: AppContext) {
     const searchConfig = {
         /**
          * Cache TTL for user's bang/tab triggers (60 minutes)
@@ -112,6 +112,7 @@ export function SearchUtils(context: AppContext) {
             ['@tab', '/tabs'],
             ['@tabs', '/tabs'],
             ['@r', '/reminders'],
+            ['@remind', '/reminders'],
             ['@reminder', '/reminders'],
             ['@reminders', '/reminders'],
         ]),
@@ -843,7 +844,7 @@ export function SearchUtils(context: AppContext) {
 
                     if (pattern === datePatterns[0] && match[1] && match[2] && match[3]) {
                         // YYYY-MM-DD
-                        targetDate = context.libs.dayjs
+                        let targetDayjs = context.libs.dayjs
                             .tz(undefined, userTimezone)
                             .year(parseInt(match[1]))
                             .month(parseInt(match[2]) - 1)
@@ -851,12 +852,16 @@ export function SearchUtils(context: AppContext) {
                             .hour(defaultHour)
                             .minute(defaultMinute)
                             .second(0)
-                            .millisecond(0)
-                            .utc()
-                            .toDate();
+                            .millisecond(0);
+
+                        // If the date has already passed, use next year
+                        if (targetDayjs.isBefore(nowInUserTz)) {
+                            targetDayjs = targetDayjs.add(1, 'year');
+                        }
+                        targetDate = targetDayjs.utc().toDate();
                     } else if (pattern === datePatterns[1] && match[1] && match[2] && match[3]) {
                         // MM/DD/YYYY
-                        targetDate = context.libs.dayjs
+                        let targetDayjs = context.libs.dayjs
                             .tz(undefined, userTimezone)
                             .year(parseInt(match[3]))
                             .month(parseInt(match[1]) - 1)
@@ -864,9 +869,13 @@ export function SearchUtils(context: AppContext) {
                             .hour(defaultHour)
                             .minute(defaultMinute)
                             .second(0)
-                            .millisecond(0)
-                            .utc()
-                            .toDate();
+                            .millisecond(0);
+
+                        // If the date has already passed, use next year
+                        if (targetDayjs.isBefore(nowInUserTz)) {
+                            targetDayjs = targetDayjs.add(1, 'year');
+                        }
+                        targetDate = targetDayjs.utc().toDate();
                     } else if (pattern === datePatterns[2] && match[1] && match[2]) {
                         // Jan-15
                         const monthMap: { [key: string]: number } = {
@@ -938,7 +947,7 @@ export function SearchUtils(context: AppContext) {
         },
 
         async search({ res, req, user, query }: Parameters<Search>[0]): ReturnType<Search> {
-            const log = req.logger.clone().tag('fn', 'search');
+            const log = req.logger.tag('fn', 'search');
             const timer = log.time('search');
 
             const { commandType, trigger, triggerWithoutPrefix, url, searchTerm } =
@@ -1056,6 +1065,7 @@ export function SearchUtils(context: AppContext) {
                         const existingBookmark = await context.utils.util.checkDuplicateBookmarkUrl(
                             user.id,
                             url,
+                            titleSection || '',
                         );
 
                         if (existingBookmark) {
@@ -1239,6 +1249,8 @@ export function SearchUtils(context: AppContext) {
                         .catch((error) =>
                             log.error('Error inserting page title', { error, url: bangUrl }),
                         );
+
+                    context.utils.util.prefetchAssets(bangUrl);
 
                     timer.stop({ outcome: 'system-bang', trigger, action: 'bang-created' });
                     return this.goBack(res);
@@ -1483,6 +1495,8 @@ export function SearchUtils(context: AppContext) {
                                             url: bangUpdates.url,
                                         }),
                                     );
+
+                                context.utils.util.prefetchAssets(bangUpdates.url);
                             }
                         } catch (error) {
                             log.error('bang update failed', { error });

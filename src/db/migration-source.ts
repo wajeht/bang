@@ -1,9 +1,9 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
 import fs from 'node:fs/promises';
-import { Logger } from '../utils/logger';
+import { createLogger } from '../utils/logger';
 
-const logger = Logger({ service: 'migrations' });
+const logger = createLogger({ service: 'migrations' });
 const isTesting = process.env.NODE_ENV === 'testing' || process.env.APP_ENV === 'testing';
 
 export class CustomMigrationSource implements Knex.MigrationSource<string> {
@@ -15,6 +15,7 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
 
     async getMigrations(): Promise<string[]> {
         try {
+            logger.info('Reading migrations directory');
             const dirents = await fs.readdir(this.migrationsPath, {
                 withFileTypes: true,
             });
@@ -34,6 +35,7 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
                     name: path.parse(name).name,
                 }));
                 logger.table(migrationList);
+                logger.info('getMigrations returning', { count: migrations.length });
             }
             return migrations;
         } catch (error) {

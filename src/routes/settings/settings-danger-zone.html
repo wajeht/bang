@@ -7,13 +7,13 @@
     </div>
   </header>
 
-  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; background-color: var(--background-color);">
     <legend>🗑️ Bulk Delete Data</legend>
     <p>Permanently delete selected data types</p>
     <button type="button" onclick="document.getElementById('bulk-delete-modal').showModal()" aria-label="Bulk delete data">🗑️ Bulk Delete Data</button>
   </fieldset>
 
-  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; background-color: var(--background-color);">
     <legend>☠️ Delete Account</legend>
     <p>Delete your account and all data permanently</p>
     <button type="button" onclick="document.getElementById('delete-users-<%= user.id %>-modal').showModal()" aria-label="Delete your account">🗑️ Delete my account</button>

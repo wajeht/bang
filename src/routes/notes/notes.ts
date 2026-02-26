@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { AppContext, User } from '../../type';
 
-export function NotesRouter(ctx: AppContext) {
+export function createNotesRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     /**
@@ -63,7 +63,7 @@ export function NotesRouter(ctx: AppContext) {
 
         ctx.utils.html.applyHighlighting(markdownRemovedData, ['title', 'content'], search);
 
-        return res.render('notes/notes-get.html', {
+        return res.render('notes/notes-index.html', {
             user: req.session?.user,
             title: 'Notes',
             path: '/notes',
@@ -82,7 +82,7 @@ export function NotesRouter(ctx: AppContext) {
         '/notes/create',
         ctx.middleware.authentication,
         async (_req: Request, res: Response) => {
-            return res.render('notes/notes-create.html', {
+            return res.render('notes/notes-new.html', {
                 title: 'Notes / Create',
                 path: '/notes/create',
                 layout: '_layouts/auth.html',

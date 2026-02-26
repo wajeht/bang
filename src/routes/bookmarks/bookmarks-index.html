@@ -44,8 +44,9 @@ function previewWebpageOnLinkHover() {
 }
 
 document.addEventListener('DOMContentLoaded', handleRowHighlight);
-window.addEventListener('load', handleRowHighlight);
 document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
+window.addEventListener('load', handleRowHighlight);
+window.addEventListener('load', previewWebpageOnLinkHover);
 </script>
 
 <section style="display: flex; flex-direction: column; gap: 30px;">
@@ -59,10 +60,6 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
         </div>
 
         <nav style="display: flex; gap: 10px;" aria-label="Bookmark management controls">
-            <% if (search) { %>
-                <button type="button" class="no-style-btn" onclick="location.href='/bookmarks<%= showHidden ? '?hidden=true' : '' %>'">❌ Clear</button>
-            <% } %>
-
             <form method="GET" action="/bookmarks" style="display: flex; gap: 10px;" role="search">
                 <% if (showHidden) { %>
                     <input type="hidden" name="hidden" value="true" />
@@ -110,7 +107,7 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
 
     <section style="display: flex; flex-direction: column; gap: 10px;">
         <% if (data && data.length > 0) { %>
-            <table style="width: 100%; border-collapse: collapse;">
+            <table style="width: 100%; border-collapse: collapse; background-color: var(--background-color);">
                 <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
                     <tr>
                         <th scope="col" style="text-align: left; padding: 10px; width: 40px;">
@@ -209,7 +206,7 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
                                             <a href="<%= utils.stripHtmlTags(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].title) %>" target="_blank" rel="noopener noreferrer">
                                                 <%~ data[i].url %>
                                             </a>
-                                            <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].url) %>" loading="lazy" alt="Preview">
+                                            <img class="preview-img" src="<%= utils.getScreenshotUrl(data[i].url) %>" loading="lazy" alt="Preview">
                                         </span>
                                     </div>
                                 </td>

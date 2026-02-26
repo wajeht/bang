@@ -1,28 +1,9 @@
-import {
-    cleanupTestData,
-    authenticateAgent,
-    cleanupTestDatabase,
-} from '../../tests/api-test-utils';
+import { authenticateAgent, authenticateAdminAgent } from '../../tests/api-test-utils';
 import request from 'supertest';
-import { createApp } from '../../app';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { app } from '../../tests/test-setup';
+import { describe, it, expect } from 'vitest';
 
 describe('General Routes', () => {
-    let app: any;
-
-    beforeAll(async () => {
-        const { app: expressApp } = await createApp();
-        app = expressApp;
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
-    });
-
     describe('GET /', () => {
         it('should return home page', async () => {
             const response = await request(app).get('/').expect(200);
@@ -67,6 +48,40 @@ describe('General Routes', () => {
 
         it('should handle empty search query', async () => {
             await request(app).get('/search').expect(302);
+        });
+    });
+
+    describe('GET /metrics', () => {
+        it('should redirect unauthenticated requests to login', async () => {
+            const response = await request(app).get('/metrics').expect(302);
+            expect(response.headers.location).toContain('login');
+        });
+
+        it('should return 401 for non-admin users', async () => {
+            const { agent } = await authenticateAgent(app);
+            await agent.get('/metrics').expect(401);
+        });
+
+        it('should return metrics for admin users', async () => {
+            const { agent } = await authenticateAdminAgent(app);
+            const response = await agent.get('/metrics').expect(200);
+
+            expect(response.body).toHaveProperty('memory');
+            expect(response.body.memory).toHaveProperty('rss');
+            expect(response.body.memory).toHaveProperty('heapTotal');
+            expect(response.body.memory).toHaveProperty('heapUsed');
+            expect(response.body.memory).toHaveProperty('external');
+
+            expect(response.body).toHaveProperty('cpu');
+            expect(response.body.cpu).toHaveProperty('user');
+            expect(response.body.cpu).toHaveProperty('system');
+
+            expect(response.body).toHaveProperty('process');
+            expect(response.body.process).toHaveProperty('uptime');
+            expect(response.body.process).toHaveProperty('pid');
+            expect(response.body.process).toHaveProperty('nodeVersion');
+
+            expect(response.body).toHaveProperty('env');
         });
     });
 

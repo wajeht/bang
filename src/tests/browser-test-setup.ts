@@ -1,15 +1,13 @@
-import { libs } from '../libs';
-import { config } from '../config';
-import { Database } from '../db/db';
-import { Logger } from '../utils/logger';
+import { createDb } from './test-db';
 
-const logger = Logger();
+export default async function globalSetup() {
+    if (process.env.CI) {
+        console.log('Skipping database setup in CI (already done via npm run db:prepare:dev)');
+        return;
+    }
 
-async function globalSetup() {
     console.log('Setting up test database...');
-
-    const database = Database({ config, logger, libs });
-    const db = database.instance;
+    const db = createDb();
 
     try {
         await db.migrate.latest();
@@ -22,5 +20,3 @@ async function globalSetup() {
         throw error;
     }
 }
-
-export default globalSetup;

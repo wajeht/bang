@@ -83,6 +83,7 @@ export type ColumnPreferences = {
         default_per_page: number;
         created_at: boolean;
         pinned: boolean;
+        hidden: boolean;
     };
     actions: {
         name: boolean;
@@ -93,6 +94,7 @@ export type ColumnPreferences = {
         default_per_page: number;
         created_at: boolean;
         last_read_at: boolean;
+        hidden: boolean;
     };
     notes: {
         title: boolean;
@@ -101,6 +103,7 @@ export type ColumnPreferences = {
         created_at: boolean;
         pinned: boolean;
         view_type: 'table' | 'list';
+        hidden: boolean;
     };
     tabs: {
         title: boolean;
@@ -137,9 +140,9 @@ export type User = {
     default_search_provider: DefaultSearchProviders;
     bookmarks_per_page: number;
     actions_per_page: number;
-    api_key: string;
+    api_key: string | null;
     api_key_version: number;
-    api_key_created_at: string;
+    api_key_created_at: string | null;
     created_at: string;
     updated_at: string;
     column_preferences: ColumnPreferences;
@@ -147,6 +150,7 @@ export type User = {
     autocomplete_search_on_homepage: boolean;
     timezone: string;
     hidden_items_password?: string | null;
+    theme: 'system' | 'light' | 'dark';
 };
 
 export type BookmarkToExport = {
@@ -305,6 +309,21 @@ export type Users = {
     readByEmail: (email: string) => Promise<User | null>;
 };
 
+export type Settings = {
+    getAll: () => Promise<Record<string, string>>;
+    get: (key: string) => Promise<string | null>;
+    set: (key: string, value: string) => Promise<void>;
+    setMany: (settings: Record<string, string>) => Promise<void>;
+    invalidateCache: () => void;
+    getBranding: () => Promise<{
+        appName: string;
+        appUrl: string;
+        showFooter: boolean;
+        showSearchPage: boolean;
+        showAboutPage: boolean;
+    }>;
+};
+
 export type LayoutOptions = {
     /** Default layout file path relative to views directory */
     defaultLayout?: string;
@@ -329,7 +348,6 @@ export type Logger = {
     warn(message: string, ...args: any[]): void;
     error(message: string, ...args: any[]): void;
     tag(key: string, value: string): Logger;
-    clone(): Logger;
     time(message: string, extra?: Record<string, any>): { stop(extra?: Record<string, any>): void };
     table(tabularData: any, properties?: readonly string[]): void;
     box(title: string, content: string | string[]): void;
@@ -338,6 +356,7 @@ export type Logger = {
 export type LoggerOptions = {
     service?: string;
     level?: LogLevel;
+    tags?: Record<string, string>;
 };
 
 export type PaginateArrayOptions = {
@@ -348,33 +367,35 @@ export type PaginateArrayOptions = {
 
 import type { Knex } from 'knex';
 
-import { DateUtils as DateUtilsType } from './utils/date';
-import { HtmlUtils as HtmlUtilsType } from './utils/html';
-import { AuthUtils as AuthUtilsType } from './utils/auth';
-import { MailUtils as MailUtilsType } from './utils/mail';
-import { Utils as UtilsType } from './utils/util';
-import { SearchUtils as SearchUtilsType } from './utils/search';
-import { RequestUtils as RequestUtilsType } from './utils/request';
-import { ValidationUtils as ValidationUtilsType } from './utils/validation';
-import { AssetUtils as AssetUtilsType } from './utils/assets';
-import { CronService as CronServiceType } from './crons';
-import { Database as DatabaseType } from './db/db';
+import { createDate } from './utils/date';
+import { createHtml } from './utils/html';
+import { createAuth } from './utils/auth';
+import { createMail } from './utils/mail';
+import { createDiscord } from './utils/discord';
+import { createUtil } from './utils/util';
+import { createSearch } from './utils/search';
+import { createRequest } from './utils/request';
+import { createValidation } from './utils/validation';
+import { createAssets } from './utils/assets';
+import type { CronService as CronServiceType } from './crons';
+import { createDatabase } from './db/db';
 import type { config } from './config';
 import type { Libs } from './libs';
 
-export type DateUtils = ReturnType<typeof DateUtilsType>;
-export type HtmlUtils = ReturnType<typeof HtmlUtilsType>;
-export type ValidationUtils = ReturnType<typeof ValidationUtilsType>;
-export type AssetUtils = ReturnType<typeof AssetUtilsType>;
-export type AuthUtils = ReturnType<typeof AuthUtilsType>;
-export type RequestUtils = ReturnType<typeof RequestUtilsType>;
-export type UtilUtils = ReturnType<typeof UtilsType>;
-export type SearchUtils = ReturnType<typeof SearchUtilsType>;
-export type MailUtils = ReturnType<typeof MailUtilsType>;
+export type DateUtils = ReturnType<typeof createDate>;
+export type HtmlUtils = ReturnType<typeof createHtml>;
+export type ValidationUtils = ReturnType<typeof createValidation>;
+export type AssetUtils = ReturnType<typeof createAssets>;
+export type AuthUtils = ReturnType<typeof createAuth>;
+export type RequestUtils = ReturnType<typeof createRequest>;
+export type UtilUtils = ReturnType<typeof createUtil>;
+export type SearchUtils = ReturnType<typeof createSearch>;
+export type MailUtils = ReturnType<typeof createMail>;
+export type DiscordUtils = ReturnType<typeof createDiscord>;
 
 export type Config = typeof config;
-export type CronService = ReturnType<typeof CronServiceType>;
-export type Database = ReturnType<typeof DatabaseType>;
+export type CronService = CronServiceType;
+export type Database = ReturnType<typeof createDatabase>;
 
 export interface Models {
     actions: Actions;
@@ -383,6 +404,7 @@ export interface Models {
     tabs: Tabs;
     reminders: Reminders;
     users: Users;
+    settings: Settings;
 }
 
 export interface Services {
@@ -408,6 +430,7 @@ export interface Utilities {
     search: SearchUtils;
     mail: MailUtils;
     template: TemplateUtils;
+    discord: DiscordUtils;
 }
 
 export interface Middlewares {

@@ -1,29 +1,8 @@
-import {
-    cleanupTestData,
-    authenticateAgent,
-    cleanupTestDatabase,
-    authenticateApiAgent,
-} from '../../tests/api-test-utils';
-import { createApp } from '../../app';
-import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll, vi } from 'vitest';
+import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils';
+import { db, app } from '../../tests/test-setup';
+import { describe, it, expect, vi } from 'vitest';
 
 describe('Bookmarks Routes', () => {
-    let app: any;
-
-    beforeAll(async () => {
-        const { app: expressApp } = await createApp();
-        app = expressApp;
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
-    });
-
     describe('Hidden Items Functionality', () => {
         describe('POST /bookmarks - Hidden field', () => {
             it('should reject creating hidden bookmark without global password', async () => {
@@ -524,6 +503,145 @@ describe('Bookmarks Routes', () => {
             const { agent } = await authenticateApiAgent(app);
 
             await agent.post('/api/bookmarks/delete').send({ id: 'not-an-array' }).expect(422);
+        });
+    });
+
+    describe('Duplicate Bookmark Detection', () => {
+        describe('POST /bookmarks - Same URL with different title', () => {
+            it('should allow creating bookmark with same URL but different title', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await db('bookmarks').insert({
+                    user_id: user.id,
+                    title: 'Original Title',
+                    url: 'https://example.com',
+                });
+
+                await agent
+                    .post('/bookmarks')
+                    .type('form')
+                    .send({
+                        title: 'Different Title',
+                        url: 'https://example.com',
+                    })
+                    .expect(302);
+
+                const bookmarks = await vi.waitFor(
+                    async () => {
+                        const result = await db('bookmarks').where({ user_id: user.id });
+                        expect(result.length).toBe(2);
+                        return result;
+                    },
+                    { timeout: 1000 },
+                );
+
+                expect(bookmarks.map((b: any) => b.title).sort()).toEqual([
+                    'Different Title',
+                    'Original Title',
+                ]);
+            });
+
+            it('should reject creating bookmark with same URL and same title', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await db('bookmarks').insert({
+                    user_id: user.id,
+                    title: 'Same Title',
+                    url: 'https://example.com',
+                });
+
+                await agent
+                    .post('/bookmarks')
+                    .type('form')
+                    .send({
+                        title: 'Same Title',
+                        url: 'https://example.com',
+                    })
+                    .expect(302);
+
+                const bookmarks = await db('bookmarks').where({ user_id: user.id });
+                expect(bookmarks).toHaveLength(1);
+            });
+
+            it('should check URL only when no title is provided', async () => {
+                const { agent, user } = await authenticateAgent(app);
+
+                await db('bookmarks').insert({
+                    user_id: user.id,
+                    title: 'Existing Title',
+                    url: 'https://example.com',
+                });
+
+                await agent
+                    .post('/bookmarks')
+                    .type('form')
+                    .send({
+                        url: 'https://example.com',
+                    })
+                    .expect(302);
+
+                const bookmarks = await db('bookmarks').where({ user_id: user.id });
+                expect(bookmarks).toHaveLength(1);
+            });
+        });
+
+        describe('POST /api/bookmarks - Same URL with different title via API', () => {
+            it('should allow creating bookmark with same URL but different title via API', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                await db('bookmarks').insert({
+                    user_id: user.id,
+                    title: 'Original Title',
+                    url: 'https://example.com',
+                });
+
+                const response = await agent
+                    .post('/api/bookmarks')
+                    .send({
+                        title: 'Different Title',
+                        url: 'https://example.com',
+                    })
+                    .expect(201);
+
+                expect(response.body.message).toContain('created successfully');
+
+                const bookmarks = await vi.waitFor(
+                    async () => {
+                        const result = await db('bookmarks').where({ user_id: user.id });
+                        expect(result.length).toBe(2);
+                        return result;
+                    },
+                    { timeout: 1000 },
+                );
+
+                expect(bookmarks.map((b: any) => b.title).sort()).toEqual([
+                    'Different Title',
+                    'Original Title',
+                ]);
+            });
+
+            it('should reject creating bookmark with same URL and same title via API', async () => {
+                const { agent, user } = await authenticateApiAgent(app);
+
+                await db('bookmarks').insert({
+                    user_id: user.id,
+                    title: 'Same Title',
+                    url: 'https://example.com',
+                });
+
+                const response = await agent
+                    .post('/api/bookmarks')
+                    .send({
+                        title: 'Same Title',
+                        url: 'https://example.com',
+                    })
+                    .expect(422);
+
+                expect(response.body.message).toContain('Validation');
+
+                const bookmarks = await db('bookmarks').where({ user_id: user.id });
+                expect(bookmarks).toHaveLength(1);
+            });
         });
     });
 

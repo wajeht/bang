@@ -1,19 +1,9 @@
-import { describe, it, expect, afterAll, afterEach, vi } from 'vitest';
-import { createApp, closeServer, getActiveSocketsCount, clearActiveSockets } from './app';
-import { cleanupTestData, cleanupTestDatabase } from './tests/api-test-utils';
 import request from 'supertest';
 import type { Server } from 'node:http';
+import { describe, it, expect, vi } from 'vitest';
+import { createApp, closeServer, getActiveSocketsCount, clearActiveSockets } from './app';
 
 describe('App', () => {
-    afterEach(async () => {
-        await cleanupTestData();
-        clearActiveSockets();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
-    });
-
     describe('createApp', () => {
         it('should create an Express app with context', async () => {
             const { app, ctx } = await createApp();

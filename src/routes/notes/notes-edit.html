@@ -9,7 +9,7 @@
         action="/notes/<%= note.id %>/update"
         style="display: flex; flex-direction: column; gap: 10px;"
     >
-        <fieldset style="display: flex; flex-direction: column;">
+        <fieldset style="display: flex; flex-direction: column; background-color: var(--background-color);">
             <legend>Edit <%= note.title %></legend>
 
             <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />

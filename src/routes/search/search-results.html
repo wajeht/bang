@@ -19,10 +19,6 @@
         </div>
 
         <nav style="display: flex; gap: 10px;" aria-label="Search controls">
-            <% if (searchQuery) { %>
-                <button type="button" class="no-style-btn" onclick="location.href='/search'">❌ Clear</button>
-            <% } %>
-
             <form method="GET" action="/search" style="display: flex; gap: 10px;" role="search">
                 <%~ include('../_components/inputs/search.html', {
                     id: 'search',

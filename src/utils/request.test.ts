@@ -1,19 +1,24 @@
 import { libs } from '../libs';
 import { Request } from 'express';
 import { config } from '../config';
-import { RequestUtils } from './request';
+import { createRequest } from './request';
 import { db } from '../tests/test-setup';
 import { ValidationError } from '../error';
 import { describe, expect, it, beforeAll, vi } from 'vitest';
 
-let requestUtils: ReturnType<typeof RequestUtils>;
+let requestUtils: ReturnType<typeof createRequest>;
 
 beforeAll(async () => {
+    const mockLogger = {
+        error: vi.fn(),
+        info: vi.fn(),
+        tag: vi.fn().mockReturnThis(),
+    };
     const mockContext = {
         db,
         config,
         libs,
-        logger: { error: vi.fn(), info: vi.fn() },
+        logger: mockLogger,
         utils: {} as any,
         models: {} as any,
         errors: {
@@ -21,7 +26,7 @@ beforeAll(async () => {
         },
     } as any;
 
-    requestUtils = RequestUtils(mockContext);
+    requestUtils = createRequest(mockContext);
 });
 
 describe.concurrent('extractIdsForDelete', () => {

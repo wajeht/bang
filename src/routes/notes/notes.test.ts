@@ -1,31 +1,13 @@
 import {
-    cleanupTestData,
     authenticateAgent,
-    cleanupTestDatabase,
     authenticateApiAgent,
     createUnauthenticatedAgent,
 } from '../../tests/api-test-utils';
 import request from 'supertest';
-import { createApp } from '../../app';
-import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { db, app } from '../../tests/test-setup';
+import { describe, it, expect } from 'vitest';
 
 describe('Notes Routes', () => {
-    let app: any;
-
-    beforeAll(async () => {
-        const { app: expressApp } = await createApp();
-        app = expressApp;
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
-    });
-
     describe('GET /notes', () => {
         it('should require authentication', async () => {
             await request(app).get('/notes').expect(302).expect('Location', '/?modal=login');

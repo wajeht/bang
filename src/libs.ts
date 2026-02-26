@@ -1,6 +1,6 @@
-import { Eta } from 'eta';
 import knex from 'knex';
 import cors from 'cors';
+import { Eta } from 'eta';
 import bcrypt from 'bcrypt';
 import helmet from 'helmet';
 import dotenv from 'dotenv';

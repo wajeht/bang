@@ -19,13 +19,13 @@ export default defineConfig({
     /* Global teardown file to cleanup resources */
     globalTeardown: './src/tests/browser-test-teardown.ts',
     /* Run tests in files in parallel */
-    fullyParallel: false,
+    fullyParallel: true,
     /* Fail the build on CI if you accidentally left test.only in the source code. */
     forbidOnly: !!process.env.CI,
     /* Retry on CI only */
     retries: process.env.CI ? 2 : 0,
-    /* Keep sequential in CI to avoid database conflicts */
-    workers: 1,
+    /* Parallel workers - each test file uses isolated user */
+    workers: process.env.CI ? 2 : 1,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: process.env.CI ? 'list' : 'html',
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -64,7 +64,7 @@ export default defineConfig({
 
     /* Run your local dev server before starting the tests */
     webServer: {
-        command: 'npm run dev',
+        command: process.env.CI ? 'npm run dev:only' : 'npm run dev',
         url: `http://127.0.0.1:${config.app.port}`,
         reuseExistingServer: !process.env.CI,
         timeout: process.env.CI ? 120_000 : 60_000,

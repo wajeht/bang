@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { User, AppContext } from '../../type';
 
-export function ActionsRouter(ctx: AppContext) {
+export function createActionsRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     /**
@@ -57,7 +57,7 @@ export function ActionsRouter(ctx: AppContext) {
             return;
         }
 
-        return res.render('actions/actions-get.html', {
+        return res.render('actions/actions-index.html', {
             user: req.session?.user,
             path: '/actions',
             title: 'Actions',
@@ -76,7 +76,7 @@ export function ActionsRouter(ctx: AppContext) {
         '/actions/create',
         ctx.middleware.authentication,
         async (_req: Request, res: Response) => {
-            return res.render('actions/actions-create.html', {
+            return res.render('actions/actions-new.html', {
                 title: 'Actions / New',
                 path: '/actions/create',
                 layout: '_layouts/auth.html',
@@ -130,7 +130,7 @@ export function ActionsRouter(ctx: AppContext) {
 
             const tabs = await ctx.db('tabs').where({ user_id: req.session.user?.id });
 
-            return res.render('actions/actions-id-tabs-create.html', {
+            return res.render('actions/actions-tabs-new.html', {
                 title: `Actions / ${id} / Tabs / Create`,
                 path: `/actions/${id}/tabs/create`,
                 layout: '_layouts/auth.html',
@@ -231,6 +231,10 @@ export function ActionsRouter(ctx: AppContext) {
             user_id: user.id,
             hidden: hidden === 'on' || hidden === true,
         });
+
+        if (actionType === 'redirect') {
+            ctx.utils.util.prefetchAssets(url);
+        }
 
         ctx.utils.search.invalidateTriggerCache(req);
 
@@ -547,6 +551,11 @@ export function ActionsRouter(ctx: AppContext) {
                 .where({ user_id: user.id })
                 .whereNotNull('url')
                 .limit(500);
+
+            if (actions.length === 0) {
+                req.flash('warning', "You don't have any actions at the moment!");
+                return res.redirect('/actions');
+            }
 
             const urls = actions.map((a: { url: string }) => a.url).filter(Boolean);
 

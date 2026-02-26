@@ -52,7 +52,7 @@
   <form action="/settings/account" method="POST" >
     <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
-    <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column;">
+    <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; background-color: var(--background-color);">
       <legend>Account Information</legend>
 
       <%~ include('../_components/inputs/text.html', {
@@ -126,11 +126,25 @@
         error: state.errors && state.errors.autocomplete_search_on_homepage ? state.errors.autocomplete_search_on_homepage : undefined
       }) %>
 
+      <%~ include('../_components/inputs/select.html', {
+        id: 'theme',
+        name: 'theme',
+        label: '🎨 Theme',
+        options: [
+          { value: 'system', text: 'System (auto)', selected: (state.input?.theme || user.theme || 'system') === 'system' },
+          { value: 'light', text: 'Light', selected: (state.input?.theme || user.theme) === 'light' },
+          { value: 'dark', text: 'Dark', selected: (state.input?.theme || user.theme) === 'dark' }
+        ],
+        required: true,
+        helpText: 'Choose your preferred color theme',
+        error: state.errors?.theme
+      }) %>
+
       <button type="submit">💾 Save</button>
     </fieldset>
   </form>
 
-  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; background-color: var(--background-color);">
     <legend>🔐 Hidden Items Password</legend>
 
     <p>Set a password to protect all your hidden items (notes, bookmarks, and actions). This password will be required to view any hidden content.</p>
@@ -157,6 +171,7 @@
         placeholder: 'Enter new password (min 4 characters)',
         value: '',
         required: !user.hidden_items_password,
+        autocomplete: 'new-password',
         helpText: user.hidden_items_password ? 'Leave blank to keep current password' : 'Set a password to enable hiding items',
         error: state.errors && state.errors.newPassword ? state.errors.newPassword : undefined
       }) %>
@@ -168,6 +183,7 @@
           label: '🔑 Confirm New Password',
           placeholder: 'Re-enter new password',
           value: '',
+          autocomplete: 'new-password',
           helpText: 'Must match the new password',
           error: state.errors && state.errors.confirmPassword ? state.errors.confirmPassword : undefined
         }) %>
@@ -188,7 +204,7 @@
     </form>
   </fieldset>
 
-  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; background-color: var(--background-color);">
     <legend>🔑 API Key <% if (user.api_key_version > 0) { %>(v<%= user.api_key_version %>)<% } %></legend>
 
     <% if (user.api_key) { %>

@@ -1,6 +1,6 @@
 import type { Action, Actions, ActionsQueryParams, AppContext } from '../../type';
 
-export function ActionsRepository(ctx: AppContext): Actions {
+export function createActionsRepository(ctx: AppContext): Actions {
     const REGEX_WHITESPACE = /\s+/;
     const ALLOWED_SORT_KEYS = new Set([
         'name',

@@ -1,7 +1,8 @@
 import type { Request } from 'express';
 import type { User, PageType, AppContext } from '../type';
 
-export function RequestUtils(context: AppContext) {
+export function createRequest(context: AppContext) {
+    const logger = context.logger.tag('service', 'request');
     type PreferenceKey = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders' | 'users';
     const PAGE_TYPE_TO_PREFERENCE: Record<PageType | 'admin', PreferenceKey> = {
         actions: 'actions',
@@ -22,7 +23,7 @@ export function RequestUtils(context: AppContext) {
                         .where({ id: req.apiKeyPayload.userId })
                         .first();
                 } catch (error) {
-                    context.logger.error('Failed to extract user', { error });
+                    logger.tag('op', 'extract-user').error('Failed to extract user', { error });
                     throw new context.errors.HttpError(500, 'Failed to extract user!', req);
                 }
             }

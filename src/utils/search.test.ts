@@ -1,22 +1,20 @@
 import { dayjs } from '../libs';
-import { config } from '../config';
-import { Context } from '../context';
+import { createContext } from '../context';
 import { db } from '../tests/test-setup';
 import { Request, Response } from 'express';
-import { SearchUtils } from '../utils/search';
+import { createSearch } from '../utils/search';
 import type { User, AppContext } from '../type';
 import type { SessionData } from 'express-session';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let ctx: AppContext;
-let searchUtils: ReturnType<typeof SearchUtils>;
+let searchUtils: ReturnType<typeof createSearch>;
 let isValidUrl: any;
 let insertBookmark: any;
 let insertPageTitle: any;
 let checkDuplicateBookmarkUrl: any;
 
-const mockLogger = () => ({
-    clone: () => mockLogger(),
+const mockLogger = (): any => ({
     tag: () => mockLogger(),
     time: () => ({ stop: () => {} }),
     debug: () => {},
@@ -27,8 +25,8 @@ const mockLogger = () => ({
 
 describe('search', () => {
     beforeAll(async () => {
-        ctx = await Context();
-        searchUtils = SearchUtils(ctx);
+        ctx = await createContext();
+        searchUtils = createSearch(ctx);
     });
 
     beforeEach(() => {
@@ -245,70 +243,53 @@ describe('search', () => {
             expect(req.session.user).toBeUndefined();
         });
 
-        it.skipIf(config.app.env === 'development')(
-            'should have slow down the search when a user has reached more than 60 searches',
-            async () => {
-                const req = {
-                    logger: mockLogger(),
-                    session: {
-                        searchCount: 61,
-                        cumulativeDelay: 5000,
-                    },
-                } as unknown as Request;
+        it('should have slow down the search when a user has reached more than 60 searches', async () => {
+            const req = {
+                logger: mockLogger(),
+                session: {
+                    searchCount: 61,
+                    cumulativeDelay: 5000,
+                },
+            } as unknown as Request;
 
-                const res = {
-                    status: vi.fn().mockReturnThis(),
-                    redirect: vi.fn(),
-                    set: vi.fn(),
-                    setHeader: vi.fn().mockReturnThis(),
-                    send: vi.fn(),
-                } as unknown as Response;
+            const res = {
+                status: vi.fn().mockReturnThis(),
+                redirect: vi.fn(),
+                set: vi.fn().mockReturnThis(),
+                send: vi.fn().mockReturnThis(),
+            } as unknown as Response;
 
-                const processDelayedSpy = vi.mocked(searchUtils.processDelayedSearch);
-                processDelayedSpy.mockResolvedValue(undefined);
+            const processDelayedSpy = vi
+                .spyOn(searchUtils, 'processDelayedSearch')
+                .mockResolvedValue(undefined);
 
-                try {
-                    await searchUtils.search({ req, res, user: undefined, query: '!g python' });
+            try {
+                await searchUtils.search({ req, res, user: undefined, query: '!g python' });
 
-                    expect(processDelayedSpy).toHaveBeenCalled();
-
-                    expect(res.status).toHaveBeenCalledWith(200);
-                    expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
-                    expect(res.send).toHaveBeenCalledWith(
-                        expect.stringContaining(
-                            'This search was delayed by 10 seconds due to rate limiting.',
-                        ),
-                    );
-                    expect(res.send).toHaveBeenCalledWith(
-                        expect.stringContaining(
-                            'window.location.href = "https://www.google.com/search?q=python"',
-                        ),
-                    );
-                    expect(req.session.searchCount).toBe(62);
-                    expect(req.session.cumulativeDelay).toBe(10000);
-                    expect(req.session.user).toBeUndefined();
-                } finally {
-                    processDelayedSpy.mockRestore();
-                }
-            },
-        );
+                expect(processDelayedSpy).toHaveBeenCalled();
+                expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'This search was delayed by 10 seconds due to rate limiting.',
+                    ),
+                );
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'window.location.href = "https://www.google.com/search?q=python"',
+                    ),
+                );
+                expect(req.session.searchCount).toBe(62);
+                expect(req.session.cumulativeDelay).toBe(10000);
+                expect(req.session.user).toBeUndefined();
+            } finally {
+                processDelayedSpy.mockRestore();
+            }
+        });
     });
 
     describe('authenticated', () => {
-        beforeAll(async () => {
-            await db('reminders').del();
-            await db('bookmarks').del();
-            await db('bangs').del();
-            await db('users').del();
-
-            await db('users').insert({
-                id: 1,
-                username: 'Test User',
-                email: 'test@example.com',
-                is_admin: false,
-                default_search_provider: 'duckduckgo',
-            });
-
+        beforeEach(async () => {
             await db('bangs').insert([
                 {
                     user_id: 1,
@@ -327,13 +308,6 @@ describe('search', () => {
                     hidden: false,
                 },
             ]);
-        });
-
-        afterAll(async () => {
-            await db('reminders').del();
-            await db('bookmarks').del();
-            await db('bangs').del();
-            await db('users').del();
         });
 
         const testUser = {
@@ -455,6 +429,59 @@ describe('search', () => {
             vi.mocked(res.redirect).mockClear();
             await searchUtils.search({ req, res, user: testUser, query: '@a action query' });
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=action%20query');
+        });
+
+        it('should handle direct commands with search terms for @reminders', async () => {
+            const req = { logger: mockLogger() } as unknown as Request;
+            const res = {
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
+
+            await searchUtils.search({
+                req,
+                res,
+                user: testUser,
+                query: '@reminders search query',
+            });
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'private, max-age=3600',
+                }),
+            );
+            expect(res.redirect).toHaveBeenCalledWith('/reminders?search=search%20query');
+
+            vi.mocked(res.redirect).mockClear();
+            await searchUtils.search({ req, res, user: testUser, query: '@r reminder query' });
+            expect(res.redirect).toHaveBeenCalledWith('/reminders?search=reminder%20query');
+
+            vi.mocked(res.redirect).mockClear();
+            await searchUtils.search({ req, res, user: testUser, query: '@remind test' });
+            expect(res.redirect).toHaveBeenCalledWith('/reminders?search=test');
+        });
+
+        it('should handle direct commands with search terms for @tabs', async () => {
+            const req = { logger: mockLogger() } as unknown as Request;
+            const res = {
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
+
+            await searchUtils.search({ req, res, user: testUser, query: '@tabs search query' });
+            expect(res.set).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    'Cache-Control': 'private, max-age=3600',
+                }),
+            );
+            expect(res.redirect).toHaveBeenCalledWith('/tabs?search=search%20query');
+
+            vi.mocked(res.redirect).mockClear();
+            await searchUtils.search({ req, res, user: testUser, query: '@t tab query' });
+            expect(res.redirect).toHaveBeenCalledWith('/tabs?search=tab%20query');
+
+            vi.mocked(res.redirect).mockClear();
+            await searchUtils.search({ req, res, user: testUser, query: '@tab my tabs' });
+            expect(res.redirect).toHaveBeenCalledWith('/tabs?search=my%20tabs');
         });
 
         it('should handle special characters in search terms', async () => {
@@ -599,11 +626,6 @@ describe('search', () => {
         });
 
         describe('!bm command with --hide flag', () => {
-            afterEach(async () => {
-                await db('bookmarks').where({ user_id: testUser.id }).delete();
-                vi.restoreAllMocks();
-            });
-
             it('should create hidden bookmark with --hide flag when global password is set', async () => {
                 const userWithPassword = {
                     ...testUser,
@@ -751,10 +773,6 @@ describe('search', () => {
         });
 
         describe('!add command with --hide flag', () => {
-            afterEach(async () => {
-                await db('bangs').where({ user_id: testUser.id }).delete();
-            });
-
             it('should create hidden redirect action with --hide flag when global password is set', async () => {
                 const userWithPassword = {
                     ...testUser,
@@ -883,6 +901,47 @@ describe('search', () => {
                 expect(createdAction.hidden).toBe(1);
                 expect(createdAction.name).toBe('Fetching title...'); // Actions are created with placeholder name
             });
+        });
+
+        it('should prefetch assets when creating bang with !add', async () => {
+            const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+                text: () => Promise.resolve(''),
+            } as unknown as globalThis.Response);
+
+            await db('bangs').where({ user_id: testUser.id, trigger: '!prefetchadd' }).delete();
+
+            const req = { logger: mockLogger() } as unknown as Request;
+            const res = {
+                set: vi.fn().mockReturnThis(),
+                status: vi.fn().mockReturnThis(),
+                send: vi.fn(),
+            } as unknown as Response;
+
+            await searchUtils.search({
+                req,
+                res,
+                user: testUser,
+                query: '!add !prefetchadd https://prefetch-add-test.com',
+            });
+
+            expect(res.status).toHaveBeenCalledWith(200);
+
+            await vi.waitFor(() => {
+                expect(fetchSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('screenshot.jaw.dev'),
+                    expect.any(Object),
+                );
+            });
+
+            await vi.waitFor(() => {
+                expect(fetchSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('favicon.jaw.dev'),
+                    expect.any(Object),
+                );
+            });
+
+            await db('bangs').where({ user_id: testUser.id, trigger: '!prefetchadd' }).delete();
+            fetchSpy.mockRestore();
         });
 
         it('should handle custom search bang', async () => {
@@ -1282,11 +1341,111 @@ describe('search', () => {
             vi.resetModules();
         });
 
-        describe('!note command', () => {
-            afterEach(async () => {
-                await db('notes').where({ user_id: testUser.id }).delete();
+        describe('!find command', () => {
+            it('should redirect to global search page with search term', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!find javascript',
+                });
+
+                expect(res.set).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        'Cache-Control': 'private, max-age=3600',
+                    }),
+                );
+                expect(res.redirect).toHaveBeenCalledWith('/search?q=javascript&type=global');
             });
 
+            it('should handle multi-word search terms', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!find react hooks tutorial',
+                });
+
+                expect(res.redirect).toHaveBeenCalledWith(
+                    '/search?q=react%20hooks%20tutorial&type=global',
+                );
+            });
+
+            it('should reject !find without search term', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!find',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Please provide a search term for global search'),
+                );
+            });
+
+            it('should reject !find with only whitespace', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!find   ',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining('Please provide a search term for global search'),
+                );
+            });
+
+            it('should encode special characters in search term', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!find test & special + characters?',
+                });
+
+                expect(res.redirect).toHaveBeenCalledWith(
+                    '/search?q=test%20%26%20special%20%2B%20characters%3F&type=global',
+                );
+            });
+        });
+
+        describe('!note command', () => {
             it('should create note with title and content using pipe format', async () => {
                 const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
@@ -1574,12 +1733,6 @@ describe('search', () => {
                     });
                 });
 
-                afterEach(async () => {
-                    await db('users').where({ id: testUser.id }).update({
-                        hidden_items_password: null,
-                    });
-                });
-
                 it('should create hidden note with --hide flag when global password is set', async () => {
                     const userWithPassword = {
                         ...testUser,
@@ -1675,11 +1828,74 @@ describe('search', () => {
                     expect(createdNote.content).toBe('Content with  flag in middle'); // --hide removed leaves double space
                     expect(createdNote.hidden).toBe(1);
                 });
+
+                it('should create hidden note without title using --hide flag', async () => {
+                    const userWithPassword = {
+                        ...testUser,
+                        hidden_items_password: '$2b$10$test-hash',
+                    } as User;
+
+                    const req = { logger: mockLogger() } as unknown as Request;
+                    const res = {
+                        set: vi.fn().mockReturnThis(),
+                        status: vi.fn().mockReturnThis(),
+                        send: vi.fn(),
+                    } as unknown as Response;
+
+                    await searchUtils.search({
+                        req,
+                        res,
+                        user: userWithPassword,
+                        query: '!note --hide this is hidden content without title',
+                    });
+
+                    expect(res.status).toHaveBeenCalledWith(200);
+                    expect(res.send).toHaveBeenCalledWith(
+                        expect.stringContaining('window.history.back()'),
+                    );
+
+                    const createdNote = await db('notes')
+                        .where({ user_id: testUser.id, title: 'Untitled' })
+                        .first();
+                    expect(createdNote).toBeDefined();
+                    expect(createdNote.content).toBe('this is hidden content without title');
+                    expect(createdNote.hidden).toBe(1);
+                });
+
+                it('should create hidden note with --hide at beginning of pipe format', async () => {
+                    const userWithPassword = {
+                        ...testUser,
+                        hidden_items_password: '$2b$10$test-hash',
+                    } as User;
+
+                    const req = { logger: mockLogger() } as unknown as Request;
+                    const res = {
+                        set: vi.fn().mockReturnThis(),
+                        status: vi.fn().mockReturnThis(),
+                        send: vi.fn(),
+                    } as unknown as Response;
+
+                    await searchUtils.search({
+                        req,
+                        res,
+                        user: userWithPassword,
+                        query: '!note --hide Secret Title | Secret content here',
+                    });
+
+                    expect(res.status).toHaveBeenCalledWith(200);
+
+                    const createdNote = await db('notes')
+                        .where({ user_id: testUser.id, title: 'Secret Title' })
+                        .first();
+                    expect(createdNote).toBeDefined();
+                    expect(createdNote.content).toBe('Secret content here');
+                    expect(createdNote.hidden).toBe(1);
+                });
             });
         });
 
         describe('!del command', () => {
-            beforeAll(async () => {
+            beforeEach(async () => {
                 await db('bangs').insert({
                     id: 999,
                     user_id: 1,
@@ -1688,10 +1904,6 @@ describe('search', () => {
                     action_type: 'redirect',
                     url: 'https://delete-test.com',
                 });
-            });
-
-            afterAll(async () => {
-                await db('bangs').where({ id: 999 }).delete();
             });
 
             it('should successfully delete an existing bang', async () => {
@@ -1722,7 +1934,6 @@ describe('search', () => {
 
             it('should handle deletion with trigger without ! prefix', async () => {
                 await db('bangs').insert({
-                    id: 1000,
                     user_id: 1,
                     trigger: '!deleteme2',
                     name: 'Delete Test 2',
@@ -1748,8 +1959,6 @@ describe('search', () => {
                 expect(res.send).toHaveBeenCalledWith(
                     expect.stringContaining('window.history.back()'),
                 );
-
-                await db('bangs').where({ id: 1000 }).delete();
             });
 
             it('should return error when trying to delete non-existent bang', async () => {
@@ -1864,7 +2073,7 @@ describe('search', () => {
         });
 
         describe('!edit command', () => {
-            beforeAll(async () => {
+            beforeEach(async () => {
                 await db('bangs').insert([
                     {
                         id: 1001,
@@ -1883,17 +2092,6 @@ describe('search', () => {
                         url: 'https://existing.com',
                     },
                 ]);
-            });
-
-            beforeEach(async () => {
-                await db('bangs').where({ id: 1001 }).update({
-                    trigger: '!editme',
-                    url: 'https://edit-test.com',
-                });
-            });
-
-            afterAll(async () => {
-                await db('bangs').whereIn('id', [1001, 1002]).delete();
             });
 
             it('should successfully edit bang trigger only', async () => {
@@ -1958,6 +2156,46 @@ describe('search', () => {
                 expect(updatedBang.url).toBe('https://new-url.com');
 
                 vi.restoreAllMocks();
+            });
+
+            it('should prefetch assets when editing bang URL with !edit', async () => {
+                const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+                    text: () => Promise.resolve(''),
+                } as unknown as globalThis.Response);
+
+                isValidUrl.mockReturnValue(true);
+
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!edit !editme https://prefetch-edit-test.com',
+                });
+
+                expect(res.status).toHaveBeenCalledWith(200);
+
+                await vi.waitFor(() => {
+                    expect(fetchSpy).toHaveBeenCalledWith(
+                        expect.stringContaining('screenshot.jaw.dev'),
+                        expect.any(Object),
+                    );
+                });
+
+                await vi.waitFor(() => {
+                    expect(fetchSpy).toHaveBeenCalledWith(
+                        expect.stringContaining('favicon.jaw.dev'),
+                        expect.any(Object),
+                    );
+                });
+
+                fetchSpy.mockRestore();
             });
 
             it('should successfully edit both trigger and URL', async () => {
@@ -2306,10 +2544,6 @@ describe('search', () => {
                 });
             });
 
-            afterEach(async () => {
-                await db('bookmarks').del();
-            });
-
             it('should detect duplicate URL and show error with title', async () => {
                 const req = { logger: mockLogger() } as unknown as Request;
                 const res = {
@@ -2487,6 +2721,70 @@ describe('search', () => {
 
                 expect(res.redirect).toHaveBeenCalledWith('https://existing.com');
             });
+
+            it('should allow same URL with different title', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    redirect: vi.fn(),
+                    set: vi.fn(),
+                } as unknown as Response;
+
+                isValidUrl.mockReturnValue(true);
+                checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate because title is different
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!bm Different Title https://existing.com', // Same URL, different title
+                });
+
+                await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
+
+                expect(insertBookmark).toHaveBeenCalledWith({
+                    url: 'https://existing.com',
+                    title: 'Different Title',
+                    userId: testUser.id,
+                    hidden: false,
+                });
+
+                expect(res.redirect).toHaveBeenCalledWith('https://existing.com');
+            });
+
+            it('should reject same URL with same title as duplicate', async () => {
+                const req = { logger: mockLogger() } as unknown as Request;
+                const res = {
+                    set: vi.fn().mockReturnThis(),
+                    status: vi.fn().mockReturnThis(),
+                    send: vi.fn(),
+                } as unknown as Response;
+
+                isValidUrl.mockReturnValue(true);
+                checkDuplicateBookmarkUrl.mockResolvedValue({
+                    id: 999,
+                    user_id: 1,
+                    title: 'Same Title',
+                    url: 'https://existing.com',
+                    created_at: dayjs().toISOString(),
+                });
+
+                await searchUtils.search({
+                    req,
+                    res,
+                    user: testUser,
+                    query: '!bm Same Title https://existing.com', // Same URL, same title
+                });
+
+                expect(res.status).toHaveBeenCalledWith(422);
+                expect(res.send).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        'URL already bookmarked as Same Title. Use a different URL or update the existing bookmark.',
+                    ),
+                );
+
+                isValidUrl.mockReset();
+                checkDuplicateBookmarkUrl.mockReset();
+            });
         });
 
         describe('!remind command', () => {
@@ -2507,11 +2805,6 @@ describe('search', () => {
 
             beforeEach(async () => {
                 // Clean up any existing reminders before each test
-                await db('reminders').where({ user_id: testUser.id }).delete();
-            });
-
-            afterEach(async () => {
-                // Clean up reminders after each test
                 await db('reminders').where({ user_id: testUser.id }).delete();
             });
 
@@ -3639,14 +3932,6 @@ describe('Trigger Caching', () => {
         testUser = user;
     });
 
-    afterEach(async () => {
-        if (testUser?.id) {
-            await db('bangs').where({ user_id: testUser.id }).delete();
-            await db('tabs').where({ user_id: testUser.id }).delete();
-            await db('users').where({ id: testUser.id }).delete();
-        }
-    });
-
     describe('loadCachedTriggers', () => {
         it('should load triggers from database and cache in session', async () => {
             await db('bangs').insert([
@@ -3799,14 +4084,6 @@ describe('Bang Search Optimization', () => {
             ...user,
             column_preferences: {},
         };
-    });
-
-    afterEach(async () => {
-        if (testUser?.id) {
-            await db('bangs').where({ user_id: testUser.id }).delete();
-            await db('tabs').where({ user_id: testUser.id }).delete();
-            await db('users').where({ id: testUser.id }).delete();
-        }
     });
 
     it('should skip DB query for system bang when user has no custom override', async () => {
@@ -4025,14 +4302,6 @@ describe('Bang Search Performance', () => {
             },
         ]);
         await db('tabs').insert([{ user_id: testUser.id, trigger: '!mytab', title: 'My Tab' }]);
-    });
-
-    afterEach(async () => {
-        if (testUser?.id) {
-            await db('bangs').where({ user_id: testUser.id }).delete();
-            await db('tabs').where({ user_id: testUser.id }).delete();
-            await db('users').where({ id: testUser.id }).delete();
-        }
     });
 
     it('should be faster with cache hit vs cache miss', async () => {

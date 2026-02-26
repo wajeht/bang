@@ -2,6 +2,7 @@ import type {
     Bookmark,
     AppContext,
     BookmarkToExport,
+    ColumnPreferences,
     PaginateArrayOptions,
     TurnstileVerifyResponse,
 } from '../type';
@@ -9,13 +10,93 @@ import http from 'node:http';
 import https from 'node:https';
 import type { Request } from 'express';
 
-export function Utils(context: AppContext) {
-    const { db, logger, config, errors } = context;
+export function createUtil(context: AppContext) {
+    const { db, config, errors } = context;
+    const logger = context.logger.tag('service', 'util');
 
     const ACTION_TYPES = ['search', 'redirect'] as const;
 
+    const DEFAULT_COLUMN_PREFERENCES: ColumnPreferences = {
+        bookmarks: {
+            title: true,
+            url: true,
+            default_per_page: 10,
+            created_at: true,
+            pinned: true,
+            hidden: true,
+        },
+        actions: {
+            name: true,
+            trigger: true,
+            url: true,
+            action_type: true,
+            default_per_page: 10,
+            last_read_at: true,
+            usage_count: true,
+            created_at: true,
+            hidden: true,
+        },
+        notes: {
+            title: true,
+            content: true,
+            default_per_page: 10,
+            created_at: true,
+            pinned: true,
+            view_type: 'table',
+            hidden: true,
+        },
+        tabs: {
+            title: true,
+            trigger: true,
+            items_count: true,
+            default_per_page: 10,
+            created_at: true,
+        },
+        reminders: {
+            title: true,
+            content: true,
+            due_date: true,
+            frequency: true,
+            default_per_page: 10,
+            created_at: true,
+            default_reminder_timing: 'daily',
+            default_reminder_time: '09:00',
+        },
+        users: {
+            username: true,
+            email: true,
+            is_admin: true,
+            default_per_page: 10,
+            email_verified_at: true,
+            created_at: true,
+        },
+    };
+
     return {
         ACTION_TYPES,
+
+        parseColumnPreferences(raw: string | object | null | undefined): ColumnPreferences {
+            let parsed: Partial<ColumnPreferences> = {};
+
+            if (typeof raw === 'string') {
+                try {
+                    parsed = JSON.parse(raw);
+                } catch {
+                    parsed = {};
+                }
+            } else if (raw && typeof raw === 'object') {
+                parsed = raw as Partial<ColumnPreferences>;
+            }
+
+            return {
+                bookmarks: { ...DEFAULT_COLUMN_PREFERENCES.bookmarks, ...parsed.bookmarks },
+                actions: { ...DEFAULT_COLUMN_PREFERENCES.actions, ...parsed.actions },
+                notes: { ...DEFAULT_COLUMN_PREFERENCES.notes, ...parsed.notes },
+                tabs: { ...DEFAULT_COLUMN_PREFERENCES.tabs, ...parsed.tabs },
+                reminders: { ...DEFAULT_COLUMN_PREFERENCES.reminders, ...parsed.reminders },
+                users: { ...DEFAULT_COLUMN_PREFERENCES.users, ...parsed.users },
+            };
+        },
 
         paginate<T>(array: T[], options: PaginateArrayOptions) {
             const { page, perPage, total } = options;
@@ -95,14 +176,62 @@ export function Utils(context: AppContext) {
             return truncated + '...';
         },
 
-        getFaviconUrl(url: string): string {
-            let domain = '';
+        normalizeUrl(url: string): string {
             try {
-                domain = new URL(url).hostname;
+                new URL(url);
+                return url;
             } catch {
-                domain = url;
+                return url.startsWith('http') ? url : `https://${url}`;
             }
-            return `https://favicon.jaw.dev/?url=${domain}`;
+        },
+
+        getFaviconUrl(url: string): string {
+            try {
+                return `https://favicon.jaw.dev/?url=${encodeURIComponent(new URL(url).hostname)}`;
+            } catch {
+                const withHttps = url.startsWith('http') ? url : `https://${url}`;
+                try {
+                    return `https://favicon.jaw.dev/?url=${encodeURIComponent(new URL(withHttps).hostname)}`;
+                } catch {
+                    return `https://favicon.jaw.dev/?url=${encodeURIComponent(url)}`;
+                }
+            }
+        },
+
+        getScreenshotUrl(url: string): string {
+            try {
+                new URL(url);
+                return `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`;
+            } catch {
+                const withHttps = url.startsWith('http') ? url : `https://${url}`;
+                try {
+                    new URL(withHttps);
+                    return `https://screenshot.jaw.dev?url=${encodeURIComponent(withHttps)}`;
+                } catch {
+                    return `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`;
+                }
+            }
+        },
+
+        prefetchAssets(url: string): void {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000);
+
+            const screenshotUrl = this.getScreenshotUrl(url);
+            const faviconUrl = this.getFaviconUrl(url);
+
+            Promise.allSettled([
+                fetch(screenshotUrl, {
+                    method: 'HEAD',
+                    headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Prefetch' },
+                    signal: controller.signal,
+                }).then((res) => res.text().catch(() => {})),
+                fetch(faviconUrl, {
+                    method: 'HEAD',
+                    headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Prefetch' },
+                    signal: controller.signal,
+                }).then((res) => res.text().catch(() => {})),
+            ]).finally(() => clearTimeout(timeout));
         },
 
         createBookmarkHtml(bookmark: BookmarkToExport): string {
@@ -225,8 +354,15 @@ export function Utils(context: AppContext) {
             }
         },
 
-        async checkDuplicateBookmarkUrl(userId: number, url: string): Promise<Bookmark | null> {
+        async checkDuplicateBookmarkUrl(
+            userId: number,
+            url: string,
+            title?: string,
+        ): Promise<Bookmark | null> {
             try {
+                if (title) {
+                    return await db('bookmarks').where({ user_id: userId, url, title }).first();
+                }
                 return await db('bookmarks').where({ user_id: userId, url }).first();
             } catch (error) {
                 logger.error('Error checking duplicate bookmark URL', { error, url });
@@ -265,6 +401,8 @@ export function Utils(context: AppContext) {
                         (error) => logger.error('Error inserting page title', { error, url }),
                     );
                 }
+
+                this.prefetchAssets(url);
             } catch (error) {
                 logger.error('Error inserting bookmark', { error, url });
             }
@@ -509,6 +647,7 @@ export function Utils(context: AppContext) {
                               'autocomplete_search_on_homepage',
                               'column_preferences',
                               'timezone',
+                              'theme',
                           )
                           .first()
                     : Promise.resolve(null);

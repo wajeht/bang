@@ -24,7 +24,7 @@
   </header>
 
   <div style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
-    <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
+    <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px; background-color: var(--background-color);">
       <legend>📤 Export Data</legend>
 
       <div style="display: flex; gap: 5px;" role="tablist" aria-label="Export format">
@@ -100,7 +100,7 @@
       </div>
     </fieldset>
 
-    <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px;">
+    <fieldset style="width: 32.5%; display: flex; flex-direction: column; gap: 10px; background-color: var(--background-color);">
       <legend>📥 Import Data</legend>
 
       <p>Import your bookmarks, custom actions, notes, reminders, and user preferences</p>
@@ -119,7 +119,7 @@
               rows: 10,
               style: 'width: 100%;',
               required: true,
-              helpText: 'Paste the JSON data exported from Bang',
+              helpText: 'Paste the JSON data exported from this app',
               error: state.errors && state.errors.config ? state.errors.config : undefined
             }) %>
             <button type="submit">⬆️ Import</button>

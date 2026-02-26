@@ -1,22 +1,12 @@
-import { libs } from '../libs';
-import { config } from '../config';
-import { Database } from '../db/db';
-import { Logger } from '../utils/logger';
+import { createDb } from './test-db';
 
-const logger = Logger();
-
-async function globalTeardown() {
+export default async function globalTeardown() {
     console.log('Cleaning up test resources...');
 
-    const database = Database({ config, logger, libs });
-    const db = database.instance;
-
     try {
-        await db.destroy();
+        await createDb().destroy();
         console.log('Database connections closed successfully');
     } catch (error) {
         console.error('Error during teardown:', error);
     }
 }
-
-export default globalTeardown;

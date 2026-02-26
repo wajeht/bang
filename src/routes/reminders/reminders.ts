@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { User, AppContext } from '../../type';
 
-export function RemindersRouter(ctx: AppContext) {
+export function createRemindersRouter(ctx: AppContext) {
     const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
     const router = ctx.libs.express.Router();
@@ -23,7 +23,7 @@ export function RemindersRouter(ctx: AppContext) {
         '/reminders/create',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            return res.render('reminders/reminders-create.html', {
+            return res.render('reminders/reminders-new.html', {
                 title: 'Reminders / New',
                 path: '/reminders/create',
                 layout: '_layouts/auth.html',
@@ -38,7 +38,7 @@ export function RemindersRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
-            const reminderId = parseInt(req.params.id || '', 10);
+            const reminderId = parseInt(String(req.params.id ?? ''), 10);
 
             const reminder = await ctx.models.reminders.read(reminderId, user.id);
 
@@ -62,7 +62,7 @@ export function RemindersRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user as User;
-            const reminderId = parseInt(req.params.id || '', 10);
+            const reminderId = parseInt(String(req.params.id ?? ''), 10);
 
             const reminder = await ctx.models.reminders.read(reminderId, user.id);
 
@@ -70,7 +70,7 @@ export function RemindersRouter(ctx: AppContext) {
                 throw new ctx.errors.NotFoundError('Reminder not found');
             }
 
-            return res.render('reminders/reminders-id-bookmarks-create.html', {
+            return res.render('reminders/reminders-bookmarks-new.html', {
                 title: `Reminders / ${reminderId} / Bookmarks / Create`,
                 path: `/reminders/${reminderId}/bookmarks/create`,
                 layout: '_layouts/auth.html',
@@ -85,7 +85,7 @@ export function RemindersRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.session.user as User;
-            const reminderId = parseInt(req.params.id || '', 10);
+            const reminderId = parseInt(String(req.params.id ?? ''), 10);
             const { url, title, pinned, delete_reminder } = req.body;
 
             const reminder = await ctx.models.reminders.read(reminderId, user.id);
@@ -112,7 +112,11 @@ export function RemindersRouter(ctx: AppContext) {
                 });
             }
 
-            const existingBookmark = await ctx.utils.util.checkDuplicateBookmarkUrl(user.id, url);
+            const existingBookmark = await ctx.utils.util.checkDuplicateBookmarkUrl(
+                user.id,
+                url,
+                title || '',
+            );
 
             if (existingBookmark) {
                 throw new ctx.errors.ValidationError({
@@ -164,6 +168,11 @@ export function RemindersRouter(ctx: AppContext) {
                         reminder_type: 'recurring',
                     })
                     .whereNotNull('frequency');
+
+                if (recurringReminders.length === 0) {
+                    req.flash('warning', "You don't have any recurring reminders at the moment!");
+                    return res.redirect('/reminders');
+                }
 
                 const updates: { id: number; due_date: string }[] = [];
                 for (const reminder of recurringReminders) {
@@ -237,7 +246,7 @@ export function RemindersRouter(ctx: AppContext) {
             return;
         }
 
-        return res.render('reminders/reminders-get.html', {
+        return res.render('reminders/reminders-index.html', {
             user: req.user,
             title: 'Reminders',
             path: '/reminders',

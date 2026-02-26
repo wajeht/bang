@@ -6,6 +6,7 @@ export default defineConfig({
         clearMocks: true,
         globals: true,
         setupFiles: ['./src/tests/test-setup.ts'],
+        disableConsoleIntercept: true,
         exclude: [
             'node_modules',
             './opencode',

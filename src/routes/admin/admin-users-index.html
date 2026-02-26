@@ -6,10 +6,6 @@
     </div>
 
     <nav style="display: flex; gap: 10px;" aria-label="User management controls">
-      <% if (search) { %>
-        <button class="no-style-btn" type="button" onclick="location.href='/admin/users'">❌ Clear</button>
-      <% } %>
-
       <form method="GET" style="display: flex; gap: 10px;" role="search">
         <%~ include('../_components/inputs/search.html', {
           id: 'search-input',
@@ -33,7 +29,7 @@
 
   <div style="display: flex; flex-direction: column; gap: 10px;">
     <% if (data && data.length > 0) { %>
-      <table style="width: 100%; border-collapse: collapse;">
+      <table style="width: 100%; border-collapse: collapse; background-color: var(--background-color);">
         <caption style="position: absolute; left: -10000px;"><%= data.length %> users found</caption>
         <thead>
           <tr>

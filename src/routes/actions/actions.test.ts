@@ -1,30 +1,9 @@
-import {
-    cleanupTestData,
-    authenticateAgent,
-    cleanupTestDatabase,
-    authenticateApiAgent,
-} from '../../tests/api-test-utils';
+import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils';
 import request from 'supertest';
-import { createApp } from '../../app';
-import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { db, app } from '../../tests/test-setup';
+import { describe, it, expect, vi } from 'vitest';
 
 describe('Actions API', () => {
-    let app: any;
-
-    beforeAll(async () => {
-        const { app: expressApp } = await createApp();
-        app = expressApp;
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
-    });
-
     describe('GET /api/actions', () => {
         it('should require authentication', async () => {
             await request(app).get('/api/actions').expect(401);
@@ -90,6 +69,65 @@ describe('Actions API', () => {
             expect(response.headers['content-type']).toMatch(/application\/json/);
             expect(response.body).toHaveProperty('message');
             expect(response.body.message).toContain('Action !test created successfully!');
+        });
+
+        it('should prefetch assets when creating redirect action', async () => {
+            const { agent } = await authenticateApiAgent(app);
+            const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+                text: () => Promise.resolve(''),
+            } as unknown as globalThis.Response);
+
+            await agent
+                .post('/api/actions')
+                .send({
+                    name: 'Redirect Action',
+                    trigger: '!redirectprefetch',
+                    url: 'https://prefetch-action.com',
+                    actionType: 'redirect',
+                })
+                .expect(201);
+
+            await vi.waitFor(() => {
+                expect(fetchSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('screenshot.jaw.dev'),
+                    expect.any(Object),
+                );
+            });
+
+            await vi.waitFor(() => {
+                expect(fetchSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('favicon.jaw.dev'),
+                    expect.any(Object),
+                );
+            });
+
+            fetchSpy.mockRestore();
+        });
+
+        it('should NOT prefetch assets when creating search action', async () => {
+            const { agent } = await authenticateApiAgent(app);
+            const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+                text: () => Promise.resolve(''),
+            } as unknown as globalThis.Response);
+
+            await agent
+                .post('/api/actions')
+                .send({
+                    name: 'Search Action',
+                    trigger: '!searchprefetch',
+                    url: 'https://search.com?q={{query}}',
+                    actionType: 'search',
+                })
+                .expect(201);
+
+            await new Promise((resolve) => setTimeout(resolve, 50));
+
+            const screenshotCalls = fetchSpy.mock.calls.filter(
+                (call) => typeof call[0] === 'string' && call[0].includes('screenshot.jaw.dev'),
+            );
+            expect(screenshotCalls.length).toBe(0);
+
+            fetchSpy.mockRestore();
         });
 
         it('should validate required fields', async () => {

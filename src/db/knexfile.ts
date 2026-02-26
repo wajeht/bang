@@ -1,9 +1,9 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
-import { Logger } from '../utils/logger';
+import { createLogger } from '../utils/logger';
 import { CustomMigrationSource } from './migration-source';
 
-const logger = Logger();
+const logger = createLogger({ service: 'knexfile' });
 const isTesting = process.env.NODE_ENV === 'testing' || process.env.APP_ENV === 'testing';
 
 const migrationsPath = path.resolve(__dirname, 'migrations');
@@ -30,6 +30,7 @@ let knexConfig: Knex.Config = {
         propagateCreateError: false, // Don't fail immediately on connection errors
         afterCreate: (conn: any, done: (err: Error | null, conn: any) => void) => {
             try {
+                logger.info('afterCreate: configuring connection');
                 // Enable foreign key constraints
                 conn.pragma('foreign_keys = ON');
 
@@ -81,7 +82,7 @@ let knexConfig: Knex.Config = {
                 if (!isTesting) {
                     logger.info('New database connection established');
                 }
-
+                logger.info('afterCreate: calling done callback');
                 done(null, conn);
             } catch (err: any) {
                 logger.error('Error establishing database connection', { error: err });
@@ -99,5 +100,7 @@ if (isTesting) {
         },
     };
 }
+
+export { knexConfig };
 
 export default knexConfig;

@@ -397,7 +397,7 @@
 <% } %>
 
 <section style="margin-top: 10em; display: flex; justify-content: center; flex-direction: column; gap: 40px; align-items: center; width: 100%;">
-  <h1 style="font-size: 2em; font-weight: 900;">⚡️ Bang</h1>
+  <h1 style="font-size: 2em; font-weight: 900;">⚡️ <%= state.branding.appName %></h1>
   <form method="POST" action="/search" style="display: flex; gap: 5px; width: 50%; position: relative;" role="search">
     <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
 
@@ -409,7 +409,8 @@
       ariaLabel: 'Search',
       required: true,
       autofocus: true,
-      style: 'width: 100%;'
+      style: 'width: 100%;',
+      submitOnClear: false
     }) %>
 
     <ul id="bangsDropdown" style="position: absolute; top: 50px; left: 0; width: 100%; background: var(--background-color); border: 1px solid var(--card-border-color); border-radius: 3px; list-style: none; padding: 0; margin: 0; display: none; z-index: 10; max-height: 350px; overflow-y: auto;" role="listbox" aria-label="Search suggestions"></ul>

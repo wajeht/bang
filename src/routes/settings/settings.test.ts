@@ -1,30 +1,9 @@
-import {
-    cleanupTestData,
-    authenticateAgent,
-    cleanupTestDatabase,
-    createUnauthenticatedAgent,
-} from '../../tests/api-test-utils';
+import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/api-test-utils';
 import request from 'supertest';
-import { createApp } from '../../app';
-import { db } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+import { db, app } from '../../tests/test-setup';
+import { describe, it, expect } from 'vitest';
 
 describe('Settings Routes', () => {
-    let app: any;
-
-    beforeAll(async () => {
-        const { app: expressApp } = await createApp();
-        app = expressApp;
-    });
-
-    afterEach(async () => {
-        await cleanupTestData();
-    });
-
-    afterAll(async () => {
-        await cleanupTestDatabase();
-    });
-
     describe('GET /settings', () => {
         it('should require authentication', async () => {
             await request(app).get('/settings').expect(302).expect('Location', '/?modal=login');
@@ -113,6 +92,7 @@ describe('Settings Routes', () => {
                     default_search_provider: 'google',
                     autocomplete_search_on_homepage: 'on',
                     timezone: 'UTC',
+                    theme: 'dark',
                 })
                 .expect(302);
 
@@ -120,6 +100,7 @@ describe('Settings Routes', () => {
             expect(updatedUser.username).toBe('updateduser');
             expect(updatedUser.default_search_provider).toBe('google');
             expect(updatedUser.autocomplete_search_on_homepage).toBe(1);
+            expect(updatedUser.theme).toBe('dark');
         });
 
         it('should allow updating profile while keeping same username', async () => {
@@ -133,6 +114,7 @@ describe('Settings Routes', () => {
                     default_search_provider: 'google',
                     autocomplete_search_on_homepage: 'on',
                     timezone: 'America/New_York',
+                    theme: 'light',
                 })
                 .expect(302);
 
@@ -141,6 +123,7 @@ describe('Settings Routes', () => {
             expect(updatedUser.email).toBe(user.email);
             expect(updatedUser.default_search_provider).toBe('google');
             expect(updatedUser.timezone).toBe('America/New_York');
+            expect(updatedUser.theme).toBe('light');
         });
 
         it('should validate email format', async () => {
@@ -153,6 +136,7 @@ describe('Settings Routes', () => {
                     email: 'invalid-email',
                     default_search_provider: 'duckduckgo',
                     timezone: 'UTC',
+                    theme: 'system',
                 })
                 .expect(302);
         });
@@ -174,8 +158,28 @@ describe('Settings Routes', () => {
                     email: 'test@example.com',
                     default_search_provider: 'duckduckgo',
                     timezone: 'UTC',
+                    theme: 'system',
                 })
                 .expect(302);
+        });
+
+        it('should have parsed column_preferences in session after update', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await agent
+                .post('/settings/account')
+                .send({
+                    username: user.username,
+                    email: user.email,
+                    default_search_provider: 'duckduckgo',
+                    timezone: 'UTC',
+                    theme: 'dark',
+                })
+                .expect(302);
+
+            const actionsResponse = await agent.get('/actions').expect(200);
+            expect(actionsResponse.text).toContain('Actions');
+            expect(actionsResponse.text).not.toContain('Cannot read properties');
         });
     });
 
@@ -502,9 +506,84 @@ describe('Settings Routes', () => {
             const actions = await db('bangs').where({ user_id: user.id });
             expect(actions[0].hidden).toBe(0);
         });
+
+        it('should update session when importing user preferences', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const importData = {
+                version: '1.0',
+                user_preferences: {
+                    default_search_provider: 'google',
+                    timezone: 'America/Los_Angeles',
+                },
+            };
+
+            await agent
+                .post('/settings/data/import')
+                .send({ config: JSON.stringify(importData) })
+                .expect(302);
+
+            const response = await agent.get('/settings/account').expect(200);
+            expect(response.text).toContain('"default_search_provider":"google"');
+            expect(response.text).toContain('"timezone":"America/Los_Angeles"');
+        });
+
+        it('should import theme preference', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const importData = {
+                version: '1.0',
+                user_preferences: {
+                    theme: 'dark',
+                },
+            };
+
+            await agent
+                .post('/settings/data/import')
+                .send({ config: JSON.stringify(importData) })
+                .expect(302);
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.theme).toBe('dark');
+        });
+
+        it('should reject invalid theme values during import', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('users').where({ id: user.id }).update({ theme: 'light' });
+
+            const importData = {
+                version: '1.0',
+                user_preferences: {
+                    theme: 'invalid-theme',
+                },
+            };
+
+            await agent
+                .post('/settings/data/import')
+                .send({ config: JSON.stringify(importData) })
+                .expect(302);
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.theme).toBe('light');
+        });
     });
 
     describe('POST /settings/data/export', () => {
+        it('should export theme in user preferences', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('users').where({ id: user.id }).update({ theme: 'dark' });
+
+            const response = await agent
+                .post('/settings/data/export')
+                .send({ options: ['user_preferences'] })
+                .expect(200);
+
+            const exportData = JSON.parse(response.text);
+            expect(exportData.user_preferences.theme).toBe('dark');
+        });
+
         it('should export data including hidden field', async () => {
             const { agent, user } = await authenticateAgent(app);
 
@@ -594,6 +673,224 @@ describe('Settings Routes', () => {
         });
     });
 
+    describe('POST /settings/hidden-password', () => {
+        it('should require authentication', async () => {
+            const agent = await createUnauthenticatedAgent(app);
+            await agent
+                .post('/settings/hidden-password')
+                .send({ newPassword: 'test1234' })
+                .expect(302)
+                .expect('Location', '/?modal=login');
+        });
+
+        it('should set a new password and update the session', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await agent
+                .post('/settings/hidden-password')
+                .send({ newPassword: 'test1234' })
+                .expect(302);
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.hidden_items_password).not.toBeNull();
+
+            const response = await agent.get('/settings/account').expect(200);
+            expect(response.text).toContain('Current Password');
+            expect(response.text).toContain('Update Password');
+        });
+
+        it('should update password and update the session', async () => {
+            const { agent, user } = await authenticateAgent(app);
+            const bcrypt = await import('bcrypt');
+
+            await agent
+                .post('/settings/hidden-password')
+                .send({ newPassword: 'oldpass' })
+                .expect(302);
+
+            await agent
+                .post('/settings/hidden-password')
+                .send({
+                    currentPassword: 'oldpass',
+                    newPassword: 'newpass1234',
+                    confirmPassword: 'newpass1234',
+                })
+                .expect(302);
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            const isNewPassword = await bcrypt.compare(
+                'newpass1234',
+                updatedUser.hidden_items_password,
+            );
+            expect(isNewPassword).toBe(true);
+        });
+
+        it('should remove password and update the session', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await agent
+                .post('/settings/hidden-password')
+                .send({ newPassword: 'testpass' })
+                .expect(302);
+
+            await agent
+                .post('/settings/hidden-password')
+                .send({
+                    currentPassword: 'testpass',
+                    removePassword: 'on',
+                })
+                .expect(302);
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.hidden_items_password).toBeNull();
+
+            const response = await agent.get('/settings/account').expect(200);
+            expect(response.text).toContain('Set Password');
+            expect(response.text).not.toContain('Update Password');
+        });
+
+        it('should sync hidden_items_password to session after setting', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const responseBefore = await agent.get('/settings/account').expect(200);
+            expect(responseBefore.text).toContain('"hidden_items_password":null');
+
+            await agent
+                .post('/settings/hidden-password')
+                .send({ newPassword: 'newpass123' })
+                .expect(302);
+
+            const responseAfter = await agent.get('/settings/account').expect(200);
+            expect(responseAfter.text).not.toContain('"hidden_items_password":null');
+            expect(responseAfter.text).toMatch(/"hidden_items_password":"\$2[aby]\$/);
+        });
+    });
+
+    describe('POST /api/settings/theme', () => {
+        it('should require authentication', async () => {
+            const agent = await createUnauthenticatedAgent(app);
+            await agent.post('/api/settings/theme').send({ theme: 'dark' }).expect(401);
+        });
+
+        it('should update theme to dark', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const response = await agent
+                .post('/api/settings/theme')
+                .send({ theme: 'dark' })
+                .expect(200);
+
+            expect(response.body).toEqual({ success: true, theme: 'dark' });
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.theme).toBe('dark');
+        });
+
+        it('should update theme to light', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await db('users').where({ id: user.id }).update({ theme: 'dark' });
+
+            const response = await agent
+                .post('/api/settings/theme')
+                .send({ theme: 'light' })
+                .expect(200);
+
+            expect(response.body).toEqual({ success: true, theme: 'light' });
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.theme).toBe('light');
+        });
+
+        it('should reject invalid theme', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const response = await agent
+                .post('/api/settings/theme')
+                .send({ theme: 'invalid' })
+                .expect(400);
+
+            expect(response.body).toEqual({ error: 'Invalid theme' });
+        });
+
+        it('should reject system theme', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const response = await agent
+                .post('/api/settings/theme')
+                .send({ theme: 'system' })
+                .expect(400);
+
+            expect(response.body).toEqual({ error: 'Invalid theme' });
+        });
+
+        it('should reject missing theme', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            const response = await agent.post('/api/settings/theme').send({}).expect(400);
+
+            expect(response.body).toEqual({ error: 'Invalid theme' });
+        });
+    });
+
+    describe('POST /settings/create-api-key', () => {
+        it('should require authentication', async () => {
+            const agent = await createUnauthenticatedAgent(app);
+            await agent
+                .post('/settings/create-api-key')
+                .send({})
+                .expect(302)
+                .expect('Location', '/?modal=login');
+        });
+
+        it('should create an API key and update the database', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const initialUser = await db('users').where({ id: user.id }).first();
+            expect(initialUser.api_key).toBeNull();
+            expect(initialUser.api_key_version).toBe(0);
+
+            await agent
+                .post('/settings/create-api-key')
+                .send({})
+                .expect(302)
+                .expect('Location', '/settings/account');
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.api_key).not.toBeNull();
+            expect(updatedUser.api_key_version).toBe(1);
+            expect(updatedUser.api_key_created_at).not.toBeNull();
+        });
+
+        it('should update session so account page shows API key UI', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            await agent.post('/settings/create-api-key').send({}).expect(302);
+
+            const response = await agent.get('/settings/account').expect(200);
+
+            expect(response.text).toContain('view-or-hide-button');
+            expect(response.text).toContain('Regenerate');
+            expect(response.text).not.toContain('click to generate api key');
+        });
+
+        it('should increment api_key_version on regeneration', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await agent.post('/settings/create-api-key').send({}).expect(302);
+
+            const firstUser = await db('users').where({ id: user.id }).first();
+            expect(firstUser.api_key_version).toBe(1);
+            const firstKey = firstUser.api_key;
+
+            await agent.post('/settings/create-api-key').send({}).expect(302);
+
+            const secondUser = await db('users').where({ id: user.id }).first();
+            expect(secondUser.api_key_version).toBe(2);
+            expect(secondUser.api_key).not.toBe(firstKey);
+        });
+    });
+
     describe('GET /api/settings/api-key', () => {
         it('should require authentication', async () => {
             await request(app).get('/api/settings/api-key').expect(401);
@@ -638,6 +935,49 @@ describe('Settings Routes', () => {
 
             const response2 = await agent.get('/api/settings/api-key').expect(200);
             expect(response2.body.api_key).toBe('updated-key');
+        });
+    });
+
+    describe('POST /settings/danger-zone/bulk-delete', () => {
+        it('should update session when deleting API keys', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            await agent.post('/settings/create-api-key').send({}).expect(302);
+
+            const userWithKey = await db('users').where({ id: user.id }).first();
+            expect(userWithKey.api_key).not.toBeNull();
+
+            await agent
+                .post('/settings/danger-zone/bulk-delete')
+                .send({ delete_options: ['api_keys'] })
+                .expect(302);
+
+            const updatedUser = await db('users').where({ id: user.id }).first();
+            expect(updatedUser.api_key).toBeNull();
+            expect(updatedUser.api_key_version).toBe(0);
+
+            const response = await agent.get('/settings/account').expect(200);
+            expect(response.text).toContain('click to generate api key');
+            expect(response.text).not.toContain('Regenerate');
+        });
+
+        it('should sync api key fields to session after bulk delete', async () => {
+            const { agent } = await authenticateAgent(app);
+
+            await agent.post('/settings/create-api-key').send({}).expect(302);
+
+            const responseWithKey = await agent.get('/settings/account').expect(200);
+            expect(responseWithKey.text).toContain('"api_key_version":1');
+            expect(responseWithKey.text).not.toContain('"api_key":null');
+
+            await agent
+                .post('/settings/danger-zone/bulk-delete')
+                .send({ delete_options: ['api_keys'] })
+                .expect(302);
+
+            const responseAfterDelete = await agent.get('/settings/account').expect(200);
+            expect(responseAfterDelete.text).toContain('"api_key":null');
+            expect(responseAfterDelete.text).toContain('"api_key_version":0');
         });
     });
 });

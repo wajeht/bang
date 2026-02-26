@@ -3,9 +3,9 @@ import { Knex } from 'knex';
 import path from 'node:path';
 import bcrypt from 'bcrypt';
 import { dayjs } from '../../libs';
-import { Logger } from '../../utils/logger';
+import { createLogger } from '../../utils/logger';
 
-const logger = Logger();
+const logger = createLogger({ service: 'seeds' });
 
 const env = dotenv.config({
     path: path.resolve(path.join(process.cwd(), '..', '..', '.env')),
@@ -14,6 +14,11 @@ const env = dotenv.config({
 
 export async function seed(knex: Knex): Promise<void> {
     try {
+        const [{ count }] = (await knex('users').count('* as count')) as any;
+        if (count > 0) {
+            return;
+        }
+
         await knex('tab_items').del();
         await knex('tabs').del();
         await knex('reminders').del();
@@ -33,6 +38,7 @@ export async function seed(knex: Knex): Promise<void> {
                 autocomplete_search_on_homepage: true,
                 default_search_provider: 'duckduckgo',
                 timezone: 'America/Chicago',
+                theme: 'system',
                 hidden_items_password: hiddenPassword,
                 column_preferences: JSON.stringify({
                     bookmarks: {

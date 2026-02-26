@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { AppContext, User } from '../../type';
 
-export function SearchRouter(ctx: AppContext) {
+export function createSearchRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     router.post('/search', async (req: Request, res: Response) => {

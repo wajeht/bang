@@ -3,7 +3,8 @@ import type { Request } from 'express';
 import type { User, AppContext } from '../type';
 import type { Attachment } from 'nodemailer/lib/mailer';
 
-export function MailUtils(context: AppContext) {
+export function createMail(context: AppContext) {
+    const logger = context.logger.tag('service', 'mail');
     const DEV_ENVIRONMENTS = new Set(['development', 'staging', 'test', 'testing', 'ci', 'dev']);
 
     const emailTransporter = context.libs.nodemailer.createTransport({
@@ -48,13 +49,17 @@ export function MailUtils(context: AppContext) {
             if (mailOptions.attachments && mailOptions.attachments.length > 0) {
                 headerLines.push(divider);
                 headerLines.push(styleText('blue', '📎 Attachments:'));
-                mailOptions.attachments.forEach((att: any, index: number) => {
+                for (let i = 0; i < mailOptions.attachments.length; i++) {
+                    const att = mailOptions.attachments[i] as {
+                        filename: string;
+                        contentType: string;
+                    };
                     headerLines.push(
-                        styleText('dim', `  ${index + 1}. `) +
+                        styleText('dim', `  ${i + 1}. `) +
                             styleText('white', att.filename) +
                             styleText('dim', ` (${att.contentType})`),
                     );
-                });
+                }
             }
 
             headerLines.push(divider);
@@ -90,7 +95,7 @@ export function MailUtils(context: AppContext) {
                 ' ' +
                 styleText('dim', `@ ${timestamp}`);
 
-            context.logger.box(title, allLines);
+            logger.box(title, allLines);
         },
 
         async isMailpitRunning(): Promise<boolean> {
@@ -116,13 +121,14 @@ export function MailUtils(context: AppContext) {
             token: string;
             req: Request;
         }): Promise<void> {
+            const branding = await context.models.settings.getBranding();
             const magicLink = `${req.protocol}://${req.get('host')}/auth/magic/${token}`;
 
             const mailOptions = {
-                from: `Bang <${context.config.email.from}>`,
+                from: `${branding.appName} <${context.config.email.from}>`,
                 to: email,
-                subject: '🔗 Your Bang Magic Link',
-                text: `Your Bang Magic Link
+                subject: `🔗 Your ${branding.appName} Magic Link`,
+                text: `Your ${branding.appName} Magic Link
 
 Click this link to log in:
 ${magicLink}
@@ -130,15 +136,15 @@ ${magicLink}
 This link will expire in 15 minutes. If you didn't request this, you can safely ignore this email.
 
 --
-Bang Team
-https://github.com/wajeht/bang`,
+${branding.appName} Team
+${branding.appUrl}`,
             };
 
             try {
                 await this.sendEmailWithFallback(mailOptions, 'Magic Link');
-                context.logger.info('Magic link sent', { email });
+                logger.info('Magic link sent', { email });
             } catch (error) {
-                context.logger.error('Failed to send magic link email', { error, email });
+                logger.error('Failed to send magic link email', { error, email });
             }
         },
 
@@ -153,33 +159,34 @@ https://github.com/wajeht/bang`,
             token: string;
             baseUrl: string;
         }): Promise<void> {
+            const branding = await context.models.settings.getBranding();
             const magicLink = `${baseUrl}/auth/magic/${token}`;
 
             const mailOptions = {
-                from: `Bang <${context.config.email.from}>`,
+                from: `${branding.appName} <${context.config.email.from}>`,
                 to: email,
-                subject: '👋 Verify your Bang account',
+                subject: `👋 Verify your ${branding.appName} account`,
                 text: `Hello ${username},
 
-We noticed you haven't verified your Bang account yet. Verifying your email helps secure your account and ensures you can receive important updates.
+We noticed you haven't verified your ${branding.appName} account yet. Verifying your email helps secure your account and ensures you can receive important updates.
 
 Click this link to verify your account:
 ${magicLink}
 
 This link will expire in 15 minutes.
 
-If you didn't create a Bang account, you can safely ignore this email.
+If you didn't create a ${branding.appName} account, you can safely ignore this email.
 
 --
-Bang Team
-https://github.com/wajeht/bang`,
+${branding.appName} Team
+${branding.appUrl}`,
             };
 
             try {
                 await this.sendEmailWithFallback(mailOptions, 'Verification Reminder');
-                context.logger.info('Verification reminder sent', { email });
+                logger.info('Verification reminder sent', { email });
             } catch (error) {
-                context.logger.error('Failed to send verification reminder email', {
+                logger.error('Failed to send verification reminder email', {
                     error,
                     email,
                 });
@@ -201,16 +208,16 @@ https://github.com/wajeht/bang`,
         }): Promise<void> {
             try {
                 if (!includeJson && !includeHtml) {
-                    context.logger.info(
-                        `No export options selected for ${email}, skipping export email`,
-                    );
+                    logger.info(`No export options selected for ${email}, skipping export email`);
                     return;
                 }
 
+                const branding = await context.models.settings.getBranding();
                 const userId = (req.user as User).id;
                 const currentDate = context.libs.dayjs().format('YYYY-MM-DD');
                 const attachments: Attachment[] = [];
                 const exportTypes: string[] = [];
+                const appNameLower = branding.appName.toLowerCase();
 
                 if (includeJson) {
                     const jsonExportData = await context.utils.util.generateUserDataExport(userId, {
@@ -223,12 +230,12 @@ https://github.com/wajeht/bang`,
                     });
                     const jsonBuffer = Buffer.from(JSON.stringify(jsonExportData, null, 2));
                     attachments.push({
-                        filename: `bang-data-export-${currentDate}.json`,
+                        filename: `${appNameLower}-data-export-${currentDate}.json`,
                         content: jsonBuffer,
                         contentType: 'application/json',
                     });
                     exportTypes.push(
-                        'bang-data-export-' +
+                        `${appNameLower}-data-export-` +
                             currentDate +
                             '.json - Complete data export including bookmarks, actions, notes, and user preferences',
                     );
@@ -255,35 +262,35 @@ https://github.com/wajeht/bang`,
                     .join('\n');
 
                 const mailOptions = {
-                    from: `Bang <${context.config.email.from}>`,
+                    from: `${branding.appName} <${context.config.email.from}>`,
                     to: email,
-                    subject: '📦 Your Bang Data Export - Account Deletion',
+                    subject: `📦 Your ${branding.appName} Data Export - Account Deletion`,
                     text: `Hello ${username},
 
-As requested, we have prepared your data export from Bang before proceeding with your account deletion.
+As requested, we have prepared your data export from ${branding.appName} before proceeding with your account deletion.
 
 Attached to this email you will find:
 ${attachmentsList}
 
 Your account has been deleted as requested. This action cannot be undone.
 
-We hope Bang was useful to you. If you ever want to return, you can always create a new account.
+We hope ${branding.appName} was useful to you. If you ever want to return, you can always create a new account.
 
-Thank you for using Bang!
+Thank you for using ${branding.appName}!
 
 --
-Bang Team
-https://github.com/wajeht/bang`,
+${branding.appName} Team
+${branding.appUrl}`,
                     attachments,
                 };
 
                 await this.sendEmailWithFallback(mailOptions, 'Data Export');
-                context.logger.info('Data export email sent', {
+                logger.info('Data export email sent', {
                     email,
                     attachmentCount: attachments.length,
                 });
             } catch (error) {
-                context.logger.error('Failed to send data export email', { error, email });
+                logger.error('Failed to send data export email', { error, email });
             }
         },
 
@@ -306,6 +313,7 @@ https://github.com/wajeht/bang`,
         }): Promise<void> {
             if (reminders.length === 0) return;
 
+            const branding = await context.models.settings.getBranding();
             const formatDate = context.libs.dayjs(date).format('dddd, MMMM D, YYYY');
 
             // Determine the frequency type for the header
@@ -348,18 +356,18 @@ https://github.com/wajeht/bang`,
 ${formatReminderListHTML}
     </ol>
 
-    <p>You can manage your reminders at your Bang dashboard.</p>
+    <p>You can manage your reminders at your ${branding.appName} dashboard.</p>
 
     <p>
         --<br>
-        Bang Team<br>
-        <a href="https://github.com/wajeht/bang">https://github.com/wajeht/bang</a>
+        ${branding.appName} Team<br>
+        <a href="${branding.appUrl}">${branding.appUrl}</a>
     </p>
 </body>
 </html>`;
 
             const mailOptions = {
-                from: `Bang <${context.config.email.from}>`,
+                from: `${branding.appName} <${context.config.email.from}>`,
                 to: email,
                 subject: `⏰ Reminders - ${formatDate}`,
                 html: emailBodyHTML,
@@ -370,12 +378,12 @@ ${formatReminderListHTML}
                     { ...mailOptions, text: emailBodyHTML },
                     'Reminder Digest',
                 );
-                context.logger.info('Reminder digest email sent', {
+                logger.info('Reminder digest email sent', {
                     email,
                     reminderCount: reminders.length,
                 });
             } catch (error) {
-                context.logger.error('Failed to send reminder digest email', { error, email });
+                logger.error('Failed to send reminder digest email', { error, email });
             }
         },
 
@@ -399,7 +407,7 @@ ${formatReminderListHTML}
                     .orderBy('reminders.created_at');
 
                 if (dueReminders.length === 0) {
-                    context.logger.info('No reminders due in the next 15 minutes');
+                    logger.info('No reminders due in the next 15 minutes');
                     return;
                 }
 
@@ -515,12 +523,12 @@ ${formatReminderListHTML}
                     username: userData.username,
                     reminderCount: userData.reminders.length,
                 }));
-                context.logger.table(userSummary);
-                context.logger.info('Processed reminder digests', {
+                logger.table(userSummary);
+                logger.info('Processed reminder digests', {
                     userCount: Object.keys(remindersByUser).length,
                 });
             } catch (error) {
-                context.logger.error('Failed to process reminder digests', { error });
+                logger.error('Failed to process reminder digests', { error });
             }
         },
 
@@ -537,11 +545,11 @@ ${formatReminderListHTML}
                     .orderBy('created_at', 'asc');
 
                 if (unverifiedUsers.length === 0) {
-                    context.logger.info('No unverified users found who need reminders');
+                    logger.info('No unverified users found who need reminders');
                     return;
                 }
 
-                context.logger.info('Found unverified users needing reminders', {
+                logger.info('Found unverified users needing reminders', {
                     count: unverifiedUsers.length,
                 });
 
@@ -563,12 +571,12 @@ ${formatReminderListHTML}
                     email: user.email,
                     username: user.username,
                 }));
-                context.logger.table(userSummary);
-                context.logger.info('Sent verification reminders', {
+                logger.table(userSummary);
+                logger.info('Sent verification reminders', {
                     count: emailsSent.length,
                 });
             } catch (error) {
-                context.logger.error('Failed to process verification reminders', { error });
+                logger.error('Failed to process verification reminders', { error });
             }
         },
     };

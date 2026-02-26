@@ -41,10 +41,6 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
         </div>
 
         <nav style="display: flex; gap: 10px;" aria-label="Action management controls">
-            <% if (search) { %>
-                <button class="no-style-btn" type="button" onclick="location.href='/bangs'">❌ Clear</button>
-            <% } %>
-
             <form method="GET" action="/bangs" style="display: flex; gap: 10px;" role="search">
                 <%~ include('../_components/inputs/search.html', {
                     id: 'search',
@@ -72,7 +68,7 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
 
     <section style="display: flex; flex-direction: column; gap: 10px;">
         <% if (data && data.length > 0) { %>
-            <table style="width: 100%; border-collapse: collapse;">
+            <table style="width: 100%; border-collapse: collapse; background-color: var(--background-color);">
                 <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
                     <tr>
                         <!-- Suggestion/Name (s) -->
@@ -192,7 +188,7 @@ document.addEventListener('DOMContentLoaded', previewWebpageOnLinkHover);
                                         <a href="<%~ data[i].u.replace('{{{s}}}', '') %>" style="overflow: auto; white-space: nowrap;" title="<%~ data[i].u %>" target="_blank" rel="noopener noreferrer">
                                             <%~ data[i].u %>
                                         </a>
-                                        <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(data[i].u.replace('{{{s}}}', '')) %>" loading="lazy" alt="Preview">
+                                        <img class="preview-img" src="<%= utils.getScreenshotUrl(data[i].u.replace('{{{s}}}', '')) %>" loading="lazy" alt="Preview">
                                     </span>
                                 </div>
                             </td>

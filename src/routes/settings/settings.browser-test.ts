@@ -1,13 +1,8 @@
-import { test, expect } from '@playwright/test';
-import { loginUser, cleanupTestData } from '../../tests/browser-test-utils';
+import { test, expect, loginUser } from '../../tests/browser-test-fixtures';
 
 test.describe('Settings', () => {
-    test.afterEach(async () => {
-        await cleanupTestData();
-    });
-
     test.beforeEach(async ({ page }) => {
-        await loginUser(page, 'test@example.com');
+        await loginUser(page, 'settings-test@example.com');
     });
 
     test('can access settings and update account', async ({ page }) => {

@@ -1,24 +1,20 @@
 <header style="flex: 0; display: flex; flex-direction: column; gap: 20px; border-bottom: solid 1px var(--card-border-color); padding-bottom: 15px;">
   <nav style="display: flex; justify-content: space-between; align-items: center;" aria-label="Main navigation">
       <div style="display: flex; align-items: center; gap: 20px; justify-items: center;">
-          <h1 style="padding-right: 10px;"><a href="/">⚡️ Bang</a></h1>
-          <ul style="list-style: none; padding: 0; margin: 0; display: flex; gap: 20px;">
+          <h1 style="padding-right: 10px;"><a href="/">⚡️ <%= state.branding.appName %></a></h1>
+          <ul style="list-style: none; padding: 0; margin: 0; display: flex; gap: 40px;">
             <li>
               <a style="font-weight: <%= path === '/actions' ? 'bold' : 'normal' %>; <%= path === '/actions' ? 'text-decoration: underline;' : '' %>" href="/actions" <%= path === '/actions' ? 'aria-current="page"' : '' %>>🚀 Actions</a>
             </li>
-            <span aria-hidden="true" style="color: var(--link-divider-color);">|</span>
             <li>
               <a style="font-weight: <%= path === '/bookmarks' ? 'bold' : 'normal' %>; <%= path === '/bookmarks' ? 'text-decoration: underline;' : '' %>" href="/bookmarks" <%= path === '/bookmarks' ? 'aria-current="page"' : '' %>>⭐️ Bookmarks</a>
             </li>
-            <span aria-hidden="true" style="color: var(--link-divider-color);">|</span>
               <li>
               <a style="font-weight: <%= path === '/reminders' ? 'bold' : 'normal' %>; <%= path === '/reminders' ? 'text-decoration: underline;' : '' %>" href="/reminders" <%= path === '/reminders' ? 'aria-current="page"' : '' %>>⏰ Reminders</a>
             </li>
-            <span aria-hidden="true" style="color: var(--link-divider-color);">|</span>
             <li>
               <a style="font-weight: <%= path === '/tabs' ? 'bold' : 'normal' %>; <%= path === '/tabs' ? 'text-decoration: underline;' : '' %>" href="/tabs" <%= path === '/tabs' ? 'aria-current="page"' : '' %>>🔗 Tabs</a>
             </li>
-            <span aria-hidden="true" style="color: var(--link-divider-color);">|</span>
               <li>
               <a style="font-weight: <%= path === '/notes' ? 'bold' : 'normal' %>; <%= path === '/notes' ? 'text-decoration: underline;' : '' %>" href="/notes" <%= path === '/notes' ? 'aria-current="page"' : '' %>>📝 Notes</a>
             </li>

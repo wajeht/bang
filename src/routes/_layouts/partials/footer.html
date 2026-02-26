@@ -1,16 +1,14 @@
-<footer style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; flex: 0; font-size: small;">
+<footer style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: center; flex: 0; font-size: small;">
   <p style="margin: 0;">Copyright © <%= state.copyRightYear %>. Made with ❤️ by <a href="https://github.com/wajeht" target="_blank" rel="noopener noreferrer">@wajeht</a></p>
-  <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
-    <span aria-hidden="true" style="color: var(--link-divider-color);">|</span>
+  <div style="display: flex; gap: 20px; justify-content: center; align-items: center;">
     <nav aria-label="Footer navigation">
-      <ul style="display: flex; gap: 10px; padding: 0; margin: 0; list-style: none; align-items: center;">
+      <ul style="display: flex; gap: 20px; padding: 0; margin: 0; list-style: none; align-items: center;">
         <li><a href="https://github.com/wajeht/bang" target="_blank" rel="noopener noreferrer">📂 Github</a></li>
-        <li><span aria-hidden="true" style="color: var(--link-divider-color);">|</span></li>
         <li><a href="/privacy-policy">🔒 Privacy</a></li>
-        <li><span aria-hidden="true" style="color: var(--link-divider-color);">|</span></li>
         <li><a href="/terms-of-service">📜 Terms</a></li>
-        <li><span aria-hidden="true" style="color: var(--link-divider-color);">|</span></li>
-        <li><button id="theme-toggle" class="no-style-btn" onclick="toggleTheme()">🌓 Dark</button></li>
+        <% if (state.user) { %>
+          <li><button id="theme-toggle" class="no-style-btn" onclick="toggleTheme()">🌓 Dark</button></li>
+        <% } %>
       </ul>
     </nav>
   </div>

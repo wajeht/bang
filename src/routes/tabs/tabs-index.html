@@ -223,13 +223,9 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
             <h2>🔗 Tab Groups (<%~ pagination.total %>)</h2>
             <%~ include('../_components/question-mark-button.html') %>
           </div>
-          <p>Manage your saved tab groups <span style="color: red">(using Tabs requires you to have popup allowed/redirect on <code>https://bang.jaw.dev</code> )</span></p>
+          <p>Manage your saved tab groups <span style="color: red">(using Tabs requires you to have popup allowed/redirect on <code><%= state.branding.appUrl %></code> )</span></p>
       </div>
       <div style="display: flex; gap: 10px;">
-        <% if (search) { %>
-            <button type="button" class="no-style-btn" onclick="location.href='/tabs'">❌ Clear</button>
-        <% } %>
-
         <form method="GET" action="/tabs" style="display: flex; gap: 10px;" role="search">
             <%~ include('../_components/inputs/search.html', {
                 id: 'search',
@@ -257,7 +253,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
 
   <section style="display: flex; flex-direction: column; gap: 10px;">
       <% if (tabs && tabs.length > 0) { %>
-          <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+          <table style="width: 100%; border-collapse: collapse; min-width: 600px; background-color: var(--background-color);">
               <thead style="position: sticky; top: 0; background: var(--background-color); z-index: 2;">
                   <tr>
                       <th scope="col" style="text-align: left; padding: 10px; width: 40px;">
@@ -443,7 +439,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                                 <a href="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" target="_blank" rel="noopener noreferrer">
                                                     <%~ tabs[i].items[j].url %>
                                                 </a>
-                                                <img class="preview-img" src="https://screenshot.jaw.dev?url=<%= encodeURIComponent(tabs[i].items[j].url) %>" loading="lazy" alt="Preview">
+                                                <img class="preview-img" src="<%= utils.getScreenshotUrl(tabs[i].items[j].url) %>" loading="lazy" alt="Preview">
                                             </span>
                                         </div>
                                      </td>
