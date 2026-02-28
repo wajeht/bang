@@ -114930,6 +114930,16 @@ export const bangs: Record<string, any> = {
         c: 'News',
         sc: 'Broadcast',
     },
+    zig: {
+        s: 'Ziglang std docs',
+        d: 'ziglang.org',
+        ad: 'ziglang.org/documentation/master/',
+        t: 'zig',
+        u: 'https://ziglang.org/documentation/master/std/#?{{{s}}}',
+        c: 'Tech',
+        sc: 'Programming',
+        fmt: ['url_encode_placeholder', 'open_snap_domain'],
+    },
     dutchnews: {
         s: 'Dutch News',
         d: 'www.dutchnews.nl',
