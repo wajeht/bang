@@ -15,7 +15,7 @@ on:
 jobs:
     update-bangs:
         name: Update bangs from Kagi and DuckDuckGo
-        runs-on: ${{ vars.WALKER || 'ubuntu-latest' }}
+        runs-on: ubuntu-latest
         outputs:
             changed: ${{ steps.verify-changed-files.outputs.changed }}
 
