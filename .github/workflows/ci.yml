@@ -42,7 +42,7 @@ concurrency:
 jobs:
     unit-test:
         name: Unit tests
-        runs-on: ubuntu-latest
+        runs-on: ${{ vars.WALKER || 'ubuntu-latest' }}
 
         steps:
             - uses: actions/checkout@v4
@@ -68,7 +68,7 @@ jobs:
 
     browser-test:
         name: Browser tests
-        runs-on: ubuntu-latest
+        runs-on: ${{ vars.WALKER || 'ubuntu-latest' }}
 
         steps:
             - uses: actions/checkout@v4
@@ -117,7 +117,7 @@ jobs:
 
     lint:
         name: Lint
-        runs-on: ubuntu-latest
+        runs-on: ${{ vars.WALKER || 'ubuntu-latest' }}
 
         steps:
             - uses: actions/checkout@v4
@@ -137,7 +137,7 @@ jobs:
 
     format:
         name: Format
-        runs-on: ubuntu-latest
+        runs-on: ${{ vars.WALKER || 'ubuntu-latest' }}
 
         permissions:
             contents: write
@@ -169,7 +169,7 @@ jobs:
 
     build:
         name: Build
-        runs-on: ubuntu-latest
+        runs-on: ${{ vars.WALKER || 'ubuntu-latest' }}
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         outputs:
             tag: ${{ steps.image-name.outputs.TAG }}
