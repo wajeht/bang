@@ -92,7 +92,7 @@
         "@types/node-cron": "3.0.11",
         "@types/nodemailer": "7.0.9",
         "@types/supertest": "6.0.3",
-        "@typescript/native-preview": "7.0.0-dev.20260213.1",
+        "@typescript/native-preview": "7.0.0-dev.20260302.1",
         "@vitest/coverage-v8": "4.0.18",
         "@wajeht/express-templates-reload": "2.0.5",
         "clean-css": "5.3.3",
