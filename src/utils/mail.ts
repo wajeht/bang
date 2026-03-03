@@ -506,6 +506,10 @@ ${formatReminderListHTML}
                                     continue; // Skip if frequency is not recognized
                             }
 
+                            // Re-apply timezone rules for the target date while keeping local clock time.
+                            // This prevents stale offsets from shifting local day/time across DST boundaries.
+                            nextDue = nextDue.tz(userTz, true);
+
                             // Update recurring reminder with next due date (convert back to UTC)
                             await context.db('reminders').where('id', reminder.id).update({
                                 due_date: nextDue.utc().toISOString(),
