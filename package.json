@@ -38,8 +38,6 @@
         "format": "oxfmt --write . > /dev/null",
         "lint:check": "oxlint .",
         "lint": "oxlint --fix .",
-        "db:pull:prod": "./scripts/db.sh pull",
-        "db:push:prod": "./scripts/db.sh push",
         "db:prepare:dev": "npm run db:migrate:latest && npm run db:seed:run",
         "db:prepare:prod": "npm run db:migrate:latest:prod",
         "db:migrate:make": "tsx ./node_modules/knex/bin/cli.js migrate:make --knexfile=./src/db/knexfile.ts",

@@ -115,12 +115,6 @@ db-reset:
 db-clean:
 	@trash ./src/db/sqlite/db.sqlite*
 
-pull-prod-db:
-	@./scripts/db.sh pull
-
-push-prod-db:
-	@./scripts/db.sh push
-
 # === Deployment ===
 
 push:
@@ -130,9 +124,6 @@ push:
 	@git add -A
 	@curl -s http://commit.jaw.dev/ | sh -s -- --no-verify
 	@git push --no-verify
-
-deploy:
-	@./scripts/deploy.sh
 
 clean:
 	@$(DC) down --rmi all --volumes --remove-orphans
