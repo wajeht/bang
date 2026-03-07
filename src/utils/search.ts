@@ -759,7 +759,8 @@ export function createSearch(context: AppContext) {
                         .hour(defaultHour)
                         .minute(defaultMinute)
                         .second(0)
-                        .millisecond(0);
+                        .millisecond(0)
+                        .tz(userTimezone, true);
                     return {
                         isValid: true,
                         type: 'recurring',
@@ -788,7 +789,8 @@ export function createSearch(context: AppContext) {
                         .hour(defaultHour)
                         .minute(defaultMinute)
                         .second(0)
-                        .millisecond(0);
+                        .millisecond(0)
+                        .tz(userTimezone, true);
 
                     return {
                         isValid: true,
@@ -818,7 +820,8 @@ export function createSearch(context: AppContext) {
                         .hour(defaultHour)
                         .minute(defaultMinute)
                         .second(0)
-                        .millisecond(0);
+                        .millisecond(0)
+                        .tz(userTimezone, true);
 
                     return {
                         isValid: true,
@@ -858,7 +861,7 @@ export function createSearch(context: AppContext) {
                         if (targetDayjs.isBefore(nowInUserTz)) {
                             targetDayjs = targetDayjs.add(1, 'year');
                         }
-                        targetDate = targetDayjs.utc().toDate();
+                        targetDate = targetDayjs.tz(userTimezone, true).utc().toDate();
                     } else if (pattern === datePatterns[1] && match[1] && match[2] && match[3]) {
                         // MM/DD/YYYY
                         let targetDayjs = context.libs.dayjs
@@ -875,7 +878,7 @@ export function createSearch(context: AppContext) {
                         if (targetDayjs.isBefore(nowInUserTz)) {
                             targetDayjs = targetDayjs.add(1, 'year');
                         }
-                        targetDate = targetDayjs.utc().toDate();
+                        targetDate = targetDayjs.tz(userTimezone, true).utc().toDate();
                     } else if (pattern === datePatterns[2] && match[1] && match[2]) {
                         // Jan-15
                         const monthMap: { [key: string]: number } = {
@@ -907,7 +910,7 @@ export function createSearch(context: AppContext) {
                             if (targetDayjs.isBefore(nowInUserTz)) {
                                 targetDayjs = targetDayjs.add(1, 'year');
                             }
-                            targetDate = targetDayjs.utc().toDate();
+                            targetDate = targetDayjs.tz(userTimezone, true).utc().toDate();
                         } else {
                             continue;
                         }

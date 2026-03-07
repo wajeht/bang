@@ -1237,7 +1237,13 @@ describe('processReminderDigests', () => {
         const dailyNextDue = new Date(dailyReminder.due_date);
         const weeklyNextDue = new Date(weeklyReminder.due_date);
 
-        expect(dailyNextDue.getTime() - originalDue.getTime()).toBeCloseTo(24 * 60 * 60 * 1000, -4);
+        const originalDailyChicago = libs.dayjs.tz(originalDue, 'UTC').tz('America/Chicago');
+        const dailyNextChicago = libs.dayjs.tz(dailyNextDue, 'UTC').tz('America/Chicago');
+        expect(dailyNextChicago.hour()).toBe(originalDailyChicago.hour());
+        expect(dailyNextChicago.minute()).toBe(originalDailyChicago.minute());
+        expect(
+            dailyNextChicago.startOf('day').diff(originalDailyChicago.startOf('day'), 'day'),
+        ).toBe(1);
 
         const weeklyDue = libs.dayjs.tz(weeklyReminder.due_date, 'UTC').tz('America/Chicago');
         expect(weeklyDue.day()).toBe(6);
@@ -1348,10 +1354,12 @@ describe('processReminderDigests', () => {
         reminder = await db('reminders').where('title', 'Multi-Day Daily Reminder').first();
         expect(reminder).toBeTruthy();
 
-        const updatedDue = new Date(reminder.due_date);
-        expect(updatedDue.getTime() - in5MinutesAgain.toDate().getTime()).toBeCloseTo(
-            24 * 60 * 60 * 1000,
-            -4,
-        );
+        const originalChicago = libs.dayjs
+            .tz(in5MinutesAgain.toDate(), 'UTC')
+            .tz('America/Chicago');
+        const updatedChicago = libs.dayjs.tz(reminder.due_date, 'UTC').tz('America/Chicago');
+        expect(updatedChicago.hour()).toBe(originalChicago.hour());
+        expect(updatedChicago.minute()).toBe(originalChicago.minute());
+        expect(updatedChicago.startOf('day').diff(originalChicago.startOf('day'), 'day')).toBe(1);
     });
 });
