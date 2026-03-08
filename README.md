@@ -1,6 +1,6 @@
 https://github.com/user-attachments/assets/5f033de3-afa1-44a7-b55b-dc45fc203d10
 
-# ⚡️ Bang
+# Bang
 
 [![Node.js CI](https://github.com/wajeht/bang/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wajeht/bang/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -8,11 +8,11 @@ https://github.com/user-attachments/assets/5f033de3-afa1-44a7-b55b-dc45fc203d10
 
 your personal command center for blazingly fast web navigation
 
-## 📖 Usage
+## Usage
 
 <!-- starts -->
 
-### 🔍 Setup Custom Search Engine in Your Browser
+### Setup Custom Search Engine in Your Browser
 
 Before you can use the Bang command from your browser's search bar, you need to add the Bang URL as a custom search engine. Follow these steps:
 
@@ -24,13 +24,13 @@ Before you can use the Bang command from your browser's search bar, you need to 
 2. Now you can use Bang directly from your browser's address bar:
    `!bm https://bang.jaw.dev`
 
-### ⚙️ How to Add Custom Search Engine
+### How to Add Custom Search Engine
 
 - **Chrome**: Settings → Search Engines → Manage Search Engines → Add
 - **Firefox**: Bookmarks → Manage Bookmarks → Right-click → New Bookmark → Add %s in URL
 - **Edge**: Settings → Privacy, search, and services → Address bar and search → Manage search engines → Add
 
-### 🎯 Default Commands
+### Default Commands
 
 - `@data` - Access data
 - `@admin` - Access admin
@@ -43,7 +43,7 @@ Before you can use the Bang command from your browser's search bar, you need to 
 - `@bm`, `@bookmark`, `@bookmarks` - Access your bookmarks
 - `@r`, `@reminders` - Access your reminders
 
-### 🎨 Special Commands
+### Special Commands
 
 - `@bm [search term]` - Search your bookmarks
 - `@a [search term]` - Search your actions
@@ -121,13 +121,13 @@ Before you can use the Bang command from your browser's search bar, you need to 
 
 <!-- ends -->
 
-## 📑 Docs
+## Docs
 
 - See [RECIPE](./docs/recipe.md) for `recipe` guide.
 - See [DEVELOPMENT](./docs/development.md) for `development` guide.
 - See [CONTRIBUTION](./docs/contribution.md) for `contribution` guide.
 - See [SEARCH ARCHITECTURE](./docs/search-architecture.md) for `search architecture` guide.
 
-## 📜 License
+## License
 
 Distributed under the MIT License © [wajeht](https://github.com/wajeht). See [LICENSE](./LICENSE) for more information.
