@@ -227,6 +227,8 @@ jobs:
             (github.event.action == 'labeled' && github.event.label.name == 'temp-deploy') ||
             (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'temp-deploy'))
         runs-on: ubuntu-latest
+        permissions:
+            packages: write
         outputs:
             tag: ${{ steps.image-name.outputs.TAG }}
         steps:
