@@ -1,7 +1,7 @@
 import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/api-test-utils';
 import request from 'supertest';
 import { db, app } from '../../tests/test-setup';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vite-plus/test';
 
 describe('Settings Routes', () => {
     describe('GET /settings', () => {

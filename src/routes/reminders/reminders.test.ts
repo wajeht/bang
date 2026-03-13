@@ -6,7 +6,7 @@ import {
 import request from 'supertest';
 import { dayjs } from '../../libs';
 import { db, app } from '../../tests/test-setup';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vite-plus/test';
 
 describe('Reminders Routes', () => {
     describe('GET /reminders', () => {

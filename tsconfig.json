@@ -39,6 +39,6 @@
         "coverage",
         "public",
         "test",
-        "vitest.config.ts"
+        "vite.config.ts"
     ]
 }

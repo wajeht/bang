@@ -4,7 +4,7 @@ import { config } from '../config';
 import { createRequest } from './request';
 import { db } from '../tests/test-setup';
 import { ValidationError } from '../error';
-import { describe, expect, it, beforeAll, vi } from 'vitest';
+import { describe, expect, it, beforeAll, vi } from 'vite-plus/test';
 
 let requestUtils: ReturnType<typeof createRequest>;
 

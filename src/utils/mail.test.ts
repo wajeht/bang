@@ -4,7 +4,7 @@ import { createAuth } from './auth';
 import { dayjs, libs } from '../libs';
 import { db } from '../tests/test-setup';
 import { createLogger } from '../utils/logger';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vite-plus/test';
 
 const logger = createLogger();
 
