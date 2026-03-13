@@ -96,7 +96,7 @@
         "clean-css": "5.3.3",
         "html-minifier-terser": "7.2.0",
         "oxfmt": "0.39.0",
-        "oxlint": "1.52.0",
+        "oxlint": "1.54.0",
         "supertest": "7.2.2",
         "tsx": "4.21.0",
         "vitest": "4.0.18"
