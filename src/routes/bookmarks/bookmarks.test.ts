@@ -535,10 +535,9 @@ describe('Bookmarks Routes', () => {
                     { timeout: 1000 },
                 );
 
-                expect(bookmarks.map((b: any) => b.title).sort((a, b) => a.localeCompare(b))).toEqual([
-                    'Different Title',
-                    'Original Title',
-                ]);
+                expect(
+                    bookmarks.map((b: any) => b.title).sort((a, b) => a.localeCompare(b)),
+                ).toEqual(['Different Title', 'Original Title']);
             });
 
             it('should reject creating bookmark with same URL and same title', async () => {
@@ -614,10 +613,9 @@ describe('Bookmarks Routes', () => {
                     { timeout: 1000 },
                 );
 
-                expect(bookmarks.map((b: any) => b.title).sort((a, b) => a.localeCompare(b))).toEqual([
-                    'Different Title',
-                    'Original Title',
-                ]);
+                expect(
+                    bookmarks.map((b: any) => b.title).sort((a, b) => a.localeCompare(b)),
+                ).toEqual(['Different Title', 'Original Title']);
             });
 
             it('should reject creating bookmark with same URL and same title via API', async () => {
