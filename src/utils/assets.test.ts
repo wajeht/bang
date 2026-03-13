@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { createAssets } from './assets';
-import { describe, expect, it, afterAll } from 'vitest';
+import { describe, expect, it, afterAll } from 'vite-plus/test';
 
 const assetUtils = createAssets();
 
@@ -28,7 +28,7 @@ describe.concurrent('AssetUtils', () => {
         });
 
         it('should throw error for non-existent file', () => {
-            expect(() => AssetUtils().computeFileHash('nonexistent.css')).toThrow();
+            expect(() => createAssets().computeFileHash('nonexistent.css')).toThrow();
         });
     });
 

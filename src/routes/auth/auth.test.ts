@@ -2,7 +2,7 @@ import { authenticateAgent } from '../../tests/api-test-utils';
 import bcrypt from 'bcrypt';
 import request from 'supertest';
 import { db, app, ctx } from '../../tests/test-setup';
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vite-plus/test';
 
 describe('Auth Routes', () => {
     let preHashedPassword: string;

@@ -3,7 +3,7 @@ import { config } from '../config';
 import { createAuth } from './auth';
 import { db } from '../tests/test-setup';
 import type { ApiKeyPayload, MagicLinkPayload } from '../type';
-import { describe, expect, it, beforeAll, vi } from 'vitest';
+import { describe, expect, it, beforeAll, vi } from 'vite-plus/test';
 
 let authUtils: ReturnType<typeof createAuth>;
 

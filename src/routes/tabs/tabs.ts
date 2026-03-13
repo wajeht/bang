@@ -42,7 +42,7 @@ export function createTabsRouter(ctx: AppContext) {
 
             return res.render('tabs/tabs-edit.html', {
                 title: 'Tabs / Edit',
-                path: `/tabs/${req.params.id}/edit`,
+                path: `/tabs/${String(req.params.id)}/edit`,
                 layout: '_layouts/auth.html',
                 user: req.session.user,
                 tab,
@@ -65,7 +65,7 @@ export function createTabsRouter(ctx: AppContext) {
 
             return res.render('tabs/tabs-launch.html', {
                 title: `Tabs Launch: ${tabGroup.title}`,
-                path: `/tabs/${id}/launch`,
+                path: `/tabs/${String(id)}/launch`,
                 layout: '_layouts/auth.html',
                 tabGroup,
                 tabs: tabGroup.items || [],
@@ -88,7 +88,7 @@ export function createTabsRouter(ctx: AppContext) {
 
             return res.render('tabs/tabs-items-new.html', {
                 title: 'Add Tab Item',
-                path: `/tabs/${tabId}/items/create`,
+                path: `/tabs/${String(tabId)}/items/create`,
                 layout: '_layouts/auth.html',
                 tab,
                 user,
@@ -125,7 +125,7 @@ export function createTabsRouter(ctx: AppContext) {
 
             return res.render('tabs/tabs-items-edit.html', {
                 title: 'Edit Tab Item',
-                path: `/tabs/${id}/items/${itemId}/edit`,
+                path: `/tabs/${String(id)}/items/${String(itemId)}/edit`,
                 layout: '_layouts/auth.html',
                 tabItem,
                 user,
@@ -633,7 +633,7 @@ export function createTabsRouter(ctx: AppContext) {
 
             activePrefetches.add(user.id);
 
-            (async () => {
+            void (async () => {
                 try {
                     const batchSize = 5;
                     for (let i = 0; i < urls.length; i += batchSize) {

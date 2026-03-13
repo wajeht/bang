@@ -180,8 +180,8 @@ export type RepositoryQueryParams<Extra = object> = {
     perPage: number;
     page: number;
     search: string;
-    sortKey: string | 'created_at';
-    direction: string | 'asc' | 'desc';
+    sortKey: string;
+    direction: string;
 } & Extra;
 
 export type ActionsQueryParams = RepositoryQueryParams<{

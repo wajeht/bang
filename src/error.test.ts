@@ -7,7 +7,7 @@ import {
     UnimplementedFunctionError,
 } from './error';
 import type { Request } from 'express';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vite-plus/test';
 
 describe('Error classes', () => {
     let mockRequest: Partial<Request>;

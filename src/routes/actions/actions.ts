@@ -131,8 +131,8 @@ export function createActionsRouter(ctx: AppContext) {
             const tabs = await ctx.db('tabs').where({ user_id: req.session.user?.id });
 
             return res.render('actions/actions-tabs-new.html', {
-                title: `Actions / ${id} / Tabs / Create`,
-                path: `/actions/${id}/tabs/create`,
+                title: `Actions / ${String(id)} / Tabs / Create`,
+                path: `/actions/${String(id)}/tabs/create`,
                 layout: '_layouts/auth.html',
                 action,
                 tabs,
@@ -566,7 +566,7 @@ export function createActionsRouter(ctx: AppContext) {
 
             activePrefetches.add(user.id);
 
-            (async () => {
+            void (async () => {
                 try {
                     const batchSize = 5;
                     for (let i = 0; i < urls.length; i += batchSize) {

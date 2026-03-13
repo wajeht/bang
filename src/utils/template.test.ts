@@ -2,7 +2,7 @@ import path from 'node:path';
 import { libs } from '../libs';
 import { config } from '../config';
 import { createTemplate } from './template';
-import { describe, expect, it, beforeAll, vi } from 'vitest';
+import { describe, expect, it, beforeAll, vi } from 'vite-plus/test';
 
 let templateUtils: ReturnType<typeof createTemplate>;
 

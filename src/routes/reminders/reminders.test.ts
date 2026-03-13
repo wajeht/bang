@@ -6,7 +6,7 @@ import {
 import request from 'supertest';
 import { dayjs } from '../../libs';
 import { db, app } from '../../tests/test-setup';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vite-plus/test';
 
 describe('Reminders Routes', () => {
     describe('GET /reminders', () => {
@@ -752,7 +752,7 @@ describe('Reminders Routes', () => {
             });
 
             expect(bookmarks).toHaveLength(2);
-            expect(bookmarks.map((b: any) => b.title).sort()).toEqual([
+            expect(bookmarks.map((b: any) => b.title).sort((a, b) => a.localeCompare(b))).toEqual([
                 'Different Title From Reminder',
                 'Original Bookmark',
             ]);

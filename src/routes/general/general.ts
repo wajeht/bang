@@ -61,7 +61,7 @@ export function createGeneralRouter(ctx: AppContext) {
     );
 
     router.get('/', async (req: Request, res: Response) => {
-        const query = req.query.q?.toString().trim() || '';
+        const query = (typeof req.query.q === 'string' ? req.query.q : '').trim();
         const user = req.session.user as User | undefined;
 
         if (!query) {
@@ -97,14 +97,15 @@ export function createGeneralRouter(ctx: AppContext) {
 
     router.get('/bangs', async (req: Request, res: Response) => {
         const {
-            search: searchTerm = '',
+            search: searchTermRaw = '',
             sort_key = 't',
             direction = 'asc',
             page = 1,
             per_page = 100,
         } = req.query;
 
-        const searchStr = String(searchTerm).toLowerCase();
+        const searchTerm = typeof searchTermRaw === 'string' ? searchTermRaw : '';
+        const searchStr = searchTerm.toLowerCase();
         const hasSearch = searchStr.length > 0;
         const key = sort_key as keyof Bang;
         const isAsc = direction === 'asc';
@@ -153,7 +154,7 @@ export function createGeneralRouter(ctx: AppContext) {
             const dataLen = data.length;
             // oxlint-disable-next-line unicorn/no-new-array
             highlightedData = new Array(dataLen);
-            const searchTermStr = String(searchTerm);
+            const searchTermStr = searchTerm;
             for (let i = 0; i < dataLen; i++) {
                 const bang = data[i]!;
                 highlightedData[i] = {
