@@ -116,7 +116,7 @@ export default defineConfig({
             'typescript/require-array-sort-compare': 'warn',
             'typescript/restrict-template-expressions': 'warn',
             'typescript/triple-slash-reference': 'warn',
-            'typescript/unbound-method': 'warn',
+            'typescript/unbound-method': 'off',
             'unicorn/no-await-in-promise-methods': 'warn',
             'unicorn/no-empty-file': 'warn',
             'unicorn/no-invalid-fetch-options': 'warn',

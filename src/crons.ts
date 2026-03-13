@@ -132,8 +132,8 @@ export function createCronService(context: AppContext): CronService {
 
     function stop() {
         for (const job of cronJobs) {
-            job.stop();
-            job.destroy();
+            void job.stop();
+            void job.destroy();
         }
         cronJobs = [];
         isRunning = false;

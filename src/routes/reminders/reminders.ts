@@ -540,7 +540,7 @@ export function createRemindersRouter(ctx: AppContext) {
 
             activePrefetches.add(user.id);
 
-            (async () => {
+            void (async () => {
                 try {
                     const batchSize = 5;
                     for (let i = 0; i < urls.length; i += batchSize) {

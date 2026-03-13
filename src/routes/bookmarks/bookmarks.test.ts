@@ -535,7 +535,7 @@ describe('Bookmarks Routes', () => {
                     { timeout: 1000 },
                 );
 
-                expect(bookmarks.map((b: any) => b.title).sort()).toEqual([
+                expect(bookmarks.map((b: any) => b.title).sort((a, b) => a.localeCompare(b))).toEqual([
                     'Different Title',
                     'Original Title',
                 ]);
@@ -614,7 +614,7 @@ describe('Bookmarks Routes', () => {
                     { timeout: 1000 },
                 );
 
-                expect(bookmarks.map((b: any) => b.title).sort()).toEqual([
+                expect(bookmarks.map((b: any) => b.title).sort((a, b) => a.localeCompare(b))).toEqual([
                     'Different Title',
                     'Original Title',
                 ]);

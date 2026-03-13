@@ -220,7 +220,7 @@ export function createUtil(context: AppContext) {
             const screenshotUrl = this.getScreenshotUrl(url);
             const faviconUrl = this.getFaviconUrl(url);
 
-            Promise.allSettled([
+            void Promise.allSettled([
                 fetch(screenshotUrl, {
                     method: 'HEAD',
                     headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Prefetch' },

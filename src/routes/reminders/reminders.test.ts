@@ -752,7 +752,7 @@ describe('Reminders Routes', () => {
             });
 
             expect(bookmarks).toHaveLength(2);
-            expect(bookmarks.map((b: any) => b.title).sort()).toEqual([
+            expect(bookmarks.map((b: any) => b.title).sort((a, b) => a.localeCompare(b))).toEqual([
                 'Different Title From Reminder',
                 'Original Bookmark',
             ]);

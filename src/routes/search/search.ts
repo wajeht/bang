@@ -13,8 +13,8 @@ export function createSearchRouter(ctx: AppContext) {
 
     router.get('/search', ctx.middleware.authentication, async (req: Request, res: Response) => {
         const user = req.user as User;
-        const searchQuery = req.query.q?.toString().trim() || '';
-        const searchType = req.query.type?.toString() || 'global';
+        const searchQuery = (typeof req.query.q === 'string' ? req.query.q : '').trim();
+        const searchType = typeof req.query.type === 'string' ? req.query.type : 'global';
 
         if (!searchQuery) {
             return res.render('search/search-results.html', {

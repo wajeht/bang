@@ -59,7 +59,7 @@ export function createAuthRouter(ctx: AppContext) {
 
         const token = ctx.utils.auth.generateMagicLink({ email });
 
-        Promise.resolve().then(async () => {
+        void Promise.resolve().then(async () => {
             try {
                 await ctx.utils.mail.sendMagicLinkEmail({ email, token, req });
             } catch (error) {

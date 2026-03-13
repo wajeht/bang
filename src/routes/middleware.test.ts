@@ -624,11 +624,11 @@ describe('RequestLoggerMiddleware', () => {
 
         res = {
             statusCode: 200,
-            on: vi.fn((event: string, handler: () => void) => {
+            on: vi.fn((event: string, handler: (...args: any[]) => void) => {
                 if (event === 'finish') {
                     finishHandler = handler;
                 }
-            }),
+            }) as any,
             get: vi.fn().mockReturnValue(undefined),
         };
 

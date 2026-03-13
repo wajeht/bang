@@ -28,7 +28,7 @@ describe.concurrent('AssetUtils', () => {
         });
 
         it('should throw error for non-existent file', () => {
-            expect(() => AssetUtils().computeFileHash('nonexistent.css')).toThrow();
+            expect(() => createAssets().computeFileHash('nonexistent.css')).toThrow();
         });
     });
 
