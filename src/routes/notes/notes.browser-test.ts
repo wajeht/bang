@@ -18,9 +18,8 @@ test.describe('Notes', () => {
 
         await page.getByRole('button', { name: '💾 Save' }).click();
 
-        await expect(page).toHaveURL('/notes');
+        await expect(page).toHaveURL(/\/notes\/\d+/);
         await expect(page.locator('body')).toContainText('Note created successfully');
-
         await expect(page.locator('body')).toContainText('Test Note');
     });
 });
