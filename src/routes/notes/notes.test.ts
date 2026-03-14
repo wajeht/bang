@@ -81,7 +81,7 @@ describe('Notes Routes', () => {
         it('should create a new note', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            await agent
+            const response = await agent
                 .post('/notes')
                 .type('form')
                 .send({
@@ -96,6 +96,7 @@ describe('Notes Routes', () => {
             expect(note.title).toBe('New Note');
             expect(note.content).toBe('New content');
             expect(note.pinned).toBe(1);
+            expect(response.headers.location).toBe(`/notes/${note.id}`);
         });
 
         it('should validate required fields', async () => {
@@ -606,7 +607,7 @@ describe('Notes Routes', () => {
                     .where({ id: user.id })
                     .update({ hidden_items_password: 'hashed_password' });
 
-                await agent
+                const response = await agent
                     .post('/notes')
                     .type('form')
                     .send({
@@ -620,6 +621,7 @@ describe('Notes Routes', () => {
                 expect(note).toBeDefined();
                 expect(note.title).toBe('Hidden Note');
                 expect(note.hidden).toBe(1);
+                expect(response.headers.location).toBe(`/notes/${note.id}`);
             });
 
             it('should exclude hidden notes from listing', async () => {
