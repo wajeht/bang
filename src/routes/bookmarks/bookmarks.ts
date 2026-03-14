@@ -179,8 +179,8 @@ export function createBookmarksRouter(ctx: AppContext) {
                 .first();
 
             return res.render('bookmarks/bookmarks-actions-new.html', {
-                title: `Bookmarks / ${req.params.id} / Actions / Create`,
-                path: `/bookmarks/${req.params.id}/actions/create`,
+                title: `Bookmarks / ${String(req.params.id)} / Actions / Create`,
+                path: `/bookmarks/${String(req.params.id)}/actions/create`,
                 layout: '_layouts/auth.html',
                 bookmark,
             });
@@ -249,7 +249,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             });
         }
 
-        Promise.resolve().then(async () => {
+        void Promise.resolve().then(async () => {
             try {
                 await ctx.utils.util.insertBookmark({
                     url,
@@ -593,7 +593,7 @@ export function createBookmarksRouter(ctx: AppContext) {
 
             activePrefetches.add(user.id);
 
-            (async () => {
+            void (async () => {
                 try {
                     const batchSize = 5;
                     for (let i = 0; i < urls.length; i += batchSize) {

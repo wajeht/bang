@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 import { createSearch } from '../utils/search';
 import type { User, AppContext } from '../type';
 import type { SessionData } from 'express-session';
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 let ctx: AppContext;
 let searchUtils: ReturnType<typeof createSearch>;

@@ -12,7 +12,7 @@ import { createRequest } from './request';
 import { db } from '../tests/test-setup';
 import { createValidation } from './validation';
 import type { ApiKeyPayload, BookmarkToExport } from '../type';
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 let validationUtils: ReturnType<typeof createValidation>;
 let authUtils: ReturnType<typeof createAuth>;

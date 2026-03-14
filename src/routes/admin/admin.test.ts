@@ -1,7 +1,7 @@
 import { authenticateAgent, authenticateAdminAgent } from '../../tests/api-test-utils';
 import request from 'supertest';
 import { db, app } from '../../tests/test-setup';
-import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll } from 'vite-plus/test';
 import { createSettingsRepository } from './settings.repository';
 import { config } from '../../config';
 import { libs } from '../../libs';

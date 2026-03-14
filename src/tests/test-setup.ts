@@ -3,7 +3,7 @@ process.env.NODE_ENV = 'testing';
 
 import { createApp } from '../app';
 import { Log } from '../utils/logger';
-import { beforeAll, beforeEach, afterAll } from 'vitest';
+import { beforeAll, beforeEach, afterAll } from 'vite-plus/test';
 import { createDb, createUser, cleanupTables } from './test-db';
 import type { Application } from 'express';
 import type { AppContext } from '../type';

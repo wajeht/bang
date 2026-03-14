@@ -1,6 +1,6 @@
 import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils';
 import { db, app } from '../../tests/test-setup';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vite-plus/test';
 
 describe('Bookmarks Routes', () => {
     describe('Hidden Items Functionality', () => {
@@ -535,10 +535,9 @@ describe('Bookmarks Routes', () => {
                     { timeout: 1000 },
                 );
 
-                expect(bookmarks.map((b: any) => b.title).sort()).toEqual([
-                    'Different Title',
-                    'Original Title',
-                ]);
+                expect(
+                    bookmarks.map((b: any) => b.title).sort((a, b) => a.localeCompare(b)),
+                ).toEqual(['Different Title', 'Original Title']);
             });
 
             it('should reject creating bookmark with same URL and same title', async () => {
@@ -614,10 +613,9 @@ describe('Bookmarks Routes', () => {
                     { timeout: 1000 },
                 );
 
-                expect(bookmarks.map((b: any) => b.title).sort()).toEqual([
-                    'Different Title',
-                    'Original Title',
-                ]);
+                expect(
+                    bookmarks.map((b: any) => b.title).sort((a, b) => a.localeCompare(b)),
+                ).toEqual(['Different Title', 'Original Title']);
             });
 
             it('should reject creating bookmark with same URL and same title via API', async () => {

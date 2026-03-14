@@ -28,16 +28,17 @@
         "test:unit": "echo 'not yet'",
         "test:browser:headless": "npx playwright test",
         "test:browser": "npx playwright test --ui",
-        "test:watch": "APP_ENV=testing NODE_ENV=testing NODE_NO_WARNINGS=1 vitest",
-        "test": "APP_ENV=testing NODE_ENV=testing NODE_NO_WARNINGS=1 vitest --run",
+        "test:watch": "APP_ENV=testing NODE_ENV=testing NODE_NO_WARNINGS=1 vp test",
+        "test": "APP_ENV=testing NODE_ENV=testing NODE_NO_WARNINGS=1 vp test --run",
         "test:load": "tsx ./scripts/load-test.ts",
-        "test:coverage": "APP_ENV=testing NODE_ENV=testing vitest run --coverage",
+        "test:coverage": "APP_ENV=testing NODE_ENV=testing vp test --run --coverage",
+        "check": "vp check",
         "test:browser:server": "export APP_ENV=testing && node --no-warnings ./dist/src/server.js",
-        "format:check": "oxfmt --check .",
-        "format:verbose": "oxfmt --write .",
-        "format": "oxfmt --write . > /dev/null",
-        "lint:check": "oxlint .",
-        "lint": "oxlint --fix .",
+        "format:check": "vp fmt --check .",
+        "format:verbose": "vp fmt --write .",
+        "format": "vp fmt --write . > /dev/null",
+        "lint:check": "vp lint .",
+        "lint": "vp lint --fix .",
         "db:prepare:dev": "npm run db:migrate:latest && npm run db:seed:run",
         "db:prepare:prod": "npm run db:migrate:latest:prod",
         "db:migrate:make": "tsx ./node_modules/knex/bin/cli.js migrate:make --knexfile=./src/db/knexfile.ts",
@@ -86,27 +87,29 @@
         "@types/express-session": "1.18.2",
         "@types/html-minifier-terser": "7.0.2",
         "@types/jsonwebtoken": "9.0.10",
-        "@types/node": "25.4.0",
+        "@types/node": "25.5.0",
         "@types/node-cron": "3.0.11",
         "@types/nodemailer": "7.0.11",
         "@types/supertest": "7.2.0",
-        "@typescript/native-preview": "7.0.0-dev.20260311.1",
+        "@typescript/native-preview": "7.0.0-dev.20260313.1",
         "@vitest/coverage-v8": "4.0.18",
         "@wajeht/express-templates-reload": "2.0.5",
         "clean-css": "5.3.3",
         "html-minifier-terser": "7.2.0",
-        "oxfmt": "0.37.0",
-        "oxlint": "1.52.0",
         "supertest": "7.2.2",
         "tsx": "4.21.0",
-        "vitest": "4.0.18"
+        "vite-plus": "latest",
+        "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
     },
     "overrides": {
         "glob": "^13.0.0",
         "inflight": "npm:@isaacs/inflight@^1.0.1",
-        "rimraf": "^6.0.1"
+        "rimraf": "^6.0.1",
+        "vite": "npm:@voidzero-dev/vite-plus-core@latest",
+        "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
     },
     "engines": {
         "node": ">=25.3.0"
-    }
+    },
+    "packageManager": "npm@11.11.1"
 }
