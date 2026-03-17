@@ -1,4 +1,4 @@
-FROM node:25-slim@sha256:d9ab64d66bcaa26f349bcaf6481bc5e8403c8094f6f561affa2d8dfdb6b606e0
+FROM node:25-slim@sha256:44bcbf493408a824104e74976ae5539f596c46cbe75ed0423a137552a555e2de
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
