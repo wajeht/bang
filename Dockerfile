@@ -1,4 +1,4 @@
-FROM node:25-slim@sha256:7a4ef576a570dad463c2e9744e6df118c9c2a3a03a9219122a9dc834e7c8049a AS build
+FROM node:25-slim@sha256:d9ab64d66bcaa26f349bcaf6481bc5e8403c8094f6f561affa2d8dfdb6b606e0 AS build
 
 WORKDIR /usr/src/app
 
@@ -30,7 +30,7 @@ RUN npm run build:prod && \
     rm -rf eslint.config.* && \
     rm -rf playwright.config.*
 
-FROM node:25-slim@sha256:7a4ef576a570dad463c2e9744e6df118c9c2a3a03a9219122a9dc834e7c8049a
+FROM node:25-slim@sha256:d9ab64d66bcaa26f349bcaf6481bc5e8403c8094f6f561affa2d8dfdb6b606e0
 
 # Install dependencies
 RUN apt-get update && \
