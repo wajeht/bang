@@ -323,7 +323,7 @@ export function createNotesRouter(ctx: AppContext) {
         }
 
         req.flash('success', 'Note created successfully');
-        return res.redirect('/notes');
+        return res.redirect(`/notes/${note.id}`);
     }
 
     /**
