@@ -37,7 +37,7 @@ env:
     CLOUDFLARE_TURNSTILE_SECRET_KEY: 'joemama'
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
+    group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
     cancel-in-progress: true
 
 jobs:
