@@ -111,5 +111,5 @@
     "engines": {
         "node": ">=25.3.0"
     },
-    "packageManager": "npm@11.11.1"
+    "packageManager": "npm@11.12.0"
 }
