@@ -27,7 +27,7 @@ jobs:
                 node-version: [25.x]
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v4
               with:
@@ -75,7 +75,7 @@ jobs:
             tag: ${{ steps.image-name.outputs.TAG }}
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
               with:
                   fetch-depth: 1
 
