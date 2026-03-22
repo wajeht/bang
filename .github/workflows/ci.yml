@@ -161,7 +161,7 @@ jobs:
               run: npm run format
 
             - name: Commit changes
-              uses: stefanzweifel/git-auto-commit-action@v4
+              uses: stefanzweifel/git-auto-commit-action@778341af668090896ca464160c2def5d1d1a3eb0 # v6.0.1
               with:
                   commit_message: 'style: format codes'
                   file_pattern: '!.github/workflows/*.yml !.github/workflows/*.yaml'
