@@ -46,11 +46,11 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
               with:
                   fetch-depth: 1
             - name: Use Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
               with:
                   node-version: 25
                   cache: 'npm'
@@ -72,11 +72,11 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
               with:
                   fetch-depth: 1
             - name: Use Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
               with:
                   node-version: 25
                   cache: 'npm'
@@ -88,7 +88,7 @@ jobs:
               run: npm ci
 
             - name: Cache Playwright browsers
-              uses: actions/cache@v4
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
               id: playwright-cache
               with:
                   path: ~/.cache/ms-playwright
@@ -109,7 +109,7 @@ jobs:
               run: npm run test:browser:headless
 
             - name: Upload test results
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
               if: failure()
               with:
                   name: playwright-report
@@ -121,11 +121,11 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
               with:
                   fetch-depth: 1
             - name: Use Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
               with:
                   node-version: 25
                   cache: 'npm'
@@ -145,11 +145,11 @@ jobs:
             actions: write
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
               with:
                   fetch-depth: 1
             - name: Use Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
               with:
                   node-version: 25
                   cache: 'npm'
@@ -161,7 +161,7 @@ jobs:
               run: npm run format
 
             - name: Commit changes
-              uses: stefanzweifel/git-auto-commit-action@v4
+              uses: stefanzweifel/git-auto-commit-action@3ea6ae190baf489ba007f7c92608f33ce20ef04a # v4.16.0
               with:
                   commit_message: 'style: format codes'
                   file_pattern: '!.github/workflows/*.yml !.github/workflows/*.yaml'
@@ -176,15 +176,15 @@ jobs:
             tag: ${{ steps.image-name.outputs.TAG }}
         steps:
             - name: Check out repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
               with:
                   fetch-depth: 1
 
             - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+              uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
             - name: Login to Container Registry
-              uses: docker/login-action@v3
+              uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
               with:
                   registry: ghcr.io
                   username: ${{ github.repository_owner }}
@@ -214,7 +214,7 @@ jobs:
         if: github.event_name == 'push'
         needs: [lint, unit-test, browser-test, format, build]
         name: Deploy
-        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/deploy.yaml@v0.0.18
+        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/deploy.yaml@c976aac4e51a559837963f7d903600c2c436e589 # v0.0.20
         with:
             app-path: apps/bang
             tag: ${{ needs.build.outputs.tag }}
@@ -233,15 +233,15 @@ jobs:
             tag: ${{ steps.image-name.outputs.TAG }}
         steps:
             - name: Check out repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
               with:
                   fetch-depth: 1
 
             - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+              uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
             - name: Login to Container Registry
-              uses: docker/login-action@v3
+              uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
               with:
                   registry: ghcr.io
                   username: ${{ github.repository_owner }}
@@ -275,7 +275,7 @@ jobs:
         needs: temp-build
         permissions:
             deployments: write
-        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-deploy.yaml@v0.0.18
+        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-deploy.yaml@c976aac4e51a559837963f7d903600c2c436e589 # v0.0.20
         with:
             app-path: apps/bang
             tag: ${{ needs.temp-build.outputs.tag }}
@@ -289,7 +289,7 @@ jobs:
             (github.event.action == 'unlabeled' && github.event.label.name == 'temp-deploy')
         permissions:
             deployments: write
-        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-cleanup.yaml@v0.0.18
+        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-cleanup.yaml@c976aac4e51a559837963f7d903600c2c436e589 # v0.0.20
         with:
             app-path: apps/bang
         secrets:
