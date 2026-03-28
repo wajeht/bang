@@ -36,10 +36,10 @@ export async function createApp() {
             expressTemplatesReload({
                 app,
                 watch: [
-                    { path: './src/public', extensions: ['.css', '.js'] },
+                    { path: './public', extensions: ['.css', '.js'] },
                     { path: './src/routes', extensions: ['.html'] },
                 ],
-                options: { quiet: true },
+                options: { quiet: false },
             });
         } catch {
             ctx.logger.warn('Express templates reload not available in production');
