@@ -560,7 +560,7 @@ export function createNotesRouter(ctx: AppContext) {
 
             const { marked } = await import('marked');
             const hljs = await import('highlight.js');
-            const DOMPurify = await import('isomorphic-dompurify');
+            const { sanitize } = await import('isomorphic-dompurify');
 
             const renderer = new marked.Renderer();
 
@@ -574,7 +574,7 @@ export function createNotesRouter(ctx: AppContext) {
 
             marked.setOptions({ renderer });
             const markdown = marked(content) as string;
-            const sanitized = DOMPurify.default.sanitize(markdown);
+            const sanitized = sanitize(markdown);
 
             res.json({ content: sanitized });
         },
