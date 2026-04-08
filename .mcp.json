@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "hindsight": {
+      "type": "http",
+      "url": "http://192.168.4.161:8888/mcp/",
+      "headers": {
+        "Authorization": "Bearer 4aa87b83f22baa99ff543b6b955e373b04f72253a5ad84d0939de372108722cb"
+      }
+    }
+  }
+}
