@@ -2,7 +2,7 @@ export const bangs: Record<string, any> = {
     '4': {
         c: 'Multimedia',
         d: 'www.4fitnessrules.com',
-        r: 43,
+        r: 44,
         s: '4 Fitness Rules',
         sc: 'Video',
         t: '4',
@@ -19,7 +19,7 @@ export const bangs: Record<string, any> = {
     '9': {
         c: 'Entertainment',
         d: '9pp.co',
-        r: 14,
+        r: 27,
         s: '9pp.co',
         sc: 'Games (general)',
         t: '9',
@@ -125,7 +125,7 @@ export const bangs: Record<string, any> = {
     '500': {
         c: 'Multimedia',
         d: 'prime.500px.com',
-        r: 62,
+        r: 10,
         s: '500px',
         sc: 'Images',
         t: '500',
@@ -321,7 +321,7 @@ export const bangs: Record<string, any> = {
     '1d4chan': {
         c: 'Entertainment',
         d: '1d4chan.org',
-        r: 0,
+        r: 4,
         s: '1d4chan',
         sc: 'Games (general)',
         t: '1d4chan',
@@ -330,7 +330,7 @@ export const bangs: Record<string, any> = {
     '1dr': {
         c: 'Multimedia',
         d: 'onedrive.live.com',
-        r: 36,
+        r: 12,
         s: 'OneDrive',
         sc: 'General',
         t: '1dr',
@@ -453,6 +453,7 @@ export const bangs: Record<string, any> = {
         s: '2GIS',
         d: '2gis.ru',
         t: '2gis',
+        ts: ['дубльгис', 'двагис', '2гис'],
         u: 'https://2gis.ru/search/{{{s}}}',
         c: 'Online Services',
         sc: 'Maps',
@@ -905,7 +906,7 @@ export const bangs: Record<string, any> = {
     '5ch': {
         c: 'Online Services',
         d: 'find.5ch.net',
-        r: 95,
+        r: 15,
         s: '5ちゃんねる',
         sc: 'Social',
         t: '5ch',
@@ -1103,7 +1104,7 @@ export const bangs: Record<string, any> = {
     '9gag': {
         c: 'Entertainment',
         d: '9gag.com',
-        r: 277,
+        r: 195,
         s: '9gag',
         sc: 'Comics',
         t: '9gag',
@@ -1112,7 +1113,7 @@ export const bangs: Record<string, any> = {
     a2: {
         c: 'Tech',
         d: 'alternativeto.net',
-        r: 313,
+        r: 362,
         s: 'AlternativeTo.net',
         sc: 'Downloads',
         t: 'a2',
@@ -1251,7 +1252,7 @@ export const bangs: Record<string, any> = {
     'a.at': {
         c: 'Shopping',
         d: 'www.amazon.de',
-        r: 5,
+        r: 0,
         s: 'Amazon Austria',
         sc: 'Online',
         t: 'a.at',
@@ -1426,7 +1427,7 @@ export const bangs: Record<string, any> = {
     abe: {
         c: 'Shopping',
         d: 'www.abesmarket.com',
-        r: 0,
+        r: 12,
         s: "Abe's Market",
         sc: 'Online',
         t: 'abe',
@@ -1507,7 +1508,7 @@ export const bangs: Record<string, any> = {
     about: {
         c: 'Online Services',
         d: 'search.about.com',
-        r: 7,
+        r: 3,
         s: 'About.com',
         sc: 'Search',
         t: 'about',
@@ -1600,6 +1601,7 @@ export const bangs: Record<string, any> = {
         s: 'Словари и энциклопедии на Академике',
         d: 'dic.academic.ru',
         t: 'acad',
+        ts: ['акад', 'академик'],
         u: 'https://dic.academic.ru/searchall.php?SWord={{{s}}}',
         c: 'Research',
         sc: 'Academic',
@@ -1909,7 +1911,7 @@ export const bangs: Record<string, any> = {
     adafruit: {
         c: 'Shopping',
         d: 'www.adafruit.com',
-        r: 11,
+        r: 3,
         s: 'Adafruit',
         sc: 'Tech',
         t: 'adafruit',
@@ -1994,7 +1996,7 @@ export const bangs: Record<string, any> = {
     'a.de': {
         c: 'Shopping',
         d: 'www.amazon.de',
-        r: 31,
+        r: 21,
         s: 'Amazon.de',
         sc: 'Online',
         t: 'a.de',
@@ -2003,7 +2005,7 @@ export const bangs: Record<string, any> = {
     ade: {
         c: 'Shopping',
         d: 'www.amazon.de',
-        r: 3693,
+        r: 3823,
         s: 'Amazon.de',
         sc: 'Online (intl)',
         t: 'ade',
@@ -2028,7 +2030,7 @@ export const bangs: Record<string, any> = {
     ades: {
         c: 'Shopping',
         d: 'smile.amazon.de',
-        r: 3,
+        r: 0,
         s: 'Amazon.de Smile',
         sc: 'Online',
         t: 'ades',
@@ -2123,6 +2125,7 @@ export const bangs: Record<string, any> = {
         s: 'Adme.ru',
         d: 'www.adme.ru',
         t: 'adme',
+        ts: ['адми'],
         u: 'https://www.adme.ru/search/?q={{{s}}}',
         c: 'Entertainment',
         sc: 'Misc',
@@ -2370,7 +2373,7 @@ export const bangs: Record<string, any> = {
     aes: {
         c: 'Shopping',
         d: 'www.amazon.es',
-        r: 719,
+        r: 772,
         s: 'Amazon.es',
         sc: 'Online (intl)',
         t: 'aes',
@@ -2379,7 +2382,7 @@ export const bangs: Record<string, any> = {
     af: {
         c: 'Research',
         d: 'www.acronymfinder.com',
-        r: 19,
+        r: 23,
         s: 'Acronym Finder',
         sc: 'Reference (words)',
         t: 'af',
@@ -2538,7 +2541,7 @@ export const bangs: Record<string, any> = {
     age: {
         c: 'Shopping',
         d: 'www.amazon.de',
-        r: 11,
+        r: 14,
         s: 'Amazon Germany',
         sc: 'Online',
         t: 'age',
@@ -2547,7 +2550,7 @@ export const bangs: Record<string, any> = {
     ager: {
         c: 'Shopping',
         d: 'www.amazon.de',
-        r: 4,
+        r: 11,
         s: 'Amazon Germany',
         sc: 'Online',
         t: 'ager',
@@ -2680,7 +2683,7 @@ export const bangs: Record<string, any> = {
     aichat: {
         c: 'Research',
         d: 'www.duckduckgo.com',
-        r: 13,
+        r: 15,
         s: 'Duck.ai',
         sc: 'Reference',
         t: 'aichat',
@@ -2755,7 +2758,7 @@ export const bangs: Record<string, any> = {
     ain: {
         c: 'Shopping',
         d: 'www.amazon.in',
-        r: 1071,
+        r: 1197,
         s: 'Amazon India',
         sc: 'Online (intl)',
         t: 'ain',
@@ -2845,7 +2848,7 @@ export const bangs: Record<string, any> = {
     airnav: {
         c: 'Online Services',
         d: 'airnav.com',
-        r: 10,
+        r: 3,
         s: 'Airnav',
         sc: 'Tools',
         t: 'airnav',
@@ -2905,7 +2908,7 @@ export const bangs: Record<string, any> = {
     'a.it': {
         c: 'Shopping',
         d: 'www.amazon.it',
-        r: 28,
+        r: 36,
         s: 'Amazon IT',
         sc: 'Online',
         t: 'a.it',
@@ -2922,7 +2925,7 @@ export const bangs: Record<string, any> = {
     ai: {
         c: 'Research',
         d: 'www.duckduckgo.com',
-        r: 6166,
+        r: 6929,
         s: 'Duck.ai',
         sc: 'Reference',
         t: 'ai',
@@ -2956,7 +2959,7 @@ export const bangs: Record<string, any> = {
     aje: {
         c: 'News',
         d: 'www.aljazeera.com',
-        r: 21,
+        r: 35,
         s: 'Al Jazeera (English)',
         sc: 'International',
         t: 'aje',
@@ -2974,7 +2977,7 @@ export const bangs: Record<string, any> = {
     ajl: {
         c: 'Shopping',
         d: 'www.amazon.co.jp',
-        r: 0,
+        r: 3,
         s: 'Amazon.co.jp',
         sc: 'Online',
         t: 'ajl',
@@ -2983,7 +2986,7 @@ export const bangs: Record<string, any> = {
     ajp: {
         c: 'Shopping',
         d: 'www.amazon.co.jp',
-        r: 661,
+        r: 689,
         s: 'Amazon.co.jp',
         sc: 'Online (intl)',
         t: 'ajp',
@@ -2992,7 +2995,7 @@ export const bangs: Record<string, any> = {
     ak: {
         c: 'Online Services',
         d: 'www.accountkiller.com',
-        r: 8,
+        r: 4,
         s: 'Account Killer',
         sc: 'Tools',
         t: 'ak',
@@ -3279,7 +3282,7 @@ export const bangs: Record<string, any> = {
     ali: {
         c: 'Shopping',
         d: 'www.aliexpress.com',
-        r: 1290,
+        r: 1116,
         s: 'Aliexpress',
         sc: 'Online',
         t: 'ali',
@@ -3339,7 +3342,7 @@ export const bangs: Record<string, any> = {
     aliexp: {
         c: 'Shopping',
         d: 'www.aliexpress.com',
-        r: 3,
+        r: 11,
         s: 'Aliexpress',
         sc: 'Online (intl)',
         t: 'aliexp',
@@ -3348,7 +3351,7 @@ export const bangs: Record<string, any> = {
     aliexpress: {
         c: 'Shopping',
         d: 'www.aliexpress.com',
-        r: 454,
+        r: 370,
         s: 'Aliexpress',
         sc: 'Online (marketplace)',
         t: 'aliexpress',
@@ -3530,7 +3533,7 @@ export const bangs: Record<string, any> = {
     allmusic: {
         c: 'Entertainment',
         d: 'www.allmusic.com',
-        r: 124,
+        r: 127,
         s: 'AllMusic',
         sc: 'Misc',
         t: 'allmusic',
@@ -3539,7 +3542,7 @@ export const bangs: Record<string, any> = {
     allo: {
         c: 'Entertainment',
         d: 'www.allocine.fr',
-        r: 37,
+        r: 3,
         s: 'Allociné',
         sc: 'Movies',
         t: 'allo',
@@ -3548,7 +3551,7 @@ export const bangs: Record<string, any> = {
     allocine: {
         c: 'Entertainment',
         d: 'www.allocine.fr',
-        r: 28,
+        r: 29,
         s: 'Allocine.com',
         sc: 'Movies',
         t: 'allocine',
@@ -3684,7 +3687,7 @@ export const bangs: Record<string, any> = {
     alt: {
         c: 'Online Services',
         d: 'alternativeto.net',
-        r: 710,
+        r: 612,
         s: 'alternativeTo',
         sc: 'Tools',
         t: 'alt',
@@ -3717,7 +3720,7 @@ export const bangs: Record<string, any> = {
     alternative: {
         c: 'Tech',
         d: 'alternativeto.net',
-        r: 61,
+        r: 50,
         s: 'AlternativeTo.net',
         sc: 'Downloads (software)',
         t: 'alternative',
@@ -3726,7 +3729,7 @@ export const bangs: Record<string, any> = {
     alternativeto: {
         c: 'Tech',
         d: 'alternativeto.net',
-        r: 218,
+        r: 185,
         s: 'alternativeto.net',
         sc: 'Domains',
         t: 'alternativeto',
@@ -3785,7 +3788,7 @@ export const bangs: Record<string, any> = {
     altto: {
         c: 'Online Services',
         d: 'alternativeto.net',
-        r: 99,
+        r: 56,
         s: 'alternativeTo',
         sc: 'Search',
         t: 'altto',
@@ -3826,7 +3829,7 @@ export const bangs: Record<string, any> = {
     ama: {
         c: 'Shopping',
         d: 'www.amazon.de',
-        r: 307,
+        r: 312,
         s: 'Amazon Deutschland',
         sc: 'Online',
         t: 'ama',
@@ -3868,7 +3871,7 @@ export const bangs: Record<string, any> = {
     amaps: {
         c: 'Online Services',
         d: 'maps.apple.com',
-        r: 71,
+        r: 53,
         s: 'Apple Maps',
         sc: 'Maps',
         t: 'amaps',
@@ -3886,7 +3889,7 @@ export const bangs: Record<string, any> = {
     amau: {
         c: 'Shopping',
         d: 'www.amazon.com.au',
-        r: 45,
+        r: 35,
         s: 'amazon.com.au',
         sc: 'Online',
         t: 'amau',
@@ -3895,7 +3898,7 @@ export const bangs: Record<string, any> = {
     amazon: {
         c: 'Shopping',
         d: 'www.amazon.com',
-        r: 3057,
+        r: 3050,
         s: 'Amazon.com',
         sc: 'Online',
         t: 'amazon',
@@ -3904,7 +3907,7 @@ export const bangs: Record<string, any> = {
     amazonau: {
         c: 'Shopping',
         d: 'www.amazon.com.au',
-        r: 71,
+        r: 72,
         s: 'Amazon.com.au',
         sc: 'Online',
         t: 'amazonau',
@@ -3913,7 +3916,7 @@ export const bangs: Record<string, any> = {
     amazonca: {
         c: 'Shopping',
         d: 'www.amazon.ca',
-        r: 158,
+        r: 169,
         s: 'Amazon.ca',
         sc: 'Online (intl)',
         t: 'amazonca',
@@ -3949,7 +3952,7 @@ export const bangs: Record<string, any> = {
     amazones: {
         c: 'Shopping',
         d: 'www.amazon.es',
-        r: 107,
+        r: 125,
         s: 'Amazon.es',
         sc: 'Online (intl)',
         t: 'amazones',
@@ -3958,7 +3961,7 @@ export const bangs: Record<string, any> = {
     amazonfr: {
         c: 'Shopping',
         d: 'www.amazon.fr',
-        r: 93,
+        r: 86,
         s: 'Amazon.fr',
         sc: 'Online (intl)',
         t: 'amazonfr',
@@ -3967,7 +3970,7 @@ export const bangs: Record<string, any> = {
     amazonin: {
         c: 'Shopping',
         d: 'www.amazon.in',
-        r: 65,
+        r: 77,
         s: 'Amazon India',
         sc: 'Online (intl)',
         t: 'amazonin',
@@ -3976,7 +3979,7 @@ export const bangs: Record<string, any> = {
     'amazon.in': {
         c: 'Shopping',
         d: 'www.amazon.in',
-        r: 21,
+        r: 34,
         s: 'Amazon India',
         sc: 'Online',
         t: 'amazon.in',
@@ -3985,7 +3988,7 @@ export const bangs: Record<string, any> = {
     'amazon.it': {
         c: 'Shopping',
         d: 'www.amazon.it',
-        r: 4,
+        r: 5,
         s: 'Amazon.it',
         sc: 'Online',
         t: 'amazon.it',
@@ -3994,7 +3997,7 @@ export const bangs: Record<string, any> = {
     amazonit: {
         c: 'Shopping',
         d: 'www.amazon.it',
-        r: 146,
+        r: 132,
         s: 'Amazon.it',
         sc: 'Online (intl)',
         t: 'amazonit',
@@ -4003,7 +4006,7 @@ export const bangs: Record<string, any> = {
     amazonjp: {
         c: 'Shopping',
         d: 'www.amazon.co.jp',
-        r: 114,
+        r: 112,
         s: 'Amazon.co.jp',
         sc: 'Online (intl)',
         t: 'amazonjp',
@@ -4064,7 +4067,7 @@ export const bangs: Record<string, any> = {
     amca: {
         c: 'Shopping',
         d: 'www.amazon.ca',
-        r: 100,
+        r: 61,
         s: 'Amazon.ca',
         sc: 'Online (intl)',
         t: 'amca',
@@ -4082,7 +4085,7 @@ export const bangs: Record<string, any> = {
     amc: {
         c: 'Entertainment',
         d: 'www.amctv.com',
-        r: 0,
+        r: 4,
         s: 'AMC TV',
         sc: 'TV',
         t: 'amc',
@@ -4116,7 +4119,7 @@ export const bangs: Record<string, any> = {
     amde: {
         c: 'Shopping',
         d: 'www.amazon.de',
-        r: 323,
+        r: 306,
         s: 'Amazon.de',
         sc: 'Online (intl)',
         t: 'amde',
@@ -4157,7 +4160,7 @@ export const bangs: Record<string, any> = {
     ames: {
         c: 'Shopping',
         d: 'www.amazon.es',
-        r: 126,
+        r: 142,
         s: 'Amazon.es',
         sc: 'Online (intl)',
         t: 'ames',
@@ -4182,7 +4185,7 @@ export const bangs: Record<string, any> = {
     amfr: {
         c: 'Shopping',
         d: 'www.amazon.fr',
-        r: 147,
+        r: 87,
         s: 'Amazon.fr',
         sc: 'Online (intl)',
         t: 'amfr',
@@ -4191,7 +4194,7 @@ export const bangs: Record<string, any> = {
     amg: {
         c: 'Multimedia',
         d: 'www.allmusic.com',
-        r: 70,
+        r: 87,
         s: 'Allmusic',
         sc: 'Music',
         t: 'amg',
@@ -4225,7 +4228,7 @@ export const bangs: Record<string, any> = {
     amin: {
         c: 'Shopping',
         d: 'www.amazon.in',
-        r: 179,
+        r: 201,
         s: 'Amazon India',
         sc: 'Online',
         t: 'amin',
@@ -4251,7 +4254,7 @@ export const bangs: Record<string, any> = {
     amit: {
         c: 'Shopping',
         d: 'www.amazon.it',
-        r: 97,
+        r: 68,
         s: 'Amazon.it',
         sc: 'Online (intl)',
         t: 'amit',
@@ -4260,7 +4263,7 @@ export const bangs: Record<string, any> = {
     amjp: {
         c: 'Shopping',
         d: 'www.amazon.co.jp',
-        r: 132,
+        r: 160,
         s: 'Amazon.co.jp',
         sc: 'Online (intl)',
         t: 'amjp',
@@ -4319,7 +4322,7 @@ export const bangs: Record<string, any> = {
     amp3: {
         c: 'Shopping',
         d: 'www.amazon.com',
-        r: 0,
+        r: 3,
         s: 'Amazon MP3 Store',
         sc: 'Online',
         t: 'amp3',
@@ -4362,7 +4365,7 @@ export const bangs: Record<string, any> = {
     ampwhat: {
         c: 'Tech',
         d: 'www.amp-what.com',
-        r: 12,
+        r: 14,
         s: '&what;',
         sc: 'Programming',
         t: 'ampwhat',
@@ -4371,7 +4374,7 @@ export const bangs: Record<string, any> = {
     ams: {
         c: 'Shopping',
         d: 'smile.amazon.com',
-        r: 39,
+        r: 22,
         s: 'Amazon Smile',
         sc: 'Online',
         t: 'ams',
@@ -4380,7 +4383,7 @@ export const bangs: Record<string, any> = {
     amsuk: {
         c: 'Shopping',
         d: 'smile.amazon.co.uk',
-        r: 13,
+        r: 3,
         s: 'Amazon Smile (UK)',
         sc: 'Online',
         t: 'amsuk',
@@ -4389,7 +4392,7 @@ export const bangs: Record<string, any> = {
     amuk: {
         c: 'Shopping',
         d: 'www.amazon.co.uk',
-        r: 381,
+        r: 324,
         s: 'Amazon.co.uk',
         sc: 'Online (intl)',
         t: 'amuk',
@@ -4406,7 +4409,7 @@ export const bangs: Record<string, any> = {
     amus: {
         c: 'Shopping',
         d: 'www.amazon.com',
-        r: 0,
+        r: 6,
         s: 'Amazon.com',
         sc: 'Online',
         t: 'amus',
@@ -4456,7 +4459,7 @@ export const bangs: Record<string, any> = {
     amx: {
         c: 'Shopping',
         d: 'www.amazon.com.mx',
-        r: 320,
+        r: 433,
         s: 'Amazon México',
         sc: 'Online',
         t: 'amx',
@@ -4465,7 +4468,7 @@ export const bangs: Record<string, any> = {
     amz: {
         c: 'Shopping',
         d: 'www.amazon.com',
-        r: 210,
+        r: 193,
         s: 'Amazon',
         sc: 'Online',
         t: 'amz',
@@ -4483,7 +4486,7 @@ export const bangs: Record<string, any> = {
     amznde: {
         c: 'Shopping',
         d: 'www.amazon.de',
-        r: 3,
+        r: 6,
         s: 'Amazon.de',
         sc: 'Online',
         t: 'amznde',
@@ -4492,7 +4495,7 @@ export const bangs: Record<string, any> = {
     amznin: {
         c: 'Shopping',
         d: 'www.amazon.in',
-        r: 11,
+        r: 13,
         s: 'Amazon India',
         sc: 'Online (marketplace)',
         t: 'amznin',
@@ -4560,7 +4563,7 @@ export const bangs: Record<string, any> = {
     an: {
         c: 'News',
         d: 'anilist.co',
-        r: 14,
+        r: 18,
         s: 'AniList',
         sc: 'Specialty',
         t: 'an',
@@ -4645,7 +4648,7 @@ export const bangs: Record<string, any> = {
     android: {
         c: 'Tech',
         d: 'developer.android.com',
-        r: 19,
+        r: 6,
         s: 'Android Developers',
         sc: 'Programming',
         t: 'android',
@@ -4736,7 +4739,7 @@ export const bangs: Record<string, any> = {
     angry: {
         c: 'Multimedia',
         d: 'www.angrymetalguy.com',
-        r: 5,
+        r: 6,
         s: 'Angry Metal Guy',
         sc: 'Music',
         t: 'angry',
@@ -4796,7 +4799,7 @@ export const bangs: Record<string, any> = {
     anidb: {
         c: 'Entertainment',
         d: 'anidb.net',
-        r: 198,
+        r: 291,
         s: 'AniDB',
         sc: 'Misc',
         t: 'anidb',
@@ -4813,7 +4816,7 @@ export const bangs: Record<string, any> = {
     anilist: {
         c: 'Entertainment',
         d: 'anilist.co',
-        r: 134,
+        r: 153,
         s: 'anilist.co',
         sc: 'Movies',
         t: 'anilist',
@@ -4882,7 +4885,7 @@ export const bangs: Record<string, any> = {
     animeplanet: {
         c: 'Entertainment',
         d: 'www.anime-planet.com',
-        r: 3,
+        r: 0,
         s: 'Anime-Planet',
         sc: 'Misc',
         t: 'animeplanet',
@@ -4957,7 +4960,7 @@ export const bangs: Record<string, any> = {
     ann: {
         c: 'Entertainment',
         d: 'www.animenewsnetwork.com',
-        r: 190,
+        r: 250,
         s: 'Anime News Network',
         sc: 'Misc',
         t: 'ann',
@@ -5032,7 +5035,7 @@ export const bangs: Record<string, any> = {
     ansible: {
         c: 'Tech',
         d: 'docs.ansible.com',
-        r: 15,
+        r: 5,
         s: 'docs.ansible.com',
         sc: 'Sysadmin',
         t: 'ansible',
@@ -5179,7 +5182,7 @@ export const bangs: Record<string, any> = {
     ao: {
         c: 'Shopping',
         d: 'www.amazon.com',
-        r: 45,
+        r: 49,
         s: 'Amazon Orders',
         sc: 'Online',
         t: 'ao',
@@ -5312,7 +5315,7 @@ export const bangs: Record<string, any> = {
     apck: {
         c: 'Tech',
         d: 'www.archlinux.org',
-        r: 11,
+        r: 0,
         s: 'Archlinux packages',
         sc: 'Sysadmin (Arch)',
         t: 'apck',
@@ -5442,7 +5445,7 @@ export const bangs: Record<string, any> = {
     apkmirror: {
         c: 'Tech',
         d: 'www.apkmirror.com',
-        r: 23,
+        r: 12,
         s: 'APK Mirror',
         sc: 'Downloads (apps)',
         t: 'apkmirror',
@@ -5451,7 +5454,7 @@ export const bangs: Record<string, any> = {
     apkpure: {
         c: 'Tech',
         d: 'apkpure.com',
-        r: 6,
+        r: 8,
         s: 'APKPure',
         sc: 'Downloads (apps)',
         t: 'apkpure',
@@ -5658,7 +5661,7 @@ export const bangs: Record<string, any> = {
     appledev: {
         c: 'Tech',
         d: 'developer.apple.com',
-        r: 6,
+        r: 7,
         s: 'Apple Developer',
         sc: 'Languages (cocoa)',
         t: 'appledev',
@@ -5691,7 +5694,7 @@ export const bangs: Record<string, any> = {
     applemaps: {
         c: 'Online Services',
         d: 'maps.apple.com',
-        r: 29,
+        r: 33,
         s: 'Apple Maps',
         sc: 'Maps',
         t: 'applemaps',
@@ -5878,7 +5881,7 @@ export const bangs: Record<string, any> = {
     apvde: {
         c: 'Multimedia',
         d: 'www.amazon.de',
-        r: 9,
+        r: 0,
         s: 'Amazon Prime Video Germany',
         sc: 'Video',
         t: 'apvde',
@@ -5952,7 +5955,7 @@ export const bangs: Record<string, any> = {
     ar: {
         c: 'Research',
         d: 'allrecipes.com',
-        r: 15,
+        r: 14,
         s: 'all recipes',
         sc: 'Food',
         t: 'ar',
@@ -6187,7 +6190,7 @@ export const bangs: Record<string, any> = {
     archiveis: {
         c: 'Online Services',
         d: 'archive.is',
-        r: 201,
+        r: 179,
         s: 'Archive.is',
         sc: 'Tools (URLs)',
         t: 'archiveis',
@@ -6212,7 +6215,7 @@ export const bangs: Record<string, any> = {
     archiveweb: {
         c: 'Online Services',
         d: 'web.archive.org',
-        r: 23,
+        r: 13,
         s: 'Archive.org',
         sc: 'Tools',
         t: 'archiveweb',
@@ -6229,7 +6232,7 @@ export const bangs: Record<string, any> = {
     archlinux: {
         c: 'Tech',
         d: 'bbs.archlinux.org',
-        r: 28,
+        r: 25,
         s: 'Archlinux Forums',
         sc: 'Languages (other)',
         t: 'archlinux',
@@ -6272,7 +6275,7 @@ export const bangs: Record<string, any> = {
     archpkg: {
         c: 'Tech',
         d: 'www.archlinux.org',
-        r: 781,
+        r: 786,
         s: 'Arch Linux Packages',
         sc: 'Sysadmin (Arch)',
         t: 'archpkg',
@@ -6289,7 +6292,7 @@ export const bangs: Record<string, any> = {
     archwiki: {
         c: 'Tech',
         d: 'wiki.archlinux.org',
-        r: 921,
+        r: 828,
         s: 'Arch Linux Wiki',
         sc: 'Sysadmin (Arch)',
         t: 'archwiki',
@@ -6422,7 +6425,7 @@ export const bangs: Record<string, any> = {
         s: 'ARIN Whois',
         d: 'whois.arin.net',
         t: 'arin',
-        u: 'https://whois.arin.net/ui/query.do?queryinput={{{s}}}',
+        u: 'https://whois.arin.net/ui/?q={{{s}}}',
         c: 'Tech',
         sc: 'Sysadmin (network)',
     },
@@ -6543,7 +6546,7 @@ export const bangs: Record<string, any> = {
     ars: {
         c: 'Tech',
         d: 'arstechnica.com',
-        r: 233,
+        r: 178,
         s: 'Ars Technica',
         sc: 'Blogs',
         t: 'ars',
@@ -6696,7 +6699,7 @@ export const bangs: Record<string, any> = {
     arukereso: {
         c: 'Shopping',
         d: 'www.arukereso.hu',
-        r: 33,
+        r: 17,
         s: 'Arukereso',
         sc: 'Online (intl)',
         t: 'arukereso',
@@ -6714,7 +6717,7 @@ export const bangs: Record<string, any> = {
     arxiv: {
         c: 'Research',
         d: 'arxiv.org',
-        r: 231,
+        r: 229,
         s: 'arXiv',
         sc: 'Reference (science)',
         t: 'arxiv',
@@ -6739,7 +6742,7 @@ export const bangs: Record<string, any> = {
     as: {
         c: 'Shopping',
         d: 'smile.amazon.com',
-        r: 228,
+        r: 207,
         s: 'Amazon Smile',
         sc: 'Online',
         t: 'as',
@@ -6796,7 +6799,7 @@ export const bangs: Record<string, any> = {
     asd: {
         c: 'Shopping',
         d: 'smile.amazon.de',
-        r: 31,
+        r: 41,
         s: 'Amazon Smile Deutschland',
         sc: 'Online (marketplace)',
         t: 'asd',
@@ -6830,7 +6833,7 @@ export const bangs: Record<string, any> = {
     asg: {
         c: 'Shopping',
         d: 'smile.amazon.de',
-        r: 30,
+        r: 10,
         s: 'Amazon Smile (Germany)',
         sc: 'Online',
         t: 'asg',
@@ -7032,7 +7035,7 @@ export const bangs: Record<string, any> = {
     asmuk: {
         c: 'Shopping',
         d: 'smile.amazon.co.uk',
-        r: 0,
+        r: 4,
         s: 'Amazon Smile (UK)',
         sc: 'Online',
         t: 'asmuk',
@@ -7066,16 +7069,17 @@ export const bangs: Record<string, any> = {
     },
     ass: {
         s: 'Amazon Subscribe & Save',
-        d: 'smile.amazon.com',
+        d: 'www.amazon.com',
         t: 'ass',
-        u: 'https://smile.amazon.com/s?url=srs=5856181011&field-keywords={{{s}}}',
+        u: 'https://www.amazon.com/gp/subscribe-and-save/manager/',
         c: 'Shopping',
         sc: 'Online',
+        skip_tests: true,
     },
     assist: {
         c: 'Online Services',
         d: '',
-        r: 15,
+        r: 10,
         s: 'DuckDuckGo Assist',
         sc: 'Search (DDG)',
         t: 'assist',
@@ -7127,7 +7131,7 @@ export const bangs: Record<string, any> = {
     asuk: {
         c: 'Shopping',
         d: 'smile.amazon.co.uk',
-        r: 6,
+        r: 14,
         s: 'Amazon Smile (UK)',
         sc: 'Online',
         t: 'asuk',
@@ -7309,7 +7313,7 @@ export const bangs: Record<string, any> = {
     ato: {
         c: 'Tech',
         d: 'alternativeto.net',
-        r: 111,
+        r: 129,
         s: 'AlternativeTo',
         sc: 'Downloads (software)',
         t: 'ato',
@@ -7392,7 +7396,7 @@ export const bangs: Record<string, any> = {
     au: {
         c: 'Tech',
         d: 'aur.archlinux.org',
-        r: 72,
+        r: 52,
         s: 'Arch Linux User Repository',
         sc: 'Downloads (software)',
         t: 'au',
@@ -7577,7 +7581,7 @@ export const bangs: Record<string, any> = {
     auk: {
         c: 'Shopping',
         d: 'www.amazon.co.uk',
-        r: 2233,
+        r: 2188,
         s: 'Amazon.co.uk',
         sc: 'Online (intl)',
         t: 'auk',
@@ -7610,7 +7614,7 @@ export const bangs: Record<string, any> = {
     aur4: {
         c: 'Tech',
         d: 'aur4.archlinux.org',
-        r: 0,
+        r: 3,
         s: 'Arch User Repository v4',
         sc: 'Sysadmin (Arch)',
         t: 'aur4',
@@ -7635,7 +7639,7 @@ export const bangs: Record<string, any> = {
     aus: {
         c: 'Shopping',
         d: 'www.amazon.com',
-        r: 61,
+        r: 92,
         s: 'Amazon.com',
         sc: 'Online',
         t: 'aus',
@@ -7883,6 +7887,7 @@ export const bangs: Record<string, any> = {
         s: 'Avito',
         d: 'www.avito.ru',
         t: 'avito',
+        ts: ['авито'],
         u: 'https://www.avito.ru/?q={{{s}}}',
         c: 'Shopping',
         sc: 'Online (marketplace)',
@@ -7940,7 +7945,7 @@ export const bangs: Record<string, any> = {
     aw: {
         c: 'Tech',
         d: 'wiki.archlinux.org',
-        r: 6809,
+        r: 5941,
         s: 'Arch Linux Wiki',
         sc: 'Sysadmin (Arch)',
         t: 'aw',
@@ -8031,7 +8036,7 @@ export const bangs: Record<string, any> = {
     awoiaf: {
         c: 'Entertainment',
         d: 'awoiaf.westeros.org',
-        r: 21,
+        r: 39,
         s: 'A Wiki of Ice and Fire',
         sc: 'TV',
         t: 'awoiaf',
@@ -8081,7 +8086,7 @@ export const bangs: Record<string, any> = {
     az: {
         c: 'Shopping',
         d: 'www.amazon.com',
-        r: 1170,
+        r: 1148,
         s: 'Amazon.com',
         sc: 'Online',
         t: 'az',
@@ -8090,7 +8095,7 @@ export const bangs: Record<string, any> = {
     azd: {
         c: 'Shopping',
         d: 'www.amazon.de',
-        r: 62,
+        r: 24,
         s: 'Amazon Deutschland',
         sc: 'Online',
         t: 'azd',
@@ -8099,7 +8104,7 @@ export const bangs: Record<string, any> = {
     aze: {
         c: 'Shopping',
         d: 'www.amazon.es',
-        r: 22,
+        r: 13,
         s: 'Amazon Spain',
         sc: 'Online',
         t: 'aze',
@@ -8108,7 +8113,7 @@ export const bangs: Record<string, any> = {
     azf: {
         c: 'Shopping',
         d: 'www.amazon.fr',
-        r: 114,
+        r: 92,
         s: 'Amazon fr',
         sc: 'Online',
         t: 'azf',
@@ -8142,7 +8147,7 @@ export const bangs: Record<string, any> = {
     azlyrics: {
         c: 'Multimedia',
         d: 'search.azlyrics.com',
-        r: 10,
+        r: 9,
         s: 'AZLyrics',
         sc: 'Music (Lyrics)',
         t: 'azlyrics',
@@ -8185,7 +8190,7 @@ export const bangs: Record<string, any> = {
     azuk: {
         c: 'Shopping',
         d: 'www.amazon.co.uk',
-        r: 398,
+        r: 585,
         s: 'Amazon UK',
         sc: 'Online',
         t: 'azuk',
@@ -8598,7 +8603,7 @@ export const bangs: Record<string, any> = {
     bangs: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 637,
+        r: 644,
         s: 'Search all !bangs',
         sc: 'Search (DDG)',
         t: 'bangs',
@@ -8739,7 +8744,7 @@ export const bangs: Record<string, any> = {
     basketballreference: {
         c: 'Entertainment',
         d: 'www.basketball-reference.com',
-        r: 3,
+        r: 6,
         s: 'Basketball Reference',
         sc: 'Sports',
         t: 'basketballreference',
@@ -8847,7 +8852,7 @@ export const bangs: Record<string, any> = {
     bballref: {
         c: 'Research',
         d: 'www.basketball-reference.com',
-        r: 0,
+        r: 9,
         s: 'Basketball Reference',
         sc: 'Reference',
         t: 'bballref',
@@ -9121,7 +9126,7 @@ export const bangs: Record<string, any> = {
     bcamp: {
         c: 'Shopping',
         d: 'bandcamp.com',
-        r: 401,
+        r: 139,
         s: 'Bandcamp',
         sc: 'Online (marketplace)',
         t: 'bcamp',
@@ -9632,7 +9637,7 @@ export const bangs: Record<string, any> = {
     behindthename: {
         c: 'Research',
         d: 'www.behindthename.com',
-        r: 16,
+        r: 21,
         s: 'Behind the Name',
         sc: 'Reference (words)',
         t: 'behindthename',
@@ -9856,7 +9861,7 @@ export const bangs: Record<string, any> = {
     bestbuy: {
         c: 'Shopping',
         d: 'www.bestbuy.com',
-        r: 153,
+        r: 139,
         s: 'BestBuy',
         sc: 'Big box/department',
         t: 'bestbuy',
@@ -9865,7 +9870,7 @@ export const bangs: Record<string, any> = {
     bestbuyca: {
         c: 'Shopping',
         d: 'www.bestbuy.ca',
-        r: 13,
+        r: 5,
         s: 'Best Buy Canada',
         sc: 'Tech',
         t: 'bestbuyca',
@@ -10122,7 +10127,7 @@ export const bangs: Record<string, any> = {
     bgw: {
         c: 'Research',
         d: 'www.biblegateway.com',
-        r: 42,
+        r: 68,
         s: 'BibleGateway',
         sc: 'Reference (religion)',
         t: 'bgw',
@@ -10165,7 +10170,7 @@ export const bangs: Record<string, any> = {
     bhphotovideo: {
         c: 'Shopping',
         d: 'www.bhphotovideo.com',
-        r: 6,
+        r: 3,
         s: 'B&H Photo Video',
         sc: 'Online',
         t: 'bhphotovideo',
@@ -10233,7 +10238,7 @@ export const bangs: Record<string, any> = {
     bible: {
         c: 'Research',
         d: 'www.biblegateway.com',
-        r: 295,
+        r: 238,
         s: 'BibleGateway',
         sc: 'Reference (religion)',
         t: 'bible',
@@ -10251,7 +10256,7 @@ export const bangs: Record<string, any> = {
     biblegateway: {
         c: 'Research',
         d: 'www.biblegateway.com',
-        r: 21,
+        r: 15,
         s: 'BibleGateway',
         sc: 'Reference (religion)',
         t: 'biblegateway',
@@ -10260,7 +10265,7 @@ export const bangs: Record<string, any> = {
     biblehub: {
         c: 'Research',
         d: 'biblemenus.com',
-        r: 0,
+        r: 5,
         s: 'BibleHub',
         sc: 'Academic',
         t: 'biblehub',
@@ -10415,7 +10420,7 @@ export const bangs: Record<string, any> = {
         s: 'Большая российская энциклопедия',
         d: 'bigenc.ru',
         t: 'bigenc',
-        ts: ['gre'],
+        ts: ['gre', 'брэ'],
         u: 'https://bigenc.ru/search?q={{{s}}}',
         c: 'Research',
         sc: 'Reference',
@@ -10539,7 +10544,7 @@ export const bangs: Record<string, any> = {
     bili: {
         c: 'Multimedia',
         d: 'www.bilibili.com',
-        r: 99,
+        r: 134,
         s: 'bilibili',
         sc: 'Video',
         t: 'bili',
@@ -10556,7 +10561,7 @@ export const bangs: Record<string, any> = {
     billiger: {
         c: 'Shopping',
         d: 'www.billiger.de',
-        r: 0,
+        r: 5,
         s: 'Billiger.de',
         sc: 'Services',
         t: 'billiger',
@@ -10598,7 +10603,7 @@ export const bangs: Record<string, any> = {
     bimages: {
         c: 'Online Services',
         d: 'www.bing.com',
-        r: 59,
+        r: 52,
         s: 'Bing Images',
         sc: 'Search',
         t: 'bimages',
@@ -10607,7 +10612,7 @@ export const bangs: Record<string, any> = {
     bim: {
         c: 'Multimedia',
         d: 'www.bing.com',
-        r: 7,
+        r: 8,
         s: 'Bing Images',
         sc: 'Images',
         t: 'bim',
@@ -10624,7 +10629,7 @@ export const bangs: Record<string, any> = {
     bing: {
         c: 'Online Services',
         d: 'www.bing.com',
-        r: 1043,
+        r: 1209,
         s: 'Bing',
         sc: 'Search',
         t: 'bing',
@@ -10641,7 +10646,7 @@ export const bangs: Record<string, any> = {
     bingimages: {
         c: 'Online Services',
         d: 'www.bing.com',
-        r: 30,
+        r: 45,
         s: 'Bing Images',
         sc: 'Search',
         t: 'bingimages',
@@ -10668,7 +10673,7 @@ export const bangs: Record<string, any> = {
     bingvideos: {
         c: 'Online Services',
         d: 'www.bing.com',
-        r: 19,
+        r: 21,
         s: 'Bing',
         sc: 'Search',
         t: 'bingvideos',
@@ -10777,7 +10782,7 @@ export const bangs: Record<string, any> = {
     birds: {
         c: 'Research',
         d: 'www.allaboutbirds.org',
-        r: 3,
+        r: 0,
         s: 'Cornell Lab of Ornithology',
         sc: 'Reference (science)',
         t: 'birds',
@@ -10826,7 +10831,7 @@ export const bangs: Record<string, any> = {
     bitbucket: {
         c: 'Online Services',
         d: 'bitbucket.org',
-        r: 21,
+        r: 15,
         s: 'BitBucket.org',
         sc: 'Tools',
         t: 'bitbucket',
@@ -10853,7 +10858,7 @@ export const bangs: Record<string, any> = {
     bitchute: {
         c: 'Entertainment',
         d: 'www.bitchute.com',
-        r: 19,
+        r: 89,
         s: 'www.bitchute.com',
         sc: 'Misc',
         t: 'bitchute',
@@ -11025,7 +11030,7 @@ export const bangs: Record<string, any> = {
     bkr: {
         c: 'Research',
         d: 'www.basketball-reference.com',
-        r: 17,
+        r: 25,
         s: 'Basketball Reference',
         sc: 'Reference',
         t: 'bkr',
@@ -11127,7 +11132,7 @@ export const bangs: Record<string, any> = {
     blb: {
         c: 'Research',
         d: 'www.blb.org',
-        r: 54,
+        r: 85,
         s: 'Blue Letter Bible',
         sc: 'Reference (religion)',
         t: 'blb',
@@ -11136,7 +11141,7 @@ export const bangs: Record<string, any> = {
     blbl: {
         c: 'Multimedia',
         d: 'www.bilibili.com',
-        r: 60,
+        r: 58,
         s: '哔哩哔哩弹幕网',
         sc: 'Video',
         t: 'blbl',
@@ -11402,7 +11407,7 @@ export const bangs: Record<string, any> = {
     bloom: {
         c: 'News',
         d: 'www.bloomberg.com',
-        r: 31,
+        r: 48,
         s: 'Bloomberg',
         sc: 'Business',
         t: 'bloom',
@@ -11494,7 +11499,7 @@ export const bangs: Record<string, any> = {
     bmaps: {
         c: 'Online Services',
         d: 'www.bing.com',
-        r: 7,
+        r: 10,
         s: 'Bing Maps',
         sc: 'Search',
         t: 'bmaps',
@@ -11503,7 +11508,7 @@ export const bangs: Record<string, any> = {
     bm: {
         c: 'Online Services',
         d: 'www.bing.com',
-        r: 106,
+        r: 217,
         s: 'bing maps',
         sc: 'Maps',
         t: 'bm',
@@ -11619,7 +11624,7 @@ export const bangs: Record<string, any> = {
     bn: {
         c: 'Shopping',
         d: 'www.barnesandnoble.com',
-        r: 39,
+        r: 68,
         s: 'Barnes and Noble',
         sc: 'Online',
         t: 'bn',
@@ -11637,7 +11642,7 @@ export const bangs: Record<string, any> = {
     bndc: {
         c: 'Multimedia',
         d: 'bandcamp.com',
-        r: 166,
+        r: 68,
         s: 'Bandcamp',
         sc: 'Music',
         t: 'bndc',
@@ -11895,7 +11900,7 @@ export const bangs: Record<string, any> = {
     bom: {
         c: 'Entertainment',
         d: 'www.boxofficemojo.com',
-        r: 11,
+        r: 23,
         s: 'Box Office Mojo',
         sc: 'Movies',
         t: 'bom',
@@ -12018,7 +12023,7 @@ export const bangs: Record<string, any> = {
     booking: {
         c: 'Shopping',
         d: 'www.booking.com',
-        r: 15,
+        r: 17,
         s: 'Booking',
         sc: 'Online',
         t: 'booking',
@@ -12043,7 +12048,7 @@ export const bangs: Record<string, any> = {
     booklooker: {
         c: 'Shopping',
         d: 'www.booklooker.de',
-        r: 0,
+        r: 3,
         s: 'Booklooker',
         sc: 'Online (marketplace)',
         t: 'booklooker',
@@ -12052,7 +12057,7 @@ export const bangs: Record<string, any> = {
     bookmyshow: {
         c: 'Entertainment',
         d: 'in.bookmyshow.com',
-        r: 4,
+        r: 8,
         s: 'BookMY Show',
         sc: 'Movies',
         t: 'bookmyshow',
@@ -12077,7 +12082,7 @@ export const bangs: Record<string, any> = {
     books: {
         c: 'Multimedia',
         d: 'www.amazon.com',
-        r: 22,
+        r: 24,
         s: 'Amazon.com',
         sc: 'Books',
         t: 'books',
@@ -12251,7 +12256,7 @@ export const bangs: Record<string, any> = {
     bpa: {
         c: 'Entertainment',
         d: 'bulbapedia.bulbagarden.net',
-        r: 75,
+        r: 154,
         s: 'Bulbapedia',
         sc: 'Games (Pokemon)',
         t: 'bpa',
@@ -12284,7 +12289,7 @@ export const bangs: Record<string, any> = {
     bpedia: {
         c: 'Entertainment',
         d: 'bulbapedia.bulbagarden.net',
-        r: 42,
+        r: 10,
         s: 'Bulbapedia',
         sc: 'Games (Pokemon)',
         t: 'bpedia',
@@ -12466,7 +12471,7 @@ export const bangs: Record<string, any> = {
     br: {
         c: 'Research',
         d: 'www.baseball-reference.com',
-        r: 88,
+        r: 115,
         s: 'Baseball-Reference',
         sc: 'Reference',
         t: 'br',
@@ -12525,7 +12530,7 @@ export const bangs: Record<string, any> = {
     bri: {
         c: 'Online Services',
         d: 'www.bing.com',
-        r: 11,
+        r: 8,
         s: 'Bing Reverse Image Search',
         sc: 'Search',
         t: 'bri',
@@ -12627,7 +12632,7 @@ export const bangs: Record<string, any> = {
     brit: {
         c: 'Research',
         d: 'www.britannica.com',
-        r: 19,
+        r: 14,
         s: 'Encyclopaedia Brittanica',
         sc: 'Academic',
         t: 'brit',
@@ -12812,7 +12817,7 @@ export const bangs: Record<string, any> = {
     brt: {
         c: 'Research',
         d: 'www.britannica.com',
-        r: 11,
+        r: 0,
         s: 'Britannyca',
         sc: 'Reference',
         t: 'brt',
@@ -13175,7 +13180,7 @@ export const bangs: Record<string, any> = {
     bugzilla: {
         c: 'Tech',
         d: 'bugzilla.mozilla.org',
-        r: 6,
+        r: 0,
         s: 'Bugzilla',
         sc: 'Programming',
         t: 'bugzilla',
@@ -13209,7 +13214,7 @@ export const bangs: Record<string, any> = {
     builtwith: {
         c: 'Tech',
         d: 'builtwith.com',
-        r: 5,
+        r: 3,
         s: 'BuiltWith',
         sc: 'Domains',
         t: 'builtwith',
@@ -13243,7 +13248,7 @@ export const bangs: Record<string, any> = {
     bulba: {
         c: 'Research',
         d: 'bulbapedia.bulbagarden.net',
-        r: 1406,
+        r: 1969,
         s: 'Bulbapedia',
         sc: 'Reference (fun)',
         t: 'bulba',
@@ -13252,7 +13257,7 @@ export const bangs: Record<string, any> = {
     bulbapedia: {
         c: 'Entertainment',
         d: 'bulbapedia.bulbagarden.net',
-        r: 191,
+        r: 271,
         s: 'Bulbapedia',
         sc: 'Games (Pokemon)',
         t: 'bulbapedia',
@@ -13277,7 +13282,7 @@ export const bangs: Record<string, any> = {
     bum: {
         c: 'Entertainment',
         d: 'www.mangaupdates.com',
-        r: 79,
+        r: 100,
         s: 'Baka-Updates Manga',
         sc: 'Comics',
         t: 'bum',
@@ -13303,7 +13308,7 @@ export const bangs: Record<string, any> = {
     bundlephobia: {
         c: 'Tech',
         d: 'bundlephobia.com',
-        r: 6,
+        r: 0,
         s: 'BundlePhobia',
         sc: 'Libraries/Frameworks',
         t: 'bundlephobia',
@@ -13321,7 +13326,7 @@ export const bangs: Record<string, any> = {
     bung: {
         c: 'News',
         d: 'www.lawyersaroundme.com',
-        r: 3,
+        r: 0,
         s: 'Lawyers Around Me',
         sc: 'Business',
         t: 'bung',
@@ -13453,7 +13458,7 @@ export const bangs: Record<string, any> = {
     buzzfeed: {
         c: 'Entertainment',
         d: 'www.buzzfeed.com',
-        r: 13,
+        r: 4,
         s: 'Buzzfeed',
         sc: 'Blogs',
         t: 'buzzfeed',
@@ -13487,7 +13492,7 @@ export const bangs: Record<string, any> = {
     bvideo: {
         c: 'Online Services',
         d: 'www.bing.com',
-        r: 12,
+        r: 19,
         s: 'Bing Videos',
         sc: 'Search',
         t: 'bvideo',
@@ -13496,7 +13501,7 @@ export const bangs: Record<string, any> = {
     bvideos: {
         c: 'Online Services',
         d: 'www.bing.com',
-        r: 4,
+        r: 9,
         s: 'Bing Videos',
         sc: 'Search',
         t: 'bvideos',
@@ -13724,7 +13729,7 @@ export const bangs: Record<string, any> = {
     ca: {
         c: 'Shopping',
         d: 'www.amazon.ca',
-        r: 307,
+        r: 320,
         s: 'Amazon Canada',
         sc: 'Online',
         t: 'ca',
@@ -13741,7 +13746,7 @@ export const bangs: Record<string, any> = {
     cached: {
         c: 'Online Services',
         d: 'webcache.googleusercontent.com',
-        r: 0,
+        r: 4,
         s: 'Google Cache',
         sc: 'Google',
         t: 'cached',
@@ -13750,7 +13755,7 @@ export const bangs: Record<string, any> = {
     cachedview: {
         c: 'Online Services',
         d: 'webcache.googleusercontent.com',
-        r: 5,
+        r: 3,
         s: 'Google Cached Pages',
         sc: 'Google',
         t: 'cachedview',
@@ -13759,7 +13764,7 @@ export const bangs: Record<string, any> = {
     cache: {
         c: 'Online Services',
         d: 'webcache.googleusercontent.com',
-        r: 278,
+        r: 324,
         s: 'Google Cache',
         sc: 'Google',
         t: 'cache',
@@ -13902,7 +13907,7 @@ export const bangs: Record<string, any> = {
     calc: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 129,
+        r: 40,
         s: 'DuckDuckGo Calculator',
         sc: 'Tools',
         t: 'calc',
@@ -13929,7 +13934,7 @@ export const bangs: Record<string, any> = {
     calendar: {
         c: 'Online Services',
         d: 'www.google.com',
-        r: 28,
+        r: 18,
         s: 'Google Calendar',
         sc: 'Google',
         t: 'calendar',
@@ -13996,7 +14001,7 @@ export const bangs: Record<string, any> = {
     camel: {
         c: 'Shopping',
         d: 'camelcamelcamel.com',
-        r: 15,
+        r: 57,
         s: 'CamelCamelCamel',
         sc: 'Online',
         t: 'camel',
@@ -14135,7 +14140,7 @@ export const bangs: Record<string, any> = {
     canadiantire: {
         c: 'Shopping',
         d: 'www.canadiantire.ca',
-        r: 6,
+        r: 5,
         s: 'Canadian Tire',
         sc: 'Big box/department',
         t: 'canadiantire',
@@ -14144,7 +14149,7 @@ export const bangs: Record<string, any> = {
     can: {
         c: 'Online Services',
         d: 'recherche-search.gc.ca',
-        r: 11,
+        r: 10,
         s: 'Canada.ca',
         sc: 'Search',
         t: 'can',
@@ -14719,7 +14724,7 @@ export const bangs: Record<string, any> = {
     cccde: {
         c: 'Shopping',
         d: 'de.camelcamelcamel.com',
-        r: 10,
+        r: 0,
         s: 'CamelCamelCamel (Germany)',
         sc: 'Services',
         t: 'cccde',
@@ -14808,7 +14813,7 @@ export const bangs: Record<string, any> = {
     ccm: {
         c: 'News',
         d: 'coinmarketcap.com',
-        r: 0,
+        r: 3,
         s: 'CryptoCurrency Market',
         sc: 'Business',
         t: 'ccm',
@@ -14817,7 +14822,7 @@ export const bangs: Record<string, any> = {
     c: {
         c: 'Tech',
         d: 'www.cnet.com',
-        r: 235,
+        r: 234,
         s: 'CNET',
         sc: 'Downloads',
         t: 'c',
@@ -14877,7 +14882,7 @@ export const bangs: Record<string, any> = {
         s: 'cplusplus.com',
         d: 'www.cplusplus.com',
         t: 'c++',
-        ts: ['cxx', 'rcpp', 'stl'],
+        ts: ['cxx', 'rcpp', 'stl', 'cplusplus'],
         u: 'https://www.cplusplus.com/search.do?q={{{s}}}',
         c: 'Tech',
         sc: 'Languages (c++)',
@@ -15061,7 +15066,7 @@ export const bangs: Record<string, any> = {
     cdic: {
         c: 'Research',
         d: 'dictionary.cambridge.org',
-        r: 43,
+        r: 45,
         s: 'Cambridge Dictionary',
         sc: 'Reference (words)',
         t: 'cdic',
@@ -15242,7 +15247,7 @@ export const bangs: Record<string, any> = {
     cdt: {
         c: 'Research',
         d: 'www.collinsdictionary.com',
-        r: 4,
+        r: 3,
         s: 'Collins Thesaurus',
         sc: 'Reference (words)',
         t: 'cdt',
@@ -15759,7 +15764,7 @@ export const bangs: Record<string, any> = {
     chat: {
         c: 'Research',
         d: 'www.duckduckgo.com',
-        r: 1503,
+        r: 1654,
         s: 'Duck.ai',
         sc: 'Reference',
         t: 'chat',
@@ -15776,7 +15781,7 @@ export const bangs: Record<string, any> = {
     ch: {
         c: 'Research',
         d: 'chequeado.com',
-        r: 19,
+        r: 9,
         s: 'Chequeado',
         sc: 'Government',
         t: 'ch',
@@ -16147,7 +16152,7 @@ export const bangs: Record<string, any> = {
     chocolatey: {
         c: 'Tech',
         d: 'chocolatey.org',
-        r: 8,
+        r: 0,
         s: 'Chocolatey',
         sc: 'Downloads (apps)',
         t: 'chocolatey',
@@ -16266,7 +16271,7 @@ export const bangs: Record<string, any> = {
     chromewebstore: {
         c: 'Online Services',
         d: 'chrome.google.com',
-        r: 5,
+        r: 0,
         s: 'Chrome Web Store',
         sc: 'Tools',
         t: 'chromewebstore',
@@ -16429,7 +16434,7 @@ export const bangs: Record<string, any> = {
     cinst: {
         c: 'Tech',
         d: 'chocolatey.org',
-        r: 4,
+        r: 0,
         s: 'Chocolatey',
         sc: 'Downloads (software)',
         t: 'cinst',
@@ -16535,7 +16540,7 @@ export const bangs: Record<string, any> = {
     ciu: {
         c: 'Tech',
         d: 'caniuse.com',
-        r: 78,
+        r: 74,
         s: 'Can I use...',
         sc: 'Languages (html)',
         t: 'ciu',
@@ -16612,7 +16617,7 @@ export const bangs: Record<string, any> = {
     ck: {
         c: 'Research',
         d: 'www.chefkoch.de',
-        r: 33,
+        r: 17,
         s: 'Chefkoch.de',
         sc: 'Food',
         t: 'ck',
@@ -17008,7 +17013,7 @@ export const bangs: Record<string, any> = {
     clojuredocs: {
         c: 'Tech',
         d: 'clojuredocs.org',
-        r: 8,
+        r: 0,
         s: 'Clojure Docs',
         sc: 'Languages (other)',
         t: 'clojuredocs',
@@ -17131,7 +17136,7 @@ export const bangs: Record<string, any> = {
     cmc: {
         c: 'Online Services',
         d: 'coinmarketcap.com',
-        r: 63,
+        r: 108,
         s: 'CoinMarketCap',
         sc: 'Tools',
         t: 'cmc',
@@ -17140,7 +17145,7 @@ export const bangs: Record<string, any> = {
     cm: {
         c: 'Shopping',
         d: 'cm.center',
-        r: 0,
+        r: 3,
         s: 'CM.Center',
         sc: 'Online (marketplace)',
         t: 'cm',
@@ -17231,7 +17236,7 @@ export const bangs: Record<string, any> = {
     cn: {
         c: 'Research',
         d: 'www.charitynavigator.org',
-        r: 5,
+        r: 0,
         s: 'Charity Navigator',
         sc: 'Topical',
         t: 'cn',
@@ -17339,7 +17344,7 @@ export const bangs: Record<string, any> = {
     cnrtld: {
         c: 'Research',
         d: 'www.cnrtl.fr',
-        r: 5,
+        r: 7,
         s: 'cnrtl définitions',
         sc: 'Reference (words)',
         t: 'cnrtld',
@@ -17388,7 +17393,7 @@ export const bangs: Record<string, any> = {
     cntrl: {
         c: 'Research',
         d: 'www.cnrtl.fr',
-        r: 24,
+        r: 4,
         s: 'Centre National de Ressources Textuelles et Lexicales',
         sc: 'Reference (words)',
         t: 'cntrl',
@@ -17471,7 +17476,7 @@ export const bangs: Record<string, any> = {
     cocoa: {
         c: 'Tech',
         d: 'developer.apple.com',
-        r: 3,
+        r: 0,
         s: 'Apple Developer',
         sc: 'Languages (cocoa)',
         t: 'cocoa',
@@ -17564,7 +17569,7 @@ export const bangs: Record<string, any> = {
     codepen: {
         c: 'Online Services',
         d: 'codepen.io',
-        r: 3,
+        r: 0,
         s: 'Codepen',
         sc: 'Social (intl)',
         t: 'codepen',
@@ -17581,7 +17586,7 @@ export const bangs: Record<string, any> = {
     code: {
         c: 'Online Services',
         d: 'www.searchco.de',
-        r: 28,
+        r: 66,
         s: 'Search Code',
         sc: 'Search (non-US)',
         t: 'code',
@@ -17672,7 +17677,7 @@ export const bangs: Record<string, any> = {
     coin: {
         c: 'Online Services',
         d: 'coinmarketcap.com',
-        r: 15,
+        r: 0,
         s: 'CoinMarketCap',
         sc: 'Search',
         t: 'coin',
@@ -17757,7 +17762,7 @@ export const bangs: Record<string, any> = {
     collins: {
         c: 'Research',
         d: 'www.collinsdictionary.com',
-        r: 87,
+        r: 61,
         s: 'Collins Dictionary',
         sc: 'Reference (words)',
         t: 'collins',
@@ -17948,6 +17953,7 @@ export const bangs: Record<string, any> = {
         s: 'Compose Email (Gmail)',
         d: 'mail.google.com',
         t: 'compose',
+        ts: ['письмо'],
         u: 'https://mail.google.com/mail/?view=cm&to=&su={{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -18021,7 +18027,7 @@ export const bangs: Record<string, any> = {
     conda: {
         c: 'Tech',
         d: 'anaconda.org',
-        r: 19,
+        r: 16,
         s: 'https://anaconda.org',
         sc: 'Downloads',
         t: 'conda',
@@ -18038,7 +18044,7 @@ export const bangs: Record<string, any> = {
     config: {
         c: 'Tech',
         d: 'config.lk',
-        r: 0,
+        r: 4,
         s: 'Config',
         sc: 'Blogs (intl)',
         t: 'config',
@@ -18169,6 +18175,7 @@ export const bangs: Record<string, any> = {
         s: 'Consultant Plus',
         d: 'www.consultant.ru',
         t: 'consplus',
+        ts: ['консультант', 'кплюс'],
         u: 'https://www.consultant.ru/search/?q={{{s}}}',
         c: 'Research',
         sc: 'Law',
@@ -18194,7 +18201,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Contacts',
         d: 'contacts.google.com',
         t: 'contacts',
-        ts: ['gc', 'gcontact'],
+        ts: ['gc', 'gcontact', 'контакты'],
         u: 'https://contacts.google.com/search/{{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -18328,7 +18335,7 @@ export const bangs: Record<string, any> = {
     coolblue: {
         c: 'Shopping',
         d: 'www.coolblue.nl',
-        r: 4,
+        r: 0,
         s: 'Coolblue',
         sc: 'Online',
         t: 'coolblue',
@@ -18787,7 +18794,7 @@ export const bangs: Record<string, any> = {
     cpanm: {
         c: 'Tech',
         d: 'metacpan.org',
-        r: 10,
+        r: 3,
         s: 'MetaCPAN',
         sc: 'Languages (perl)',
         t: 'cpanm',
@@ -18860,12 +18867,13 @@ export const bangs: Record<string, any> = {
         sc: 'Reference',
     },
     cplusplus: {
-        s: 'Cplusplus.com',
-        d: 'www.cplusplus.com',
-        t: 'cplusplus',
-        u: 'https://www.cplusplus.com/query/search.cgi?q={{{s}}}',
         c: 'Tech',
+        d: 'www.cplusplus.com',
+        r: 0,
+        s: 'Cplusplus.com',
         sc: 'Languages (c++)',
+        t: 'cplusplus',
+        u: 'http://www.cplusplus.com/query/search.cgi?q={{{s}}}',
     },
     cpost: {
         s: 'Czech post',
@@ -18896,7 +18904,7 @@ export const bangs: Record<string, any> = {
     cppr: {
         c: 'Tech',
         d: '',
-        r: 81,
+        r: 142,
         s: 'cppreference.com',
         sc: 'Languages (c++)',
         t: 'cppr',
@@ -18905,7 +18913,7 @@ export const bangs: Record<string, any> = {
     cppref: {
         c: 'Tech',
         d: '',
-        r: 46,
+        r: 48,
         s: 'cppreference.com',
         sc: 'Languages (c++)',
         t: 'cppref',
@@ -19013,7 +19021,7 @@ export const bangs: Record<string, any> = {
     craigslist: {
         c: 'Shopping',
         d: 'duckduckgo.com',
-        r: 11,
+        r: 7,
         s: 'Craigslist',
         sc: 'Online (marketplace)',
         t: 'craigslist',
@@ -19055,7 +19063,7 @@ export const bangs: Record<string, any> = {
     crates: {
         c: 'Tech',
         d: 'crates.io',
-        r: 1884,
+        r: 1591,
         s: "The Rust community's crate host",
         sc: 'Languages (other)',
         t: 'crates',
@@ -19394,7 +19402,7 @@ export const bangs: Record<string, any> = {
     crunchbase: {
         c: 'Tech',
         d: 'www.crunchbase.com',
-        r: 6,
+        r: 5,
         s: 'CrunchBase',
         sc: 'Companies',
         t: 'crunchbase',
@@ -19443,7 +19451,7 @@ export const bangs: Record<string, any> = {
     crx: {
         c: 'Tech',
         d: 'chrome.google.com',
-        r: 8,
+        r: 3,
         s: 'Chrome Extension Repository',
         sc: 'Downloads (add-ons)',
         t: 'crx',
@@ -19575,7 +19583,7 @@ export const bangs: Record<string, any> = {
     csm: {
         c: 'Entertainment',
         d: 'www.commonsensemedia.org',
-        r: 76,
+        r: 49,
         s: 'Common Sense Media',
         sc: 'Misc',
         t: 'csm',
@@ -19848,7 +19856,7 @@ export const bangs: Record<string, any> = {
     cu: {
         c: 'Tech',
         d: 'caniuse.com',
-        r: 18,
+        r: 9,
         s: 'CanIUse',
         sc: 'Languages (other)',
         t: 'cu',
@@ -20018,7 +20026,7 @@ export const bangs: Record<string, any> = {
     cv: {
         c: 'Tech',
         d: 'stats.stackexchange.com',
-        r: 5,
+        r: 0,
         s: 'Cross Validated',
         sc: 'Programming',
         t: 'cv',
@@ -20119,7 +20127,7 @@ export const bangs: Record<string, any> = {
     cwebstore: {
         c: 'Tech',
         d: 'chrome.google.com',
-        r: 0,
+        r: 6,
         s: 'Chrome Web Store',
         sc: 'Downloads (add-ons)',
         t: 'cwebstore',
@@ -20162,7 +20170,7 @@ export const bangs: Record<string, any> = {
     cws: {
         c: 'Tech',
         d: 'chrome.google.com',
-        r: 37,
+        r: 27,
         s: 'Chrome Web Store',
         sc: 'Downloads (add-ons)',
         t: 'cws',
@@ -20179,7 +20187,7 @@ export const bangs: Record<string, any> = {
     cxx: {
         c: 'Tech',
         d: 'www.cplusplus.com',
-        r: 26,
+        r: 5,
         s: 'Cplusplus.com',
         sc: 'Languages (c++)',
         t: 'cxx',
@@ -20222,6 +20230,7 @@ export const bangs: Record<string, any> = {
         s: 'Киберленинка',
         d: 'cyberleninka.ru',
         t: 'cybl',
+        ts: ['кибл', 'киберленинка'],
         u: 'https://cyberleninka.ru/search?q={{{s}}}',
         c: 'Research',
         sc: 'Academic',
@@ -20362,7 +20371,7 @@ export const bangs: Record<string, any> = {
     d20: {
         c: 'Entertainment',
         d: 'www.d20srd.org',
-        r: 3,
+        r: 11,
         s: 'The Hypertext d20 SRD',
         sc: 'Games (specific)',
         t: 'd20',
@@ -20389,6 +20398,7 @@ export const bangs: Record<string, any> = {
         s: 'Drive2.ru',
         d: 'www.drive2.ru',
         t: 'd2r',
+        ts: ['drive2', 'драйв2', 'д2'],
         u: 'https://www.drive2.ru/search?text={{{s}}}',
         c: 'Tech',
         sc: 'Blogs',
@@ -20405,6 +20415,7 @@ export const bangs: Record<string, any> = {
         s: 'dirty.ru',
         d: 'dirty.ru',
         t: 'd3',
+        ts: ['д3'],
         u: 'https://dirty.ru/search/?query={{{s}}}',
         c: 'Entertainment',
         sc: 'Forum',
@@ -20445,6 +20456,7 @@ export const bangs: Record<string, any> = {
         s: 'Папа знает',
         d: 'daddyknows.ru',
         t: 'daddyknows',
+        ts: ['папазнает'],
         u: 'https://daddyknows.ru/?s={{{s}}}',
         c: 'Entertainment',
         sc: 'Blogs',
@@ -21115,7 +21127,7 @@ export const bangs: Record<string, any> = {
     dblp: {
         c: 'Research',
         d: 'dblp.uni-trier.de',
-        r: 246,
+        r: 186,
         s: 'DBLP Computer Science Bibliography',
         sc: 'Academic',
         t: 'dblp',
@@ -21223,7 +21235,7 @@ export const bangs: Record<string, any> = {
     dbr: {
         c: 'Multimedia',
         d: 'danbooru.donmai.us',
-        r: 332,
+        r: 388,
         s: 'Danbooru',
         sc: 'Images',
         t: 'dbr',
@@ -21248,7 +21260,7 @@ export const bangs: Record<string, any> = {
     dbts: {
         c: 'Tech',
         d: 'bugs.debian.org',
-        r: 3,
+        r: 0,
         s: 'Debian Bug Tracking System',
         sc: 'Sysadmin (debian)',
         t: 'dbts',
@@ -21274,7 +21286,7 @@ export const bangs: Record<string, any> = {
     dbugs: {
         c: 'Tech',
         d: 'bugs.debian.org',
-        r: 13,
+        r: 12,
         s: 'Debian Bugs',
         sc: 'Sysadmin (debian)',
         t: 'dbugs',
@@ -21356,7 +21368,7 @@ export const bangs: Record<string, any> = {
     'd.com': {
         c: 'Online Services',
         d: 'dictionary.reference.com',
-        r: 0,
+        r: 3,
         s: 'Dictionary.com',
         sc: 'Tools',
         t: 'd.com',
@@ -21365,7 +21377,7 @@ export const bangs: Record<string, any> = {
     dcom: {
         c: 'Research',
         d: 'www.dictionary.com',
-        r: 71,
+        r: 48,
         s: 'Dictionary.com',
         sc: 'Reference',
         t: 'dcom',
@@ -21532,7 +21544,7 @@ export const bangs: Record<string, any> = {
     ddgde: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 30,
+        r: 20,
         s: 'duckduckgo',
         sc: 'Search',
         t: 'ddgde',
@@ -21541,7 +21553,7 @@ export const bangs: Record<string, any> = {
     ddg: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 2666,
+        r: 2303,
         s: 'DuckDuckGo',
         sc: 'Search (DDG)',
         t: 'ddg',
@@ -21770,7 +21782,7 @@ export const bangs: Record<string, any> = {
     ddh: {
         c: 'Tech',
         d: 'duck.co',
-        r: 6,
+        r: 4,
         s: 'DuckDuckHack',
         sc: 'Programming',
         t: 'ddh',
@@ -21779,7 +21791,7 @@ export const bangs: Record<string, any> = {
     ddhu: {
         c: 'Online Services',
         d: 'duckduckhack.com',
-        r: 0,
+        r: 3,
         s: 'DuckDuckHack',
         sc: 'Search (DDG)',
         t: 'ddhu',
@@ -21797,7 +21809,7 @@ export const bangs: Record<string, any> = {
     ddic: {
         c: 'Research',
         d: 'dic.daum.net',
-        r: 6,
+        r: 19,
         s: 'Daum Dictionary',
         sc: 'Reference (words intl)',
         t: 'ddic',
@@ -21806,7 +21818,7 @@ export const bangs: Record<string, any> = {
     ddi: {
         c: 'Multimedia',
         d: 'duckduckgo.com',
-        r: 137,
+        r: 132,
         s: 'DuckDuckGo Images',
         sc: 'Images',
         t: 'ddi',
@@ -21867,7 +21879,7 @@ export const bangs: Record<string, any> = {
     ddt: {
         c: 'Tech',
         d: 'duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion',
-        r: 41,
+        r: 48,
         s: 'DuckDuckGo Tor url',
         sc: 'Domains',
         t: 'ddt',
@@ -22008,7 +22020,7 @@ export const bangs: Record<string, any> = {
     debbug: {
         c: 'Tech',
         d: 'bugs.debian.org',
-        r: 9,
+        r: 23,
         s: 'Debian Bugs',
         sc: 'Sysadmin (debian)',
         t: 'debbug',
@@ -22100,7 +22112,7 @@ export const bangs: Record<string, any> = {
     debianpack: {
         c: 'Tech',
         d: 'packages.debian.org',
-        r: 45,
+        r: 23,
         s: 'Debian Packages',
         sc: 'Sysadmin (packages)',
         t: 'debianpack',
@@ -22134,7 +22146,7 @@ export const bangs: Record<string, any> = {
     debpackages: {
         c: 'Tech',
         d: 'packages.debian.org',
-        r: 9,
+        r: 5,
         s: 'Debian Packages',
         sc: 'Downloads (software)',
         t: 'debpackages',
@@ -22264,7 +22276,7 @@ export const bangs: Record<string, any> = {
     deen: {
         c: 'Online Services',
         d: 'www.dict.cc',
-        r: 547,
+        r: 427,
         s: 'dict.cc free dictionary (de<>en)',
         sc: 'Tools',
         t: 'deen',
@@ -22327,7 +22339,7 @@ export const bangs: Record<string, any> = {
     deeplen: {
         c: 'Translation',
         d: 'www.deepl.com',
-        r: 9,
+        r: 10,
         s: 'Deepl',
         sc: 'General',
         t: 'deeplen',
@@ -22355,7 +22367,7 @@ export const bangs: Record<string, any> = {
     deeples: {
         c: 'Online Services',
         d: 'www.deepl.com',
-        r: 9,
+        r: 0,
         s: 'DeepL Translator',
         sc: 'Tools',
         t: 'deeples',
@@ -22458,7 +22470,7 @@ export const bangs: Record<string, any> = {
     def: {
         c: 'Research',
         d: 'www.thefreedictionary.com',
-        r: 223,
+        r: 188,
         s: 'The Free Dictionary',
         sc: 'Academic',
         t: 'def',
@@ -22467,7 +22479,7 @@ export const bangs: Record<string, any> = {
     de: {
         c: 'Research',
         d: 'dict.tu-chemnitz.de',
-        r: 45,
+        r: 39,
         s: 'German',
         sc: 'Reference (words intl)',
         t: 'de',
@@ -22655,7 +22667,7 @@ export const bangs: Record<string, any> = {
     demauro: {
         c: 'Research',
         d: 'dizionario.internazionale.it',
-        r: 4,
+        r: 0,
         s: 'Dizionario Italiano De Mauro',
         sc: 'Reference (words intl)',
         t: 'demauro',
@@ -22680,7 +22692,7 @@ export const bangs: Record<string, any> = {
     dende: {
         c: 'Research',
         d: 'www.dict.cc',
-        r: 14,
+        r: 13,
         s: 'Dict.cc english-german',
         sc: 'Learning (intl)',
         t: 'dende',
@@ -22772,7 +22784,7 @@ export const bangs: Record<string, any> = {
     derpibooruorg: {
         c: 'Multimedia',
         d: 'derpibooru.org',
-        r: 0,
+        r: 3,
         s: 'Derpibooru.org',
         sc: 'Images',
         t: 'derpibooruorg',
@@ -22915,7 +22927,7 @@ export const bangs: Record<string, any> = {
     dev: {
         c: 'Tech',
         d: 'devdocs.io',
-        r: 17,
+        r: 14,
         s: 'DevDocs',
         sc: 'Programming',
         t: 'dev',
@@ -22924,7 +22936,7 @@ export const bangs: Record<string, any> = {
     devdocs: {
         c: 'Tech',
         d: 'devdocs.io',
-        r: 11,
+        r: 0,
         s: 'DevDocs',
         sc: 'Programming',
         t: 'devdocs',
@@ -22951,7 +22963,7 @@ export const bangs: Record<string, any> = {
     deviantart: {
         c: 'Multimedia',
         d: 'www.deviantart.com',
-        r: 116,
+        r: 96,
         s: 'DeviantArt',
         sc: 'Images',
         t: 'deviantart',
@@ -23034,7 +23046,7 @@ export const bangs: Record<string, any> = {
     dewiki: {
         c: 'Research',
         d: 'de.wikipedia.org',
-        r: 69,
+        r: 53,
         s: 'de.wikipedia.org',
         sc: 'Topical',
         t: 'dewiki',
@@ -23167,7 +23179,7 @@ export const bangs: Record<string, any> = {
     dggi: {
         c: 'Multimedia',
         d: 'duckduckgo.com',
-        r: 47,
+        r: 58,
         s: 'DuckDuckGo Images',
         sc: 'Images',
         t: 'dggi',
@@ -23176,7 +23188,7 @@ export const bangs: Record<string, any> = {
     dgi: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 194,
+        r: 248,
         s: 'DuckDuckGo Images',
         sc: 'Search (DDG)',
         t: 'dgi',
@@ -23227,7 +23239,7 @@ export const bangs: Record<string, any> = {
     dh: {
         c: 'Tech',
         d: 'hub.docker.com',
-        r: 486,
+        r: 404,
         s: 'Docker Hub',
         sc: 'Programming',
         t: 'dh',
@@ -23300,7 +23312,7 @@ export const bangs: Record<string, any> = {
     dhub: {
         c: 'Tech',
         d: 'hub.docker.com',
-        r: 10,
+        r: 9,
         s: 'Docker Hub',
         sc: 'Downloads (apps)',
         t: 'dhub',
@@ -23470,7 +23482,7 @@ export const bangs: Record<string, any> = {
     dictcc: {
         c: 'Online Services',
         d: 'www.dict.cc',
-        r: 881,
+        r: 867,
         s: 'dict.cc',
         sc: 'Tools',
         t: 'dictcc',
@@ -23479,7 +23491,7 @@ export const bangs: Record<string, any> = {
     'dict.cc': {
         c: 'Research',
         d: 'www.dict.cc',
-        r: 197,
+        r: 156,
         s: 'dict.cc',
         sc: 'Academic',
         t: 'dict.cc',
@@ -23497,7 +23509,7 @@ export const bangs: Record<string, any> = {
         s: 'Portal for The Greek Language',
         d: 'www.greek-language.gr',
         t: 'dictgr',
-        ts: ['lext', 'test', 'eldict'],
+        ts: ['lext', 'eldict'],
         u: 'https://www.greek-language.gr/greekLang/modern_greek/tools/lexica/triantafyllides/search.html?lq={{{s}}}',
         c: 'Research',
         sc: 'Academic',
@@ -23514,7 +23526,7 @@ export const bangs: Record<string, any> = {
     dictionary: {
         c: 'Research',
         d: 'www.thefreedictionary.com',
-        r: 122,
+        r: 113,
         s: 'The Free Dictionary',
         sc: 'Academic',
         t: 'dictionary',
@@ -23571,7 +23583,7 @@ export const bangs: Record<string, any> = {
     di: {
         c: 'Research',
         d: 'www.dictionary.com',
-        r: 250,
+        r: 306,
         s: 'Dictionary.com',
         sc: 'Reference (words)',
         t: 'di',
@@ -23580,7 +23592,7 @@ export const bangs: Record<string, any> = {
     diec: {
         c: 'Research',
         d: 'dlc.iec.cat',
-        r: 52,
+        r: 60,
         s: "Institut d'Estudis Catalans",
         sc: 'Reference (words)',
         t: 'diec',
@@ -23794,7 +23806,7 @@ export const bangs: Record<string, any> = {
     dim: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 8,
+        r: 13,
         s: 'DuckDuckGo ',
         sc: 'Search (DDG)',
         t: 'dim',
@@ -23992,7 +24004,7 @@ export const bangs: Record<string, any> = {
     dis: {
         c: 'Entertainment',
         d: 'www.discogs.com',
-        r: 247,
+        r: 375,
         s: 'http://discogs.com/',
         sc: 'Audio',
         t: 'dis',
@@ -24051,7 +24063,7 @@ export const bangs: Record<string, any> = {
     distrowatch: {
         c: 'Tech',
         d: 'distrowatch.com',
-        r: 12,
+        r: 22,
         s: 'DistroWatch',
         sc: 'Downloads (software)',
         t: 'distrowatch',
@@ -24258,7 +24270,7 @@ export const bangs: Record<string, any> = {
     dk: {
         c: 'Tech',
         d: 'store.docker.com',
-        r: 9,
+        r: 14,
         s: 'docker hub',
         sc: 'Sysadmin',
         t: 'dk',
@@ -24324,7 +24336,7 @@ export const bangs: Record<string, any> = {
     dky: {
         c: 'Shopping',
         d: 'www.digikey.com',
-        r: 11,
+        r: 7,
         s: 'Digi-Key',
         sc: 'Tech',
         t: 'dky',
@@ -24493,7 +24505,7 @@ export const bangs: Record<string, any> = {
     dman: {
         c: 'Tech',
         d: 'dyn.manpages.debian.org',
-        r: 61,
+        r: 84,
         s: 'Debian Manual Pages',
         sc: 'Sysadmin (debian)',
         t: 'dman',
@@ -24518,7 +24530,7 @@ export const bangs: Record<string, any> = {
     dm: {
         c: 'Multimedia',
         d: 'www.dailymotion.com',
-        r: 26,
+        r: 24,
         s: 'Daily Motion',
         sc: 'Video',
         t: 'dm',
@@ -24587,7 +24599,7 @@ export const bangs: Record<string, any> = {
     dmw: {
         c: 'Research',
         d: 'www.merriam-webster.com',
-        r: 62,
+        r: 90,
         s: 'Merriam-Webster Dictionary',
         sc: 'Reference (words)',
         t: 'dmw',
@@ -24621,7 +24633,7 @@ export const bangs: Record<string, any> = {
     dndbeyond: {
         c: 'Entertainment',
         d: 'www.dndbeyond.com',
-        r: 0,
+        r: 9,
         s: 'Dnd Beyond',
         sc: 'Games (offline)',
         t: 'dndbeyond',
@@ -24630,7 +24642,7 @@ export const bangs: Record<string, any> = {
     dnd: {
         c: 'Entertainment',
         d: 'www.dndbeyond.com',
-        r: 89,
+        r: 55,
         s: 'D&D Beyond',
         sc: 'Games (offline)',
         t: 'dnd',
@@ -24697,6 +24709,7 @@ export const bangs: Record<string, any> = {
         s: 'DNS',
         d: 'www.dns-shop.ru',
         t: 'dnsshop',
+        ts: ['днс'],
         u: 'https://www.dns-shop.ru/search/?q={{{s}}}',
         c: 'Shopping',
         sc: 'Online (marketplace)',
@@ -24720,7 +24733,7 @@ export const bangs: Record<string, any> = {
     dnw: {
         c: 'Shopping',
         d: 'search.danawa.com',
-        r: 26,
+        r: 13,
         s: 'Danawa',
         sc: 'Online',
         t: 'dnw',
@@ -24813,7 +24826,7 @@ export const bangs: Record<string, any> = {
     dockerhub: {
         c: 'Tech',
         d: 'hub.docker.com',
-        r: 213,
+        r: 160,
         s: 'Docker Hub',
         sc: 'Sysadmin',
         t: 'dockerhub',
@@ -24847,7 +24860,7 @@ export const bangs: Record<string, any> = {
     'docs.rs': {
         c: 'Tech',
         d: 'docs.rs',
-        r: 58,
+        r: 43,
         s: 'docs.rs',
         sc: 'Programming',
         t: 'docs.rs',
@@ -25153,7 +25166,7 @@ export const bangs: Record<string, any> = {
     dorf: {
         c: 'Entertainment',
         d: 'dwarffortresswiki.org',
-        r: 13,
+        r: 0,
         s: 'DwarfFortress Wiki',
         sc: 'Games (specific)',
         t: 'dorf',
@@ -25220,7 +25233,7 @@ export const bangs: Record<string, any> = {
     dotnetapi: {
         c: 'Tech',
         d: 'learn.microsoft.com',
-        r: 5,
+        r: 0,
         s: '.NET API',
         sc: 'Languages (.net)',
         t: 'dotnetapi',
@@ -25229,7 +25242,7 @@ export const bangs: Record<string, any> = {
     dotnet: {
         c: 'Tech',
         d: 'learn.microsoft.com',
-        r: 27,
+        r: 21,
         s: 'Microsoft Docs',
         sc: 'Languages (.net)',
         t: 'dotnet',
@@ -25255,7 +25268,7 @@ export const bangs: Record<string, any> = {
     douban: {
         c: 'Entertainment',
         d: 'www.douban.com',
-        r: 7,
+        r: 23,
         s: 'Douban',
         sc: 'Forum',
         t: 'douban',
@@ -25340,7 +25353,7 @@ export const bangs: Record<string, any> = {
     down: {
         c: 'Online Services',
         d: 'downforeveryoneorjustme.com',
-        r: 42,
+        r: 28,
         s: 'Down For Everyone Or Just Me',
         sc: 'Tools (URLs)',
         t: 'down',
@@ -25349,7 +25362,7 @@ export const bangs: Record<string, any> = {
     downfor: {
         c: 'Online Services',
         d: 'downforeveryoneorjustme.com',
-        r: 0,
+        r: 7,
         s: 'DownForEveryone?',
         sc: 'Tools',
         t: 'downfor',
@@ -25376,7 +25389,7 @@ export const bangs: Record<string, any> = {
     download: {
         c: 'Tech',
         d: 'download.cnet.com',
-        r: 5,
+        r: 7,
         s: 'Download.com',
         sc: 'Downloads (software)',
         t: 'download',
@@ -25401,7 +25414,7 @@ export const bangs: Record<string, any> = {
     dpackages: {
         c: 'Tech',
         d: 'packages.debian.org',
-        r: 7,
+        r: 0,
         s: 'Debian Packages',
         sc: 'Sysadmin (debian)',
         t: 'dpackages',
@@ -25452,7 +25465,7 @@ export const bangs: Record<string, any> = {
     dp: {
         c: 'Online Services',
         d: 'www.duckduckgo.com',
-        r: 11,
+        r: 16,
         s: 'D Reference',
         sc: 'Search (DDG)',
         t: 'dp',
@@ -25485,7 +25498,7 @@ export const bangs: Record<string, any> = {
     dpkg: {
         c: 'Tech',
         d: 'packages.debian.org',
-        r: 312,
+        r: 352,
         s: 'Debian Packages',
         sc: 'Sysadmin (debian)',
         t: 'dpkg',
@@ -25510,7 +25523,7 @@ export const bangs: Record<string, any> = {
     dpl: {
         c: 'Translation',
         d: 'www.deepl.com',
-        r: 644,
+        r: 587,
         s: 'DeepL',
         sc: 'General',
         t: 'dpl',
@@ -25568,7 +25581,7 @@ export const bangs: Record<string, any> = {
     dpreview: {
         c: 'News',
         d: 'www.dpreview.com',
-        r: 0,
+        r: 6,
         s: 'DPReview',
         sc: 'Specialty',
         t: 'dpreview',
@@ -25586,7 +25599,7 @@ export const bangs: Record<string, any> = {
     dpt: {
         c: 'Online Services',
         d: 'www.dicio.com.br',
-        r: 4,
+        r: 18,
         s: 'Dicio',
         sc: 'Tools',
         t: 'dpt',
@@ -25595,7 +25608,7 @@ export const bangs: Record<string, any> = {
     dpts: {
         c: 'Tech',
         d: 'tracker.debian.org',
-        r: 20,
+        r: 10,
         s: 'Debian Packages',
         sc: 'Sysadmin (debian)',
         t: 'dpts',
@@ -25792,7 +25805,7 @@ export const bangs: Record<string, any> = {
     dref: {
         c: 'Research',
         d: 'dictionary.reference.com',
-        r: 3,
+        r: 0,
         s: 'Dictionary at Reference.com',
         sc: 'Reference',
         t: 'dref',
@@ -25833,7 +25846,7 @@ export const bangs: Record<string, any> = {
     dribbble: {
         c: 'Tech',
         d: 'dribbble.com',
-        r: 12,
+        r: 9,
         s: 'dribbble',
         sc: 'Design',
         t: 'dribbble',
@@ -25842,7 +25855,7 @@ export const bangs: Record<string, any> = {
     dribble: {
         c: 'Tech',
         d: 'dribbble.com',
-        r: 0,
+        r: 3,
         s: 'dribbble',
         sc: 'Design',
         t: 'dribble',
@@ -25868,7 +25881,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Drive',
         d: 'drive.google.com',
         t: 'drive',
-        ts: ['gdrive'],
+        ts: ['gdrive', 'гдиск', 'драйв'],
         u: 'https://drive.google.com/drive/search?q={{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -25901,6 +25914,7 @@ export const bangs: Record<string, any> = {
         s: 'drom.ru',
         d: 'www.drom.ru',
         t: 'drom',
+        ts: ['дром'],
         u: 'https://www.drom.ru/search/?q={{{s}}}',
         c: 'Shopping',
         sc: 'Online (deals)',
@@ -26323,7 +26337,7 @@ export const bangs: Record<string, any> = {
     d: {
         c: 'Research',
         d: 'www.thefreedictionary.com',
-        r: 2720,
+        r: 2499,
         s: 'The Free Dictionary',
         sc: 'Academic',
         t: 'd',
@@ -26349,7 +26363,7 @@ export const bangs: Record<string, any> = {
     dtr: {
         c: 'Tech',
         d: 'tracker.debian.org',
-        r: 34,
+        r: 26,
         s: 'Debian Package Tracker',
         sc: 'Sysadmin (debian)',
         t: 'dtr',
@@ -26415,7 +26429,7 @@ export const bangs: Record<string, any> = {
     duckai: {
         c: 'Research',
         d: 'www.duckduckgo.com',
-        r: 249,
+        r: 393,
         s: 'Duck.ai',
         sc: 'Reference',
         t: 'duckai',
@@ -26442,7 +26456,7 @@ export const bangs: Record<string, any> = {
     duckduckgo: {
         c: 'Multimedia',
         d: 'duckduckgo.com',
-        r: 37,
+        r: 197,
         s: 'DuckDuckGo',
         sc: 'Images',
         t: 'duckduckgo',
@@ -26842,7 +26856,7 @@ export const bangs: Record<string, any> = {
     dz: {
         c: 'Multimedia',
         d: 'www.deezer.com',
-        r: 38,
+        r: 68,
         s: 'Deezer',
         sc: 'Music',
         t: 'dz',
@@ -26852,6 +26866,7 @@ export const bangs: Record<string, any> = {
         s: 'e1',
         d: 'www.e1.ru',
         t: 'e1',
+        ts: ['е1'],
         u: 'https://www.e1.ru/news/search/?search={{{s}}}',
         c: 'News',
         sc: 'Online',
@@ -26892,7 +26907,7 @@ export const bangs: Record<string, any> = {
         s: 'e926',
         d: 'e926.net',
         t: 'e926',
-        u: 'https://e926.net/post/search?tags={{{s}}}',
+        u: 'https://e926.net/posts?tags={{{s}}}',
         c: 'Multimedia',
         sc: 'Images',
     },
@@ -26951,6 +26966,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Earth',
         d: 'earth.google.com',
         t: 'earth',
+        ts: ['земля'],
         u: 'https://earth.google.com/web/search/{{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -27058,7 +27074,7 @@ export const bangs: Record<string, any> = {
     ebat: {
         c: 'Shopping',
         d: 'www.ebay.at',
-        r: 5,
+        r: 0,
         s: 'ebay.at',
         sc: 'Online (marketplace)',
         t: 'ebat',
@@ -27083,7 +27099,7 @@ export const bangs: Record<string, any> = {
     ebau: {
         c: 'Shopping',
         d: 'www.ebay.com.au',
-        r: 29,
+        r: 68,
         s: 'ebay.com.au',
         sc: 'Online (marketplace)',
         t: 'ebau',
@@ -27101,7 +27117,7 @@ export const bangs: Record<string, any> = {
     ebayau: {
         c: 'Shopping',
         d: 'www.ebay.com.au',
-        r: 98,
+        r: 69,
         s: 'ebay.com.au',
         sc: 'Online (marketplace)',
         t: 'ebayau',
@@ -27281,7 +27297,7 @@ export const bangs: Record<string, any> = {
     ebbe: {
         c: 'Shopping',
         d: 'www.befr.ebay.be',
-        r: 8,
+        r: 0,
         s: 'ebay.be',
         sc: 'Online (marketplace)',
         t: 'ebbe',
@@ -27290,7 +27306,7 @@ export const bangs: Record<string, any> = {
     ebca: {
         c: 'Shopping',
         d: 'www.ebay.ca',
-        r: 11,
+        r: 24,
         s: 'ebay.ca',
         sc: 'Online (marketplace)',
         t: 'ebca',
@@ -27325,7 +27341,7 @@ export const bangs: Record<string, any> = {
     ebde: {
         c: 'Shopping',
         d: 'www.ebay.de',
-        r: 63,
+        r: 52,
         s: 'ebay.de',
         sc: 'Online (marketplace)',
         t: 'ebde',
@@ -27334,7 +27350,7 @@ export const bangs: Record<string, any> = {
     eb: {
         c: 'Shopping',
         d: 'www.ebay.com',
-        r: 910,
+        r: 921,
         s: 'eBay',
         sc: 'Online (marketplace)',
         t: 'eb',
@@ -27361,7 +27377,7 @@ export const bangs: Record<string, any> = {
     ebes: {
         c: 'Shopping',
         d: 'www.ebay.es',
-        r: 5,
+        r: 9,
         s: 'ebay (ES)',
         sc: 'Online (marketplace)',
         t: 'ebes',
@@ -27370,7 +27386,7 @@ export const bangs: Record<string, any> = {
     ebfr: {
         c: 'Shopping',
         d: 'www.ebay.fr',
-        r: 31,
+        r: 29,
         s: 'ebay.fr',
         sc: 'Online (marketplace)',
         t: 'ebfr',
@@ -27447,7 +27463,7 @@ export const bangs: Record<string, any> = {
     ebit: {
         c: 'Shopping',
         d: 'www.ebay.it',
-        r: 20,
+        r: 44,
         s: 'ebay.it',
         sc: 'Online (marketplace)',
         t: 'ebit',
@@ -27566,7 +27582,7 @@ export const bangs: Record<string, any> = {
     ebuild: {
         c: 'Shopping',
         d: 'gpo.zugaina.org',
-        r: 12,
+        r: 28,
         s: 'Gentoo Packages',
         sc: 'Online (marketplace)',
         t: 'ebuild',
@@ -27575,7 +27591,7 @@ export const bangs: Record<string, any> = {
     ebuilds: {
         c: 'Shopping',
         d: 'gpo.zugaina.org',
-        r: 4,
+        r: 0,
         s: 'Gentoo Packages',
         sc: 'Online (marketplace)',
         t: 'ebuilds',
@@ -27592,7 +27608,7 @@ export const bangs: Record<string, any> = {
     ebuk: {
         c: 'Shopping',
         d: 'www.ebay.co.uk',
-        r: 310,
+        r: 226,
         s: 'ebay.co.uk',
         sc: 'Online (marketplace)',
         t: 'ebuk',
@@ -27617,7 +27633,7 @@ export const bangs: Record<string, any> = {
     eca: {
         c: 'Shopping',
         d: 'www.ebay.ca',
-        r: 18,
+        r: 65,
         s: 'ebay.ca',
         sc: 'Online (marketplace)',
         t: 'eca',
@@ -27725,7 +27741,7 @@ export const bangs: Record<string, any> = {
     eco: {
         c: 'Research',
         d: 'www.ecosia.org',
-        r: 165,
+        r: 171,
         s: 'Ecosia',
         sc: 'Reference (words)',
         t: 'eco',
@@ -27806,7 +27822,7 @@ export const bangs: Record<string, any> = {
     ecosia: {
         c: 'Online Services',
         d: 'www.ecosia.org',
-        r: 108,
+        r: 58,
         s: 'Ecosia',
         sc: 'Search',
         t: 'ecosia',
@@ -27887,7 +27903,7 @@ export const bangs: Record<string, any> = {
     ede: {
         c: 'Shopping',
         d: 'www.ebay.de',
-        r: 728,
+        r: 680,
         s: 'ebay.de',
         sc: 'Online (marketplace)',
         t: 'ede',
@@ -27904,7 +27920,7 @@ export const bangs: Record<string, any> = {
     ed: {
         c: 'Entertainment',
         d: 'encyclopediadramatica.rs',
-        r: 9,
+        r: 0,
         s: 'Encyclopedia Dramatica',
         sc: 'Misc',
         t: 'ed',
@@ -28075,7 +28091,7 @@ export const bangs: Record<string, any> = {
     e: {
         c: 'Shopping',
         d: 'www.ebay.com',
-        r: 7555,
+        r: 7493,
         s: 'eBay',
         sc: 'Online (marketplace)',
         t: 'e',
@@ -28109,7 +28125,7 @@ export const bangs: Record<string, any> = {
     ees: {
         c: 'Shopping',
         d: 'www.ebay.es',
-        r: 4,
+        r: 6,
         s: 'ebay (ES)',
         sc: 'Online (marketplace)',
         t: 'ees',
@@ -28126,7 +28142,7 @@ export const bangs: Record<string, any> = {
     efr: {
         c: 'Shopping',
         d: 'www.ebay.fr',
-        r: 31,
+        r: 36,
         s: 'ebay.fr',
         sc: 'Online (marketplace)',
         t: 'efr',
@@ -28285,7 +28301,7 @@ export const bangs: Record<string, any> = {
     ei: {
         c: 'Online Services',
         d: 'www.ecosia.org',
-        r: 17,
+        r: 11,
         s: 'Ecosia Images',
         sc: 'Search',
         t: 'ei',
@@ -28303,7 +28319,7 @@ export const bangs: Record<string, any> = {
     eijirou: {
         c: 'Research',
         d: 'eow.alc.co.jp',
-        r: 8,
+        r: 34,
         s: '英辞郎 on the WEB',
         sc: 'Learning',
         t: 'eijirou',
@@ -28395,7 +28411,7 @@ export const bangs: Record<string, any> = {
     eka: {
         c: 'Shopping',
         d: 'www.ebay-kleinanzeigen.de',
-        r: 199,
+        r: 120,
         s: 'Ebay Kleinanzeigen',
         sc: 'Online',
         t: 'eka',
@@ -28469,7 +28485,7 @@ export const bangs: Record<string, any> = {
     eksi: {
         c: 'Entertainment',
         d: 'eksisozluk.com',
-        r: 966,
+        r: 717,
         s: 'eksi sozluk',
         sc: 'Forum',
         t: 'eksi',
@@ -28478,7 +28494,7 @@ export const bangs: Record<string, any> = {
     eksisozluk: {
         c: 'Online Services',
         d: 'www.eksisozluk.com',
-        r: 0,
+        r: 3,
         s: 'Ekşi Sözlük',
         sc: 'Search (non-US)',
         t: 'eksisozluk',
@@ -29050,7 +29066,7 @@ export const bangs: Record<string, any> = {
     emojipedia: {
         c: 'Research',
         d: 'emojipedia.org',
-        r: 4,
+        r: 12,
         s: 'Emojipedia',
         sc: 'Reference',
         t: 'emojipedia',
@@ -29315,7 +29331,7 @@ export const bangs: Record<string, any> = {
     encyclo: {
         c: 'Online Services',
         d: 'www.encyclo.nl',
-        r: 3,
+        r: 0,
         s: 'Encyclo',
         sc: 'Tools',
         t: 'encyclo',
@@ -29350,7 +29366,7 @@ export const bangs: Record<string, any> = {
     enda: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 6,
+        r: 0,
         s: 'Google Translate en-da',
         sc: 'Google',
         t: 'enda',
@@ -29450,7 +29466,7 @@ export const bangs: Record<string, any> = {
     enfr: {
         c: 'Online Services',
         d: 'translate.google.com',
-        r: 58,
+        r: 70,
         s: 'Google translate en-fr',
         sc: 'Google',
         t: 'enfr',
@@ -29617,7 +29633,7 @@ export const bangs: Record<string, any> = {
     enl: {
         c: 'Shopping',
         d: 'www.ebay.nl',
-        r: 7,
+        r: 0,
         s: 'ebay.nl',
         sc: 'Online (marketplace)',
         t: 'enl',
@@ -29642,7 +29658,7 @@ export const bangs: Record<string, any> = {
     ennl: {
         c: 'Online Services',
         d: 'translate.google.com',
-        r: 4,
+        r: 5,
         s: 'Google translate',
         sc: 'Google',
         t: 'ennl',
@@ -29675,7 +29691,7 @@ export const bangs: Record<string, any> = {
     enpt: {
         c: 'Online Services',
         d: 'translate.google.com',
-        r: 65,
+        r: 58,
         s: 'google translate en-pt',
         sc: 'Google',
         t: 'enpt',
@@ -29991,7 +30007,7 @@ export const bangs: Record<string, any> = {
     epg: {
         c: 'Entertainment',
         d: 'duckduckgo.com',
-        r: 3,
+        r: 0,
         s: 'epguides.com',
         sc: 'TV',
         t: 'epg',
@@ -30041,7 +30057,7 @@ export const bangs: Record<string, any> = {
     epl: {
         c: 'Shopping',
         d: 'shop.ebay.pl',
-        r: 4,
+        r: 0,
         s: 'ebay.pl',
         sc: 'Online (marketplace)',
         t: 'epl',
@@ -30240,7 +30256,7 @@ export const bangs: Record<string, any> = {
     erowid: {
         c: 'Research',
         d: 'www.erowid.org',
-        r: 0,
+        r: 6,
         s: 'Erowid',
         sc: 'Reference (science)',
         t: 'erowid',
@@ -30298,7 +30314,7 @@ export const bangs: Record<string, any> = {
     es: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 14,
+        r: 7,
         s: 'duckduckgo',
         sc: 'Search (non-US)',
         t: 'es',
@@ -30357,7 +30373,7 @@ export const bangs: Record<string, any> = {
     esh: {
         c: 'Tech',
         d: 'explainshell.com',
-        r: 6,
+        r: 4,
         s: 'explainshell.com',
         sc: 'Sysadmin',
         t: 'esh',
@@ -30660,7 +30676,7 @@ export const bangs: Record<string, any> = {
     etherscan: {
         c: 'Tech',
         d: 'etherscan.io',
-        r: 41,
+        r: 48,
         s: 'etherscan',
         sc: 'Sysadmin',
         t: 'etherscan',
@@ -30767,7 +30783,7 @@ export const bangs: Record<string, any> = {
     etym: {
         c: 'Online Services',
         d: 'www.etymonline.com',
-        r: 284,
+        r: 333,
         s: 'https://www.etymonline.com',
         sc: 'Tools',
         t: 'etym',
@@ -30776,7 +30792,7 @@ export const bangs: Record<string, any> = {
     etymology: {
         c: 'Research',
         d: 'www.etymonline.com',
-        r: 36,
+        r: 37,
         s: 'EtymOnline.com',
         sc: 'Academic',
         t: 'etymology',
@@ -30785,7 +30801,7 @@ export const bangs: Record<string, any> = {
     etymonline: {
         c: 'Research',
         d: 'www.etymonline.com',
-        r: 30,
+        r: 39,
         s: 'Etymonline',
         sc: 'Reference (words)',
         t: 'etymonline',
@@ -30794,7 +30810,7 @@ export const bangs: Record<string, any> = {
     etymo: {
         c: 'Research',
         d: 'www.etymonline.com',
-        r: 7,
+        r: 3,
         s: 'Online Etymology Dictionary',
         sc: 'Reference (words)',
         t: 'etymo',
@@ -30811,7 +30827,7 @@ export const bangs: Record<string, any> = {
     ety: {
         c: 'Research',
         d: 'www.etymonline.com',
-        r: 150,
+        r: 125,
         s: 'Online Etymology Dictionary',
         sc: 'Reference (words)',
         t: 'ety',
@@ -30854,7 +30870,7 @@ export const bangs: Record<string, any> = {
     euk: {
         c: 'Shopping',
         d: 'www.ebay.co.uk',
-        r: 950,
+        r: 845,
         s: 'ebay.co.uk',
         sc: 'Online (marketplace)',
         t: 'euk',
@@ -31434,7 +31450,7 @@ export const bangs: Record<string, any> = {
     expedia: {
         c: 'Shopping',
         d: 'search.expedia.com',
-        r: 3,
+        r: 0,
         s: 'Expedia',
         sc: 'Services',
         t: 'expedia',
@@ -31443,7 +31459,7 @@ export const bangs: Record<string, any> = {
     expert: {
         c: 'Shopping',
         d: 'www.expert.nl',
-        r: 11,
+        r: 13,
         s: 'Expert',
         sc: 'Online',
         t: 'expert',
@@ -31700,6 +31716,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Images (Faces)',
         d: 'www.google.com',
         t: 'faces',
+        ts: ['лица'],
         u: 'https://www.google.com/search?tbm=isch&tbs=itp:face&q={{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -31749,7 +31766,7 @@ export const bangs: Record<string, any> = {
     fad: {
         c: 'Tech',
         d: 'addons.mozilla.org',
-        r: 48,
+        r: 23,
         s: 'Firefox Addons',
         sc: 'Downloads (add-ons)',
         t: 'fad',
@@ -31775,7 +31792,7 @@ export const bangs: Record<string, any> = {
     fa: {
         c: 'Entertainment',
         d: 'www.filmaffinity.com',
-        r: 398,
+        r: 1189,
         s: 'FilmAffinity',
         sc: 'Movies',
         t: 'fa',
@@ -32019,6 +32036,7 @@ export const bangs: Record<string, any> = {
         s: 'Лаборатория Фантастики',
         d: 'fantlab.ru',
         t: 'fantlab',
+        ts: ['фантлаб'],
         u: 'https://fantlab.ru/searchmain?searchstr={{{s}}}',
         c: 'Multimedia',
         sc: 'Books',
@@ -32114,7 +32132,7 @@ export const bangs: Record<string, any> = {
     fas: {
         c: 'Online Services',
         d: 'fontawesome.com',
-        r: 4,
+        r: 6,
         s: 'Font Awesome',
         sc: 'Tools',
         t: 'fas',
@@ -32181,7 +32199,7 @@ export const bangs: Record<string, any> = {
     fatv: {
         c: 'Multimedia',
         d: 'fanart.tv',
-        r: 27,
+        r: 0,
         s: 'Fanart.tv',
         sc: 'Images',
         t: 'fatv',
@@ -32241,7 +32259,7 @@ export const bangs: Record<string, any> = {
     fb: {
         c: 'Online Services',
         d: 'www.facebook.com',
-        r: 3733,
+        r: 3927,
         s: 'Facebook',
         sc: 'Social',
         t: 'fb',
@@ -32267,7 +32285,7 @@ export const bangs: Record<string, any> = {
     fbk: {
         c: 'Online Services',
         d: 'www.facebook.com',
-        r: 3,
+        r: 0,
         s: 'Facebook',
         sc: 'Social (intl)',
         t: 'fbk',
@@ -32292,7 +32310,7 @@ export const bangs: Record<string, any> = {
     fbonion: {
         c: 'Online Services',
         d: 'facebookcorewwwi.onion',
-        r: 3,
+        r: 0,
         s: 'Facebook over TOR',
         sc: 'Social',
         t: 'fbonion',
@@ -32651,7 +32669,7 @@ export const bangs: Record<string, any> = {
     fedpack: {
         c: 'Tech',
         d: 'packages.fedoraproject.org',
-        r: 13,
+        r: 14,
         s: 'Fedora Package Search',
         sc: 'Sysadmin (Fedora)',
         t: 'fedpack',
@@ -32676,7 +32694,7 @@ export const bangs: Record<string, any> = {
     feedly: {
         c: 'Online Services',
         d: 'feedly.com',
-        r: 0,
+        r: 3,
         s: 'Feedly',
         sc: 'Social',
         t: 'feedly',
@@ -32828,7 +32846,7 @@ export const bangs: Record<string, any> = {
     ffa: {
         c: 'Tech',
         d: 'addons.mozilla.org',
-        r: 127,
+        r: 107,
         s: 'Firefox Add-ons',
         sc: 'Downloads (add-ons)',
         t: 'ffa',
@@ -32994,7 +33012,7 @@ export const bangs: Record<string, any> = {
     fg: {
         c: 'Entertainment',
         d: 'www.fangraphs.com',
-        r: 157,
+        r: 202,
         s: 'Fangraphs',
         sc: 'Sports',
         t: 'fg',
@@ -33126,7 +33144,7 @@ export const bangs: Record<string, any> = {
     fi: {
         c: 'Online Services',
         d: 'www.finanzen.net',
-        r: 7,
+        r: 20,
         s: 'finanzen.net',
         sc: 'Tools',
         t: 'fi',
@@ -33167,7 +33185,7 @@ export const bangs: Record<string, any> = {
     file: {
         c: 'Tech',
         d: 'filehippo.com',
-        r: 3,
+        r: 0,
         s: 'FileHippo',
         sc: 'Downloads (software)',
         t: 'file',
@@ -33343,7 +33361,7 @@ export const bangs: Record<string, any> = {
     fim: {
         c: 'Entertainment',
         d: 'www.fimfiction.net',
-        r: 6,
+        r: 10,
         s: 'FIMFiction',
         sc: 'Misc',
         t: 'fim',
@@ -33556,7 +33574,7 @@ export const bangs: Record<string, any> = {
     firefoxaddons: {
         c: 'Tech',
         d: 'addons.mozilla.org',
-        r: 18,
+        r: 21,
         s: 'Add-ons Firefox',
         sc: 'Downloads (add-ons)',
         t: 'firefoxaddons',
@@ -33565,7 +33583,7 @@ export const bangs: Record<string, any> = {
     firefox: {
         c: 'Tech',
         d: 'addons.mozilla.org',
-        r: 113,
+        r: 92,
         s: 'Firefox Add-ons',
         sc: 'Downloads (add-ons)',
         t: 'firefox',
@@ -33756,7 +33774,7 @@ export const bangs: Record<string, any> = {
     flathub: {
         c: 'Tech',
         d: 'flathub.org',
-        r: 303,
+        r: 242,
         s: 'Flathub',
         sc: 'Downloads (apps)',
         t: 'flathub',
@@ -33814,7 +33832,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Feeling Lucky',
         d: 'www.google.com',
         t: 'fl',
-        ts: ['gluck', 'lucky'],
+        ts: ['gluck', 'lucky', 'гмп', 'фл'],
         u: 'https://www.google.com/search?btnI&q={{{s}}}',
         c: 'Online Services',
         sc: 'Search',
@@ -33846,7 +33864,7 @@ export const bangs: Record<string, any> = {
     flickr: {
         c: 'Multimedia',
         d: 'flickr.com',
-        r: 39,
+        r: 35,
         s: 'Flickr',
         sc: 'Images',
         t: 'flickr',
@@ -33880,7 +33898,7 @@ export const bangs: Record<string, any> = {
     flightaware: {
         c: 'Online Services',
         d: 'flightaware.com',
-        r: 13,
+        r: 4,
         s: 'Flightaware',
         sc: 'Tracking',
         t: 'flightaware',
@@ -33906,7 +33924,7 @@ export const bangs: Record<string, any> = {
     flip: {
         c: 'Shopping',
         d: 'www.flipkart.com',
-        r: 13,
+        r: 12,
         s: 'Flipkart',
         sc: 'Online',
         t: 'flip',
@@ -33923,7 +33941,7 @@ export const bangs: Record<string, any> = {
     flipkart: {
         c: 'Shopping',
         d: 'www.flipkart.com',
-        r: 35,
+        r: 45,
         s: 'Flipkart',
         sc: 'Online',
         t: 'flipkart',
@@ -33982,7 +34000,7 @@ export const bangs: Record<string, any> = {
     flutter: {
         c: 'Tech',
         d: 'flutter.io',
-        r: 4,
+        r: 0,
         s: 'Flutter',
         sc: 'Libraries/Frameworks',
         t: 'flutter',
@@ -34023,7 +34041,7 @@ export const bangs: Record<string, any> = {
     fman: {
         c: 'Tech',
         d: 'www.freebsd.org',
-        r: 39,
+        r: 53,
         s: 'FreeBSD Man Pages',
         sc: 'Sysadmin (FreeBSD)',
         t: 'fman',
@@ -34310,7 +34328,7 @@ export const bangs: Record<string, any> = {
     fontawesome: {
         c: 'Tech',
         d: 'fontawesome.com',
-        r: 0,
+        r: 3,
         s: 'Font Awesome',
         sc: 'Design',
         t: 'fontawesome',
@@ -34541,7 +34559,7 @@ export const bangs: Record<string, any> = {
     forum: {
         c: 'Online Services',
         d: 'duck.co',
-        r: 0,
+        r: 142,
         s: 'DuckDuckGo Forum',
         sc: 'Search (DDG)',
         t: 'forum',
@@ -34744,7 +34762,7 @@ export const bangs: Record<string, any> = {
     fp: {
         c: 'Online Services',
         d: 'www.fanpop.com',
-        r: 4,
+        r: 3,
         s: 'Fanpop',
         sc: 'Social',
         t: 'fp',
@@ -34770,7 +34788,7 @@ export const bangs: Record<string, any> = {
     fps: {
         c: 'Tech',
         d: 'apps.fedoraproject.org',
-        r: 4,
+        r: 0,
         s: 'Fedora Packages Search',
         sc: 'Programming',
         t: 'fps',
@@ -34804,7 +34822,7 @@ export const bangs: Record<string, any> = {
     fr24f: {
         c: 'Online Services',
         d: 'www.flightradar24.com',
-        r: 3,
+        r: 4,
         s: 'Flightradar24 Flight Data',
         sc: 'Tracking',
         t: 'fr24f',
@@ -34813,7 +34831,7 @@ export const bangs: Record<string, any> = {
     fr24: {
         c: 'Research',
         d: 'www.flightradar24.com',
-        r: 50,
+        r: 26,
         s: 'Flight radar 24 - flights',
         sc: 'Travel',
         t: 'fr24',
@@ -34956,7 +34974,7 @@ export const bangs: Record<string, any> = {
     freebsd: {
         c: 'Tech',
         d: 'www.freebsd.org',
-        r: 10,
+        r: 13,
         s: 'FreeBSD Ports',
         sc: 'Sysadmin (FreeBSD)',
         t: 'freebsd',
@@ -34965,7 +34983,7 @@ export const bangs: Record<string, any> = {
     freebsdman: {
         c: 'Tech',
         d: 'man.freebsd.org',
-        r: 15,
+        r: 5,
         s: 'FreeBSD Man Pages',
         sc: 'Sysadmin (man)',
         t: 'freebsdman',
@@ -35133,7 +35151,7 @@ export const bangs: Record<string, any> = {
     fren: {
         c: 'Online Services',
         d: 'translate.google.com',
-        r: 48,
+        r: 86,
         s: 'Google translate fr-en',
         sc: 'Google',
         t: 'fren',
@@ -35289,7 +35307,7 @@ export const bangs: Record<string, any> = {
     fr: {
         c: 'Tech',
         d: 'www.larousse.fr',
-        r: 104,
+        r: 77,
         s: 'Larousse French Dictionary',
         sc: 'Programming',
         t: 'fr',
@@ -35358,7 +35376,7 @@ export const bangs: Record<string, any> = {
     fruit: {
         c: 'Tech',
         d: 'www.adafruit.com',
-        r: 4,
+        r: 0,
         s: 'Adafruit',
         sc: 'Companies',
         t: 'fruit',
@@ -35532,7 +35550,7 @@ export const bangs: Record<string, any> = {
     fthes: {
         c: 'Research',
         d: 'www.freethesaurus.com',
-        r: 4,
+        r: 0,
         s: 'The Free Thesaurus',
         sc: 'Learning',
         t: 'fthes',
@@ -35614,7 +35632,7 @@ export const bangs: Record<string, any> = {
     ftw: {
         c: 'Entertainment',
         d: 'wiki.factorio.com',
-        r: 56,
+        r: 46,
         s: 'Factorio Wiki',
         sc: 'Games (general)',
         t: 'ftw',
@@ -35691,7 +35709,7 @@ export const bangs: Record<string, any> = {
     fundeu: {
         c: 'Research',
         d: 'www.fundeu.es',
-        r: 0,
+        r: 3,
         s: 'Fundéu BBVA',
         sc: 'Reference (words intl)',
         t: 'fundeu',
@@ -35994,6 +36012,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Search 100 Results',
         d: 'www.google.com',
         t: 'g100',
+        ts: ['г100'],
         u: 'https://www.google.com/search?q={{{s}}}&tbo=1&num=100',
         c: 'Online Services',
         sc: 'Search',
@@ -36207,7 +36226,7 @@ export const bangs: Record<string, any> = {
     gal: {
         c: 'Entertainment',
         d: 'duckduckgo.com',
-        r: 0,
+        r: 3,
         s: 'Ábrete libro',
         sc: 'Forum',
         t: 'gal',
@@ -36510,7 +36529,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Play Store',
         d: 'play.google.com',
         t: 'gapp',
-        ts: ['googleplay', 'gp', 'gplay', 'play', 'playstore'],
+        ts: ['googleplay', 'gp', 'gplay', 'play', 'playstore', 'гплей', 'плей', 'плейстор'],
         u: 'https://play.google.com/store/search?q={{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -36713,7 +36732,7 @@ export const bangs: Record<string, any> = {
     gbg: {
         c: 'Online Services',
         d: 'www.google.bg',
-        r: 20,
+        r: 16,
         s: 'Google BG',
         sc: 'Google',
         t: 'gbg',
@@ -36722,7 +36741,7 @@ export const bangs: Record<string, any> = {
     gb: {
         c: 'Multimedia',
         d: 'books.google.com',
-        r: 323,
+        r: 360,
         s: 'Google Books',
         sc: 'Books',
         t: 'gb',
@@ -36782,6 +36801,7 @@ export const bangs: Record<string, any> = {
         s: 'Books.google.com',
         d: 'www.google.com',
         t: 'gbooks',
+        ts: ['гкниги'],
         u: 'https://www.google.com/search?nfpr=1&tbm=bks&q={{{s}}}',
         c: 'Research',
         sc: 'Reference',
@@ -36863,7 +36883,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Calendar',
         d: 'calendar.google.com',
         t: 'gcal',
-        ts: ['calendar'],
+        ts: ['calendar', 'календарь', 'гкал'],
         u: 'https://calendar.google.com/calendar/b/0/r/search?q={{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -36903,7 +36923,7 @@ export const bangs: Record<string, any> = {
     gc: {
         c: 'Online Services',
         d: 'contacts.google.com',
-        r: 105,
+        r: 112,
         s: 'Google Contacts',
         sc: 'Google',
         t: 'gc',
@@ -36937,7 +36957,7 @@ export const bangs: Record<string, any> = {
     gck: {
         c: 'Online Services',
         d: 'www.google.co.ck',
-        r: 3,
+        r: 0,
         s: 'Google Cook Islands',
         sc: 'Search',
         t: 'gck',
@@ -36996,7 +37016,7 @@ export const bangs: Record<string, any> = {
     gcontact: {
         c: 'Online Services',
         d: 'contacts.google.com',
-        r: 10,
+        r: 6,
         s: 'Google Contacts',
         sc: 'Google',
         t: 'gcontact',
@@ -37077,7 +37097,7 @@ export const bangs: Record<string, any> = {
     gday: {
         c: 'Online Services',
         d: 'www.google.com',
-        r: 20,
+        r: 11,
         s: 'Google (Past Day)',
         sc: 'Google',
         t: 'gday',
@@ -37152,7 +37172,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Docs',
         d: 'docs.google.com',
         t: 'gd',
-        ts: ['gdocs'],
+        ts: ['gdocs', 'гд', 'гдок', 'гдокс', 'гдокументы'],
         u: 'https://docs.google.com/document/u/0/?q={{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -37217,7 +37237,7 @@ export const bangs: Record<string, any> = {
     gdocs: {
         c: 'Tech',
         d: 'docs.google.com',
-        r: 271,
+        r: 280,
         s: 'Google Docs',
         sc: 'Startups',
         t: 'gdocs',
@@ -37252,7 +37272,7 @@ export const bangs: Record<string, any> = {
     gdrive: {
         c: 'Online Services',
         d: 'drive.google.com',
-        r: 840,
+        r: 863,
         s: 'Google Drive',
         sc: 'Google',
         t: 'gdrive',
@@ -37312,7 +37332,7 @@ export const bangs: Record<string, any> = {
     gearr: {
         c: 'Entertainment',
         d: 'ffxiv.gamerescape.com',
-        r: 3,
+        r: 20,
         s: 'Gamers Escape FFXIV',
         sc: 'Games (specific)',
         t: 'gearr',
@@ -37330,7 +37350,7 @@ export const bangs: Record<string, any> = {
     gecko: {
         c: 'Online Services',
         d: 'www.coingecko.com',
-        r: 43,
+        r: 25,
         s: 'CoinGecko',
         sc: 'Tools',
         t: 'gecko',
@@ -37386,12 +37406,13 @@ export const bangs: Record<string, any> = {
         sc: 'Misc',
     },
     geeks: {
-        s: 'GeeksforGeeks',
+        c: 'Research',
         d: 'www.geeksforgeeks.org',
+        r: 4,
+        s: 'GeeksforGeeks',
+        sc: 'Learning',
         t: 'geeks',
         u: 'https://www.geeksforgeeks.org/?s={{{s}}}',
-        c: 'Research',
-        sc: 'Learning',
     },
     geeksided: {
         s: 'GeekSided',
@@ -37470,7 +37491,7 @@ export const bangs: Record<string, any> = {
     geizhals: {
         c: 'Shopping',
         d: 'geizhals.at',
-        r: 88,
+        r: 76,
         s: 'Geizhals',
         sc: 'Online (intl)',
         t: 'geizhals',
@@ -37503,7 +37524,7 @@ export const bangs: Record<string, any> = {
     gem: {
         c: 'Tech',
         d: 'rubygems.org',
-        r: 247,
+        r: 305,
         s: 'RubyGems',
         sc: 'Languages (ruby)',
         t: 'gem',
@@ -37611,7 +37632,7 @@ export const bangs: Record<string, any> = {
     genius: {
         c: 'Multimedia',
         d: 'genius.com',
-        r: 2126,
+        r: 1979,
         s: 'genius.com',
         sc: 'Music (Lyrics)',
         t: 'genius',
@@ -37629,7 +37650,7 @@ export const bangs: Record<string, any> = {
     genpkg: {
         c: 'Online Services',
         d: 'packages.gentoo.org',
-        r: 202,
+        r: 229,
         s: 'Gentoo Packages',
         sc: 'Search',
         t: 'genpkg',
@@ -37647,7 +37668,7 @@ export const bangs: Record<string, any> = {
     gentoopkg: {
         c: 'Tech',
         d: 'packages.gentoo.org',
-        r: 147,
+        r: 133,
         s: 'https://packages.gentoo.org/',
         sc: 'Sysadmin (Gentoo)',
         t: 'gentoopkg',
@@ -37656,7 +37677,7 @@ export const bangs: Record<string, any> = {
     gentoowiki: {
         c: 'Tech',
         d: 'wiki.gentoo.org',
-        r: 7,
+        r: 6,
         s: 'gentoo wiki',
         sc: 'Sysadmin (Gentoo)',
         t: 'gentoowiki',
@@ -37897,7 +37918,7 @@ export const bangs: Record<string, any> = {
     gfaqs: {
         c: 'Entertainment',
         d: 'www.gamefaqs.com',
-        r: 3,
+        r: 7,
         s: 'GameFAQS.com',
         sc: 'Games (general)',
         t: 'gfaqs',
@@ -37931,7 +37952,8 @@ export const bangs: Record<string, any> = {
         s: 'geeksforgeeks',
         d: 'www.geeksforgeeks.org',
         t: 'gfg',
-        u: 'https://www.geeksforgeeks.org/?q={{{s}}}',
+        ts: ['geeks'],
+        u: 'https://www.geeksforgeeks.org/search/?gq={{{s}}}',
         c: 'Tech',
         sc: 'Programming',
     },
@@ -37972,7 +37994,7 @@ export const bangs: Record<string, any> = {
     gfinance: {
         c: 'Online Services',
         d: 'finance.google.com',
-        r: 38,
+        r: 49,
         s: 'Google Finance',
         sc: 'Google',
         t: 'gfinance',
@@ -38000,7 +38022,7 @@ export const bangs: Record<string, any> = {
     gflights: {
         c: 'Research',
         d: 'www.google.com',
-        r: 33,
+        r: 21,
         s: 'Google Flights',
         sc: 'Travel',
         t: 'gflights',
@@ -38018,7 +38040,7 @@ export const bangs: Record<string, any> = {
     gfonts: {
         c: 'Tech',
         d: 'fonts.google.com',
-        r: 44,
+        r: 34,
         s: 'Google Fonts',
         sc: 'Design',
         t: 'gfonts',
@@ -38129,7 +38151,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Groups',
         d: 'groups.google.com',
         t: 'gg',
-        ts: ['ggroups'],
+        ts: ['ggroups', 'гг'],
         u: 'https://groups.google.com/groups/search?q={{{s}}}&qt_s=Search+Groups',
         c: 'Online Services',
         sc: 'Google',
@@ -38138,6 +38160,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Images (Animated)',
         d: 'www.google.com',
         t: 'ggif',
+        ts: ['ггиф'],
         u: 'https://www.google.com/search?q={{{s}}}&site=webhp&tbm=isch&tbs=itp:animated',
         c: 'Multimedia',
         sc: 'Images',
@@ -38194,7 +38217,7 @@ export const bangs: Record<string, any> = {
     ggroups: {
         c: 'Online Services',
         d: 'groups.google.com',
-        r: 4,
+        r: 0,
         s: 'Google Groups',
         sc: 'Google',
         t: 'ggroups',
@@ -38219,7 +38242,7 @@ export const bangs: Record<string, any> = {
     ghat: {
         c: 'Shopping',
         d: 'geizhals.at',
-        r: 19,
+        r: 27,
         s: 'Geizhals Österreich',
         sc: 'Online (deals)',
         t: 'ghat',
@@ -38237,7 +38260,7 @@ export const bangs: Record<string, any> = {
     ghcode: {
         c: 'Tech',
         d: 'github.com',
-        r: 18,
+        r: 16,
         s: 'Github (code search)',
         sc: 'Programming',
         t: 'ghcode',
@@ -38322,7 +38345,7 @@ export const bangs: Record<string, any> = {
     ghr: {
         c: 'Tech',
         d: 'github.com',
-        r: 64,
+        r: 92,
         s: 'Github',
         sc: 'Programming',
         t: 'ghr',
@@ -38463,6 +38486,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Images Classic',
         d: 'www.google.com',
         t: 'gic',
+        ts: ['гкк'],
         u: 'https://www.google.com/search?q={{{s}}}&tbm=isch&sout=1',
         c: 'Online Services',
         sc: 'Google',
@@ -38528,7 +38552,7 @@ export const bangs: Record<string, any> = {
     gif: {
         c: 'Multimedia',
         d: 'giphy.com',
-        r: 190,
+        r: 177,
         s: 'Giphy',
         sc: 'Images',
         t: 'gif',
@@ -38638,7 +38662,7 @@ export const bangs: Record<string, any> = {
     gimages: {
         c: 'Online Services',
         d: 'google.com',
-        r: 554,
+        r: 484,
         s: 'Google Images',
         sc: 'Google',
         t: 'gimages',
@@ -38647,7 +38671,7 @@ export const bangs: Record<string, any> = {
     gimg: {
         c: 'Online Services',
         d: 'www.google.com',
-        r: 802,
+        r: 883,
         s: 'Google Images',
         sc: 'Google',
         t: 'gimg',
@@ -38656,7 +38680,7 @@ export const bangs: Record<string, any> = {
     gim: {
         c: 'Online Services',
         d: 'google.com',
-        r: 688,
+        r: 580,
         s: 'Google Images',
         sc: 'Google',
         t: 'gim',
@@ -38723,7 +38747,7 @@ export const bangs: Record<string, any> = {
     gisoff: {
         c: 'Online Services',
         d: 'www.google.com',
-        r: 138,
+        r: 129,
         s: 'Google Images (Safe Off)',
         sc: 'Google',
         t: 'gisoff',
@@ -38775,7 +38799,7 @@ export const bangs: Record<string, any> = {
     git: {
         c: 'Tech',
         d: 'github.com',
-        r: 1458,
+        r: 1366,
         s: 'Github',
         sc: 'Programming',
         t: 'git',
@@ -38784,7 +38808,7 @@ export const bangs: Record<string, any> = {
     github: {
         c: 'Tech',
         d: 'github.com',
-        r: 1549,
+        r: 1564,
         s: 'GitHub.com',
         sc: 'Downloads (code)',
         t: 'github',
@@ -38826,7 +38850,7 @@ export const bangs: Record<string, any> = {
     gitlab: {
         c: 'Tech',
         d: 'gitlab.com',
-        r: 35,
+        r: 25,
         s: 'GitLab',
         sc: 'Downloads (code)',
         t: 'gitlab',
@@ -38852,7 +38876,7 @@ export const bangs: Record<string, any> = {
     'git-scm': {
         c: 'Tech',
         d: 'git-scm.com',
-        r: 3,
+        r: 4,
         s: 'Git',
         sc: 'Programming',
         t: 'git-scm',
@@ -38878,7 +38902,7 @@ export const bangs: Record<string, any> = {
     giurl: {
         c: 'Multimedia',
         d: 'www.google.com',
-        r: 7,
+        r: 4,
         s: 'Google Image',
         sc: 'Images',
         t: 'giurl',
@@ -38945,7 +38969,7 @@ export const bangs: Record<string, any> = {
     gk: {
         c: 'Entertainment',
         d: 'www.gamekult.com',
-        r: 17,
+        r: 12,
         s: 'Gamekult',
         sc: 'Games (general)',
         t: 'gk',
@@ -39179,7 +39203,7 @@ export const bangs: Record<string, any> = {
     gluck: {
         c: 'Online Services',
         d: 'www.google.com',
-        r: 64,
+        r: 54,
         s: 'Google Feeling Lucky',
         sc: 'Google',
         t: 'gluck',
@@ -39246,7 +39270,7 @@ export const bangs: Record<string, any> = {
     gmailh: {
         c: 'Online Services',
         d: 'mail.google.com',
-        r: 8,
+        r: 10,
         s: 'Gmail',
         sc: 'Google',
         t: 'gmailh',
@@ -39273,7 +39297,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Maps',
         d: 'maps.google.com',
         t: 'gmap',
-        ts: ['gmaps', 'gm', 'googlemap', 'googlemaps'],
+        ts: ['gmaps', 'gm', 'гкарты', 'googlemap', 'googlemaps'],
         u: 'https://maps.google.com/maps?q={{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -39281,7 +39305,7 @@ export const bangs: Record<string, any> = {
     gmaps: {
         c: 'Online Services',
         d: 'maps.google.com',
-        r: 10464,
+        r: 10803,
         s: 'Google Maps',
         sc: 'Google',
         t: 'gmaps',
@@ -39398,7 +39422,7 @@ export const bangs: Record<string, any> = {
     gm: {
         c: 'Online Services',
         d: 'google.com',
-        r: 53757,
+        r: 53526,
         s: 'Google Maps',
         sc: 'Maps',
         t: 'gm',
@@ -39635,7 +39659,7 @@ export const bangs: Record<string, any> = {
     gn: {
         c: 'News',
         d: 'news.google.com',
-        r: 8932,
+        r: 8779,
         s: 'Google News',
         sc: 'Aggregators',
         t: 'gn',
@@ -39725,6 +39749,7 @@ export const bangs: Record<string, any> = {
         s: 'Google News RU',
         d: 'www.google.ru',
         t: 'gnru',
+        ts: ['гн'],
         u: 'https://www.google.ru/search?q={{{s}}}&tbm=nws&cad=h',
         c: 'News',
         sc: 'Aggregators',
@@ -39757,7 +39782,7 @@ export const bangs: Record<string, any> = {
     gnu: {
         c: 'Tech',
         d: 'www.gnu.org',
-        r: 8,
+        r: 4,
         s: 'GNU',
         sc: 'Sysadmin',
         t: 'gnu',
@@ -39774,7 +39799,7 @@ export const bangs: Record<string, any> = {
     gnus: {
         c: 'News',
         d: 'news.google.com',
-        r: 12,
+        r: 15,
         s: 'Google News',
         sc: 'Aggregators',
         t: 'gnus',
@@ -39808,7 +39833,7 @@ export const bangs: Record<string, any> = {
     gobang: {
         c: 'Research',
         d: 'duckgobang.com',
-        r: 0,
+        r: 5,
         s: 'Duck Go !Bang',
         sc: 'Reference',
         t: 'gobang',
@@ -39953,7 +39978,7 @@ export const bangs: Record<string, any> = {
     go: {
         c: 'Tech',
         d: 'mail.google.com',
-        r: 1152,
+        r: 1404,
         s: 'Gmail',
         sc: 'Downloads (apps)',
         t: 'go',
@@ -40178,7 +40203,7 @@ export const bangs: Record<string, any> = {
     googlefonts: {
         c: 'Online Services',
         d: 'fonts.google.com',
-        r: 4,
+        r: 0,
         s: 'Google Fonts',
         sc: 'Google',
         t: 'googlefonts',
@@ -40195,7 +40220,7 @@ export const bangs: Record<string, any> = {
     google: {
         c: 'Online Services',
         d: 'www.google.com',
-        r: 41159,
+        r: 42742,
         s: 'Google',
         sc: 'Google',
         t: 'google',
@@ -40204,7 +40229,7 @@ export const bangs: Record<string, any> = {
     googleimages: {
         c: 'Online Services',
         d: 'google.com',
-        r: 113,
+        r: 125,
         s: 'Google Images',
         sc: 'Google',
         t: 'googleimages',
@@ -40239,7 +40264,7 @@ export const bangs: Record<string, any> = {
     googlejp: {
         c: 'Online Services',
         d: 'www.google.co.jp',
-        r: 47,
+        r: 8,
         s: 'Google Japan',
         sc: 'Google',
         t: 'googlejp',
@@ -40256,7 +40281,7 @@ export const bangs: Record<string, any> = {
     googlemap: {
         c: 'Online Services',
         d: 'maps.google.com',
-        r: 29,
+        r: 11,
         s: 'Google Maps',
         sc: 'Google',
         t: 'googlemap',
@@ -40265,7 +40290,7 @@ export const bangs: Record<string, any> = {
     googlemaps: {
         c: 'Online Services',
         d: 'maps.google.com',
-        r: 386,
+        r: 385,
         s: 'Google Maps',
         sc: 'Google',
         t: 'googlemaps',
@@ -40283,7 +40308,7 @@ export const bangs: Record<string, any> = {
     googleplay: {
         c: 'Shopping',
         d: 'play.google.com',
-        r: 17,
+        r: 16,
         s: 'Google Play Store',
         sc: 'Tech',
         t: 'googleplay',
@@ -40308,7 +40333,7 @@ export const bangs: Record<string, any> = {
     googlescholar: {
         c: 'Research',
         d: 'scholar.google.com',
-        r: 147,
+        r: 121,
         s: 'Google Scholar',
         sc: 'Academic',
         t: 'googlescholar',
@@ -40342,7 +40367,7 @@ export const bangs: Record<string, any> = {
     googleuk: {
         c: 'Online Services',
         d: 'www.google.co.uk',
-        r: 20,
+        r: 16,
         s: 'Google UK',
         sc: 'Google',
         t: 'googleuk',
@@ -40359,7 +40384,7 @@ export const bangs: Record<string, any> = {
     goog: {
         c: 'Online Services',
         d: 'www.google.com',
-        r: 153,
+        r: 208,
         s: 'unencrypted google search',
         sc: 'Google',
         t: 'goog',
@@ -40426,7 +40451,7 @@ export const bangs: Record<string, any> = {
     gopkg: {
         c: 'Tech',
         d: 'golang.org',
-        r: 103,
+        r: 95,
         s: 'golang.org',
         sc: 'Languages (go)',
         t: 'gopkg',
@@ -40602,7 +40627,7 @@ export const bangs: Record<string, any> = {
     govuk: {
         c: 'Research',
         d: 'www.gov.uk',
-        r: 24,
+        r: 5,
         s: 'GOV.UK',
         sc: 'Government',
         t: 'govuk',
@@ -40627,7 +40652,7 @@ export const bangs: Record<string, any> = {
     gpackages: {
         c: 'Tech',
         d: 'packages.gentoo.org',
-        r: 31,
+        r: 11,
         s: 'Gentoo Packages',
         sc: 'Sysadmin (Gentoo)',
         t: 'gpackages',
@@ -40652,7 +40677,7 @@ export const bangs: Record<string, any> = {
     gpat: {
         c: 'Online Services',
         d: 'www.google.com',
-        r: 44,
+        r: 14,
         s: 'Google Patents',
         sc: 'Google',
         t: 'gpat',
@@ -40758,7 +40783,7 @@ export const bangs: Record<string, any> = {
     gp: {
         c: 'Tech',
         d: 'play.google.com',
-        r: 155,
+        r: 179,
         s: 'Google Play',
         sc: 'Downloads (apps)',
         t: 'gp',
@@ -40784,6 +40809,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Photos',
         d: 'photos.google.com',
         t: 'gphotos',
+        ts: ['гфото'],
         u: 'https://photos.google.com/search/{{{s}}}',
         c: 'Multimedia',
         sc: 'Images',
@@ -40816,7 +40842,7 @@ export const bangs: Record<string, any> = {
     gpk: {
         c: 'Tech',
         d: 'golang.org',
-        r: 23,
+        r: 7,
         s: 'Go Package Reference',
         sc: 'Languages (go)',
         t: 'gpk',
@@ -40825,7 +40851,7 @@ export const bangs: Record<string, any> = {
     gplay: {
         c: 'Online Services',
         d: 'play.google.com',
-        r: 101,
+        r: 94,
         s: 'Google Play Store',
         sc: 'Google',
         t: 'gplay',
@@ -41060,6 +41086,7 @@ export const bangs: Record<string, any> = {
         s: 'gramota.ru',
         d: 'gramota.ru',
         t: 'gramota',
+        ts: ['грамота'],
         u: 'https://gramota.ru/slovari/dic/?word={{{s}}}&all=x',
         c: 'Research',
         sc: 'Reference (words)',
@@ -41148,7 +41175,7 @@ export const bangs: Record<string, any> = {
     greasyfork: {
         c: 'Tech',
         d: 'greasyfork.org',
-        r: 6,
+        r: 11,
         s: 'Greasy Fork',
         sc: 'Downloads (add-ons)',
         t: 'greasyfork',
@@ -41205,7 +41232,7 @@ export const bangs: Record<string, any> = {
     gre: {
         c: 'Research',
         d: 'bigenc.ru',
-        r: 3,
+        r: 0,
         s: 'Great Russian Encyclopedia',
         sc: 'Reference',
         t: 'gre',
@@ -41462,7 +41489,7 @@ export const bangs: Record<string, any> = {
     gsc: {
         c: 'Online Services',
         d: 'scholar.google.com',
-        r: 5290,
+        r: 4862,
         s: 'Google Scholar',
         sc: 'Google',
         t: 'gsc',
@@ -41480,7 +41507,7 @@ export const bangs: Record<string, any> = {
     gscholar: {
         c: 'Online Services',
         d: 'scholar.google.com',
-        r: 1096,
+        r: 855,
         s: 'Google Scholar',
         sc: 'Google',
         t: 'gscholar',
@@ -41489,7 +41516,7 @@ export const bangs: Record<string, any> = {
     gschol: {
         c: 'Research',
         d: 'scholar.google.com',
-        r: 133,
+        r: 70,
         s: 'Google Scholar',
         sc: 'Academic',
         t: 'gschol',
@@ -41532,7 +41559,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Spreadsheets',
         d: 'docs.google.com',
         t: 'gsheet',
-        ts: ['gsheets', 'gsh', 'gspreadsheets'],
+        ts: ['gsheets', 'gsh', 'gspreadsheets', 'гш', 'гтаблицы', 'гшит', 'гшитс'],
         u: 'https://docs.google.com/spreadsheets/u/0/?q={{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -41540,7 +41567,7 @@ export const bangs: Record<string, any> = {
     gsheets: {
         c: 'Online Services',
         d: 'docs.google.com',
-        r: 23,
+        r: 36,
         s: 'Google Sheets',
         sc: 'Google',
         t: 'gsheets',
@@ -41549,7 +41576,7 @@ export const bangs: Record<string, any> = {
     gsh: {
         c: 'Online Services',
         d: 'docs.google.com',
-        r: 6,
+        r: 4,
         s: 'Google Spreadsheets',
         sc: 'Google',
         t: 'gsh',
@@ -41558,7 +41585,7 @@ export const bangs: Record<string, any> = {
     gshopping: {
         c: 'Online Services',
         d: 'www.google.com',
-        r: 25,
+        r: 67,
         s: 'Google Shopping',
         sc: 'Google',
         t: 'gshopping',
@@ -41600,6 +41627,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Slides',
         d: 'slides.google.com',
         t: 'gslides',
+        ts: ['гслайд', 'гслайдс', 'гс', 'гпрез', 'гпрезентации'],
         u: 'https://slides.google.com/presentation/u/0/?q={{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -41616,7 +41644,7 @@ export const bangs: Record<string, any> = {
     gsmarena: {
         c: 'Tech',
         d: 'www.gsmarena.com',
-        r: 63,
+        r: 52,
         s: 'GSMArena',
         sc: 'Blogs',
         t: 'gsmarena',
@@ -41625,7 +41653,7 @@ export const bangs: Record<string, any> = {
     gsm: {
         c: 'Research',
         d: 'www.gsmarena.com',
-        r: 374,
+        r: 246,
         s: 'GSMArena',
         sc: 'Reference',
         t: 'gsm',
@@ -41692,7 +41720,7 @@ export const bangs: Record<string, any> = {
     gssl: {
         c: 'Online Services',
         d: 'google.com',
-        r: 309,
+        r: 280,
         s: 'Google with SSL',
         sc: 'Google',
         t: 'gssl',
@@ -41830,7 +41858,7 @@ export const bangs: Record<string, any> = {
     gtar: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 17,
+        r: 9,
         s: 'Detect language to Arabic',
         sc: 'Google',
         t: 'gtar',
@@ -42108,7 +42136,7 @@ export const bangs: Record<string, any> = {
     gtchinese: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 7,
+        r: 6,
         s: 'Detect language to Chinese',
         sc: 'Google',
         t: 'gtchinese',
@@ -42252,7 +42280,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Translate (to English)',
         d: 'translate.google.com',
         t: 'gten',
-        ts: ['gt-english', 'gtenglish', 'gt', 'gtranslate'],
+        ts: ['gt-english', 'gtenglish', 'gt', 'gtranslate', 'гп'],
         u: 'https://translate.google.com/#auto/en/{{{s}}}',
         c: 'Translation',
         sc: 'Google',
@@ -42358,7 +42386,7 @@ export const bangs: Record<string, any> = {
     gtet: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 11,
+        r: 4,
         s: 'Detect language to Estonian',
         sc: 'Google',
         t: 'gtet',
@@ -42519,7 +42547,7 @@ export const bangs: Record<string, any> = {
     gtgerman: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 3,
+        r: 0,
         s: 'Detect language to German',
         sc: 'Google',
         t: 'gtgerman',
@@ -42537,7 +42565,7 @@ export const bangs: Record<string, any> = {
     gt: {
         c: 'Online Services',
         d: 'translate.google.com',
-        r: 14164,
+        r: 14207,
         s: 'Google Translate',
         sc: 'Google',
         t: 'gt',
@@ -42716,7 +42744,7 @@ export const bangs: Record<string, any> = {
     gthr: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 21,
+        r: 0,
         s: 'Detect language to Croatian',
         sc: 'Google',
         t: 'gthr',
@@ -42896,7 +42924,7 @@ export const bangs: Record<string, any> = {
     gtit: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 13,
+        r: 10,
         s: 'Detect language to Italian',
         sc: 'Google',
         t: 'gtit',
@@ -42914,7 +42942,7 @@ export const bangs: Record<string, any> = {
     gtiw: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 12,
+        r: 7,
         s: 'Detect language to Hebrew',
         sc: 'Google',
         t: 'gtiw',
@@ -42968,7 +42996,7 @@ export const bangs: Record<string, any> = {
     gtjp: {
         c: 'Online Services',
         d: 'translate.google.com',
-        r: 33,
+        r: 16,
         s: 'Google Translate to Japanese',
         sc: 'Google',
         t: 'gtjp',
@@ -42986,7 +43014,7 @@ export const bangs: Record<string, any> = {
     gtka: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 9,
+        r: 0,
         s: 'Detect language to Georgian',
         sc: 'Google',
         t: 'gtka',
@@ -43103,7 +43131,7 @@ export const bangs: Record<string, any> = {
     gtkr: {
         c: 'Online Services',
         d: 'translate.google.com',
-        r: 4,
+        r: 6,
         s: 'Google Translate to Korean',
         sc: 'Google',
         t: 'gtkr',
@@ -43156,7 +43184,7 @@ export const bangs: Record<string, any> = {
     gtlatin: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 0,
+        r: 4,
         s: 'Detect language to Latin',
         sc: 'Google',
         t: 'gtlatin',
@@ -43521,7 +43549,7 @@ export const bangs: Record<string, any> = {
     gtnl: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 11,
+        r: 7,
         s: 'Detect language to Dutch',
         sc: 'Google',
         t: 'gtnl',
@@ -43592,7 +43620,7 @@ export const bangs: Record<string, any> = {
     gtpersian: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 7,
+        r: 0,
         s: 'Detect language to Persian',
         sc: 'Google',
         t: 'gtpersian',
@@ -43646,7 +43674,7 @@ export const bangs: Record<string, any> = {
     gtpt: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 38,
+        r: 56,
         s: 'Detect language to Portuguese',
         sc: 'Google',
         t: 'gtpt',
@@ -43673,7 +43701,7 @@ export const bangs: Record<string, any> = {
     gtrad: {
         c: 'Online Services',
         d: 'translate.google.com',
-        r: 140,
+        r: 123,
         s: 'Google Translate',
         sc: 'Google',
         t: 'gtrad',
@@ -43682,7 +43710,7 @@ export const bangs: Record<string, any> = {
     gtranslate: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 284,
+        r: 255,
         s: 'Google Translate',
         sc: 'Google',
         t: 'gtranslate',
@@ -43924,7 +43952,7 @@ export const bangs: Record<string, any> = {
     gtsp: {
         c: 'Online Services',
         d: 'translate.google.com',
-        r: 21,
+        r: 6,
         s: 'Google Translate to Spanish',
         sc: 'Google',
         t: 'gtsp',
@@ -43942,7 +43970,7 @@ export const bangs: Record<string, any> = {
     gtsr: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 4,
+        r: 5,
         s: 'Detect language to Serbian',
         sc: 'Google',
         t: 'gtsr',
@@ -44797,6 +44825,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Video',
         d: 'www.google.com',
         t: 'gv',
+        ts: ['гв'],
         u: 'https://www.google.com/search?tbm=vid&q={{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -44913,7 +44942,7 @@ export const bangs: Record<string, any> = {
     gw2wiki: {
         c: 'Entertainment',
         d: 'wiki.guildwars2.com',
-        r: 24,
+        r: 12,
         s: 'Guild Wars 2 Wiki',
         sc: 'Games (general)',
         t: 'gw2wiki',
@@ -44970,7 +44999,7 @@ export const bangs: Record<string, any> = {
     gw: {
         c: 'Tech',
         d: 'wiki.gentoo.org',
-        r: 392,
+        r: 325,
         s: 'Gentoo Wiki',
         sc: 'Sysadmin (Gentoo)',
         t: 'gw',
@@ -44987,7 +45016,7 @@ export const bangs: Record<string, any> = {
     gwiki: {
         c: 'Tech',
         d: 'wiki.gentoo.org',
-        r: 30,
+        r: 9,
         s: 'Gentoo Wiki',
         sc: 'Sysadmin (Gentoo)',
         t: 'gwiki',
@@ -45046,7 +45075,7 @@ export const bangs: Record<string, any> = {
     gws: {
         c: 'Online Services',
         d: 'chrome.google.com',
-        r: 0,
+        r: 4,
         s: 'Google WebStore XT',
         sc: 'Tools',
         t: 'gws',
@@ -45106,7 +45135,7 @@ export const bangs: Record<string, any> = {
     gy: {
         c: 'Online Services',
         d: 'google.com',
-        r: 62,
+        r: 56,
         s: 'Google',
         sc: 'Google',
         t: 'gy',
@@ -45124,7 +45153,7 @@ export const bangs: Record<string, any> = {
     gyt: {
         c: 'Online Services',
         d: 'www.genyoutube.net',
-        r: 11,
+        r: 4,
         s: 'GenYouTube',
         sc: 'Tools',
         t: 'gyt',
@@ -45166,7 +45195,7 @@ export const bangs: Record<string, any> = {
     gzric: {
         c: 'Research',
         d: 'www.giallozafferano.it',
-        r: 0,
+        r: 5,
         s: 'Giallo Zafferano',
         sc: 'Food',
         t: 'gzric',
@@ -45234,6 +45263,7 @@ export const bangs: Record<string, any> = {
         s: 'HabraHabr',
         d: 'habr.com',
         t: 'habr',
+        ts: ['хабр'],
         u: 'https://habr.com/ru/search/?&q={{{s}}}',
         c: 'Tech',
         sc: 'Blogs',
@@ -45276,7 +45306,7 @@ export const bangs: Record<string, any> = {
     hackernews: {
         c: 'Online Services',
         d: 'hn.algolia.com',
-        r: 17,
+        r: 6,
         s: 'Hacker News',
         sc: 'Social news/links',
         t: 'hackernews',
@@ -45318,7 +45348,7 @@ export const bangs: Record<string, any> = {
     had: {
         c: 'Tech',
         d: 'hackaday.com',
-        r: 5,
+        r: 7,
         s: 'Hackaday',
         sc: 'Blogs',
         t: 'had',
@@ -45710,7 +45740,7 @@ export const bangs: Record<string, any> = {
     hckg: {
         c: 'Tech',
         d: 'hackage.haskell.org',
-        r: 11,
+        r: 8,
         s: 'Hackage',
         sc: 'Libraries/Frameworks',
         t: 'hckg',
@@ -46273,7 +46303,7 @@ export const bangs: Record<string, any> = {
     hgle: {
         c: 'Tech',
         d: 'www.haskell.org',
-        r: 0,
+        r: 6,
         s: 'hoogle',
         sc: 'Languages (haskell)',
         t: 'hgle',
@@ -46282,7 +46312,7 @@ export const bangs: Record<string, any> = {
     hgl: {
         c: 'Tech',
         d: 'www.haskell.org',
-        r: 8,
+        r: 0,
         s: 'haskell.org/hoogle',
         sc: 'Languages (haskell)',
         t: 'hgl',
@@ -46339,7 +46369,7 @@ export const bangs: Record<string, any> = {
     h: {
         c: 'Tech',
         d: 'www.haskell.org',
-        r: 1628,
+        r: 1729,
         s: 'Hoogle',
         sc: 'Languages (haskell)',
         t: 'h',
@@ -46364,7 +46394,7 @@ export const bangs: Record<string, any> = {
     hibp: {
         c: 'Online Services',
         d: 'haveibeenpwned.com',
-        r: 15,
+        r: 4,
         s: 'Have I Been Pwned',
         sc: 'Tools',
         t: 'hibp',
@@ -46373,7 +46403,7 @@ export const bangs: Record<string, any> = {
     hidden: {
         c: 'Online Services',
         d: 'hwikis25cffertqe.onion',
-        r: 6,
+        r: 0,
         s: 'Hidden Wiki',
         sc: 'Search (Private)',
         t: 'hidden',
@@ -46449,6 +46479,7 @@ export const bangs: Record<string, any> = {
         s: 'Hi-News.ru',
         d: 'hi-news.ru',
         t: 'hinews',
+        ts: ['хайн', 'хайньюс'],
         u: 'https://hi-news.ru/?s={{{s}}}',
         c: 'News',
         sc: 'Specialty',
@@ -46578,7 +46609,7 @@ export const bangs: Record<string, any> = {
     hkg: {
         c: 'Tech',
         d: 'hackage.haskell.org',
-        r: 4,
+        r: 9,
         s: 'Hackage',
         sc: 'Languages (haskell)',
         t: 'hkg',
@@ -46695,7 +46726,7 @@ export const bangs: Record<string, any> = {
     hltb: {
         c: 'Entertainment',
         d: 'howlongtobeat.com',
-        r: 602,
+        r: 558,
         s: 'How Long To Beat',
         sc: 'Games (general)',
         t: 'hltb',
@@ -46772,7 +46803,7 @@ export const bangs: Record<string, any> = {
     hnsearch: {
         c: 'News',
         d: 'hn.algolia.com',
-        r: 0,
+        r: 3,
         s: 'Hacker News',
         sc: 'Aggregators',
         t: 'hnsearch',
@@ -46845,7 +46876,7 @@ export const bangs: Record<string, any> = {
     hockeyref: {
         c: 'Entertainment',
         d: 'www.hockey-reference.com',
-        r: 7,
+        r: 20,
         s: 'Hockey Reference',
         sc: 'Sports',
         t: 'hockeyref',
@@ -46854,7 +46885,7 @@ export const bangs: Record<string, any> = {
     hode: {
         c: 'Shopping',
         d: 'www.homedepot.com',
-        r: 7,
+        r: 8,
         s: 'Home Depot',
         sc: 'Big box/department',
         t: 'hode',
@@ -46871,7 +46902,7 @@ export const bangs: Record<string, any> = {
     ho: {
         c: 'Tech',
         d: 'www.haskell.org',
-        r: 5,
+        r: 3,
         s: 'Hoogle',
         sc: 'Languages (haskell)',
         t: 'ho',
@@ -46928,7 +46959,7 @@ export const bangs: Record<string, any> = {
     homedepotca: {
         c: 'Shopping',
         d: 'www.homedepot.ca',
-        r: 5,
+        r: 0,
         s: 'Home Depot Canada',
         sc: 'Big box/department',
         t: 'homedepotca',
@@ -46937,7 +46968,7 @@ export const bangs: Record<string, any> = {
     homedepot: {
         c: 'Shopping',
         d: 'www.homedepot.com',
-        r: 152,
+        r: 186,
         s: 'The Home Depot',
         sc: 'Big box/department',
         t: 'homedepot',
@@ -47174,7 +47205,7 @@ export const bangs: Record<string, any> = {
     hotstar: {
         c: 'Entertainment',
         d: 'www.hotstar.com',
-        r: 8,
+        r: 3,
         s: 'Hotstar',
         sc: 'Movies',
         t: 'hotstar',
@@ -47265,7 +47296,7 @@ export const bangs: Record<string, any> = {
     how: {
         c: 'Tech',
         d: 'howcode.org',
-        r: 27,
+        r: 32,
         s: 'howCode',
         sc: 'Programming',
         t: 'how',
@@ -47283,7 +47314,7 @@ export const bangs: Record<string, any> = {
     howlongtobeat: {
         c: 'Entertainment',
         d: 'howlongtobeat.com',
-        r: 47,
+        r: 25,
         s: 'HowLongToBeat',
         sc: 'Games (general)',
         t: 'howlongtobeat',
@@ -47360,7 +47391,7 @@ export const bangs: Record<string, any> = {
     hpc: {
         c: 'Entertainment',
         d: 'www.housepetscomic.com',
-        r: 7,
+        r: 0,
         s: 'Housepets!',
         sc: 'Comics',
         t: 'hpc',
@@ -47560,7 +47591,7 @@ export const bangs: Record<string, any> = {
     hswiki: {
         c: 'Entertainment',
         d: 'hearthstone.gamepedia.com',
-        r: 0,
+        r: 4,
         s: 'Hearthstone: Heroes of Warcraft Wiki',
         sc: 'Games (specific)',
         t: 'hswiki',
@@ -47569,7 +47600,7 @@ export const bangs: Record<string, any> = {
     htb: {
         c: 'Multimedia',
         d: 'hooktube.com',
-        r: 4,
+        r: 0,
         s: 'HookTube',
         sc: 'Video',
         t: 'htb',
@@ -47604,7 +47635,7 @@ export const bangs: Record<string, any> = {
     htg: {
         c: 'Tech',
         d: 'www.howtogeek.com',
-        r: 38,
+        r: 37,
         s: 'How-To Geek',
         sc: 'Blogs',
         t: 'htg',
@@ -47613,7 +47644,7 @@ export const bangs: Record<string, any> = {
     ht: {
         c: 'Multimedia',
         d: 'hooktube.com',
-        r: 25,
+        r: 20,
         s: 'HookTube',
         sc: 'Video',
         t: 'ht',
@@ -47639,6 +47670,7 @@ export const bangs: Record<string, any> = {
         s: 'htmlbook.ru',
         d: 'htmlbook.ru',
         t: 'htmlbook',
+        ts: ['хтмлбук'],
         u: 'https://htmlbook.ru/search/?as_q={{{s}}}',
         c: 'Tech',
         sc: 'Languages (html)',
@@ -47664,7 +47696,7 @@ export const bangs: Record<string, any> = {
     httpcat: {
         c: 'Tech',
         d: 'http.cat',
-        r: 4,
+        r: 6,
         s: 'HTTP Status Cats',
         sc: 'Design',
         t: 'httpcat',
@@ -47810,7 +47842,7 @@ export const bangs: Record<string, any> = {
     hu: {
         c: 'Online Services',
         d: 'healthunlocked.com',
-        r: 3,
+        r: 0,
         s: 'HealthUnlocked',
         sc: 'Social (intl)',
         t: 'hu',
@@ -47827,7 +47859,7 @@ export const bangs: Record<string, any> = {
     hukd: {
         c: 'Shopping',
         d: 'www.hotukdeals.com',
-        r: 170,
+        r: 166,
         s: 'HotUKDeals',
         sc: 'Online (deals)',
         t: 'hukd',
@@ -47869,7 +47901,7 @@ export const bangs: Record<string, any> = {
     humble: {
         c: 'Entertainment',
         d: 'www.humblebundle.com',
-        r: 32,
+        r: 26,
         s: 'Humble Store',
         sc: 'Games (general)',
         t: 'humble',
@@ -48019,7 +48051,7 @@ export const bangs: Record<string, any> = {
     hx: {
         c: 'Tech',
         d: 'hex.pm',
-        r: 10,
+        r: 8,
         s: 'Hex.pm',
         sc: 'Languages (other)',
         t: 'hx',
@@ -48216,7 +48248,7 @@ export const bangs: Record<string, any> = {
     ia: {
         c: 'Multimedia',
         d: 'web.archive.org',
-        r: 464,
+        r: 423,
         s: 'Internet Archive',
         sc: 'General',
         t: 'ia',
@@ -48517,7 +48549,7 @@ export const bangs: Record<string, any> = {
     icm: {
         c: 'Entertainment',
         d: 'www.icheckmovies.com',
-        r: 0,
+        r: 3,
         s: 'iCheckMovies',
         sc: 'Movies',
         t: 'icm',
@@ -48651,7 +48683,7 @@ export const bangs: Record<string, any> = {
     idealo: {
         c: 'Shopping',
         d: 'www.idealo.de',
-        r: 458,
+        r: 490,
         s: 'idealo.de',
         sc: 'Online (deals)',
         t: 'idealo',
@@ -48684,7 +48716,7 @@ export const bangs: Record<string, any> = {
     ide: {
         c: 'Shopping',
         d: 'www.idealo.de',
-        r: 157,
+        r: 108,
         s: 'idealo',
         sc: 'Services',
         t: 'ide',
@@ -48744,7 +48776,7 @@ export const bangs: Record<string, any> = {
     id: {
         c: 'Shopping',
         d: 'www.idealo.de',
-        r: 64,
+        r: 66,
         s: 'Idealo',
         sc: 'Services',
         t: 'id',
@@ -48843,7 +48875,7 @@ export const bangs: Record<string, any> = {
     i: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 14155,
+        r: 13762,
         s: 'DuckDuckGo Images',
         sc: 'Search (DDG)',
         t: 'i',
@@ -48852,7 +48884,7 @@ export const bangs: Record<string, any> = {
     iec: {
         c: 'Research',
         d: 'dlc.iec.cat',
-        r: 18,
+        r: 19,
         s: "Institut d'Estudis Catalans",
         sc: 'Reference (words)',
         t: 'iec',
@@ -49080,7 +49112,7 @@ export const bangs: Record<string, any> = {
     igu: {
         c: 'Online Services',
         d: 'www.instagram.com',
-        r: 14,
+        r: 11,
         s: 'Instagram',
         sc: 'Social',
         t: 'igu',
@@ -49123,7 +49155,7 @@ export const bangs: Record<string, any> = {
     iidrn: {
         c: 'Online Services',
         d: 'www.isitdownrightnow.com',
-        r: 9,
+        r: 5,
         s: 'Is It Down Right Now?',
         sc: 'Tools (URLs)',
         t: 'iidrn',
@@ -49302,7 +49334,7 @@ export const bangs: Record<string, any> = {
     il: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 13,
+        r: 9,
         s: 'DuckDuckGo Images',
         sc: 'Search (DDG)',
         t: 'il',
@@ -49399,7 +49431,7 @@ export const bangs: Record<string, any> = {
     image: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 107843,
+        r: 86670,
         s: 'DuckDuckGo Images',
         sc: 'Search (DDG)',
         t: 'image',
@@ -49442,7 +49474,7 @@ export const bangs: Record<string, any> = {
     images: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 975,
+        r: 1117,
         s: 'DuckDuckGo Images',
         sc: 'Search (DDG)',
         t: 'images',
@@ -49605,7 +49637,7 @@ export const bangs: Record<string, any> = {
     img: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 1556,
+        r: 1426,
         s: 'DuckDuckGo Images',
         sc: 'Search (DDG)',
         t: 'img',
@@ -49762,6 +49794,7 @@ export const bangs: Record<string, any> = {
         s: 'Inbox by Gmail',
         d: 'inbox.google.com',
         t: 'inbox',
+        ts: ['гмейл', 'гпочта'],
         u: 'https://inbox.google.com/search/{{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -49968,7 +50001,7 @@ export const bangs: Record<string, any> = {
     infopedia: {
         c: 'Online Services',
         d: 'www.infopedia.pt',
-        r: 5,
+        r: 15,
         s: 'Infopédia',
         sc: 'Tools',
         t: 'infopedia',
@@ -50043,7 +50076,7 @@ export const bangs: Record<string, any> = {
     in: {
         c: 'Multimedia',
         d: 'invidio.us',
-        r: 374,
+        r: 617,
         s: 'Invidio.us',
         sc: 'Video',
         t: 'in',
@@ -50237,7 +50270,7 @@ export const bangs: Record<string, any> = {
     inspire: {
         c: 'Research',
         d: 'inspirehep.net',
-        r: 295,
+        r: 166,
         s: 'Inspire HEP ',
         sc: 'Academic',
         t: 'inspire',
@@ -50246,7 +50279,7 @@ export const bangs: Record<string, any> = {
     instagram: {
         c: 'Multimedia',
         d: 'instagram.com',
-        r: 189,
+        r: 270,
         s: 'Instagram',
         sc: 'Images',
         t: 'instagram',
@@ -50255,7 +50288,7 @@ export const bangs: Record<string, any> = {
     insta: {
         c: 'Online Services',
         d: 'www.instagram.com',
-        r: 1196,
+        r: 1372,
         s: 'Instagram',
         sc: 'Social',
         t: 'insta',
@@ -50298,7 +50331,7 @@ export const bangs: Record<string, any> = {
     instructables: {
         c: 'Online Services',
         d: 'www.instructables.com',
-        r: 3,
+        r: 4,
         s: 'Instructables',
         sc: 'Social',
         t: 'instructables',
@@ -50381,7 +50414,7 @@ export const bangs: Record<string, any> = {
     int: {
         c: 'News',
         d: 'www.internazionale.it',
-        r: 3,
+        r: 0,
         s: 'Internazionale',
         sc: 'International',
         t: 'int',
@@ -50414,7 +50447,7 @@ export const bangs: Record<string, any> = {
     invd: {
         c: 'Multimedia',
         d: 'invidio.us',
-        r: 72,
+        r: 99,
         s: 'Invidious',
         sc: 'Video',
         t: 'invd',
@@ -50440,7 +50473,7 @@ export const bangs: Record<string, any> = {
     investopedia: {
         c: 'Research',
         d: 'www.investopedia.com',
-        r: 3,
+        r: 0,
         s: 'Investopedia',
         sc: 'Learning',
         t: 'investopedia',
@@ -50458,7 +50491,7 @@ export const bangs: Record<string, any> = {
     invid: {
         c: 'Multimedia',
         d: 'invidio.us',
-        r: 8,
+        r: 15,
         s: 'Invidio.us',
         sc: 'Video',
         t: 'invid',
@@ -50467,7 +50500,7 @@ export const bangs: Record<string, any> = {
     invidio: {
         c: 'Multimedia',
         d: 'invidio.us',
-        r: 48,
+        r: 14,
         s: 'invidious',
         sc: 'Video',
         t: 'invidio',
@@ -50476,7 +50509,7 @@ export const bangs: Record<string, any> = {
     invidious: {
         c: 'Multimedia',
         d: 'www.invidio.us',
-        r: 6,
+        r: 7,
         s: 'Invidious',
         sc: 'Video',
         t: 'invidious',
@@ -50577,7 +50610,7 @@ export const bangs: Record<string, any> = {
     ipa: {
         c: 'Research',
         d: 'en.wikipedia.org',
-        r: 4,
+        r: 0,
         s: 'Wikipedia IPA guide',
         sc: 'Reference (science)',
         t: 'ipa',
@@ -50626,7 +50659,7 @@ export const bangs: Record<string, any> = {
     iplayer: {
         c: 'News',
         d: 'www.bbc.co.uk',
-        r: 23,
+        r: 19,
         s: 'BBC iPlayer',
         sc: 'Broadcast',
         t: 'iplayer',
@@ -50786,6 +50819,7 @@ export const bangs: Record<string, any> = {
         s: 'IRecommend',
         d: 'irecommend.ru',
         t: 'irecommend',
+        ts: ['айрекомменд', 'айрек'],
         u: 'https://irecommend.ru/srch?query={{{s}}}',
         c: 'Shopping',
         sc: 'Online',
@@ -50833,7 +50867,7 @@ export const bangs: Record<string, any> = {
     isaac: {
         c: 'Entertainment',
         d: 'bindingofisaacrebirth.gamepedia.com',
-        r: 70,
+        r: 18,
         s: 'The Binding of Isaac Rebirth Wiki',
         sc: 'Games (specific)',
         t: 'isaac',
@@ -50964,7 +50998,7 @@ export const bangs: Record<string, any> = {
     isitdown: {
         c: 'Online Services',
         d: 'downforeveryoneorjustme.com',
-        r: 5,
+        r: 6,
         s: 'Is It Down For Everyone Or Just Me?',
         sc: 'Tools (URLs)',
         t: 'isitdown',
@@ -50973,7 +51007,7 @@ export const bangs: Record<string, any> = {
     isitup: {
         c: 'Online Services',
         d: 'isitup.org',
-        r: 0,
+        r: 3,
         s: 'Is it up?',
         sc: 'Tools (URLs)',
         t: 'isitup',
@@ -51030,7 +51064,7 @@ export const bangs: Record<string, any> = {
     iso: {
         c: 'Tech',
         d: 'distrowatch.com',
-        r: 50,
+        r: 10,
         s: 'Distrowatch',
         sc: 'Sysadmin',
         t: 'iso',
@@ -51126,7 +51160,7 @@ export const bangs: Record<string, any> = {
     isup: {
         c: 'Online Services',
         d: 'downforeveryoneorjustme.com',
-        r: 40,
+        r: 34,
         s: 'Is It Down For Everyone Or Just Me?',
         sc: 'Tools',
         t: 'isup',
@@ -51143,7 +51177,7 @@ export const bangs: Record<string, any> = {
     itad: {
         c: 'Shopping',
         d: 'isthereanydeal.com',
-        r: 347,
+        r: 426,
         s: 'IsThereAnyDeal',
         sc: 'Online (deals)',
         t: 'itad',
@@ -51168,7 +51202,7 @@ export const bangs: Record<string, any> = {
     it: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 65,
+        r: 56,
         s: 'DuckDuckGo Italy',
         sc: 'Search (DDG)',
         t: 'it',
@@ -51193,7 +51227,7 @@ export const bangs: Record<string, any> = {
     iten: {
         c: 'Online Services',
         d: 'translate.google.com',
-        r: 22,
+        r: 3,
         s: 'Google translate it-en',
         sc: 'Google',
         t: 'iten',
@@ -51316,7 +51350,7 @@ export const bangs: Record<string, any> = {
     itwiki: {
         c: 'Research',
         d: 'it.wikipedia.org',
-        r: 17,
+        r: 3,
         s: 'Italian Wikipedia',
         sc: 'Reference',
         t: 'itwiki',
@@ -51450,7 +51484,7 @@ export const bangs: Record<string, any> = {
     iya: {
         c: 'Multimedia',
         d: 'yandex.com',
-        r: 75,
+        r: 99,
         s: 'Yandex Images',
         sc: 'Images',
         t: 'iya',
@@ -51760,7 +51794,7 @@ export const bangs: Record<string, any> = {
     jawiki: {
         c: 'Research',
         d: 'ja.wikipedia.org',
-        r: 19,
+        r: 16,
         s: 'Japanese Wikipedia',
         sc: 'Reference',
         t: 'jawiki',
@@ -51769,7 +51803,7 @@ export const bangs: Record<string, any> = {
     jawp: {
         c: 'Research',
         d: 'ja.wikipedia.org',
-        r: 7,
+        r: 6,
         s: 'Japanese Wikipedia',
         sc: 'Reference',
         t: 'jawp',
@@ -51924,7 +51958,7 @@ export const bangs: Record<string, any> = {
     jdk: {
         c: 'Tech',
         d: 'docs.oracle.com',
-        r: 7,
+        r: 0,
         s: 'Java Docs',
         sc: 'Languages (java)',
         t: 'jdk',
@@ -52221,7 +52255,7 @@ export const bangs: Record<string, any> = {
     jisho: {
         c: 'Online Services',
         d: 'jisho.org',
-        r: 1876,
+        r: 2126,
         s: 'Jisho',
         sc: 'Tools',
         t: 'jisho',
@@ -52255,7 +52289,7 @@ export const bangs: Record<string, any> = {
     j: {
         c: 'Shopping',
         d: 'jet.com',
-        r: 58,
+        r: 81,
         s: 'Jet.com',
         sc: 'Online (marketplace)',
         t: 'j',
@@ -52407,7 +52441,7 @@ export const bangs: Record<string, any> = {
     jobs: {
         c: 'Online Services',
         d: 'www.indeed.com',
-        r: 0,
+        r: 6,
         s: 'Indeed',
         sc: 'Jobs',
         t: 'jobs',
@@ -52623,7 +52657,7 @@ export const bangs: Record<string, any> = {
     jp: {
         c: 'Shopping',
         d: 'www.jetpens.com',
-        r: 9,
+        r: 0,
         s: 'Jet Pens',
         sc: 'Online',
         t: 'jp',
@@ -52689,7 +52723,7 @@ export const bangs: Record<string, any> = {
     jquery: {
         c: 'Tech',
         d: 'api.jquery.com',
-        r: 4,
+        r: 10,
         s: 'jQuery Docs',
         sc: 'Languages (java)',
         t: 'jquery',
@@ -52953,7 +52987,7 @@ export const bangs: Record<string, any> = {
     jumbo: {
         c: 'Shopping',
         d: 'www.jumbo.pt',
-        r: 4,
+        r: 0,
         s: 'Jumbo',
         sc: 'Big box/department',
         t: 'jumbo',
@@ -53144,7 +53178,7 @@ export const bangs: Record<string, any> = {
     jv: {
         c: 'Entertainment',
         d: 'www.jeuxvideo.com',
-        r: 85,
+        r: 59,
         s: 'JeuxVideo',
         sc: 'Games (general)',
         t: 'jv',
@@ -53177,7 +53211,7 @@ export const bangs: Record<string, any> = {
     jwh: {
         c: 'Online Services',
         d: 'www.justwatch.com',
-        r: 206,
+        r: 160,
         s: 'JustWatch',
         sc: 'Search',
         t: 'jwh',
@@ -53618,7 +53652,7 @@ export const bangs: Record<string, any> = {
     kbugs: {
         c: 'Tech',
         d: 'bugs.kde.org',
-        r: 0,
+        r: 3,
         s: 'KDE Bugs',
         sc: 'Programming',
         t: 'kbugs',
@@ -53733,6 +53767,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Keep',
         d: 'keep.google.com',
         t: 'keep',
+        ts: ['гзаметки', 'гз'],
         u: 'https://keep.google.com/#search/text={{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -53905,6 +53940,7 @@ export const bangs: Record<string, any> = {
         s: 'KG-Portal',
         d: 'kg-portal.ru',
         t: 'kg',
+        ts: ['кг'],
         u: 'https://kg-portal.ru/?search&s_str={{{s}}}',
         c: 'Entertainment',
         sc: 'Movies',
@@ -53938,7 +53974,7 @@ export const bangs: Record<string, any> = {
     khan: {
         c: 'Research',
         d: 'www.khanacademy.org',
-        r: 26,
+        r: 3,
         s: 'Khan Academy',
         sc: 'Academic',
         t: 'khan',
@@ -54207,7 +54243,7 @@ export const bangs: Record<string, any> = {
         s: 'Kinopoisk',
         d: 'www.kinopoisk.ru',
         t: 'kino',
-        ts: ['kpoisk'],
+        ts: ['kpoisk', 'кп', 'кинопоиск'],
         u: 'https://www.kinopoisk.ru/index.php?first=no&what=&kp_query={{{s}}}',
         c: 'Multimedia',
         sc: 'Video',
@@ -54412,7 +54448,7 @@ export const bangs: Record<string, any> = {
     k: {
         c: 'Entertainment',
         d: 'www.konsolentreff.de',
-        r: 75,
+        r: 78,
         s: 'Konsolentreff.de',
         sc: 'Forum',
         t: 'k',
@@ -54929,7 +54965,7 @@ export const bangs: Record<string, any> = {
     kotobank: {
         c: 'Online Services',
         d: 'kotobank.jp',
-        r: 6,
+        r: 12,
         s: 'コトバンク用語検索',
         sc: 'Tools',
         t: 'kotobank',
@@ -55012,7 +55048,7 @@ export const bangs: Record<string, any> = {
     krdic: {
         c: 'Research',
         d: 'krdic.naver.com',
-        r: 9,
+        r: 24,
         s: 'Naver Korean Dictionary',
         sc: 'Reference (words intl)',
         t: 'krdic',
@@ -55069,7 +55105,7 @@ export const bangs: Record<string, any> = {
     kr: {
         c: 'Shopping',
         d: 'www.kroger.com',
-        r: 9,
+        r: 3,
         s: 'Kroger',
         sc: 'Online',
         t: 'kr',
@@ -55086,7 +55122,7 @@ export const bangs: Record<string, any> = {
     kroger: {
         c: 'Shopping',
         d: 'www.kroger.com',
-        r: 23,
+        r: 9,
         s: 'Kroger',
         sc: 'Big box/department',
         t: 'kroger',
@@ -55095,7 +55131,7 @@ export const bangs: Record<string, any> = {
     ks: {
         c: 'Online Services',
         d: 'www.kickstarter.com',
-        r: 60,
+        r: 47,
         s: 'Kickstarter',
         sc: 'Tools (fundraising)',
         t: 'ks',
@@ -55239,7 +55275,7 @@ export const bangs: Record<string, any> = {
     kts: {
         c: 'Research',
         d: 'www.kielitoimistonsanakirja.fi',
-        r: 20,
+        r: 24,
         s: 'https://www.kielitoimistonsanakirja.fi',
         sc: 'Learning',
         t: 'kts',
@@ -55248,7 +55284,7 @@ export const bangs: Record<string, any> = {
     kuantokusta: {
         c: 'Shopping',
         d: 'www.kuantokusta.pt',
-        r: 12,
+        r: 15,
         s: 'KuantoKusta',
         sc: 'Online',
         t: 'kuantokusta',
@@ -55440,7 +55476,7 @@ export const bangs: Record<string, any> = {
     kym: {
         c: 'Research',
         d: 'knowyourmeme.com',
-        r: 610,
+        r: 596,
         s: 'Know Your Meme',
         sc: 'Reference (fun)',
         t: 'kym',
@@ -55801,7 +55837,7 @@ export const bangs: Record<string, any> = {
     lar: {
         c: 'Research',
         d: 'www.larousse.fr',
-        r: 73,
+        r: 30,
         s: 'Larousse (Français)',
         sc: 'Reference (words intl)',
         t: 'lar',
@@ -55810,7 +55846,7 @@ export const bangs: Record<string, any> = {
     larousse: {
         c: 'Online Services',
         d: 'www.larousse.fr',
-        r: 40,
+        r: 44,
         s: 'Larousse French Dictionary',
         sc: 'Tools',
         t: 'larousse',
@@ -55862,7 +55898,7 @@ export const bangs: Record<string, any> = {
     'last.fm': {
         c: 'Multimedia',
         d: 'www.last.fm',
-        r: 18,
+        r: 32,
         s: 'Last.fm',
         sc: 'Music',
         t: 'last.fm',
@@ -56065,7 +56101,7 @@ export const bangs: Record<string, any> = {
     laz: {
         c: 'Shopping',
         d: 'www.lazada.com.ph',
-        r: 0,
+        r: 11,
         s: 'Lazada',
         sc: 'Online (marketplace)',
         t: 'laz',
@@ -56116,7 +56152,7 @@ export const bangs: Record<string, any> = {
     lb: {
         c: 'Entertainment',
         d: 'letterboxd.com',
-        r: 1881,
+        r: 1889,
         s: 'letterboxd',
         sc: 'Movies',
         t: 'lb',
@@ -56308,7 +56344,7 @@ export const bangs: Record<string, any> = {
     ldota: {
         c: 'Entertainment',
         d: 'wiki.teamliquid.net',
-        r: 12,
+        r: 10,
         s: 'Liquipedia Dota 2 Wiki',
         sc: 'Games (specific)',
         t: 'ldota',
@@ -56425,7 +56461,7 @@ export const bangs: Record<string, any> = {
     leboncoin: {
         c: 'Shopping',
         d: 'www.leboncoin.fr',
-        r: 86,
+        r: 51,
         s: 'Le Bon Coin',
         sc: 'Online (deals)',
         t: 'leboncoin',
@@ -56547,7 +56583,7 @@ export const bangs: Record<string, any> = {
     lei: {
         c: 'Online Services',
         d: 'leifinder.com',
-        r: 4,
+        r: 0,
         s: 'leifinder',
         sc: 'Search',
         t: 'lei',
@@ -56597,7 +56633,7 @@ export const bangs: Record<string, any> = {
     lenfr: {
         c: 'Online Services',
         d: 'www.linguee.fr',
-        r: 6,
+        r: 8,
         s: 'Linguee',
         sc: 'Tools',
         t: 'lenfr',
@@ -56641,7 +56677,7 @@ export const bangs: Record<string, any> = {
     },
     leof: {
         d: 'dict.leo.org',
-        r: 54,
+        r: 43,
         s: 'LEO Dictionary French',
         t: 'leof',
         u: 'http://dict.leo.org/frde?lp=frde&search={{{s}}}',
@@ -56704,7 +56740,7 @@ export const bangs: Record<string, any> = {
         s: 'LEO Dictionary Russian',
         d: 'dict.leo.org',
         t: 'leoru',
-        ts: ['leor'],
+        ts: ['leor', 'лео'],
         u: 'https://dict.leo.org/russisch-deutsch/{{{s}}}',
         c: 'Online Services',
         sc: 'Tools',
@@ -56835,7 +56871,7 @@ export const bangs: Record<string, any> = {
     letras: {
         c: 'Online Services',
         d: 'letras.mus.br',
-        r: 6,
+        r: 4,
         s: 'Letras.mus.br',
         sc: 'Tools',
         t: 'letras',
@@ -56852,7 +56888,7 @@ export const bangs: Record<string, any> = {
     letterboxd: {
         c: 'Entertainment',
         d: 'letterboxd.com',
-        r: 382,
+        r: 338,
         s: 'Letterboxd',
         sc: 'Movies',
         t: 'letterboxd',
@@ -56926,7 +56962,7 @@ export const bangs: Record<string, any> = {
     lext: {
         c: 'Online Services',
         d: 'www.greek-language.gr',
-        r: 9,
+        r: 11,
         s: 'Λεξικό Τριανταφυλλίδη',
         sc: 'Tools',
         t: 'lext',
@@ -57095,7 +57131,7 @@ export const bangs: Record<string, any> = {
     librarything: {
         c: 'Multimedia',
         d: 'www.librarything.com',
-        r: 0,
+        r: 4,
         s: 'LibraryThing',
         sc: 'Books',
         t: 'librarything',
@@ -57388,7 +57424,7 @@ export const bangs: Record<string, any> = {
     lightgg: {
         c: 'Entertainment',
         d: 'www.light.gg',
-        r: 0,
+        r: 4,
         s: 'light.gg',
         sc: 'Games (general)',
         t: 'lightgg',
@@ -57636,7 +57672,7 @@ export const bangs: Record<string, any> = {
     lingf: {
         c: 'Research',
         d: 'www.linguee.de',
-        r: 4,
+        r: 0,
         s: 'Linguee',
         sc: 'Learning (intl)',
         t: 'lingf',
@@ -57662,7 +57698,7 @@ export const bangs: Record<string, any> = {
     lingfr: {
         c: 'Research',
         d: 'www.linguee.fr',
-        r: 25,
+        r: 16,
         s: 'Linguee (en français)',
         sc: 'Reference (words intl)',
         t: 'lingfr',
@@ -57730,7 +57766,7 @@ export const bangs: Record<string, any> = {
     linguee: {
         c: 'Online Services',
         d: 'www.linguee.de',
-        r: 288,
+        r: 257,
         s: 'Linguee',
         sc: 'Tools',
         t: 'linguee',
@@ -57739,7 +57775,7 @@ export const bangs: Record<string, any> = {
     lingues: {
         c: 'Research',
         d: 'www.linguee.es',
-        r: 52,
+        r: 41,
         s: 'www.linguee.es',
         sc: 'Reference (words)',
         t: 'lingues',
@@ -57749,6 +57785,7 @@ export const bangs: Record<string, any> = {
         s: 'Lingvo Live',
         d: 'lingvolive.ru',
         t: 'lingvo',
+        ts: ['лингво'],
         u: 'https://lingvolive.ru/translate/en-ru/{{{s}}}',
         c: 'Online Services',
         sc: 'Tools',
@@ -57756,7 +57793,7 @@ export const bangs: Record<string, any> = {
     linkedin: {
         c: 'Online Services',
         d: 'www.linkedin.com',
-        r: 545,
+        r: 623,
         s: 'LinkedIn',
         sc: 'Social',
         t: 'linkedin',
@@ -57789,7 +57826,7 @@ export const bangs: Record<string, any> = {
     lin: {
         c: 'Research',
         d: 'www.linguee.com',
-        r: 41,
+        r: 87,
         s: 'Linguee',
         sc: 'Reference (words intl)',
         t: 'lin',
@@ -58010,7 +58047,7 @@ export const bangs: Record<string, any> = {
     listennotes: {
         c: 'Online Services',
         d: 'www.listennotes.com',
-        r: 3,
+        r: 0,
         s: 'Listen Notes',
         sc: 'Search',
         t: 'listennotes',
@@ -58094,6 +58131,7 @@ export const bangs: Record<string, any> = {
         s: 'Litres',
         d: 'www.litres.ru',
         t: 'litres',
+        ts: ['литрес'],
         u: 'https://www.litres.ru/pages/rmd_search/?q={{{s}}}',
         c: 'Shopping',
         sc: 'Online (marketplace)',
@@ -58226,7 +58264,7 @@ export const bangs: Record<string, any> = {
     ll: {
         c: 'Multimedia',
         d: 'www.liveleak.com',
-        r: 0,
+        r: 3,
         s: 'LiveLeak',
         sc: 'Video',
         t: 'll',
@@ -58252,7 +58290,7 @@ export const bangs: Record<string, any> = {
     lma: {
         c: 'Multimedia',
         d: 'archive.org',
-        r: 4,
+        r: 0,
         s: 'Live Music Archive',
         sc: 'Music',
         t: 'lma',
@@ -58431,7 +58469,7 @@ export const bangs: Record<string, any> = {
     local: {
         c: 'Online Services',
         d: 'local.google.com',
-        r: 17,
+        r: 5,
         s: 'Google Local',
         sc: 'Google',
         t: 'local',
@@ -58515,7 +58553,7 @@ export const bangs: Record<string, any> = {
     log: {
         c: 'Research',
         d: 'logeion.uchicago.edu',
-        r: 35,
+        r: 42,
         s: 'Logeion',
         sc: 'Reference (words intl)',
         t: 'log',
@@ -58716,6 +58754,7 @@ export const bangs: Record<string, any> = {
         s: 'Linux.org.ru',
         d: 'www.linux.org.ru',
         t: 'lor',
+        ts: ['лор'],
         u: 'https://www.linux.org.ru/search.jsp?q={{{s}}}&range=ALL&interval=ALL&user=&_usertopic=on',
         c: 'Tech',
         sc: 'Sysadmin',
@@ -58787,7 +58826,7 @@ export const bangs: Record<string, any> = {
     love2d: {
         c: 'Tech',
         d: 'www.love2d.org',
-        r: 4,
+        r: 0,
         s: 'LÖVE2D',
         sc: 'Libraries/Frameworks',
         t: 'love2d',
@@ -58901,7 +58940,7 @@ export const bangs: Record<string, any> = {
     lp: {
         c: 'Tech',
         d: 'launchpad.net',
-        r: 9,
+        r: 0,
         s: 'Launchpad',
         sc: 'Programming',
         t: 'lp',
@@ -59123,7 +59162,7 @@ export const bangs: Record<string, any> = {
     ltr: {
         c: 'Entertainment',
         d: 'letterboxd.com',
-        r: 134,
+        r: 205,
         s: 'Letterboxd',
         sc: 'Movies',
         t: 'ltr',
@@ -59256,7 +59295,7 @@ export const bangs: Record<string, any> = {
     lucky: {
         c: 'Online Services',
         d: 'www.google.com',
-        r: 716,
+        r: 447,
         s: 'Google Feeling Lucky',
         sc: 'Google',
         t: 'lucky',
@@ -59274,7 +59313,7 @@ export const bangs: Record<string, any> = {
     ludopedia: {
         c: 'Entertainment',
         d: 'ludopedia.com.br',
-        r: 0,
+        r: 4,
         s: 'Ludopedia',
         sc: 'Games (offline)',
         t: 'ludopedia',
@@ -59365,7 +59404,7 @@ export const bangs: Record<string, any> = {
     lurk: {
         c: 'Entertainment',
         d: 'lurkmore.to',
-        r: 25,
+        r: 31,
         s: 'Lurkmoar',
         sc: 'Blogs',
         t: 'lurk',
@@ -59479,7 +59518,7 @@ export const bangs: Record<string, any> = {
     lwg: {
         c: 'Research',
         d: 'ludwig.guru',
-        r: 4,
+        r: 0,
         s: 'https://ludwig.guru/',
         sc: 'Academic',
         t: 'lwg',
@@ -59513,7 +59552,7 @@ export const bangs: Record<string, any> = {
     lxiny: {
         c: 'Tech',
         d: 'learnxinyminutes.com',
-        r: 0,
+        r: 3,
         s: 'learnxinyminutes.com',
         sc: 'Programming',
         t: 'lxiny',
@@ -59656,7 +59695,7 @@ export const bangs: Record<string, any> = {
     lzd: {
         c: 'Shopping',
         d: 'www.lazada.com.ph',
-        r: 103,
+        r: 173,
         s: 'Lazada Philippines',
         sc: 'Online',
         t: 'lzd',
@@ -60153,6 +60192,7 @@ export const bangs: Record<string, any> = {
         s: 'go.mail.ru',
         d: 'go.mail.ru',
         t: 'mailru',
+        ts: ['мейлру'],
         u: 'https://go.mail.ru/search?fm=1&q={{{s}}}',
         c: 'Online Services',
         sc: 'Search',
@@ -60260,7 +60300,7 @@ export const bangs: Record<string, any> = {
     mal: {
         c: 'Entertainment',
         d: 'myanimelist.net',
-        r: 1430,
+        r: 1829,
         s: 'My Anime List',
         sc: 'Movies',
         t: 'mal',
@@ -60286,7 +60326,7 @@ export const bangs: Record<string, any> = {
     ma: {
         c: 'Entertainment',
         d: 'en.memory-alpha.org',
-        r: 237,
+        r: 209,
         s: 'Memory Alpha',
         sc: 'TV',
         t: 'ma',
@@ -60438,7 +60478,7 @@ export const bangs: Record<string, any> = {
     man: {
         c: 'Tech',
         d: 'manpage.me',
-        r: 302,
+        r: 258,
         s: 'Man Page',
         sc: 'Sysadmin',
         t: 'man',
@@ -60472,7 +60512,7 @@ export const bangs: Record<string, any> = {
     manpage: {
         c: 'Tech',
         d: 'manpage.me',
-        r: 0,
+        r: 5,
         s: 'manpage',
         sc: 'Sysadmin (man)',
         t: 'manpage',
@@ -60506,7 +60546,7 @@ export const bangs: Record<string, any> = {
     maori: {
         c: 'Research',
         d: 'maoridictionary.co.nz',
-        r: 0,
+        r: 4,
         s: 'Māori Dictionary',
         sc: 'Reference (words intl)',
         t: 'maori',
@@ -60532,7 +60572,7 @@ export const bangs: Record<string, any> = {
     map: {
         c: 'Online Services',
         d: 'maps.google.com',
-        r: 5180,
+        r: 5285,
         s: 'Google Maps',
         sc: 'Maps',
         t: 'map',
@@ -60574,7 +60614,7 @@ export const bangs: Record<string, any> = {
     mapsde: {
         c: 'Online Services',
         d: 'www.google.de',
-        r: 8,
+        r: 15,
         s: 'Google Maps DE',
         sc: 'Maps',
         t: 'mapsde',
@@ -60591,7 +60631,7 @@ export const bangs: Record<string, any> = {
     maps: {
         c: 'Online Services',
         d: 'google.com',
-        r: 32117,
+        r: 32572,
         s: 'Google Maps',
         sc: 'Maps',
         t: 'maps',
@@ -60617,7 +60657,7 @@ export const bangs: Record<string, any> = {
     mapy: {
         c: 'Online Services',
         d: 'mapy.cz',
-        r: 228,
+        r: 177,
         s: 'Mapy.cz',
         sc: 'Maps',
         t: 'mapy',
@@ -60634,7 +60674,7 @@ export const bangs: Record<string, any> = {
     march: {
         c: 'Multimedia',
         d: 'www.metal-archives.com',
-        r: 126,
+        r: 86,
         s: 'Metal Archives',
         sc: 'Music',
         t: 'march',
@@ -60692,7 +60732,7 @@ export const bangs: Record<string, any> = {
     mariowiki: {
         c: 'Entertainment',
         d: 'www.mariowiki.com',
-        r: 32,
+        r: 52,
         s: 'Super Mario Wiki',
         sc: 'Games (specific)',
         t: 'mariowiki',
@@ -60801,7 +60841,7 @@ export const bangs: Record<string, any> = {
     marmiton: {
         c: 'Research',
         d: 'www.marmiton.org',
-        r: 3,
+        r: 0,
         s: 'Marmiton',
         sc: 'Food',
         t: 'marmiton',
@@ -60970,7 +61010,7 @@ export const bangs: Record<string, any> = {
     mathworld: {
         c: 'Research',
         d: 'mathworld.wolfram.com',
-        r: 0,
+        r: 8,
         s: 'Wolfram MathWorld',
         sc: 'Academic (math/cs)',
         t: 'mathworld',
@@ -61020,7 +61060,7 @@ export const bangs: Record<string, any> = {
     matplotlib: {
         c: 'Tech',
         d: 'matplotlib.sourceforge.net',
-        r: 6,
+        r: 3,
         s: 'matplotlib',
         sc: 'Languages (python)',
         t: 'matplotlib',
@@ -61278,7 +61318,7 @@ export const bangs: Record<string, any> = {
     mbrecording: {
         c: 'Multimedia',
         d: 'musicbrainz.org',
-        r: 0,
+        r: 6,
         s: 'MusicBrainz Recordings',
         sc: 'Music',
         t: 'mbrecording',
@@ -61312,7 +61352,7 @@ export const bangs: Record<string, any> = {
     mbr: {
         c: 'Multimedia',
         d: 'musicbrainz.org',
-        r: 46,
+        r: 45,
         s: 'MusicBrainz Releases',
         sc: 'Music',
         t: 'mbr',
@@ -61412,7 +61452,7 @@ export const bangs: Record<string, any> = {
     mccc: {
         c: 'Multimedia',
         d: 'media.ccc.de',
-        r: 9,
+        r: 0,
         s: 'media.ccc.de',
         sc: 'Video',
         t: 'mccc',
@@ -61548,7 +61588,7 @@ export const bangs: Record<string, any> = {
     mcpan: {
         c: 'Tech',
         d: 'metacpan.org',
-        r: 4,
+        r: 3,
         s: 'MetaCPAN',
         sc: 'Languages (perl)',
         t: 'mcpan',
@@ -61703,7 +61743,7 @@ export const bangs: Record<string, any> = {
     mcw: {
         c: 'Entertainment',
         d: 'minecraft.gamepedia.com',
-        r: 155,
+        r: 236,
         s: 'The Official Minecraft Wiki',
         sc: 'Games (Minecraft)',
         t: 'mcw',
@@ -61786,7 +61826,7 @@ export const bangs: Record<string, any> = {
     mdc: {
         c: 'Tech',
         d: 'developer.mozilla.org',
-        r: 27,
+        r: 10,
         s: 'Mozilla Developer Center',
         sc: 'Companies',
         t: 'mdc',
@@ -61811,7 +61851,7 @@ export const bangs: Record<string, any> = {
     mdl: {
         c: 'Entertainment',
         d: 'mydramalist.com',
-        r: 95,
+        r: 69,
         s: 'MyDramaList',
         sc: 'TV',
         t: 'mdl',
@@ -61845,7 +61885,7 @@ export const bangs: Record<string, any> = {
     mdncss: {
         c: 'Tech',
         d: 'developer.mozilla.org',
-        r: 9,
+        r: 4,
         s: 'Mozilla Developer Network CSS',
         sc: 'Languages (other)',
         t: 'mdncss',
@@ -61870,7 +61910,7 @@ export const bangs: Record<string, any> = {
     mdnjs: {
         c: 'Tech',
         d: 'developer.mozilla.org',
-        r: 17,
+        r: 7,
         s: 'Mozilla Developer Network',
         sc: 'Languages (javascript)',
         t: 'mdnjs',
@@ -61879,7 +61919,7 @@ export const bangs: Record<string, any> = {
     mdn: {
         c: 'Tech',
         d: 'developer.mozilla.org',
-        r: 3963,
+        r: 3574,
         s: 'Mozilla Developer Network',
         sc: 'Programming',
         t: 'mdn',
@@ -61938,7 +61978,7 @@ export const bangs: Record<string, any> = {
     mdx: {
         c: 'Entertainment',
         d: 'mangadex.org',
-        r: 38,
+        r: 29,
         s: 'Mangadex',
         sc: 'Comics',
         t: 'mdx',
@@ -61996,7 +62036,7 @@ export const bangs: Record<string, any> = {
     mediabias: {
         c: 'Research',
         d: 'mediabiasfactcheck.com',
-        r: 8,
+        r: 5,
         s: 'Media Bias/Fact Check',
         sc: 'Reference',
         t: 'mediabias',
@@ -62294,7 +62334,7 @@ export const bangs: Record<string, any> = {
     mema: {
         c: 'Entertainment',
         d: 'en.memory-alpha.org',
-        r: 3,
+        r: 6,
         s: 'Memory Alpha',
         sc: 'Misc',
         t: 'mema',
@@ -62319,7 +62359,7 @@ export const bangs: Record<string, any> = {
     meme: {
         c: 'Research',
         d: 'knowyourmeme.com',
-        r: 75,
+        r: 81,
         s: 'Know Your Meme',
         sc: 'Reference (fun)',
         t: 'meme',
@@ -62344,7 +62384,7 @@ export const bangs: Record<string, any> = {
     memoryalpha: {
         c: 'Research',
         d: 'en.memory-alpha.org',
-        r: 17,
+        r: 4,
         s: 'Memory Alpha',
         sc: 'Topical',
         t: 'memoryalpha',
@@ -62444,7 +62484,7 @@ export const bangs: Record<string, any> = {
     mercadolibrear: {
         c: 'Shopping',
         d: 'listado.mercadolibre.com.ar',
-        r: 36,
+        r: 46,
         s: 'MercadoLibre',
         sc: 'Online',
         t: 'mercadolibrear',
@@ -62545,7 +62585,7 @@ export const bangs: Record<string, any> = {
     merriamwebster: {
         c: 'Research',
         d: 'www.merriam-webster.com',
-        r: 37,
+        r: 39,
         s: 'Merriam-Webster',
         sc: 'Reference (words)',
         t: 'merriamwebster',
@@ -62612,7 +62652,7 @@ export const bangs: Record<string, any> = {
     metacpan: {
         c: 'Tech',
         d: 'metacpan.org',
-        r: 12,
+        r: 5,
         s: 'MetaCPAN',
         sc: 'Languages (perl)',
         t: 'metacpan',
@@ -62629,7 +62669,7 @@ export const bangs: Record<string, any> = {
     metacritic: {
         c: 'Entertainment',
         d: 'www.metacritic.com',
-        r: 68,
+        r: 131,
         s: 'Metacritic',
         sc: 'Misc',
         t: 'metacritic',
@@ -62705,7 +62745,7 @@ export const bangs: Record<string, any> = {
     metalarch: {
         c: 'Multimedia',
         d: 'www.metal-archives.com',
-        r: 5,
+        r: 4,
         s: 'Metal Archives',
         sc: 'Music',
         t: 'metalarch',
@@ -62714,7 +62754,7 @@ export const bangs: Record<string, any> = {
     metal: {
         c: 'Multimedia',
         d: 'www.metal-archives.com',
-        r: 667,
+        r: 639,
         s: 'Encyclopedia Metallum (The Metal Archives)',
         sc: 'Music',
         t: 'metal',
@@ -62731,7 +62771,7 @@ export const bangs: Record<string, any> = {
     metallum: {
         c: 'Multimedia',
         d: 'www.metal-archives.com',
-        r: 154,
+        r: 105,
         s: 'Encyclopaedia Metallum',
         sc: 'Music',
         t: 'metallum',
@@ -62857,7 +62897,7 @@ export const bangs: Record<string, any> = {
     metoff: {
         c: 'News',
         d: 'www.metoffice.gov.uk',
-        r: 7,
+        r: 0,
         s: 'Met Office',
         sc: 'Weather',
         t: 'metoff',
@@ -62998,7 +63038,7 @@ export const bangs: Record<string, any> = {
     m: {
         c: 'Online Services',
         d: 'maps.google.com',
-        r: 27656,
+        r: 27235,
         s: 'Google Maps',
         sc: 'Maps',
         t: 'm',
@@ -63325,7 +63365,7 @@ export const bangs: Record<string, any> = {
     minecraft: {
         c: 'Entertainment',
         d: 'minecraft.wiki',
-        r: 644,
+        r: 721,
         s: 'Official Minecraft Wiki',
         sc: 'Games (Minecraft)',
         t: 'minecraft',
@@ -63350,7 +63390,7 @@ export const bangs: Record<string, any> = {
     minecraftwiki: {
         c: 'Entertainment',
         d: 'minecraft.wiki',
-        r: 110,
+        r: 60,
         s: 'Minecraft Wiki',
         sc: 'Games (Minecraft)',
         t: 'minecraftwiki',
@@ -63434,7 +63474,7 @@ export const bangs: Record<string, any> = {
     minsearch: {
         c: 'Online Services',
         d: 'minimalsearch.com',
-        r: 0,
+        r: 3,
         s: 'minimalsearch',
         sc: 'Search (Private)',
         t: 'minsearch',
@@ -63589,7 +63629,7 @@ export const bangs: Record<string, any> = {
     mkm: {
         c: 'Shopping',
         d: 'www.cardmarket.com',
-        r: 80,
+        r: 97,
         s: 'Magic Card Market',
         sc: 'Online (marketplace)',
         t: 'mkm',
@@ -63614,7 +63654,7 @@ export const bangs: Record<string, any> = {
     mktw: {
         c: 'News',
         d: 'www.marketwatch.com',
-        r: 120,
+        r: 106,
         s: 'MarketWatch',
         sc: 'Business',
         t: 'mktw',
@@ -63623,7 +63663,7 @@ export const bangs: Record<string, any> = {
     mlar: {
         c: 'Shopping',
         d: 'listado.mercadolibre.com.ar',
-        r: 470,
+        r: 336,
         s: 'Mercado Libre Argentina',
         sc: 'Online (marketplace)',
         t: 'mlar',
@@ -63656,7 +63696,7 @@ export const bangs: Record<string, any> = {
     mlbr: {
         c: 'Shopping',
         d: 'lista.mercadolivre.com.br',
-        r: 226,
+        r: 204,
         s: 'Mercado Livre Brasil',
         sc: 'Online',
         t: 'mlbr',
@@ -63665,7 +63705,7 @@ export const bangs: Record<string, any> = {
     mlcl: {
         c: 'Shopping',
         d: 'listado.mercadolibre.cl',
-        r: 18,
+        r: 6,
         s: 'Mercado Libre Chile',
         sc: 'Online',
         t: 'mlcl',
@@ -63756,7 +63796,7 @@ export const bangs: Record<string, any> = {
     mlibreco: {
         c: 'Shopping',
         d: 'listado.mercadolibre.com.co',
-        r: 7,
+        r: 0,
         s: 'MercadoLibre Colombia',
         sc: 'Online',
         t: 'mlibreco',
@@ -63765,7 +63805,7 @@ export const bangs: Record<string, any> = {
     mlivre: {
         c: 'Shopping',
         d: 'lista.mercadolivre.com.br',
-        r: 29,
+        r: 18,
         s: 'Mercado Livre',
         sc: 'Online (deals)',
         t: 'mlivre',
@@ -63781,7 +63821,7 @@ export const bangs: Record<string, any> = {
     },
     mlmx: {
         d: 'listado.mercadolibre.com.mx',
-        r: 114,
+        r: 124,
         s: 'Mercado Libre Mexico',
         t: 'mlmx',
         u: 'https://listado.mercadolibre.com.mx/{{{s}}}',
@@ -63789,7 +63829,7 @@ export const bangs: Record<string, any> = {
     mln: {
         c: 'Research',
         d: 'find.minlib.net',
-        r: 7,
+        r: 8,
         s: 'Minuteman Library Network',
         sc: 'Learning',
         t: 'mln',
@@ -63896,7 +63936,7 @@ export const bangs: Record<string, any> = {
     mmc: {
         c: 'Shopping',
         d: 'www.mcmaster.com',
-        r: 122,
+        r: 114,
         s: 'McMaster-Carr',
         sc: 'Online',
         t: 'mmc',
@@ -63946,7 +63986,7 @@ export const bangs: Record<string, any> = {
     mml: {
         c: 'Entertainment',
         d: 'myanimelist.net',
-        r: 7,
+        r: 10,
         s: 'http://myanimelist.net/',
         sc: 'Comics',
         t: 'mml',
@@ -63964,7 +64004,7 @@ export const bangs: Record<string, any> = {
     mm: {
         c: 'Online Services',
         d: 'www.macmillandictionary.com',
-        r: 8,
+        r: 4,
         s: 'Macmillan Dictionary',
         sc: 'Tools',
         t: 'mm',
@@ -64277,7 +64317,7 @@ export const bangs: Record<string, any> = {
     mod: {
         c: 'Multimedia',
         d: 'modarchive.org',
-        r: 4,
+        r: 28,
         s: 'Modarchive',
         sc: 'Music',
         t: 'mod',
@@ -64424,7 +64464,7 @@ export const bangs: Record<string, any> = {
     mo: {
         c: 'Research',
         d: 'mathoverflow.net',
-        r: 4,
+        r: 10,
         s: 'MathOverflow',
         sc: 'Academic (math/cs)',
         t: 'mo',
@@ -64465,7 +64505,7 @@ export const bangs: Record<string, any> = {
     monde: {
         c: 'News',
         d: 'www.lemonde.fr',
-        r: 12,
+        r: 7,
         s: 'Le Monde',
         sc: 'International',
         t: 'monde',
@@ -64524,7 +64564,7 @@ export const bangs: Record<string, any> = {
     mongo: {
         c: 'Tech',
         d: 'docs.mongodb.org',
-        r: 0,
+        r: 3,
         s: 'MongoDB',
         sc: 'Programming',
         t: 'mongo',
@@ -64617,7 +64657,7 @@ export const bangs: Record<string, any> = {
     moon: {
         c: 'Research',
         d: 'moonmonday.space',
-        r: 0,
+        r: 3,
         s: 'Moon Monday',
         sc: 'Reference (science)',
         t: 'moon',
@@ -64826,7 +64866,7 @@ export const bangs: Record<string, any> = {
     movies: {
         c: 'Entertainment',
         d: 'www.atomtickets.com',
-        r: 3,
+        r: 0,
         s: 'Atom Tickets',
         sc: 'Movies',
         t: 'movies',
@@ -64859,7 +64899,7 @@ export const bangs: Record<string, any> = {
     mozaddon: {
         c: 'Tech',
         d: 'addons.mozilla.org',
-        r: 10,
+        r: 4,
         s: 'Mozilla Addons',
         sc: 'Downloads (add-ons)',
         t: 'mozaddon',
@@ -65084,7 +65124,7 @@ export const bangs: Record<string, any> = {
     mq: {
         c: 'Online Services',
         d: 'www.mapquest.com',
-        r: 5,
+        r: 0,
         s: 'MapQuest',
         sc: 'Maps',
         t: 'mq',
@@ -65267,7 +65307,7 @@ export const bangs: Record<string, any> = {
     msd: {
         c: 'Tech',
         d: 'docs.microsoft.com',
-        r: 4,
+        r: 3,
         s: 'Microsoft Docs',
         sc: 'Programming',
         t: 'msd',
@@ -65377,7 +65417,7 @@ export const bangs: Record<string, any> = {
     ms: {
         c: 'Tech',
         d: 'search.microsoft.com',
-        r: 17,
+        r: 14,
         s: 'Microsoft',
         sc: 'Companies',
         t: 'ms',
@@ -65420,7 +65460,7 @@ export const bangs: Record<string, any> = {
     msn: {
         c: 'News',
         d: 'www.msn.al',
-        r: 7,
+        r: 0,
         s: 'MSN',
         sc: 'International',
         t: 'msn',
@@ -65613,7 +65653,7 @@ export const bangs: Record<string, any> = {
     mtgcm: {
         c: 'Entertainment',
         d: 'www.cardmarket.com',
-        r: 10,
+        r: 4,
         s: 'MagicCardMarket',
         sc: 'Games (specific)',
         t: 'mtgcm',
@@ -65862,7 +65902,7 @@ export const bangs: Record<string, any> = {
     multitran: {
         c: 'Online Services',
         d: 'www.multitran.ru',
-        r: 16,
+        r: 22,
         s: 'Multitran',
         sc: 'Tools',
         t: 'multitran',
@@ -65879,7 +65919,7 @@ export const bangs: Record<string, any> = {
     mu: {
         c: 'Tech',
         d: 'macupdate.com',
-        r: 8,
+        r: 0,
         s: 'MacUpdate',
         sc: 'Downloads (software)',
         t: 'mu',
@@ -65896,7 +65936,7 @@ export const bangs: Record<string, any> = {
     muo: {
         c: 'Tech',
         d: 'www.makeuseof.com',
-        r: 8,
+        r: 18,
         s: 'Makeuseof',
         sc: 'Blogs',
         t: 'muo',
@@ -65970,7 +66010,7 @@ export const bangs: Record<string, any> = {
     musicbrainz: {
         c: 'Multimedia',
         d: 'musicbrainz.org',
-        r: 70,
+        r: 87,
         s: 'MusicBrainz',
         sc: 'Music',
         t: 'musicbrainz',
@@ -66183,7 +66223,7 @@ export const bangs: Record<string, any> = {
     mvnrep: {
         c: 'Tech',
         d: 'mvnrepository.com',
-        r: 10,
+        r: 0,
         s: 'The Maven Repository',
         sc: 'Libraries/Frameworks',
         t: 'mvnrep',
@@ -66225,7 +66265,7 @@ export const bangs: Record<string, any> = {
     mwd: {
         c: 'Research',
         d: 'www.merriam-webster.com',
-        r: 146,
+        r: 161,
         s: 'Merriam-Webster Dictionary',
         sc: 'Reference (words)',
         t: 'mwd',
@@ -66234,7 +66274,7 @@ export const bangs: Record<string, any> = {
     mweb: {
         c: 'Research',
         d: 'www.merriam-webster.com',
-        r: 46,
+        r: 27,
         s: 'Merriam-Webster',
         sc: 'Reference',
         t: 'mweb',
@@ -66270,7 +66310,7 @@ export const bangs: Record<string, any> = {
     mw: {
         c: 'Research',
         d: 'www.merriam-webster.com',
-        r: 4060,
+        r: 3955,
         s: 'Merriam-Webster Dictionary',
         sc: 'Reference (words)',
         t: 'mw',
@@ -66358,7 +66398,7 @@ export const bangs: Record<string, any> = {
     myactivity: {
         c: 'Online Services',
         d: 'myactivity.google.com',
-        r: 3,
+        r: 0,
         s: 'https://myactivity.google.com/myactivity',
         sc: 'Search',
         t: 'myactivity',
@@ -66376,7 +66416,7 @@ export const bangs: Record<string, any> = {
         s: 'Yandex Market',
         d: 'market.yandex.ru',
         t: 'mya',
-        ts: ['yama', 'yandexm'],
+        ts: ['yama', 'yandexm', 'ям', 'яма', 'ямаркет'],
         u: 'https://market.yandex.ru/search?text={{{s}}}',
         c: 'Shopping',
         sc: 'Online (marketplace)',
@@ -66384,7 +66424,7 @@ export const bangs: Record<string, any> = {
     myanimelist: {
         c: 'Entertainment',
         d: 'myanimelist.net',
-        r: 45,
+        r: 41,
         s: 'MyAnimeList',
         sc: 'Comics',
         t: 'myanimelist',
@@ -66516,7 +66556,7 @@ export const bangs: Record<string, any> = {
     myinstants: {
         c: 'Entertainment',
         d: 'www.myinstants.com',
-        r: 32,
+        r: 14,
         s: 'My Instants',
         sc: 'Audio',
         t: 'myinstants',
@@ -66567,7 +66607,7 @@ export const bangs: Record<string, any> = {
     myntra: {
         c: 'Shopping',
         d: 'www.myntra.com',
-        r: 13,
+        r: 17,
         s: 'Myntra',
         sc: 'Online',
         t: 'myntra',
@@ -66609,6 +66649,7 @@ export const bangs: Record<string, any> = {
         s: 'myshows.ru',
         d: 'myshows.me',
         t: 'myshows',
+        ts: ['мш'],
         u: 'https://myshows.me/search/?q={{{s}}}',
         c: 'Entertainment',
         sc: 'TV',
@@ -66668,7 +66709,7 @@ export const bangs: Record<string, any> = {
         s: 'YouTube Music',
         d: 'music.youtube.com',
         t: 'myt',
-        ts: ['ytmusic', 'ytmu', 'ytm'],
+        ts: ['ytmusic', 'ytmu', 'ytm', 'ютм'],
         u: 'https://music.youtube.com/search?q={{{s}}}',
         c: 'Multimedia',
         sc: 'Music',
@@ -66826,7 +66867,7 @@ export const bangs: Record<string, any> = {
     namemc: {
         c: 'Entertainment',
         d: 'de.namemc.com',
-        r: 97,
+        r: 47,
         s: 'NameMC',
         sc: 'Games (Minecraft)',
         t: 'namemc',
@@ -66851,7 +66892,7 @@ export const bangs: Record<string, any> = {
     na: {
         c: 'Online Services',
         d: 'search.naver.com',
-        r: 1304,
+        r: 897,
         s: 'NAVER',
         sc: 'Search (non-US)',
         t: 'na',
@@ -67110,7 +67151,7 @@ export const bangs: Record<string, any> = {
     naver: {
         c: 'Online Services',
         d: 'search.naver.com',
-        r: 4005,
+        r: 3131,
         s: 'Naver',
         sc: 'Search',
         t: 'naver',
@@ -67192,7 +67233,7 @@ export const bangs: Record<string, any> = {
     nbd: {
         c: 'Online Services',
         d: 'ordbokene.no',
-        r: 3,
+        r: 0,
         s: 'Norwegian Bokmål Dictionary',
         sc: 'Tools',
         t: 'nbd',
@@ -67241,7 +67282,7 @@ export const bangs: Record<string, any> = {
     ncatlab: {
         c: 'Research',
         d: 'ncatlab.org',
-        r: 0,
+        r: 3,
         s: 'nLab',
         sc: 'Academic (math/cs)',
         t: 'ncatlab',
@@ -67307,7 +67348,7 @@ export const bangs: Record<string, any> = {
     nc: {
         c: 'Tech',
         d: 'www.namecheap.com',
-        r: 10,
+        r: 20,
         s: 'Namecheap',
         sc: 'Domains',
         t: 'nc',
@@ -67456,7 +67497,7 @@ export const bangs: Record<string, any> = {
     n: {
         c: 'News',
         d: 'duckduckgo.com',
-        r: 772,
+        r: 699,
         s: 'DuckDuckGo News',
         sc: 'Aggregators',
         t: 'n',
@@ -67763,7 +67804,7 @@ export const bangs: Record<string, any> = {
     nethack: {
         c: 'Tech',
         d: 'nethackwiki.com',
-        r: 0,
+        r: 4,
         s: 'NetHack Wiki',
         sc: 'Libraries/Frameworks',
         t: 'nethack',
@@ -67789,7 +67830,7 @@ export const bangs: Record<string, any> = {
     net: {
         c: 'Entertainment',
         d: 'www.netflix.com',
-        r: 25,
+        r: 19,
         s: 'Netfilx',
         sc: 'Movies',
         t: 'net',
@@ -67898,7 +67939,7 @@ export const bangs: Record<string, any> = {
     neweggca: {
         c: 'Shopping',
         d: 'www.newegg.ca',
-        r: 4,
+        r: 0,
         s: 'Newegg Canada',
         sc: 'Tech',
         t: 'neweggca',
@@ -67907,7 +67948,7 @@ export const bangs: Record<string, any> = {
     newegg: {
         c: 'Shopping',
         d: 'www.newegg.com',
-        r: 210,
+        r: 107,
         s: 'Newegg',
         sc: 'Tech',
         t: 'newegg',
@@ -67999,7 +68040,7 @@ export const bangs: Record<string, any> = {
     newsde: {
         c: 'News',
         d: 'duckduckgo.com',
-        r: 4,
+        r: 5,
         s: 'DuckDuckGo News Germany',
         sc: 'International',
         t: 'newsde',
@@ -68008,7 +68049,7 @@ export const bangs: Record<string, any> = {
     news: {
         c: 'News',
         d: 'duckduckgo.com',
-        r: 777,
+        r: 582,
         s: 'DuckDuckGo News',
         sc: 'Aggregators',
         t: 'news',
@@ -68180,7 +68221,7 @@ export const bangs: Record<string, any> = {
     nf: {
         c: 'Entertainment',
         d: 'www.netflix.com',
-        r: 254,
+        r: 301,
         s: 'Netflix',
         sc: 'Movies',
         t: 'nf',
@@ -68240,7 +68281,7 @@ export const bangs: Record<string, any> = {
     ng: {
         c: 'Tech',
         d: 'angular.io',
-        r: 10,
+        r: 12,
         s: 'AngularJS',
         sc: 'Languages (javascript)',
         t: 'ng',
@@ -68291,7 +68332,7 @@ export const bangs: Record<string, any> = {
     ngrams: {
         c: 'Research',
         d: 'books.google.com',
-        r: 8,
+        r: 0,
         s: 'Google Ngram Viewer',
         sc: 'Academic',
         t: 'ngrams',
@@ -68367,7 +68408,7 @@ export const bangs: Record<string, any> = {
     nhw: {
         c: 'Entertainment',
         d: 'nethackwiki.com',
-        r: 4,
+        r: 12,
         s: 'Nethack Wiki',
         sc: 'Games (general)',
         t: 'nhw',
@@ -68426,7 +68467,7 @@ export const bangs: Record<string, any> = {
     niconico: {
         c: 'Entertainment',
         d: 'www.nicovideo.jp',
-        r: 35,
+        r: 32,
         s: 'Niconico',
         sc: 'Misc',
         t: 'niconico',
@@ -68711,7 +68752,7 @@ export const bangs: Record<string, any> = {
     nixos: {
         c: 'Tech',
         d: 'nixos.wiki',
-        r: 88,
+        r: 59,
         s: 'Nixos Wiki',
         sc: 'Sysadmin',
         t: 'nixos',
@@ -68720,7 +68761,7 @@ export const bangs: Record<string, any> = {
     nixoswiki: {
         c: 'Tech',
         d: 'nixos.wiki',
-        r: 12,
+        r: 7,
         s: 'Nixos Wiki',
         sc: 'Sysadmin',
         t: 'nixoswiki',
@@ -68836,7 +68877,7 @@ export const bangs: Record<string, any> = {
     nlen: {
         c: 'Online Services',
         d: 'translate.google.com',
-        r: 4,
+        r: 0,
         s: 'Google translate',
         sc: 'Google',
         t: 'nlen',
@@ -68845,7 +68886,7 @@ export const bangs: Record<string, any> = {
     nl: {
         c: 'Research',
         d: 'ncatlab.org',
-        r: 26,
+        r: 12,
         s: 'http://ncatlab.org/nlab/show/HomePage',
         sc: 'Academic (math/cs)',
         t: 'nl',
@@ -68887,7 +68928,7 @@ export const bangs: Record<string, any> = {
     nlwi: {
         c: 'Research',
         d: 'nl.wikipedia.org',
-        r: 3,
+        r: 4,
         s: 'Dutch Wikipedia',
         sc: 'Reference',
         t: 'nlwi',
@@ -68896,7 +68937,7 @@ export const bangs: Record<string, any> = {
     nlwiki: {
         c: 'Online Services',
         d: 'nl.wikipedia.org',
-        r: 7,
+        r: 0,
         s: 'Dutch Wikipedia',
         sc: 'Search (non-US)',
         t: 'nlwiki',
@@ -68921,7 +68962,7 @@ export const bangs: Record<string, any> = {
     nmc: {
         c: 'Entertainment',
         d: 'namemc.com',
-        r: 23,
+        r: 30,
         s: 'NameMC',
         sc: 'Games (Minecraft)',
         t: 'nmc',
@@ -68994,7 +69035,7 @@ export const bangs: Record<string, any> = {
     nnl: {
         c: 'Entertainment',
         d: 'live.nicovideo.jp',
-        r: 3,
+        r: 0,
         s: 'Nico Nico Live',
         sc: 'Misc',
         t: 'nnl',
@@ -69108,7 +69149,7 @@ export const bangs: Record<string, any> = {
     nojs: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 109,
+        r: 143,
         s: 'DuckDuckGo (HTML)',
         sc: 'Search (DDG)',
         t: 'nojs',
@@ -69289,7 +69330,7 @@ export const bangs: Record<string, any> = {
     notevil: {
         c: 'Research',
         d: 'hss3uro2hsxfogfq.onion',
-        r: 0,
+        r: 6,
         s: 'not Evil',
         sc: 'Reference',
         t: 'notevil',
@@ -69366,7 +69407,7 @@ export const bangs: Record<string, any> = {
     npedia: {
         c: 'Online Services',
         d: 'dic.nicovideo.jp',
-        r: 3,
+        r: 0,
         s: 'Niconico Pedia',
         sc: 'Search',
         t: 'npedia',
@@ -69392,7 +69433,7 @@ export const bangs: Record<string, any> = {
     npm: {
         c: 'Tech',
         d: 'www.npmjs.com',
-        r: 3263,
+        r: 3057,
         s: 'npm',
         sc: 'Languages (javascript)',
         t: 'npm',
@@ -69410,7 +69451,7 @@ export const bangs: Record<string, any> = {
     npmsio: {
         c: 'Tech',
         d: 'npms.io',
-        r: 11,
+        r: 0,
         s: 'npms',
         sc: 'Languages (javascript)',
         t: 'npmsio',
@@ -69468,7 +69509,7 @@ export const bangs: Record<string, any> = {
     np: {
         c: 'Multimedia',
         d: 'thenounproject.com',
-        r: 14,
+        r: 18,
         s: 'The Noun Project',
         sc: 'Images',
         t: 'np',
@@ -69485,7 +69526,7 @@ export const bangs: Record<string, any> = {
     nrdb: {
         c: 'Entertainment',
         d: 'netrunnerdb.com',
-        r: 641,
+        r: 247,
         s: 'NetrunnerDB',
         sc: 'Games (offline)',
         t: 'nrdb',
@@ -69561,7 +69602,7 @@ export const bangs: Record<string, any> = {
     nsf: {
         c: 'Online Services',
         d: 'safeweb.norton.com',
-        r: 41,
+        r: 23,
         s: 'Norton Safe Web',
         sc: 'Tools (URLs)',
         t: 'nsf',
@@ -69845,7 +69886,7 @@ export const bangs: Record<string, any> = {
     nvenkr: {
         c: 'Translation',
         d: 'papago.naver.com',
-        r: 4,
+        r: 3,
         s: 'Naver Papago',
         sc: 'General',
         t: 'nvenkr',
@@ -69888,7 +69929,7 @@ export const bangs: Record<string, any> = {
     nvu: {
         c: 'Entertainment',
         d: 'www.novelupdates.com',
-        r: 61,
+        r: 37,
         s: 'Novel Updates',
         sc: 'Misc',
         t: 'nvu',
@@ -69913,7 +69954,7 @@ export const bangs: Record<string, any> = {
     nw: {
         c: 'Research',
         d: 'ninjawords.com',
-        r: 6,
+        r: 11,
         s: 'Ninja Words',
         sc: 'Reference (words)',
         t: 'nw',
@@ -69930,7 +69971,7 @@ export const bangs: Record<string, any> = {
     nws: {
         c: 'News',
         d: 'forecast.weather.gov',
-        r: 140,
+        r: 182,
         s: 'National Weather Service',
         sc: 'Weather',
         t: 'nws',
@@ -70012,7 +70053,7 @@ export const bangs: Record<string, any> = {
     nytc: {
         c: 'Research',
         d: 'cooking.nytimes.com',
-        r: 6,
+        r: 14,
         s: 'New York Times Cooking',
         sc: 'Food',
         t: 'nytc',
@@ -70349,7 +70390,7 @@ export const bangs: Record<string, any> = {
     oc: {
         c: 'Research',
         d: 'openclassrooms.com',
-        r: 5,
+        r: 0,
         s: 'OpenClassrooms',
         sc: 'Learning',
         t: 'oc',
@@ -70392,7 +70433,7 @@ export const bangs: Record<string, any> = {
     octopart: {
         c: 'Online Services',
         d: 'octopart.com',
-        r: 37,
+        r: 18,
         s: 'Octopart',
         sc: 'Search',
         t: 'octopart',
@@ -70417,7 +70458,7 @@ export const bangs: Record<string, any> = {
     ocw: {
         c: 'Research',
         d: 'search.mit.edu',
-        r: 4,
+        r: 0,
         s: 'MIT OpenCourseWare',
         sc: 'Academic',
         t: 'ocw',
@@ -70906,7 +70947,7 @@ export const bangs: Record<string, any> = {
     oldred: {
         c: 'Entertainment',
         d: 'old.reddit.com',
-        r: 125,
+        r: 146,
         s: 'old.reddit.com',
         sc: 'Forum',
         t: 'oldred',
@@ -71120,7 +71161,7 @@ export const bangs: Record<string, any> = {
     omap: {
         c: 'Online Services',
         d: 'www.openstreetmap.org',
-        r: 33,
+        r: 30,
         s: 'Open Street Maps',
         sc: 'Maps',
         t: 'omap',
@@ -71231,7 +71272,7 @@ export const bangs: Record<string, any> = {
     omgubuntu: {
         c: 'Tech',
         d: 'www.omgubuntu.co.uk',
-        r: 4,
+        r: 0,
         s: 'OMG! Ubuntu!',
         sc: 'Blogs',
         t: 'omgubuntu',
@@ -71240,7 +71281,7 @@ export const bangs: Record<string, any> = {
     omgu: {
         c: 'Tech',
         d: 'www.omgubuntu.co.uk',
-        r: 22,
+        r: 7,
         s: 'OMG! Ubuntu!',
         sc: 'Blogs',
         t: 'omgu',
@@ -71380,7 +71421,7 @@ export const bangs: Record<string, any> = {
     onelookth: {
         c: 'Research',
         d: 'www.onelook.com',
-        r: 8,
+        r: 9,
         s: 'Onelook Reverse Dictionary',
         sc: 'Reference (words)',
         t: 'onelookth',
@@ -71779,7 +71820,7 @@ export const bangs: Record<string, any> = {
     openlibrary: {
         c: 'Multimedia',
         d: 'openlibrary.org',
-        r: 0,
+        r: 18,
         s: 'Open Library',
         sc: 'Books',
         t: 'openlibrary',
@@ -71797,7 +71838,7 @@ export const bangs: Record<string, any> = {
     openmaps: {
         c: 'Online Services',
         d: 'www.openstreetmap.org',
-        r: 26,
+        r: 10,
         s: 'OpenStreetMap',
         sc: 'Maps',
         t: 'openmaps',
@@ -71807,6 +71848,7 @@ export const bangs: Record<string, any> = {
         s: 'OpenNET',
         d: 'www.opennet.ru',
         t: 'opennet',
+        ts: ['опеннет'],
         u: 'https://www.opennet.ru/search.shtml?exclude=index|/man.shtml&words={{{s}}}',
         c: 'Tech',
         sc: 'Blogs',
@@ -71895,7 +71937,7 @@ export const bangs: Record<string, any> = {
     openstreetmap: {
         c: 'Online Services',
         d: 'www.openstreetmap.org',
-        r: 28,
+        r: 14,
         s: 'OpenStreetMap',
         sc: 'Maps',
         t: 'openstreetmap',
@@ -71913,7 +71955,7 @@ export const bangs: Record<string, any> = {
     openstreet: {
         c: 'Online Services',
         d: 'www.openstreetmap.org',
-        r: 3,
+        r: 0,
         s: 'OpenStreetMap',
         sc: 'Maps',
         t: 'openstreet',
@@ -71922,7 +71964,7 @@ export const bangs: Record<string, any> = {
     opensuse: {
         c: 'Tech',
         d: 'en.opensuse.org',
-        r: 8,
+        r: 4,
         s: 'OpenSUSE',
         sc: 'Sysadmin',
         t: 'opensuse',
@@ -72201,7 +72243,7 @@ export const bangs: Record<string, any> = {
     ordbok: {
         c: 'Research',
         d: 'ordbok.uib.no',
-        r: 17,
+        r: 13,
         s: 'Bokmålsordboka | Nynorskordboka',
         sc: 'Reference (words)',
         t: 'ordbok',
@@ -72226,7 +72268,7 @@ export const bangs: Record<string, any> = {
     ordnet: {
         c: 'Online Services',
         d: 'ordnet.dk',
-        r: 102,
+        r: 60,
         s: 'Den Danske Ordbog',
         sc: 'Tools',
         t: 'ordnet',
@@ -72618,7 +72660,7 @@ export const bangs: Record<string, any> = {
     osmwiki: {
         c: 'Online Services',
         d: 'wiki.openstreetmap.org',
-        r: 90,
+        r: 79,
         s: 'OpenStreetMap Wiki (short)',
         sc: 'Maps',
         t: 'osmwiki',
@@ -72644,7 +72686,7 @@ export const bangs: Record<string, any> = {
     os: {
         c: 'Tech',
         d: 'software.opensuse.org',
-        r: 23,
+        r: 32,
         s: 'openSUSE',
         sc: 'Sysadmin (RedHat)',
         t: 'os',
@@ -72703,7 +72745,7 @@ export const bangs: Record<string, any> = {
     osrsw: {
         c: 'Entertainment',
         d: 'oldschool.runescape.wiki',
-        r: 41,
+        r: 13,
         s: 'OSRS Official Wiki',
         sc: 'Games (specific)',
         t: 'osrsw',
@@ -72752,7 +72794,7 @@ export const bangs: Record<string, any> = {
     ost: {
         c: 'Online Services',
         d: 'www.openstreetmap.org',
-        r: 20,
+        r: 19,
         s: 'http://www.openstreetmap.org/',
         sc: 'Maps',
         t: 'ost',
@@ -73315,7 +73357,7 @@ export const bangs: Record<string, any> = {
     ozb: {
         c: 'Shopping',
         d: 'www.ozbargain.com.au',
-        r: 250,
+        r: 367,
         s: 'Oz Bargain',
         sc: 'Online (deals)',
         t: 'ozb',
@@ -73341,6 +73383,7 @@ export const bangs: Record<string, any> = {
         s: 'OZON',
         d: 'www.ozon.ru',
         t: 'ozon',
+        ts: ['озон'],
         u: 'https://www.ozon.ru/search/?text={{{s}}}',
         c: 'Shopping',
         sc: 'Online',
@@ -73406,7 +73449,7 @@ export const bangs: Record<string, any> = {
     pac: {
         c: 'Tech',
         d: 'www.archlinux.org',
-        r: 307,
+        r: 273,
         s: 'Arch Linux Package Database',
         sc: 'Sysadmin (Arch)',
         t: 'pac',
@@ -73465,7 +73508,7 @@ export const bangs: Record<string, any> = {
     pack: {
         c: 'Tech',
         d: 'packagist.org',
-        r: 10,
+        r: 5,
         s: 'Packagist',
         sc: 'Languages (php)',
         t: 'pack',
@@ -73482,7 +73525,7 @@ export const bangs: Record<string, any> = {
     pacman: {
         c: 'Tech',
         d: 'www.archlinux.org',
-        r: 427,
+        r: 389,
         s: 'Arch Package Repo',
         sc: 'Sysadmin (Arch)',
         t: 'pacman',
@@ -73719,7 +73762,7 @@ export const bangs: Record<string, any> = {
     papers: {
         c: 'Research',
         d: 'scholar.google.com',
-        r: 41,
+        r: 32,
         s: 'Google Scholar',
         sc: 'Academic',
         t: 'papers',
@@ -73745,7 +73788,7 @@ export const bangs: Record<string, any> = {
     parabola: {
         c: 'Tech',
         d: 'www.parabola.nu',
-        r: 0,
+        r: 4,
         s: 'Parabola GNU/Linux-libre',
         sc: 'Sysadmin (packages)',
         t: 'parabola',
@@ -74256,7 +74299,7 @@ export const bangs: Record<string, any> = {
     pcco: {
         c: 'Shopping',
         d: 'www.pccomponentes.com',
-        r: 0,
+        r: 3,
         s: 'PcComponentes',
         sc: 'Tech',
         t: 'pcco',
@@ -74314,7 +74357,7 @@ export const bangs: Record<string, any> = {
     pcgw: {
         c: 'Entertainment',
         d: 'pcgamingwiki.com',
-        r: 824,
+        r: 838,
         s: 'PCGamingWiki',
         sc: 'Games (general)',
         t: 'pcgw',
@@ -74449,7 +74492,7 @@ export const bangs: Record<string, any> = {
     pcpp: {
         c: 'Shopping',
         d: 'pcpartpicker.com',
-        r: 61,
+        r: 36,
         s: 'PcPartPicker',
         sc: 'Tech',
         t: 'pcpp',
@@ -74541,7 +74584,7 @@ export const bangs: Record<string, any> = {
     pdf: {
         c: 'Online Services',
         d: '',
-        r: 67,
+        r: 62,
         s: 'PDFs',
         sc: 'Search (DDG)',
         t: 'pdf',
@@ -74912,7 +74955,7 @@ export const bangs: Record<string, any> = {
     perl: {
         c: 'Tech',
         d: 'p3rl.org',
-        r: 22,
+        r: 6,
         s: 'p3rl.org',
         sc: 'Languages (perl)',
         t: 'perl',
@@ -75052,7 +75095,7 @@ export const bangs: Record<string, any> = {
     pf: {
         c: 'Online Services',
         d: 'www.printfriendly.com',
-        r: 38,
+        r: 41,
         s: 'PrintFriendly',
         sc: 'Tools (URLs)',
         t: 'pf',
@@ -75102,7 +75145,7 @@ export const bangs: Record<string, any> = {
     pfw: {
         c: 'Tech',
         d: 'www.portablefreeware.com',
-        r: 3,
+        r: 0,
         s: 'The Portable Freeware Collection',
         sc: 'Downloads (software)',
         t: 'pfw',
@@ -75184,7 +75227,7 @@ export const bangs: Record<string, any> = {
     pg: {
         c: 'Multimedia',
         d: 'www.gutenberg.org',
-        r: 25,
+        r: 12,
         s: 'Project Gutenberg',
         sc: 'Books',
         t: 'pg',
@@ -75409,7 +75452,7 @@ export const bangs: Record<string, any> = {
     php: {
         c: 'Tech',
         d: 'secure.php.net',
-        r: 608,
+        r: 460,
         s: 'PHP.net',
         sc: 'Languages (php)',
         t: 'php',
@@ -75534,7 +75577,7 @@ export const bangs: Record<string, any> = {
     pics: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 45,
+        r: 55,
         s: 'DuckDuckGo Images',
         sc: 'Search (DDG)',
         t: 'pics',
@@ -75551,7 +75594,7 @@ export const bangs: Record<string, any> = {
     pictures: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 23,
+        r: 30,
         s: 'DuckDuckGo Images',
         sc: 'Search (DDG)',
         t: 'pictures',
@@ -75585,7 +75628,7 @@ export const bangs: Record<string, any> = {
         s: 'Pikabu.ru',
         d: 'pikabu.ru',
         t: 'pikabu',
-        ts: ['pkb'],
+        ts: ['pkb', 'пикабу', 'пкб'],
         u: 'https://pikabu.ru/search.php?q={{{s}}}',
         c: 'Entertainment',
         sc: 'Blogs',
@@ -75768,7 +75811,7 @@ export const bangs: Record<string, any> = {
     pip: {
         c: 'Tech',
         d: 'pypi.python.org',
-        r: 560,
+        r: 431,
         s: 'pip',
         sc: 'Languages (python)',
         t: 'pip',
@@ -75810,7 +75853,7 @@ export const bangs: Record<string, any> = {
     pitchfork: {
         c: 'Tech',
         d: 'pitchfork.com',
-        r: 9,
+        r: 12,
         s: 'Pitchfork Media',
         sc: 'Blogs',
         t: 'pitchfork',
@@ -75929,7 +75972,7 @@ export const bangs: Record<string, any> = {
     pkg: {
         c: 'Tech',
         d: 'www.archlinux.org',
-        r: 600,
+        r: 718,
         s: 'Arch Linux Packages',
         sc: 'Sysadmin (Arch)',
         t: 'pkg',
@@ -75988,7 +76031,7 @@ export const bangs: Record<string, any> = {
     pk: {
         c: 'Research',
         d: 'peekier.com',
-        r: 0,
+        r: 3,
         s: 'Peekier',
         sc: 'Reference',
         t: 'pk',
@@ -76087,7 +76130,7 @@ export const bangs: Record<string, any> = {
     pla: {
         c: 'Research',
         d: 'www.perseus.tufts.edu',
-        r: 0,
+        r: 25,
         s: 'Perseus word study tool',
         sc: 'Reference (words)',
         t: 'pla',
@@ -76145,7 +76188,7 @@ export const bangs: Record<string, any> = {
     play: {
         c: 'Online Services',
         d: 'play.google.com',
-        r: 151,
+        r: 144,
         s: 'Google Play',
         sc: 'Google',
         t: 'play',
@@ -76197,7 +76240,7 @@ export const bangs: Record<string, any> = {
     playstore: {
         c: 'Online Services',
         d: 'play.google.com',
-        r: 19,
+        r: 16,
         s: 'Google Play Store',
         sc: 'Google',
         t: 'playstore',
@@ -76303,7 +76346,7 @@ export const bangs: Record<string, any> = {
     pl: {
         c: 'Research',
         d: 'publiclab.org',
-        r: 10,
+        r: 7,
         s: 'Public Lab',
         sc: 'Reference (science)',
         t: 'pl',
@@ -76385,7 +76428,7 @@ export const bangs: Record<string, any> = {
     plw: {
         c: 'Online Services',
         d: 'pl.wikipedia.org',
-        r: 18,
+        r: 26,
         s: 'Polish Wikipedia',
         sc: 'Tools',
         t: 'plw',
@@ -76450,7 +76493,7 @@ export const bangs: Record<string, any> = {
     pmc: {
         c: 'Entertainment',
         d: 'www.planetminecraft.com',
-        r: 0,
+        r: 9,
         s: 'PlanetMinecraft.com',
         sc: 'Games (Minecraft)',
         t: 'pmc',
@@ -76568,7 +76611,7 @@ export const bangs: Record<string, any> = {
     pm: {
         c: 'Research',
         d: 'www.ncbi.nlm.nih.gov',
-        r: 136,
+        r: 68,
         s: 'pubmed',
         sc: 'Academic',
         t: 'pm',
@@ -76602,7 +76645,7 @@ export const bangs: Record<string, any> = {
     pn: {
         c: 'Shopping',
         d: 'primenow.amazon.com',
-        r: 0,
+        r: 3,
         s: 'Amazon Prime NOW',
         sc: 'Online',
         t: 'pn',
@@ -76876,7 +76919,7 @@ export const bangs: Record<string, any> = {
     pokemondb: {
         c: 'Entertainment',
         d: 'pokemondb.net',
-        r: 18,
+        r: 51,
         s: 'Pokémon Database',
         sc: 'Games (Pokemon)',
         t: 'pokemondb',
@@ -77229,7 +77272,7 @@ export const bangs: Record<string, any> = {
     pop: {
         c: 'Entertainment',
         d: 'incendar.com',
-        r: 0,
+        r: 9,
         s: 'Incendar.com',
         sc: 'TV',
         t: 'pop',
@@ -77658,7 +77701,7 @@ export const bangs: Record<string, any> = {
     p: {
         c: 'Multimedia',
         d: 'www.pinterest.com',
-        r: 1713,
+        r: 1351,
         s: 'Pinterest',
         sc: 'Images',
         t: 'p',
@@ -77691,7 +77734,7 @@ export const bangs: Record<string, any> = {
     pp: {
         c: 'News',
         d: 'passapalavra.info',
-        r: 9,
+        r: 6,
         s: 'Passa Palavra',
         sc: 'Magazine',
         t: 'pp',
@@ -77864,7 +77907,7 @@ export const bangs: Record<string, any> = {
     priberam: {
         c: 'Multimedia',
         d: 'www.priberam.pt',
-        r: 145,
+        r: 154,
         s: 'Priberam',
         sc: 'Docs',
         t: 'priberam',
@@ -77873,7 +77916,7 @@ export const bangs: Record<string, any> = {
     price: {
         c: 'Shopping',
         d: 'www.amazon.com',
-        r: 3,
+        r: 0,
         s: 'Amazon.com',
         sc: 'Online',
         t: 'price',
@@ -78054,7 +78097,7 @@ export const bangs: Record<string, any> = {
     prisjakt: {
         c: 'Shopping',
         d: 'www.prisjakt.nu',
-        r: 46,
+        r: 21,
         s: 'Prisjakt',
         sc: 'Services',
         t: 'prisjakt',
@@ -78063,7 +78106,7 @@ export const bangs: Record<string, any> = {
     pris: {
         c: 'Shopping',
         d: 'www.prisjakt.nu',
-        r: 7,
+        r: 0,
         s: 'Prisjakt',
         sc: 'Online',
         t: 'pris',
@@ -78159,7 +78202,7 @@ export const bangs: Record<string, any> = {
     producthunt: {
         c: 'Tech',
         d: 'www.producthunt.com',
-        r: 17,
+        r: 10,
         s: 'Product Hunt',
         sc: 'Startups',
         t: 'producthunt',
@@ -78287,7 +78330,7 @@ export const bangs: Record<string, any> = {
     pronounce: {
         c: 'Research',
         d: 'dictionary.reference.com',
-        r: 0,
+        r: 3,
         s: 'Dictionary.com',
         sc: 'Reference (words)',
         t: 'pronounce',
@@ -78370,7 +78413,7 @@ export const bangs: Record<string, any> = {
     protondb: {
         c: 'Entertainment',
         d: 'www.protondb.com',
-        r: 657,
+        r: 637,
         s: 'ProtonDB',
         sc: 'Games (general)',
         t: 'protondb',
@@ -78379,7 +78422,7 @@ export const bangs: Record<string, any> = {
     proton: {
         c: 'Entertainment',
         d: 'www.protondb.com',
-        r: 192,
+        r: 141,
         s: 'https://www.protondb.com/',
         sc: 'Games (general)',
         t: 'proton',
@@ -78437,7 +78480,7 @@ export const bangs: Record<string, any> = {
     prusa: {
         c: 'Tech',
         d: 'www.prusaprinters.org',
-        r: 26,
+        r: 16,
         s: 'Prusa Printers',
         sc: 'Downloads',
         t: 'prusa',
@@ -78618,7 +78661,7 @@ export const bangs: Record<string, any> = {
     ps: {
         c: 'Shopping',
         d: 'www.playstation.com',
-        r: 12,
+        r: 5,
         s: 'Playstation',
         sc: 'Tech',
         t: 'ps',
@@ -78635,7 +78678,7 @@ export const bangs: Record<string, any> = {
     psql: {
         c: 'Tech',
         d: 'www.postgresql.org',
-        r: 38,
+        r: 5,
         s: 'PostgreSQL (Docs)',
         sc: 'Sysadmin',
         t: 'psql',
@@ -78710,7 +78753,7 @@ export const bangs: Record<string, any> = {
     psychonautwiki: {
         c: 'Research',
         d: 'psychonautwiki.org',
-        r: 0,
+        r: 3,
         s: 'PsychonautWiki',
         sc: 'Reference (science)',
         t: 'psychonautwiki',
@@ -78719,7 +78762,7 @@ export const bangs: Record<string, any> = {
     psy: {
         c: 'Research',
         d: 'psychonautwiki.org',
-        r: 44,
+        r: 66,
         s: 'PsychonautWiki',
         sc: 'Reference',
         t: 'psy',
@@ -78776,7 +78819,7 @@ export const bangs: Record<string, any> = {
     ptn: {
         c: 'Entertainment',
         d: 'www.protondb.com',
-        r: 111,
+        r: 134,
         s: 'ProtonDB',
         sc: 'Games (general)',
         t: 'ptn',
@@ -78785,7 +78828,7 @@ export const bangs: Record<string, any> = {
     pt: {
         c: 'Research',
         d: 'www.powerthesaurus.org',
-        r: 204,
+        r: 188,
         s: 'Power Thesaurus ',
         sc: 'Reference (words)',
         t: 'pt',
@@ -78899,7 +78942,7 @@ export const bangs: Record<string, any> = {
     pubmed: {
         c: 'Research',
         d: 'www.ncbi.nlm.nih.gov',
-        r: 200,
+        r: 209,
         s: 'PubMed',
         sc: 'Health',
         t: 'pubmed',
@@ -78908,7 +78951,7 @@ export const bangs: Record<string, any> = {
     pub: {
         c: 'Research',
         d: 'www.ncbi.nlm.nih.gov',
-        r: 31,
+        r: 18,
         s: 'Pubmed',
         sc: 'Health',
         t: 'pub',
@@ -79023,7 +79066,7 @@ export const bangs: Record<string, any> = {
     pursuit: {
         c: 'Tech',
         d: 'pursuit.purescript.org',
-        r: 16,
+        r: 3,
         s: 'Pursuit',
         sc: 'Languages (other)',
         t: 'pursuit',
@@ -79073,7 +79116,7 @@ export const bangs: Record<string, any> = {
     pwde: {
         c: 'Entertainment',
         d: 'www.pokewiki.de',
-        r: 29,
+        r: 14,
         s: 'http://www.pokewiki.de/',
         sc: 'Games (Pokemon)',
         t: 'pwde',
@@ -79091,7 +79134,7 @@ export const bangs: Record<string, any> = {
     pwiki: {
         c: 'Research',
         d: 'psychonautwiki.org',
-        r: 0,
+        r: 4,
         s: 'PsychonautWiki',
         sc: 'Reference',
         t: 'pwiki',
@@ -79118,7 +79161,7 @@ export const bangs: Record<string, any> = {
     pw: {
         c: 'Shopping',
         d: 'www.pricewatch.com',
-        r: 6,
+        r: 4,
         s: 'Pricewatch',
         sc: 'Tech',
         t: 'pw',
@@ -79160,7 +79203,7 @@ export const bangs: Record<string, any> = {
     px: {
         c: 'Multimedia',
         d: 'pixabay.com',
-        r: 13,
+        r: 12,
         s: 'Pixabay',
         sc: 'Images',
         t: 'px',
@@ -79244,7 +79287,7 @@ export const bangs: Record<string, any> = {
     py3: {
         c: 'Tech',
         d: 'docs.python.org',
-        r: 188,
+        r: 232,
         s: 'Python3 Documentation',
         sc: 'Languages (python)',
         t: 'py3',
@@ -79294,7 +79337,7 @@ export const bangs: Record<string, any> = {
     pypa: {
         c: 'Tech',
         d: 'pypi.org',
-        r: 7,
+        r: 9,
         s: 'pypi.org',
         sc: 'Languages (python)',
         t: 'pypa',
@@ -79312,7 +79355,7 @@ export const bangs: Record<string, any> = {
     py: {
         c: 'Tech',
         d: 'docs.python.org',
-        r: 977,
+        r: 854,
         s: 'Python',
         sc: 'Languages (python)',
         t: 'py',
@@ -79418,7 +79461,7 @@ export const bangs: Record<string, any> = {
     python3: {
         c: 'Tech',
         d: 'docs.python.org',
-        r: 51,
+        r: 24,
         s: 'Python 3',
         sc: 'Languages (python)',
         t: 'python3',
@@ -79435,7 +79478,7 @@ export const bangs: Record<string, any> = {
     python: {
         c: 'Tech',
         d: 'docs.python.org',
-        r: 900,
+        r: 644,
         s: 'Python',
         sc: 'Languages (python)',
         t: 'python',
@@ -79642,7 +79685,7 @@ export const bangs: Record<string, any> = {
     q: {
         c: 'Online Services',
         d: 'www.quora.com',
-        r: 200,
+        r: 196,
         s: 'Quora',
         sc: 'Search',
         t: 'q',
@@ -79983,7 +80026,7 @@ export const bangs: Record<string, any> = {
     qw: {
         c: 'Online Services',
         d: 'www.qwant.com',
-        r: 112,
+        r: 98,
         s: 'Qwant',
         sc: 'Search',
         t: 'qw',
@@ -80175,7 +80218,7 @@ export const bangs: Record<string, any> = {
     rad: {
         c: 'Multimedia',
         d: 'radiopaedia.org',
-        r: 39,
+        r: 40,
         s: 'Radiopaedia',
         sc: 'General',
         t: 'rad',
@@ -80184,7 +80227,7 @@ export const bangs: Record<string, any> = {
     rae: {
         c: 'Online Services',
         d: 'dle.rae.es',
-        r: 1363,
+        r: 1879,
         s: 'RAE',
         sc: 'Tools',
         t: 'rae',
@@ -80282,7 +80325,7 @@ export const bangs: Record<string, any> = {
     rakuten: {
         c: 'Shopping',
         d: 'search.rakuten.co.jp',
-        r: 98,
+        r: 79,
         s: 'Rakuten',
         sc: 'Online (marketplace)',
         t: 'rakuten',
@@ -80357,7 +80400,7 @@ export const bangs: Record<string, any> = {
     rapgenius: {
         c: 'Multimedia',
         d: 'rapgenius.com',
-        r: 6,
+        r: 5,
         s: 'Rap Genius',
         sc: 'Music (Lyrics)',
         t: 'rapgenius',
@@ -80374,7 +80417,7 @@ export const bangs: Record<string, any> = {
     rap: {
         c: 'Entertainment',
         d: 'genius.com',
-        r: 17,
+        r: 22,
         s: 'rapgenius',
         sc: 'Audio',
         t: 'rap',
@@ -80455,7 +80498,7 @@ export const bangs: Record<string, any> = {
     rateyourmusic: {
         c: 'Multimedia',
         d: 'rateyourmusic.com',
-        r: 41,
+        r: 27,
         s: 'Rate Your Music',
         sc: 'Music',
         t: 'rateyourmusic',
@@ -80472,7 +80515,7 @@ export const bangs: Record<string, any> = {
     rationalwiki: {
         c: 'Research',
         d: 'rationalwiki.org',
-        r: 54,
+        r: 53,
         s: 'RationalWiki',
         sc: 'Reference',
         t: 'rationalwiki',
@@ -80783,6 +80826,7 @@ export const bangs: Record<string, any> = {
         s: 'Bab.la Russian Verbs Conjugation',
         d: 'bab.la',
         t: 'rconj',
+        ts: ['спряжение'],
         u: 'https://bab.la/conjugaison/russe/{{{s}}}',
         c: 'Research',
         sc: 'Reference (words intl)',
@@ -80832,6 +80876,7 @@ export const bangs: Record<string, any> = {
         s: 'Reverso Context Russian-English',
         d: 'context.reverso.net',
         t: 'rcruen',
+        ts: ['реверсо', 'рк'],
         u: 'https://context.reverso.net/translation/russian-english/{{{s}}}',
         c: 'Translation',
         sc: 'General',
@@ -80915,7 +80960,7 @@ export const bangs: Record<string, any> = {
     rdo: {
         c: 'Tech',
         d: 'www.rdocumentation.org',
-        r: 4,
+        r: 0,
         s: 'R Documentation',
         sc: 'Languages (r)',
         t: 'rdo',
@@ -80932,7 +80977,7 @@ export const bangs: Record<string, any> = {
     rds: {
         c: 'Online Services',
         d: 'www.reddit.com',
-        r: 1760,
+        r: 1854,
         s: 'Subreddit on Reddit',
         sc: 'Social news/links',
         t: 'rds',
@@ -81275,7 +81320,7 @@ export const bangs: Record<string, any> = {
     redditold: {
         c: 'Online Services',
         d: 'old.reddit.com',
-        r: 47,
+        r: 49,
         s: 'Reddit (old version)',
         sc: 'Social',
         t: 'redditold',
@@ -81583,7 +81628,7 @@ export const bangs: Record<string, any> = {
     register: {
         c: 'News',
         d: 'search.theregister.co.uk',
-        r: 8,
+        r: 3,
         s: 'The Register',
         sc: 'Specialty',
         t: 'register',
@@ -81667,7 +81712,7 @@ export const bangs: Record<string, any> = {
     remy: {
         c: 'Entertainment',
         d: 'remywiki.com',
-        r: 22,
+        r: 19,
         s: 'https://remywiki.com',
         sc: 'Games (general)',
         t: 'remy',
@@ -81693,7 +81738,7 @@ export const bangs: Record<string, any> = {
     ren: {
         c: 'Research',
         d: 'dictionary.reverso.net',
-        r: 0,
+        r: 18,
         s: 'Reverso Dictionary',
         sc: 'Reference (words)',
         t: 'ren',
@@ -81808,7 +81853,7 @@ export const bangs: Record<string, any> = {
     research: {
         c: 'Research',
         d: 'journals.plos.org',
-        r: 56,
+        r: 38,
         s: 'PLOS',
         sc: 'Academic',
         t: 'research',
@@ -81934,7 +81979,7 @@ export const bangs: Record<string, any> = {
     reuters: {
         c: 'News',
         d: 'www.reuters.com',
-        r: 109,
+        r: 149,
         s: 'Reuters',
         sc: 'International',
         t: 'reuters',
@@ -81959,7 +82004,7 @@ export const bangs: Record<string, any> = {
     revd: {
         c: 'Research',
         d: 'www.onelook.com',
-        r: 21,
+        r: 17,
         s: 'Onelook Reverse Dictionary',
         sc: 'Reference (words)',
         t: 'revd',
@@ -81977,7 +82022,7 @@ export const bangs: Record<string, any> = {
     revef: {
         c: 'Research',
         d: 'dictionary.reverso.net',
-        r: 16,
+        r: 21,
         s: 'Reverso English-French',
         sc: 'Learning (intl)',
         t: 'revef',
@@ -82018,7 +82063,7 @@ export const bangs: Record<string, any> = {
     reversoenfr: {
         c: 'Research',
         d: 'dictionary.reverso.net',
-        r: 8,
+        r: 4,
         s: 'Dictionary Reverso',
         sc: 'Learning',
         t: 'reversoenfr',
@@ -82044,7 +82089,7 @@ export const bangs: Record<string, any> = {
     reverso: {
         c: 'Research',
         d: 'dictionary.reverso.net',
-        r: 38,
+        r: 37,
         s: 'Reverso',
         sc: 'Reference (words)',
         t: 'reverso',
@@ -82120,7 +82165,7 @@ export const bangs: Record<string, any> = {
     revo: {
         c: 'Online Services',
         d: 'www.reta-vortaro.de',
-        r: 20,
+        r: 41,
         s: 'Reta Vortaro',
         sc: 'Search',
         t: 'revo',
@@ -82250,7 +82295,7 @@ export const bangs: Record<string, any> = {
     rgi: {
         c: 'Multimedia',
         d: 'images.google.com',
-        r: 14,
+        r: 15,
         s: 'Google Reverse Image Search',
         sc: 'Images',
         t: 'rgi',
@@ -82268,7 +82313,7 @@ export const bangs: Record<string, any> = {
     rg: {
         c: 'Multimedia',
         d: 'rapgenius.com',
-        r: 166,
+        r: 155,
         s: 'Rap Genius',
         sc: 'Music',
         t: 'rg',
@@ -82567,7 +82612,7 @@ export const bangs: Record<string, any> = {
     riten: {
         c: 'Online Services',
         d: 'context.reverso.net',
-        r: 3,
+        r: 5,
         s: 'Reverso context',
         sc: 'Tools',
         t: 'riten',
@@ -82683,7 +82728,7 @@ export const bangs: Record<string, any> = {
     rm: {
         c: 'Tech',
         d: 'www.gurusrom.net',
-        r: 5,
+        r: 3,
         s: 'Gurusfirmware',
         sc: 'Downloads',
         t: 'rm',
@@ -82716,7 +82761,7 @@ export const bangs: Record<string, any> = {
     rmp: {
         c: 'Online Services',
         d: 'www.ratemyprofessors.com',
-        r: 10,
+        r: 29,
         s: 'Rate My Professor',
         sc: 'Tools',
         t: 'rmp',
@@ -82725,7 +82770,7 @@ export const bangs: Record<string, any> = {
     rmw: {
         c: 'Entertainment',
         d: 'rimworldwiki.com',
-        r: 36,
+        r: 0,
         s: 'Rimworld Wiki',
         sc: 'Games (specific)',
         t: 'rmw',
@@ -82751,7 +82796,7 @@ export const bangs: Record<string, any> = {
     rnl: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 10,
+        r: 7,
         s: 'DuckDuckGo NL region',
         sc: 'Search (DDG)',
         t: 'rnl',
@@ -82826,7 +82871,7 @@ export const bangs: Record<string, any> = {
     roblox: {
         c: 'Entertainment',
         d: 'www.roblox.com',
-        r: 191,
+        r: 119,
         s: 'Roblox',
         sc: 'Games (specific)',
         t: 'roblox',
@@ -82967,7 +83012,7 @@ export const bangs: Record<string, any> = {
     rogerebert: {
         c: 'Entertainment',
         d: 'www.rogerebert.com',
-        r: 3,
+        r: 6,
         s: 'Roger Ebert',
         sc: 'Movies',
         t: 'rogerebert',
@@ -83027,7 +83072,7 @@ export const bangs: Record<string, any> = {
     rold: {
         c: 'Online Services',
         d: 'old.reddit.com',
-        r: 430,
+        r: 548,
         s: 'old reddit design',
         sc: 'Social',
         t: 'rold',
@@ -83228,7 +83273,7 @@ export const bangs: Record<string, any> = {
     royalroadl: {
         c: 'Multimedia',
         d: 'royalroadl.com',
-        r: 8,
+        r: 4,
         s: 'Royal Road',
         sc: 'Books',
         t: 'royalroadl',
@@ -83303,7 +83348,7 @@ export const bangs: Record<string, any> = {
     rphone: {
         c: 'Online Services',
         d: 'www.whitepages.com',
-        r: 5,
+        r: 0,
         s: 'Whitepages',
         sc: 'Tools',
         t: 'rphone',
@@ -83354,7 +83399,7 @@ export const bangs: Record<string, any> = {
     rpm: {
         c: 'Tech',
         d: 'rpmfind.net',
-        r: 16,
+        r: 4,
         s: 'RPMfind.net',
         sc: 'Programming',
         t: 'rpm',
@@ -83371,7 +83416,7 @@ export const bangs: Record<string, any> = {
     rp: {
         c: 'Tech',
         d: 'www.raspberrypi.org',
-        r: 3,
+        r: 0,
         s: 'Raspberry Pi',
         sc: 'Companies',
         t: 'rp',
@@ -83389,7 +83434,7 @@ export const bangs: Record<string, any> = {
     rps: {
         c: 'Entertainment',
         d: 'www.rockpapershotgun.com',
-        r: 21,
+        r: 13,
         s: 'Rock, Paper, Shotgun',
         sc: 'Games (general)',
         t: 'rps',
@@ -83414,7 +83459,7 @@ export const bangs: Record<string, any> = {
     r: {
         c: 'Online Services',
         d: 'www.reddit.com',
-        r: 53416,
+        r: 52524,
         s: 'Reddit',
         sc: 'Social',
         t: 'r',
@@ -83423,7 +83468,7 @@ export const bangs: Record<string, any> = {
     rr: {
         c: 'Tech',
         d: 'reprap.org',
-        r: 7,
+        r: 15,
         s: 'RepRap',
         sc: 'Design',
         t: 'rr',
@@ -83506,7 +83551,7 @@ export const bangs: Record<string, any> = {
     'rs-docs': {
         c: 'Tech',
         d: 'docs.rs',
-        r: 169,
+        r: 144,
         s: 'docs.rs (rust crate documentation)',
         sc: 'Programming',
         t: 'rs-docs',
@@ -83672,7 +83717,7 @@ export const bangs: Record<string, any> = {
     rs: {
         c: 'Entertainment',
         d: 'runescape.wiki',
-        r: 716,
+        r: 390,
         s: 'The RuneScape Wiki',
         sc: 'Games (specific)',
         t: 'rs',
@@ -83681,7 +83726,7 @@ export const bangs: Record<string, any> = {
     rsub: {
         c: 'Entertainment',
         d: 'reddit.com',
-        r: 1686,
+        r: 1764,
         s: 'Reddit Subreddit',
         sc: 'Forum',
         t: 'rsub',
@@ -83723,7 +83768,7 @@ export const bangs: Record<string, any> = {
     rswiki: {
         c: 'Entertainment',
         d: 'runescape.wiki',
-        r: 173,
+        r: 69,
         s: 'Runescape Wiki',
         sc: 'Games (specific)',
         t: 'rswiki',
@@ -83732,7 +83777,7 @@ export const bangs: Record<string, any> = {
     rsw: {
         c: 'Research',
         d: 'runescape.wiki',
-        r: 64,
+        r: 60,
         s: 'RuneScape Wiki',
         sc: 'Reference (fun)',
         t: 'rsw',
@@ -83774,7 +83819,7 @@ export const bangs: Record<string, any> = {
     rtd: {
         c: 'Tech',
         d: 'readthedocs.org',
-        r: 4,
+        r: 0,
         s: 'Read the Docs',
         sc: 'Programming',
         t: 'rtd',
@@ -83887,7 +83932,7 @@ export const bangs: Record<string, any> = {
     rt: {
         c: 'Multimedia',
         d: 'www.rottentomatoes.com',
-        r: 2011,
+        r: 1888,
         s: 'Rotten Tomatoes',
         sc: 'Video',
         t: 'rt',
@@ -83953,7 +83998,7 @@ export const bangs: Record<string, any> = {
     rubygems: {
         c: 'Tech',
         d: 'rubygems.org',
-        r: 63,
+        r: 60,
         s: 'RubyGems',
         sc: 'Languages (ruby)',
         t: 'rubygems',
@@ -83970,7 +84015,7 @@ export const bangs: Record<string, any> = {
     ruby: {
         c: 'Tech',
         d: 'www.google.com',
-        r: 35,
+        r: 32,
         s: 'Ruby-lang.org',
         sc: 'Languages (ruby)',
         t: 'ruby',
@@ -83988,7 +84033,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Translate (ruen)',
         d: 'translate.google.com',
         t: 'ruen',
-        ts: ['кгут'],
+        ts: ['кгут', 'руан', 'руен'],
         u: 'https://translate.google.com/#ru/en/{{{s}}}',
         c: 'Research',
         sc: 'Reference (words)',
@@ -83997,6 +84042,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Translate RU-FR',
         d: 'translate.google.com',
         t: 'rufr',
+        ts: ['кгак', 'руфр'],
         u: 'https://translate.google.com/#ru/fr/{{{s}}}',
         c: 'Online Services',
         sc: 'Google',
@@ -84103,7 +84149,7 @@ export const bangs: Record<string, any> = {
     rustd: {
         c: 'Tech',
         d: 'doc.rust-lang.org',
-        r: 47,
+        r: 19,
         s: 'The Rust Standard Library Documentation',
         sc: 'Programming',
         t: 'rustd',
@@ -84136,7 +84182,7 @@ export const bangs: Record<string, any> = {
     rust: {
         c: 'Tech',
         d: 'doc.rust-lang.org',
-        r: 2264,
+        r: 2018,
         s: 'Rust stdlib docs',
         sc: 'Programming',
         t: 'rust',
@@ -84145,7 +84191,7 @@ export const bangs: Record<string, any> = {
     ruststd: {
         c: 'Tech',
         d: 'doc.rust-lang.org',
-        r: 22,
+        r: 43,
         s: 'Rust standard library API reference',
         sc: 'Languages (other)',
         t: 'ruststd',
@@ -84179,6 +84225,7 @@ export const bangs: Record<string, any> = {
         s: 'RuTube',
         d: 'rutube.ru',
         t: 'rutube',
+        ts: ['рт', 'рутуб'],
         u: 'https://rutube.ru/search.html?page=index&search={{{s}}}&search_type=track',
         c: 'Multimedia',
         sc: 'Video',
@@ -84186,7 +84233,7 @@ export const bangs: Record<string, any> = {
     ruwiki: {
         c: 'Research',
         d: 'ru.wikipedia.org',
-        r: 32,
+        r: 17,
         s: 'Russian Wikipedia (Википедия)',
         sc: 'Reference',
         t: 'ruwiki',
@@ -84228,7 +84275,7 @@ export const bangs: Record<string, any> = {
     rv: {
         c: 'Multimedia',
         d: 'www.real.video',
-        r: 3,
+        r: 0,
         s: 'Real.Video',
         sc: 'Video',
         t: 'rv',
@@ -84271,6 +84318,7 @@ export const bangs: Record<string, any> = {
         s: 'Ruxpert',
         d: 'ruxpert.ru',
         t: 'rxp',
+        ts: ['рукс', 'руксперт'],
         u: 'https://ruxpert.ru/index.php?search={{{s}}}',
         c: 'Research',
         sc: 'Reference',
@@ -84311,7 +84359,7 @@ export const bangs: Record<string, any> = {
     rymf: {
         c: 'Entertainment',
         d: 'rateyourmusic.com',
-        r: 74,
+        r: 79,
         s: 'Rate Your Music',
         sc: 'Movies',
         t: 'rymf',
@@ -84361,7 +84409,7 @@ export const bangs: Record<string, any> = {
     rz: {
         c: 'Multimedia',
         d: 'www.rhymezone.com',
-        r: 65,
+        r: 52,
         s: 'RhymeZone',
         sc: 'Music (Lyrics)',
         t: 'rz',
@@ -84516,7 +84564,7 @@ export const bangs: Record<string, any> = {
     sade: {
         c: 'Shopping',
         d: 'smile.amazon.de',
-        r: 3,
+        r: 0,
         s: 'Amazon Smiles (Germany)',
         sc: 'Online',
         t: 'sade',
@@ -84547,28 +84595,27 @@ export const bangs: Record<string, any> = {
         sc: 'Images',
     },
     safe: {
-        s: 'DDG Safesearch On',
-        d: 'kagi.com',
-        ad: '',
-        t: 'safe',
-        ts: ['safeon'],
-        u: '/search?q={{{s}}}&kp=1',
         c: 'Online Services',
+        d: '',
+        r: 24,
+        s: 'DDG Safesearch On',
         sc: 'Search (DDG)',
+        t: 'safe',
+        u: '/?q={{{s}}}&kp=1',
     },
     safeoff: {
-        s: 'Safe search off',
-        d: 'kagi.com',
-        ad: '',
-        t: 'safeoff',
-        u: '/search?q={{{s}}}&kp=-2',
         c: 'Online Services',
+        d: '',
+        r: 2833,
+        s: 'Safe search off',
         sc: 'Search (DDG)',
+        t: 'safeoff',
+        u: '/?q={{{s}}}&kp=-2',
     },
     safeon: {
         c: 'Online Services',
         d: '',
-        r: 47,
+        r: 3,
         s: 'DDG Safesearch On',
         sc: 'Search (DDG)',
         t: 'safeon',
@@ -84806,7 +84853,7 @@ export const bangs: Record<string, any> = {
     sana: {
         c: 'Online Services',
         d: 'www.sanakirja.org',
-        r: 25,
+        r: 14,
         s: 'Sanakirja',
         sc: 'Tools',
         t: 'sana',
@@ -85065,7 +85112,7 @@ export const bangs: Record<string, any> = {
     sauk: {
         c: 'Shopping',
         d: 'smile.amazon.co.uk',
-        r: 3,
+        r: 0,
         s: 'AmazonSmile UK',
         sc: 'Online',
         t: 'sauk',
@@ -85092,7 +85139,7 @@ export const bangs: Record<string, any> = {
     save: {
         c: 'Online Services',
         d: 'web.archive.org',
-        r: 42,
+        r: 21,
         s: 'Internet Archive: Wayback Machine (save)',
         sc: 'Tools (URLs)',
         t: 'save',
@@ -85227,7 +85274,7 @@ export const bangs: Record<string, any> = {
     sbo: {
         c: 'Tech',
         d: 'slackbuilds.org',
-        r: 28,
+        r: 30,
         s: 'SlackBuilds.org',
         sc: 'Sysadmin (packages)',
         t: 'sbo',
@@ -85244,7 +85291,7 @@ export const bangs: Record<string, any> = {
     sbr: {
         c: 'Online Services',
         d: 'www.reddit.com',
-        r: 173,
+        r: 182,
         s: 'Reddit',
         sc: 'Social news/links',
         t: 'sbr',
@@ -85504,7 +85551,7 @@ export const bangs: Record<string, any> = {
     scholar: {
         c: 'Online Services',
         d: 'scholar.google.com',
-        r: 5348,
+        r: 5115,
         s: 'Google Scholar',
         sc: 'Google',
         t: 'scholar',
@@ -85852,6 +85899,7 @@ export const bangs: Record<string, any> = {
         s: 'SCP foundation --- Russian branch',
         d: 'scpfoundation.net',
         t: 'scpru',
+        ts: ['сцп'],
         u: 'https://scpfoundation.net/search:site/q/{{{s}}}',
         c: 'Entertainment',
         sc: 'Misc',
@@ -85908,7 +85956,7 @@ export const bangs: Record<string, any> = {
     scratch: {
         c: 'Entertainment',
         d: 'scratch.mit.edu',
-        r: 14,
+        r: 17,
         s: 'Scratch',
         sc: 'Games (general)',
         t: 'scratch',
@@ -85933,7 +85981,7 @@ export const bangs: Record<string, any> = {
     scribd: {
         c: 'Multimedia',
         d: 'www.scribd.com',
-        r: 31,
+        r: 34,
         s: 'Scribd',
         sc: 'Books',
         t: 'scribd',
@@ -85942,7 +85990,7 @@ export const bangs: Record<string, any> = {
     scri: {
         c: 'Entertainment',
         d: 'www.senscritique.com',
-        r: 9,
+        r: 14,
         s: 'Sens Critique',
         sc: 'Misc',
         t: 'scri',
@@ -85968,7 +86016,7 @@ export const bangs: Record<string, any> = {
     scryfall: {
         c: 'Entertainment',
         d: 'scryfall.com',
-        r: 695,
+        r: 881,
         s: 'Scryfall',
         sc: 'Games (specific)',
         t: 'scryfall',
@@ -85977,7 +86025,7 @@ export const bangs: Record<string, any> = {
     scry: {
         c: 'Entertainment',
         d: 'scryfall.com',
-        r: 4447,
+        r: 4407,
         s: 'Scryfall',
         sc: 'Games (general)',
         t: 'scry',
@@ -85986,7 +86034,7 @@ export const bangs: Record<string, any> = {
     sc: {
         c: 'Multimedia',
         d: 'soundcloud.com',
-        r: 1545,
+        r: 1200,
         s: 'SoundCloud',
         sc: 'Music',
         t: 'sc',
@@ -86161,7 +86209,7 @@ export const bangs: Record<string, any> = {
     searchr: {
         c: 'News',
         d: 'duckduckgo.com',
-        r: 102,
+        r: 137,
         s: 'Reddit DDG Search',
         sc: 'Aggregators',
         t: 'searchr',
@@ -86170,7 +86218,7 @@ export const bangs: Record<string, any> = {
     search: {
         c: 'Online Services',
         d: 'www.search.com',
-        r: 6,
+        r: 5,
         s: 'Search.com',
         sc: 'Search',
         t: 'search',
@@ -86229,7 +86277,7 @@ export const bangs: Record<string, any> = {
     'searx.me': {
         c: 'Online Services',
         d: 'searx.me',
-        r: 6,
+        r: 0,
         s: 'searx.me',
         sc: 'Search (Private)',
         t: 'searx.me',
@@ -86247,7 +86295,7 @@ export const bangs: Record<string, any> = {
     sea: {
         c: 'Tech',
         d: 'searchcode.com',
-        r: 0,
+        r: 3,
         s: 'searchcode.com',
         sc: 'Downloads (code)',
         t: 'sea',
@@ -86519,7 +86567,7 @@ export const bangs: Record<string, any> = {
     semantic: {
         c: 'Research',
         d: 'www.semanticscholar.org',
-        r: 56,
+        r: 57,
         s: 'Semantic Scholar',
         sc: 'Academic',
         t: 'semantic',
@@ -86587,7 +86635,7 @@ export const bangs: Record<string, any> = {
     senscritique: {
         c: 'Multimedia',
         d: 'www.senscritique.com',
-        r: 34,
+        r: 20,
         s: 'Sens critique',
         sc: 'General',
         t: 'senscritique',
@@ -86681,7 +86729,7 @@ export const bangs: Record<string, any> = {
     sep: {
         c: 'Research',
         d: 'plato.stanford.edu',
-        r: 88,
+        r: 72,
         s: 'Stanford Encyclopedia of Philosophy',
         sc: 'Academic',
         t: 'sep',
@@ -86815,7 +86863,7 @@ export const bangs: Record<string, any> = {
     se: {
         c: 'Online Services',
         d: 'stackexchange.com',
-        r: 160,
+        r: 119,
         s: 'StackExchange',
         sc: 'Search',
         t: 'se',
@@ -86875,7 +86923,7 @@ export const bangs: Record<string, any> = {
     sfa: {
         c: 'Entertainment',
         d: 'scryfall.com',
-        r: 342,
+        r: 512,
         s: 'Scryfall',
         sc: 'Games (specific)',
         t: 'sfa',
@@ -86924,7 +86972,7 @@ export const bangs: Record<string, any> = {
     sfl: {
         c: 'Entertainment',
         d: 'scryfall.com',
-        r: 182,
+        r: 168,
         s: 'Scryfall',
         sc: 'Games (specific)',
         t: 'sfl',
@@ -86966,7 +87014,7 @@ export const bangs: Record<string, any> = {
     sf: {
         c: 'Tech',
         d: 'serverfault.com',
-        r: 15,
+        r: 8,
         s: 'ServerFault',
         sc: 'Sysadmin',
         t: 'sf',
@@ -87385,7 +87433,7 @@ export const bangs: Record<string, any> = {
     shopping: {
         c: 'Shopping',
         d: 'www.google.com',
-        r: 189,
+        r: 163,
         s: 'Google Shopping',
         sc: 'Online',
         t: 'shopping',
@@ -87476,7 +87524,7 @@ export const bangs: Record<string, any> = {
     sh: {
         c: 'Tech',
         d: 'www.shodan.io',
-        r: 16,
+        r: 12,
         s: 'Shodan',
         sc: 'Sysadmin',
         t: 'sh',
@@ -87525,7 +87573,7 @@ export const bangs: Record<string, any> = {
     shutterstock: {
         c: 'Multimedia',
         d: 'www.shutterstock.com',
-        r: 17,
+        r: 25,
         s: 'Shutterstock',
         sc: 'Images',
         t: 'shutterstock',
@@ -87760,7 +87808,7 @@ export const bangs: Record<string, any> = {
     sinonimos: {
         c: 'Online Services',
         d: 'www.sinonimos.com.br',
-        r: 9,
+        r: 18,
         s: 'Sinômimos.com.br',
         sc: 'Tools',
         t: 'sinonimos',
@@ -87769,7 +87817,7 @@ export const bangs: Record<string, any> = {
     sinonimo: {
         c: 'Research',
         d: 'www.wordreference.com',
-        r: 3,
+        r: 5,
         s: 'Wordreference Sinonimos',
         sc: 'Reference (words intl)',
         t: 'sinonimo',
@@ -87828,7 +87876,7 @@ export const bangs: Record<string, any> = {
     si: {
         c: 'Entertainment',
         d: 'www.si.com',
-        r: 12,
+        r: 14,
         s: 'Sports Illustrated',
         sc: 'Sports',
         t: 'si',
@@ -87854,7 +87902,7 @@ export const bangs: Record<string, any> = {
     site: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 205,
+        r: 121,
         s: 'DuckDuckGo site: search operator shortcut',
         sc: 'Google',
         t: 'site',
@@ -88017,7 +88065,7 @@ export const bangs: Record<string, any> = {
     skd: {
         c: 'Research',
         d: 'slovniky.korpus.sk',
-        r: 14,
+        r: 18,
         s: 'Slovenské slovníky',
         sc: 'Reference (words)',
         t: 'skd',
@@ -88362,7 +88410,7 @@ export const bangs: Record<string, any> = {
     slashdot: {
         c: 'News',
         d: 'slashdot.org',
-        r: 8,
+        r: 0,
         s: 'Slashdot',
         sc: 'Aggregators',
         t: 'slashdot',
@@ -88428,7 +88476,7 @@ export const bangs: Record<string, any> = {
     slickdeals: {
         c: 'Shopping',
         d: 'slickdeals.net',
-        r: 12,
+        r: 6,
         s: 'SlickDeals',
         sc: 'Online (deals)',
         t: 'slickdeals',
@@ -88530,7 +88578,7 @@ export const bangs: Record<string, any> = {
     slovak: {
         c: 'Research',
         d: 'slovniky.korpus.sk',
-        r: 0,
+        r: 6,
         s: 'Slovenské slovníky',
         sc: 'Reference (words)',
         t: 'slovak',
@@ -88749,7 +88797,7 @@ export const bangs: Record<string, any> = {
     smde: {
         c: 'Shopping',
         d: 'smile.amazon.de',
-        r: 5,
+        r: 0,
         s: 'Amazon Smile (De)',
         sc: 'Online',
         t: 'smde',
@@ -88809,7 +88857,7 @@ export const bangs: Record<string, any> = {
     smile: {
         c: 'Shopping',
         d: 'smile.amazon.com',
-        r: 65,
+        r: 30,
         s: 'Amazon Smile',
         sc: 'Online',
         t: 'smile',
@@ -88908,7 +88956,7 @@ export const bangs: Record<string, any> = {
     smogon: {
         c: 'Entertainment',
         d: 'www.smogon.com',
-        r: 111,
+        r: 141,
         s: 'Smogon University',
         sc: 'Games (Pokemon)',
         t: 'smogon',
@@ -88974,7 +89022,7 @@ export const bangs: Record<string, any> = {
     sm: {
         c: 'News',
         d: 'www.smashingmagazine.com',
-        r: 4,
+        r: 3,
         s: 'Smashing Magazine',
         sc: 'Magazine',
         t: 'sm',
@@ -88983,7 +89031,7 @@ export const bangs: Record<string, any> = {
     sms: {
         c: 'Multimedia',
         d: 'songmeanings.com',
-        r: 5,
+        r: 7,
         s: 'SongMeanings',
         sc: 'Music (Lyrics)',
         t: 'sms',
@@ -89008,7 +89056,7 @@ export const bangs: Record<string, any> = {
     smw: {
         c: 'Entertainment',
         d: 'www.mariowiki.com',
-        r: 76,
+        r: 60,
         s: 'Super Mario Wiki',
         sc: 'Games (general)',
         t: 'smw',
@@ -89075,7 +89123,7 @@ export const bangs: Record<string, any> = {
     snaps: {
         c: 'Tech',
         d: 'snapcraft.io',
-        r: 6,
+        r: 0,
         s: 'snaps for Linux',
         sc: 'Downloads (apps)',
         t: 'snaps',
@@ -89101,7 +89149,7 @@ export const bangs: Record<string, any> = {
     sndcld: {
         c: 'Multimedia',
         d: 'soundcloud.com',
-        r: 0,
+        r: 3,
         s: 'SoundCloud',
         sc: 'Music',
         t: 'sndcld',
@@ -89412,7 +89460,7 @@ export const bangs: Record<string, any> = {
     sod: {
         c: 'Tech',
         d: 'duckduckgo.com',
-        r: 66,
+        r: 21,
         s: 'Stackoverflow with DuckDuckGo',
         sc: 'Programming',
         t: 'sod',
@@ -89454,7 +89502,7 @@ export const bangs: Record<string, any> = {
     sof: {
         c: 'Tech',
         d: 'stackoverflow.com',
-        r: 3,
+        r: 0,
         s: 'StackOverflow',
         sc: 'Blogs',
         t: 'sof',
@@ -89539,6 +89587,7 @@ export const bangs: Record<string, any> = {
         s: 'Sokr.ru - словарь сокращений',
         d: 'sokr.ru',
         t: 'sokr',
+        ts: ['сокр'],
         u: 'https://sokr.ru/{{{s}}}/',
         c: 'Research',
         sc: 'Reference (words intl)',
@@ -89668,7 +89717,7 @@ export const bangs: Record<string, any> = {
     songkick: {
         c: 'Entertainment',
         d: 'www.songkick.com',
-        r: 4,
+        r: 0,
         s: 'SongKick',
         sc: 'Audio',
         t: 'songkick',
@@ -89693,7 +89742,7 @@ export const bangs: Record<string, any> = {
     songmeanings: {
         c: 'Multimedia',
         d: 'songmeanings.com',
-        r: 6,
+        r: 7,
         s: 'SongMeanings',
         sc: 'Music (Lyrics)',
         t: 'songmeanings',
@@ -89850,7 +89899,7 @@ export const bangs: Record<string, any> = {
     so: {
         c: 'Tech',
         d: 'stackoverflow.com',
-        r: 405,
+        r: 306,
         s: 'Stack Overflow',
         sc: 'Programming',
         t: 'so',
@@ -89868,7 +89917,7 @@ export const bangs: Record<string, any> = {
     sougou: {
         c: 'Online Services',
         d: 'www.sogou.com',
-        r: 3,
+        r: 0,
         s: 'sougou',
         sc: 'Search',
         t: 'sougou',
@@ -89885,7 +89934,7 @@ export const bangs: Record<string, any> = {
     soundcloud: {
         c: 'Multimedia',
         d: 'soundcloud.com',
-        r: 154,
+        r: 105,
         s: 'SoundCloud',
         sc: 'Music',
         t: 'soundcloud',
@@ -89910,7 +89959,7 @@ export const bangs: Record<string, any> = {
     sound: {
         c: 'Multimedia',
         d: 'soundcloud.com',
-        r: 68,
+        r: 44,
         s: 'Soundcloud',
         sc: 'Music',
         t: 'sound',
@@ -90019,7 +90068,7 @@ export const bangs: Record<string, any> = {
     spandict: {
         c: 'Online Services',
         d: 'www.spanishdict.com',
-        r: 5,
+        r: 10,
         s: 'SpanishDict',
         sc: 'Tools',
         t: 'spandict',
@@ -90028,7 +90077,7 @@ export const bangs: Record<string, any> = {
     spanishdict: {
         c: 'Research',
         d: 'www.spanishdict.com',
-        r: 44,
+        r: 201,
         s: 'SpanishDict',
         sc: 'Reference (words intl)',
         t: 'spanishdict',
@@ -90046,7 +90095,7 @@ export const bangs: Record<string, any> = {
     spanish: {
         c: 'Research',
         d: 'www.spanishdict.com',
-        r: 442,
+        r: 383,
         s: 'SpanishDict',
         sc: 'Reference (words intl)',
         t: 'spanish',
@@ -90459,7 +90508,7 @@ export const bangs: Record<string, any> = {
     spon: {
         c: 'News',
         d: 'www.spiegel.de',
-        r: 105,
+        r: 129,
         s: 'Spiegel Online',
         sc: 'Magazine',
         t: 'spon',
@@ -90578,7 +90627,7 @@ export const bangs: Record<string, any> = {
     springer: {
         c: 'Research',
         d: 'link.springer.com',
-        r: 0,
+        r: 3,
         s: 'Springer Link',
         sc: 'Reference',
         t: 'springer',
@@ -90604,7 +90653,7 @@ export const bangs: Record<string, any> = {
     spriters: {
         c: 'Multimedia',
         d: 'www.spriters-resource.com',
-        r: 8,
+        r: 4,
         s: 'The Spriters Resource',
         sc: 'Images',
         t: 'spriters',
@@ -90655,7 +90704,7 @@ export const bangs: Record<string, any> = {
     spt: {
         c: 'Multimedia',
         d: 'open.spotify.com',
-        r: 67,
+        r: 148,
         s: 'Spotify',
         sc: 'Music',
         t: 'spt',
@@ -90704,7 +90753,7 @@ export const bangs: Record<string, any> = {
     spy: {
         c: 'Entertainment',
         d: 'open.spotify.com',
-        r: 153,
+        r: 123,
         s: 'Spotify',
         sc: 'Audio',
         t: 'spy',
@@ -90722,6 +90771,7 @@ export const bangs: Record<string, any> = {
         s: 'Square Faction',
         d: 'squarefaction.ru',
         t: 'sqfa',
+        ts: ['скфа'],
         u: 'https://squarefaction.ru/main/search/google?searchQuery={{{s}}}',
         c: 'Entertainment',
         sc: 'Games (general)',
@@ -90810,7 +90860,7 @@ export const bangs: Record<string, any> = {
     srd: {
         c: 'Entertainment',
         d: 'www.d20srd.org',
-        r: 4,
+        r: 6,
         s: 'The Hypertext d20 SRD',
         sc: 'Games (specific)',
         t: 'srd',
@@ -90827,7 +90877,7 @@ export const bangs: Record<string, any> = {
     sreddit: {
         c: 'Entertainment',
         d: 'reddit.com',
-        r: 103,
+        r: 110,
         s: 'Subreddit',
         sc: 'Forum',
         t: 'sreddit',
@@ -90885,7 +90935,7 @@ export const bangs: Record<string, any> = {
     srold: {
         c: 'Online Services',
         d: 'old.reddit.com',
-        r: 375,
+        r: 445,
         s: 'Old Reddit by Subreddit',
         sc: 'Social',
         t: 'srold',
@@ -90894,7 +90944,7 @@ export const bangs: Record<string, any> = {
     sro: {
         c: 'Entertainment',
         d: 'old.reddit.com',
-        r: 1360,
+        r: 1663,
         s: 'Old Reddit by Subreddit',
         sc: 'Forum',
         t: 'sro',
@@ -90903,7 +90953,7 @@ export const bangs: Record<string, any> = {
     sr: {
         c: 'Entertainment',
         d: 'reddit.com',
-        r: 11691,
+        r: 10181,
         s: 'reddit',
         sc: 'Forum',
         t: 'sr',
@@ -90988,7 +91038,7 @@ export const bangs: Record<string, any> = {
     ssch: {
         c: 'Research',
         d: 'www.semanticscholar.org',
-        r: 16,
+        r: 9,
         s: 'SemanticScholar',
         sc: 'Reference',
         t: 'ssch',
@@ -90997,7 +91047,7 @@ export const bangs: Record<string, any> = {
     sse: {
         c: 'Tech',
         d: 'security.stackexchange.com',
-        r: 7,
+        r: 3,
         s: 'https://security.stackexchange.com/',
         sc: 'Sysadmin',
         t: 'sse',
@@ -91080,7 +91130,7 @@ export const bangs: Record<string, any> = {
     ssoff: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 52,
+        r: 50,
         s: 'DuckDuckGo Safe Search: Off',
         sc: 'Search (DDG)',
         t: 'ssoff',
@@ -91089,7 +91139,7 @@ export const bangs: Record<string, any> = {
     sson: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 31,
+        r: 18,
         s: 'DuckDuckGo Safe Search: On',
         sc: 'Search (DDG)',
         t: 'sson',
@@ -91122,7 +91172,7 @@ export const bangs: Record<string, any> = {
     ssr: {
         c: 'Tech',
         d: 'shopsmartreviews.in',
-        r: 0,
+        r: 3,
         s: 'Shop Smart Reviews',
         sc: 'Blogs',
         t: 'ssr',
@@ -91155,7 +91205,7 @@ export const bangs: Record<string, any> = {
     s: {
         c: 'Online Services',
         d: 'startpage.com',
-        r: 10677,
+        r: 10226,
         s: 'startpage.com',
         sc: 'Search',
         t: 's',
@@ -91197,7 +91247,7 @@ export const bangs: Record<string, any> = {
     stabs: {
         c: 'Entertainment',
         d: 'www.songsterr.com',
-        r: 31,
+        r: 8,
         s: 'Songsterr',
         sc: 'Music',
         t: 'stabs',
@@ -91223,7 +91273,7 @@ export const bangs: Record<string, any> = {
     stackoverflow: {
         c: 'Tech',
         d: 'stackoverflow.com',
-        r: 7,
+        r: 6,
         s: 'StackOverflow',
         sc: 'Programming',
         t: 'stackoverflow',
@@ -91256,7 +91306,7 @@ export const bangs: Record<string, any> = {
     stack: {
         c: 'Tech',
         d: 'stackoverflow.com',
-        r: 50,
+        r: 41,
         s: 'Stack Overflow',
         sc: 'Programming',
         t: 'stack',
@@ -91342,7 +91392,7 @@ export const bangs: Record<string, any> = {
     stardew: {
         c: 'Entertainment',
         d: 'stardewvalleywiki.com',
-        r: 77,
+        r: 83,
         s: 'Stardew Wiki',
         sc: 'Games (general)',
         t: 'stardew',
@@ -91351,7 +91401,7 @@ export const bangs: Record<string, any> = {
     stardewvalley: {
         c: 'Entertainment',
         d: 'stardewvalleywiki.com',
-        r: 23,
+        r: 53,
         s: 'Stardew Valley Wiki',
         sc: 'Games (offline)',
         t: 'stardewvalley',
@@ -91417,7 +91467,7 @@ export const bangs: Record<string, any> = {
     startrek: {
         c: 'Entertainment',
         d: 'memory-alpha.wikia.com',
-        r: 13,
+        r: 4,
         s: 'Memory Alpha',
         sc: 'TV',
         t: 'startrek',
@@ -91772,7 +91822,7 @@ export const bangs: Record<string, any> = {
     ste: {
         c: 'Entertainment',
         d: 'store.steampowered.com',
-        r: 577,
+        r: 623,
         s: 'Steam',
         sc: 'Games (general)',
         t: 'ste',
@@ -91880,7 +91930,7 @@ export const bangs: Record<string, any> = {
     stock: {
         c: 'News',
         d: 'finance.google.com',
-        r: 103,
+        r: 108,
         s: 'Google Finance',
         sc: 'Business',
         t: 'stock',
@@ -92298,7 +92348,7 @@ export const bangs: Record<string, any> = {
     subreddit: {
         c: 'Online Services',
         d: 'www.reddit.com',
-        r: 72,
+        r: 77,
         s: 'Reddit Subreddits',
         sc: 'Social news/links',
         t: 'subreddit',
@@ -92307,7 +92357,7 @@ export const bangs: Record<string, any> = {
     subredditsearch: {
         c: 'Online Services',
         d: 'www.reddit.com',
-        r: 3,
+        r: 4,
         s: 'Subreddit search',
         sc: 'Social news/links',
         t: 'subredditsearch',
@@ -92488,7 +92538,7 @@ export const bangs: Record<string, any> = {
     super: {
         c: 'Tech',
         d: 'supermarket.chef.io',
-        r: 4,
+        r: 3,
         s: 'Chef Supermarket',
         sc: 'Downloads (software)',
         t: 'super',
@@ -92591,7 +92641,7 @@ export const bangs: Record<string, any> = {
     susepkg: {
         c: 'Tech',
         d: 'software.opensuse.org',
-        r: 17,
+        r: 8,
         s: 'OpenSUSE Software search',
         sc: 'Sysadmin (packages)',
         t: 'susepkg',
@@ -92624,7 +92674,7 @@ export const bangs: Record<string, any> = {
     su: {
         c: 'Tech',
         d: 'superuser.com',
-        r: 5,
+        r: 4,
         s: 'SuperUser',
         sc: 'Programming',
         t: 'su',
@@ -92649,7 +92699,7 @@ export const bangs: Record<string, any> = {
     sutysisku: {
         c: 'Research',
         d: 'mw.lojban.org',
-        r: 0,
+        r: 13,
         s: 'la sutysisku',
         sc: 'Reference (words)',
         t: 'sutysisku',
@@ -92675,7 +92725,7 @@ export const bangs: Record<string, any> = {
     svao: {
         c: 'Research',
         d: 'svenska.se',
-        r: 9,
+        r: 3,
         s: 'Svenska Akademiens Ordböcker',
         sc: 'Reference (words)',
         t: 'svao',
@@ -92724,7 +92774,7 @@ export const bangs: Record<string, any> = {
     svenska: {
         c: 'Research',
         d: 'svenska.se',
-        r: 25,
+        r: 43,
         s: 'Svenska Akademiens Ordböcker',
         sc: 'Reference (words intl)',
         t: 'svenska',
@@ -92799,7 +92849,7 @@ export const bangs: Record<string, any> = {
     svt: {
         c: 'Multimedia',
         d: 'www.svtplay.se',
-        r: 6,
+        r: 11,
         s: 'SVT Play',
         sc: 'Video',
         t: 'svt',
@@ -92808,7 +92858,7 @@ export const bangs: Record<string, any> = {
     sv: {
         c: 'Entertainment',
         d: 'voat.co',
-        r: 6,
+        r: 5,
         s: 'Voat',
         sc: 'Forum',
         t: 'sv',
@@ -92825,7 +92875,7 @@ export const bangs: Record<string, any> = {
     svw: {
         c: 'Entertainment',
         d: 'stardewvalleywiki.com',
-        r: 42,
+        r: 17,
         s: 'Stardew Valley Wiki',
         sc: 'Games (specific)',
         t: 'svw',
@@ -92917,7 +92967,7 @@ export const bangs: Record<string, any> = {
     swift: {
         c: 'Tech',
         d: 'developer.apple.com',
-        r: 0,
+        r: 6,
         s: 'Swift Standard Library',
         sc: 'Programming',
         t: 'swift',
@@ -92995,7 +93045,7 @@ export const bangs: Record<string, any> = {
     sw: {
         c: 'Research',
         d: 'simple.wikipedia.org',
-        r: 24,
+        r: 18,
         s: 'Simple English Wikipedia',
         sc: 'Reference',
         t: 'sw',
@@ -93012,7 +93062,7 @@ export const bangs: Record<string, any> = {
     swtr: {
         c: 'Shopping',
         d: 'www.sweetwater.com',
-        r: 10,
+        r: 17,
         s: 'Sweetwater',
         sc: 'Tech',
         t: 'swtr',
@@ -93037,7 +93087,7 @@ export const bangs: Record<string, any> = {
     sx: {
         c: 'Online Services',
         d: 'stackexchange.com',
-        r: 3,
+        r: 8,
         s: 'Stack Exchange',
         sc: 'Social',
         t: 'sx',
@@ -93054,7 +93104,7 @@ export const bangs: Record<string, any> = {
     sy: {
         c: 'Research',
         d: 'words.bighugelabs.com',
-        r: 0,
+        r: 4,
         s: 'Big Huge  Thesaurus',
         sc: 'Reference (words)',
         t: 'sy',
@@ -93105,7 +93155,7 @@ export const bangs: Record<string, any> = {
     symb: {
         c: 'Research',
         d: 'www.symbolab.com',
-        r: 0,
+        r: 3,
         s: 'Symbolab',
         sc: 'Academic (math/cs)',
         t: 'symb',
@@ -93114,7 +93164,7 @@ export const bangs: Record<string, any> = {
     symfony: {
         c: 'Tech',
         d: 'symfony.com',
-        r: 6,
+        r: 3,
         s: 'Symfony Framework',
         sc: 'Libraries/Frameworks',
         t: 'symfony',
@@ -93191,7 +93241,7 @@ export const bangs: Record<string, any> = {
     synoniem: {
         c: 'Online Services',
         d: 'synoniemen.net',
-        r: 3,
+        r: 0,
         s: 'Synoniemen.net',
         sc: 'Tools',
         t: 'synoniem',
@@ -93217,7 +93267,7 @@ export const bangs: Record<string, any> = {
     synonymer: {
         c: 'Research',
         d: 'www.synonymer.se',
-        r: 0,
+        r: 3,
         s: 'Synonymer',
         sc: 'Reference (words)',
         t: 'synonymer',
@@ -93234,7 +93284,7 @@ export const bangs: Record<string, any> = {
     synonyms: {
         c: 'Research',
         d: 'thesaurus.com',
-        r: 9,
+        r: 8,
         s: 'Thesaurus.com',
         sc: 'Reference (words intl)',
         t: 'synonyms',
@@ -93243,7 +93293,7 @@ export const bangs: Record<string, any> = {
     synonym: {
         c: 'Research',
         d: 'www.thesaurus.com',
-        r: 68,
+        r: 50,
         s: 'Thesaurus.com',
         sc: 'Reference (words)',
         t: 'synonym',
@@ -93268,7 +93318,7 @@ export const bangs: Record<string, any> = {
     syn: {
         c: 'Research',
         d: 'thesaurus.com',
-        r: 116,
+        r: 120,
         s: 'thesaurus.com',
         sc: 'Reference (words)',
         t: 'syn',
@@ -93525,7 +93575,7 @@ export const bangs: Record<string, any> = {
     tabs: {
         c: 'Multimedia',
         d: 'www.ultimate-guitar.com',
-        r: 58,
+        r: 96,
         s: 'Ultimate Guitar',
         sc: 'Music',
         t: 'tabs',
@@ -93680,7 +93730,7 @@ export const bangs: Record<string, any> = {
     tako: {
         c: 'Research',
         d: 'takoboto.jp',
-        r: 3,
+        r: 17,
         s: 'TAKOBOTO',
         sc: 'Reference (words)',
         t: 'tako',
@@ -93721,7 +93771,7 @@ export const bangs: Record<string, any> = {
     tal: {
         c: 'Multimedia',
         d: 'theanarchistlibrary.org',
-        r: 24,
+        r: 3,
         s: 'The Anarchist Library',
         sc: 'Books',
         t: 'tal',
@@ -93772,7 +93822,7 @@ export const bangs: Record<string, any> = {
     tan: {
         c: 'News',
         d: 'www.theaustralian.com.au',
-        r: 3,
+        r: 0,
         s: 'The Australian',
         sc: 'Newspaper',
         t: 'tan',
@@ -93854,7 +93904,7 @@ export const bangs: Record<string, any> = {
     tardis: {
         c: 'Entertainment',
         d: 'tardis.wikia.com',
-        r: 6,
+        r: 4,
         s: 'TARDIS Data Core',
         sc: 'TV',
         t: 'tardis',
@@ -94155,7 +94205,7 @@ export const bangs: Record<string, any> = {
     tcgplayer: {
         c: 'Entertainment',
         d: 'store.tcgplayer.com',
-        r: 11,
+        r: 10,
         s: 'TCGPlayer',
         sc: 'Games (offline)',
         t: 'tcgplayer',
@@ -94839,7 +94889,7 @@ export const bangs: Record<string, any> = {
     tempmail: {
         c: 'Online Services',
         d: 'temp-mail.org',
-        r: 12,
+        r: 11,
         s: 'https://temp-mail.org/',
         sc: 'Tools',
         t: 'tempmail',
@@ -94972,7 +95022,7 @@ export const bangs: Record<string, any> = {
     terrg: {
         c: 'Entertainment',
         d: 'terraria.gamepedia.com',
-        r: 15,
+        r: 0,
         s: 'Terraria Gamepedia Wiki',
         sc: 'Games (general)',
         t: 'terrg',
@@ -95029,7 +95079,7 @@ export const bangs: Record<string, any> = {
     test: {
         c: 'Research',
         d: 'www.greek-language.gr',
-        r: 11,
+        r: 6,
         s: 'http://www.greek-language.gr',
         sc: 'Academic',
         t: 'test',
@@ -95048,6 +95098,7 @@ export const bangs: Record<string, any> = {
         s: 'Теплица социальных технологий',
         d: 'te-st.ru',
         t: 'te-st',
+        ts: ['тст', 'теплица'],
         u: 'https://te-st.ru/?s={{{s}}}',
         c: 'Tech',
         sc: 'Blogs (intl)',
@@ -95063,7 +95114,7 @@ export const bangs: Record<string, any> = {
     te: {
         c: 'Research',
         d: 'www.treccani.it',
-        r: 9,
+        r: 12,
         s: 'Treccani Enciclopedia',
         sc: 'Reference (science)',
         t: 'te',
@@ -95106,7 +95157,7 @@ export const bangs: Record<string, any> = {
     tex: {
         c: 'Online Services',
         d: 'tex.stackexchange.com',
-        r: 6,
+        r: 0,
         s: 'TeX Stack Exchange',
         sc: 'Social',
         t: 'tex',
@@ -95183,7 +95234,7 @@ export const bangs: Record<string, any> = {
     tf2wiki: {
         c: 'Entertainment',
         d: 'wiki.teamfortress.com',
-        r: 0,
+        r: 3,
         s: 'Team Fortress Official Wiki',
         sc: 'Games (specific)',
         t: 'tf2wiki',
@@ -95258,7 +95309,7 @@ export const bangs: Record<string, any> = {
     tfd: {
         c: 'Research',
         d: 'www.thefreedictionary.com',
-        r: 186,
+        r: 230,
         s: 'The Free Dictionary',
         sc: 'Reference (words)',
         t: 'tfd',
@@ -95316,7 +95367,7 @@ export const bangs: Record<string, any> = {
     tf: {
         c: 'Tech',
         d: 'www.tensorflow.org',
-        r: 8,
+        r: 6,
         s: 'Tensor Flow',
         sc: 'Programming',
         t: 'tf',
@@ -95325,7 +95376,7 @@ export const bangs: Record<string, any> = {
     tft: {
         c: 'Online Services',
         d: 'www.freethesaurus.com',
-        r: 26,
+        r: 33,
         s: 'The Free Thesaurus',
         sc: 'Tools',
         t: 'tft',
@@ -95435,7 +95486,7 @@ export const bangs: Record<string, any> = {
     tgt: {
         c: 'Shopping',
         d: 'www.target.com',
-        r: 10,
+        r: 15,
         s: 'Target',
         sc: 'Online',
         t: 'tgt',
@@ -95752,7 +95803,7 @@ export const bangs: Record<string, any> = {
     thesaurusde: {
         c: 'Online Services',
         d: 'www.openthesaurus.de',
-        r: 4,
+        r: 0,
         s: 'Open Thesaurus',
         sc: 'Tools',
         t: 'thesaurusde',
@@ -95761,7 +95812,7 @@ export const bangs: Record<string, any> = {
     thesaurus: {
         c: 'Online Services',
         d: 'www.thesaurus.com',
-        r: 423,
+        r: 356,
         s: 'Thesaurus.com',
         sc: 'Tools',
         t: 'thesaurus',
@@ -95812,7 +95863,7 @@ export const bangs: Record<string, any> = {
     thes: {
         c: 'Research',
         d: 'www.thesaurus.com',
-        r: 158,
+        r: 197,
         s: 'Thesaurus',
         sc: 'Reference (words)',
         t: 'thes',
@@ -95905,7 +95956,7 @@ export const bangs: Record<string, any> = {
     thingiverse: {
         c: 'Tech',
         d: 'www.thingiverse.com',
-        r: 60,
+        r: 63,
         s: 'Thingiverse',
         sc: 'Design',
         t: 'thingiverse',
@@ -95914,7 +95965,7 @@ export const bangs: Record<string, any> = {
     thing: {
         c: 'Tech',
         d: 'www.thingiverse.com',
-        r: 87,
+        r: 76,
         s: 'Thingiverse',
         sc: 'Design',
         t: 'thing',
@@ -95923,7 +95974,7 @@ export const bangs: Record<string, any> = {
     thingy: {
         c: 'Tech',
         d: 'www.thingiverse.com',
-        r: 5,
+        r: 0,
         s: 'Thingiverse',
         sc: 'Downloads',
         t: 'thingy',
@@ -96007,7 +96058,7 @@ export const bangs: Record<string, any> = {
     thomann: {
         c: 'Shopping',
         d: 'www.thomann.de',
-        r: 67,
+        r: 51,
         s: 'Thomann',
         sc: 'Online',
         t: 'thomann',
@@ -96032,7 +96083,7 @@ export const bangs: Record<string, any> = {
     thorlabs: {
         c: 'Shopping',
         d: 'www.thorlabs.de',
-        r: 3,
+        r: 4,
         s: 'Thorlabs',
         sc: 'Tech',
         t: 'thorlabs',
@@ -96147,7 +96198,7 @@ export const bangs: Record<string, any> = {
     thw: {
         c: 'Entertainment',
         d: 'en.touhouwiki.net',
-        r: 23,
+        r: 24,
         s: 'Touhou Wiki',
         sc: 'Games (specific)',
         t: 'thw',
@@ -96381,7 +96432,7 @@ export const bangs: Record<string, any> = {
     timer: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 40,
+        r: 31,
         s: 'DuckDuckGo Timer',
         sc: 'Tools',
         t: 'timer',
@@ -96417,7 +96468,7 @@ export const bangs: Record<string, any> = {
     time: {
         c: 'Tech',
         d: 'www.unixtimestamp.org',
-        r: 8,
+        r: 11,
         s: 'Unix Timestamp',
         sc: 'Sysadmin',
         t: 'time',
@@ -96546,7 +96597,7 @@ export const bangs: Record<string, any> = {
     tis: {
         c: 'Online Services',
         d: 'time.is',
-        r: 32,
+        r: 23,
         s: 'Time.is',
         sc: 'Tools',
         t: 'tis',
@@ -96696,7 +96747,7 @@ export const bangs: Record<string, any> = {
     tld: {
         c: 'Entertainment',
         d: 'wiki.teamliquid.net',
-        r: 6,
+        r: 31,
         s: 'Liquipedia Dota 2 Wiki',
         sc: 'Games (specific)',
         t: 'tld',
@@ -96738,7 +96789,7 @@ export const bangs: Record<string, any> = {
     tlfi: {
         c: 'Research',
         d: 'www.cnrtl.fr',
-        r: 22,
+        r: 34,
         s: 'Trésor de la Langue Française informatisé',
         sc: 'Reference (words intl)',
         t: 'tlfi',
@@ -96813,7 +96864,7 @@ export const bangs: Record<string, any> = {
     tl: {
         c: 'Entertainment',
         d: 'www.teamliquid.net',
-        r: 40,
+        r: 83,
         s: 'Team Liquid',
         sc: 'Games (specific)',
         t: 'tl',
@@ -96878,7 +96929,7 @@ export const bangs: Record<string, any> = {
     tmdb: {
         c: 'Multimedia',
         d: 'www.themoviedb.org',
-        r: 1525,
+        r: 1431,
         s: 'TheMovieDB.org',
         sc: 'Video',
         t: 'tmdb',
@@ -97133,7 +97184,7 @@ export const bangs: Record<string, any> = {
     tokopedia: {
         c: 'Shopping',
         d: 'www.tokopedia.com',
-        r: 17,
+        r: 20,
         s: 'www.tokopedia.com',
         sc: 'Online (marketplace)',
         t: 'tokopedia',
@@ -97167,7 +97218,7 @@ export const bangs: Record<string, any> = {
     tolkien: {
         c: 'Research',
         d: 'tolkiengateway.net',
-        r: 11,
+        r: 5,
         s: 'Tokien Gateway',
         sc: 'Topical',
         t: 'tolkien',
@@ -97287,7 +97338,7 @@ export const bangs: Record<string, any> = {
     toped: {
         c: 'Shopping',
         d: 'www.tokopedia.com',
-        r: 73,
+        r: 63,
         s: 'Tokopedia',
         sc: 'Online (marketplace)',
         t: 'toped',
@@ -97394,7 +97445,7 @@ export const bangs: Record<string, any> = {
     tor: {
         c: 'Tech',
         d: '{{{s}}}.tor2web.org',
-        r: 8,
+        r: 26,
         s: 'Tor 2 Web',
         sc: 'Domains',
         t: 'tor',
@@ -97598,7 +97649,7 @@ export const bangs: Record<string, any> = {
     tpw: {
         c: 'Shopping',
         d: 'tweakers.net',
-        r: 49,
+        r: 64,
         s: 'Tweakers Pricewatch',
         sc: 'Online',
         t: 'tpw',
@@ -97633,7 +97684,7 @@ export const bangs: Record<string, any> = {
     track: {
         c: 'Online Services',
         d: 'www.packagemapping.com',
-        r: 0,
+        r: 10,
         s: 'PackageMapping',
         sc: 'Tracking',
         t: 'track',
@@ -97674,7 +97725,7 @@ export const bangs: Record<string, any> = {
     trademe: {
         c: 'Shopping',
         d: 'www.trademe.co.nz',
-        r: 65,
+        r: 94,
         s: 'TradeMe',
         sc: 'Online (marketplace)',
         t: 'trademe',
@@ -97700,7 +97751,7 @@ export const bangs: Record<string, any> = {
     trad: {
         c: 'Online Services',
         d: 'dictionary.reverso.net',
-        r: 67,
+        r: 57,
         s: 'Reverso',
         sc: 'Tools',
         t: 'trad',
@@ -97777,7 +97828,7 @@ export const bangs: Record<string, any> = {
     trans: {
         c: 'Online Services',
         d: 'translate.google.com',
-        r: 1111,
+        r: 1031,
         s: 'Google Translate to English',
         sc: 'Google',
         t: 'trans',
@@ -97795,7 +97846,7 @@ export const bangs: Record<string, any> = {
     translate: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 3199,
+        r: 2960,
         s: 'Google Translate',
         sc: 'Google',
         t: 'translate',
@@ -97929,7 +97980,7 @@ export const bangs: Record<string, any> = {
     tref: {
         c: 'Research',
         d: 'www.thesaurus.com',
-        r: 14,
+        r: 0,
         s: 'Thesaurus at Reference.com',
         sc: 'Reference',
         t: 'tref',
@@ -97963,7 +98014,7 @@ export const bangs: Record<string, any> = {
     trends: {
         c: 'Online Services',
         d: 'www.google.com',
-        r: 20,
+        r: 25,
         s: 'Google Trends',
         sc: 'Google',
         t: 'trends',
@@ -98033,7 +98084,7 @@ export const bangs: Record<string, any> = {
     tr: {
         c: 'Translation',
         d: 'translate.google.com',
-        r: 5566,
+        r: 6018,
         s: 'Google Translate',
         sc: 'Google',
         t: 'tr',
@@ -98171,7 +98222,7 @@ export const bangs: Record<string, any> = {
     trope: {
         c: 'Multimedia',
         d: 'tvtropes.org',
-        r: 24,
+        r: 11,
         s: 'TV Tropes',
         sc: 'Docs',
         t: 'trope',
@@ -98276,7 +98327,7 @@ export const bangs: Record<string, any> = {
     trump: {
         c: 'Online Services',
         d: 'twitter.com',
-        r: 0,
+        r: 4,
         s: "Donald Trump's Twitter",
         sc: 'Social',
         t: 'trump',
@@ -98429,7 +98480,7 @@ export const bangs: Record<string, any> = {
     t: {
         c: 'Research',
         d: 'www.thesaurus.com',
-        r: 1689,
+        r: 1735,
         s: 'Thesaurus.com',
         sc: 'Reference (words)',
         t: 't',
@@ -98668,7 +98719,7 @@ export const bangs: Record<string, any> = {
     tunein: {
         c: 'Multimedia',
         d: 'tunein.com',
-        r: 4,
+        r: 0,
         s: 'TuneIn',
         sc: 'Music',
         t: 'tunein',
@@ -98718,7 +98769,7 @@ export const bangs: Record<string, any> = {
     tur: {
         c: 'Research',
         d: 'tureng.com',
-        r: 66,
+        r: 85,
         s: 'Tureng',
         sc: 'Reference (words)',
         t: 'tur',
@@ -98922,7 +98973,7 @@ export const bangs: Record<string, any> = {
     tview: {
         c: 'News',
         d: 'www.tradingview.com',
-        r: 93,
+        r: 77,
         s: 'TradingView',
         sc: 'Business',
         t: 'tview',
@@ -99021,7 +99072,7 @@ export const bangs: Record<string, any> = {
     tvt: {
         c: 'Research',
         d: 'tvtropes.org',
-        r: 2063,
+        r: 2005,
         s: 'tvtropes',
         sc: 'Reference (fun)',
         t: 'tvt',
@@ -99030,7 +99081,7 @@ export const bangs: Record<string, any> = {
     tv: {
         c: 'Entertainment',
         d: 'www.tv.com',
-        r: 21,
+        r: 29,
         s: 'tv.com',
         sc: 'TV',
         t: 'tv',
@@ -99063,7 +99114,7 @@ export const bangs: Record<string, any> = {
     tweet: {
         c: 'Online Services',
         d: 'mobile.twitter.com',
-        r: 96,
+        r: 0,
         s: 'Twitter',
         sc: 'Social',
         t: 'tweet',
@@ -99175,7 +99226,7 @@ export const bangs: Record<string, any> = {
     twitchg: {
         c: 'Entertainment',
         d: 'www.twitch.tv',
-        r: 3,
+        r: 14,
         s: 'Twitch Game',
         sc: 'Games (general)',
         t: 'twitchg',
@@ -99192,7 +99243,7 @@ export const bangs: Record<string, any> = {
     twitch: {
         c: 'Entertainment',
         d: 'twitch.tv',
-        r: 2467,
+        r: 2674,
         s: 'Twitch.tv',
         sc: 'Games (general)',
         t: 'twitch',
@@ -99210,7 +99261,7 @@ export const bangs: Record<string, any> = {
     twitter: {
         c: 'Online Services',
         d: 'twitter.com',
-        r: 402,
+        r: 455,
         s: 'Twitter',
         sc: 'Social',
         t: 'twitter',
@@ -99245,7 +99296,7 @@ export const bangs: Record<string, any> = {
     twit: {
         c: 'Online Services',
         d: 'twitter.com',
-        r: 6,
+        r: 9,
         s: 'Twitter',
         sc: 'Social',
         t: 'twit',
@@ -99304,7 +99355,7 @@ export const bangs: Record<string, any> = {
     twpw: {
         c: 'Shopping',
         d: 'tweakers.net',
-        r: 4,
+        r: 0,
         s: 'Tweakers Pricewatch',
         sc: 'Online (deals)',
         t: 'twpw',
@@ -99321,7 +99372,7 @@ export const bangs: Record<string, any> = {
     tw: {
         c: 'Online Services',
         d: 'twitter.com',
-        r: 6559,
+        r: 5855,
         s: 'Twitter',
         sc: 'Social',
         t: 'tw',
@@ -99385,7 +99436,7 @@ export const bangs: Record<string, any> = {
     tyd: {
         c: 'Research',
         d: 'tyda.se',
-        r: 4,
+        r: 3,
         s: 'Tyda.se',
         sc: 'Learning',
         t: 'tyd',
@@ -99427,7 +99478,7 @@ export const bangs: Record<string, any> = {
     ty: {
         c: 'Multimedia',
         d: 'www.youtube.com',
-        r: 755,
+        r: 1106,
         s: 'YouTube',
         sc: 'Video',
         t: 'ty',
@@ -99791,7 +99842,7 @@ export const bangs: Record<string, any> = {
     uc: {
         c: 'Research',
         d: 'catalog.lib.uchicago.edu',
-        r: 14,
+        r: 22,
         s: 'University of Chicago Library Catalog',
         sc: 'Academic',
         t: 'uc',
@@ -99907,7 +99958,7 @@ export const bangs: Record<string, any> = {
     'u.gg': {
         c: 'Entertainment',
         d: 'u.gg',
-        r: 27,
+        r: 31,
         s: 'u.gg',
         sc: 'Games (general)',
         t: 'u.gg',
@@ -99932,7 +99983,7 @@ export const bangs: Record<string, any> = {
     ug: {
         c: 'Entertainment',
         d: 'www.ultimate-guitar.com',
-        r: 365,
+        r: 410,
         s: 'Ultimate Guitar',
         sc: 'Audio',
         t: 'ug',
@@ -99957,7 +100008,7 @@ export const bangs: Record<string, any> = {
     uib: {
         c: 'Translation',
         d: 'ordbok.uib.no',
-        r: 74,
+        r: 31,
         s: 'Bokmålsordboka og Nynorskordboka',
         sc: 'General',
         t: 'uib',
@@ -100016,7 +100067,7 @@ export const bangs: Record<string, any> = {
     ujc: {
         c: 'Research',
         d: 'prirucka.ujc.cas.cz',
-        r: 6,
+        r: 15,
         s: 'Internetová jazyková příručka',
         sc: 'Reference',
         t: 'ujc',
@@ -100132,7 +100183,7 @@ export const bangs: Record<string, any> = {
     ukwiki: {
         c: 'Research',
         d: 'uk.wikipedia.org',
-        r: 3,
+        r: 5,
         s: 'Ukrainian Wikipedia',
         sc: 'Learning',
         t: 'ukwiki',
@@ -100208,7 +100259,7 @@ export const bangs: Record<string, any> = {
     ultimateguitar: {
         c: 'Multimedia',
         d: 'www.ultimate-guitar.com',
-        r: 0,
+        r: 6,
         s: 'Ultimate Guitar',
         sc: 'Music',
         t: 'ultimateguitar',
@@ -100370,7 +100421,7 @@ export const bangs: Record<string, any> = {
     uncyclopedia: {
         c: 'Entertainment',
         d: 'uncyclopedia.wikia.com',
-        r: 3,
+        r: 5,
         s: 'Uncyclopedia',
         sc: 'Misc',
         t: 'uncyclopedia',
@@ -100781,7 +100832,7 @@ export const bangs: Record<string, any> = {
     unspl: {
         c: 'Multimedia',
         d: 'unsplash.com',
-        r: 0,
+        r: 3,
         s: 'Unsplash',
         sc: 'Images',
         t: 'unspl',
@@ -100790,7 +100841,7 @@ export const bangs: Record<string, any> = {
     uns: {
         c: 'Multimedia',
         d: 'unsplash.com',
-        r: 4,
+        r: 0,
         s: 'Unsplash',
         sc: 'Images',
         t: 'uns',
@@ -100939,7 +100990,7 @@ export const bangs: Record<string, any> = {
     upackages: {
         c: 'Tech',
         d: 'packages.ubuntu.com',
-        r: 15,
+        r: 7,
         s: 'Ubuntu Packages',
         sc: 'Sysadmin (Ubuntu)',
         t: 'upackages',
@@ -101016,14 +101067,14 @@ export const bangs: Record<string, any> = {
         s: 'Uptodown',
         d: 'en.uptodown.com',
         t: 'uptodown',
-        u: 'https://en.uptodown.com/android/search/{{{s}}}',
+        u: 'https://en.uptodown.com/android/search?query={{{s}}}',
         c: 'Tech',
         sc: 'Downloads (apps)',
     },
     up: {
         c: 'Tech',
         d: 'packages.ubuntu.com',
-        r: 50,
+        r: 44,
         s: 'Ubuntu Packages',
         sc: 'Sysadmin (packages)',
         t: 'up',
@@ -101072,7 +101123,7 @@ export const bangs: Record<string, any> = {
     urbandictionary: {
         c: 'Research',
         d: 'www.urbandictionary.com',
-        r: 59,
+        r: 66,
         s: 'Urban Dictionary',
         sc: 'Reference (fun)',
         t: 'urbandictionary',
@@ -101089,7 +101140,7 @@ export const bangs: Record<string, any> = {
     urban: {
         c: 'Research',
         d: 'www.urbandictionary.com',
-        r: 742,
+        r: 722,
         s: 'Urban Dictionary',
         sc: 'Reference (fun)',
         t: 'urban',
@@ -101156,7 +101207,7 @@ export const bangs: Record<string, any> = {
     ur: {
         c: 'Research',
         d: 'suche.uni-regensburg.de',
-        r: 3,
+        r: 5,
         s: 'Universität Regensburg',
         sc: 'Academic',
         t: 'ur',
@@ -101359,7 +101410,7 @@ export const bangs: Record<string, any> = {
     usr: {
         c: 'Tech',
         d: 'docs.unity3d.com',
-        r: 36,
+        r: 10,
         s: 'Unity3D Scripting Reference',
         sc: 'Libraries/Frameworks',
         t: 'usr',
@@ -101377,7 +101428,7 @@ export const bangs: Record<string, any> = {
     us: {
         c: 'Online Services',
         d: 'userstyles.org',
-        r: 12,
+        r: 10,
         s: 'Userstyles.org',
         sc: 'Tools',
         t: 'us',
@@ -101435,7 +101486,7 @@ export const bangs: Record<string, any> = {
     utf8: {
         c: 'Tech',
         d: 'www.fileformat.info',
-        r: 8,
+        r: 11,
         s: 'Unicode Character Search',
         sc: 'Blogs',
         t: 'utf8',
@@ -101477,7 +101528,7 @@ export const bangs: Record<string, any> = {
     utl: {
         c: 'Research',
         d: 'onesearch.library.utoronto.ca',
-        r: 4,
+        r: 6,
         s: 'University of Toronto Libraries',
         sc: 'Academic',
         t: 'utl',
@@ -101536,7 +101587,7 @@ export const bangs: Record<string, any> = {
     u: {
         c: 'Research',
         d: 'www.urbandictionary.com',
-        r: 699,
+        r: 698,
         s: 'Urban Dictionary',
         sc: 'Learning',
         t: 'u',
@@ -101545,7 +101596,7 @@ export const bangs: Record<string, any> = {
     uu: {
         c: 'Tech',
         d: 'duckduckgo.com',
-        r: 33,
+        r: 30,
         s: 'Ubuntuusers.de',
         sc: 'Sysadmin (Ubuntu)',
         t: 'uu',
@@ -101563,7 +101614,7 @@ export const bangs: Record<string, any> = {
     uuw: {
         c: 'Tech',
         d: 'duckduckgo.com',
-        r: 3,
+        r: 8,
         s: 'Ubuntuusers.de Wiki',
         sc: 'Sysadmin (Ubuntu)',
         t: 'uuw',
@@ -101671,7 +101722,7 @@ export const bangs: Record<string, any> = {
     uw: {
         c: 'Online Services',
         d: 'www.ssjoy.org',
-        r: 0,
+        r: 3,
         s: 'UWO Joy',
         sc: 'Search (non-US)',
         t: 'uw',
@@ -102014,7 +102065,7 @@ export const bangs: Record<string, any> = {
     vault: {
         c: 'Entertainment',
         d: 'fallout.gamepedia.com',
-        r: 3,
+        r: 5,
         s: 'The Vault Fallout Wiki',
         sc: 'Games (specific)',
         t: 'vault',
@@ -102147,7 +102198,7 @@ export const bangs: Record<string, any> = {
     v: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 1111,
+        r: 1253,
         s: 'DuckDuckGo video search',
         sc: 'Search (DDG)',
         t: 'v',
@@ -102354,7 +102405,7 @@ export const bangs: Record<string, any> = {
     verb: {
         c: 'Research',
         d: 'conjugator.reverso.net',
-        r: 3,
+        r: 0,
         s: 'Verb-o-Matic',
         sc: 'Reference (words)',
         t: 'verb',
@@ -102363,7 +102414,7 @@ export const bangs: Record<string, any> = {
     verge: {
         c: 'Tech',
         d: 'www.theverge.com',
-        r: 77,
+        r: 57,
         s: 'The Verge',
         sc: 'Blogs',
         t: 'verge',
@@ -102389,7 +102440,7 @@ export const bangs: Record<string, any> = {
     verkkokauppa: {
         c: 'Shopping',
         d: 'www.verkkokauppa.com',
-        r: 18,
+        r: 7,
         s: 'Verkkokauppa.com',
         sc: 'Big box/department',
         t: 'verkkokauppa',
@@ -102406,7 +102457,7 @@ export const bangs: Record<string, any> = {
     verk: {
         c: 'Shopping',
         d: 'www.verkkokauppa.com',
-        r: 13,
+        r: 27,
         s: 'Verkkokauppa.com',
         sc: 'Online',
         t: 'verk',
@@ -102423,7 +102474,7 @@ export const bangs: Record<string, any> = {
     verse: {
         c: 'Online Services',
         d: 'www.bible.com',
-        r: 3,
+        r: 0,
         s: 'Bible.com',
         sc: 'Tools',
         t: 'verse',
@@ -102489,7 +102540,7 @@ export const bangs: Record<string, any> = {
     vf: {
         c: 'Research',
         d: 'www.verbformen.de',
-        r: 4,
+        r: 18,
         s: 'VerbFormen',
         sc: 'Reference (words)',
         t: 'vf',
@@ -102726,7 +102777,7 @@ export const bangs: Record<string, any> = {
     video: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 87,
+        r: 111,
         s: 'DuckDuckGo video search',
         sc: 'Search (DDG)',
         t: 'video',
@@ -102759,7 +102810,7 @@ export const bangs: Record<string, any> = {
     videos: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 25,
+        r: 10,
         s: 'DuckDuckGo Videos',
         sc: 'Search (DDG)',
         t: 'videos',
@@ -102784,7 +102835,7 @@ export const bangs: Record<string, any> = {
     vids: {
         c: 'Online Services',
         d: 'duckduckgo.com',
-        r: 0,
+        r: 7,
         s: 'DuckDuckGo Videos',
         sc: 'Search (DDG)',
         t: 'vids',
@@ -102817,7 +102868,7 @@ export const bangs: Record<string, any> = {
     viki: {
         c: 'Research',
         d: 'et.wikipedia.org',
-        r: 0,
+        r: 4,
         s: 'Estonian Wikipedia (Vikipeedia)',
         sc: 'Learning',
         t: 'viki',
@@ -102826,7 +102877,7 @@ export const bangs: Record<string, any> = {
     vikipedio: {
         c: 'Research',
         d: 'eo.wikipedia.org',
-        r: 0,
+        r: 5,
         s: 'Vikipedio (Esperanto Wikipedia)',
         sc: 'Reference',
         t: 'vikipedio',
@@ -102976,7 +103027,7 @@ export const bangs: Record<string, any> = {
     virustotal: {
         c: 'Online Services',
         d: 'www.virustotal.com',
-        r: 107,
+        r: 125,
         s: 'VirusTotal',
         sc: 'Tools (URLs)',
         t: 'virustotal',
@@ -103109,6 +103160,7 @@ export const bangs: Record<string, any> = {
         s: 'Vkontakte',
         d: 'vk.com',
         t: 'vk',
+        ts: ['вк'],
         u: 'https://vk.com/search?c[q]={{{s}}}&c[section]=auto',
         c: 'Online Services',
         sc: 'Social',
@@ -103117,6 +103169,7 @@ export const bangs: Record<string, any> = {
         s: 'Vkontakte video',
         d: 'vk.com',
         t: 'vkv',
+        ts: ['вкв'],
         u: 'https://vk.com/video?q={{{s}}}',
         c: 'Multimedia',
         sc: 'Video',
@@ -103133,7 +103186,7 @@ export const bangs: Record<string, any> = {
     vla: {
         c: 'Research',
         d: 'vlasisku.lojban.org',
-        r: 8,
+        r: 0,
         s: 'Vlasisku',
         sc: 'Reference (words intl)',
         t: 'vla',
@@ -103233,7 +103286,7 @@ export const bangs: Record<string, any> = {
     vocab: {
         c: 'Research',
         d: 'www.vocabulary.com',
-        r: 16,
+        r: 13,
         s: 'Vocabulary.com',
         sc: 'Reference (words)',
         t: 'vocab',
@@ -103315,7 +103368,7 @@ export const bangs: Record<string, any> = {
     voice: {
         c: 'Online Services',
         d: 'www.google.com',
-        r: 12,
+        r: 7,
         s: 'Google Voice',
         sc: 'Google',
         t: 'voice',
@@ -103399,7 +103452,7 @@ export const bangs: Record<string, any> = {
     vortaro: {
         c: 'Research',
         d: 'vortaro.net',
-        r: 28,
+        r: 33,
         s: 'Vortaro.net',
         sc: 'Reference (words intl)',
         t: 'vortaro',
@@ -103873,7 +103926,7 @@ export const bangs: Record<string, any> = {
     w3s: {
         c: 'Tech',
         d: 'duckduckgo.com',
-        r: 14,
+        r: 11,
         s: 'w3schools.com',
         sc: 'Languages (html)',
         t: 'w3s',
@@ -103891,7 +103944,7 @@ export const bangs: Record<string, any> = {
     w3: {
         c: 'Online Services',
         d: '',
-        r: 4,
+        r: 0,
         s: 'W3C',
         sc: 'Search (DDG)',
         t: 'w3',
@@ -104022,7 +104075,7 @@ export const bangs: Record<string, any> = {
     wallhaven: {
         c: 'Multimedia',
         d: 'wallhaven.cc',
-        r: 12,
+        r: 17,
         s: 'wallhaven',
         sc: 'Images',
         t: 'wallhaven',
@@ -104040,7 +104093,7 @@ export const bangs: Record<string, any> = {
     wallh: {
         c: 'Multimedia',
         d: 'wallhaven.cc',
-        r: 24,
+        r: 42,
         s: 'Wallhaven',
         sc: 'Images',
         t: 'wallh',
@@ -104050,6 +104103,7 @@ export const bangs: Record<string, any> = {
         s: 'Google Images (wallpapers)',
         d: 'google.com',
         t: 'wallpaper',
+        ts: ['обои'],
         u: 'https://google.com/search?tbm=isch&imgsz=xxlarge&gbv=2&safe=off&q={{{s}}}+wallpaper&btnG=Search+Images&tbs=imgo:1',
         c: 'Online Services',
         sc: 'Google',
@@ -104073,7 +104127,7 @@ export const bangs: Record<string, any> = {
     walpha: {
         c: 'Research',
         d: 'www.wolframalpha.com',
-        r: 3,
+        r: 8,
         s: 'Wolfram|Alpha',
         sc: 'Academic',
         t: 'walpha',
@@ -104156,7 +104210,7 @@ export const bangs: Record<string, any> = {
     wapo: {
         c: 'News',
         d: 'www.washingtonpost.com',
-        r: 6,
+        r: 31,
         s: 'The Washington Post',
         sc: 'Newspaper',
         t: 'wapo',
@@ -104183,7 +104237,7 @@ export const bangs: Record<string, any> = {
         s: 'World-Art.ru',
         d: 'www.world-art.ru',
         t: 'waru',
-        ts: ['worldart'],
+        ts: ['worldart', 'ворлдарт'],
         u: 'https://www.world-art.ru/search.php?public_search={{{s}}}&global_sector=all',
         c: 'Entertainment',
         sc: 'Misc',
@@ -104257,7 +104311,7 @@ export const bangs: Record<string, any> = {
     watch: {
         c: 'Multimedia',
         d: 'www.youtube.com',
-        r: 57,
+        r: 56,
         s: 'YouTube',
         sc: 'Video',
         t: 'watch',
@@ -104313,7 +104367,7 @@ export const bangs: Record<string, any> = {
     wayback: {
         c: 'Tech',
         d: 'web.archive.org',
-        r: 2518,
+        r: 2529,
         s: 'Internet Archive: Wayback Machine',
         sc: 'Domains',
         t: 'wayback',
@@ -104322,7 +104376,7 @@ export const bangs: Record<string, any> = {
     waybackmachine: {
         c: 'Online Services',
         d: 'web.archive.org',
-        r: 31,
+        r: 73,
         s: 'Internet Wayback Machine',
         sc: 'Tools',
         t: 'waybackmachine',
@@ -104446,7 +104500,7 @@ export const bangs: Record<string, any> = {
     wbm: {
         c: 'Multimedia',
         d: 'web.archive.org',
-        r: 909,
+        r: 896,
         s: 'WayBack Machine',
         sc: 'General',
         t: 'wbm',
@@ -104472,7 +104526,7 @@ export const bangs: Record<string, any> = {
     wbs: {
         c: 'Online Services',
         d: 'web.archive.org',
-        r: 3,
+        r: 0,
         s: 'Wayback Maschine',
         sc: 'Tools (URLs)',
         t: 'wbs',
@@ -104514,7 +104568,7 @@ export const bangs: Record<string, any> = {
     wcat: {
         c: 'Research',
         d: 'ca.wikipedia.org',
-        r: 5,
+        r: 7,
         s: 'Viquipèdia',
         sc: 'Learning',
         t: 'wcat',
@@ -104616,7 +104670,7 @@ export const bangs: Record<string, any> = {
     wcz: {
         c: 'Research',
         d: 'cs.wikipedia.org',
-        r: 65,
+        r: 72,
         s: 'Czech Wikipedia',
         sc: 'Academic',
         t: 'wcz',
@@ -104643,7 +104697,7 @@ export const bangs: Record<string, any> = {
     'w.de': {
         c: 'Research',
         d: 'de.wikipedia.org',
-        r: 109,
+        r: 105,
         s: 'Wikipedia DE',
         sc: 'Learning',
         t: 'w.de',
@@ -104668,7 +104722,7 @@ export const bangs: Record<string, any> = {
     wdic: {
         c: 'Research',
         d: 'en.wiktionary.org',
-        r: 271,
+        r: 179,
         s: 'wiktionary',
         sc: 'Reference (words)',
         t: 'wdic',
@@ -104677,7 +104731,7 @@ export const bangs: Record<string, any> = {
     wdk: {
         c: 'Research',
         d: 'da.wikipedia.org',
-        r: 7,
+        r: 14,
         s: 'Wikipedia (DK)',
         sc: 'Reference',
         t: 'wdk',
@@ -104711,7 +104765,7 @@ export const bangs: Record<string, any> = {
     wdt: {
         c: 'Research',
         d: 'www.wikidata.org',
-        r: 8,
+        r: 0,
         s: 'Wikidata',
         sc: 'Learning',
         t: 'wdt',
@@ -104803,7 +104857,7 @@ export const bangs: Record<string, any> = {
     webarchive: {
         c: 'Online Services',
         d: 'web.archive.org',
-        r: 88,
+        r: 81,
         s: 'Web Archive',
         sc: 'Tools (URLs)',
         t: 'webarchive',
@@ -104919,7 +104973,7 @@ export const bangs: Record<string, any> = {
     weblio: {
         c: 'Research',
         d: 'www.weblio.jp',
-        r: 21,
+        r: 14,
         s: 'Weblio',
         sc: 'Learning (intl)',
         t: 'weblio',
@@ -104971,6 +105025,7 @@ export const bangs: Record<string, any> = {
         s: 'WebReference',
         d: 'webref.ru',
         t: 'webref',
+        ts: ['вебреф', 'вэбреф'],
         u: 'https://webref.ru/search/?s={{{s}}}',
         c: 'Tech',
         sc: 'Languages (html)',
@@ -105044,7 +105099,7 @@ export const bangs: Record<string, any> = {
     webtoons: {
         c: 'Entertainment',
         d: 'www.webtoons.com',
-        r: 10,
+        r: 5,
         s: 'Line Webtoon',
         sc: 'Comics',
         t: 'webtoons',
@@ -105061,7 +105116,7 @@ export const bangs: Record<string, any> = {
     web: {
         c: 'Tech',
         d: 'www.webopedia.com',
-        r: 21,
+        r: 14,
         s: 'Webopedia',
         sc: 'Programming',
         t: 'web',
@@ -105230,7 +105285,7 @@ export const bangs: Record<string, any> = {
     'w.en': {
         c: 'Research',
         d: 'en.wikipedia.org',
-        r: 85,
+        r: 75,
         s: 'Wikipedia (English)',
         sc: 'Learning',
         t: 'w.en',
@@ -105375,7 +105430,7 @@ export const bangs: Record<string, any> = {
     we: {
         c: 'Research',
         d: 'en.wikipedia.org',
-        r: 711,
+        r: 705,
         s: 'Wikipedia',
         sc: 'Reference',
         t: 'we',
@@ -105425,7 +105480,7 @@ export const bangs: Record<string, any> = {
     wfeet: {
         c: 'Multimedia',
         d: 'www.wikifeet.com',
-        r: 0,
+        r: 4,
         s: 'wikiFeet',
         sc: 'Images',
         t: 'wfeet',
@@ -105544,7 +105599,7 @@ export const bangs: Record<string, any> = {
     wfwiki: {
         c: 'Entertainment',
         d: 'warframe.wikia.com',
-        r: 0,
+        r: 3,
         s: 'WARFRAME Wiki',
         sc: 'Games (specific)',
         t: 'wfwiki',
@@ -105553,7 +105608,7 @@ export const bangs: Record<string, any> = {
     wfw: {
         c: 'Entertainment',
         d: 'warframe.wikia.com',
-        r: 3,
+        r: 8,
         s: 'WARFRAME Wiki',
         sc: 'Games (specific)',
         t: 'wfw',
@@ -105597,7 +105652,7 @@ export const bangs: Record<string, any> = {
     wge: {
         c: 'Research',
         d: 'de.wikipedia.org',
-        r: 26,
+        r: 27,
         s: 'wikipedia german',
         sc: 'Academic',
         t: 'wge',
@@ -105615,7 +105670,7 @@ export const bangs: Record<string, any> = {
     wgov: {
         c: 'News',
         d: 'forecast.weather.gov',
-        r: 76,
+        r: 69,
         s: 'forecast.weather.gov',
         sc: 'Weather',
         t: 'wgov',
@@ -105699,7 +105754,7 @@ export const bangs: Record<string, any> = {
     whats: {
         c: 'Research',
         d: 'www.vocabulary.com',
-        r: 7,
+        r: 0,
         s: 'vocabulary.com',
         sc: 'Reference (words)',
         t: 'whats',
@@ -105717,7 +105772,7 @@ export const bangs: Record<string, any> = {
     whc: {
         c: 'Entertainment',
         d: 'classic.wowhead.com',
-        r: 18,
+        r: 10,
         s: 'WoWHead Classic',
         sc: 'Games (WOW)',
         t: 'whc',
@@ -106079,7 +106134,7 @@ export const bangs: Record<string, any> = {
     wictionary: {
         c: 'Research',
         d: 'en.wiktionary.org',
-        r: 14,
+        r: 23,
         s: 'Wictionary',
         sc: 'Reference (words intl)',
         t: 'wictionary',
@@ -106114,7 +106169,7 @@ export const bangs: Record<string, any> = {
     wifr: {
         c: 'Research',
         d: 'fr.wiktionary.org',
-        r: 33,
+        r: 24,
         s: 'Wiktionary (Français)',
         sc: 'Reference (words)',
         t: 'wifr',
@@ -106174,7 +106229,7 @@ export const bangs: Record<string, any> = {
     wikibooks: {
         c: 'Research',
         d: 'en.wikibooks.org',
-        r: 11,
+        r: 7,
         s: 'Wikibooks',
         sc: 'Academic',
         t: 'wikibooks',
@@ -106191,7 +106246,7 @@ export const bangs: Record<string, any> = {
     wikibr: {
         c: 'Research',
         d: 'pt.wikipedia.org',
-        r: 0,
+        r: 3,
         s: 'Wikipédia Brasil',
         sc: 'Learning',
         t: 'wikibr',
@@ -106224,7 +106279,7 @@ export const bangs: Record<string, any> = {
     wikic: {
         c: 'Research',
         d: 'commons.wikimedia.org',
-        r: 9,
+        r: 0,
         s: 'Wikimedia Commons',
         sc: 'Academic',
         t: 'wikic',
@@ -106233,7 +106288,7 @@ export const bangs: Record<string, any> = {
     wikidata: {
         c: 'Research',
         d: 'www.wikidata.org',
-        r: 100,
+        r: 94,
         s: 'Wikidata',
         sc: 'Reference',
         t: 'wikidata',
@@ -106251,7 +106306,7 @@ export const bangs: Record<string, any> = {
     'wiki.de': {
         c: 'Research',
         d: 'de.wikipedia.org',
-        r: 0,
+        r: 4,
         s: 'Wikipedia DE',
         sc: 'Learning',
         t: 'wiki.de',
@@ -106260,7 +106315,7 @@ export const bangs: Record<string, any> = {
     wikide: {
         c: 'Research',
         d: 'de.wikipedia.org',
-        r: 465,
+        r: 478,
         s: 'Wikipedia',
         sc: 'Reference',
         t: 'wikide',
@@ -106277,7 +106332,7 @@ export const bangs: Record<string, any> = {
     wikien: {
         c: 'Research',
         d: 'en.wikipedia.org',
-        r: 891,
+        r: 695,
         s: 'Wikipedia (English)',
         sc: 'Reference',
         t: 'wikien',
@@ -106286,7 +106341,7 @@ export const bangs: Record<string, any> = {
     wikies: {
         c: 'Research',
         d: 'es.wikipedia.org',
-        r: 52,
+        r: 40,
         s: 'Wikipedia (Spanish)',
         sc: 'Reference',
         t: 'wikies',
@@ -106304,7 +106359,7 @@ export const bangs: Record<string, any> = {
     wikifr: {
         c: 'Research',
         d: 'fr.wikipedia.org',
-        r: 116,
+        r: 113,
         s: 'Wikipedia French',
         sc: 'Learning',
         t: 'wikifr',
@@ -106321,7 +106376,7 @@ export const bangs: Record<string, any> = {
     wikihow: {
         c: 'Research',
         d: 'www.wikihow.com',
-        r: 19,
+        r: 29,
         s: 'wikiHow',
         sc: 'Reference',
         t: 'wikihow',
@@ -106339,7 +106394,7 @@ export const bangs: Record<string, any> = {
     wikiid: {
         c: 'Research',
         d: 'id.wikipedia.org',
-        r: 3,
+        r: 5,
         s: 'Wikipedia Bahasa Indonesia',
         sc: 'Reference',
         t: 'wikiid',
@@ -106424,7 +106479,7 @@ export const bangs: Record<string, any> = {
     wikinl: {
         c: 'Multimedia',
         d: 'nl.wikipedia.org',
-        r: 127,
+        r: 143,
         s: 'Wikipedia Nederland',
         sc: 'Docs',
         t: 'wikinl',
@@ -106451,7 +106506,7 @@ export const bangs: Record<string, any> = {
     wikipediade: {
         c: 'Online Services',
         d: 'de.wikipedia.org',
-        r: 4,
+        r: 11,
         s: 'Wikipedia Deutschland',
         sc: 'Tools',
         t: 'wikipediade',
@@ -106494,7 +106549,7 @@ export const bangs: Record<string, any> = {
     wikipt: {
         c: 'Research',
         d: 'pt.wikipedia.org',
-        r: 23,
+        r: 25,
         s: 'Wikipédia PT',
         sc: 'Learning',
         t: 'wikipt',
@@ -106528,7 +106583,7 @@ export const bangs: Record<string, any> = {
     wikiru: {
         c: 'Research',
         d: 'ru.wikipedia.org',
-        r: 26,
+        r: 32,
         s: 'ru.wikipedia.org',
         sc: 'Reference',
         t: 'wikiru',
@@ -106622,7 +106677,7 @@ export const bangs: Record<string, any> = {
     wikit: {
         c: 'Research',
         d: 'wikitravel.org',
-        r: 4,
+        r: 5,
         s: 'Wikitravel',
         sc: 'Travel',
         t: 'wikit',
@@ -106748,6 +106803,7 @@ export const bangs: Record<string, any> = {
         s: 'Wikivoyage (Русский)',
         d: 'ru.wikivoyage.org',
         t: 'wikivoyageru',
+        ts: ['викивояж'],
         u: 'https://ru.wikivoyage.org/wiki/Special:Search?search={{{s}}}&go=Go',
         c: 'Research',
         sc: 'Travel',
@@ -106805,7 +106861,7 @@ export const bangs: Record<string, any> = {
     wiki: {
         c: 'Research',
         d: 'en.wikipedia.org',
-        r: 14162,
+        r: 14157,
         s: 'Wikipedia',
         sc: 'Academic',
         t: 'wiki',
@@ -106882,7 +106938,7 @@ export const bangs: Record<string, any> = {
     wiktfr: {
         c: 'Research',
         d: 'fr.wiktionary.org',
-        r: 337,
+        r: 274,
         s: 'Wiktionnaire',
         sc: 'Reference (words intl)',
         t: 'wiktfr',
@@ -106907,7 +106963,7 @@ export const bangs: Record<string, any> = {
     wiktionary: {
         c: 'Research',
         d: 'en.wiktionary.org',
-        r: 2351,
+        r: 2679,
         s: 'Wiktionary',
         sc: 'Reference (words)',
         t: 'wiktionary',
@@ -106975,7 +107031,7 @@ export const bangs: Record<string, any> = {
     wiktru: {
         c: 'Research',
         d: 'ru.wiktionary.org',
-        r: 15,
+        r: 27,
         s: 'Wiktionary (RU)',
         sc: 'Reference (words)',
         t: 'wiktru',
@@ -106992,7 +107048,7 @@ export const bangs: Record<string, any> = {
     wikt: {
         c: 'Research',
         d: 'en.wiktionary.org',
-        r: 8321,
+        r: 9134,
         s: 'Wiktionary',
         sc: 'Reference (words)',
         t: 'wikt',
@@ -107050,7 +107106,7 @@ export const bangs: Record<string, any> = {
     wim: {
         c: 'Research',
         d: 'commons.wikimedia.org',
-        r: 47,
+        r: 32,
         s: 'Wikimedia Commons',
         sc: 'Academic',
         t: 'wim',
@@ -107107,7 +107163,7 @@ export const bangs: Record<string, any> = {
     winehq: {
         c: 'Entertainment',
         d: 'www.winehq.org',
-        r: 11,
+        r: 6,
         s: 'WineHQ',
         sc: 'Games (general)',
         t: 'winehq',
@@ -107265,7 +107321,7 @@ export const bangs: Record<string, any> = {
     wi: {
         c: 'Research',
         d: 'en.wikipedia.org',
-        r: 1128,
+        r: 1076,
         s: 'Wikipedia',
         sc: 'Reference',
         t: 'wi',
@@ -107274,7 +107330,7 @@ export const bangs: Record<string, any> = {
     wizh: {
         c: 'Research',
         d: 'zh.wikipedia.org',
-        r: 14,
+        r: 22,
         s: 'wikipedia(Chinese)',
         sc: 'Reference (words)',
         t: 'wizh',
@@ -107332,7 +107388,7 @@ export const bangs: Record<string, any> = {
     wkd: {
         c: 'Tech',
         d: 'wikidevi.com',
-        r: 3,
+        r: 0,
         s: 'WikiDevi',
         sc: 'Design',
         t: 'wkd',
@@ -107447,7 +107503,7 @@ export const bangs: Record<string, any> = {
     wkten: {
         c: 'Research',
         d: 'en.wiktionary.org',
-        r: 729,
+        r: 839,
         s: 'Wiktionary English',
         sc: 'Reference (words)',
         t: 'wkten',
@@ -107456,7 +107512,7 @@ export const bangs: Record<string, any> = {
     wku: {
         c: 'Research',
         d: 'en.wikiversity.org',
-        r: 3,
+        r: 22,
         s: 'wikiversity',
         sc: 'Academic',
         t: 'wku',
@@ -107465,7 +107521,7 @@ export const bangs: Record<string, any> = {
     wk: {
         c: 'Research',
         d: 'en.wikipedia.org',
-        r: 1441,
+        r: 1325,
         s: 'wikipedia',
         sc: 'Academic',
         t: 'wk',
@@ -107552,7 +107608,7 @@ export const bangs: Record<string, any> = {
     wl: {
         c: 'Research',
         d: 'search.wikileaks.org',
-        r: 3,
+        r: 10,
         s: 'WikiLeaks',
         sc: 'Government',
         t: 'wl',
@@ -107577,7 +107633,7 @@ export const bangs: Record<string, any> = {
     wmc: {
         c: 'Multimedia',
         d: 'commons.wikimedia.org',
-        r: 140,
+        r: 168,
         s: 'Wikimedia Commons',
         sc: 'General',
         t: 'wmc',
@@ -107844,7 +107900,7 @@ export const bangs: Record<string, any> = {
     wolframalpha: {
         c: 'Research',
         d: 'www.wolframalpha.com',
-        r: 25,
+        r: 36,
         s: 'Wolfram|Alpha',
         sc: 'Academic',
         t: 'wolframalpha',
@@ -107853,7 +107909,7 @@ export const bangs: Record<string, any> = {
     wolfram: {
         c: 'Research',
         d: 'www.wolframalpha.com',
-        r: 335,
+        r: 314,
         s: 'Wolfram|Alpha',
         sc: 'Academic',
         t: 'wolfram',
@@ -107862,7 +107918,7 @@ export const bangs: Record<string, any> = {
     wolf: {
         c: 'Research',
         d: 'www.wolframalpha.com',
-        r: 118,
+        r: 139,
         s: 'Wolfram Alpha',
         sc: 'Academic (math/cs)',
         t: 'wolf',
@@ -107879,7 +107935,7 @@ export const bangs: Record<string, any> = {
     wol: {
         c: 'Research',
         d: 'wol.jw.org',
-        r: 39,
+        r: 27,
         s: 'Watchtower Online Library',
         sc: 'Reference (religion)',
         t: 'wol',
@@ -107936,7 +107992,7 @@ export const bangs: Record<string, any> = {
     wookie: {
         c: 'Entertainment',
         d: 'starwars.wikia.com',
-        r: 18,
+        r: 19,
         s: 'Wookiepedia',
         sc: 'Misc',
         t: 'wookie',
@@ -107962,7 +108018,7 @@ export const bangs: Record<string, any> = {
     woolworths: {
         c: 'Shopping',
         d: 'www.woolworths.com.au',
-        r: 6,
+        r: 5,
         s: 'Woolworths',
         sc: 'Big box/department',
         t: 'woolworths',
@@ -107997,6 +108053,7 @@ export const bangs: Record<string, any> = {
         s: 'WooordHunt',
         d: 'wooordhunt.ru',
         t: 'woo',
+        ts: ['воо'],
         u: 'https://wooordhunt.ru/word/{{{s}}}',
         c: 'Multimedia',
         sc: 'General',
@@ -108020,7 +108077,7 @@ export const bangs: Record<string, any> = {
     wordhippo: {
         c: 'Online Services',
         d: 'www.wordhippo.com',
-        r: 36,
+        r: 45,
         s: 'word hippo',
         sc: 'Tools',
         t: 'wordhippo',
@@ -108053,7 +108110,7 @@ export const bangs: Record<string, any> = {
     wordnik: {
         c: 'Research',
         d: 'www.wordnik.com',
-        r: 50,
+        r: 72,
         s: 'Wordnik',
         sc: 'Reference (words)',
         t: 'wordnik',
@@ -108071,7 +108128,7 @@ export const bangs: Record<string, any> = {
     wordreference: {
         c: 'Research',
         d: 'www.wordreference.com',
-        r: 91,
+        r: 77,
         s: 'WordReference',
         sc: 'Reference (words)',
         t: 'wordreference',
@@ -108096,7 +108153,7 @@ export const bangs: Record<string, any> = {
     word: {
         c: 'Online Services',
         d: 'www.wordnik.com',
-        r: 63,
+        r: 31,
         s: 'Wordnik',
         sc: 'Tools',
         t: 'word',
@@ -108264,7 +108321,7 @@ export const bangs: Record<string, any> = {
     wosm: {
         c: 'Online Services',
         d: 'wiki.openstreetmap.org',
-        r: 62,
+        r: 121,
         s: 'OpenStreetMap Wiki',
         sc: 'Maps',
         t: 'wosm',
@@ -108299,7 +108356,7 @@ export const bangs: Record<string, any> = {
     wot: {
         c: 'Tech',
         d: 'www.mywot.com',
-        r: 5,
+        r: 8,
         s: 'Web of Trust',
         sc: 'Tools (URLs)',
         t: 'wot',
@@ -108386,7 +108443,7 @@ export const bangs: Record<string, any> = {
     wo: {
         c: 'News',
         d: 'www.wetteronline.de',
-        r: 28,
+        r: 31,
         s: 'WetterOnline',
         sc: 'Weather',
         t: 'wo',
@@ -108404,7 +108461,7 @@ export const bangs: Record<string, any> = {
     wowhc: {
         c: 'Entertainment',
         d: 'classic.wowhead.com',
-        r: 0,
+        r: 4,
         s: 'wowhead classic',
         sc: 'Games (WOW)',
         t: 'wowhc',
@@ -108455,7 +108512,7 @@ export const bangs: Record<string, any> = {
     wowh: {
         c: 'Entertainment',
         d: 'www.wowhead.com',
-        r: 213,
+        r: 109,
         s: 'Wowhead',
         sc: 'Games (WOW)',
         t: 'wowh',
@@ -108586,7 +108643,7 @@ export const bangs: Record<string, any> = {
     wpost: {
         c: 'News',
         d: 'www.washingtonpost.com',
-        r: 20,
+        r: 11,
         s: 'Washington Post',
         sc: 'Newspaper',
         t: 'wpost',
@@ -108620,7 +108677,7 @@ export const bangs: Record<string, any> = {
     wpp: {
         c: 'Tech',
         d: 'wordpress.org',
-        r: 0,
+        r: 6,
         s: 'WordPress Plugin Directory',
         sc: 'Downloads',
         t: 'wpp',
@@ -108662,7 +108719,7 @@ export const bangs: Record<string, any> = {
     wp: {
         c: 'Online Services',
         d: 'wordpress.org',
-        r: 98,
+        r: 88,
         s: 'WordPress.org',
         sc: 'Tools',
         t: 'wp',
@@ -108711,7 +108768,7 @@ export const bangs: Record<string, any> = {
     wq: {
         c: 'Research',
         d: 'en.wikiquote.org',
-        r: 63,
+        r: 78,
         s: 'WikiQuote',
         sc: 'Reference',
         t: 'wq',
@@ -108728,7 +108785,7 @@ export const bangs: Record<string, any> = {
     wra: {
         c: 'Research',
         d: 'www.wolframalpha.com',
-        r: 58,
+        r: 28,
         s: 'Wolfram|Alpha',
         sc: 'Academic',
         t: 'wra',
@@ -108799,7 +108856,7 @@ export const bangs: Record<string, any> = {
     wref: {
         c: 'Research',
         d: 'www.wordreference.com',
-        r: 593,
+        r: 519,
         s: 'Wordreference en->fr',
         sc: 'Reference (words)',
         t: 'wref',
@@ -108833,7 +108890,7 @@ export const bangs: Record<string, any> = {
     wrenfr: {
         c: 'Online Services',
         d: 'www.wordreference.com',
-        r: 246,
+        r: 210,
         s: 'WordReference',
         sc: 'Tools',
         t: 'wrenfr',
@@ -108850,7 +108907,7 @@ export const bangs: Record<string, any> = {
     wrenit: {
         c: 'Research',
         d: 'www.wordreference.com',
-        r: 292,
+        r: 211,
         s: 'Wordreference en->it',
         sc: 'Reference (words)',
         t: 'wrenit',
@@ -108979,7 +109036,7 @@ export const bangs: Record<string, any> = {
     wres: {
         c: 'Online Services',
         d: 'www.wordreference.com',
-        r: 30,
+        r: 48,
         s: 'WordReference (ES)',
         sc: 'Tools',
         t: 'wres',
@@ -108988,7 +109045,7 @@ export const bangs: Record<string, any> = {
     wre: {
         c: 'Online Services',
         d: 'www.wordreference.com',
-        r: 5,
+        r: 10,
         s: 'WordReference (ES)',
         sc: 'Tools',
         t: 'wre',
@@ -108997,7 +109054,7 @@ export const bangs: Record<string, any> = {
     wrfe: {
         c: 'Research',
         d: 'www.wordreference.com',
-        r: 277,
+        r: 260,
         s: 'Wordreference fr->en',
         sc: 'Reference (words)',
         t: 'wrfe',
@@ -109024,7 +109081,7 @@ export const bangs: Record<string, any> = {
     wrfren: {
         c: 'Research',
         d: 'www.wordreference.com',
-        r: 186,
+        r: 159,
         s: 'Word Reference',
         sc: 'Reference (words)',
         t: 'wrfren',
@@ -109091,7 +109148,7 @@ export const bangs: Record<string, any> = {
     writen: {
         c: 'Research',
         d: 'www.wordreference.com',
-        r: 186,
+        r: 118,
         s: 'Wordreference it->en',
         sc: 'Reference (words)',
         t: 'writen',
@@ -109100,7 +109157,7 @@ export const bangs: Record<string, any> = {
     writes: {
         c: 'Research',
         d: 'www.wordreference.com',
-        r: 0,
+        r: 4,
         s: 'WordReference',
         sc: 'Reference (words)',
         t: 'writes',
@@ -109125,7 +109182,7 @@ export const bangs: Record<string, any> = {
     wrn: {
         c: 'Online Services',
         d: 'www.wordreference.com',
-        r: 0,
+        r: 4,
         s: 'WordReference (EN)',
         sc: 'Tools',
         t: 'wrn',
@@ -109160,7 +109217,7 @@ export const bangs: Record<string, any> = {
     wrpten: {
         c: 'Research',
         d: 'www.wordreference.com',
-        r: 6,
+        r: 4,
         s: 'WordReference',
         sc: 'Learning (intl)',
         t: 'wrpten',
@@ -109193,7 +109250,7 @@ export const bangs: Record<string, any> = {
     wrsf: {
         c: 'Online Services',
         d: 'www.wordreference.com',
-        r: 0,
+        r: 3,
         s: 'Wordreference Spanish-French',
         sc: 'Tools',
         t: 'wrsf',
@@ -109229,7 +109286,7 @@ export const bangs: Record<string, any> = {
     wrs: {
         c: 'Research',
         d: 'www.wordreference.com',
-        r: 127,
+        r: 101,
         s: 'WordReference English-Spanish',
         sc: 'Reference',
         t: 'wrs',
@@ -109264,7 +109321,7 @@ export const bangs: Record<string, any> = {
     wr: {
         c: 'Research',
         d: 'www.wordreference.com',
-        r: 758,
+        r: 575,
         s: 'WordReference Definition',
         sc: 'Learning',
         t: 'wr',
@@ -109468,7 +109525,7 @@ export const bangs: Record<string, any> = {
     ws: {
         c: 'Multimedia',
         d: 'en.wikisource.org',
-        r: 129,
+        r: 63,
         s: 'Wikisource',
         sc: 'Books',
         t: 'ws',
@@ -109542,7 +109599,7 @@ export const bangs: Record<string, any> = {
     wtde: {
         c: 'Research',
         d: 'de.wiktionary.org',
-        r: 174,
+        r: 204,
         s: 'Wiktionary (Deutsch)',
         sc: 'Reference (words intl)',
         t: 'wtde',
@@ -109559,7 +109616,7 @@ export const bangs: Record<string, any> = {
     wten: {
         c: 'Research',
         d: 'en.wiktionary.org',
-        r: 2569,
+        r: 2812,
         s: 'Wiktionary',
         sc: 'Reference (words)',
         t: 'wten',
@@ -109585,7 +109642,7 @@ export const bangs: Record<string, any> = {
     wtes: {
         c: 'Research',
         d: 'es.wiktionary.org',
-        r: 20,
+        r: 24,
         s: 'Wikcionario',
         sc: 'Reference (words)',
         t: 'wtes',
@@ -109619,7 +109676,7 @@ export const bangs: Record<string, any> = {
     wtfr: {
         c: 'Research',
         d: 'fr.wiktionary.org',
-        r: 453,
+        r: 490,
         s: 'Wiktionary french',
         sc: 'Reference (words)',
         t: 'wtfr',
@@ -109654,7 +109711,7 @@ export const bangs: Record<string, any> = {
     wtit: {
         c: 'Research',
         d: 'it.wiktionary.org',
-        r: 5,
+        r: 14,
         s: 'Wiktionary',
         sc: 'Reference (words)',
         t: 'wtit',
@@ -109663,7 +109720,7 @@ export const bangs: Record<string, any> = {
     wtja: {
         c: 'Online Services',
         d: 'ja.wiktionary.org',
-        r: 12,
+        r: 11,
         s: 'Wiktionary (Japan)',
         sc: 'Search (non-US)',
         t: 'wtja',
@@ -109672,7 +109729,7 @@ export const bangs: Record<string, any> = {
     wtla: {
         c: 'Research',
         d: 'en.wiktionary.org',
-        r: 12,
+        r: 32,
         s: 'Wiktionary',
         sc: 'Reference (words intl)',
         t: 'wtla',
@@ -109713,7 +109770,7 @@ export const bangs: Record<string, any> = {
     wtoon: {
         c: 'Entertainment',
         d: 'www.webtoons.com',
-        r: 0,
+        r: 5,
         s: 'Webtoon',
         sc: 'Comics',
         t: 'wtoon',
@@ -109730,7 +109787,7 @@ export const bangs: Record<string, any> = {
     wtpt: {
         c: 'Research',
         d: 'pt.wiktionary.org',
-        r: 4,
+        r: 9,
         s: 'Wiktionary (portuguese)',
         sc: 'Reference (words intl)',
         t: 'wtpt',
@@ -109823,7 +109880,7 @@ export const bangs: Record<string, any> = {
     wt: {
         c: 'Research',
         d: 'en.wiktionary.org',
-        r: 18152,
+        r: 17595,
         s: 'Wiktionary',
         sc: 'Reference (words)',
         t: 'wt',
@@ -109890,7 +109947,7 @@ export const bangs: Record<string, any> = {
     wunderground: {
         c: 'News',
         d: 'www.wunderground.com',
-        r: 23,
+        r: 19,
         s: 'Weather Underground',
         sc: 'Weather',
         t: 'wunderground',
@@ -109940,7 +109997,7 @@ export const bangs: Record<string, any> = {
     wu: {
         c: 'News',
         d: 'www.wunderground.com',
-        r: 116,
+        r: 125,
         s: 'Weather Underground',
         sc: 'Weather',
         t: 'wu',
@@ -110047,7 +110104,7 @@ export const bangs: Record<string, any> = {
     wv: {
         c: 'Research',
         d: 'en.wikivoyage.org',
-        r: 301,
+        r: 226,
         s: 'Wikivoyage',
         sc: 'Travel',
         t: 'wv',
@@ -110089,7 +110146,7 @@ export const bangs: Record<string, any> = {
     wwen: {
         c: 'Research',
         d: 'www.wikiwand.com',
-        r: 3,
+        r: 0,
         s: 'Wikiwand in english',
         sc: 'Reference',
         t: 'wwen',
@@ -110130,7 +110187,7 @@ export const bangs: Record<string, any> = {
     w: {
         c: 'Online Services',
         d: 'en.wikipedia.org',
-        r: 190642,
+        r: 186906,
         s: 'Wikipedia',
         sc: 'Search',
         t: 'w',
@@ -110188,7 +110245,7 @@ export const bangs: Record<string, any> = {
     'www.89porno.com': {
         c: 'Multimedia',
         d: 'www.89porno.com',
-        r: 15,
+        r: 11,
         s: 'Porno İzle',
         sc: 'Video',
         t: 'www.89porno.com',
@@ -110197,7 +110254,7 @@ export const bangs: Record<string, any> = {
     ww: {
         c: 'Research',
         d: 'www.wikiwand.com',
-        r: 74,
+        r: 73,
         s: 'Wikiwand',
         sc: 'Reference',
         t: 'ww',
@@ -110299,7 +110356,7 @@ export const bangs: Record<string, any> = {
     wy: {
         c: 'Online Services',
         d: 'www.wykop.pl',
-        r: 15,
+        r: 7,
         s: 'Wykop.pl',
         sc: 'Social news/links',
         t: 'wy',
@@ -110532,7 +110589,7 @@ export const bangs: Record<string, any> = {
     xiny: {
         c: 'Tech',
         d: 'learnxinyminutes.com',
-        r: 0,
+        r: 9,
         s: 'Learn X in Y Minutes',
         sc: 'Programming',
         t: 'xiny',
@@ -110550,7 +110607,7 @@ export const bangs: Record<string, any> = {
     xiv: {
         c: 'Entertainment',
         d: 'xivdb.com',
-        r: 4,
+        r: 3,
         s: 'XIV:DB',
         sc: 'Games (specific)',
         t: 'xiv',
@@ -110608,7 +110665,7 @@ export const bangs: Record<string, any> = {
     xmc: {
         c: 'Online Services',
         d: 'xploremycity.com',
-        r: 0,
+        r: 3,
         s: 'Xploremycity',
         sc: 'Search (Real-time)',
         t: 'xmc',
@@ -110667,7 +110724,7 @@ export const bangs: Record<string, any> = {
     xsh: {
         c: 'Tech',
         d: 'explainshell.com',
-        r: 3,
+        r: 0,
         s: 'ExplainShell',
         sc: 'Sysadmin (man)',
         t: 'xsh',
@@ -110676,7 +110733,7 @@ export const bangs: Record<string, any> = {
     xt: {
         c: 'Research',
         d: 'xtupleuniversity.xtuple.com',
-        r: 10,
+        r: 8,
         s: 'xTuple',
         sc: 'Reference',
         t: 'xt',
@@ -110759,7 +110816,7 @@ export const bangs: Record<string, any> = {
     yaen: {
         c: 'Online Services',
         d: 'yandex.com',
-        r: 114,
+        r: 102,
         s: 'Yandex',
         sc: 'Search (non-US)',
         t: 'yaen',
@@ -110811,7 +110868,7 @@ export const bangs: Record<string, any> = {
     yama: {
         c: 'Shopping',
         d: 'market.yandex.ru',
-        r: 5,
+        r: 8,
         s: 'Yandex.Market',
         sc: 'Online (marketplace)',
         t: 'yama',
@@ -110837,7 +110894,7 @@ export const bangs: Record<string, any> = {
     yamu: {
         c: 'Multimedia',
         d: 'music.yandex.ru',
-        r: 23,
+        r: 15,
         s: 'yandex music',
         sc: 'Music',
         t: 'yamu',
@@ -110854,7 +110911,7 @@ export const bangs: Record<string, any> = {
     yandexen: {
         c: 'Online Services',
         d: 'yandex.com',
-        r: 116,
+        r: 106,
         s: 'Yandex',
         sc: 'Search (non-US)',
         t: 'yandexen',
@@ -110862,12 +110919,13 @@ export const bangs: Record<string, any> = {
     },
     yandexmaps: {
         s: 'Yandex Maps',
-        d: 'yandex.ru',
+        d: 'ya.ru',
         t: 'yandexmaps',
         ts: ['yamaps', 'yxmaps', 'якарты'],
-        u: 'https://yandex.ru/maps/?text={{{s}}}',
+        u: 'https://ya.ru/maps/?text={{{s}}}',
         c: 'Online Services',
         sc: 'Maps',
+        fmt: ['url_encode_placeholder', 'url_encode_space_to_plus'],
     },
     yandexm: {
         c: 'Online Services',
@@ -110890,7 +110948,7 @@ export const bangs: Record<string, any> = {
     yandex: {
         c: 'Online Services',
         d: 'yandex.ru',
-        r: 1502,
+        r: 1445,
         s: 'Yandex.Ru',
         sc: 'Search (non-US)',
         t: 'yandex',
@@ -110934,7 +110992,7 @@ export const bangs: Record<string, any> = {
     yarn: {
         c: 'Tech',
         d: 'yarnpkg.com',
-        r: 0,
+        r: 4,
         s: 'Yarn',
         sc: 'Downloads',
         t: 'yarn',
@@ -110976,16 +111034,18 @@ export const bangs: Record<string, any> = {
     },
     yav: {
         s: 'Yandex Video',
-        d: 'yandex.ru',
+        d: 'ya.ru',
         t: 'yav',
-        u: 'https://yandex.ru/video/search?text={{{s}}}',
+        ts: ['яв'],
+        u: 'https://ya.ru/video/search?text={{{s}}}',
         c: 'Online Services',
         sc: 'Search (non-US)',
+        fmt: ['url_encode_placeholder', 'url_encode_space_to_plus'],
     },
     yaw: {
         c: 'News',
         d: 'yandex.ru',
-        r: 3,
+        r: 0,
         s: 'Yandex Weather',
         sc: 'Weather',
         t: 'yaw',
@@ -110993,10 +111053,10 @@ export const bangs: Record<string, any> = {
     },
     ya: {
         s: 'Yandex',
-        d: 'yandex.ru',
+        d: 'ya.ru',
         t: 'ya',
         ts: ['yandex', 'я'],
-        u: 'https://yandex.ru/search?text={{{s}}}',
+        u: 'https://ya.ru/search?text={{{s}}}',
         c: 'Online Services',
         sc: 'Search (non-US)',
     },
@@ -111196,7 +111256,7 @@ export const bangs: Record<string, any> = {
     yf: {
         c: 'News',
         d: 'finance.yahoo.com',
-        r: 2457,
+        r: 2258,
         s: 'Yahoo Finance',
         sc: 'Business',
         t: 'yf',
@@ -111214,7 +111274,7 @@ export const bangs: Record<string, any> = {
     yg: {
         c: 'Research',
         d: 'www.yeastgenome.org',
-        r: 43,
+        r: 41,
         s: 'Saccharomyces Genome Database',
         sc: 'Academic',
         t: 'yg',
@@ -111299,7 +111359,7 @@ export const bangs: Record<string, any> = {
     yjp: {
         c: 'Online Services',
         d: 'search.yahoo.co.jp',
-        r: 53,
+        r: 86,
         s: 'Yahoo! Japan',
         sc: 'Search (non-US)',
         t: 'yjp',
@@ -111384,7 +111444,7 @@ export const bangs: Record<string, any> = {
     ynab: {
         c: 'Shopping',
         d: 'www.youneedabudget.com',
-        r: 8,
+        r: 5,
         s: 'https://www.youneedabudget.com/',
         sc: 'Services',
         t: 'ynab',
@@ -111509,6 +111569,7 @@ export const bangs: Record<string, any> = {
         s: 'Youla / Юла',
         d: 'youla.ru',
         t: 'youla',
+        ts: ['юла'],
         u: 'https://youla.ru/?q={{{s}}}',
         c: 'Shopping',
         sc: 'Online (marketplace)',
@@ -111584,7 +111645,7 @@ export const bangs: Record<string, any> = {
     youtube: {
         c: 'Multimedia',
         d: 'www.youtube.com',
-        r: 10613,
+        r: 10400,
         s: 'YouTube',
         sc: 'Video',
         t: 'youtube',
@@ -111618,7 +111679,7 @@ export const bangs: Record<string, any> = {
     you: {
         c: 'Entertainment',
         d: 'www.youtube.com',
-        r: 5786,
+        r: 5808,
         s: 'YouTube',
         sc: 'Misc',
         t: 'you',
@@ -111676,7 +111737,7 @@ export const bangs: Record<string, any> = {
     yrtjp: {
         c: 'Online Services',
         d: 'search.yahoo.co.jp',
-        r: 329,
+        r: 331,
         s: 'Yahoo! Japan Realtime',
         sc: 'Search (Real-time)',
         t: 'yrtjp',
@@ -111710,7 +111771,7 @@ export const bangs: Record<string, any> = {
     ys: {
         c: 'Research',
         d: 'slovari.yandex.ru',
-        r: 12,
+        r: 15,
         s: 'Яндекс.Словари',
         sc: 'Reference (words)',
         t: 'ys',
@@ -111728,7 +111789,7 @@ export const bangs: Record<string, any> = {
     ytb: {
         c: 'Multimedia',
         d: 'www.youtube.com',
-        r: 1143,
+        r: 997,
         s: 'Youtube',
         sc: 'Video',
         t: 'ytb',
@@ -111828,7 +111889,7 @@ export const bangs: Record<string, any> = {
     ytg: {
         c: 'Multimedia',
         d: 'gaming.youtube.com',
-        r: 8,
+        r: 3,
         s: 'Youtube Gaming',
         sc: 'Video',
         t: 'ytg',
@@ -111885,7 +111946,7 @@ export const bangs: Record<string, any> = {
     ytmusic: {
         c: 'Multimedia',
         d: 'music.youtube.com',
-        r: 564,
+        r: 619,
         s: 'YouTube Music',
         sc: 'Music',
         t: 'ytmusic',
@@ -111894,7 +111955,7 @@ export const bangs: Record<string, any> = {
     ytmu: {
         c: 'Multimedia',
         d: 'music.youtube.com',
-        r: 48,
+        r: 59,
         s: 'YouTube Music',
         sc: 'Music',
         t: 'ytmu',
@@ -111911,7 +111972,7 @@ export const bangs: Record<string, any> = {
     ytm: {
         c: 'Multimedia',
         d: 'music.youtube.com',
-        r: 5263,
+        r: 5293,
         s: 'Youtube Music',
         sc: 'Video',
         t: 'ytm',
@@ -111920,7 +111981,7 @@ export const bangs: Record<string, any> = {
     ytn: {
         c: 'News',
         d: 'youtubenews.de',
-        r: 10,
+        r: 20,
         s: 'YouTube News DE',
         sc: 'Magazine',
         t: 'ytn',
@@ -111964,7 +112025,7 @@ export const bangs: Record<string, any> = {
         s: 'Yandex Translate',
         d: 'translate.yandex.ru',
         t: 'ytr',
-        ts: ['ys', 'yad', 'slov', 'yaslovari'],
+        ts: ['ys', 'yad', 'slov', 'yaslovari', 'яп', 'яс'],
         u: 'https://translate.yandex.ru/?text={{{s}}}',
         c: 'Online Services',
         sc: 'Tools',
@@ -111973,6 +112034,7 @@ export const bangs: Record<string, any> = {
         s: 'YouTube TV',
         d: 'tv.youtube.com',
         t: 'yttv',
+        ts: ['юттв'],
         u: 'https://tv.youtube.com/search/{{{s}}}',
         c: 'Entertainment',
         sc: 'TV',
@@ -111988,7 +112050,7 @@ export const bangs: Record<string, any> = {
     ytvideo: {
         c: 'Multimedia',
         d: 'www.youtube.com',
-        r: 21,
+        r: 12,
         s: 'Youtube video',
         sc: 'Video',
         t: 'ytvideo',
@@ -111997,7 +112059,7 @@ export const bangs: Record<string, any> = {
     ytv: {
         c: 'Entertainment',
         d: 'www.yourtv.com.au',
-        r: 8,
+        r: 3,
         s: 'yourTV.com.au',
         sc: 'TV',
         t: 'ytv',
@@ -112023,7 +112085,7 @@ export const bangs: Record<string, any> = {
         s: 'YouTube',
         d: 'www.youtube.com',
         t: 'yt',
-        ts: ['ty', 'watch', 'youtube', 'you', 'ytb', 'υτ'],
+        ts: ['ty', 'watch', 'youtube', 'you', 'ytb', 'ют', 'ютуб', 'υτ'],
         u: 'https://www.youtube.com/results?search_query={{{s}}}',
         c: 'Multimedia',
         sc: 'Video',
@@ -112031,7 +112093,7 @@ export const bangs: Record<string, any> = {
     yubnub: {
         c: 'Online Services',
         d: 'yubnub.org',
-        r: 15,
+        r: 11,
         s: 'YubNub',
         sc: 'Search',
         t: 'yubnub',
@@ -112048,7 +112110,7 @@ export const bangs: Record<string, any> = {
     yugioh: {
         c: 'Entertainment',
         d: 'yugipedia.com',
-        r: 47,
+        r: 66,
         s: 'Yu-Gi-Oh! Wikia',
         sc: 'Games (offline)',
         t: 'yugioh',
@@ -112057,7 +112119,7 @@ export const bangs: Record<string, any> = {
     yu: {
         c: 'Multimedia',
         d: 'hooktube.com',
-        r: 11,
+        r: 12,
         s: 'HookTube',
         sc: 'Video',
         t: 'yu',
@@ -112117,7 +112179,7 @@ export const bangs: Record<string, any> = {
     yxmaps: {
         c: 'Online Services',
         d: 'maps.yandex.ru',
-        r: 16,
+        r: 18,
         s: 'Maps.Yandex',
         sc: 'Maps',
         t: 'yxmaps',
@@ -112126,7 +112188,7 @@ export const bangs: Record<string, any> = {
     y: {
         c: 'Online Services',
         d: 'search.yahoo.com',
-        r: 1259,
+        r: 1788,
         s: 'Yahoo!',
         sc: 'Search',
         t: 'y',
@@ -112635,7 +112697,7 @@ export const bangs: Record<string, any> = {
     zkill: {
         c: 'Entertainment',
         d: 'zkillboard.com',
-        r: 15,
+        r: 11,
         s: 'zKillboard',
         sc: 'Games (general)',
         t: 'zkill',
@@ -112702,7 +112764,7 @@ export const bangs: Record<string, any> = {
     zoom: {
         c: 'Shopping',
         d: 'www.zoom.com.br',
-        r: 20,
+        r: 0,
         s: 'Zoom',
         sc: 'Online (marketplace)',
         t: 'zoom',
@@ -112811,7 +112873,7 @@ export const bangs: Record<string, any> = {
     z: {
         c: 'Shopping',
         d: 'www.zalando.de',
-        r: 51,
+        r: 53,
         s: 'www.zalando.de',
         sc: 'Online',
         t: 'z',
@@ -112820,7 +112882,7 @@ export const bangs: Record<string, any> = {
     zw: {
         c: 'Entertainment',
         d: 'zelda.gamepedia.com',
-        r: 5,
+        r: 0,
         s: 'Zelda Wiki',
         sc: 'Games (specific)',
         t: 'zw',
@@ -113230,6 +113292,7 @@ export const bangs: Record<string, any> = {
         s: 'Amazon Belgium',
         d: 'www.amazon.com.be',
         t: 'amazonbe',
+        ts: ['abe'],
         u: 'https://www.amazon.com.be/s?k={{{s}}}',
         c: 'Shopping',
         sc: 'Online',
@@ -113486,6 +113549,14 @@ export const bangs: Record<string, any> = {
         c: 'Online Services',
         sc: 'Social',
     },
+    pdsls: {
+        s: 'PDSls',
+        d: 'pds.ls',
+        t: 'pdsls',
+        u: 'https://pds.ls/?q={{{s}}}',
+        c: 'Online Services',
+        sc: 'Social',
+    },
     blockscan: {
         s: 'Blockscan',
         d: 'blockscan.com',
@@ -113567,7 +113638,7 @@ export const bangs: Record<string, any> = {
         s: 'Google AI Mode',
         d: 'www.google.com',
         t: 'gai',
-        ts: ['googleai'],
+        ts: ['googleai', 'гии'],
         u: 'https://www.google.com/search?q={{{s}}}&udm=50',
         c: 'Online Services',
         sc: 'AI Chatbots',
@@ -113651,7 +113722,8 @@ export const bangs: Record<string, any> = {
         s: 'Cloudflare Domains',
         d: 'domains.cloudflare.com',
         t: 'cdomain',
-        u: 'https://domains.cloudflare.com/?domain={{{s}}}/',
+        ts: ['cdmn'],
+        u: 'https://domains.cloudflare.com/?domain={{{s}}}',
         c: 'Tech',
         sc: 'domains',
     },
@@ -113821,6 +113893,14 @@ export const bangs: Record<string, any> = {
         u: 'https://www.larousse.fr/dictionnaires/francais/{{{s}}}',
         c: 'Tech',
         sc: 'Programming',
+    },
+    kobouk: {
+        s: 'Kobo UK',
+        d: 'www.kobo.com',
+        t: 'kobouk',
+        u: 'https://www.kobo.com/gb/en/search?Query={{{s}}}',
+        c: 'Shopping',
+        sc: 'Online',
     },
     genereviews: {
         s: 'GeneReviews',
@@ -114093,6 +114173,14 @@ export const bangs: Record<string, any> = {
         c: 'Entertainment',
         sc: 'Forum',
     },
+    kingarthur: {
+        s: 'King Arthur Baking',
+        d: 'www.kingarthurbaking.com',
+        t: 'kingarthur',
+        u: 'https://www.kingarthurbaking.com/search?query={{{s}}}#all_indices',
+        c: 'Research',
+        sc: 'Food',
+    },
     kprofiles: {
         s: 'KProfiles',
         d: 'kprofiles.com',
@@ -114118,6 +114206,15 @@ export const bangs: Record<string, any> = {
         u: 'https://www.listennotes.com/search/?q={{{s}}}',
         c: 'Entertainment',
         sc: 'Audio',
+    },
+    'lc++': {
+        s: 'legacy cplusplus.com ',
+        d: 'legacy.cplusplus.com',
+        t: 'lc++',
+        ts: ['lcpp'],
+        u: 'https://legacy.cplusplus.com/search.do?q={{{s}}}',
+        c: 'Tech',
+        sc: 'Languages (c++)',
     },
     logosearch: {
         s: 'Logo Search',
@@ -114948,6 +115045,15 @@ export const bangs: Record<string, any> = {
         c: 'News',
         sc: 'Online',
     },
+    wptfyi: {
+        s: 'wpt.fyi',
+        d: 'wpt.fyi',
+        t: 'wptfyi',
+        ts: ['wpts', 'wptf'],
+        u: 'https://wpt.fyi/results/?q={{{s}}}',
+        c: 'Tech',
+        sc: 'Programming',
+    },
     nitter: {
         s: 'Nitter (alternative Twitter front-end)',
         d: 'nitter.net',
@@ -114984,12 +115090,13 @@ export const bangs: Record<string, any> = {
     },
     yai: {
         s: 'Yandex Images',
-        d: 'yandex.ru',
+        d: 'ya.ru',
         t: 'yai',
         ts: ['yak', 'як'],
-        u: 'https://yandex.ru/images/search?text={{{s}}}',
+        u: 'https://ya.ru/images/search?text={{{s}}}',
         c: 'Online Services',
         sc: 'Search (non-US)',
+        fmt: ['url_encode_placeholder', 'url_encode_space_to_plus'],
     },
     awc: {
         s: 'Aviation Weather Center',
@@ -115003,6 +115110,7 @@ export const bangs: Record<string, any> = {
         s: 'Storygraph',
         d: 'app.thestorygraph.com',
         t: 'storygraph',
+        ts: ['tsg'],
         u: 'https://app.thestorygraph.com/browse?search_term={{{s}}}',
         c: 'Multimedia',
         sc: 'Books',
