@@ -89,7 +89,7 @@
         "@types/jsonwebtoken": "9.0.10",
         "@types/node": "25.6.0",
         "@types/node-cron": "3.0.11",
-        "@types/nodemailer": "7.0.11",
+        "@types/nodemailer": "8.0.0",
         "@types/supertest": "7.2.0",
         "@typescript/native-preview": "7.0.0-dev.20260314.1",
         "@vitest/coverage-v8": "4.1.5",
