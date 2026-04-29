@@ -143,7 +143,7 @@ export function createAuthRouter(ctx: AppContext) {
         '/verify-hidden-password',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const { password, resource_type, resource_id } = req.body;
+            const { password, resource_type, resource_id, original_query } = req.body;
             const user = req.session.user as User;
             const redirect_url = req.body.redirect_url || req.headers.referer || '/';
             const modalQuery = { 'verify-password-modal': 'true' };
@@ -169,6 +169,20 @@ export function createAuthRouter(ctx: AppContext) {
             const isValid = await ctx.libs.bcrypt.compare(password, dbUser.hidden_items_password);
 
             if (!isValid) {
+                if (resource_type === 'note') {
+                    req.flash('error', 'Invalid password. Please try again.');
+                    return res.redirect(
+                        ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
+                    );
+                }
+
+                if (resource_type === 'bang' && original_query) {
+                    req.flash('error', 'Invalid password. Please try again.');
+                    return res.redirect(
+                        ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
+                    );
+                }
+
                 req.flash('error', 'Invalid password. Please try again.');
                 return res.redirect(
                     ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
