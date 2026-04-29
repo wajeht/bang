@@ -445,11 +445,19 @@ export function createAuthenticationMiddleware(ctx: AppContext) {
                 return;
             }
 
-            // Always ensure column_preferences is properly parsed
-            const parsedUser: User = {
-                ...user,
-                column_preferences: ctx.utils.util.parseColumnPreferences(user?.column_preferences),
-            } as User;
+            // On cache hit the session-stored user already has parsed column_preferences,
+            // so only re-parse when we refreshed from DB.
+            let parsedUser: User;
+            if (needsRefresh) {
+                parsedUser = {
+                    ...user,
+                    column_preferences: ctx.utils.util.parseColumnPreferences(
+                        user?.column_preferences,
+                    ),
+                } as User;
+            } else {
+                parsedUser = user as User;
+            }
 
             req.user = parsedUser;
 

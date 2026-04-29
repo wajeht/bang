@@ -91,6 +91,59 @@ describe('authenticationMiddleware', () => {
         expect(next).toHaveBeenCalledWith();
     });
 
+    it('should skip parseColumnPreferences on a fresh session-cache hit', async () => {
+        // Simulate a recently-cached session user with already-parsed prefs
+        const parsedUser = {
+            id: testUser.id,
+            username: testUser.username,
+            email: testUser.email,
+            column_preferences: {
+                bookmarks: { title: true, url: true, default_per_page: 25 },
+                actions: { default_per_page: 25 },
+                notes: { default_per_page: 25 },
+                tabs: { default_per_page: 25 },
+                reminders: { default_per_page: 25 },
+                users: { default_per_page: 25 },
+            },
+        } as unknown as User;
+
+        req.session!.user = parsedUser;
+        (req.session as any).userCachedAt = Date.now(); // fresh cache → needsRefresh=false
+
+        const parseSpy = vi.spyOn(ctx.utils.util, 'parseColumnPreferences');
+        const dbReadSpy = vi.spyOn(ctx.models.users, 'read');
+
+        await authenticationMiddleware(req as Request, res as Response, next);
+
+        expect(parseSpy).not.toHaveBeenCalled();
+        expect(dbReadSpy).not.toHaveBeenCalled();
+        // The cached user object is reused as-is, preserving the custom default_per_page=25
+        expect(req.user!.column_preferences.bookmarks.default_per_page).toBe(25);
+        expect(next).toHaveBeenCalledWith();
+
+        parseSpy.mockRestore();
+        dbReadSpy.mockRestore();
+    });
+
+    it('should re-parse column_preferences on a stale session-cache miss', async () => {
+        const sessionUser = {
+            id: testUser.id,
+            username: testUser.username,
+            email: testUser.email,
+        } as unknown as User;
+
+        req.session!.user = sessionUser;
+        // userCachedAt absent → cache treated as expired → needsRefresh=true
+        const parseSpy = vi.spyOn(ctx.utils.util, 'parseColumnPreferences');
+
+        await authenticationMiddleware(req as Request, res as Response, next);
+
+        expect(parseSpy).toHaveBeenCalled();
+        expect(req.user!.column_preferences.bookmarks.default_per_page).toBe(10);
+
+        parseSpy.mockRestore();
+    });
+
     it('should destroy session if user in session not found in db', async () => {
         const sessionUser = {
             id: 999999, // Non-existent ID
