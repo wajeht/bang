@@ -4,6 +4,23 @@ import type { AppContext, User } from '../../type';
 export function createNotesRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
+    const noteRenderer = new ctx.libs.Renderer();
+    noteRenderer.code = function ({ text, lang }) {
+        if (lang && ctx.libs.hljs.getLanguage(lang)) {
+            const highlighted = ctx.libs.hljs.highlight(text, { language: lang }).value;
+            return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>`;
+        }
+        return `<pre><code>${text}</code></pre>`;
+    };
+
+    const sharedMarked = new ctx.libs.Marked({
+        renderer: noteRenderer,
+        breaks: true,
+        gfm: true,
+        pedantic: false,
+        silent: false,
+    });
+
     /**
      * A note
      * @typedef {object} Note
@@ -213,34 +230,13 @@ export function createNotesRouter(ctx: AppContext) {
         let content: string = '';
 
         try {
-            const { marked } = await import('marked');
-            const hljs = await import('highlight.js');
-
-            const renderer = new marked.Renderer();
-
-            renderer.code = function ({ text, lang }) {
-                if (lang && hljs.default.getLanguage(lang)) {
-                    const highlighted = hljs.default.highlight(text, { language: lang }).value;
-                    return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>`;
-                }
-                return `<pre><code>${text}</code></pre>`;
-            };
-
-            marked.setOptions({
-                renderer,
-                breaks: true,
-                gfm: true,
-                pedantic: false,
-                silent: false,
-            });
-
             const escapedContent = note.content
                 .replace(/<script/g, '&lt;script')
                 .replace(/<\/script>/g, '&lt;/script&gt;')
                 .replace(/<template/g, '&lt;template')
                 .replace(/<\/template>/g, '&lt;/template&gt;');
 
-            content = marked(escapedContent) as string;
+            content = sharedMarked.parse(escapedContent) as string;
         } catch (_error) {
             content = '';
             ctx.logger.error(`cannot parse content into markdown`, { error: _error });
@@ -558,23 +554,8 @@ export function createNotesRouter(ctx: AppContext) {
                 throw new ctx.errors.ValidationError({ content: 'Content is required' });
             }
 
-            const { marked } = await import('marked');
-            const hljs = await import('highlight.js');
-            const { sanitize } = await import('isomorphic-dompurify');
-
-            const renderer = new marked.Renderer();
-
-            renderer.code = function ({ text, lang }) {
-                if (lang && hljs.default.getLanguage(lang)) {
-                    const highlighted = hljs.default.highlight(text, { language: lang }).value;
-                    return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>`;
-                }
-                return `<pre><code>${text}</code></pre>`;
-            };
-
-            marked.setOptions({ renderer });
-            const markdown = marked(content) as string;
-            const sanitized = sanitize(markdown);
+            const markdown = sharedMarked.parse(content) as string;
+            const sanitized = ctx.libs.dompurify.sanitize(markdown);
 
             res.json({ content: sanitized });
         },
