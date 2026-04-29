@@ -80,7 +80,7 @@
                                     <td style="padding: 10px;">
                                         <details style="position: relative;">
                                             <summary aria-label="Actions for <%= utils.stripHtmlTags(bookmark.title) || 'Untitled' %>">Actions</summary>
-                                            <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                            <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
                                                 <a href="/bookmarks/<%= bookmark.id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                                 <a href="<%= utils.stripHtmlTags(bookmark.url) %>" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;" role="menuitem">🔗 Visit</a>
                                             </div>
@@ -101,7 +101,7 @@
                                         <%~ action.name %>
                                     </td>
                                     <td style="padding: 10px;">
-                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%~ action.trigger %></code>
+                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 4px; font-size: 0.8em;"><%~ action.trigger %></code>
                                     </td>
                                     <td style="padding: 10px;">
                                         <a href="<%= utils.stripHtmlTags(action.url) %>" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= utils.stripHtmlTags(action.url) %>" target="_blank" rel="noopener noreferrer">
@@ -110,7 +110,7 @@
                                         </a>
                                     </td>
                                     <td style="padding: 10px;">
-                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%~ action.action_type %></code>
+                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 4px; font-size: 0.8em;"><%~ action.action_type %></code>
                                     </td>
                                     <td style="padding: 10px;">
                                         <% if (action.usage_count) { %>
@@ -125,7 +125,7 @@
                                     <td style="padding: 10px;">
                                         <details style="position: relative;">
                                             <summary aria-label="Actions for <%= utils.stripHtmlTags(action.name) %>">Actions</summary>
-                                            <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                            <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
                                                 <a href="/actions/<%= action.id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                                 <a href="<%= utils.stripHtmlTags(action.url) %>" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;" role="menuitem">🔗 Visit</a>
                                             </div>
@@ -161,7 +161,7 @@
                                     <td style="padding: 10px;">
                                         <details style="position: relative;">
                                             <summary aria-label="Actions for note <%= utils.stripHtmlTags(note.title) %>">Actions</summary>
-                                            <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                            <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
                                                 <a href="/notes/<%= note.id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                                 <a href="/notes/<%= note.id %>" style="display: inline-flex; align-items: center;" role="menuitem">👁️ View</a>
                                             </div>
@@ -182,7 +182,7 @@
                                         <%~ tab.title %>
                                     </td>
                                     <td style="padding: 10px;">
-                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%~ tab.trigger %></code>
+                                        <code style="background: var(--code-background); padding: 2px 6px; border-radius: 4px; font-size: 0.8em;"><%~ tab.trigger %></code>
                                     </td>
                                     <td style="padding: 10px;">-</td>
                                     <td style="padding: 10px;">
@@ -195,7 +195,7 @@
                                     <td style="padding: 10px;">
                                         <details style="position: relative;">
                                             <summary aria-label="Actions for tab <%= utils.stripHtmlTags(tab.title) %>">Actions</summary>
-                                            <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                            <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
                                                 <a href="/tabs/<%= tab.id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                                 <a href="/tabs/<%= tab.id %>/launch" style="display: inline-flex; align-items: center;" role="menuitem">🚀 Launch</a>
                                             </div>
@@ -232,7 +232,7 @@
                                         <% if (reminder.content && !reminder.content.startsWith('http')) { %>
                                             <%~ reminder.content.substring(0, 100) + (reminder.content.length > 100 ? '...' : '') %>
                                         <% } else { %>
-                                            <code style="background: var(--code-background); padding: 2px 6px; border-radius: 3px; font-size: 0.8em;"><%= reminder.frequency || 'once' %></code>
+                                            <code style="background: var(--code-background); padding: 2px 6px; border-radius: 4px; font-size: 0.8em;"><%= reminder.frequency || 'once' %></code>
                                         <% } %>
                                     </td>
                                     <td style="padding: 10px;">
@@ -248,7 +248,7 @@
                                     <td style="padding: 10px;">
                                         <details style="position: relative;">
                                             <summary aria-label="Actions for reminder <%= utils.stripHtmlTags(reminder.title) %>">Actions</summary>
-                                            <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                            <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
                                                 <a href="/reminders/<%= reminder.id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit</a>
                                                 <a href="/reminders/<%= reminder.id %>" style="display: inline-flex; align-items: center;" role="menuitem">👁️ View</a>
                                             </div>

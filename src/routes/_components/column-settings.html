@@ -1,7 +1,7 @@
 <button onclick="document.getElementById('question-mark-btn').showModal()">⚙️</button>
 
-<dialog id="question-mark-btn">
-  <h2>🎨 Column</h2>
+<dialog id="question-mark-btn" aria-labelledby="column-settings-title">
+  <h2 id="column-settings-title">🎨 Column</h2>
   <p>Customize how your data is displayed.</p>
 
   <form action="/settings/display" method="POST" style="width: 100%; display: flex; flex-direction: column; gap: 20px; margin-top: 20px;">
