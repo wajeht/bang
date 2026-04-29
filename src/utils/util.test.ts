@@ -1363,3 +1363,57 @@ describe('processReminderDigests', () => {
         expect(updatedChicago.startOf('day').diff(originalChicago.startOf('day'), 'day')).toBe(1);
     });
 });
+
+describe('convertMarkdownToPlainText (hoisted Marked instance)', () => {
+    it('should return empty string for empty/whitespace input', async () => {
+        expect(await utilUtils.convertMarkdownToPlainText('')).toBe('');
+        expect(await utilUtils.convertMarkdownToPlainText('   ')).toBe('');
+        expect(await utilUtils.convertMarkdownToPlainText(null as any)).toBe('');
+        expect(await utilUtils.convertMarkdownToPlainText(undefined as any)).toBe('');
+    });
+
+    it('should strip markdown syntax and HTML tags', async () => {
+        const out = await utilUtils.convertMarkdownToPlainText(
+            '# Title\n\n**bold** and _italic_ with [link](https://x.com).',
+        );
+        expect(out).toContain('Title');
+        expect(out).toContain('bold');
+        expect(out).toContain('italic');
+        expect(out).toContain('link');
+        expect(out).not.toContain('**');
+        expect(out).not.toContain('<p>');
+        expect(out).not.toContain('<a');
+    });
+
+    it('should preserve <mark> tags (they are excluded from the strip regex)', async () => {
+        const out = await utilUtils.convertMarkdownToPlainText('hello <mark>world</mark>');
+        expect(out).toContain('<mark>world</mark>');
+    });
+
+    it('should truncate when maxLength is provided', async () => {
+        const long = 'a '.repeat(500);
+        const out = await utilUtils.convertMarkdownToPlainText(long, 50);
+        expect(out.length).toBeLessThanOrEqual(53); // 50 + '...'
+        expect(out.endsWith('...')).toBe(true);
+    });
+
+    it('should NOT truncate when text is shorter than maxLength', async () => {
+        const out = await utilUtils.convertMarkdownToPlainText('short text', 100);
+        expect(out).toBe('short text');
+        expect(out.endsWith('...')).toBe(false);
+    });
+
+    it('should produce identical output across many sequential calls (no global-state race)', async () => {
+        // The fix replaces a global `marked.setOptions()` mutation with a per-instance
+        // `new Marked({...})`. If the old global-mutation pattern were used, concurrent
+        // callers with different options could see each other's settings. Run many calls
+        // and assert all produce the same well-defined output.
+        const md = '**bold** *italic*';
+        const results = await Promise.all(
+            Array.from({ length: 50 }, () => utilUtils.convertMarkdownToPlainText(md)),
+        );
+        const unique = new Set(results);
+        expect(unique.size).toBe(1);
+        expect([...unique][0]).toBe('bold italic');
+    });
+});

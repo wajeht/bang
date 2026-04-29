@@ -14,6 +14,8 @@ export function createUtil(context: AppContext) {
     const { db, config, errors } = context;
     const logger = context.logger.tag('service', 'util');
 
+    const plainTextMarked = new context.libs.Marked({ gfm: true, breaks: true });
+
     const ACTION_TYPES = ['search', 'redirect'] as const;
 
     const DEFAULT_COLUMN_PREFERENCES: ColumnPreferences = {
@@ -320,9 +322,8 @@ export function createUtil(context: AppContext) {
             }
 
             try {
-                const { marked } = await import('marked');
-                const htmlOutput = await marked(markdownInput);
-                let plainText = (htmlOutput as string).replace(/<(?!\/?mark\b)[^>]*>/g, '');
+                const htmlOutput = plainTextMarked.parse(markdownInput) as string;
+                let plainText = htmlOutput.replace(/<(?!\/?mark\b)[^>]*>/g, '');
                 plainText = plainText.replace(/\s+/g, ' ').trim();
 
                 if (maxLength && plainText.length > maxLength) {
