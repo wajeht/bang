@@ -3,6 +3,16 @@ import type { Request, Response } from 'express';
 import type { Bang, Search, ReminderTimingResult, AppContext } from '../type';
 
 export function createSearch(context: AppContext) {
+    const TRIGGER_CACHE_MAX = 1000;
+
+    interface TriggerCacheEntry {
+        bangs: Record<string, true>;
+        tabs: Record<string, true>;
+        cachedAt: number;
+    }
+
+    const triggerCache = new Map<number, TriggerCacheEntry>();
+
     const searchConfig = {
         /**
          * Cache TTL for user's bang/tab triggers (60 minutes)
@@ -175,20 +185,20 @@ export function createSearch(context: AppContext) {
         reminderTimingConfig,
 
         /**
-         * Load and cache user's bang and tab triggers in session for fast lookup.
+         * Load and cache user's bang and tab triggers in process memory for O(1) lookup.
+         * The cache is keyed by userId and shared across the worker process.
          */
         async loadCachedTriggers(
-            req: Request,
             userId: number,
         ): Promise<{ bangTriggers: Record<string, true>; tabTriggers: Record<string, true> }> {
-            const cachedAt = req.session?.triggersCachedAt || 0;
-            const cacheExpired = Date.now() - cachedAt > searchConfig.triggersCacheTtl;
+            const now = Date.now();
+            const hit = triggerCache.get(userId);
 
-            if (!cacheExpired && req.session?.bangTriggersMap && req.session?.tabTriggersMap) {
-                return {
-                    bangTriggers: req.session.bangTriggersMap,
-                    tabTriggers: req.session.tabTriggersMap,
-                };
+            if (hit && now - hit.cachedAt < searchConfig.triggersCacheTtl) {
+                // LRU touch: re-insert to move to recency tail
+                triggerCache.delete(userId);
+                triggerCache.set(userId, hit);
+                return { bangTriggers: hit.bangs, tabTriggers: hit.tabs };
             }
 
             const [bangRows, tabRows] = await Promise.all([
@@ -196,37 +206,31 @@ export function createSearch(context: AppContext) {
                 context.db('tabs').select('trigger').where({ user_id: userId }),
             ]);
 
-            const bangTriggersMap: Record<string, true> = Object.create(null);
-            const tabTriggersMap: Record<string, true> = Object.create(null);
+            const bangs: Record<string, true> = Object.create(null);
+            const tabs: Record<string, true> = Object.create(null);
 
             for (let i = 0; i < bangRows.length; i++) {
-                bangTriggersMap[bangRows[i].trigger] = true;
+                bangs[bangRows[i].trigger] = true;
             }
             for (let i = 0; i < tabRows.length; i++) {
-                tabTriggersMap[tabRows[i].trigger] = true;
+                tabs[tabRows[i].trigger] = true;
             }
 
-            if (req.session) {
-                req.session.bangTriggersMap = bangTriggersMap;
-                req.session.tabTriggersMap = tabTriggersMap;
-                req.session.triggersCachedAt = Date.now();
+            // Bound the cache to MAX users; evict oldest entry first
+            if (triggerCache.size >= TRIGGER_CACHE_MAX) {
+                const oldest = triggerCache.keys().next().value;
+                if (oldest !== undefined) triggerCache.delete(oldest);
             }
+            triggerCache.set(userId, { bangs, tabs, cachedAt: now });
 
-            return {
-                bangTriggers: bangTriggersMap,
-                tabTriggers: tabTriggersMap,
-            };
+            return { bangTriggers: bangs, tabTriggers: tabs };
         },
 
         /**
-         * Invalidate cached triggers (call when user creates/deletes/edits bangs or tabs)
+         * Invalidate cached triggers for a user (call when bangs or tabs change).
          */
-        invalidateTriggerCache(req: Request): void {
-            if (req.session) {
-                delete req.session.bangTriggersMap;
-                delete req.session.tabTriggersMap;
-                delete req.session.triggersCachedAt;
-            }
+        invalidateTriggerCache(userId: number): void {
+            triggerCache.delete(userId);
         },
 
         trackAnonymousUserSearch(req: Request) {
@@ -1241,7 +1245,7 @@ export function createSearch(context: AppContext) {
                         );
                     }
 
-                    this.invalidateTriggerCache(req);
+                    this.invalidateTriggerCache(user.id);
 
                     void context.utils.util
                         .insertPageTitle({
@@ -1313,7 +1317,7 @@ export function createSearch(context: AppContext) {
                         );
                     }
 
-                    this.invalidateTriggerCache(req);
+                    this.invalidateTriggerCache(user.id);
 
                     timer.stop({
                         outcome: 'system-bang',
@@ -1529,7 +1533,7 @@ export function createSearch(context: AppContext) {
                     }
 
                     if (bangUpdates.trigger || tabUpdates.trigger) {
-                        this.invalidateTriggerCache(req);
+                        this.invalidateTriggerCache(user.id);
                     }
 
                     timer.stop({ outcome: 'system-bang', trigger, action: 'edited' });
@@ -1758,7 +1762,7 @@ export function createSearch(context: AppContext) {
                 }
             }
 
-            const { bangTriggers, tabTriggers } = await this.loadCachedTriggers(req, user.id);
+            const { bangTriggers, tabTriggers } = await this.loadCachedTriggers(user.id);
 
             // Process user-defined bang commands
             if (commandType === 'bang' && trigger && bangTriggers[trigger]) {

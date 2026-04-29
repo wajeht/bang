@@ -290,6 +290,9 @@ describe('search', () => {
 
     describe('authenticated', () => {
         beforeEach(async () => {
+            // Trigger cache is shared across tests in the same worker; reset between
+            // tests so each one sees a fresh DB load with whatever rows it inserts.
+            searchUtils = createSearch(ctx);
             await db('bangs').insert([
                 {
                     user_id: 1,
@@ -3917,23 +3920,27 @@ describe('parseReminderTiming', () => {
     });
 });
 
-describe('Trigger Caching', () => {
+describe('Trigger Caching (in-memory)', () => {
     let testUser: User;
+    let isolatedSearch: ReturnType<typeof createSearch>;
 
     beforeEach(async () => {
+        // Each test gets a fresh search instance (and therefore a fresh trigger cache)
+        // so cache state never bleeds between tests.
+        isolatedSearch = createSearch(ctx);
         const [user] = await db('users')
             .insert({
-                username: `cachetest_${Date.now()}`,
-                email: `cachetest_${Date.now()}@example.com`,
+                username: `cachetest_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                email: `cachetest_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@example.com`,
                 is_admin: false,
-                api_key: `test_api_key_cache_${Date.now()}`,
+                api_key: `test_api_key_cache_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             })
             .returning('*');
         testUser = user;
     });
 
     describe('loadCachedTriggers', () => {
-        it('should load triggers from database and cache in session', async () => {
+        it('should load triggers from database on first call', async () => {
             await db('bangs').insert([
                 {
                     user_id: testUser.id,
@@ -3952,117 +3959,175 @@ describe('Trigger Caching', () => {
             ]);
             await db('tabs').insert([{ user_id: testUser.id, trigger: '!tab1', title: 'Tab 1' }]);
 
-            const req = { logger: mockLogger(), session: {} } as unknown as Request;
+            const result = await isolatedSearch.loadCachedTriggers(testUser.id);
 
-            const result = await searchUtils.loadCachedTriggers(req, testUser.id);
-
-            expect(typeof result.bangTriggers).toBe('object');
-            expect(typeof result.tabTriggers).toBe('object');
             expect(result.bangTriggers['!test1']).toBe(true);
             expect(result.bangTriggers['!test2']).toBe(true);
             expect(result.tabTriggers['!tab1']).toBe(true);
-
-            expect(req.session.bangTriggersMap?.['!test1']).toBe(true);
-            expect(req.session.bangTriggersMap?.['!test2']).toBe(true);
-            expect(req.session.tabTriggersMap?.['!tab1']).toBe(true);
-            expect(req.session.triggersCachedAt).toBeDefined();
-            expect(req.session.triggersCachedAt).toBeGreaterThan(0);
         });
 
-        it('should return cached triggers without hitting database', async () => {
-            const cachedTime = Date.now();
-            const req = {
-                logger: mockLogger(),
-                session: {
-                    bangTriggersMap: { '!cached1': true, '!cached2': true },
-                    tabTriggersMap: { '!cachedtab': true },
-                    triggersCachedAt: cachedTime,
-                },
-            } as unknown as Request;
-
-            const result = await searchUtils.loadCachedTriggers(req, testUser.id);
-
-            expect(result.bangTriggers['!cached1']).toBe(true);
-            expect(result.bangTriggers['!cached2']).toBe(true);
-            expect(result.tabTriggers['!cachedtab']).toBe(true);
-
-            expect(req.session.triggersCachedAt).toBe(cachedTime);
-        });
-
-        it('should refresh cache when expired', async () => {
+        it('should serve subsequent calls from cache without hitting database', async () => {
             await db('bangs').insert({
                 user_id: testUser.id,
-                trigger: '!fresh',
-                name: 'Fresh',
-                url: 'https://fresh.com',
+                trigger: '!once',
+                name: 'Once',
+                url: 'https://once.com',
                 action_type: 'redirect',
             });
 
-            const expiredTime = Date.now() - 61 * 60 * 1000; // 61 minutes ago (cache TTL is 60 min)
-            const req = {
-                logger: mockLogger(),
-                session: {
-                    bangTriggersMap: { '!stale': true },
-                    tabTriggersMap: {},
-                    triggersCachedAt: expiredTime,
-                },
-            } as unknown as Request;
+            // First call populates the cache
+            const first = await isolatedSearch.loadCachedTriggers(testUser.id);
+            expect(first.bangTriggers['!once']).toBe(true);
 
-            const result = await searchUtils.loadCachedTriggers(req, testUser.id);
+            // Mutate the DB after caching — the new row must NOT be visible without invalidation
+            await db('bangs').insert({
+                user_id: testUser.id,
+                trigger: '!ignored',
+                name: 'Ignored',
+                url: 'https://ignored.com',
+                action_type: 'redirect',
+            });
 
-            expect(result.bangTriggers['!fresh']).toBe(true);
-            expect(result.bangTriggers['!stale']).toBeUndefined();
-
-            expect(req.session.triggersCachedAt).toBeGreaterThan(expiredTime);
+            const second = await isolatedSearch.loadCachedTriggers(testUser.id);
+            expect(second.bangTriggers['!once']).toBe(true);
+            expect(second.bangTriggers['!ignored']).toBeUndefined();
         });
 
-        it('should return empty objects for user with no bangs or tabs', async () => {
-            const req = { logger: mockLogger(), session: {} } as unknown as Request;
+        it('should isolate cache entries by userId', async () => {
+            const [otherUser] = await db('users')
+                .insert({
+                    username: `other_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                    email: `other_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@example.com`,
+                    is_admin: false,
+                    api_key: `other_api_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                })
+                .returning('*');
 
-            const result = await searchUtils.loadCachedTriggers(req, testUser.id);
+            await db('bangs').insert([
+                {
+                    user_id: testUser.id,
+                    trigger: '!a',
+                    name: 'A',
+                    url: 'https://a.com',
+                    action_type: 'redirect',
+                },
+                {
+                    user_id: otherUser.id,
+                    trigger: '!b',
+                    name: 'B',
+                    url: 'https://b.com',
+                    action_type: 'redirect',
+                },
+            ]);
 
+            const r1 = await isolatedSearch.loadCachedTriggers(testUser.id);
+            const r2 = await isolatedSearch.loadCachedTriggers(otherUser.id);
+
+            expect(r1.bangTriggers['!a']).toBe(true);
+            expect(r1.bangTriggers['!b']).toBeUndefined();
+            expect(r2.bangTriggers['!b']).toBe(true);
+            expect(r2.bangTriggers['!a']).toBeUndefined();
+        });
+
+        it('should return empty maps for a user with no bangs or tabs', async () => {
+            const result = await isolatedSearch.loadCachedTriggers(testUser.id);
             expect(Object.keys(result.bangTriggers).length).toBe(0);
             expect(Object.keys(result.tabTriggers).length).toBe(0);
-            expect(req.session.bangTriggersMap).toEqual({});
-            expect(req.session.tabTriggersMap).toEqual({});
         });
     });
 
     describe('invalidateTriggerCache', () => {
-        it('should clear all trigger cache data from session', () => {
-            const req = {
-                logger: mockLogger(),
-                session: {
-                    bangTriggersMap: { '!test1': true, '!test2': true },
-                    tabTriggersMap: { '!tab1': true },
-                    triggersCachedAt: Date.now(),
-                    user: { id: 1 },
-                },
-            } as unknown as Request;
+        it('should force a DB reload on the next loadCachedTriggers call', async () => {
+            await db('bangs').insert({
+                user_id: testUser.id,
+                trigger: '!a',
+                name: 'A',
+                url: 'https://a.com',
+                action_type: 'redirect',
+            });
+            await isolatedSearch.loadCachedTriggers(testUser.id);
 
-            searchUtils.invalidateTriggerCache(req);
+            await db('bangs').insert({
+                user_id: testUser.id,
+                trigger: '!b',
+                name: 'B',
+                url: 'https://b.com',
+                action_type: 'redirect',
+            });
 
-            expect(req.session.bangTriggersMap).toBeUndefined();
-            expect(req.session.tabTriggersMap).toBeUndefined();
-            expect(req.session.triggersCachedAt).toBeUndefined();
-            expect(req.session.user).toBeDefined();
+            // Without invalidation, !b is invisible (cache hit)
+            const stale = await isolatedSearch.loadCachedTriggers(testUser.id);
+            expect(stale.bangTriggers['!b']).toBeUndefined();
+
+            // After invalidation, the next load picks up the new row
+            isolatedSearch.invalidateTriggerCache(testUser.id);
+            const fresh = await isolatedSearch.loadCachedTriggers(testUser.id);
+            expect(fresh.bangTriggers['!a']).toBe(true);
+            expect(fresh.bangTriggers['!b']).toBe(true);
         });
 
-        it('should handle session without cache data', () => {
-            const req = {
-                logger: mockLogger(),
-                session: {
-                    user: { id: 1 },
-                },
-            } as unknown as Request;
-
-            expect(() => searchUtils.invalidateTriggerCache(req)).not.toThrow();
+        it('should be a no-op for a user not in the cache', () => {
+            expect(() => isolatedSearch.invalidateTriggerCache(99999)).not.toThrow();
         });
 
-        it('should handle missing session', () => {
-            const req = {} as unknown as Request;
+        it('should only invalidate the targeted user, leaving others intact', async () => {
+            const [other] = await db('users')
+                .insert({
+                    username: `iso_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                    email: `iso_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@example.com`,
+                    is_admin: false,
+                    api_key: `iso_api_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                })
+                .returning('*');
 
-            expect(() => searchUtils.invalidateTriggerCache(req)).not.toThrow();
+            await db('bangs').insert([
+                {
+                    user_id: testUser.id,
+                    trigger: '!keep-me',
+                    name: 'Keep',
+                    url: 'https://keep.com',
+                    action_type: 'redirect',
+                },
+                {
+                    user_id: other.id,
+                    trigger: '!other',
+                    name: 'Other',
+                    url: 'https://other.com',
+                    action_type: 'redirect',
+                },
+            ]);
+
+            await isolatedSearch.loadCachedTriggers(testUser.id);
+            await isolatedSearch.loadCachedTriggers(other.id);
+
+            // Insert new bangs after both caches are warm
+            await db('bangs').insert([
+                {
+                    user_id: testUser.id,
+                    trigger: '!new-test',
+                    name: 'New Test',
+                    url: 'https://new-test.com',
+                    action_type: 'redirect',
+                },
+                {
+                    user_id: other.id,
+                    trigger: '!new-other',
+                    name: 'New Other',
+                    url: 'https://new-other.com',
+                    action_type: 'redirect',
+                },
+            ]);
+
+            isolatedSearch.invalidateTriggerCache(testUser.id);
+
+            // testUser cache was dropped → DB reload sees !new-test
+            const refreshed = await isolatedSearch.loadCachedTriggers(testUser.id);
+            expect(refreshed.bangTriggers['!new-test']).toBe(true);
+
+            // other user cache still warm → !new-other invisible
+            const otherStale = await isolatedSearch.loadCachedTriggers(other.id);
+            expect(otherStale.bangTriggers['!other']).toBe(true);
+            expect(otherStale.bangTriggers['!new-other']).toBeUndefined();
         });
     });
 });
@@ -4071,12 +4136,13 @@ describe('Bang Search Optimization', () => {
     let testUser: User;
 
     beforeEach(async () => {
+        searchUtils = createSearch(ctx);
         const [user] = await db('users')
             .insert({
-                username: `bangopt_${Date.now()}`,
-                email: `bangopt_${Date.now()}@example.com`,
+                username: `bangopt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                email: `bangopt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@example.com`,
                 is_admin: false,
-                api_key: `test_api_key_bangopt_${Date.now()}`,
+                api_key: `test_api_key_bangopt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                 column_preferences: JSON.stringify({}),
             })
             .returning('*');
@@ -4200,10 +4266,10 @@ describe('Bang Search Optimization', () => {
             query: '!g python',
         });
 
-        expect(req.session.bangTriggersMap?.['!custom']).toBe(true);
-        expect(req.session.triggersCachedAt).toBeDefined();
+        // First search populated the cache; loadCachedTriggers should now see !custom
+        const triggers = await searchUtils.loadCachedTriggers(testUser.id);
+        expect(triggers.bangTriggers['!custom']).toBe(true);
 
-        const cachedTime = req.session.triggersCachedAt;
         vi.mocked(res.redirect).mockClear();
 
         await searchUtils.search({
@@ -4214,7 +4280,6 @@ describe('Bang Search Optimization', () => {
         });
 
         expect(res.redirect).toHaveBeenCalledWith('https://custom.com');
-        expect(req.session.triggersCachedAt).toBe(cachedTime);
     });
 
     it('should use system bang when custom bang not in cache', async () => {
@@ -4274,12 +4339,13 @@ describe('Bang Search Performance', () => {
     let testUser: User;
 
     beforeEach(async () => {
+        searchUtils = createSearch(ctx);
         const [user] = await db('users')
             .insert({
-                username: `perftest_${Date.now()}`,
-                email: `perftest_${Date.now()}@example.com`,
+                username: `perftest_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                email: `perftest_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@example.com`,
                 is_admin: false,
-                api_key: `test_api_key_perf_${Date.now()}`,
+                api_key: `test_api_key_perf_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                 column_preferences: JSON.stringify({}),
             })
             .returning('*');
@@ -4320,8 +4386,8 @@ describe('Bang Search Performance', () => {
         await searchUtils.search({ req: reqCold, res, user: testUser, query: '!yt video' });
         const warmTime = performance.now() - startWarm;
 
-        expect(reqCold.session.triggersCachedAt).toBeDefined();
-        expect(warmTime).toBeLessThan(coldTime * 2); // Allow some variance
+        // Warm should be served from cache; allow some variance for system jitter
+        expect(warmTime).toBeLessThan(coldTime * 2);
     });
 
     it('should skip DB query when using system bang with empty custom triggers', async () => {
@@ -4350,8 +4416,6 @@ describe('Bang Search Performance', () => {
         }
 
         const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
-
-        expect(req.session.triggersCachedAt).toBeDefined();
 
         expect(res.redirect).toHaveBeenLastCalledWith(expect.stringContaining('google.com'));
 
