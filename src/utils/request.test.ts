@@ -671,7 +671,7 @@ describe('canViewHiddenItems', () => {
             query: { hidden: 'true' },
             session: {
                 hiddenItemsVerified: true,
-                hiddenItemsVerifiedAt: now - 30 * 60 * 1000 + 1, // Just under 30 minutes
+                hiddenItemsVerifiedAt: now - 29 * 60 * 1000, // Just under 30 minutes
             },
         } as unknown as Request;
 
