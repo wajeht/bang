@@ -143,15 +143,16 @@ export function createAuthRouter(ctx: AppContext) {
         '/verify-hidden-password',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const { password, resource_type, resource_id, original_query } = req.body;
+            const { password, resource_type, resource_id } = req.body;
             const user = req.session.user as User;
             const redirect_url = req.body.redirect_url || req.headers.referer || '/';
+            const modalQuery = { 'verify-password-modal': 'true' };
 
             if (!password) {
                 req.flash('error', 'Password is required');
-                const url = new URL('http://localhost' + redirect_url);
-                url.searchParams.set('verify-password-modal', 'true');
-                return res.redirect(url.pathname + url.search);
+                return res.redirect(
+                    ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
+                );
             }
 
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
@@ -160,33 +161,18 @@ export function createAuthRouter(ctx: AppContext) {
                     'error',
                     'No password set for hidden items. Please set a password in settings first.',
                 );
-                const url = new URL('http://localhost' + redirect_url);
-                url.searchParams.set('verify-password-modal', 'true');
-                return res.redirect(url.pathname + url.search);
+                return res.redirect(
+                    ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
+                );
             }
 
             const isValid = await ctx.libs.bcrypt.compare(password, dbUser.hidden_items_password);
 
             if (!isValid) {
-                if (resource_type === 'note') {
-                    req.flash('error', 'Invalid password. Please try again.');
-                    const url = new URL('http://localhost' + redirect_url);
-                    url.searchParams.set('verify-password-modal', 'true');
-                    return res.redirect(url.pathname + url.search);
-                }
-
-                if (resource_type === 'bang' && original_query) {
-                    req.flash('error', 'Invalid password. Please try again.');
-                    const url = new URL('http://localhost' + redirect_url);
-                    url.searchParams.set('verify-password-modal', 'true');
-                    return res.redirect(url.pathname + url.search);
-                }
-
                 req.flash('error', 'Invalid password. Please try again.');
-                const url = new URL('http://localhost' + redirect_url);
-                url.searchParams.set('verify-password-modal', 'true');
-
-                return res.redirect(url.pathname + url.search);
+                return res.redirect(
+                    ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
+                );
             }
 
             req.session.verifiedHiddenItems ??= {};
@@ -214,9 +200,7 @@ export function createAuthRouter(ctx: AppContext) {
                 }
             });
 
-            const safeUrl = new URL('http://localhost' + redirect_url);
-            const safePath = safeUrl.pathname.replace(/^\/+/, '/') + safeUrl.search;
-            return res.redirect(safePath);
+            return res.redirect(ctx.utils.request.getSafeRedirectPath(redirect_url));
         },
     );
 
