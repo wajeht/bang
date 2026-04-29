@@ -23,14 +23,14 @@
 
       <details style="position: relative;">
           <summary aria-label="User menu for <%= state.user.username %>"><%= state.user.username %> 👤</summary>
-          <div style="z-index:1001 !important; position: absolute; top: 100%; right: 0; z-index: 3; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+          <div style="z-index:1001 !important; position: absolute; top: 100%; right: 0; z-index: 3; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
               <% if (state.user.is_admin) { %>
-                <a href="/admin" style="font-weight: <%= path === '/admin' ? 'bold' : 'normal' %>; <%= path === '/admin' ? 'text-decoration: underline;' : '' %>" role="menuitem" <%= path === '/admin' ? 'aria-current="page"' : '' %>>️👑 Admin</a>
+                <a href="/admin" style="font-weight: <%= path === '/admin' ? 'bold' : 'normal' %>; <%= path === '/admin' ? 'text-decoration: underline;' : '' %>" role="menuitem" <%= path === '/admin' ? 'aria-current="page"' : '' %>><span style="display: inline-block; width: 1.5em; text-align: center;">👑</span> Admin</a>
               <% } %>
-              <a href="/settings" style="font-weight: <%= path.match(/^\/settings/) ? 'bold' : 'normal' %>; <%= path.match(/^\/settings/) ? 'text-decoration: underline;' : '' %>" role="menuitem" <%= path.match(/^\/settings/) ? 'aria-current="page"' : '' %>>⚙️ Settings</a>
-              <a href="/api-docs" style="font-weight: <%= path.match(/^\/api-docs/) ? 'bold' : 'normal' %>; <%= path.match(/^\/api-docs/) ? 'text-decoration: underline;' : '' %>" role="menuitem" <%= path.match(/^\/api-docs/) ? 'aria-current="page"' : '' %>>📃 API Docs</a>
+              <a href="/settings" style="font-weight: <%= path.match(/^\/settings/) ? 'bold' : 'normal' %>; <%= path.match(/^\/settings/) ? 'text-decoration: underline;' : '' %>" role="menuitem" <%= path.match(/^\/settings/) ? 'aria-current="page"' : '' %>><span style="display: inline-block; width: 1.5em; text-align: center;">⚙️</span> Settings</a>
+              <a href="/api-docs" style="font-weight: <%= path.match(/^\/api-docs/) ? 'bold' : 'normal' %>; <%= path.match(/^\/api-docs/) ? 'text-decoration: underline;' : '' %>" role="menuitem" <%= path.match(/^\/api-docs/) ? 'aria-current="page"' : '' %>><span style="display: inline-block; width: 1.5em; text-align: center;">📃</span> API Docs</a>
               <hr style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;" role="separator">
-              <a href="/logout" role="menuitem">🚪 Logout</a>
+              <a href="/logout" role="menuitem"><span style="display: inline-block; width: 1.5em; text-align: center;">🚪</span> Logout</a>
           </div>
       </details>
   </nav>
