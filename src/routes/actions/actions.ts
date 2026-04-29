@@ -236,7 +236,7 @@ export function createActionsRouter(ctx: AppContext) {
             ctx.utils.util.prefetchAssets(url);
         }
 
-        ctx.utils.search.invalidateTriggerCache(req);
+        ctx.utils.search.invalidateTriggerCache(user.id);
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({
@@ -351,7 +351,7 @@ export function createActionsRouter(ctx: AppContext) {
         });
 
         if (currentAction.trigger !== formattedTrigger) {
-            ctx.utils.search.invalidateTriggerCache(req);
+            ctx.utils.search.invalidateTriggerCache(user.id);
         }
 
         if (ctx.utils.request.isApiRequest(req)) {
@@ -400,7 +400,7 @@ export function createActionsRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Action not found');
         }
 
-        ctx.utils.search.invalidateTriggerCache(req);
+        ctx.utils.search.invalidateTriggerCache(user.id);
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({

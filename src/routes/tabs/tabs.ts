@@ -256,7 +256,7 @@ export function createTabsRouter(ctx: AppContext) {
             trigger: formattedTrigger,
         });
 
-        ctx.utils.search.invalidateTriggerCache(req);
+        ctx.utils.search.invalidateTriggerCache(user.id);
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({ message: 'Tab group created successfully' });
@@ -343,7 +343,7 @@ export function createTabsRouter(ctx: AppContext) {
         });
 
         if (tab.trigger !== formattedTrigger) {
-            ctx.utils.search.invalidateTriggerCache(req);
+            ctx.utils.search.invalidateTriggerCache(user.id);
         }
 
         if (ctx.utils.request.isApiRequest(req)) {
@@ -384,7 +384,7 @@ export function createTabsRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Tab group not found');
         }
 
-        ctx.utils.search.invalidateTriggerCache(req);
+        ctx.utils.search.invalidateTriggerCache(user.id);
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
