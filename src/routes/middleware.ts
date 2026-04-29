@@ -163,8 +163,6 @@ export function createHelmetMiddleware(ctx: AppContext) {
                 'script-src': [
                     "'self'",
                     "'unsafe-inline'",
-                    "'unsafe-eval'",
-                    'text/javascript',
                     'blob:',
                     ctx.config.app.appUrl,
                     '*.cloudflare.com',
@@ -180,7 +178,7 @@ export function createHelmetMiddleware(ctx: AppContext) {
 
                 'connect-src': ["'self'", '*.cloudflare.com', '*.cloudflareinsights.com'],
                 'script-src-attr': ["'self'", "'unsafe-inline'"],
-                'form-action': ["'self'", '*'],
+                'form-action': ["'self'"],
             },
         },
         referrerPolicy: {
