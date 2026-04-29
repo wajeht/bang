@@ -1,6 +1,6 @@
-import { authenticateAgent, authenticateAdminAgent } from '../../tests/api-test-utils';
+import { authenticateAgent, authenticateAdminAgent } from '../../tests/api-test-utils.js';
 import request from 'supertest';
-import { app } from '../../tests/test-setup';
+import { app } from '../../tests/test-setup.js';
 import { describe, it, expect } from 'vite-plus/test';
 
 describe('General Routes', () => {

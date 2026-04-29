@@ -2,9 +2,9 @@ import {
     authenticateAgent,
     authenticateApiAgent,
     createUnauthenticatedAgent,
-} from '../../tests/api-test-utils';
+} from '../../tests/api-test-utils.js';
 import request from 'supertest';
-import { db, app } from '../../tests/test-setup';
+import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect } from 'vite-plus/test';
 
 describe('Notes Routes', () => {

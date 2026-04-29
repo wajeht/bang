@@ -1,4 +1,4 @@
-import type { AppContext } from '../type';
+import type { AppContext } from '../type.js';
 
 export function createDate(context: AppContext) {
     return {

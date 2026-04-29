@@ -1,6 +1,6 @@
-import { bangs as bangsTable } from '../db/bang';
+import { bangs as bangsTable } from '../db/bang.js';
 import type { Request, Response } from 'express';
-import type { Bang, Search, ReminderTimingResult, AppContext } from '../type';
+import type { Bang, Search, ReminderTimingResult, AppContext } from '../type.js';
 
 export function createSearch(context: AppContext) {
     const TRIGGER_CACHE_MAX = 1000;

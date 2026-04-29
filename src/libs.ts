@@ -12,13 +12,13 @@ import { marked, Marked, Renderer } from 'marked';
 import hljs from 'highlight.js';
 import crypto from 'node:crypto';
 import flash from 'connect-flash';
-import utc from 'dayjs/plugin/utc';
+import utc from 'dayjs/plugin/utc.js';
 import nodemailer from 'nodemailer';
 import { csrfSync } from 'csrf-sync';
 import session from 'express-session';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import timezone from 'dayjs/plugin/timezone';
+import timezone from 'dayjs/plugin/timezone.js';
 import * as dompurify from 'isomorphic-dompurify';
 
 dayjsBase.extend(utc);

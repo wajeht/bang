@@ -1,6 +1,6 @@
-import { bangs } from '../../db/bang';
+import { bangs } from '../../db/bang.js';
 import type { Request, Response } from 'express';
-import type { Bang, User, AppContext, BangWithLowercase } from '../../type';
+import type { Bang, User, AppContext, BangWithLowercase } from '../../type.js';
 
 export function createGeneralRouter(ctx: AppContext) {
     const activeBangsPrefetch = new Set<string>();

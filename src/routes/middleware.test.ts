@@ -4,14 +4,14 @@ import {
     createAuthenticationMiddleware,
     createAppLocalStateMiddleware,
     createRequestLoggerMiddleware,
-} from './middleware';
-import { createContext } from '../context';
-import { db } from '../tests/test-setup';
+} from './middleware.js';
+import { createContext } from '../context.js';
+import { db } from '../tests/test-setup.js';
 import { Session } from 'express-session';
-import type { User, AppContext } from '../type';
+import type { User, AppContext } from '../type.js';
 import type { Request, Response, NextFunction } from 'express';
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vite-plus/test';
-import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from '../error';
+import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from '../error.js';
 
 describe('authenticationMiddleware', () => {
     let req: Partial<Request>;

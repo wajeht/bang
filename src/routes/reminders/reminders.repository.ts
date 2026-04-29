@@ -1,4 +1,4 @@
-import type { Reminder, Reminders, RemindersQueryParams, AppContext } from '../../type';
+import type { Reminder, Reminders, RemindersQueryParams, AppContext } from '../../type.js';
 
 export function createRemindersRepository(ctx: AppContext): Reminders {
     const REGEX_WHITESPACE = /\s+/;

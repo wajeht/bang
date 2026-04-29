@@ -1,4 +1,4 @@
-import type { Tab, Tabs, TabsQueryParams, AppContext } from '../../type';
+import type { Tab, Tabs, TabsQueryParams, AppContext } from '../../type.js';
 
 export function createTabsRepository(ctx: AppContext): Tabs {
     const REGEX_WHITESPACE = /\s+/;

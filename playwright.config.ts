@@ -1,4 +1,4 @@
-import { config } from './src/config';
+import { config } from './src/config.js';
 import { defineConfig, devices } from '@playwright/test';
 
 /**

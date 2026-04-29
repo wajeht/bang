@@ -1,4 +1,4 @@
-import type { AppContext } from './type';
+import type { AppContext } from './type.js';
 import { type ScheduledTask } from 'node-cron';
 
 export const PREFETCH_RECENT_DAYS = 7;

@@ -1,4 +1,4 @@
-import type { ApiKeyPayload, MagicLinkPayload, AppContext } from '../type';
+import type { ApiKeyPayload, MagicLinkPayload, AppContext } from '../type.js';
 
 export function createAuth(context: AppContext) {
     const logger = context.logger.tag('service', 'auth');

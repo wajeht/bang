@@ -1,4 +1,4 @@
-import { Log, createLogger } from './logger';
+import { Log, createLogger } from './logger.js';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vite-plus/test';
 
 describe('Logger', () => {

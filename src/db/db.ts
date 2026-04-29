@@ -1,8 +1,8 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
-import { knexConfig } from './knexfile';
-import type { Libs } from '../libs';
-import type { Config, Logger } from '../type';
+import { knexConfig } from './knexfile.js';
+import type { Libs } from '../libs.js';
+import type { Config, Logger } from '../type.js';
 
 export interface PaginationOptions {
     perPage?: number;

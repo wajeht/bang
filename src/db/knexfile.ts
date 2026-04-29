@@ -1,11 +1,13 @@
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Knex } from 'knex';
-import { createLogger } from '../utils/logger';
-import { CustomMigrationSource } from './migration-source';
+import { createLogger } from '../utils/logger.js';
+import { CustomMigrationSource } from './migration-source.js';
 
 const logger = createLogger({ service: 'knexfile' });
 const isTesting = process.env.NODE_ENV === 'testing' || process.env.APP_ENV === 'testing';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const migrationsPath = path.resolve(__dirname, 'migrations');
 
 let knexConfig: Knex.Config = {

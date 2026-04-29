@@ -1,8 +1,8 @@
 import { Application } from 'express';
-import type { AppContext } from '../type';
+import type { AppContext } from '../type.js';
 import type { Options } from 'express-jsdoc-swagger';
-import { createAuthenticationMiddleware } from '../routes/middleware';
-import { config } from '../config';
+import { createAuthenticationMiddleware } from '../routes/middleware.js';
+import { config } from '../config.js';
 
 export async function expressJSDocSwaggerHandler(app: Application, context: AppContext) {
     if (context.config.app.env === 'testing') {

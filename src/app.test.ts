@@ -1,7 +1,7 @@
 import request from 'supertest';
 import type { Server } from 'node:http';
 import { describe, it, expect, vi } from 'vite-plus/test';
-import { createApp, closeServer, getActiveSocketsCount, clearActiveSockets } from './app';
+import { createApp, closeServer, getActiveSocketsCount, clearActiveSockets } from './app.js';
 
 describe('App', () => {
     describe('createApp', () => {

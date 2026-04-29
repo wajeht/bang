@@ -1,13 +1,15 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { minify as terserMinify } from 'terser';
 import CleanCSS from 'clean-css';
-import { createLogger } from '../src/utils/logger';
+import { createLogger } from '../src/utils/logger.js';
 import { minify as minifyHtml } from 'html-minifier-terser';
 
 const logger = createLogger({ service: 'minify script' });
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.join(__dirname, '..', 'dist');
 const viewsDir = path.join(__dirname, '..', 'src', 'routes');
 const publicDir = path.join(__dirname, '..', 'public');

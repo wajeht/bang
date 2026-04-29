@@ -1,9 +1,9 @@
-import { libs } from '../libs';
+import { libs } from '../libs.js';
 import { Request } from 'express';
-import { config } from '../config';
-import { createRequest } from './request';
-import { db } from '../tests/test-setup';
-import { ValidationError } from '../error';
+import { config } from '../config.js';
+import { createRequest } from './request.js';
+import { db } from '../tests/test-setup.js';
+import { ValidationError } from '../error.js';
 import { describe, expect, it, beforeAll, vi } from 'vite-plus/test';
 
 let requestUtils: ReturnType<typeof createRequest>;

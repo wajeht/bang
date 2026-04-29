@@ -1,7 +1,7 @@
 import { test as base, expect, Page } from '@playwright/test';
-import { createDb, createUser, cleanupUserData } from './test-db';
-import { createContext } from '../context';
-import type { AppContext } from '../type';
+import { createDb, createUser, cleanupUserData } from './test-db.js';
+import { createContext } from '../context.js';
+import type { AppContext } from '../type.js';
 
 const db = createDb();
 

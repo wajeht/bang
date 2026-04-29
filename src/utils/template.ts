@@ -1,5 +1,5 @@
 import path from 'node:path';
-import type { AppContext } from '../type';
+import type { AppContext } from '../type.js';
 
 export function createTemplate(context: AppContext) {
     const { libs, config } = context;

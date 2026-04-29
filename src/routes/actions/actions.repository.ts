@@ -1,4 +1,4 @@
-import type { Action, Actions, ActionsQueryParams, AppContext } from '../../type';
+import type { Action, Actions, ActionsQueryParams, AppContext } from '../../type.js';
 
 export function createActionsRepository(ctx: AppContext): Actions {
     const REGEX_WHITESPACE = /\s+/;

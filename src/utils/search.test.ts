@@ -1,9 +1,9 @@
-import { dayjs } from '../libs';
-import { createContext } from '../context';
-import { db } from '../tests/test-setup';
+import { dayjs } from '../libs.js';
+import { createContext } from '../context.js';
+import { db } from '../tests/test-setup.js';
 import { Request, Response } from 'express';
-import { createSearch } from '../utils/search';
-import type { User, AppContext } from '../type';
+import { createSearch } from '../utils/search.js';
+import type { User, AppContext } from '../type.js';
 import type { SessionData } from 'express-session';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 

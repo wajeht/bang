@@ -1,5 +1,5 @@
-import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils';
-import { db, app } from '../../tests/test-setup';
+import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils.js';
+import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect, vi } from 'vite-plus/test';
 
 describe('Tabs Routes', () => {

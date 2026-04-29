@@ -1,7 +1,7 @@
-import { libs } from '../libs';
-import { config } from '../config';
-import { createDatabase } from '../db/db';
-import { createLogger } from '../utils/logger';
+import { libs } from '../libs.js';
+import { config } from '../config.js';
+import { createDatabase } from '../db/db.js';
+import { createLogger } from '../utils/logger.js';
 import type { Knex } from 'knex';
 
 const defaultColumnPreferences = {

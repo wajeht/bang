@@ -1,17 +1,17 @@
 import path from 'node:path';
-import { createUtil } from './util';
-import { libs } from '../libs';
+import { createUtil } from './util.js';
+import { libs } from '../libs.js';
 import fs from 'node:fs/promises';
 import { Request } from 'express';
-import { config } from '../config';
-import { createAuth } from './auth';
-import { createHtml } from './html';
-import { createDate } from './date';
-import { createMail } from './mail';
-import { createRequest } from './request';
-import { db } from '../tests/test-setup';
-import { createValidation } from './validation';
-import type { ApiKeyPayload, BookmarkToExport } from '../type';
+import { config } from '../config.js';
+import { createAuth } from './auth.js';
+import { createHtml } from './html.js';
+import { createDate } from './date.js';
+import { createMail } from './mail.js';
+import { createRequest } from './request.js';
+import { db } from '../tests/test-setup.js';
+import { createValidation } from './validation.js';
+import type { ApiKeyPayload, BookmarkToExport } from '../type.js';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 let validationUtils: ReturnType<typeof createValidation>;

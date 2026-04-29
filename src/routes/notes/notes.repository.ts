@@ -1,4 +1,4 @@
-import type { Note, Notes, NotesQueryParams, AppContext } from '../../type';
+import type { Note, Notes, NotesQueryParams, AppContext } from '../../type.js';
 
 export function createNotesRepository(ctx: AppContext): Notes {
     const REGEX_WHITESPACE = /\s+/;

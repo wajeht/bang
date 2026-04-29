@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import type { AppContext } from '../type';
+import type { AppContext } from '../type.js';
 
 const SENSITIVE_KEYS = new Set([
     'password',

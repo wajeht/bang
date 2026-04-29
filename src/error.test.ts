@@ -5,7 +5,7 @@ import {
     ValidationError,
     UnauthorizedError,
     UnimplementedFunctionError,
-} from './error';
+} from './error.js';
 import type { Request } from 'express';
 import { describe, it, expect, beforeEach } from 'vite-plus/test';
 

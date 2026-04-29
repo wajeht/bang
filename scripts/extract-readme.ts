@@ -1,9 +1,12 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
-import { createLogger } from '../src/utils/logger';
+import { createLogger } from '../src/utils/logger.js';
 
 const logger = createLogger({ service: 'extract-readme script' });
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 interface ExtractionResult {
     error?: string;

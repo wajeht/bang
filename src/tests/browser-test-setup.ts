@@ -1,4 +1,4 @@
-import { createDb } from './test-db';
+import { createDb } from './test-db.js';
 
 export default async function globalSetup() {
     if (process.env.CI) {

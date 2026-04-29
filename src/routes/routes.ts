@@ -1,14 +1,14 @@
-import { createTabsRouter } from './tabs/tabs';
-import { createAuthRouter } from './auth/auth';
-import type { AppContext } from '../type';
-import { createAdminRouter } from './admin/admin';
-import { createNotesRouter } from './notes/notes';
-import { createSearchRouter } from './search/search';
-import { createActionsRouter } from './actions/actions';
-import { createGeneralRouter } from './general/general';
-import { createSettingsRouter } from './settings/settings';
-import { createBookmarksRouter } from './bookmarks/bookmarks';
-import { createRemindersRouter } from './reminders/reminders';
+import { createTabsRouter } from './tabs/tabs.js';
+import { createAuthRouter } from './auth/auth.js';
+import type { AppContext } from '../type.js';
+import { createAdminRouter } from './admin/admin.js';
+import { createNotesRouter } from './notes/notes.js';
+import { createSearchRouter } from './search/search.js';
+import { createActionsRouter } from './actions/actions.js';
+import { createGeneralRouter } from './general/general.js';
+import { createSettingsRouter } from './settings/settings.js';
+import { createBookmarksRouter } from './bookmarks/bookmarks.js';
+import { createRemindersRouter } from './reminders/reminders.js';
 
 /**
  * @swagger

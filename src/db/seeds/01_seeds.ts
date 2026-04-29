@@ -2,8 +2,8 @@ import dotenv from 'dotenv';
 import { Knex } from 'knex';
 import path from 'node:path';
 import bcrypt from 'bcrypt';
-import { dayjs } from '../../libs';
-import { createLogger } from '../../utils/logger';
+import { dayjs } from '../../libs.js';
+import { createLogger } from '../../utils/logger.js';
 
 const logger = createLogger({ service: 'seeds' });
 

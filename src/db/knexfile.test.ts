@@ -1,4 +1,4 @@
-import { knexConfig } from './knexfile';
+import { knexConfig } from './knexfile.js';
 import { describe, it, expect } from 'vite-plus/test';
 
 describe('knexfile', () => {

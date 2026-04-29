@@ -1,7 +1,7 @@
-import { authenticateAgent } from '../../tests/api-test-utils';
+import { authenticateAgent } from '../../tests/api-test-utils.js';
 import bcrypt from 'bcrypt';
 import request from 'supertest';
-import { db, app, ctx } from '../../tests/test-setup';
+import { db, app, ctx } from '../../tests/test-setup.js';
 import { describe, it, expect, beforeAll } from 'vite-plus/test';
 
 describe('Auth Routes', () => {

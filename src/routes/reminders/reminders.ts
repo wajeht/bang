@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { User, AppContext } from '../../type';
+import type { User, AppContext } from '../../type.js';
 
 export function createRemindersRouter(ctx: AppContext) {
     const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;

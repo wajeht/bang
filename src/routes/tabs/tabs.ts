@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { User, AppContext } from '../../type';
+import type { User, AppContext } from '../../type.js';
 
 export function createTabsRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();

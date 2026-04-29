@@ -1,4 +1,4 @@
-import type { AppContext, Settings } from '../../type';
+import type { AppContext, Settings } from '../../type.js';
 
 const SETTINGS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 

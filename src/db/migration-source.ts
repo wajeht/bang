@@ -1,7 +1,7 @@
 import path from 'node:path';
 import type { Knex } from 'knex';
 import fs from 'node:fs/promises';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger({ service: 'migrations' });
 const isTesting = process.env.NODE_ENV === 'testing' || process.env.APP_ENV === 'testing';

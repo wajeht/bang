@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { LayoutOptions, User, AppContext } from '../type';
+import type { LayoutOptions, User, AppContext } from '../type.js';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 
 export function createRequestLoggerMiddleware(ctx: AppContext) {

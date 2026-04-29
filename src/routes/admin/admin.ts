@@ -1,4 +1,4 @@
-import type { AppContext } from '../../type';
+import type { AppContext } from '../../type.js';
 import type { Request, Response, NextFunction } from 'express';
 
 export function createAdminRouter(ctx: AppContext) {

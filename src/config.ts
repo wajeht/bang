@@ -1,7 +1,7 @@
 import path from 'node:path';
-import { libs } from './libs';
-import type { Env } from './type';
-import packageJson from '../package.json';
+import { libs } from './libs.js';
+import type { Env } from './type.js';
+import packageJson from '../package.json' with { type: 'json' };
 
 libs.dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')), quiet: true });
 

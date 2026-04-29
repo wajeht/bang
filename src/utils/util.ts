@@ -5,7 +5,7 @@ import type {
     ColumnPreferences,
     PaginateArrayOptions,
     TurnstileVerifyResponse,
-} from '../type';
+} from '../type.js';
 import http from 'node:http';
 import https from 'node:https';
 import type { Request } from 'express';

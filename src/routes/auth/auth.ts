@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { AppContext, User } from '../../type';
+import type { AppContext, User } from '../../type.js';
 
 export function createAuthRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();

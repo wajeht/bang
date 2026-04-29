@@ -361,20 +361,20 @@ export type PaginateArrayOptions = {
 
 import type { Knex } from 'knex';
 
-import { createDate } from './utils/date';
-import { createHtml } from './utils/html';
-import { createAuth } from './utils/auth';
-import { createMail } from './utils/mail';
-import { createDiscord } from './utils/discord';
-import { createUtil } from './utils/util';
-import { createSearch } from './utils/search';
-import { createRequest } from './utils/request';
-import { createValidation } from './utils/validation';
-import { createAssets } from './utils/assets';
-import type { CronService as CronServiceType } from './crons';
-import { createDatabase } from './db/db';
-import type { config } from './config';
-import type { Libs } from './libs';
+import { createDate } from './utils/date.js';
+import { createHtml } from './utils/html.js';
+import { createAuth } from './utils/auth.js';
+import { createMail } from './utils/mail.js';
+import { createDiscord } from './utils/discord.js';
+import { createUtil } from './utils/util.js';
+import { createSearch } from './utils/search.js';
+import { createRequest } from './utils/request.js';
+import { createValidation } from './utils/validation.js';
+import { createAssets } from './utils/assets.js';
+import type { CronService as CronServiceType } from './crons.js';
+import { createDatabase } from './db/db.js';
+import type { config } from './config.js';
+import type { Libs } from './libs.js';
 
 export type DateUtils = ReturnType<typeof createDate>;
 export type HtmlUtils = ReturnType<typeof createHtml>;

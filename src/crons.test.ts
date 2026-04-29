@@ -4,10 +4,10 @@ import {
     PREFETCH_RECENT_DAYS,
     PREFETCH_PER_TABLE_LIMIT,
     PREFETCH_REMINDERS_LIMIT,
-} from './crons';
-import { createContext } from './context';
-import { db } from './tests/test-setup';
-import type { AppContext } from './type';
+} from './crons.js';
+import { createContext } from './context.js';
+import { db } from './tests/test-setup.js';
+import type { AppContext } from './type.js';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 describe('cron service', () => {

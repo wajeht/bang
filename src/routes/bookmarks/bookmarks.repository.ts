@@ -1,4 +1,4 @@
-import type { Bookmark, Bookmarks, BookmarksQueryParams, AppContext } from '../../type';
+import type { Bookmark, Bookmarks, BookmarksQueryParams, AppContext } from '../../type.js';
 
 export function createBookmarksRepository(ctx: AppContext): Bookmarks {
     const REGEX_WHITESPACE = /\s+/;

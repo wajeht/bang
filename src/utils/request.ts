@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import type { User, PageType, AppContext } from '../type';
+import type { User, PageType, AppContext } from '../type.js';
 
 export function createRequest(context: AppContext) {
     const logger = context.logger.tag('service', 'request');
