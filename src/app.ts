@@ -6,15 +6,7 @@ import { createRouter } from './routes/routes.js';
 import { AddressInfo, Socket } from 'node:net';
 import { expressJSDocSwaggerHandler } from './utils/swagger.js';
 
-const activeSockets = new Set<Socket>();
-
-export function getActiveSocketsCount(): number {
-    return activeSockets.size;
-}
-
-export function clearActiveSockets(): void {
-    activeSockets.clear();
-}
+export const activeSockets = new Set<Socket>();
 
 export async function createApp() {
     const ctx = await createContext();

@@ -1,7 +1,7 @@
 import request from 'supertest';
 import type { Server } from 'node:http';
 import { describe, it, expect, vi } from 'vite-plus/test';
-import { createApp, closeServer, getActiveSocketsCount, clearActiveSockets } from './app.js';
+import { createApp, closeServer, activeSockets } from './app.js';
 
 describe('App', () => {
     describe('createApp', () => {
@@ -18,8 +18,8 @@ describe('App', () => {
 
     describe('Socket Tracking', () => {
         it('should return 0 for getActiveSocketsCount when no connections', () => {
-            clearActiveSockets();
-            expect(getActiveSocketsCount()).toBe(0);
+            activeSockets.clear();
+            expect(activeSockets.size).toBe(0);
         });
 
         it('should track connections when HTTP requests are made', async () => {
@@ -31,12 +31,12 @@ describe('App', () => {
                 else server.on('listening', resolve);
             });
 
-            clearActiveSockets();
-            const initialCount = getActiveSocketsCount();
+            activeSockets.clear();
+            const initialCount = activeSockets.size;
 
             await request(app).get('/healthz').expect(200);
 
-            expect(getActiveSocketsCount()).toBeGreaterThanOrEqual(initialCount);
+            expect(activeSockets.size).toBeGreaterThanOrEqual(initialCount);
 
             server.close();
         });
@@ -52,8 +52,8 @@ describe('App', () => {
 
             await request(app).get('/healthz').expect(200);
 
-            clearActiveSockets();
-            expect(getActiveSocketsCount()).toBe(0);
+            activeSockets.clear();
+            expect(activeSockets.size).toBe(0);
 
             server.close();
         });
@@ -137,7 +137,7 @@ describe('App', () => {
 
             await closeServer({ server, ctx });
 
-            expect(getActiveSocketsCount()).toBe(0);
+            expect(activeSockets.size).toBe(0);
 
             dbDestroySpy.mockRestore();
         });
@@ -168,7 +168,7 @@ describe('App', () => {
 
             expect(callOrder[0]).toBe('cron.stop');
             expect(callOrder[1]).toBe('db.destroy');
-            expect(getActiveSocketsCount()).toBe(0);
+            expect(activeSockets.size).toBe(0);
             expect(server.listening).toBe(false);
 
             cronStopSpy.mockRestore();
