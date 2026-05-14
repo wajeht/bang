@@ -64,7 +64,7 @@
         "dayjs": "1.11.20",
         "dotenv": "17.4.2",
         "esbuild": "0.27.7",
-        "eta": "4.5.1",
+        "eta": "4.6.0",
         "express": "5.2.1",
         "express-jsdoc-swagger": "1.8.0",
         "express-rate-limit": "8.5.1",
