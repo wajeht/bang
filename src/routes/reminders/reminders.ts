@@ -547,8 +547,6 @@ export function createRemindersRouter(ctx: AppContext) {
                         const batch = urls.slice(i, i + batchSize);
                         await Promise.allSettled(
                             batch.map(async (url) => {
-                                const controller = new AbortController();
-                                const timeout = setTimeout(() => controller.abort(), 10000);
                                 try {
                                     const response = await fetch(
                                         `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`,
@@ -557,14 +555,12 @@ export function createRemindersRouter(ctx: AppContext) {
                                             headers: {
                                                 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)',
                                             },
-                                            signal: controller.signal,
+                                            signal: AbortSignal.timeout(10000),
                                         },
                                     );
                                     await response.text().catch(() => {});
                                 } catch {
                                     // Ignore errors
-                                } finally {
-                                    clearTimeout(timeout);
                                 }
                             }),
                         );
