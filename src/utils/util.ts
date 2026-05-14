@@ -216,9 +216,7 @@ export function createUtil(context: AppContext) {
         },
 
         prefetchAssets(url: string): void {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 10000);
-
+            const signal = AbortSignal.timeout(10000);
             const screenshotUrl = this.getScreenshotUrl(url);
             const faviconUrl = this.getFaviconUrl(url);
 
@@ -226,14 +224,14 @@ export function createUtil(context: AppContext) {
                 fetch(screenshotUrl, {
                     method: 'HEAD',
                     headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Prefetch' },
-                    signal: controller.signal,
+                    signal,
                 }).then((res) => res.text().catch(() => {})),
                 fetch(faviconUrl, {
                     method: 'HEAD',
                     headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Prefetch' },
-                    signal: controller.signal,
+                    signal,
                 }).then((res) => res.text().catch(() => {})),
-            ]).finally(() => clearTimeout(timeout));
+            ]);
         },
 
         createBookmarkHtml(bookmark: BookmarkToExport): string {

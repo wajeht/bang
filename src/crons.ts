@@ -98,11 +98,6 @@ export async function screenshotPrefetchTask(context: AppContext): Promise<void>
             const batch = urlArray.slice(i, i + PREFETCH_BATCH_SIZE);
             await Promise.allSettled(
                 batch.map(async (url) => {
-                    const controller = new AbortController();
-                    const timeout = setTimeout(
-                        () => controller.abort(),
-                        PREFETCH_REQUEST_TIMEOUT_MS,
-                    );
                     try {
                         const response = await fetch(
                             `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`,
@@ -111,14 +106,12 @@ export async function screenshotPrefetchTask(context: AppContext): Promise<void>
                                 headers: {
                                     'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Cron',
                                 },
-                                signal: controller.signal,
+                                signal: AbortSignal.timeout(PREFETCH_REQUEST_TIMEOUT_MS),
                             },
                         );
                         await response.text().catch(() => {});
                     } catch {
                         // Ignore fetch errors
-                    } finally {
-                        clearTimeout(timeout);
                     }
                 }),
             );
