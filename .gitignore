@@ -149,3 +149,5 @@ NetrwTreeListing
 .vscode
 .claude
 opencode*
+.agents
+skills-lock.json
