@@ -51,7 +51,7 @@
         "db:seed:run": "tsx ./node_modules/knex/bin/cli.js seed:run --knexfile=./src/db/knexfile.ts",
         "db:seed:run:prod": "knex seed:run --knexfile=./dist/src/db/knexfile.js",
         "rmds": "find . -name '.DS_Store' -delete",
-        "rebuild:native": "npm rebuild better-sqlite3 bcrypt --ignore-scripts=false"
+        "rebuild:native": "npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false"
     },
     "dependencies": {
         "bcrypt": "6.0.0",
