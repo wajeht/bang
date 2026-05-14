@@ -1,12 +1,13 @@
-FROM node:25-slim@sha256:67134eb99e14d566f2882a38a374b8351ea474656487dbb1e0c79e4064cc1725 AS build
+FROM node:26-slim@sha256:424cafd2a035ed2b2d74acc3142b68b426fb62a47742c80a75e7117db02d6b30 AS build
 
 WORKDIR /usr/src/app
 
 # Copy only package files first for better layer caching
-COPY package*.json ./
+COPY package*.json .npmrc ./
 
-# Install all dependencies including dev for build tools
-RUN npm ci --no-audit --no-fund
+# Install all dependencies including dev for build tools, then rebuild native modules
+RUN npm ci --no-audit --no-fund && \
+    npm rebuild better-sqlite3 bcrypt --ignore-scripts=false
 
 # Copy only TypeScript config first (changes less frequently)
 COPY tsconfig*.json ./
@@ -30,7 +31,7 @@ RUN npm run build:prod && \
     rm -rf eslint.config.* && \
     rm -rf playwright.config.*
 
-FROM node:25-slim@sha256:67134eb99e14d566f2882a38a374b8351ea474656487dbb1e0c79e4064cc1725
+FROM node:26-slim@sha256:424cafd2a035ed2b2d74acc3142b68b426fb62a47742c80a75e7117db02d6b30
 
 # Install dependencies
 RUN apt-get update && \
@@ -41,8 +42,9 @@ RUN apt-get update && \
 WORKDIR /usr/src/app
 
 # Copy only production dependencies and built files
-COPY --chown=node:node package*.json ./
+COPY --chown=node:node package*.json .npmrc ./
 RUN npm ci --only=production --no-audit --no-fund && \
+    npm rebuild better-sqlite3 bcrypt --ignore-scripts=false && \
     npm cache clean --force
 
 # Copy built application
