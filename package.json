@@ -50,32 +50,33 @@
         "db:seed:make": "tsx ./node_modules/knex/bin/cli.js seed:make --knexfile=./src/db/knexfile.ts",
         "db:seed:run": "tsx ./node_modules/knex/bin/cli.js seed:run --knexfile=./src/db/knexfile.ts",
         "db:seed:run:prod": "knex seed:run --knexfile=./dist/src/db/knexfile.js",
-        "rmds": "find . -name '.DS_Store' -delete"
+        "rmds": "find . -name '.DS_Store' -delete",
+        "rebuild:native": "npm rebuild better-sqlite3 bcrypt --ignore-scripts=false"
     },
     "dependencies": {
-        "bcrypt": "^6.0.0",
-        "better-sqlite3": "^12.6.2",
-        "compression": "^1.8.1",
-        "connect-flash": "^0.1.1",
-        "connect-session-knex": "^5.0.0",
-        "cors": "^2.8.6",
-        "csrf-sync": "^4.2.1",
-        "dayjs": "^1.11.19",
-        "dotenv": "^17.2.4",
-        "esbuild": "^0.27.3",
-        "eta": "^4.5.1",
-        "express": "^5.2.1",
-        "express-jsdoc-swagger": "^1.8.0",
-        "express-rate-limit": "^8.2.1",
-        "express-session": "^1.19.0",
-        "helmet": "^8.1.0",
-        "highlight.js": "^11.11.1",
-        "isomorphic-dompurify": "^3.0.0",
-        "jsonwebtoken": "^9.0.3",
-        "knex": "^3.1.0",
-        "marked": "^17.0.1",
-        "node-cron": "^4.2.1",
-        "nodemailer": "^8.0.1"
+        "bcrypt": "6.0.0",
+        "better-sqlite3": "12.10.0",
+        "compression": "1.8.1",
+        "connect-flash": "0.1.1",
+        "connect-session-knex": "5.0.0",
+        "cors": "2.8.6",
+        "csrf-sync": "4.2.1",
+        "dayjs": "1.11.20",
+        "dotenv": "17.4.2",
+        "esbuild": "0.27.7",
+        "eta": "4.5.1",
+        "express": "5.2.1",
+        "express-jsdoc-swagger": "1.8.0",
+        "express-rate-limit": "8.5.1",
+        "express-session": "1.19.0",
+        "helmet": "8.1.0",
+        "highlight.js": "11.11.1",
+        "isomorphic-dompurify": "3.12.0",
+        "jsonwebtoken": "9.0.3",
+        "knex": "3.2.10",
+        "marked": "17.0.6",
+        "node-cron": "4.2.1",
+        "nodemailer": "8.0.7"
     },
     "devDependencies": {
         "@playwright/test": "1.59.1",
@@ -103,14 +104,15 @@
         "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
     },
     "overrides": {
-        "glob": "^13.0.0",
-        "inflight": "npm:@isaacs/inflight@^1.0.1",
-        "rimraf": "^6.0.1",
+        "glob": "13.0.6",
+        "inflight": "npm:@isaacs/inflight@1.0.1",
+        "rimraf": "6.0.1",
         "vite": "npm:@voidzero-dev/vite-plus-core@latest",
         "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
     },
     "engines": {
-        "node": ">=22"
+        "node": ">=26.0.0",
+        "npm": ">=11.0.0"
     },
     "packageManager": "npm@11.14.0"
 }
