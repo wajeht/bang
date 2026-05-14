@@ -107,7 +107,7 @@
         "glob": "13.0.6",
         "inflight": "npm:@isaacs/inflight@1.0.1",
         "rimraf": "6.0.1",
-        "vite": "npm:@voidzero-dev/vite-plus-core@0.1.14",
+        "vite": "npm:@voidzero-dev/vite-plus-core@0.1.21",
         "vitest": "npm:@voidzero-dev/vite-plus-test@0.1.14"
     },
     "engines": {
