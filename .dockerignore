@@ -40,6 +40,5 @@ playwright-report
 !.env.example
 
 # Other
-.npmrc
 .nvmrc
 captain-definition
