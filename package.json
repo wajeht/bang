@@ -113,7 +113,7 @@
     },
     "engines": {
         "node": ">=26.1.0",
-        "npm": ">=11.14.1"
+        "npm": ">=11.13.0"
     },
-    "packageManager": "npm@11.14.1"
+    "packageManager": "npm@11.13.0"
 }
