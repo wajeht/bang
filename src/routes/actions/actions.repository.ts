@@ -62,27 +62,39 @@ export function createActionsRepository(ctx: AppContext): Actions {
             }
 
             if (search) {
-                // Split search into terms and escape SQL wildcards
-                const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
-                const searchTerms: string[] = [];
-                for (let i = 0; i < rawTerms.length; i++) {
-                    const term = rawTerms[i];
-                    if (term && term.length > 0) {
-                        searchTerms.push(term.replace(/[%_]/g, '\\$&'));
-                    }
-                }
+                const ftsQuery = ctx.utils.util.buildFtsQuery(search);
 
-                // Each term must match name, trigger, or url
-                query.where((q: any) => {
-                    for (let i = 0; i < searchTerms.length; i++) {
-                        const term = searchTerms[i]!;
-                        q.andWhere((subQ: any) => {
-                            subQ.whereRaw('LOWER(bangs.name) LIKE ?', [`%${term}%`])
-                                .orWhereRaw('LOWER(bangs.trigger) LIKE ?', [`%${term}%`])
-                                .orWhereRaw('LOWER(bangs.url) LIKE ?', [`%${term}%`]);
-                        });
+                if (ftsQuery) {
+                    query.whereIn(
+                        'bangs.id',
+                        ctx.db
+                            .select('rowid')
+                            .from('bangs_fts')
+                            .whereRaw('bangs_fts MATCH ?', [ftsQuery]),
+                    );
+                } else {
+                    // Split search into terms and escape SQL wildcards
+                    const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
+                    const searchTerms: string[] = [];
+                    for (let i = 0; i < rawTerms.length; i++) {
+                        const term = rawTerms[i];
+                        if (term && term.length > 0) {
+                            searchTerms.push(term.replace(/[%_]/g, '\\$&'));
+                        }
                     }
-                });
+
+                    // Each term must match name, trigger, or url
+                    query.where((q: any) => {
+                        for (let i = 0; i < searchTerms.length; i++) {
+                            const term = searchTerms[i]!;
+                            q.andWhere((subQ: any) => {
+                                subQ.whereRaw('LOWER(bangs.name) LIKE ?', [`%${term}%`])
+                                    .orWhereRaw('LOWER(bangs.trigger) LIKE ?', [`%${term}%`])
+                                    .orWhereRaw('LOWER(bangs.url) LIKE ?', [`%${term}%`]);
+                            });
+                        }
+                    });
+                }
             }
 
             if (ALLOWED_SORT_KEYS.has(sortKey)) {
