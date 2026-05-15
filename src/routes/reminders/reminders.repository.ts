@@ -35,27 +35,39 @@ export function createRemindersRepository(ctx: AppContext): Reminders {
             query.from('reminders').where('user_id', user.id);
 
             if (search) {
-                // Split search into terms and escape SQL wildcards
-                const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
-                const searchTerms: string[] = [];
-                for (let i = 0; i < rawTerms.length; i++) {
-                    const term = rawTerms[i];
-                    if (term && term.length > 0) {
-                        searchTerms.push(term.replace(/[%_]/g, '\\$&'));
-                    }
-                }
+                const ftsQuery = ctx.utils.util.buildFtsQuery(search);
 
-                // Each term must match title, content, or frequency
-                query.where((q: any) => {
-                    for (let i = 0; i < searchTerms.length; i++) {
-                        const term = searchTerms[i]!;
-                        q.andWhere((subQ: any) => {
-                            subQ.whereRaw('LOWER(title) LIKE ?', [`%${term}%`])
-                                .orWhereRaw('LOWER(content) LIKE ?', [`%${term}%`])
-                                .orWhereRaw('LOWER(frequency) LIKE ?', [`%${term}%`]);
-                        });
+                if (ftsQuery) {
+                    query.whereIn(
+                        'id',
+                        ctx.db
+                            .select('rowid')
+                            .from('reminders_fts')
+                            .whereRaw('reminders_fts MATCH ?', [ftsQuery]),
+                    );
+                } else {
+                    // Split search into terms and escape SQL wildcards
+                    const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
+                    const searchTerms: string[] = [];
+                    for (let i = 0; i < rawTerms.length; i++) {
+                        const term = rawTerms[i];
+                        if (term && term.length > 0) {
+                            searchTerms.push(term.replace(/[%_]/g, '\\$&'));
+                        }
                     }
-                });
+
+                    // Each term must match title, content, or frequency
+                    query.where((q: any) => {
+                        for (let i = 0; i < searchTerms.length; i++) {
+                            const term = searchTerms[i]!;
+                            q.andWhere((subQ: any) => {
+                                subQ.whereRaw('LOWER(title) LIKE ?', [`%${term}%`])
+                                    .orWhereRaw('LOWER(content) LIKE ?', [`%${term}%`])
+                                    .orWhereRaw('LOWER(frequency) LIKE ?', [`%${term}%`]);
+                            });
+                        }
+                    });
+                }
             }
 
             if (ALLOWED_SORT_KEYS.has(sortKey)) {
