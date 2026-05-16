@@ -14,6 +14,7 @@ export function createNotesRepository(ctx: AppContext): Notes {
             sortKey = 'created_at',
             direction = 'desc',
             excludeHidden = false,
+            isLengthAware = true,
         }: NotesQueryParams) => {
             const query = ctx.db.select(
                 'id',
@@ -80,7 +81,7 @@ export function createNotesRepository(ctx: AppContext): Notes {
                 query.orderBy('created_at', 'desc');
             }
 
-            return query.paginate({ perPage, currentPage: page, isLengthAware: true });
+            return query.paginate({ perPage, currentPage: page, isLengthAware });
         },
 
         create: async (note: Note) => {
