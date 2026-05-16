@@ -475,48 +475,6 @@ export function createUtil(context: AppContext) {
             }
         },
 
-        async sendNotification({ req, error }: { req: Request; error: Error }): Promise<void> {
-            try {
-                const n = await fetch(config.notify.url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-API-KEY': config.notify.apiKey,
-                    },
-                    body: JSON.stringify({
-                        message: `Error: ${error?.message}`,
-                        details: JSON.stringify(
-                            {
-                                request: {
-                                    method: req.method,
-                                    url: req.url,
-                                    headers: req.headers,
-                                    query: req.query,
-                                    body: req.body,
-                                },
-                                error: {
-                                    name: error?.name,
-                                    message: error?.message,
-                                    stack: error?.stack,
-                                    cause: error?.cause,
-                                },
-                                user: req.session?.user ?? req?.user,
-                            },
-                            null,
-                            2,
-                        ),
-                    }),
-                });
-
-                if (!n.ok) {
-                    const text = await n.text();
-                    logger.error('Notification service error response', { status: n.status, text });
-                }
-            } catch (error) {
-                logger.error('Failed to send error notification', { error });
-            }
-        },
-
         async generateUserDataExport(
             userId: number,
             options: {
