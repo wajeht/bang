@@ -1,9 +1,9 @@
-import { libs } from '../libs';
+import { libs } from '../libs.js';
 import { Request } from 'express';
-import { config } from '../config';
-import { createRequest } from './request';
-import { db } from '../tests/test-setup';
-import { ValidationError } from '../error';
+import { config } from '../config.js';
+import { createRequest } from './request.js';
+import { db } from '../tests/test-setup.js';
+import { ValidationError } from '../error.js';
 import { describe, expect, it, beforeAll, vi } from 'vite-plus/test';
 
 let requestUtils: ReturnType<typeof createRequest>;
@@ -168,6 +168,55 @@ describe.concurrent('extractIdsForDelete', () => {
             expect(error).toBeInstanceOf(ValidationError);
             expect((error as ValidationError).errors.id).toBe('No valid IDs provided');
         }
+    });
+});
+
+describe.concurrent('getSafeRedirectPath', () => {
+    it('should return / when input is empty or undefined', () => {
+        expect(requestUtils.getSafeRedirectPath('')).toBe('/');
+        expect(requestUtils.getSafeRedirectPath(undefined)).toBe('/');
+    });
+
+    it('should return the same pathname for a normal absolute path', () => {
+        expect(requestUtils.getSafeRedirectPath('/notes/42')).toBe('/notes/42');
+    });
+
+    it('should preserve query strings', () => {
+        expect(requestUtils.getSafeRedirectPath('/notes?page=2&sort=desc')).toBe(
+            '/notes?page=2&sort=desc',
+        );
+    });
+
+    it('should strip leading double slashes that look like protocol-relative URLs', () => {
+        expect(requestUtils.getSafeRedirectPath('//evil.com/steal')).toBe('/evil.com/steal');
+        expect(requestUtils.getSafeRedirectPath('///evil.com')).toBe('/evil.com');
+    });
+
+    it('should strip absolute external URLs to their pathname only', () => {
+        // 'http://localhost' + 'http://evil.com/x' parses to host=localhosthttp:, pathname=//evil.com/x
+        // After collapsing leading slashes the host is removed.
+        expect(requestUtils.getSafeRedirectPath('http://evil.com/x')).toBe('/evil.com/x');
+    });
+
+    it('should append extraQuery params when provided', () => {
+        const result = requestUtils.getSafeRedirectPath('/notes/42', {
+            'verify-password-modal': 'true',
+        });
+        expect(result).toBe('/notes/42?verify-password-modal=true');
+    });
+
+    it('should overwrite same-named query params with extraQuery values', () => {
+        const result = requestUtils.getSafeRedirectPath('/notes?modal=false', {
+            modal: 'true',
+        });
+        expect(result).toBe('/notes?modal=true');
+    });
+
+    it('should still strip leading slashes when extraQuery is provided', () => {
+        const result = requestUtils.getSafeRedirectPath('//evil.com/x', {
+            'verify-password-modal': 'true',
+        });
+        expect(result).toBe('/evil.com/x?verify-password-modal=true');
     });
 });
 
@@ -622,7 +671,7 @@ describe('canViewHiddenItems', () => {
             query: { hidden: 'true' },
             session: {
                 hiddenItemsVerified: true,
-                hiddenItemsVerifiedAt: now - 30 * 60 * 1000 + 1, // Just under 30 minutes
+                hiddenItemsVerifiedAt: now - 29 * 60 * 1000, // Just under 30 minutes
             },
         } as unknown as Request;
 

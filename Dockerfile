@@ -1,12 +1,13 @@
-FROM node:25-slim@sha256:44bcbf493408a824104e74976ae5539f596c46cbe75ed0423a137552a555e2de AS build
+FROM node:26.1.0-slim@sha256:424cafd2a035ed2b2d74acc3142b68b426fb62a47742c80a75e7117db02d6b30 AS build
 
 WORKDIR /usr/src/app
 
 # Copy only package files first for better layer caching
-COPY package*.json ./
+COPY package*.json .npmrc ./
 
-# Install all dependencies including dev for build tools
-RUN npm ci --no-audit --no-fund
+# Install all dependencies including dev for build tools, then rebuild native modules
+RUN npm ci --no-audit --no-fund && \
+    npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false
 
 # Copy only TypeScript config first (changes less frequently)
 COPY tsconfig*.json ./
@@ -30,19 +31,20 @@ RUN npm run build:prod && \
     rm -rf eslint.config.* && \
     rm -rf playwright.config.*
 
-FROM node:25-slim@sha256:44bcbf493408a824104e74976ae5539f596c46cbe75ed0423a137552a555e2de
+FROM node:26.1.0-slim@sha256:424cafd2a035ed2b2d74acc3142b68b426fb62a47742c80a75e7117db02d6b30
 
-# Install dependencies
+# Install runtime dependencies (curl for HEALTHCHECK)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl tree && \
+    apt-get install -y --no-install-recommends curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
 
 # Copy only production dependencies and built files
-COPY --chown=node:node package*.json ./
+COPY --chown=node:node package*.json .npmrc ./
 RUN npm ci --only=production --no-audit --no-fund && \
+    npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false && \
     npm cache clean --force
 
 # Copy built application
@@ -50,10 +52,6 @@ COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 COPY --chown=node:node --from=build /usr/src/app/public ./public
 COPY --chown=node:node --from=build /usr/src/app/src/routes ./src/routes
 COPY --chown=node:node --from=build /usr/src/app/README.md ./
-
-# Display directory structure excluding node_modules
-RUN echo "Build time: $(date)" && \
-    ls -d */ | grep -v node_modules | xargs -I {} tree {}
 
 USER node
 

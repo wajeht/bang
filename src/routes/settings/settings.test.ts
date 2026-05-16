@@ -1,6 +1,6 @@
-import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/api-test-utils';
+import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/api-test-utils.js';
 import request from 'supertest';
-import { db, app } from '../../tests/test-setup';
+import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect } from 'vite-plus/test';
 
 describe('Settings Routes', () => {

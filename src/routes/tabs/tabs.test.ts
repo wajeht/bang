@@ -1,5 +1,5 @@
-import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils';
-import { db, app } from '../../tests/test-setup';
+import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils.js';
+import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect, vi } from 'vite-plus/test';
 
 describe('Tabs Routes', () => {
@@ -279,6 +279,37 @@ describe('Tabs Routes', () => {
 
             expect(response.text).toContain('<mark>Social</mark>');
             expect(response.text).toContain('<mark>Media</mark>');
+        });
+
+        it('should find tabs by matching tab item text', async () => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const [tab] = await db('tabs')
+                .insert({
+                    user_id: user.id,
+                    title: 'Work Apps',
+                    trigger: '!work',
+                })
+                .returning('*');
+
+            await db('tab_items').insert([
+                {
+                    tab_id: tab.id,
+                    title: 'Linear Project Board',
+                    url: 'https://linear.app/team/issues',
+                },
+                {
+                    tab_id: tab.id,
+                    title: 'Calendar',
+                    url: 'https://calendar.example.com',
+                },
+            ]);
+
+            const response = await agent.get('/tabs?search=linear').expect(200);
+
+            expect(response.text).toContain('Work Apps');
+            expect(response.text).toContain('Linear Project Board');
+            expect(response.text).not.toContain('Calendar');
         });
 
         it('should return all results without highlighting when no search term', async () => {

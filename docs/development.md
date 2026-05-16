@@ -1,5 +1,10 @@
 ## 💻 Development
 
+### Prerequisites
+
+- Node.js `>=26.0.0`
+- npm `>=11.0.0`
+
 Clone the repository
 
 ```bash
@@ -17,6 +22,16 @@ Install dependencies
 ```bash
 $ npm install
 ```
+
+This project's `.npmrc` sets `ignore-scripts=true` for supply-chain safety, which means
+native dependencies (`better-sqlite3`, `bcrypt`) won't be built automatically. Rebuild
+them explicitly:
+
+```bash
+$ npm run rebuild:native
+```
+
+Skipping this step will cause tests and the dev server to hang at module load.
 
 Run development server
 

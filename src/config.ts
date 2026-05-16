@@ -1,7 +1,7 @@
 import path from 'node:path';
-import { libs } from './libs';
-import type { Env } from './type';
-import packageJson from '../package.json';
+import { libs } from './libs.js';
+import type { Env } from './type.js';
+import packageJson from '../package.json' with { type: 'json' };
 
 libs.dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')), quiet: true });
 
@@ -31,9 +31,10 @@ export const config = {
         domain: process.env.SESSION_DOMAIN || 'localhost',
     } as const,
 
-    notify: {
-        url: process.env.NOTIFY_URL || 'https://notify.jaw.dev/',
-        apiKey: process.env.NOTIFY_X_API_KEY || '',
+    ntfy: {
+        url: process.env.NTFY_URL || 'https://ntfy.jaw.dev',
+        topic: process.env.NTFY_TOPIC || 'bang',
+        token: process.env.NTFY_TOKEN || '',
     } as const,
 
     cloudflare: {
