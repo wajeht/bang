@@ -14,6 +14,7 @@ export function createNotesRepository(ctx: AppContext): Notes {
             sortKey = 'created_at',
             direction = 'desc',
             excludeHidden = false,
+            isLengthAware = true,
         }: NotesQueryParams) => {
             const query = ctx.db.select(
                 'id',
@@ -35,28 +36,40 @@ export function createNotesRepository(ctx: AppContext): Notes {
             }
 
             if (search) {
-                // Split search into terms and escape SQL wildcards
-                const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
-                const searchTerms: string[] = [];
-                for (let i = 0; i < rawTerms.length; i++) {
-                    const term = rawTerms[i];
-                    if (term && term.length > 0) {
-                        searchTerms.push(term.replace(/[%_]/g, '\\$&'));
-                    }
-                }
+                const ftsQuery = ctx.utils.util.buildFtsQuery(search);
 
-                // Each term must match either title or content
-                query.where((q: any) => {
-                    for (let i = 0; i < searchTerms.length; i++) {
-                        const term = searchTerms[i]!;
-                        q.andWhere((subQ: any) => {
-                            subQ.whereRaw('LOWER(title) LIKE ?', [`%${term}%`]).orWhereRaw(
-                                'LOWER(content) LIKE ?',
-                                [`%${term}%`],
-                            );
-                        });
+                if (ftsQuery) {
+                    query.whereIn(
+                        'id',
+                        ctx.db
+                            .select('rowid')
+                            .from('notes_fts')
+                            .whereRaw('notes_fts MATCH ?', [ftsQuery]),
+                    );
+                } else {
+                    // Split search into terms and escape SQL wildcards
+                    const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
+                    const searchTerms: string[] = [];
+                    for (let i = 0; i < rawTerms.length; i++) {
+                        const term = rawTerms[i];
+                        if (term && term.length > 0) {
+                            searchTerms.push(term.replace(/[%_]/g, '\\$&'));
+                        }
                     }
-                });
+
+                    // Each term must match either title or content
+                    query.where((q: any) => {
+                        for (let i = 0; i < searchTerms.length; i++) {
+                            const term = searchTerms[i]!;
+                            q.andWhere((subQ: any) => {
+                                subQ.whereRaw('LOWER(title) LIKE ?', [`%${term}%`]).orWhereRaw(
+                                    'LOWER(content) LIKE ?',
+                                    [`%${term}%`],
+                                );
+                            });
+                        }
+                    });
+                }
             }
 
             // Always sort by pinned first (pinned notes at top), then by the requested sort
@@ -68,7 +81,7 @@ export function createNotesRepository(ctx: AppContext): Notes {
                 query.orderBy('created_at', 'desc');
             }
 
-            return query.paginate({ perPage, currentPage: page, isLengthAware: true });
+            return query.paginate({ perPage, currentPage: page, isLengthAware });
         },
 
         create: async (note: Note) => {
