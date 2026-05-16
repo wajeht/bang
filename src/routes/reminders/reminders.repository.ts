@@ -19,6 +19,7 @@ export function createRemindersRepository(ctx: AppContext): Reminders {
             search = '',
             sortKey = 'due_date',
             direction = 'asc',
+            isLengthAware = true,
         }: RemindersQueryParams) => {
             const query = ctx.db.select(
                 'id',
@@ -76,7 +77,7 @@ export function createRemindersRepository(ctx: AppContext): Reminders {
                 query.orderBy('due_date', 'asc');
             }
 
-            return query.paginate({ perPage, currentPage: page, isLengthAware: true });
+            return query.paginate({ perPage, currentPage: page, isLengthAware });
         },
 
         create: async (reminder: Reminder) => {
