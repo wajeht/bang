@@ -62,6 +62,7 @@ export function createSearchRouter(ctx: AppContext) {
                     sortKey: 'created_at',
                     direction: 'desc',
                     excludeHidden: true,
+                    isLengthAware: false,
                 }),
 
                 ctx.models.actions.all({
@@ -72,6 +73,7 @@ export function createSearchRouter(ctx: AppContext) {
                     sortKey: 'created_at',
                     direction: 'desc',
                     excludeHidden: true,
+                    isLengthAware: false,
                 }),
 
                 ctx.models.notes.all({
@@ -82,6 +84,7 @@ export function createSearchRouter(ctx: AppContext) {
                     sortKey: 'created_at',
                     direction: 'desc',
                     excludeHidden: true,
+                    isLengthAware: false,
                 }),
 
                 ctx.models.tabs.all({
@@ -91,6 +94,7 @@ export function createSearchRouter(ctx: AppContext) {
                     search: searchQuery,
                     sortKey: 'created_at',
                     direction: 'desc',
+                    isLengthAware: false,
                 }),
 
                 ctx.models.reminders.all({
@@ -100,6 +104,7 @@ export function createSearchRouter(ctx: AppContext) {
                     search: searchQuery,
                     sortKey: 'created_at',
                     direction: 'desc',
+                    isLengthAware: false,
                 }),
             ]);
 

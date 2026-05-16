@@ -15,6 +15,7 @@ export function createUtil(context: AppContext) {
     const logger = context.logger.tag('service', 'util');
 
     const plainTextMarked = new context.libs.Marked({ gfm: true, breaks: true });
+    const FTS_TOKEN_REGEX = /[A-Za-z0-9_]+/g;
 
     const ACTION_TYPES = ['search', 'redirect'] as const;
 
@@ -76,6 +77,16 @@ export function createUtil(context: AppContext) {
 
     return {
         ACTION_TYPES,
+
+        buildFtsQuery(search: string): string | null {
+            const terms = search.match(FTS_TOKEN_REGEX);
+
+            if (!terms || terms.length === 0 || terms.some((term) => term.length < 2)) {
+                return null;
+            }
+
+            return terms.map((term) => `"${term}"*`).join(' AND ');
+        },
 
         parseColumnPreferences(raw: string | object | null | undefined): ColumnPreferences {
             let parsed: Partial<ColumnPreferences> = {};
