@@ -3418,6 +3418,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: null,
             url: null,
             searchTerm: 'test query',
+            rawRemainder: 'test query',
         });
     });
 
@@ -3429,6 +3430,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'g',
             url: null,
             searchTerm: 'test query',
+            rawRemainder: 'test query',
         });
     });
 
@@ -3440,6 +3442,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'settings',
             url: null,
             searchTerm: '',
+            rawRemainder: '',
         });
     });
 
@@ -3451,6 +3454,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: null,
             url: null,
             searchTerm: 'bm:homepage',
+            rawRemainder: 'bm:homepage',
         });
     });
 
@@ -3462,6 +3466,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'bm',
             url: 'https://www.example.com',
             searchTerm: 'My Bookmark',
+            rawRemainder: 'My Bookmark https://www.example.com',
         });
     });
 
@@ -3473,6 +3478,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: null,
             url: null,
             searchTerm: 'https://www.example.com',
+            rawRemainder: 'https://www.example.com',
         });
     });
 
@@ -3486,6 +3492,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'bm',
             url: 'https://example.com/search?q=hello%20world&lang=en',
             searchTerm: 'Title',
+            rawRemainder: 'Title https://example.com/search?q=hello%20world&lang=en',
         });
     });
 
@@ -3497,6 +3504,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'bm',
             url: 'https://example.com/page#section1',
             searchTerm: 'Title',
+            rawRemainder: 'Title https://example.com/page#section1',
         });
     });
 
@@ -3508,6 +3516,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'bm',
             url: 'https://localhost:3000/api/data',
             searchTerm: 'Dev',
+            rawRemainder: 'Dev https://localhost:3000/api/data',
         });
     });
 
@@ -3519,6 +3528,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: '123',
             url: null,
             searchTerm: 'test',
+            rawRemainder: 'test',
         });
     });
 
@@ -3530,6 +3540,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'my_command',
             url: null,
             searchTerm: 'test',
+            rawRemainder: 'test',
         });
     });
 
@@ -3541,6 +3552,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'my.command',
             url: null,
             searchTerm: 'test',
+            rawRemainder: 'test',
         });
     });
 
@@ -3554,6 +3566,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'bm',
             url: 'https://example.com',
             searchTerm: 'Title https://test.com',
+            rawRemainder: 'Title https://example.com https://test.com',
         });
     });
 
@@ -3565,6 +3578,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'bm',
             url: null,
             searchTerm: 'FTP ftp://example.com/files',
+            rawRemainder: 'FTP ftp://example.com/files',
         });
     });
 
@@ -3576,6 +3590,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'g',
             url: null,
             searchTerm: 'test@example.com',
+            rawRemainder: 'test@example.com',
         });
     });
 
@@ -3588,6 +3603,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'g',
             url: null,
             searchTerm: longTerm,
+            rawRemainder: longTerm,
         });
     });
 
@@ -3599,6 +3615,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'notes',
             url: null,
             searchTerm: 'search: important meeting',
+            rawRemainder: 'search: important meeting',
         });
     });
 
@@ -3610,6 +3627,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'tag:work',
             url: null,
             searchTerm: '',
+            rawRemainder: '',
         });
     });
 
@@ -3621,6 +3639,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'w',
             url: 'https://en.wikipedia.org',
             searchTerm: '',
+            rawRemainder: 'https://en.wikipedia.org',
         });
     });
 
@@ -3632,6 +3651,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'http',
             url: null,
             searchTerm: 'test',
+            rawRemainder: 'test',
         });
     });
 
@@ -3643,6 +3663,7 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'g',
             url: null,
             searchTerm: '',
+            rawRemainder: '',
         });
     });
 
@@ -3654,6 +3675,19 @@ describe('parseSearchQuery', () => {
             triggerWithoutPrefix: 'g',
             url: null,
             searchTerm: '',
+            rawRemainder: '',
+        });
+    });
+
+    it('should preserve internal whitespace in rawRemainder for !note-style content', () => {
+        const result = searchUtils.parseSearchQuery('!note Title  |  content with   spaces');
+        expect(result).toEqual({
+            commandType: 'bang',
+            trigger: '!note',
+            triggerWithoutPrefix: 'note',
+            url: null,
+            searchTerm: 'Title | content with spaces',
+            rawRemainder: 'Title  |  content with   spaces',
         });
     });
 });
@@ -3802,6 +3836,7 @@ describe('search command handling', () => {
                 triggerWithoutPrefix: 'notes',
                 url: null,
                 searchTerm: 'test',
+                rawRemainder: 'test',
             });
 
             const user = { id: 1 } as User;
@@ -3832,6 +3867,7 @@ describe('search command handling', () => {
                 triggerWithoutPrefix: 'unknown',
                 url: null,
                 searchTerm: '',
+                rawRemainder: '',
             });
 
             await searchUtils.search({ req, res, user, query: '!unknown' });
@@ -3858,6 +3894,7 @@ describe('search command handling', () => {
                 triggerWithoutPrefix: null,
                 url: null,
                 searchTerm: 'regular search',
+                rawRemainder: 'regular search',
             });
 
             await searchUtils.search({ req, res, user, query: 'regular search' });
