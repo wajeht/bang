@@ -5,7 +5,7 @@ import type {
     ColumnPreferences,
     PaginateArrayOptions,
     TurnstileVerifyResponse,
-} from '../type';
+} from '../type.js';
 import http from 'node:http';
 import https from 'node:https';
 import type { Request } from 'express';
@@ -13,6 +13,9 @@ import type { Request } from 'express';
 export function createUtil(context: AppContext) {
     const { db, config, errors } = context;
     const logger = context.logger.tag('service', 'util');
+
+    const plainTextMarked = new context.libs.Marked({ gfm: true, breaks: true });
+    const FTS_TOKEN_REGEX = /[A-Za-z0-9_]+/g;
 
     const ACTION_TYPES = ['search', 'redirect'] as const;
 
@@ -74,6 +77,16 @@ export function createUtil(context: AppContext) {
 
     return {
         ACTION_TYPES,
+
+        buildFtsQuery(search: string): string | null {
+            const terms = search.match(FTS_TOKEN_REGEX);
+
+            if (!terms || terms.length === 0 || terms.some((term) => term.length < 2)) {
+                return null;
+            }
+
+            return terms.map((term) => `"${term}"*`).join(' AND ');
+        },
 
         parseColumnPreferences(raw: string | object | null | undefined): ColumnPreferences {
             let parsed: Partial<ColumnPreferences> = {};
@@ -214,9 +227,7 @@ export function createUtil(context: AppContext) {
         },
 
         prefetchAssets(url: string): void {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 10000);
-
+            const signal = AbortSignal.timeout(10000);
             const screenshotUrl = this.getScreenshotUrl(url);
             const faviconUrl = this.getFaviconUrl(url);
 
@@ -224,14 +235,14 @@ export function createUtil(context: AppContext) {
                 fetch(screenshotUrl, {
                     method: 'HEAD',
                     headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Prefetch' },
-                    signal: controller.signal,
+                    signal,
                 }).then((res) => res.text().catch(() => {})),
                 fetch(faviconUrl, {
                     method: 'HEAD',
                     headers: { 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Prefetch' },
-                    signal: controller.signal,
+                    signal,
                 }).then((res) => res.text().catch(() => {})),
-            ]).finally(() => clearTimeout(timeout));
+            ]);
         },
 
         createBookmarkHtml(bookmark: BookmarkToExport): string {
@@ -320,9 +331,8 @@ export function createUtil(context: AppContext) {
             }
 
             try {
-                const { marked } = await import('marked');
-                const htmlOutput = await marked(markdownInput);
-                let plainText = (htmlOutput as string).replace(/<(?!\/?mark\b)[^>]*>/g, '');
+                const htmlOutput = plainTextMarked.parse(markdownInput) as string;
+                let plainText = htmlOutput.replace(/<(?!\/?mark\b)[^>]*>/g, '');
                 plainText = plainText.replace(/\s+/g, ' ').trim();
 
                 if (maxLength && plainText.length > maxLength) {

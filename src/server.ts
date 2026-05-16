@@ -1,5 +1,5 @@
-import { createLogger } from './utils/logger';
-import { createServer, closeServer } from './app';
+import { createLogger } from './utils/logger.js';
+import { createServer, closeServer } from './app.js';
 
 const logger = createLogger({ service: 'server' });
 

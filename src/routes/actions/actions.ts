@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { User, AppContext } from '../../type';
+import type { User, AppContext } from '../../type.js';
 
 export function createActionsRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
@@ -236,7 +236,7 @@ export function createActionsRouter(ctx: AppContext) {
             ctx.utils.util.prefetchAssets(url);
         }
 
-        ctx.utils.search.invalidateTriggerCache(req);
+        ctx.utils.search.invalidateTriggerCache(user.id);
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({
@@ -351,7 +351,7 @@ export function createActionsRouter(ctx: AppContext) {
         });
 
         if (currentAction.trigger !== formattedTrigger) {
-            ctx.utils.search.invalidateTriggerCache(req);
+            ctx.utils.search.invalidateTriggerCache(user.id);
         }
 
         if (ctx.utils.request.isApiRequest(req)) {
@@ -400,7 +400,7 @@ export function createActionsRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Action not found');
         }
 
-        ctx.utils.search.invalidateTriggerCache(req);
+        ctx.utils.search.invalidateTriggerCache(user.id);
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
@@ -573,8 +573,6 @@ export function createActionsRouter(ctx: AppContext) {
                         const batch = urls.slice(i, i + batchSize);
                         await Promise.allSettled(
                             batch.map(async (url) => {
-                                const controller = new AbortController();
-                                const timeout = setTimeout(() => controller.abort(), 10000);
                                 try {
                                     const response = await fetch(
                                         `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`,
@@ -583,14 +581,12 @@ export function createActionsRouter(ctx: AppContext) {
                                             headers: {
                                                 'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)',
                                             },
-                                            signal: controller.signal,
+                                            signal: AbortSignal.timeout(10000),
                                         },
                                     );
                                     await response.text().catch(() => {});
                                 } catch {
                                     // Ignore errors
-                                } finally {
-                                    clearTimeout(timeout);
                                 }
                             }),
                         );

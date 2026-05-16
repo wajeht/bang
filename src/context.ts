@@ -5,7 +5,7 @@ import {
     ValidationError,
     UnauthorizedError,
     UnimplementedFunctionError,
-} from './error';
+} from './error.js';
 import {
     createCsrfMiddleware,
     createErrorMiddleware,
@@ -21,31 +21,31 @@ import {
     createAppLocalStateMiddleware,
     createAuthenticationMiddleware,
     createSpeculationRulesMiddleware,
-} from './routes/middleware';
-import { libs } from './libs';
-import { config } from './config';
-import { createDatabase } from './db/db';
-import { createUtil } from './utils/util';
-import { createCronService } from './crons';
-import { createDate } from './utils/date';
-import { createHtml } from './utils/html';
-import { createAuth } from './utils/auth';
-import { createMail } from './utils/mail';
-import { createDiscord } from './utils/discord';
-import { createAssets } from './utils/assets';
-import { createLogger, Log } from './utils/logger';
-import { createSearch } from './utils/search';
-import { createRequest } from './utils/request';
-import { createTemplate } from './utils/template';
-import { createValidation } from './utils/validation';
-import { createTabsRepository } from './routes/tabs/tabs.repository';
-import { createNotesRepository } from './routes/notes/notes.repository';
-import { createUsersRepository } from './routes/admin/admin.repository';
-import { createActionsRepository } from './routes/actions/actions.repository';
-import { createBookmarksRepository } from './routes/bookmarks/bookmarks.repository';
-import { createRemindersRepository } from './routes/reminders/reminders.repository';
-import { createSettingsRepository } from './routes/admin/settings.repository';
-import type { AppContext, Models, Services, Utilities, Middlewares } from './type';
+} from './routes/middleware.js';
+import { libs } from './libs.js';
+import { config } from './config.js';
+import { createDatabase } from './db/db.js';
+import { createUtil } from './utils/util.js';
+import { createCronService } from './crons.js';
+import { createDate } from './utils/date.js';
+import { createHtml } from './utils/html.js';
+import { createAuth } from './utils/auth.js';
+import { createMail } from './utils/mail.js';
+import { createDiscord } from './utils/discord.js';
+import { createAssets } from './utils/assets.js';
+import { createLogger, Log } from './utils/logger.js';
+import { createSearch } from './utils/search.js';
+import { createRequest } from './utils/request.js';
+import { createTemplate } from './utils/template.js';
+import { createValidation } from './utils/validation.js';
+import { createTabsRepository } from './routes/tabs/tabs.repository.js';
+import { createNotesRepository } from './routes/notes/notes.repository.js';
+import { createUsersRepository } from './routes/admin/admin.repository.js';
+import { createActionsRepository } from './routes/actions/actions.repository.js';
+import { createBookmarksRepository } from './routes/bookmarks/bookmarks.repository.js';
+import { createRemindersRepository } from './routes/reminders/reminders.repository.js';
+import { createSettingsRepository } from './routes/admin/settings.repository.js';
+import type { AppContext, Models, Services, Utilities, Middlewares } from './type.js';
 
 export async function createContext(): Promise<AppContext> {
     if (!config) {

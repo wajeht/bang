@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { db, ctx, createTestUser } from './test-setup';
+import { db, ctx, createTestUser } from './test-setup.js';
 import type { Test } from 'supertest';
 import type { Application } from 'express';
 

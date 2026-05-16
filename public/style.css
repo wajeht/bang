@@ -14,8 +14,11 @@ html {
 }
 
 :root {
+    color-scheme: light;
+    accent-color: var(--link-color);
     --dot-color: #dedede;
     --text-color: #333333;
+    --text-muted-color: #999999;
     --background-color: #ffffff;
     --pre-background: #f8f9fa;
     --pre-border: #edeff0;
@@ -24,6 +27,7 @@ html {
     --link-color: #0000ee;
     --visited-link-color: #551a8b;
     --border-color: #1a1a1a;
+    --button-hover-background: #e5e5e5;
     --sub-table-background: #f8f9fa;
     --tr-border-color: #ddd;
     --aside-border-color: #ddd;
@@ -37,6 +41,8 @@ html {
 }
 
 [data-theme='dark'] {
+    color-scheme: dark;
+    scrollbar-color: #666666 #2a2a2a;
     --dot-color: #2a2a2a;
     --text-color: #e0e0e0;
     --background-color: #1a1a1a;
@@ -66,10 +72,6 @@ html {
     --card-border-color: #4a4a4a;
     --toast-border-color: #4a4a4a;
     --tr-hover-background: #1f1f1f;
-}
-
-[data-theme='dark'] {
-    scrollbar-color: #666666 #2a2a2a;
 }
 
 [data-theme='dark']::-webkit-scrollbar {
@@ -105,6 +107,11 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+:focus-visible {
+    outline: 2px solid var(--link-color);
+    outline-offset: 2px;
+}
+
 img,
 picture,
 video,
@@ -128,7 +135,7 @@ button {
 }
 
 button:hover {
-    background: #e5e5e5;
+    background: var(--button-hover-background);
 }
 
 /* Safari and cross-browser input fixes */
@@ -222,14 +229,14 @@ legend {
     background-color: var(--input-background);
     color: var(--input-text);
     border: 1px solid var(--input-border);
-    border-radius: 2px;
+    border-radius: 4px;
 }
 
 [data-theme='dark'] button {
     background-color: var(--button-background);
     color: var(--button-text);
     border: 1px solid var(--input-border);
-    border-radius: 2px;
+    border-radius: 4px;
 }
 
 [data-theme='dark'] button:hover {
@@ -241,13 +248,13 @@ legend {
 [data-theme='dark'] input[type='radio'] {
     background-color: var(--checkbox-background);
     border: 1px solid var(--checkbox-border);
-    border-radius: 2px;
+    border-radius: 4px;
 }
 
 [data-theme='dark'] input[type='checkbox']:checked,
 [data-theme='dark'] input[type='radio']:checked {
     background-color: var(--checkbox-check);
-    border-radius: 2px;
+    border-radius: 4px;
 }
 
 p,
@@ -398,7 +405,7 @@ pre {
     padding: 2px 4px;
     background-color: var(--code-background);
     border: 1px solid var(--code-border);
-    border-radius: 3px;
+    border-radius: 4px;
     font-size: 0.95em;
 }
 
@@ -471,7 +478,7 @@ pre {
     background-color: var(--pre-background);
     border: 1px solid var(--pre-border);
     padding: 10px;
-    border-radius: 5px;
+    border-radius: 4px;
     font-size: 1em;
     line-height: 1.5;
 }
@@ -481,11 +488,11 @@ code {
     overflow-wrap: break-word;
     width: fit-content;
     font-family: monospace;
-    border: 1px dashed #dddddd;
+    border: 1px dashed var(--tr-border-color);
     padding: 2px 6px;
     background-color: var(--pre-background);
     height: fit-content;
-    border-radius: 5px;
+    border-radius: 4px;
     font-size: 0.95em;
 }
 
@@ -507,7 +514,7 @@ dialog {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    border-radius: 5px;
+    border-radius: 4px;
     margin: 0;
     background-color: var(--background-color);
     color: var(--text-color);
@@ -709,7 +716,7 @@ a:hover .sort-icon {
 }
 
 .question-mark-btn:hover {
-    background-color: #efefef;
+    background-color: var(--button-hover-background);
 }
 
 .hljs {
@@ -886,4 +893,60 @@ a:hover .sort-icon {
 
 [data-theme='dark'] .hljs-strong {
     font-weight: bold;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@media print {
+    body {
+        padding: 0;
+        background: white;
+        color: black;
+    }
+
+    a,
+    a:visited {
+        color: black;
+        text-decoration: underline;
+    }
+
+    a[href^='http']::after {
+        content: ' (' attr(href) ')';
+        font-size: 0.85em;
+        color: #555;
+    }
+
+    pre,
+    code {
+        background: white;
+        border: 1px solid #ccc;
+        page-break-inside: avoid;
+    }
+
+    dialog,
+    .preview-img,
+    .preview-loading {
+        display: none !important;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tr,
+    img {
+        page-break-inside: avoid;
+    }
 }

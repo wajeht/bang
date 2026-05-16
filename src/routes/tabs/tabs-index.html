@@ -343,7 +343,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                           <td style="padding: 10px;">
                             <details style="position: relative; display: inline-flex; align-items: center;">
                               <summary>Actions</summary>
-                              <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 200px; gap: 10px;" role="menu">
+                              <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 200px; gap: 10px;" role="menu">
                                 <a href="/tabs/<%= tabs[i].id %>/items/create" class="no-style-btn" style="display: inline-flex; align-items: center;" role="menuitem">➕ Add <%= utils.capitalize(tabs[i].title) %> Item</a>
                                 <button class="no-style-btn toggle-details-btn" data-tab-id="<%= tabs[i].id %>" style="display: inline-flex; align-items: center;">👁️ View <%= utils.capitalize(tabs[i].title) %> Items</button>
                                 <a href="/tabs/<%= tabs[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit <%= utils.capitalize(tabs[i].title) %> Group</a>
@@ -457,7 +457,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                     <td style="padding: 10px;">
                                       <details style="position: relative; display: inline-flex; align-items: center;">
                                         <summary>Actions</summary>
-                                        <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 200px; gap: 10px;" role="menu">
+                                        <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 200px; gap: 10px;" role="menu">
                                           <a href="/tabs/<%= tabs[i].id %>/items/<%= tabs[i].items[j].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit <%= utils.truncateString(tabs[i].items[j].title, 4) %></a>
                                           <button
                                               type="button"

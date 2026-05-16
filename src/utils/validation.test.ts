@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vite-plus/test';
-import { createValidation } from './validation';
+import { createValidation } from './validation.js';
 
 const validationUtils = createValidation();
 

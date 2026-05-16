@@ -8,7 +8,7 @@ import {
     expectUserLoggedIn,
     expectUserLoggedOut,
     submitEmailForMagicLink,
-} from '../../tests/browser-test-fixtures';
+} from '../../tests/browser-test-fixtures.js';
 
 test('can get / page', async ({ page }) => {
     await page.goto('/');

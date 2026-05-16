@@ -1,20 +1,12 @@
-import { config } from './config';
+import { config } from './config.js';
 import { Server } from 'node:http';
-import { createContext } from './context';
-import type { AppContext } from './type';
-import { createRouter } from './routes/routes';
+import { createContext } from './context.js';
+import type { AppContext } from './type.js';
+import { createRouter } from './routes/routes.js';
 import { AddressInfo, Socket } from 'node:net';
-import { expressJSDocSwaggerHandler } from './utils/swagger';
+import { expressJSDocSwaggerHandler } from './utils/swagger.js';
 
-const activeSockets = new Set<Socket>();
-
-export function getActiveSocketsCount(): number {
-    return activeSockets.size;
-}
-
-export function clearActiveSockets(): void {
-    activeSockets.clear();
-}
+export const activeSockets = new Set<Socket>();
 
 export async function createApp() {
     const ctx = await createContext();

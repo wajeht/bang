@@ -235,7 +235,7 @@ window.addEventListener('load', previewWebpageOnLinkHover);
                             <td style="padding: 10px;">
                                 <details style="position: relative;">
                                     <summary aria-label="Actions for <%= utils.stripHtmlTags(data[i].title || 'Untitled') %>">Actions</summary>
-                                    <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 5px; min-width: 150px; gap: 10px;" role="menu">
+                                    <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
                                         <form method="POST" action="/bookmarks/<%= data[i].id %>/pin" style="display: inline;">
                                             <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
                                             <button type="submit" class="no-style-btn" style="text-align: left;" role="menuitem" aria-label="<%= data[i].pinned ? 'Unpin' : 'Pin' %> bookmark <%= utils.stripHtmlTags(data[i].title || 'Untitled') %>">
