@@ -13,6 +13,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
             search = '',
             sortKey = 'created_at',
             direction = 'desc',
+            isLengthAware = true,
         }: TabsQueryParams) => {
             const query = ctx.db
                 .select(
@@ -94,7 +95,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
             const result = await query.paginate({
                 perPage,
                 currentPage: page,
-                isLengthAware: true,
+                isLengthAware,
             });
 
             // Fetch tab items for all tabs
