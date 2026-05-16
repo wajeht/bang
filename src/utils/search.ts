@@ -331,6 +331,16 @@ export function createSearch(context: AppContext) {
              * @example "search term" from "@notes search term"
              */
             searchTerm: string;
+
+            /**
+             * Text after the trigger with internal whitespace preserved.
+             * Unlike searchTerm, this is not whitespace-collapsed and the URL is not stripped,
+             * so handlers that need the raw command body (e.g. !note, !remind, !add, !edit)
+             * can read this directly instead of slicing the original query.
+             * @example "title | content with   spaces" from "!note title | content with   spaces"
+             * @example "" when there is no trigger or no remainder
+             */
+            rawRemainder: string;
         } {
             // empty/null queries
             if (!query?.trim()) {
@@ -340,6 +350,7 @@ export function createSearch(context: AppContext) {
                     triggerWithoutPrefix: null,
                     url: null,
                     searchTerm: '',
+                    rawRemainder: '',
                 } as const;
             }
 
@@ -354,6 +365,7 @@ export function createSearch(context: AppContext) {
                     triggerWithoutPrefix: null,
                     url: null,
                     searchTerm: trimmed.replace(searchConfig.regex.whitespace, ' '),
+                    rawRemainder: trimmed,
                 } as const;
             }
 
@@ -372,6 +384,7 @@ export function createSearch(context: AppContext) {
                     triggerWithoutPrefix: trigger.slice(1),
                     url: null,
                     searchTerm: remaining.replace(searchConfig.regex.whitespace, ' '),
+                    rawRemainder: remaining,
                 };
             }
 
@@ -449,6 +462,7 @@ export function createSearch(context: AppContext) {
                 triggerWithoutPrefix: trigger.slice(1),
                 url,
                 searchTerm: searchTerm.replace(searchConfig.regex.whitespace, ' ').trim(),
+                rawRemainder: remaining,
             };
         },
 
@@ -957,7 +971,7 @@ export function createSearch(context: AppContext) {
             const log = req.logger.tag('fn', 'search');
             const timer = log.time('search');
 
-            const { commandType, trigger, triggerWithoutPrefix, url, searchTerm } =
+            const { commandType, trigger, triggerWithoutPrefix, url, searchTerm, rawRemainder } =
                 this.parseSearchQuery(query);
 
             if (!user?.id) {
@@ -1134,7 +1148,7 @@ export function createSearch(context: AppContext) {
                 // Example: !add !custom https://custom-search.com
                 // Example: !add custom https://custom-search.com --hide
                 if (trigger === '!add') {
-                    let rest = query.slice('!add'.length).trim();
+                    let rest = rawRemainder;
 
                     let shouldHide = false;
                     const hideIndex = rest.indexOf('--hide');
@@ -1336,7 +1350,7 @@ export function createSearch(context: AppContext) {
                 // 3. !edit !oldTrigger !newTrigger url (change both)
                 // Example: !edit !old !new https://example.com
                 if (trigger === '!edit') {
-                    const rest = query.slice('!edit'.length).trim();
+                    const rest = rawRemainder;
                     const tokens = rest.split(/\s+/); // normalize whitespace
 
                     if (tokens.length < 2 || !tokens[0]) {
@@ -1547,15 +1561,7 @@ export function createSearch(context: AppContext) {
                 // Example: !note this is the title | this is the content
                 // Example: !note this is the content without title --hide
                 if (trigger === '!note') {
-                    const contentStartIndex = query.indexOf(' ');
-
-                    // Only process content if the command has a space
-                    if (contentStartIndex === -1) {
-                        timer.stop({ outcome: 'error', trigger, error: 'missing-content' });
-                        return this.goBackWithValidationAlert(res, 'Content is required');
-                    }
-
-                    let fullContent = query.slice(contentStartIndex + 1).trim();
+                    let fullContent = rawRemainder;
 
                     if (!fullContent) {
                         timer.stop({ outcome: 'error', trigger, error: 'missing-content' });
@@ -1668,14 +1674,7 @@ export function createSearch(context: AppContext) {
                 // 2. !remind <when> <description> (when = daily, weekly, etc. or date)
                 // 3. !remind <when> | <description> [| <content>] (pipe-separated)
                 if (trigger === '!remind') {
-                    const spaceIndex = query.indexOf(' ');
-
-                    if (spaceIndex === -1) {
-                        timer.stop({ outcome: 'error', trigger, error: 'missing-content' });
-                        return this.goBackWithValidationAlert(res, 'Reminder content is required');
-                    }
-
-                    const reminderContent = query.slice(spaceIndex + 1).trim();
+                    const reminderContent = rawRemainder;
 
                     if (!reminderContent) {
                         timer.stop({ outcome: 'error', trigger, error: 'missing-content' });
