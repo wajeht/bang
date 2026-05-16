@@ -1,5 +1,5 @@
 import { styleText, format } from 'node:util';
-import type { LogLevel, Logger, LoggerOptions } from '../type';
+import type { LogLevel, Logger, LoggerOptions } from '../type.js';
 
 export type { LoggerOptions, LogLevel };
 

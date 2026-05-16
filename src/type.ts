@@ -18,12 +18,6 @@ declare module 'express-session' {
         hiddenItemsVerifiedAt?: number;
         /** Timestamp when user data was cached in session */
         userCachedAt?: number;
-        /** Cached map of user's custom bang triggers for O(1) lookup */
-        bangTriggersMap?: Record<string, true>;
-        /** Cached map of user's tab triggers for O(1) lookup */
-        tabTriggersMap?: Record<string, true>;
-        /** Timestamp when bang/tab triggers were cached */
-        triggersCachedAt?: number;
     }
 }
 
@@ -182,6 +176,7 @@ export type RepositoryQueryParams<Extra = object> = {
     search: string;
     sortKey: string;
     direction: string;
+    isLengthAware?: boolean;
 } & Extra;
 
 export type ActionsQueryParams = RepositoryQueryParams<{
@@ -367,20 +362,20 @@ export type PaginateArrayOptions = {
 
 import type { Knex } from 'knex';
 
-import { createDate } from './utils/date';
-import { createHtml } from './utils/html';
-import { createAuth } from './utils/auth';
-import { createMail } from './utils/mail';
-import { createDiscord } from './utils/discord';
-import { createUtil } from './utils/util';
-import { createSearch } from './utils/search';
-import { createRequest } from './utils/request';
-import { createValidation } from './utils/validation';
-import { createAssets } from './utils/assets';
-import type { CronService as CronServiceType } from './crons';
-import { createDatabase } from './db/db';
-import type { config } from './config';
-import type { Libs } from './libs';
+import { createDate } from './utils/date.js';
+import { createHtml } from './utils/html.js';
+import { createAuth } from './utils/auth.js';
+import { createMail } from './utils/mail.js';
+import { createNtfy } from './utils/ntfy.js';
+import { createUtil } from './utils/util.js';
+import { createSearch } from './utils/search.js';
+import { createRequest } from './utils/request.js';
+import { createValidation } from './utils/validation.js';
+import { createAssets } from './utils/assets.js';
+import type { CronService as CronServiceType } from './crons.js';
+import { createDatabase } from './db/db.js';
+import type { config } from './config.js';
+import type { Libs } from './libs.js';
 
 export type DateUtils = ReturnType<typeof createDate>;
 export type HtmlUtils = ReturnType<typeof createHtml>;
@@ -391,7 +386,7 @@ export type RequestUtils = ReturnType<typeof createRequest>;
 export type UtilUtils = ReturnType<typeof createUtil>;
 export type SearchUtils = ReturnType<typeof createSearch>;
 export type MailUtils = ReturnType<typeof createMail>;
-export type DiscordUtils = ReturnType<typeof createDiscord>;
+export type NtfyUtils = ReturnType<typeof createNtfy>;
 
 export type Config = typeof config;
 export type CronService = CronServiceType;
@@ -430,7 +425,7 @@ export interface Utilities {
     search: SearchUtils;
     mail: MailUtils;
     template: TemplateUtils;
-    discord: DiscordUtils;
+    ntfy: NtfyUtils;
 }
 
 export interface Middlewares {

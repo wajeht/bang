@@ -1,7 +1,7 @@
 import path from 'node:path';
-import { libs } from '../libs';
-import { config } from '../config';
-import { createTemplate } from './template';
+import { libs } from '../libs.js';
+import { config } from '../config.js';
+import { createTemplate } from './template.js';
 import { describe, expect, it, beforeAll, vi } from 'vite-plus/test';
 
 let templateUtils: ReturnType<typeof createTemplate>;

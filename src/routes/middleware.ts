@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { LayoutOptions, User, AppContext } from '../type';
+import type { LayoutOptions, User, AppContext } from '../type.js';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 
 export function createRequestLoggerMiddleware(ctx: AppContext) {
@@ -115,9 +115,9 @@ export function createErrorMiddleware(ctx: AppContext) {
         }
 
         if (ctx.config.app.env === 'production') {
-            ctx.utils.discord.sendErrorNotification(req, error, statusCode);
+            ctx.utils.ntfy.sendErrorNotification(req, error, statusCode);
         } else {
-            ctx.logger.info('Discord error notification suppressed (non-production environment)', {
+            ctx.logger.info('ntfy error notification suppressed (non-production environment)', {
                 error,
                 statusCode,
                 message,
@@ -163,8 +163,6 @@ export function createHelmetMiddleware(ctx: AppContext) {
                 'script-src': [
                     "'self'",
                     "'unsafe-inline'",
-                    "'unsafe-eval'",
-                    'text/javascript',
                     'blob:',
                     ctx.config.app.appUrl,
                     '*.cloudflare.com',
@@ -180,7 +178,7 @@ export function createHelmetMiddleware(ctx: AppContext) {
 
                 'connect-src': ["'self'", '*.cloudflare.com', '*.cloudflareinsights.com'],
                 'script-src-attr': ["'self'", "'unsafe-inline'"],
-                'form-action': ["'self'", '*'],
+                'form-action': ["'self'"],
             },
         },
         referrerPolicy: {
@@ -445,11 +443,19 @@ export function createAuthenticationMiddleware(ctx: AppContext) {
                 return;
             }
 
-            // Always ensure column_preferences is properly parsed
-            const parsedUser: User = {
-                ...user,
-                column_preferences: ctx.utils.util.parseColumnPreferences(user?.column_preferences),
-            } as User;
+            // On cache hit the session-stored user already has parsed column_preferences,
+            // so only re-parse when we refreshed from DB.
+            let parsedUser: User;
+            if (needsRefresh) {
+                parsedUser = {
+                    ...user,
+                    column_preferences: ctx.utils.util.parseColumnPreferences(
+                        user?.column_preferences,
+                    ),
+                } as User;
+            } else {
+                parsedUser = user as User;
+            }
 
             req.user = parsedUser;
 

@@ -16,26 +16,26 @@ jobs:
     update-bangs:
         name: Update bangs from Kagi and DuckDuckGo
         runs-on: ubuntu-latest
-        outputs:
-            changed: ${{ steps.verify-changed-files.outputs.changed }}
 
         permissions:
             contents: write
-
-        strategy:
-            matrix:
-                node-version: [25.x]
+            pull-requests: write
 
         steps:
             - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-            - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
               with:
-                  node-version: ${{ matrix.node-version }}
+                  persist-credentials: false
+            - name: Use Node.js
+              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+              with:
+                  node-version-file: '.nvmrc'
                   cache: 'npm'
 
             - name: Install dependencies
-              run: npm i
+              run: npm ci
+
+            - name: Rebuild native modules
+              run: npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false
 
             - name: Update bangs from multiple sources
               run: npm run build:bang
@@ -43,78 +43,21 @@ jobs:
             - name: Format updated bangs
               run: npm run format
 
-            - name: Check for changes
-              id: verify-changed-files
-              run: |
-                  if [ -n "$(git status --porcelain)" ]; then
-                    echo "changed=true" >> $GITHUB_OUTPUT
-                    echo "Files have been modified:"
-                    git diff --name-only
-                    echo "Diff summary:"
-                    git diff --stat
-                  else
-                    echo "changed=false" >> $GITHUB_OUTPUT
-                    echo "No files were modified."
-                  fi
-
-            - name: Commit updated bangs
-              if: steps.verify-changed-files.outputs.changed == 'true'
-              uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7.1.0
+            - name: Create Pull Request
+              id: cpr
+              uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
               with:
-                  commit_message: 'feat: update bangs data from Kagi and DuckDuckGo'
-                  file_pattern: 'src/db/bang.ts'
+                  token: ${{ secrets.GH_TOKEN }}
+                  commit-message: 'feat: update bangs data from Kagi and DuckDuckGo'
+                  title: 'feat: update bangs data from Kagi and DuckDuckGo'
+                  body: |
+                      Automated weekly update of bangs data from Kagi and DuckDuckGo.
+                  branch: bot/update-bangs
+                  delete-branch: true
+                  add-paths: src/db/bang.ts
+
+            - name: Enable auto-merge
+              if: steps.cpr.outputs.pull-request-number
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    build:
-        needs: [update-bangs]
-        name: Build
-        runs-on: ubuntu-latest
-        if: needs.update-bangs.outputs.changed == 'true'
-        outputs:
-            tag: ${{ steps.image-name.outputs.TAG }}
-
-        steps:
-            - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-              with:
-                  fetch-depth: 1
-
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
-
-            - name: Login to Container Registry
-              uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.repository_owner }}
-                  password: ${{ secrets.GH_TOKEN }}
-
-            - name: Generate Image Name
-              id: image-name
-              run: |
-                  TAG=$(echo ${{ github.sha }} | cut -c1-7)
-                  IMAGE_URL=$(echo ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:$TAG | tr '[:upper:]' '[:lower:]')
-                  echo "IMAGE_URL=$IMAGE_URL" >> $GITHUB_OUTPUT
-                  echo "TAG=$TAG" >> $GITHUB_OUTPUT
-
-            - name: Build and push Docker Image
-              uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
-              with:
-                  context: .
-                  file: ./Dockerfile
-                  push: true
-                  tags: ${{ steps.image-name.outputs.IMAGE_URL }}
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
-                  provenance: false
-                  sbom: false
-
-    deploy:
-        needs: [build]
-        name: Deploy
-        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/deploy.yaml@c976aac4e51a559837963f7d903600c2c436e589 # v0.0.20
-        with:
-            app-path: apps/bang
-            tag: ${{ needs.build.outputs.tag }}
-        secrets:
-            GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+              run: gh pr merge --auto --squash "${{ steps.cpr.outputs.pull-request-number }}"

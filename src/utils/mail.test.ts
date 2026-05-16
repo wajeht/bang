@@ -1,9 +1,9 @@
-import { config } from '../config';
-import { createMail } from './mail';
-import { createAuth } from './auth';
-import { dayjs, libs } from '../libs';
-import { db } from '../tests/test-setup';
-import { createLogger } from '../utils/logger';
+import { config } from '../config.js';
+import { createMail } from './mail.js';
+import { createAuth } from './auth.js';
+import { dayjs, libs } from '../libs.js';
+import { db } from '../tests/test-setup.js';
+import { createLogger } from '../utils/logger.js';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vite-plus/test';
 
 const logger = createLogger();

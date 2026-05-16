@@ -20,7 +20,7 @@ services:
             - bang_network
 
     mailpit:
-        image: axllent/mailpit@sha256:fdaf09bd71dc0829ce8b62e4bfb5180bc5c0674c3e444283fc90681853f5a3c0
+        image: axllent/mailpit@sha256:0059ef81e492a7192af3816281eed6859eb078bd7bdc58b76757c13e10e53a7d
         container_name: bang-mailpit
         restart: unless-stopped
         ports:

@@ -1,4 +1,4 @@
-import { test, expect, loginUser } from '../../tests/browser-test-fixtures';
+import { test, expect, loginUser } from '../../tests/browser-test-fixtures.js';
 
 test.describe('Bookmarks', () => {
     test.beforeEach(async ({ page }) => {

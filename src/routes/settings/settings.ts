@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { User, ApiKeyPayload, AppContext } from '../../type';
+import type { User, ApiKeyPayload, AppContext } from '../../type.js';
 
 export function createSettingsRouter(ctx: AppContext) {
     const VALID_TIMEZONES = new Set([

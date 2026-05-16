@@ -1,11 +1,13 @@
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Knex } from 'knex';
-import { createLogger } from '../utils/logger';
-import { CustomMigrationSource } from './migration-source';
+import { createLogger } from '../utils/logger.js';
+import { CustomMigrationSource } from './migration-source.js';
 
 const logger = createLogger({ service: 'knexfile' });
 const isTesting = process.env.NODE_ENV === 'testing' || process.env.APP_ENV === 'testing';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const migrationsPath = path.resolve(__dirname, 'migrations');
 
 let knexConfig: Knex.Config = {
@@ -22,7 +24,7 @@ let knexConfig: Knex.Config = {
     pool: {
         min: 0, // No idle connections for SQLite
         max: 1, // Only 1 connection per container (SQLite is single-file)
-        acquireTimeoutMillis: 120000, // 2 minutes (increased for lock contention)
+        acquireTimeoutMillis: 15000, // 15s — fail fast under contention rather than queueing requests
         createTimeoutMillis: 30000, // 30 seconds
         idleTimeoutMillis: 30000, // 30 seconds (close idle connections quickly)
         reapIntervalMillis: 1000, // 1 second

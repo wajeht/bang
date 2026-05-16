@@ -1,4 +1,4 @@
-import { createDb } from './test-db';
+import { createDb } from './test-db.js';
 
 export default async function globalTeardown() {
     console.log('Cleaning up test resources...');
