@@ -366,7 +366,7 @@ import { createDate } from './utils/date.js';
 import { createHtml } from './utils/html.js';
 import { createAuth } from './utils/auth.js';
 import { createMail } from './utils/mail.js';
-import { createDiscord } from './utils/discord.js';
+import { createNtfy } from './utils/ntfy.js';
 import { createUtil } from './utils/util.js';
 import { createSearch } from './utils/search.js';
 import { createRequest } from './utils/request.js';
@@ -386,7 +386,7 @@ export type RequestUtils = ReturnType<typeof createRequest>;
 export type UtilUtils = ReturnType<typeof createUtil>;
 export type SearchUtils = ReturnType<typeof createSearch>;
 export type MailUtils = ReturnType<typeof createMail>;
-export type DiscordUtils = ReturnType<typeof createDiscord>;
+export type NtfyUtils = ReturnType<typeof createNtfy>;
 
 export type Config = typeof config;
 export type CronService = CronServiceType;
@@ -425,7 +425,7 @@ export interface Utilities {
     search: SearchUtils;
     mail: MailUtils;
     template: TemplateUtils;
-    discord: DiscordUtils;
+    ntfy: NtfyUtils;
 }
 
 export interface Middlewares {
