@@ -176,6 +176,7 @@ export type RepositoryQueryParams<Extra = object> = {
     search: string;
     sortKey: string;
     direction: string;
+    isLengthAware?: boolean;
 } & Extra;
 
 export type ActionsQueryParams = RepositoryQueryParams<{

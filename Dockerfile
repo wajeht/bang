@@ -1,4 +1,4 @@
-FROM node:26-slim@sha256:424cafd2a035ed2b2d74acc3142b68b426fb62a47742c80a75e7117db02d6b30 AS build
+FROM node:26.1.0-slim@sha256:424cafd2a035ed2b2d74acc3142b68b426fb62a47742c80a75e7117db02d6b30 AS build
 
 WORKDIR /usr/src/app
 
@@ -31,11 +31,11 @@ RUN npm run build:prod && \
     rm -rf eslint.config.* && \
     rm -rf playwright.config.*
 
-FROM node:26-slim@sha256:424cafd2a035ed2b2d74acc3142b68b426fb62a47742c80a75e7117db02d6b30
+FROM node:26.1.0-slim@sha256:424cafd2a035ed2b2d74acc3142b68b426fb62a47742c80a75e7117db02d6b30
 
-# Install dependencies
+# Install runtime dependencies (curl for HEALTHCHECK)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl tree && \
+    apt-get install -y --no-install-recommends curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -52,10 +52,6 @@ COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 COPY --chown=node:node --from=build /usr/src/app/public ./public
 COPY --chown=node:node --from=build /usr/src/app/src/routes ./src/routes
 COPY --chown=node:node --from=build /usr/src/app/README.md ./
-
-# Display directory structure excluding node_modules
-RUN echo "Build time: $(date)" && \
-    ls -d */ | grep -v node_modules | xargs -I {} tree {}
 
 USER node
 
