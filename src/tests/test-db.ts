@@ -107,20 +107,49 @@ export async function createUser(db: Knex, email: string, options: CreateUserOpt
     return user;
 }
 
-const SYSTEM_TABLES = ['sqlite_sequence', 'knex_migrations', 'knex_migrations_lock'];
+const DATA_TABLES = [
+    'sessions',
+    'tab_items',
+    'reminders',
+    'notes',
+    'bangs',
+    'bookmarks',
+    'tabs',
+    'settings',
+    'users',
+];
+
+const FTS_TABLES = [
+    'tab_items_fts',
+    'tabs_fts',
+    'reminders_fts',
+    'notes_fts',
+    'bangs_fts',
+    'bookmarks_fts',
+];
 
 export async function cleanupTables(db: Knex) {
     await db.transaction(async (trx) => {
         await trx.raw('PRAGMA foreign_keys = OFF');
 
-        const rows = await trx
+        const rows = (await trx
             .select('name')
             .from('sqlite_master')
             .where({ type: 'table' })
-            .whereNotIn('name', SYSTEM_TABLES);
+            .whereIn('name', [...DATA_TABLES, ...FTS_TABLES])) as Array<{ name: string }>;
 
-        for (const { name } of rows as Array<{ name: string }>) {
-            await trx(name).del();
+        const existingTables = new Set(rows.map((row) => row.name));
+
+        for (const name of DATA_TABLES) {
+            if (existingTables.has(name)) {
+                await trx(name).del();
+            }
+        }
+
+        for (const name of FTS_TABLES) {
+            if (existingTables.has(name)) {
+                await trx(name).del();
+            }
         }
 
         await trx.raw('PRAGMA foreign_keys = ON');
