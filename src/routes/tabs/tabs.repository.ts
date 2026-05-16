@@ -1,4 +1,4 @@
-import type { Tab, Tabs, TabsQueryParams, AppContext } from '../../type';
+import type { Tab, Tabs, TabsQueryParams, AppContext } from '../../type.js';
 
 export function createTabsRepository(ctx: AppContext): Tabs {
     const REGEX_WHITESPACE = /\s+/;
@@ -13,6 +13,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
             search = '',
             sortKey = 'created_at',
             direction = 'desc',
+            isLengthAware = true,
         }: TabsQueryParams) => {
             const query = ctx.db
                 .select(
@@ -32,41 +33,53 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                 .where('tabs.user_id', user.id);
 
             if (search) {
-                // Split search into terms and escape SQL wildcards
-                const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
-                const searchTerms: string[] = [];
-                for (let i = 0; i < rawTerms.length; i++) {
-                    const term = rawTerms[i];
-                    if (term && term.length > 0) {
-                        searchTerms.push(term.replace(/[%_]/g, '\\$&'));
-                    }
-                }
+                const ftsQuery = ctx.utils.util.buildFtsQuery(search);
 
-                // Each term must match title, trigger, or tab item title/url
-                query.where((q: any) => {
-                    for (let i = 0; i < searchTerms.length; i++) {
-                        const term = searchTerms[i]!;
-                        q.andWhere((subQ: any) => {
-                            subQ.whereRaw('LOWER(tabs.title) LIKE ?', [`%${term}%`])
-                                .orWhereRaw('LOWER(tabs.trigger) LIKE ?', [`%${term}%`])
-                                .orWhereExists((subquery: any) => {
-                                    subquery
-                                        .select(ctx.db.raw('1'))
-                                        .from('tab_items')
-                                        .whereRaw('tab_items.tab_id = tabs.id')
-                                        .where((itemBuilder: any) => {
-                                            itemBuilder
-                                                .whereRaw('LOWER(tab_items.title) LIKE ?', [
-                                                    `%${term}%`,
-                                                ])
-                                                .orWhereRaw('LOWER(tab_items.url) LIKE ?', [
-                                                    `%${term}%`,
-                                                ]);
-                                        });
-                                });
-                        });
+                if (ftsQuery) {
+                    query.whereIn(
+                        'tabs.id',
+                        ctx.db
+                            .select('rowid')
+                            .from('tabs_fts')
+                            .whereRaw('tabs_fts MATCH ?', [ftsQuery]),
+                    );
+                } else {
+                    // Split search into terms and escape SQL wildcards
+                    const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
+                    const searchTerms: string[] = [];
+                    for (let i = 0; i < rawTerms.length; i++) {
+                        const term = rawTerms[i];
+                        if (term && term.length > 0) {
+                            searchTerms.push(term.replace(/[%_]/g, '\\$&'));
+                        }
                     }
-                });
+
+                    // Each term must match title, trigger, or tab item title/url
+                    query.where((q: any) => {
+                        for (let i = 0; i < searchTerms.length; i++) {
+                            const term = searchTerms[i]!;
+                            q.andWhere((subQ: any) => {
+                                subQ.whereRaw('LOWER(tabs.title) LIKE ?', [`%${term}%`])
+                                    .orWhereRaw('LOWER(tabs.trigger) LIKE ?', [`%${term}%`])
+                                    .orWhereExists((subquery: any) => {
+                                        subquery
+                                            .select(ctx.db.raw('1'))
+                                            .from('tab_items')
+                                            .whereRaw('tab_items.tab_id = tabs.id')
+                                            .where((itemBuilder: any) => {
+                                                itemBuilder
+                                                    .whereRaw('LOWER(tab_items.title) LIKE ?', [
+                                                        `%${term}%`,
+                                                    ])
+                                                    .orWhereRaw('LOWER(tab_items.url) LIKE ?', [
+                                                        `%${term}%`,
+                                                    ]);
+                                            });
+                                    });
+                            });
+                        }
+                    });
+                }
             }
 
             if (ALLOWED_SORT_KEYS.has(sortKey)) {
@@ -82,7 +95,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
             const result = await query.paginate({
                 perPage,
                 currentPage: page,
-                isLengthAware: true,
+                isLengthAware,
             });
 
             // Fetch tab items for all tabs
@@ -99,12 +112,24 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                     .whereIn('tab_id', tabIds);
 
                 if (search) {
-                    const searchLower = search.toLowerCase();
-                    itemsQuery = itemsQuery.where((builder: any) => {
-                        builder
-                            .whereRaw('LOWER(tab_items.title) LIKE ?', [`%${searchLower}%`])
-                            .orWhereRaw('LOWER(tab_items.url) LIKE ?', [`%${searchLower}%`]);
-                    });
+                    const ftsQuery = ctx.utils.util.buildFtsQuery(search);
+
+                    if (ftsQuery) {
+                        itemsQuery = itemsQuery.whereIn(
+                            'id',
+                            ctx.db
+                                .select('rowid')
+                                .from('tab_items_fts')
+                                .whereRaw('tab_items_fts MATCH ?', [ftsQuery]),
+                        );
+                    } else {
+                        const searchLower = search.toLowerCase();
+                        itemsQuery = itemsQuery.where((builder: any) => {
+                            builder
+                                .whereRaw('LOWER(tab_items.title) LIKE ?', [`%${searchLower}%`])
+                                .orWhereRaw('LOWER(tab_items.url) LIKE ?', [`%${searchLower}%`]);
+                        });
+                    }
                 }
 
                 const allItems = await itemsQuery.orderBy('created_at', 'asc');

@@ -1,4 +1,4 @@
-import { createHtml } from './html';
+import { createHtml } from './html.js';
 import { describe, expect, it } from 'vite-plus/test';
 
 const htmlUtils = createHtml();

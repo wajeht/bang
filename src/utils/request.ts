@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import type { User, PageType, AppContext } from '../type';
+import type { User, PageType, AppContext } from '../type.js';
 
 export function createRequest(context: AppContext) {
     const logger = context.logger.tag('service', 'request');
@@ -87,6 +87,23 @@ export function createRequest(context: AppContext) {
             }
 
             return ids;
+        },
+
+        /**
+         * Strip a user-controlled redirect target down to a same-origin pathname.
+         * Prevents open-redirect via protocol-relative URLs like `//evil.com`.
+         */
+        getSafeRedirectPath(
+            rawRedirect: string | undefined,
+            extraQuery?: Record<string, string>,
+        ): string {
+            const url = new URL('http://localhost' + (rawRedirect || '/'));
+            if (extraQuery) {
+                for (const [key, value] of Object.entries(extraQuery)) {
+                    url.searchParams.set(key, value);
+                }
+            }
+            return url.pathname.replace(/^\/+/, '/') + url.search;
         },
 
         extractApiKey(req: Request): string | undefined {

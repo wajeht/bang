@@ -1,8 +1,8 @@
-import { libs } from '../libs';
-import { config } from '../config';
-import { createAuth } from './auth';
-import { db } from '../tests/test-setup';
-import type { ApiKeyPayload, MagicLinkPayload } from '../type';
+import { libs } from '../libs.js';
+import { config } from '../config.js';
+import { createAuth } from './auth.js';
+import { db } from '../tests/test-setup.js';
+import type { ApiKeyPayload, MagicLinkPayload } from '../type.js';
 import { describe, expect, it, beforeAll, vi } from 'vite-plus/test';
 
 let authUtils: ReturnType<typeof createAuth>;

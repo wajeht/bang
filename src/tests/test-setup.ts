@@ -1,12 +1,12 @@
 process.env.APP_ENV = 'testing';
 process.env.NODE_ENV = 'testing';
 
-import { createApp } from '../app';
-import { Log } from '../utils/logger';
+import { createApp } from '../app.js';
+import { Log } from '../utils/logger.js';
 import { beforeAll, beforeEach, afterAll } from 'vite-plus/test';
-import { createDb, createUser, cleanupTables } from './test-db';
+import { createDb, createUser, cleanupTables } from './test-db.js';
 import type { Application } from 'express';
-import type { AppContext } from '../type';
+import type { AppContext } from '../type.js';
 
 Log.setLevel('SILENT');
 

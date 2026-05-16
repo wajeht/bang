@@ -1,8 +1,18 @@
-import { bangs as bangsTable } from '../db/bang';
+import { bangs as bangsTable } from '../db/bang.js';
 import type { Request, Response } from 'express';
-import type { Bang, Search, ReminderTimingResult, AppContext } from '../type';
+import type { Bang, Search, ReminderTimingResult, AppContext } from '../type.js';
 
 export function createSearch(context: AppContext) {
+    const TRIGGER_CACHE_MAX = 1000;
+
+    interface TriggerCacheEntry {
+        bangs: Record<string, true>;
+        tabs: Record<string, true>;
+        cachedAt: number;
+    }
+
+    const triggerCache = new Map<number, TriggerCacheEntry>();
+
     const searchConfig = {
         /**
          * Cache TTL for user's bang/tab triggers (60 minutes)
@@ -175,20 +185,20 @@ export function createSearch(context: AppContext) {
         reminderTimingConfig,
 
         /**
-         * Load and cache user's bang and tab triggers in session for fast lookup.
+         * Load and cache user's bang and tab triggers in process memory for O(1) lookup.
+         * The cache is keyed by userId and shared across the worker process.
          */
         async loadCachedTriggers(
-            req: Request,
             userId: number,
         ): Promise<{ bangTriggers: Record<string, true>; tabTriggers: Record<string, true> }> {
-            const cachedAt = req.session?.triggersCachedAt || 0;
-            const cacheExpired = Date.now() - cachedAt > searchConfig.triggersCacheTtl;
+            const now = Date.now();
+            const hit = triggerCache.get(userId);
 
-            if (!cacheExpired && req.session?.bangTriggersMap && req.session?.tabTriggersMap) {
-                return {
-                    bangTriggers: req.session.bangTriggersMap,
-                    tabTriggers: req.session.tabTriggersMap,
-                };
+            if (hit && now - hit.cachedAt < searchConfig.triggersCacheTtl) {
+                // LRU touch: re-insert to move to recency tail
+                triggerCache.delete(userId);
+                triggerCache.set(userId, hit);
+                return { bangTriggers: hit.bangs, tabTriggers: hit.tabs };
             }
 
             const [bangRows, tabRows] = await Promise.all([
@@ -196,37 +206,31 @@ export function createSearch(context: AppContext) {
                 context.db('tabs').select('trigger').where({ user_id: userId }),
             ]);
 
-            const bangTriggersMap: Record<string, true> = Object.create(null);
-            const tabTriggersMap: Record<string, true> = Object.create(null);
+            const bangs: Record<string, true> = Object.create(null);
+            const tabs: Record<string, true> = Object.create(null);
 
             for (let i = 0; i < bangRows.length; i++) {
-                bangTriggersMap[bangRows[i].trigger] = true;
+                bangs[bangRows[i].trigger] = true;
             }
             for (let i = 0; i < tabRows.length; i++) {
-                tabTriggersMap[tabRows[i].trigger] = true;
+                tabs[tabRows[i].trigger] = true;
             }
 
-            if (req.session) {
-                req.session.bangTriggersMap = bangTriggersMap;
-                req.session.tabTriggersMap = tabTriggersMap;
-                req.session.triggersCachedAt = Date.now();
+            // Bound the cache to MAX users; evict oldest entry first
+            if (triggerCache.size >= TRIGGER_CACHE_MAX) {
+                const oldest = triggerCache.keys().next().value;
+                if (oldest !== undefined) triggerCache.delete(oldest);
             }
+            triggerCache.set(userId, { bangs, tabs, cachedAt: now });
 
-            return {
-                bangTriggers: bangTriggersMap,
-                tabTriggers: tabTriggersMap,
-            };
+            return { bangTriggers: bangs, tabTriggers: tabs };
         },
 
         /**
-         * Invalidate cached triggers (call when user creates/deletes/edits bangs or tabs)
+         * Invalidate cached triggers for a user (call when bangs or tabs change).
          */
-        invalidateTriggerCache(req: Request): void {
-            if (req.session) {
-                delete req.session.bangTriggersMap;
-                delete req.session.tabTriggersMap;
-                delete req.session.triggersCachedAt;
-            }
+        invalidateTriggerCache(userId: number): void {
+            triggerCache.delete(userId);
         },
 
         trackAnonymousUserSearch(req: Request) {
@@ -327,6 +331,16 @@ export function createSearch(context: AppContext) {
              * @example "search term" from "@notes search term"
              */
             searchTerm: string;
+
+            /**
+             * Text after the trigger with internal whitespace preserved.
+             * Unlike searchTerm, this is not whitespace-collapsed and the URL is not stripped,
+             * so handlers that need the raw command body (e.g. !note, !remind, !add, !edit)
+             * can read this directly instead of slicing the original query.
+             * @example "title | content with   spaces" from "!note title | content with   spaces"
+             * @example "" when there is no trigger or no remainder
+             */
+            rawRemainder: string;
         } {
             // empty/null queries
             if (!query?.trim()) {
@@ -336,6 +350,7 @@ export function createSearch(context: AppContext) {
                     triggerWithoutPrefix: null,
                     url: null,
                     searchTerm: '',
+                    rawRemainder: '',
                 } as const;
             }
 
@@ -350,6 +365,7 @@ export function createSearch(context: AppContext) {
                     triggerWithoutPrefix: null,
                     url: null,
                     searchTerm: trimmed.replace(searchConfig.regex.whitespace, ' '),
+                    rawRemainder: trimmed,
                 } as const;
             }
 
@@ -368,6 +384,7 @@ export function createSearch(context: AppContext) {
                     triggerWithoutPrefix: trigger.slice(1),
                     url: null,
                     searchTerm: remaining.replace(searchConfig.regex.whitespace, ' '),
+                    rawRemainder: remaining,
                 };
             }
 
@@ -445,6 +462,7 @@ export function createSearch(context: AppContext) {
                 triggerWithoutPrefix: trigger.slice(1),
                 url,
                 searchTerm: searchTerm.replace(searchConfig.regex.whitespace, ' ').trim(),
+                rawRemainder: remaining,
             };
         },
 
@@ -953,7 +971,7 @@ export function createSearch(context: AppContext) {
             const log = req.logger.tag('fn', 'search');
             const timer = log.time('search');
 
-            const { commandType, trigger, triggerWithoutPrefix, url, searchTerm } =
+            const { commandType, trigger, triggerWithoutPrefix, url, searchTerm, rawRemainder } =
                 this.parseSearchQuery(query);
 
             if (!user?.id) {
@@ -1130,7 +1148,7 @@ export function createSearch(context: AppContext) {
                 // Example: !add !custom https://custom-search.com
                 // Example: !add custom https://custom-search.com --hide
                 if (trigger === '!add') {
-                    let rest = query.slice('!add'.length).trim();
+                    let rest = rawRemainder;
 
                     let shouldHide = false;
                     const hideIndex = rest.indexOf('--hide');
@@ -1241,7 +1259,7 @@ export function createSearch(context: AppContext) {
                         );
                     }
 
-                    this.invalidateTriggerCache(req);
+                    this.invalidateTriggerCache(user.id);
 
                     void context.utils.util
                         .insertPageTitle({
@@ -1313,7 +1331,7 @@ export function createSearch(context: AppContext) {
                         );
                     }
 
-                    this.invalidateTriggerCache(req);
+                    this.invalidateTriggerCache(user.id);
 
                     timer.stop({
                         outcome: 'system-bang',
@@ -1332,7 +1350,7 @@ export function createSearch(context: AppContext) {
                 // 3. !edit !oldTrigger !newTrigger url (change both)
                 // Example: !edit !old !new https://example.com
                 if (trigger === '!edit') {
-                    const rest = query.slice('!edit'.length).trim();
+                    const rest = rawRemainder;
                     const tokens = rest.split(/\s+/); // normalize whitespace
 
                     if (tokens.length < 2 || !tokens[0]) {
@@ -1529,7 +1547,7 @@ export function createSearch(context: AppContext) {
                     }
 
                     if (bangUpdates.trigger || tabUpdates.trigger) {
-                        this.invalidateTriggerCache(req);
+                        this.invalidateTriggerCache(user.id);
                     }
 
                     timer.stop({ outcome: 'system-bang', trigger, action: 'edited' });
@@ -1543,15 +1561,7 @@ export function createSearch(context: AppContext) {
                 // Example: !note this is the title | this is the content
                 // Example: !note this is the content without title --hide
                 if (trigger === '!note') {
-                    const contentStartIndex = query.indexOf(' ');
-
-                    // Only process content if the command has a space
-                    if (contentStartIndex === -1) {
-                        timer.stop({ outcome: 'error', trigger, error: 'missing-content' });
-                        return this.goBackWithValidationAlert(res, 'Content is required');
-                    }
-
-                    let fullContent = query.slice(contentStartIndex + 1).trim();
+                    let fullContent = rawRemainder;
 
                     if (!fullContent) {
                         timer.stop({ outcome: 'error', trigger, error: 'missing-content' });
@@ -1664,14 +1674,7 @@ export function createSearch(context: AppContext) {
                 // 2. !remind <when> <description> (when = daily, weekly, etc. or date)
                 // 3. !remind <when> | <description> [| <content>] (pipe-separated)
                 if (trigger === '!remind') {
-                    const spaceIndex = query.indexOf(' ');
-
-                    if (spaceIndex === -1) {
-                        timer.stop({ outcome: 'error', trigger, error: 'missing-content' });
-                        return this.goBackWithValidationAlert(res, 'Reminder content is required');
-                    }
-
-                    const reminderContent = query.slice(spaceIndex + 1).trim();
+                    const reminderContent = rawRemainder;
 
                     if (!reminderContent) {
                         timer.stop({ outcome: 'error', trigger, error: 'missing-content' });
@@ -1758,7 +1761,7 @@ export function createSearch(context: AppContext) {
                 }
             }
 
-            const { bangTriggers, tabTriggers } = await this.loadCachedTriggers(req, user.id);
+            const { bangTriggers, tabTriggers } = await this.loadCachedTriggers(user.id);
 
             // Process user-defined bang commands
             if (commandType === 'bang' && trigger && bangTriggers[trigger]) {
