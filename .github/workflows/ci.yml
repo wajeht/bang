@@ -31,9 +31,10 @@ env:
     EMAIL_PASSWORD:
     EMAIL_FROM: noreply@bang.local
 
-    # notify
-    NOTIFY_URL: 'https://deeznutz.co'
-    NOTIFY_X_API_KEY: 'your mom'
+    # ntfy
+    NTFY_URL: 'https://ntfy.example.test'
+    NTFY_TOPIC: 'bang'
+    NTFY_TOKEN: ''
 
     # cloudflare
     CLOUDFLARE_TURNSTILE_SITE_KEY: 'deeznutz'
