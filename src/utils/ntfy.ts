@@ -78,14 +78,13 @@ export function createNtfy(ctx: AppContext) {
                 headers.Authorization = `Bearer ${ctx.config.ntfy.token}`;
             }
 
-            void fetch(ctx.config.ntfy.url, {
+            const base = ctx.config.ntfy.url.replace(/\/$/, '');
+            const endpoint = `${base}/${ctx.config.ntfy.topic}?template=bang&markdown=yes`;
+
+            void fetch(endpoint, {
                 method: 'POST',
                 headers,
-                body: JSON.stringify({
-                    topic: ctx.config.ntfy.topic,
-                    template: 'bang',
-                    data,
-                }),
+                body: JSON.stringify(data),
                 signal: AbortSignal.timeout(5000),
             }).catch((err) => ctx.logger.error('ntfy notification failed', { error: err }));
         },
