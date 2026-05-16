@@ -115,9 +115,9 @@ export function createErrorMiddleware(ctx: AppContext) {
         }
 
         if (ctx.config.app.env === 'production') {
-            ctx.utils.discord.sendErrorNotification(req, error, statusCode);
+            ctx.utils.ntfy.sendErrorNotification(req, error, statusCode);
         } else {
-            ctx.logger.info('Discord error notification suppressed (non-production environment)', {
+            ctx.logger.info('ntfy error notification suppressed (non-production environment)', {
                 error,
                 statusCode,
                 message,
