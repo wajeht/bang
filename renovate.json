@@ -1,5 +1,9 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": ["github>wajeht/renovate-config"],
-    "skipInstalls": false
+    "skipInstalls": false,
+    "constraints": {
+        "node": ">=26.1.0",
+        "npm": ">=11.13.0"
+    }
 }
