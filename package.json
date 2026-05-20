@@ -106,7 +106,7 @@
     "overrides": {
         "glob": "13.0.6",
         "inflight": "npm:@isaacs/inflight@1.0.1",
-        "postcss": "8.5.14",
+        "postcss": "8.5.15",
         "rimraf": "6.1.3",
         "vite": "npm:@voidzero-dev/vite-plus-core@0.1.21",
         "vitest": "npm:@voidzero-dev/vite-plus-test@0.1.21"
