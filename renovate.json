@@ -1,6 +1,8 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": ["github>wajeht/renovate-config"],
+    "npmrc": "engine-strict=false\n",
+    "npmrcMerge": true,
     "skipInstalls": false,
     "constraints": {
         "node": ">=26.1.0",
