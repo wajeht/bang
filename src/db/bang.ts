@@ -102723,7 +102723,7 @@ export const bangs: Record<string, any> = {
         s: 'VIDAL',
         d: 'www.vidal.fr',
         t: 'vidal',
-        u: 'https://www.vidal.fr/recherche/index/q:{{{s}}}/',
+        u: 'https://www.vidal.fr/recherche.html?query={{{s}}}/',
         c: 'Research',
         sc: 'Health',
     },
