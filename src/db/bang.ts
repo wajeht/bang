@@ -115504,6 +115504,14 @@ export const bangs: Record<string, any> = {
         c: 'Research',
         sc: 'Reference',
     },
+    swh: {
+        s: 'The Software Heritage Archive',
+        d: 'archive.softwareheritage.org',
+        t: 'swh',
+        u: 'https://archive.softwareheritage.org/browse/search/?q={{{s}}}',
+        c: 'Tech',
+        sc: 'Programming',
+    },
     htwiki: {
         s: 'Haitian Creole Wikipedia',
         d: 'ht.wikipedia.org',
