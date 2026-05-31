@@ -89,4 +89,8 @@
 		<%~ include('./speculation-rules.html') %>
 	<% } %>
 	<script defer src="/script.js?v=<%~ state.version.script %>"></script>
+
+	<% if (state.env === 'production') { %>
+		<script defer src="https://umami.jaw.dev/script.js" data-website-id="100b12d4-b5cd-46a8-b1b0-244398b2e33e"></script>
+	<% } %>
 </head>
