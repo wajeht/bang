@@ -61,7 +61,7 @@
         "connect-session-knex": "5.0.0",
         "cors": "2.8.6",
         "csrf-sync": "4.2.1",
-        "dayjs": "1.11.20",
+        "dayjs": "1.11.21",
         "dotenv": "17.4.2",
         "esbuild": "0.28.0",
         "eta": "4.6.0",
