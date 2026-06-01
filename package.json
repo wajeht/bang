@@ -99,7 +99,7 @@
         "clean-css": "5.3.3",
         "html-minifier-terser": "7.2.0",
         "supertest": "7.2.2",
-        "tsx": "4.22.3",
+        "tsx": "4.22.4",
         "vite-plus": "0.1.23",
         "vitest": "npm:@voidzero-dev/vite-plus-test@0.1.23"
     },
