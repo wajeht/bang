@@ -239,7 +239,7 @@ jobs:
         if: github.event_name == 'push'
         needs: [lint, unit-test, browser-test, format, build]
         name: Deploy
-        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/deploy.yaml@071c1838526ef329aea7f37fe2987f64cd76d714 # v0.0.23
+        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/deploy.yaml@ed0bda2409dae9b929fafb7327b199e34ae83b27 # v0.0.25
         with:
             app-path: apps/bang
             service-name: bang
@@ -302,7 +302,7 @@ jobs:
         needs: temp-build
         permissions:
             deployments: write
-        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-deploy.yaml@071c1838526ef329aea7f37fe2987f64cd76d714 # v0.0.23
+        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-deploy.yaml@ed0bda2409dae9b929fafb7327b199e34ae83b27 # v0.0.25
         with:
             app-path: apps/bang
             service-name: bang
@@ -317,7 +317,7 @@ jobs:
             (github.event.action == 'unlabeled' && github.event.label.name == 'temp-deploy')
         permissions:
             deployments: write
-        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-cleanup.yaml@071c1838526ef329aea7f37fe2987f64cd76d714 # v0.0.23
+        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-cleanup.yaml@ed0bda2409dae9b929fafb7327b199e34ae83b27 # v0.0.25
         with:
             app-path: apps/bang
         secrets:
