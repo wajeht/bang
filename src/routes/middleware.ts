@@ -180,10 +180,11 @@ export function createHelmetMiddleware(ctx: AppContext) {
 
                 'connect-src': ["'self'", '*.cloudflare.com', '*.cloudflareinsights.com', 'https://umami.jaw.dev'],
                 'script-src-attr': ["'self'", "'unsafe-inline'"],
-                // Search submissions redirect off-site to arbitrary destinations
-                // (Google, DuckDuckGo, custom bang URLs), and form-action is enforced
-                // against redirect targets, so '*' is required for search to work.
-                'form-action': ["'self'", '*'],
+                // Search submissions 302-redirect off-site to arbitrary HTTPS
+                // destinations (Google, DuckDuckGo, custom bang URLs). form-action is
+                // enforced against redirect targets, so 'self' alone blocks search.
+                // Scope to https: rather than '*' to still block http:/data:/blob:.
+                'form-action': ["'self'", 'https:'],
             },
         },
         referrerPolicy: {
