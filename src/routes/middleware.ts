@@ -180,7 +180,10 @@ export function createHelmetMiddleware(ctx: AppContext) {
 
                 'connect-src': ["'self'", '*.cloudflare.com', '*.cloudflareinsights.com', 'https://umami.jaw.dev'],
                 'script-src-attr': ["'self'", "'unsafe-inline'"],
-                'form-action': ["'self'"],
+                // Search submissions redirect off-site to arbitrary destinations
+                // (Google, DuckDuckGo, custom bang URLs), and form-action is enforced
+                // against redirect targets, so '*' is required for search to work.
+                'form-action': ["'self'", '*'],
             },
         },
         referrerPolicy: {
