@@ -138,6 +138,9 @@ export function createCronService(context: AppContext): CronService {
         cronJobs.push(
             context.libs.cron.schedule('*/15 * * * *', () => reminderCheckTask(context), {
                 timezone: 'UTC',
+                // Prevent a slow run from overlapping the next tick; the digest query now
+                // includes overdue reminders, so two concurrent runs could double-send.
+                noOverlap: true,
             }),
         );
 
@@ -152,6 +155,7 @@ export function createCronService(context: AppContext): CronService {
         cronJobs.push(
             context.libs.cron.schedule('0 3 * * *', () => screenshotPrefetchTask(context), {
                 timezone: 'UTC',
+                noOverlap: true,
             }),
         );
 
