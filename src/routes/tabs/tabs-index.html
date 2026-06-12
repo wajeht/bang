@@ -344,11 +344,11 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                             <details style="position: relative; display: inline-flex; align-items: center;">
                               <summary>Actions</summary>
                               <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 200px; gap: 10px;" role="menu">
-                                <a href="/tabs/<%= tabs[i].id %>/items/create" class="no-style-btn" style="display: inline-flex; align-items: center;" role="menuitem">➕ Add <%= utils.capitalize(tabs[i].title) %> Item</a>
-                                <button class="no-style-btn toggle-details-btn" data-tab-id="<%= tabs[i].id %>" style="display: inline-flex; align-items: center;">👁️ View <%= utils.capitalize(tabs[i].title) %> Items</button>
-                                <a href="/tabs/<%= tabs[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit <%= utils.capitalize(tabs[i].title) %> Group</a>
+                                <a href="/tabs/<%= tabs[i].id %>/items/create" class="no-style-btn" style="display: inline-flex; align-items: center;" role="menuitem">➕ Add <%~ utils.capitalize(tabs[i].title) %> Item</a>
+                                <button class="no-style-btn toggle-details-btn" data-tab-id="<%= tabs[i].id %>" style="display: inline-flex; align-items: center;">👁️ View <%~ utils.capitalize(tabs[i].title) %> Items</button>
+                                <a href="/tabs/<%= tabs[i].id %>/edit" style="display: inline-flex; align-items: center;" role="menuitem">✏️ Edit <%~ utils.capitalize(tabs[i].title) %> Group</a>
                                 <% if (tabs[i].items.length > 0) { %>
-                                  <a href="/tabs/<%= tabs[i].id %>/launch" style="display: inline-flex; align-items: center;" role="menuitem">🚀 Launch <%= utils.capitalize(tabs[i].title) %> Group</a>
+                                  <a href="/tabs/<%= tabs[i].id %>/launch" style="display: inline-flex; align-items: center;" role="menuitem">🚀 Launch <%~ utils.capitalize(tabs[i].title) %> Group</a>
                                 <% } %>
                                 <button
                                     type="button"
@@ -359,7 +359,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                     data-tab-items="<%= JSON.stringify(tabs[i].items.map(item => ({ title: utils.stripHtmlTags(item.title || ''), url: utils.stripHtmlTags(item.url || '') }))) %>"
                                     role="menuitem"
                                 >
-                                    🗑️ Delete <%= utils.capitalize(tabs[i].title) %> Group
+                                    🗑️ Delete <%~ utils.capitalize(tabs[i].title) %> Group
                                 </button>
                               </div>
                             </details>
@@ -436,7 +436,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                         <div style="display: flex; gap: 5px; align-items: center;">
                                             <img loading="lazy" src= "<%~ utils.getFaviconUrl(tabs[i].items[j].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                             <span class="preview">
-                                                <a href="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" target="_blank" rel="noopener noreferrer">
+                                                <a href="<%~ utils.safeHref(utils.stripHtmlTags(tabs[i].items[j].url)) %>" style="overflow: auto; white-space: nowrap;" title="<%~ utils.stripHtmlTags(tabs[i].items[j].url) %>" target="_blank" rel="noopener noreferrer">
                                                     <%~ tabs[i].items[j].url %>
                                                 </a>
                                                 <img class="preview-img" src="<%= utils.getScreenshotUrl(tabs[i].items[j].url) %>" loading="lazy" alt="Preview">

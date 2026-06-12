@@ -90,8 +90,11 @@ export function createHtml() {
         safeHref(url: string | null | undefined): string {
             if (!url) return '#';
             const trimmed = String(url).trim();
-            if (/^https?:\/\//i.test(trimmed)) return trimmed;
-            if (trimmed.startsWith('/') && !trimmed.startsWith('//')) return trimmed;
+            // Browsers normalize backslashes to forward slashes, so `/\evil.com` becomes the
+            // protocol-relative `//evil.com`. Check against a normalized copy to catch that.
+            const normalized = trimmed.replace(/\\/g, '/');
+            if (/^https?:\/\//i.test(normalized)) return trimmed;
+            if (normalized.startsWith('/') && !normalized.startsWith('//')) return trimmed;
             return '#';
         },
 

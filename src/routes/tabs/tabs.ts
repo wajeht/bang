@@ -163,6 +163,13 @@ export function createTabsRouter(ctx: AppContext) {
         });
 
         ctx.utils.html.applyHighlighting(tabsData, ['title', 'trigger'], search);
+        // Tab items are rendered on the index page too, so escape their fields as well —
+        // otherwise an item title/url containing HTML would be a stored-XSS sink.
+        for (const tab of tabsData) {
+            if (tab.items) {
+                ctx.utils.html.applyHighlighting(tab.items, ['title', 'url'], search);
+            }
+        }
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
