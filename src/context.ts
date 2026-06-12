@@ -47,9 +47,28 @@ import { createRemindersRepository } from './routes/reminders/reminders.reposito
 import { createSettingsRepository } from './routes/admin/settings.repository.js';
 import type { AppContext, Models, Services, Utilities, Middlewares } from './type.js';
 
+function assertProductionSecrets(): void {
+    const insecure: string[] = [];
+    if (config.session.secret === 'bang') insecure.push('SESSION_SECRET');
+    if (config.app.secretSalt === 'bang') insecure.push('APP_SECRET_SALT');
+    if (config.app.apiKeySecret === 'bang') insecure.push('APP_API_KEY_SECRET');
+
+    if (insecure.length > 0) {
+        throw new Error(
+            `Refusing to start in production with default secrets: ${insecure.join(', ')}. ` +
+                `Set these environment variables to long random values. ` +
+                `Leaving them at the 'bang' default makes session cookies and magic-link login tokens forgeable.`,
+        );
+    }
+}
+
 export async function createContext(): Promise<AppContext> {
     if (!config) {
         throw new Error('Configuration required for app context');
+    }
+
+    if (config.app.env === 'production') {
+        assertProductionSecrets();
     }
 
     if (process.env.NODE_ENV === 'testing' || config.app.env === 'testing') {
