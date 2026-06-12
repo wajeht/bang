@@ -47,7 +47,7 @@ import { createRemindersRepository } from './routes/reminders/reminders.reposito
 import { createSettingsRepository } from './routes/admin/settings.repository.js';
 import type { AppContext, Models, Services, Utilities, Middlewares } from './type.js';
 
-function assertProductionSecrets(): void {
+function assertProductionConfig(): void {
     const insecure: string[] = [];
     if (config.session.secret === 'bang') insecure.push('SESSION_SECRET');
     if (config.app.secretSalt === 'bang') insecure.push('APP_SECRET_SALT');
@@ -60,6 +60,15 @@ function assertProductionSecrets(): void {
                 `Leaving them at the 'bang' default makes session cookies and magic-link login tokens forgeable.`,
         );
     }
+
+    // Magic-link emails are built from APP_URL in production; if it's left at the default
+    // 'localhost' the links point at the recipient's own machine and nobody can log in.
+    if (config.app.appUrl === 'localhost') {
+        throw new Error(
+            `Refusing to start in production with APP_URL unset (defaulting to 'localhost'). ` +
+                `Set APP_URL to the full public origin (e.g. https://example.com) so magic-link login emails resolve.`,
+        );
+    }
 }
 
 export async function createContext(): Promise<AppContext> {
@@ -68,7 +77,7 @@ export async function createContext(): Promise<AppContext> {
     }
 
     if (config.app.env === 'production') {
-        assertProductionSecrets();
+        assertProductionConfig();
     }
 
     if (process.env.NODE_ENV === 'testing' || config.app.env === 'testing') {

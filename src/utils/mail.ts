@@ -16,7 +16,13 @@ export function createMail(context: AppContext) {
             const withProtocol = /^https?:\/\//i.test(configured)
                 ? configured
                 : `https://${configured}`;
-            return withProtocol.replace(/\/+$/, '');
+            try {
+                // Reduce to the origin so a path-suffixed APP_URL (e.g. https://host/app)
+                // can't produce a magic link the root-mounted /auth/magic route won't serve.
+                return new URL(withProtocol).origin;
+            } catch {
+                return withProtocol.replace(/\/+$/, '');
+            }
         }
         return `${req.protocol}://${req.get('host')}`;
     }
@@ -544,6 +550,14 @@ ${formatReminderListHTML}
                             }
 
                             if (advanced === 0) continue; // unrecognized frequency: leave as-is
+
+                            // If the reminder was overdue beyond the catch-up bound and is still
+                            // in the past, advance from now so it lands in the future instead of
+                            // being re-selected and re-sent on every run.
+                            if (nextDue.utc().valueOf() <= now.valueOf()) {
+                                const fromNow = advanceOnce(now.tz(userTz));
+                                if (fromNow) nextDue = fromNow;
+                            }
 
                             await context.db('reminders').where('id', reminder.id).update({
                                 due_date: nextDue.utc().toISOString(),
