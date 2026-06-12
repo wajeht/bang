@@ -51,7 +51,11 @@ export function createHtml() {
             for (let i = 0; i < wordCount; i++) {
                 const word = searchWords[i];
                 if (word && word.length > 0) {
-                    escapedWords.push(word.replace(REGEX_ESCAPE_SPECIAL, '\\$&'));
+                    // HTML-escape the term before regex-escaping so it matches the escaped text;
+                    // otherwise searching for `&` or `<` matches inside an entity (e.g. &amp;)
+                    // and splits it with <mark>.
+                    const htmlEscaped = word.replace(REGEX_HTML_CHARS, (c) => HTML_ENTITIES[c] || c);
+                    escapedWords.push(htmlEscaped.replace(REGEX_ESCAPE_SPECIAL, '\\$&'));
                     hasValidWords = true;
                 }
             }

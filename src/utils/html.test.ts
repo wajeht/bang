@@ -48,6 +48,11 @@ describe('HtmlUtils', () => {
             expect(result).toBe('&lt;script&gt;<mark>test</mark>&lt;/script&gt;');
         });
 
+        it('should highlight a search for an HTML-special char without splitting entities', () => {
+            // Searching '&' over 'A & B' must mark the whole &amp; entity, not the bare &.
+            expect(htmlUtils.highlightSearchTerm('A & B', '&')).toBe('A <mark>&amp;</mark> B');
+        });
+
         it('should HTML-escape even when there is no search term (stored-XSS guard)', () => {
             // The list templates render this output raw (<%~), so it must be escaped on the
             // no-search path too — a regression to returning raw text would re-open stored XSS.
