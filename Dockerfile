@@ -1,4 +1,4 @@
-FROM node:26.3.0-slim@sha256:0bcf5337fff68c720a1f9def8fdafc812b37c49db3b56973688fde7406ec25c8 AS build
+FROM node:26.3.0-slim@sha256:95a34da32a840bd9b3b09a5b773591c16923e350174b1c50e1200c75bf15eaa9 AS build
 
 WORKDIR /usr/src/app
 
@@ -31,7 +31,7 @@ RUN npm run build:prod && \
     rm -rf eslint.config.* && \
     rm -rf playwright.config.*
 
-FROM node:26.3.0-slim@sha256:0bcf5337fff68c720a1f9def8fdafc812b37c49db3b56973688fde7406ec25c8
+FROM node:26.3.0-slim@sha256:95a34da32a840bd9b3b09a5b773591c16923e350174b1c50e1200c75bf15eaa9
 
 # Install runtime dependencies (curl for HEALTHCHECK)
 RUN apt-get update && \
