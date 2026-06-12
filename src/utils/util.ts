@@ -8,7 +8,66 @@ import type {
 } from '../type.js';
 import http from 'node:http';
 import https from 'node:https';
+import net from 'node:net';
+import dns from 'node:dns/promises';
 import type { Request } from 'express';
+
+// SSRF guard: when the server fetches a user-supplied URL (e.g. to read a page title),
+// it must not be tricked into reaching internal/cloud-metadata hosts. We reject obvious
+// local hostnames and any host whose DNS resolves entirely to private/reserved ranges.
+function isPrivateAddress(ip: string): boolean {
+    if (net.isIPv4(ip)) {
+        const parts = ip.split('.');
+        const a = Number(parts[0]);
+        const b = Number(parts[1]);
+        if (a === 0 || a === 10 || a === 127) return true; // this-network, RFC1918, loopback
+        if (a === 169 && b === 254) return true; // link-local (169.254.169.254 metadata)
+        if (a === 172 && b >= 16 && b <= 31) return true; // RFC1918
+        if (a === 192 && b === 168) return true; // RFC1918
+        if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
+        return false;
+    }
+    if (net.isIPv6(ip)) {
+        const lower = ip.toLowerCase();
+        if (lower === '::1' || lower === '::') return true;
+        if (lower.startsWith('fc') || lower.startsWith('fd')) return true; // unique-local
+        if (lower.startsWith('fe80')) return true; // link-local
+        const mapped = lower.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+        if (mapped && mapped[1]) return isPrivateAddress(mapped[1]);
+        return false;
+    }
+    return false;
+}
+
+async function isUrlSafeToFetch(url: string): Promise<boolean> {
+    let parsed: URL;
+    try {
+        parsed = new URL(url);
+    } catch {
+        return false;
+    }
+
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+
+    const host = parsed.hostname.replace(/^\[|\]$/g, '');
+    if (
+        host === 'localhost' ||
+        host.endsWith('.localhost') ||
+        host.endsWith('.local') ||
+        host.endsWith('.internal')
+    ) {
+        return false;
+    }
+
+    if (net.isIP(host)) return !isPrivateAddress(host);
+
+    try {
+        const records = await dns.lookup(host, { all: true });
+        return records.length > 0 && records.every((r) => !isPrivateAddress(r.address));
+    } catch {
+        return false;
+    }
+}
 
 export function createUtil(context: AppContext) {
     const { db, config, errors } = context;
@@ -189,15 +248,6 @@ export function createUtil(context: AppContext) {
             return truncated + '...';
         },
 
-        normalizeUrl(url: string): string {
-            try {
-                new URL(url);
-                return url;
-            } catch {
-                return url.startsWith('http') ? url : `https://${url}`;
-            }
-        },
-
         getFaviconUrl(url: string): string {
             try {
                 return `https://favicon.jaw.dev/?url=${encodeURIComponent(new URL(url).hostname)}`;
@@ -271,9 +321,7 @@ export function createUtil(context: AppContext) {
         },
 
         async fetchPageTitle(url: string): Promise<string> {
-            try {
-                new URL(url);
-            } catch {
+            if (!(await isUrlSafeToFetch(url))) {
                 return 'Untitled';
             }
 
@@ -317,6 +365,10 @@ export function createUtil(context: AppContext) {
                     },
                 );
 
+                req.on('timeout', () => {
+                    req.destroy();
+                    resolve('Untitled');
+                });
                 req.on('error', () => resolve('Untitled'));
                 req.end();
             });
@@ -724,6 +776,7 @@ export function createUtil(context: AppContext) {
                     {
                         method: 'POST',
                         body: formData,
+                        signal: AbortSignal.timeout(5000),
                     },
                 );
 
