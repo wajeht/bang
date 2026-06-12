@@ -1,9 +1,14 @@
 import path from 'node:path';
-import { libs } from './libs.js';
 import type { Env } from './type.js';
 import packageJson from '../package.json' with { type: 'json' };
 
-libs.dotenv.config({ path: path.resolve(path.join(process.cwd(), '.env')), quiet: true });
+// Node >= 21.7 ships process.loadEnvFile (engines pins >= 26.1), so no dotenv dependency is
+// needed. It throws when the file is missing, which is fine in environments using real env vars.
+try {
+    process.loadEnvFile(path.join(process.cwd(), '.env'));
+} catch {
+    // No .env file present — rely on the process environment.
+}
 
 export const config = {
     app: {

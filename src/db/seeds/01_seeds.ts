@@ -1,4 +1,3 @@
-import dotenv from 'dotenv';
 import { Knex } from 'knex';
 import path from 'node:path';
 import bcrypt from 'bcrypt';
@@ -7,10 +6,13 @@ import { createLogger } from '../../utils/logger.js';
 
 const logger = createLogger({ service: 'seeds' });
 
-const env = dotenv.config({
-    path: path.resolve(path.join(process.cwd(), '..', '..', '.env')),
-    quiet: true,
-});
+try {
+    process.loadEnvFile(path.resolve(path.join(process.cwd(), '..', '..', '.env')));
+} catch {
+    // No .env file present — rely on the process environment.
+}
+
+const adminEmail = process.env.APP_ADMIN_EMAIL;
 
 export async function seed(knex: Knex): Promise<void> {
     try {
@@ -32,8 +34,8 @@ export async function seed(knex: Knex): Promise<void> {
 
         const [user] = await knex('users')
             .insert({
-                username: env.parsed?.APP_ADMIN_EMAIL?.split('@')[0] || 'admin',
-                email: env.parsed?.APP_ADMIN_EMAIL || 'admin@example.com',
+                username: adminEmail?.split('@')[0] || 'admin',
+                email: adminEmail || 'admin@example.com',
                 is_admin: true,
                 autocomplete_search_on_homepage: true,
                 default_search_provider: 'duckduckgo',
