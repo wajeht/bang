@@ -43,6 +43,11 @@ export function createSearch(context: AppContext) {
          */
         systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit', '!find', '!remind']),
         /**
+         * System bangs that create/modify/delete data (everything except the read-only
+         * !find). Used to block cross-site CSRF on the GET command path.
+         */
+        writeSystemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit', '!remind']),
+        /**
          * Default search providers
          */
         defaultSearchProviders: {
@@ -1037,6 +1042,21 @@ export function createSearch(context: AppContext) {
                 }
             }
 
+            // CSRF protection: write bangs (!bm/!add/!del/!edit/!note/!remind) mutate data but
+            // execute on a CSRF-exempt GET (/?q=...). The session cookie is SameSite=Lax, which
+            // still rides along on cross-site top-level navigations, so a malicious page could
+            // mutate a logged-in user's data. Block writes the browser reports as cross-site;
+            // direct address-bar use (Sec-Fetch-Site: none) and same-site requests are allowed.
+            if (
+                trigger &&
+                commandType === 'bang' &&
+                searchConfig.writeSystemBangs.has(trigger) &&
+                context.utils.request.isCrossSiteRequest(req)
+            ) {
+                timer.stop({ outcome: 'blocked', trigger, error: 'cross-site-write' });
+                return res.redirect('/');
+            }
+
             // Process system-level bang commands (!bm, !add, !note)
             if (trigger && commandType === 'bang' && searchConfig.systemBangs.has(trigger)) {
                 // Process bookmark creation command (!bm)
@@ -1630,15 +1650,6 @@ export function createSearch(context: AppContext) {
 
                     timer.stop({ outcome: 'system-bang', trigger, action: 'note-created' });
                     return this.goBack(res);
-                }
-
-                // Process tabs command (!tabs)
-                // Format supported:
-                // 1. !tabs
-                // Example: !tabs
-                if (trigger === '!tabs') {
-                    timer.stop({ outcome: 'system-bang', trigger, action: 'tabs-launch' });
-                    return res.redirect('/tabs/launch');
                 }
 
                 // Process global find command (!find)

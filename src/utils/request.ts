@@ -2,7 +2,6 @@ import type { Request } from 'express';
 import type { User, PageType, AppContext } from '../type.js';
 
 export function createRequest(context: AppContext) {
-    const logger = context.logger.tag('service', 'request');
     type PreferenceKey = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders' | 'users';
     const PAGE_TYPE_TO_PREFERENCE: Record<PageType | 'admin', PreferenceKey> = {
         actions: 'actions',
@@ -14,27 +13,6 @@ export function createRequest(context: AppContext) {
     };
 
     return {
-        async extractUser(req: Request): Promise<User> {
-            if (this.isApiRequest(req) && req.apiKeyPayload) {
-                try {
-                    return await context.db
-                        .select('*')
-                        .from('users')
-                        .where({ id: req.apiKeyPayload.userId })
-                        .first();
-                } catch (error) {
-                    logger.tag('op', 'extract-user').error('Failed to extract user', { error });
-                    throw new context.errors.HttpError(500, 'Failed to extract user!', req);
-                }
-            }
-
-            if (req.session?.user) {
-                return req.session.user;
-            }
-
-            throw new context.errors.HttpError(500, 'User not found from request!', req);
-        },
-
         extractPaginationParams(req: Request, pageType: PageType | 'admin') {
             const user = req.user as User;
 
@@ -104,6 +82,22 @@ export function createRequest(context: AppContext) {
                 }
             }
             return url.pathname.replace(/^\/+/, '/') + url.search;
+        },
+
+        /**
+         * True when the browser tells us this request was initiated by a different site
+         * (Sec-Fetch-Site: cross-site). Used to block CSRF on state-changing GET requests
+         * (e.g. command execution, logout) while still allowing direct address-bar
+         * navigation (Sec-Fetch-Site: none) and same-site requests. Absent header
+         * (non-browser clients / very old browsers) is treated as not cross-site.
+         */
+        isCrossSiteRequest(req: Request): boolean {
+            const headers = (req.headers ?? {}) as Record<string, string | undefined>;
+            const value =
+                typeof req.get === 'function'
+                    ? req.get('sec-fetch-site')
+                    : headers['sec-fetch-site'];
+            return value === 'cross-site';
         },
 
         extractApiKey(req: Request): string | undefined {

@@ -5,6 +5,12 @@ export function createAuthRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     router.get('/logout', async (req: Request, res: Response) => {
+        // Prevent cross-site forced logout: a malicious page navigating the victim to
+        // /logout must not be able to destroy their session.
+        if (ctx.utils.request.isCrossSiteRequest(req)) {
+            return res.redirect('/');
+        }
+
         if ((req.session && req.session.user) || req.user) {
             req.session.user = null;
             req.user = undefined;
@@ -39,7 +45,10 @@ export function createAuthRouter(ctx: AppContext) {
         }
 
         if (!user) {
-            const username = email.split('@')[0];
+            // Derive a safe username from the email local-part: the email regex allows
+            // characters like '<' that would otherwise become an XSS payload once rendered.
+            const username =
+                (email.split('@')[0] || 'user').replace(/[^a-zA-Z0-9._-]/g, '') || 'user';
             [user] = await ctx
                 .db('users')
                 .insert({
