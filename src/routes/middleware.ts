@@ -592,12 +592,10 @@ export function createTurnstileMiddleware(ctx: AppContext) {
                 return next();
             }
 
-            // Only skip Turnstile for genuine API-key clients (no human to solve a challenge).
-            // Do NOT skip just because the request looks like JSON — an attacker can set
-            // Accept/Content-Type: application/json to bypass bot protection on /login.
-            if (ctx.utils.request.extractApiKey(req)) {
-                return next();
-            }
+            // No API-key escape hatch here: Turnstile only guards POST /login, which is a
+            // human flow. API clients authenticate with their key on data endpoints and never
+            // hit /login, so skipping on a (potentially bogus, unvalidated) Bearer/X-API-KEY
+            // header would just hand attackers a trivial bot-protection bypass.
 
             const token = req.body['cf-turnstile-response'];
             if (!token) {
