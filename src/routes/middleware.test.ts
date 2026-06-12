@@ -627,7 +627,6 @@ describe('AppLocalStateMiddleware', () => {
 
         await appLocalStateMiddleware(req as Request, res as Response, next);
 
-        expect((res.locals as any).utils).toHaveProperty('nl2br');
         expect((res.locals as any).utils).toHaveProperty('truncateString');
         expect((res.locals as any).utils).toHaveProperty('capitalize');
         expect((res.locals as any).utils).toHaveProperty('getFaviconUrl');

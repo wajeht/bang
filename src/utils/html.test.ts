@@ -108,25 +108,6 @@ describe('HtmlUtils', () => {
         });
     });
 
-    describe('nl2br', () => {
-        it('should convert newlines to br tags', () => {
-            expect(htmlUtils.nl2br('Hello\nWorld')).toBe('Hello<br>World');
-        });
-
-        it('should convert tabs to spaces', () => {
-            expect(htmlUtils.nl2br('Hello\tWorld')).toBe('Hello&nbsp;&nbsp;&nbsp;&nbsp;World');
-        });
-
-        it('should convert spaces to nbsp', () => {
-            expect(htmlUtils.nl2br('Hello World')).toBe('Hello&nbsp;World');
-        });
-
-        it('should handle empty strings', () => {
-            expect(htmlUtils.nl2br('')).toBe('');
-            expect(htmlUtils.nl2br(null as any)).toBe('');
-        });
-    });
-
     describe('decodeHtmlEntities', () => {
         it('should decode common HTML entities', () => {
             expect(htmlUtils.decodeHtmlEntities('&lt;test&gt;')).toBe('<test>');

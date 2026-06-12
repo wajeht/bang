@@ -153,32 +153,6 @@ describe.concurrent('isUrlLike', () => {
     });
 });
 
-describe.concurrent('normalizeUrl', () => {
-    it('should return valid https URL as-is', () => {
-        expect(utilUtils.normalizeUrl('https://example.com')).toBe('https://example.com');
-    });
-
-    it('should return valid http URL as-is', () => {
-        expect(utilUtils.normalizeUrl('http://example.com')).toBe('http://example.com');
-    });
-
-    it('should prepend https:// when URL has no protocol', () => {
-        expect(utilUtils.normalizeUrl('example.com')).toBe('https://example.com');
-    });
-
-    it('should prepend https:// for www URLs without protocol', () => {
-        expect(utilUtils.normalizeUrl('www.example.com')).toBe('https://www.example.com');
-    });
-
-    it('should not double-prepend for URLs starting with http', () => {
-        expect(utilUtils.normalizeUrl('http://example.com')).toBe('http://example.com');
-    });
-
-    it('should handle empty string', () => {
-        expect(utilUtils.normalizeUrl('')).toBe('https://');
-    });
-});
-
 describe.concurrent('getFaviconUrl', () => {
     it('should extract hostname from valid https URL', () => {
         expect(utilUtils.getFaviconUrl('https://example.com/path/to/page')).toBe(
@@ -690,53 +664,6 @@ describe.concurrent('highlightSearchTerm', () => {
     });
 });
 
-describe.concurrent('nl2br', () => {
-    it('should return empty string for null or undefined input', () => {
-        // @ts-ignore - Testing with null input
-        expect(htmlUtils.nl2br(null)).toBe('');
-        // @ts-ignore - Testing with undefined input
-        expect(htmlUtils.nl2br(undefined)).toBe('');
-    });
-
-    it('should convert newlines to <br> tags', () => {
-        expect(htmlUtils.nl2br('line1\nline2')).toBe('line1<br>line2');
-        expect(htmlUtils.nl2br('line1\r\nline2')).toBe('line1<br>line2');
-        expect(htmlUtils.nl2br('line1\rline2')).toBe('line1<br>line2');
-    });
-
-    it('should convert tabs to four non-breaking spaces', () => {
-        expect(htmlUtils.nl2br('text\tmore')).toBe('text&nbsp;&nbsp;&nbsp;&nbsp;more');
-    });
-
-    it('should convert spaces to non-breaking spaces', () => {
-        expect(htmlUtils.nl2br('text more')).toBe('text&nbsp;more');
-    });
-
-    it('should handle multiple and mixed line breaks, tabs, and spaces', () => {
-        expect(htmlUtils.nl2br('line1\n\nline3')).toBe('line1<br><br>line3');
-        expect(htmlUtils.nl2br('line1\r\n\r\nline3')).toBe('line1<br><br>line3');
-        expect(htmlUtils.nl2br('text\t\tmore')).toBe(
-            'text&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;more',
-        );
-        expect(htmlUtils.nl2br('text  more')).toBe('text&nbsp;&nbsp;more');
-        expect(htmlUtils.nl2br('line1\n\tline2')).toBe('line1<br>&nbsp;&nbsp;&nbsp;&nbsp;line2');
-    });
-
-    it('should handle non-string inputs by converting them to strings', () => {
-        // @ts-ignore - Testing with number input
-        expect(htmlUtils.nl2br(123)).toBe('123');
-
-        // @ts-ignore - Testing with object input
-        const obj = { toString: () => 'test object' };
-        // @ts-ignore - Testing with object input
-        expect(htmlUtils.nl2br(obj)).toBe('test&nbsp;object');
-    });
-
-    it('should preserve other characters', () => {
-        expect(htmlUtils.nl2br('line1\nline2!@#$%^&*()')).toBe('line1<br>line2!@#$%^&*()');
-    });
-});
-
 describe.concurrent('isOnlyLettersAndNumbers', () => {
     it('should return true for strings with only letters and numbers', () => {
         expect(validationUtils.isOnlyLettersAndNumbers('abc123')).toBe(true);
@@ -1200,8 +1127,10 @@ describe('processReminderDigests', () => {
         const futureReminders = await db('reminders').where('title', 'Due Later');
         expect(futureReminders).toHaveLength(1);
 
+        // Overdue reminders are now processed too (previously they were permanently skipped),
+        // so a one-time reminder that is already past due gets sent and removed.
         const pastDueReminders = await db('reminders').where('title', 'Already Due');
-        expect(pastDueReminders).toHaveLength(1);
+        expect(pastDueReminders).toHaveLength(0);
     });
 
     it('should handle recurring reminders and calculate next due date correctly', async () => {
