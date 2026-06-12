@@ -251,7 +251,7 @@ window.addEventListener('load', previewWebpageOnLinkHover);
                                     <div style="display: flex; gap: 5px; align-items: center;">
                                         <img loading="lazy" src= "<%~ utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                         <span class="preview">
-                                            <a href="<%= utils.stripHtmlTags(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].url) %>" target="_blank" rel="noopener noreferrer">
+                                            <a href="<%= utils.safeHref(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].url) %>" target="_blank" rel="noopener noreferrer">
                                                 <%~ data[i].url %>
                                             </a>
                                             <img class="preview-img" src="<%= utils.getScreenshotUrl(data[i].url) %>" loading="lazy" alt="Preview">

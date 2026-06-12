@@ -10,7 +10,6 @@ export function createHtml() {
     const REGEX_LT_ENTITY = /&lt;/g;
     const REGEX_GT_ENTITY = /&gt;/g;
     const REGEX_AMP_ENTITY = /&amp;/g;
-    const REGEX_NL2BR = /(?:\r\n|\r|\n|\t| )/g;
     const REGEX_HTML_CHARS = /[&<>"']/g;
 
     const HTML_ENTITIES: Record<string, string> = {
@@ -19,14 +18,6 @@ export function createHtml() {
         '>': '&gt;',
         '"': '&quot;',
         "'": '&#39;',
-    };
-
-    const NL2BR_MAP: Record<string, string> = {
-        '\r\n': '<br>',
-        '\r': '<br>',
-        '\n': '<br>',
-        '\t': '&nbsp;&nbsp;&nbsp;&nbsp;',
-        ' ': '&nbsp;',
     };
 
     return {
@@ -38,12 +29,19 @@ export function createHtml() {
             text: string | null | undefined,
             searchTerm: string | null | undefined,
         ) {
-            if (!searchTerm || !text) return text;
+            if (text == null) return text;
 
-            const original = String(text || '');
-            const trimmedSearch = searchTerm.trim();
+            // Always HTML-escape the value so it is safe to render with the raw operator
+            // (<%~) in templates. Search matches are then wrapped in <mark> on top of the
+            // already-escaped text, so a stored value like `<img onerror=...>` can never
+            // execute regardless of whether a search term is present.
+            const escaped = String(text).replace(
+                REGEX_HTML_CHARS,
+                (char) => HTML_ENTITIES[char] || char,
+            );
 
-            if (!trimmedSearch) return original;
+            const trimmedSearch = searchTerm?.trim();
+            if (!trimmedSearch) return escaped;
 
             const searchWords = trimmedSearch.split(REGEX_WHITESPACE);
             const wordCount = searchWords.length;
@@ -58,12 +56,7 @@ export function createHtml() {
                 }
             }
 
-            if (!hasValidWords) return original;
-
-            const escaped = original.replace(
-                REGEX_HTML_CHARS,
-                (char) => HTML_ENTITIES[char] || char,
-            );
+            if (!hasValidWords) return escaped;
 
             const searchRegex = new RegExp(escapedWords.join('|'), 'gi');
             return escaped.replace(searchRegex, (match) => `<mark>${match}</mark>`);
@@ -74,7 +67,9 @@ export function createHtml() {
             fields: (keyof T)[],
             searchTerm: string | null | undefined,
         ): T[] {
-            if (!searchTerm || !items.length) return items;
+            // Runs even without a search term so the listed fields are always HTML-escaped
+            // before being rendered raw (<%~) in the index templates — preventing stored XSS.
+            if (!items.length) return items;
 
             for (const item of items) {
                 for (const field of fields) {
@@ -87,6 +82,17 @@ export function createHtml() {
                 }
             }
             return items;
+        },
+
+        // Neutralize dangerous URL schemes (javascript:, data:, vbscript:) before putting a
+        // user-supplied URL into an href. Only http(s) and same-origin relative paths pass;
+        // anything else becomes '#' so a clicked link can't execute script.
+        safeHref(url: string | null | undefined): string {
+            if (!url) return '#';
+            const trimmed = String(url).trim();
+            if (/^https?:\/\//i.test(trimmed)) return trimmed;
+            if (trimmed.startsWith('/') && !trimmed.startsWith('//')) return trimmed;
+            return '#';
         },
 
         stripHtmlTags(text: string | null | undefined): string {
@@ -110,12 +116,15 @@ export function createHtml() {
                 .trim();
         },
 
-        nl2br(str: string): string {
-            if (str === null || str === undefined || str === '') {
-                return '';
-            }
-
-            return String(str).replace(REGEX_NL2BR, (match) => NL2BR_MAP[match] || match);
+        // Serialize a value for safe embedding inside a <script> tag. JSON.stringify alone
+        // does NOT escape `</script>` or `<!--`, which would break out of the element and
+        // inject markup. Escaping <, >, & is sufficient here because the app-state is always
+        // read back via JSON.parse(textContent), never eval'd as JS.
+        safeJsonForScript(value: unknown): string {
+            return JSON.stringify(value ?? null)
+                .replace(/</g, '\\u003c')
+                .replace(/>/g, '\\u003e')
+                .replace(/&/g, '\\u0026');
         },
     };
 }

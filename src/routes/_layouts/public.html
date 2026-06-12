@@ -93,7 +93,7 @@
         document.addEventListener('DOMContentLoaded', () => {
           const emailInput = document.getElementById('email-input');
           const urlParams = new URLSearchParams(window.location.search);
-          const state = JSON.parse(`<%~ JSON.stringify(state) %>`);
+          const state = JSON.parse(document.getElementById('app-state').textContent);
           const localStorageData = getLocalStorageData();
           const authLink = document.getElementById("auth-link");
           const loginDialogAuthHeading = document.getElementById("login-dialog-auth-heading");
