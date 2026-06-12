@@ -63,7 +63,7 @@
         "csrf-sync": "4.2.1",
         "dayjs": "1.11.21",
         "dotenv": "17.4.2",
-        "esbuild": "0.28.0",
+        "esbuild": "0.28.1",
         "eta": "4.6.0",
         "express": "5.2.1",
         "express-jsdoc-swagger": "1.8.0",
