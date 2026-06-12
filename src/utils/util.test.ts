@@ -394,6 +394,22 @@ describe.concurrent('fetchPageTitle', () => {
         const title = await utilUtils.fetchPageTitle(url);
         expect(title).toBe('Untitled');
     });
+
+    it('should refuse non-http(s) schemes (SSRF guard)', async () => {
+        expect(await utilUtils.fetchPageTitle('ftp://example.com')).toBe('Untitled');
+        expect(await utilUtils.fetchPageTitle('file:///etc/passwd')).toBe('Untitled');
+    });
+
+    it('should refuse private/loopback/link-local targets (SSRF guard)', async () => {
+        expect(await utilUtils.fetchPageTitle('http://127.0.0.1/')).toBe('Untitled');
+        expect(await utilUtils.fetchPageTitle('http://10.0.0.5/')).toBe('Untitled');
+        expect(await utilUtils.fetchPageTitle('http://192.168.1.1/')).toBe('Untitled');
+        expect(await utilUtils.fetchPageTitle('http://169.254.169.254/latest/meta-data/')).toBe(
+            'Untitled',
+        );
+        expect(await utilUtils.fetchPageTitle('http://[::1]/')).toBe('Untitled');
+        expect(await utilUtils.fetchPageTitle('http://localhost/')).toBe('Untitled');
+    });
 });
 
 describe.concurrent('getApiKey', () => {

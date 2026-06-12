@@ -29,17 +29,32 @@ function isPrivateAddress(ip: string): boolean {
     }
     if (net.isIPv6(ip)) {
         const lower = ip.toLowerCase();
-        if (lower === '::1' || lower === '::') return true;
+        // Loopback (::1) and unspecified (::) in any zero-padded/expanded form, e.g.
+        // 0:0:0:0:0:0:0:1 -> strip all '0'/':' and check the remainder. Over-matches a few
+        // exotic all-zero addresses, which is fail-safe (we only refuse to fetch).
+        const stripped = lower.replace(/[0:]/g, '');
+        if (stripped === '' || stripped === '1') return true;
         if (lower.startsWith('fc') || lower.startsWith('fd')) return true; // unique-local
         if (lower.startsWith('fe80')) return true; // link-local
-        const mapped = lower.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-        if (mapped && mapped[1]) return isPrivateAddress(mapped[1]);
+        // IPv4-mapped: dotted (::ffff:169.254.169.254) and hex (::ffff:a9fe:a9fe) forms.
+        const mappedDotted = lower.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+        if (mappedDotted && mappedDotted[1]) return isPrivateAddress(mappedDotted[1]);
+        const mappedHex = lower.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+        if (mappedHex && mappedHex[1] && mappedHex[2]) {
+            const hi = parseInt(mappedHex[1], 16);
+            const lo = parseInt(mappedHex[2], 16);
+            const v4 = `${(hi >> 8) & 0xff}.${hi & 0xff}.${(lo >> 8) & 0xff}.${lo & 0xff}`;
+            return isPrivateAddress(v4);
+        }
         return false;
     }
     return false;
 }
 
-async function isUrlSafeToFetch(url: string): Promise<boolean> {
+// Synchronous pre-check: protocol + obvious local hostnames + literal private IPs. The
+// authoritative DNS-to-private check happens at connect time via safeDnsLookup (below) so the
+// IP we validate is exactly the IP we connect to (no DNS-rebinding TOCTOU).
+function isAllowedFetchTarget(url: string): boolean {
     let parsed: URL;
     try {
         parsed = new URL(url);
@@ -60,14 +75,28 @@ async function isUrlSafeToFetch(url: string): Promise<boolean> {
     }
 
     if (net.isIP(host)) return !isPrivateAddress(host);
-
-    try {
-        const records = await dns.lookup(host, { all: true });
-        return records.length > 0 && records.every((r) => !isPrivateAddress(r.address));
-    } catch {
-        return false;
-    }
+    return true;
 }
+
+// Custom DNS lookup for http(s).get: resolves the hostname and aborts if any resolved address
+// is private/reserved. Because http.get connects to the address THIS function returns, the
+// validated IP is the connected IP — eliminating the rebind window between check and connect.
+const safeDnsLookup: import('node:net').LookupFunction = (hostname, options, callback) => {
+    dns.lookup(hostname, options)
+        .then((result) => {
+            const records = Array.isArray(result) ? result : [result];
+            if (records.some((r) => isPrivateAddress(r.address))) {
+                callback(new Error('Refusing to connect to a private address'), '', 0);
+                return;
+            }
+            if (Array.isArray(result)) {
+                callback(null, result);
+            } else {
+                callback(null, result.address, result.family);
+            }
+        })
+        .catch((err: Error) => callback(err, '', 0));
+};
 
 export function createUtil(context: AppContext) {
     const { db, config, errors } = context;
@@ -321,7 +350,7 @@ export function createUtil(context: AppContext) {
         },
 
         async fetchPageTitle(url: string): Promise<string> {
-            if (!(await isUrlSafeToFetch(url))) {
+            if (!isAllowedFetchTarget(url)) {
                 return 'Untitled';
             }
 
@@ -332,6 +361,8 @@ export function createUtil(context: AppContext) {
                     url,
                     {
                         timeout: 5000,
+                        // Pin DNS so the connected IP is the one we validate (no rebind TOCTOU).
+                        lookup: safeDnsLookup,
                         headers: {
                             Accept: 'text/html',
                             'User-Agent':
