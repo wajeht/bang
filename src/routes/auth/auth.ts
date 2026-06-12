@@ -45,11 +45,7 @@ export function createAuthRouter(ctx: AppContext) {
         }
 
         if (!user) {
-            // Derive a safe username from the email local-part: the email regex allows
-            // characters like '<' that would otherwise become an XSS payload once rendered.
-            const baseUsername =
-                (email.split('@')[0] || 'user').replace(/[^a-zA-Z0-9._-]/g, '').slice(0, 40) ||
-                'user';
+            const baseUsername = ctx.utils.validation.sanitizeUsername(email.split('@')[0]);
             // username is UNIQUE; sanitizing can collapse distinct local-parts to the same value
             // (a+b@ and ab@ -> 'ab'), so append a random suffix if the base is already taken to
             // avoid a UNIQUE-violation 500 on signup.

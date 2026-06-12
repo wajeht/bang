@@ -27,6 +27,39 @@ export function createMail(context: AppContext) {
         return `${req.protocol}://${req.get('host')}`;
     }
 
+    // Advance a recurring reminder's due date by one period, preserving the local clock time
+    // across the step (handles DST). Returns null for an unrecognized frequency.
+    function advanceReminderOccurrence(
+        from: ReturnType<typeof context.libs.dayjs>,
+        frequency: string,
+        userTz: string,
+    ): ReturnType<typeof context.libs.dayjs> | null {
+        const hour = from.hour();
+        const minute = from.minute();
+        const second = from.second();
+        let next: ReturnType<typeof context.libs.dayjs>;
+        switch (frequency) {
+            case 'daily':
+                next = from.add(1, 'day').hour(hour).minute(minute).second(second);
+                break;
+            case 'weekly':
+                next = from.add(1, 'week').hour(hour).minute(minute).second(second);
+                if (next.day() !== 6) {
+                    const daysUntilSaturday = (6 - next.day() + 7) % 7;
+                    next = next.add(daysUntilSaturday, 'day');
+                }
+                break;
+            case 'monthly':
+                next = from.add(1, 'month').date(1).hour(hour).minute(minute).second(second);
+                break;
+            default:
+                return null;
+        }
+        // Re-apply timezone rules for the target date while keeping local clock time,
+        // preventing stale offsets from shifting across DST.
+        return next.tz(userTz, true);
+    }
+
     const emailTransporter = context.libs.nodemailer.createTransport({
         host: context.config.email.host,
         port: context.config.email.port,
@@ -493,46 +526,7 @@ ${formatReminderListHTML}
                     for (const reminder of userData.reminders) {
                         if (reminder.reminder_type === 'recurring' && reminder.frequency) {
                             const userTz = userData.timezone || 'UTC';
-                            const advanceOnce = (from: ReturnType<typeof context.libs.dayjs>) => {
-                                // Preserve the local clock time across the step (handles DST).
-                                const hour = from.hour();
-                                const minute = from.minute();
-                                const second = from.second();
-                                let next: ReturnType<typeof context.libs.dayjs>;
-                                switch (reminder.frequency) {
-                                    case 'daily':
-                                        next = from
-                                            .add(1, 'day')
-                                            .hour(hour)
-                                            .minute(minute)
-                                            .second(second);
-                                        break;
-                                    case 'weekly':
-                                        next = from
-                                            .add(1, 'week')
-                                            .hour(hour)
-                                            .minute(minute)
-                                            .second(second);
-                                        if (next.day() !== 6) {
-                                            const daysUntilSaturday = (6 - next.day() + 7) % 7;
-                                            next = next.add(daysUntilSaturday, 'day');
-                                        }
-                                        break;
-                                    case 'monthly':
-                                        next = from
-                                            .add(1, 'month')
-                                            .date(1)
-                                            .hour(hour)
-                                            .minute(minute)
-                                            .second(second);
-                                        break;
-                                    default:
-                                        return null;
-                                }
-                                // Re-apply timezone rules for the target date while keeping local
-                                // clock time, preventing stale offsets from shifting across DST.
-                                return next.tz(userTz, true);
-                            };
+                            const frequency = reminder.frequency;
 
                             // Advance from the stored due date, catching up past multiple missed
                             // periods (e.g. after a long outage) so the reminder lands in the
@@ -542,7 +536,11 @@ ${formatReminderListHTML}
                                 .tz(userTz);
                             let advanced = 0;
                             for (let i = 0; i < 1000; i++) {
-                                const stepped = advanceOnce(nextDue);
+                                const stepped = advanceReminderOccurrence(
+                                    nextDue,
+                                    frequency,
+                                    userTz,
+                                );
                                 if (!stepped) break; // unrecognized frequency
                                 nextDue = stepped;
                                 advanced++;
@@ -555,7 +553,11 @@ ${formatReminderListHTML}
                             // in the past, advance from now so it lands in the future instead of
                             // being re-selected and re-sent on every run.
                             if (nextDue.utc().valueOf() <= now.valueOf()) {
-                                const fromNow = advanceOnce(now.tz(userTz));
+                                const fromNow = advanceReminderOccurrence(
+                                    now.tz(userTz),
+                                    frequency,
+                                    userTz,
+                                );
                                 if (fromNow) nextDue = fromNow;
                             }
 

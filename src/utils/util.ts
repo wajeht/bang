@@ -10,7 +10,12 @@ import http from 'node:http';
 import https from 'node:https';
 import net from 'node:net';
 import dns from 'node:dns/promises';
+import type { LookupFunction } from 'node:net';
 import type { Request } from 'express';
+
+const REGEX_IPV6_ZERO_COLON = /[0:]/g;
+const REGEX_IPV6_MAPPED_DOTTED = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/;
+const REGEX_IPV6_MAPPED_HEX = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/;
 
 // SSRF guard: when the server fetches a user-supplied URL (e.g. to read a page title),
 // it must not be tricked into reaching internal/cloud-metadata hosts. We reject obvious
@@ -32,14 +37,14 @@ function isPrivateAddress(ip: string): boolean {
         // Loopback (::1) and unspecified (::) in any zero-padded/expanded form, e.g.
         // 0:0:0:0:0:0:0:1 -> strip all '0'/':' and check the remainder. Over-matches a few
         // exotic all-zero addresses, which is fail-safe (we only refuse to fetch).
-        const stripped = lower.replace(/[0:]/g, '');
+        const stripped = lower.replace(REGEX_IPV6_ZERO_COLON, '');
         if (stripped === '' || stripped === '1') return true;
         if (lower.startsWith('fc') || lower.startsWith('fd')) return true; // unique-local
         if (lower.startsWith('fe80')) return true; // link-local
         // IPv4-mapped: dotted (::ffff:169.254.169.254) and hex (::ffff:a9fe:a9fe) forms.
-        const mappedDotted = lower.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+        const mappedDotted = lower.match(REGEX_IPV6_MAPPED_DOTTED);
         if (mappedDotted && mappedDotted[1]) return isPrivateAddress(mappedDotted[1]);
-        const mappedHex = lower.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+        const mappedHex = lower.match(REGEX_IPV6_MAPPED_HEX);
         if (mappedHex && mappedHex[1] && mappedHex[2]) {
             const hi = parseInt(mappedHex[1], 16);
             const lo = parseInt(mappedHex[2], 16);
@@ -81,7 +86,7 @@ function isAllowedFetchTarget(url: string): boolean {
 // Custom DNS lookup for http(s).get: resolves the hostname and aborts if any resolved address
 // is private/reserved. Because http.get connects to the address THIS function returns, the
 // validated IP is the connected IP — eliminating the rebind window between check and connect.
-const safeDnsLookup: import('node:net').LookupFunction = (hostname, options, callback) => {
+const safeDnsLookup: LookupFunction = (hostname, options, callback) => {
     dns.lookup(hostname, options)
         .then((result) => {
             const records = Array.isArray(result) ? result : [result];

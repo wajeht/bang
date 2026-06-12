@@ -20,7 +20,6 @@ export function createSettingsRouter(ctx: AppContext) {
     const VALID_NOTE_VIEW_TYPES = new Set(['card', 'table']);
     const VALID_ACTION_TYPES = new Set<string>(ctx.utils.util.ACTION_TYPES);
     const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    const REGEX_USERNAME = /^[a-zA-Z0-9._-]{1,50}$/;
 
     const router = ctx.libs.express.Router();
 
@@ -87,7 +86,7 @@ export function createSettingsRouter(ctx: AppContext) {
                 throw new ctx.errors.ValidationError({ username: 'Username is required' });
             }
 
-            if (!REGEX_USERNAME.test(username)) {
+            if (!ctx.utils.validation.isValidUsername(username)) {
                 throw new ctx.errors.ValidationError({
                     username:
                         'Username may only contain letters, numbers, dots, underscores and hyphens (max 50)',

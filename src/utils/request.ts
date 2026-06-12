@@ -92,11 +92,10 @@ export function createRequest(context: AppContext) {
          * (non-browser clients / very old browsers) is treated as not cross-site.
          */
         isCrossSiteRequest(req: Request): boolean {
-            const headers = (req.headers ?? {}) as Record<string, string | undefined>;
             const value =
                 typeof req.get === 'function'
                     ? req.get('sec-fetch-site')
-                    : headers['sec-fetch-site'];
+                    : req.headers?.['sec-fetch-site'];
             return value === 'cross-site';
         },
 

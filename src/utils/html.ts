@@ -11,6 +11,9 @@ export function createHtml() {
     const REGEX_GT_ENTITY = /&gt;/g;
     const REGEX_AMP_ENTITY = /&amp;/g;
     const REGEX_HTML_CHARS = /[&<>"']/g;
+    const REGEX_BACKSLASH = /\\/g;
+    const REGEX_HTTP_PROTOCOL = /^https?:\/\//i;
+    const REGEX_SCRIPT_UNSAFE = /[<>&]/g;
 
     const HTML_ENTITIES: Record<string, string> = {
         '&': '&amp;',
@@ -18,6 +21,13 @@ export function createHtml() {
         '>': '&gt;',
         '"': '&quot;',
         "'": '&#39;',
+    };
+
+    // Unicode escapes for embedding JSON inside a <script> tag, keyed by the raw character.
+    const SCRIPT_UNSAFE_ESCAPES: Record<string, string> = {
+        '<': '\\u003c',
+        '>': '\\u003e',
+        '&': '\\u0026',
     };
 
     return {
@@ -54,7 +64,10 @@ export function createHtml() {
                     // HTML-escape the term before regex-escaping so it matches the escaped text;
                     // otherwise searching for `&` or `<` matches inside an entity (e.g. &amp;)
                     // and splits it with <mark>.
-                    const htmlEscaped = word.replace(REGEX_HTML_CHARS, (c) => HTML_ENTITIES[c] || c);
+                    const htmlEscaped = word.replace(
+                        REGEX_HTML_CHARS,
+                        (c) => HTML_ENTITIES[c] || c,
+                    );
                     escapedWords.push(htmlEscaped.replace(REGEX_ESCAPE_SPECIAL, '\\$&'));
                     hasValidWords = true;
                 }
@@ -96,8 +109,8 @@ export function createHtml() {
             const trimmed = String(url).trim();
             // Browsers normalize backslashes to forward slashes, so `/\evil.com` becomes the
             // protocol-relative `//evil.com`. Check against a normalized copy to catch that.
-            const normalized = trimmed.replace(/\\/g, '/');
-            if (/^https?:\/\//i.test(normalized)) return trimmed;
+            const normalized = trimmed.replace(REGEX_BACKSLASH, '/');
+            if (REGEX_HTTP_PROTOCOL.test(normalized)) return trimmed;
             if (normalized.startsWith('/') && !normalized.startsWith('//')) return trimmed;
             return '#';
         },
@@ -128,10 +141,10 @@ export function createHtml() {
         // inject markup. Escaping <, >, & is sufficient here because the app-state is always
         // read back via JSON.parse(textContent), never eval'd as JS.
         safeJsonForScript(value: unknown): string {
-            return JSON.stringify(value ?? null)
-                .replace(/</g, '\\u003c')
-                .replace(/>/g, '\\u003e')
-                .replace(/&/g, '\\u0026');
+            return JSON.stringify(value ?? null).replace(
+                REGEX_SCRIPT_UNSAFE,
+                (char) => SCRIPT_UNSAFE_ESCAPES[char] || char,
+            );
         },
     };
 }
