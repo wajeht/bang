@@ -6,7 +6,14 @@ import type { AppContext, User } from '../../type.js';
 // so it never costs anything on server boot, dev reloads, or test workers that don't render notes.
 let dompurifyModule: Promise<typeof import('isomorphic-dompurify')> | null = null;
 function loadDompurify() {
-    dompurifyModule ??= import('isomorphic-dompurify');
+    if (!dompurifyModule) {
+        // Don't cache a rejected import: a transient load failure must not permanently break
+        // note rendering. Clear the cache on failure so the next call retries.
+        dompurifyModule = import('isomorphic-dompurify').catch((err) => {
+            dompurifyModule = null;
+            throw err;
+        });
+    }
     return dompurifyModule;
 }
 

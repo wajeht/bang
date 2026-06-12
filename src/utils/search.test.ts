@@ -550,6 +550,56 @@ describe('search', () => {
             vi.restoreAllMocks();
         });
 
+        it('should block a write bang from a cross-site request (CSRF gate)', async () => {
+            const req = {
+                logger: mockLogger(),
+                headers: { 'sec-fetch-site': 'cross-site' },
+            } as unknown as Request;
+            const res = {
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
+
+            isValidUrl.mockReturnValue(true);
+
+            await searchUtils.search({
+                req,
+                res,
+                user: testUser,
+                query: '!bm My Bookmark https://example.com',
+            });
+
+            // The mutation must not happen and the request is bounced to the home page.
+            expect(insertBookmark).not.toHaveBeenCalled();
+            expect(res.redirect).toHaveBeenCalledWith('/');
+
+            vi.restoreAllMocks();
+        });
+
+        it('should allow a write bang from a same-site request', async () => {
+            const req = {
+                logger: mockLogger(),
+                headers: { 'sec-fetch-site': 'same-origin' },
+            } as unknown as Request;
+            const res = {
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
+
+            isValidUrl.mockReturnValue(true);
+
+            await searchUtils.search({
+                req,
+                res,
+                user: testUser,
+                query: '!bm My Bookmark https://example.com',
+            });
+
+            await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
+
+            vi.restoreAllMocks();
+        });
+
         it('should handle bookmark creation without title', async () => {
             const req = { logger: mockLogger() } as unknown as Request;
             const res = {

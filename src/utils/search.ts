@@ -43,10 +43,11 @@ export function createSearch(context: AppContext) {
          */
         systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit', '!find', '!remind']),
         /**
-         * System bangs that create/modify/delete data (everything except the read-only
-         * !find). Used to block cross-site CSRF on the GET command path.
+         * Read-only system bangs. The cross-site CSRF gate treats every system bang as a
+         * write EXCEPT these — fail-closed, so a newly added system bang is protected by
+         * default rather than silently exempt if someone forgets to list it.
          */
-        writeSystemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit', '!remind']),
+        readSystemBangs: new Set(['!find']),
         /**
          * Default search providers
          */
@@ -1050,7 +1051,8 @@ export function createSearch(context: AppContext) {
             if (
                 trigger &&
                 commandType === 'bang' &&
-                searchConfig.writeSystemBangs.has(trigger) &&
+                searchConfig.systemBangs.has(trigger) &&
+                !searchConfig.readSystemBangs.has(trigger) &&
                 context.utils.request.isCrossSiteRequest(req)
             ) {
                 timer.stop({ outcome: 'blocked', trigger, error: 'cross-site-write' });
