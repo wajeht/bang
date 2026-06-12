@@ -7,6 +7,20 @@ export function createMail(context: AppContext) {
     const logger = context.logger.tag('service', 'mail');
     const DEV_ENVIRONMENTS = new Set(['development', 'staging', 'test', 'testing', 'ci', 'dev']);
 
+    // In production the magic-link base URL must come from trusted config, never the
+    // request's Host/X-Forwarded-Host header — otherwise an attacker can poison the
+    // header so the emailed login link points at a domain they control and steal the token.
+    function getTrustedBaseUrl(req: Request): string {
+        if (context.config.app.env === 'production') {
+            const configured = context.config.app.appUrl;
+            const withProtocol = /^https?:\/\//i.test(configured)
+                ? configured
+                : `https://${configured}`;
+            return withProtocol.replace(/\/+$/, '');
+        }
+        return `${req.protocol}://${req.get('host')}`;
+    }
+
     const emailTransporter = context.libs.nodemailer.createTransport({
         host: context.config.email.host,
         port: context.config.email.port,
@@ -122,7 +136,7 @@ export function createMail(context: AppContext) {
             req: Request;
         }): Promise<void> {
             const branding = await context.models.settings.getBranding();
-            const magicLink = `${req.protocol}://${req.get('host')}/auth/magic/${token}`;
+            const magicLink = `${getTrustedBaseUrl(req)}/auth/magic/${token}`;
 
             const mailOptions = {
                 from: `${branding.appName} <${context.config.email.from}>`,
