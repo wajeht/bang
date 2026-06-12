@@ -18,8 +18,9 @@ export function createSettingsRouter(ctx: AppContext) {
     ]);
     const VALID_REMINDER_TIMINGS = new Set(['daily', 'weekly', 'monthly']);
     const VALID_NOTE_VIEW_TYPES = new Set(['card', 'table']);
-    const VALID_ACTION_TYPES = new Set(['search', 'redirect']);
+    const VALID_ACTION_TYPES = new Set<string>(ctx.utils.util.ACTION_TYPES);
     const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    const REGEX_USERNAME = /^[a-zA-Z0-9._-]{1,50}$/;
 
     const router = ctx.libs.express.Router();
 
@@ -84,6 +85,13 @@ export function createSettingsRouter(ctx: AppContext) {
 
             if (!username) {
                 throw new ctx.errors.ValidationError({ username: 'Username is required' });
+            }
+
+            if (!REGEX_USERNAME.test(username)) {
+                throw new ctx.errors.ValidationError({
+                    username:
+                        'Username may only contain letters, numbers, dots, underscores and hyphens (max 50)',
+                });
             }
 
             if (!email) {
@@ -710,9 +718,9 @@ export function createSettingsRouter(ctx: AppContext) {
                 }
             }
 
-            if (newPassword && newPassword.length < 4) {
+            if (newPassword && newPassword.length < 8) {
                 throw new ctx.errors.ValidationError({
-                    newPassword: 'Password must be at least 4 characters',
+                    newPassword: 'Password must be at least 8 characters',
                 });
             }
 
@@ -1047,6 +1055,12 @@ export function createSettingsRouter(ctx: AppContext) {
                     }
                 });
 
+                // Imported bangs/tabs change the user's triggers; drop the cached set so the
+                // new bangs resolve immediately instead of after the 60-minute TTL.
+                if (userId != null) {
+                    ctx.utils.search.invalidateTriggerCache(userId);
+                }
+
                 req.flash('success', 'Data imported successfully!');
             } catch (error) {
                 ctx.logger.error('Import error', { error });
@@ -1261,6 +1275,12 @@ export function createSettingsRouter(ctx: AppContext) {
                         req.flash('info', 'No data types were selected for deletion');
                     }
                 });
+
+                // Deleting bangs/tabs changes the user's triggers; drop the cached set so
+                // removed triggers stop resolving from the stale 60-minute cache.
+                if (deleteActions || deleteTabs) {
+                    ctx.utils.search.invalidateTriggerCache(user.id);
+                }
             } catch (error) {
                 ctx.logger.error('Bulk delete error', { error });
                 req.flash('error', 'Failed to delete data. Please try again.');
