@@ -85,11 +85,8 @@ export function createRequest(context: AppContext) {
         },
 
         /**
-         * True when the browser tells us this request was initiated by a different site
-         * (Sec-Fetch-Site: cross-site). Used to block CSRF on state-changing GET requests
-         * (e.g. command execution, logout) while still allowing direct address-bar
-         * navigation (Sec-Fetch-Site: none) and same-site requests. Absent header
-         * (non-browser clients / very old browsers) is treated as not cross-site.
+         * True when the browser reports a cross-site initiator (Sec-Fetch-Site: cross-site).
+         * Used to block CSRF on state-changing GETs; an absent header is treated as not cross-site.
          */
         isCrossSiteRequest(req: Request): boolean {
             const value =

@@ -5,8 +5,7 @@ export function createAuthRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     router.get('/logout', async (req: Request, res: Response) => {
-        // Prevent cross-site forced logout: a malicious page navigating the victim to
-        // /logout must not be able to destroy their session.
+        // prevent cross-site forced logout (a malicious page navigating the victim to /logout)
         if (ctx.utils.request.isCrossSiteRequest(req)) {
             return res.redirect('/');
         }
@@ -46,9 +45,8 @@ export function createAuthRouter(ctx: AppContext) {
 
         if (!user) {
             const baseUsername = ctx.utils.validation.sanitizeUsername(email.split('@')[0]);
-            // username is UNIQUE; sanitizing can collapse distinct local-parts to the same value
-            // (a+b@ and ab@ -> 'ab'), so append a random suffix if the base is already taken to
-            // avoid a UNIQUE-violation 500 on signup.
+            // username is UNIQUE and sanitizing can collapse distinct local-parts, so add a
+            // random suffix if the base is taken to avoid a UNIQUE-violation 500
             let username = baseUsername;
             const usernameTaken = await ctx.db('users').where({ username }).first();
             if (usernameTaken) {

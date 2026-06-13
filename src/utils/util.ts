@@ -17,9 +17,7 @@ const REGEX_IPV6_ZERO_COLON = /[0:]/g;
 const REGEX_IPV6_MAPPED_DOTTED = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/;
 const REGEX_IPV6_MAPPED_HEX = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/;
 
-// SSRF guard: when the server fetches a user-supplied URL (e.g. to read a page title),
-// it must not be tricked into reaching internal/cloud-metadata hosts. We reject obvious
-// local hostnames and any host whose DNS resolves entirely to private/reserved ranges.
+// SSRF guard: reject user-supplied URLs that resolve to internal/cloud-metadata hosts
 function isPrivateAddress(ip: string): boolean {
     if (net.isIPv4(ip)) {
         const parts = ip.split('.');
@@ -34,9 +32,7 @@ function isPrivateAddress(ip: string): boolean {
     }
     if (net.isIPv6(ip)) {
         const lower = ip.toLowerCase();
-        // Loopback (::1) and unspecified (::) in any zero-padded/expanded form, e.g.
-        // 0:0:0:0:0:0:0:1 -> strip all '0'/':' and check the remainder. Over-matches a few
-        // exotic all-zero addresses, which is fail-safe (we only refuse to fetch).
+        // loopback/unspecified in any zero-padded form: strip 0 and : then check (fail-safe over-match)
         const stripped = lower.replace(REGEX_IPV6_ZERO_COLON, '');
         if (stripped === '' || stripped === '1') return true;
         if (lower.startsWith('fc') || lower.startsWith('fd')) return true; // unique-local
@@ -56,9 +52,8 @@ function isPrivateAddress(ip: string): boolean {
     return false;
 }
 
-// Synchronous pre-check: protocol + obvious local hostnames + literal private IPs. The
-// authoritative DNS-to-private check happens at connect time via safeDnsLookup (below) so the
-// IP we validate is exactly the IP we connect to (no DNS-rebinding TOCTOU).
+// sync pre-check (protocol + local hostnames + literal private IPs); the authoritative DNS
+// check is at connect time via safeDnsLookup, so there's no rebind TOCTOU
 function isAllowedFetchTarget(url: string): boolean {
     let parsed: URL;
     try {
@@ -83,9 +78,8 @@ function isAllowedFetchTarget(url: string): boolean {
     return true;
 }
 
-// Custom DNS lookup for http(s).get: resolves the hostname and aborts if any resolved address
-// is private/reserved. Because http.get connects to the address THIS function returns, the
-// validated IP is the connected IP — eliminating the rebind window between check and connect.
+// DNS lookup for http.get that aborts on a private resolved address; http.get connects to the
+// IP this returns, so the validated IP is the connected IP (no rebind window)
 const safeDnsLookup: LookupFunction = (hostname, options, callback) => {
     dns.lookup(hostname, options)
         .then((result) => {

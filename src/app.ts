@@ -129,9 +129,8 @@ export async function closeServer({ server, ctx }: { server: Server; ctx: AppCon
         ctx.services.crons.stop();
         ctx.logger.info('Cron service stopped');
 
-        // 1) Stop accepting new connections and let in-flight requests drain. The HTTP server
-        //    must close BEFORE the DB pool — otherwise in-flight handlers hit a destroyed pool
-        //    and clients see their sockets reset mid-response on every deploy.
+        // close the HTTP server (drain in-flight requests) BEFORE the DB pool, or in-flight
+        // handlers hit a destroyed pool and clients see resets mid-response
         await new Promise<void>((resolve) => {
             const forceTimeout = setTimeout(() => {
                 ctx.logger.error('Could not drain connections in time, forcing sockets closed');

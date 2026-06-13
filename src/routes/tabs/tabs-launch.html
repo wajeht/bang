@@ -13,8 +13,7 @@
       <% }) %>
     </ul>
     <script>
-      // safeJson prevents </script>/quote breakout; safeHref drops non-http(s) schemes so
-      // a stored javascript: URL can't execute via window.open below.
+      // safeJson prevents </script> breakout; safeHref drops non-http(s) so javascript: can't run via window.open
       const urls = <%~ utils.safeJson(tabs.map(t => utils.safeHref(t.url)).filter(u => u !== '#')) %>;
       let successfulPopups = 0;
       let totalUrls = urls.length;

@@ -42,11 +42,7 @@ export function createSearch(context: AppContext) {
          * System-level bang commands that cannot be overridden by user-defined bangs
          */
         systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit', '!find', '!remind']),
-        /**
-         * Read-only system bangs. The cross-site CSRF gate treats every system bang as a
-         * write EXCEPT these — fail-closed, so a newly added system bang is protected by
-         * default rather than silently exempt if someone forgets to list it.
-         */
+        /** Read-only system bangs; the CSRF gate treats every other system bang as a write (fail-closed) */
         readSystemBangs: new Set(['!find']),
         /**
          * Default search providers
@@ -1043,11 +1039,8 @@ export function createSearch(context: AppContext) {
                 }
             }
 
-            // CSRF protection: write bangs (!bm/!add/!del/!edit/!note/!remind) mutate data but
-            // execute on a CSRF-exempt GET (/?q=...). The session cookie is SameSite=Lax, which
-            // still rides along on cross-site top-level navigations, so a malicious page could
-            // mutate a logged-in user's data. Block writes the browser reports as cross-site;
-            // direct address-bar use (Sec-Fetch-Site: none) and same-site requests are allowed.
+            // CSRF: write bangs mutate on a CSRF-exempt GET and the cookie is SameSite=Lax, so
+            // block cross-site requests; address-bar (Sec-Fetch-Site: none) and same-site still work
             if (
                 trigger &&
                 commandType === 'bang' &&

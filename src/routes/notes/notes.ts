@@ -1,14 +1,12 @@
 import type { Request, Response } from 'express';
 import type { AppContext, User } from '../../type.js';
 
-// DOMPurify (isomorphic-dompurify) builds a full jsdom window at import time (~35MB heap,
-// hundreds of ms) and is only needed when rendering user markdown to HTML. Load it lazily
-// so it never costs anything on server boot, dev reloads, or test workers that don't render notes.
+// lazy-load DOMPurify: it builds a full jsdom window (~35MB) at import and is only needed when
+// rendering note markdown, so keep it off the boot/dev-reload/test path
 let dompurifyModule: Promise<typeof import('isomorphic-dompurify')> | null = null;
 function loadDompurify() {
     if (!dompurifyModule) {
-        // Don't cache a rejected import: a transient load failure must not permanently break
-        // note rendering. Clear the cache on failure so the next call retries.
+        // clear the cache on failure so a transient import error doesn't permanently break rendering
         dompurifyModule = import('isomorphic-dompurify').catch((err) => {
             dompurifyModule = null;
             throw err;

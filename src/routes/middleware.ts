@@ -2,8 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import type { LayoutOptions, User, AppContext } from '../type.js';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 
-// Query/path values that contain secrets (login tokens) or private user content
-// (the `q` command carries note/bookmark text) must never be written to logs.
+// keep secrets (login tokens) and private content (the q command) out of request logs
 const REGEX_MAGIC_LINK_PATH = /^\/auth\/magic\//;
 const SENSITIVE_QUERY_KEYS = new Set(['q', 'token', 'password', 'cf-turnstile-response']);
 
@@ -79,8 +78,7 @@ export function createErrorMiddleware(ctx: AppContext) {
             'The server encountered an internal error or misconfiguration and was unable to complete your request';
         const message = httpError.message || GENERIC_SERVER_ERROR;
 
-        // Never leak raw internal error messages (e.g. SQL/stack details) to clients in
-        // production. 4xx messages are intentional and safe; 5xx get a generic message.
+        // don't leak raw 5xx error messages to clients in production (4xx messages are intentional)
         const clientMessage =
             statusCode >= 500 && ctx.config.app.env === 'production'
                 ? GENERIC_SERVER_ERROR
@@ -592,11 +590,7 @@ export function createTurnstileMiddleware(ctx: AppContext) {
                 return next();
             }
 
-            // No API-key escape hatch here: Turnstile only guards POST /login, which is a
-            // human flow. API clients authenticate with their key on data endpoints and never
-            // hit /login, so skipping on a (potentially bogus, unvalidated) Bearer/X-API-KEY
-            // header would just hand attackers a trivial bot-protection bypass.
-
+            // no API-key skip: /login is a human flow, so a bogus unvalidated Bearer must not bypass Turnstile
             const token = req.body['cf-turnstile-response'];
             if (!token) {
                 throw new ctx.errors.ValidationError({

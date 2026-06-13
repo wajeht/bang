@@ -1054,8 +1054,7 @@ export function createSettingsRouter(ctx: AppContext) {
                     }
                 });
 
-                // Imported bangs/tabs change the user's triggers; drop the cached set so the
-                // new bangs resolve immediately instead of after the 60-minute TTL.
+                // imported bangs/tabs changed the triggers; drop the cache so they resolve before the TTL
                 if (userId != null) {
                     ctx.utils.search.invalidateTriggerCache(userId);
                 }
@@ -1275,8 +1274,7 @@ export function createSettingsRouter(ctx: AppContext) {
                     }
                 });
 
-                // Deleting bangs/tabs changes the user's triggers; drop the cached set so
-                // removed triggers stop resolving from the stale 60-minute cache.
+                // deleted bangs/tabs changed the triggers; drop the cache so they stop resolving
                 if (deleteActions || deleteTabs) {
                     ctx.utils.search.invalidateTriggerCache(user.id);
                 }

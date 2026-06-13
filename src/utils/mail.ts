@@ -7,9 +7,8 @@ export function createMail(context: AppContext) {
     const logger = context.logger.tag('service', 'mail');
     const DEV_ENVIRONMENTS = new Set(['development', 'staging', 'test', 'testing', 'ci', 'dev']);
 
-    // In production the magic-link base URL must come from trusted config, never the
-    // request's Host/X-Forwarded-Host header — otherwise an attacker can poison the
-    // header so the emailed login link points at a domain they control and steal the token.
+    // Base the magic link on trusted config in production, not the Host header (which an
+    // attacker could poison to redirect the emailed login token to their own domain)
     function getTrustedBaseUrl(req: Request): string {
         if (context.config.app.env === 'production') {
             const configured = context.config.app.appUrl;
@@ -17,8 +16,7 @@ export function createMail(context: AppContext) {
                 ? configured
                 : `https://${configured}`;
             try {
-                // Reduce to the origin so a path-suffixed APP_URL (e.g. https://host/app)
-                // can't produce a magic link the root-mounted /auth/magic route won't serve.
+                // origin only, so a path-suffixed APP_URL can't break the /auth/magic link
                 return new URL(withProtocol).origin;
             } catch {
                 return withProtocol.replace(/\/+$/, '');
@@ -27,8 +25,7 @@ export function createMail(context: AppContext) {
         return `${req.protocol}://${req.get('host')}`;
     }
 
-    // Advance a recurring reminder's due date by one period, preserving the local clock time
-    // across the step (handles DST). Returns null for an unrecognized frequency.
+    // Advance a recurring reminder one period, preserving local clock time across DST; null if unknown
     function advanceReminderOccurrence(
         from: ReturnType<typeof context.libs.dayjs>,
         frequency: string,
@@ -55,8 +52,7 @@ export function createMail(context: AppContext) {
             default:
                 return null;
         }
-        // Re-apply timezone rules for the target date while keeping local clock time,
-        // preventing stale offsets from shifting across DST.
+        // re-apply tz rules for the target date, keeping local clock time across DST
         return next.tz(userTz, true);
     }
 
@@ -437,8 +433,7 @@ ${formatReminderListHTML}
                 });
             } catch (error) {
                 logger.error('Failed to send reminder digest email', { error, email });
-                // Re-throw so the caller does NOT delete/advance reminders whose email never
-                // sent — the next run retries delivery (at-least-once) instead of losing them.
+                // re-throw so the caller won't delete/advance reminders whose email failed (next run retries)
                 throw error;
             }
         },
@@ -449,12 +444,8 @@ ${formatReminderListHTML}
                 const now = context.libs.dayjs.utc();
                 const next15Min = now.add(15, 'minute');
 
-                // Select every reminder due AT OR BEFORE the next window boundary (no lower
-                // bound). Using a lower bound of `now` permanently drops any reminder whose
-                // due_date slipped into the past while the server was down/deploying or that was
-                // created with a near-term time between runs. Overdue rows are safe to include
-                // because each is either deleted (one-time) or advanced to a future date
-                // (recurring) below, so they are processed exactly once.
+                // No lower bound: include overdue reminders (missed during downtime) too — each
+                // is deleted or advanced below, so it still fires exactly once
                 const next15MinFormatted = next15Min.toISOString();
 
                 const dueReminders = await context.db
@@ -513,8 +504,7 @@ ${formatReminderListHTML}
                             date: userNow.format('YYYY-MM-DD'),
                         });
                     } catch (error) {
-                        // Delivery failed: leave this user's reminders untouched so the next run
-                        // retries them (the query now includes overdue rows). Do not delete/advance.
+                        // delivery failed: leave reminders untouched so the next run retries
                         logger.error('Skipping reminder state update; digest email failed', {
                             error,
                             email: userData.email,

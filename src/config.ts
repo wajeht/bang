@@ -2,12 +2,11 @@ import path from 'node:path';
 import type { Env } from './type.js';
 import packageJson from '../package.json' with { type: 'json' };
 
-// Node >= 21.7 ships process.loadEnvFile (engines pins >= 26.1), so no dotenv dependency is
-// needed. It throws when the file is missing, which is fine in environments using real env vars.
+// process.loadEnvFile (Node >= 21.7) replaces dotenv; it throws when there's no .env, which is fine
 try {
     process.loadEnvFile(path.join(process.cwd(), '.env'));
 } catch {
-    // No .env file present — rely on the process environment.
+    // no .env present — rely on the process environment
 }
 
 export const config = {

@@ -61,8 +61,7 @@ function assertProductionConfig(): void {
         );
     }
 
-    // Magic-link emails are built from APP_URL in production; if it's left at the default
-    // 'localhost' the links point at the recipient's own machine and nobody can log in.
+    // magic links use APP_URL in production; the default 'localhost' would email unusable links
     if (config.app.appUrl === 'localhost') {
         throw new Error(
             `Refusing to start in production with APP_URL unset (defaulting to 'localhost'). ` +

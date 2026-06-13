@@ -87,11 +87,10 @@ export function createValidation() {
     // Derive a safe username from a candidate (e.g. an email local-part): the email regex
     // allows characters like '<' that would otherwise become an XSS payload once rendered.
     function sanitizeUsername(value: string | null | undefined): string {
-        return (
-            String(value ?? '')
-                .replace(REGEX_USERNAME_DISALLOWED, '')
-                .slice(0, 40) || 'user'
-        );
+        const cleaned = String(value ?? '')
+            .replace(REGEX_USERNAME_DISALLOWED, '')
+            .slice(0, 40);
+        return cleaned || 'user';
     }
 
     return {

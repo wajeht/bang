@@ -41,10 +41,8 @@ export function createHtml() {
         ) {
             if (text == null) return text;
 
-            // Always HTML-escape the value so it is safe to render with the raw operator
-            // (<%~) in templates. Search matches are then wrapped in <mark> on top of the
-            // already-escaped text, so a stored value like `<img onerror=...>` can never
-            // execute regardless of whether a search term is present.
+            // always escape so output is safe to render raw (<%~); marks go on top of the
+            // escaped text, so stored HTML can't execute with or without a search term
             const escaped = String(text).replace(
                 REGEX_HTML_CHARS,
                 (char) => HTML_ENTITIES[char] || char,
@@ -61,9 +59,7 @@ export function createHtml() {
             for (let i = 0; i < wordCount; i++) {
                 const word = searchWords[i];
                 if (word && word.length > 0) {
-                    // HTML-escape the term before regex-escaping so it matches the escaped text;
-                    // otherwise searching for `&` or `<` matches inside an entity (e.g. &amp;)
-                    // and splits it with <mark>.
+                    // escape the term before regex-escaping so it matches the escaped text, not inside &amp;
                     const htmlEscaped = word.replace(
                         REGEX_HTML_CHARS,
                         (c) => HTML_ENTITIES[c] || c,
@@ -84,8 +80,7 @@ export function createHtml() {
             fields: (keyof T)[],
             searchTerm: string | null | undefined,
         ): T[] {
-            // Runs even without a search term so the listed fields are always HTML-escaped
-            // before being rendered raw (<%~) in the index templates — preventing stored XSS.
+            // runs even without a search term so fields are always escaped before raw (<%~) render
             if (!items.length) return items;
 
             for (const item of items) {
@@ -101,14 +96,11 @@ export function createHtml() {
             return items;
         },
 
-        // Neutralize dangerous URL schemes (javascript:, data:, vbscript:) before putting a
-        // user-supplied URL into an href. Only http(s) and same-origin relative paths pass;
-        // anything else becomes '#' so a clicked link can't execute script.
+        // only http(s) and same-origin relative paths pass; anything else (javascript:, data:, ...) -> '#'
         safeHref(url: string | null | undefined): string {
             if (!url) return '#';
             const trimmed = String(url).trim();
-            // Browsers normalize backslashes to forward slashes, so `/\evil.com` becomes the
-            // protocol-relative `//evil.com`. Check against a normalized copy to catch that.
+            // normalize backslashes first: browsers treat /\evil.com as protocol-relative //evil.com
             const normalized = trimmed.replace(REGEX_BACKSLASH, '/');
             if (REGEX_HTTP_PROTOCOL.test(normalized)) return trimmed;
             if (normalized.startsWith('/') && !normalized.startsWith('//')) return trimmed;
@@ -136,10 +128,8 @@ export function createHtml() {
                 .trim();
         },
 
-        // Serialize a value for safe embedding inside a <script> tag. JSON.stringify alone
-        // does NOT escape `</script>` or `<!--`, which would break out of the element and
-        // inject markup. Escaping <, >, & is sufficient here because the app-state is always
-        // read back via JSON.parse(textContent), never eval'd as JS.
+        // safe to embed in a <script>: JSON.stringify won't escape </script>, so escape <,>,&
+        // (app-state is read via JSON.parse(textContent), never eval'd)
         safeJsonForScript(value: unknown): string {
             return JSON.stringify(value ?? null).replace(
                 REGEX_SCRIPT_UNSAFE,
