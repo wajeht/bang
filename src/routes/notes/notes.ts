@@ -1,6 +1,20 @@
 import type { Request, Response } from 'express';
 import type { AppContext, User } from '../../type.js';
 
+// lazy-load DOMPurify: it builds a full jsdom window (~35MB) at import and is only needed when
+// rendering note markdown, so keep it off the boot/dev-reload/test path
+let dompurifyModule: Promise<typeof import('isomorphic-dompurify')> | null = null;
+function loadDompurify() {
+    if (!dompurifyModule) {
+        // clear the cache on failure so a transient import error doesn't permanently break rendering
+        dompurifyModule = import('isomorphic-dompurify').catch((err) => {
+            dompurifyModule = null;
+            throw err;
+        });
+    }
+    return dompurifyModule;
+}
+
 export function createNotesRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
@@ -230,13 +244,9 @@ export function createNotesRouter(ctx: AppContext) {
         let content: string = '';
 
         try {
-            const escapedContent = note.content
-                .replace(/<script/g, '&lt;script')
-                .replace(/<\/script>/g, '&lt;/script&gt;')
-                .replace(/<template/g, '&lt;template')
-                .replace(/<\/template>/g, '&lt;/template&gt;');
-
-            content = sharedMarked.parse(escapedContent) as string;
+            const rendered = sharedMarked.parse(note.content) as string;
+            const dompurify = await loadDompurify();
+            content = dompurify.sanitize(rendered);
         } catch (_error) {
             content = '';
             ctx.logger.error(`cannot parse content into markdown`, { error: _error });
@@ -555,7 +565,8 @@ export function createNotesRouter(ctx: AppContext) {
             }
 
             const markdown = sharedMarked.parse(content) as string;
-            const sanitized = ctx.libs.dompurify.sanitize(markdown);
+            const dompurify = await loadDompurify();
+            const sanitized = dompurify.sanitize(markdown);
 
             res.json({ content: sanitized });
         },

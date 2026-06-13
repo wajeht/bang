@@ -104,7 +104,8 @@ export function createBookmarksRouter(ctx: AppContext) {
                 return res.redirect('/bookmarks');
             }
 
-            const htmlExport = await ctx.utils.util.generateBookmarkHtmlExport(userId);
+            // format the rows we already fetched (generateBookmarkHtmlExport would re-run the query)
+            const htmlExport = ctx.utils.util.createBookmarkDocument(bookmarksData);
 
             res.setHeader(
                 'Content-Disposition',

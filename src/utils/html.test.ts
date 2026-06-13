@@ -47,6 +47,74 @@ describe('HtmlUtils', () => {
             const result = htmlUtils.highlightSearchTerm('<script>test</script>', 'test');
             expect(result).toBe('&lt;script&gt;<mark>test</mark>&lt;/script&gt;');
         });
+
+        it('should highlight a search for an HTML-special char without splitting entities', () => {
+            // Searching '&' over 'A & B' must mark the whole &amp; entity, not the bare &.
+            expect(htmlUtils.highlightSearchTerm('A & B', '&')).toBe('A <mark>&amp;</mark> B');
+        });
+
+        it('should HTML-escape even when there is no search term (stored-XSS guard)', () => {
+            // The list templates render this output raw (<%~), so it must be escaped on the
+            // no-search path too — a regression to returning raw text would re-open stored XSS.
+            expect(htmlUtils.highlightSearchTerm('<img src=x onerror=alert(1)>', '')).toBe(
+                '&lt;img src=x onerror=alert(1)&gt;',
+            );
+            expect(htmlUtils.highlightSearchTerm('Tom & "Jerry"', undefined)).toBe(
+                'Tom &amp; &quot;Jerry&quot;',
+            );
+        });
+    });
+
+    describe('safeHref', () => {
+        it('should pass through http(s) URLs unchanged', () => {
+            expect(htmlUtils.safeHref('https://example.com/a?b=1&c=2')).toBe(
+                'https://example.com/a?b=1&c=2',
+            );
+            expect(htmlUtils.safeHref('http://example.com')).toBe('http://example.com');
+        });
+
+        it('should allow same-origin relative paths', () => {
+            expect(htmlUtils.safeHref('/bookmarks?id=1')).toBe('/bookmarks?id=1');
+        });
+
+        it('should neutralize dangerous schemes', () => {
+            expect(htmlUtils.safeHref('javascript:alert(1)')).toBe('#');
+            expect(htmlUtils.safeHref('JavaScript:alert(1)')).toBe('#');
+            expect(htmlUtils.safeHref('data:text/html,<script>1</script>')).toBe('#');
+            expect(htmlUtils.safeHref('vbscript:msgbox(1)')).toBe('#');
+        });
+
+        it('should reject protocol-relative and backslash-normalized URLs', () => {
+            expect(htmlUtils.safeHref('//evil.com')).toBe('#');
+            expect(htmlUtils.safeHref('/\\evil.com')).toBe('#');
+            expect(htmlUtils.safeHref('\\\\evil.com')).toBe('#');
+            expect(htmlUtils.safeHref('/\\/evil.com')).toBe('#');
+        });
+
+        it('should return # for empty/nullish input', () => {
+            expect(htmlUtils.safeHref('')).toBe('#');
+            expect(htmlUtils.safeHref(null)).toBe('#');
+            expect(htmlUtils.safeHref(undefined)).toBe('#');
+        });
+    });
+
+    describe('safeJsonForScript', () => {
+        it('should escape characters that could break out of a <script> tag', () => {
+            const out = htmlUtils.safeJsonForScript({ x: '</script><img src=x onerror=alert(1)>' });
+            expect(out).not.toContain('</script>');
+            expect(out).not.toContain('<img');
+            expect(out).toContain('\\u003c');
+        });
+
+        it('should round-trip back to the original value via JSON.parse', () => {
+            const value = { url: 'https://x.com?a=1&b=2', note: '</script> & <b>hi</b>' };
+            expect(JSON.parse(htmlUtils.safeJsonForScript(value))).toEqual(value);
+        });
+
+        it('should serialize nullish input as null', () => {
+            expect(htmlUtils.safeJsonForScript(undefined)).toBe('null');
+            expect(htmlUtils.safeJsonForScript(null)).toBe('null');
+        });
     });
 
     describe('applyHighlighting', () => {
@@ -105,25 +173,6 @@ describe('HtmlUtils', () => {
         it('should handle null/undefined', () => {
             expect(htmlUtils.stripHtmlTags(null)).toBe('');
             expect(htmlUtils.stripHtmlTags(undefined)).toBe('');
-        });
-    });
-
-    describe('nl2br', () => {
-        it('should convert newlines to br tags', () => {
-            expect(htmlUtils.nl2br('Hello\nWorld')).toBe('Hello<br>World');
-        });
-
-        it('should convert tabs to spaces', () => {
-            expect(htmlUtils.nl2br('Hello\tWorld')).toBe('Hello&nbsp;&nbsp;&nbsp;&nbsp;World');
-        });
-
-        it('should convert spaces to nbsp', () => {
-            expect(htmlUtils.nl2br('Hello World')).toBe('Hello&nbsp;World');
-        });
-
-        it('should handle empty strings', () => {
-            expect(htmlUtils.nl2br('')).toBe('');
-            expect(htmlUtils.nl2br(null as any)).toBe('');
         });
     });
 

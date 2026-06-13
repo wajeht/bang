@@ -129,32 +129,42 @@ export async function closeServer({ server, ctx }: { server: Server; ctx: AppCon
         ctx.services.crons.stop();
         ctx.logger.info('Cron service stopped');
 
-        await ctx.db.destroy();
-        ctx.logger.info('Database connection closed');
+        // close the HTTP server (drain in-flight requests) BEFORE the DB pool, or in-flight
+        // handlers hit a destroyed pool and clients see resets mid-response
+        await new Promise<void>((resolve) => {
+            const forceTimeout = setTimeout(() => {
+                ctx.logger.error('Could not drain connections in time, forcing sockets closed');
+                for (const socket of activeSockets) {
+                    socket.destroy();
+                }
+                activeSockets.clear();
+            }, 5000);
 
+            // Close idle keep-alive sockets so server.close() can resolve promptly.
+            if (typeof server.closeIdleConnections === 'function') {
+                server.closeIdleConnections();
+            }
+
+            server.close((error) => {
+                clearTimeout(forceTimeout);
+                if (error) {
+                    ctx.logger.error('Error closing HTTP server', { error });
+                } else {
+                    ctx.logger.info('HTTP server closed');
+                }
+                resolve();
+            });
+        });
+
+        // 2) Destroy any sockets still open, then close the DB pool last.
         ctx.logger.info('Closing active connections', { count: activeSockets.size });
         for (const socket of activeSockets) {
             socket.destroy();
         }
         activeSockets.clear();
 
-        await new Promise<void>((resolve, reject) => {
-            const shutdownTimeout = setTimeout(() => {
-                ctx.logger.error('Could not close connections in time, forcefully shutting down');
-                reject(new Error('Server close timeout'));
-            }, 5000);
-
-            server.close((error) => {
-                clearTimeout(shutdownTimeout);
-                if (error) {
-                    ctx.logger.error('Error closing HTTP server', { error });
-                    reject(error);
-                } else {
-                    ctx.logger.info('HTTP server closed');
-                    resolve();
-                }
-            });
-        });
+        await ctx.db.destroy();
+        ctx.logger.info('Database connection closed');
 
         ctx.logger.info('Server shutdown complete');
     } catch (error) {
