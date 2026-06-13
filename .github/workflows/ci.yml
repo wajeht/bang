@@ -315,8 +315,6 @@ jobs:
             app-path: apps/bang
             service-name: bang
             tag: ${{ needs.temp-build.outputs.tag }}
-            # The temp-deploy-with-auth label protects the temp site with Traefik auth; the
-            # plain temp-deploy label keeps the production middleware (no auth).
             auth-middleware: ${{ contains(github.event.pull_request.labels.*.name, 'temp-deploy-with-auth') && 'oauth2-admin@file' || '' }}
         secrets:
             GH_TOKEN: ${{ secrets.GH_TOKEN }}
