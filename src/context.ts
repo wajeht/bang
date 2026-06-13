@@ -47,25 +47,23 @@ import { createRemindersRepository } from './routes/reminders/reminders.reposito
 import { createSettingsRepository } from './routes/admin/settings.repository.js';
 import type { AppContext, Models, Services, Utilities, Middlewares } from './type.js';
 
-function assertProductionConfig(): void {
+function warnInsecureProductionConfig(logger: ReturnType<typeof createLogger>): void {
     const insecure: string[] = [];
     if (config.session.secret === 'bang') insecure.push('SESSION_SECRET');
     if (config.app.secretSalt === 'bang') insecure.push('APP_SECRET_SALT');
     if (config.app.apiKeySecret === 'bang') insecure.push('APP_API_KEY_SECRET');
 
     if (insecure.length > 0) {
-        throw new Error(
-            `Refusing to start in production with default secrets: ${insecure.join(', ')}. ` +
-                `Set these environment variables to long random values. ` +
-                `Leaving them at the 'bang' default makes session cookies and magic-link login tokens forgeable.`,
+        logger.error(
+            `Running in production with default secrets: ${insecure.join(', ')}. ` +
+                `Set these to long random values — the 'bang' default makes session cookies and magic-link login tokens forgeable.`,
         );
     }
 
-    // magic links use APP_URL in production; the default 'localhost' would email unusable links
     if (config.app.appUrl === 'localhost') {
-        throw new Error(
-            `Refusing to start in production with APP_URL unset (defaulting to 'localhost'). ` +
-                `Set APP_URL to the full public origin (e.g. https://example.com) so magic-link login emails resolve.`,
+        logger.error(
+            `Running in production with APP_URL unset (defaulting to 'localhost'); ` +
+                `magic-link login emails will be unusable. Set APP_URL to the full public origin.`,
         );
     }
 }
@@ -75,16 +73,16 @@ export async function createContext(): Promise<AppContext> {
         throw new Error('Configuration required for app context');
     }
 
-    if (config.app.env === 'production') {
-        assertProductionConfig();
-    }
-
     if (process.env.NODE_ENV === 'testing' || config.app.env === 'testing') {
         Log.setLevel('SILENT');
     } else {
         Log.setLevel(config.app.env === 'development' ? 'DEBUG' : 'INFO');
     }
     const logger = createLogger({ service: 'http' });
+
+    if (config.app.env === 'production') {
+        warnInsecureProductionConfig(logger);
+    }
 
     const errors = {
         HttpError,
