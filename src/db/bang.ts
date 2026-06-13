@@ -97424,7 +97424,7 @@ export const bangs: Record<string, any> = {
         s: 'Tori',
         d: 'www.tori.fi',
         t: 'tori',
-        u: 'https://www.tori.fi/koko_suomi?q={{{s}}}',
+        u: 'https://www.tori.fi/recommerce/forsale/search?q={{{s}}}',
         c: 'Shopping',
         sc: 'Online (marketplace)',
     },
