@@ -239,12 +239,12 @@ export function createRemindersRouter(ctx: AppContext) {
             direction: direction || 'asc',
         });
 
-        ctx.utils.html.applyHighlighting(remindersData, ['title', 'content'], search);
-
         if (ctx.utils.request.isApiRequest(req)) {
             res.json({ data: remindersData, pagination, search, sortKey, direction });
             return;
         }
+
+        ctx.utils.html.applyHighlighting(remindersData, ['title', 'content'], search);
 
         return res.render('reminders/reminders-index.html', {
             user: req.user,

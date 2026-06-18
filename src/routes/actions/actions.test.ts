@@ -745,7 +745,7 @@ describe('Actions API', () => {
             expect(response.text).not.toContain('<mark>');
         });
 
-        it('should highlight search terms in API response', async () => {
+        it('should return raw matching data in API response', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
             await db('bangs').insert({
@@ -758,9 +758,9 @@ describe('Actions API', () => {
 
             const response = await agent.get('/api/actions?search=highlight').expect(200);
 
-            expect(response.body.data[0].name).toContain('<mark>Highlight</mark>');
-            expect(response.body.data[0].trigger).toContain('<mark>highlight</mark>');
-            expect(response.body.data[0].url).toContain('<mark>highlight</mark>');
+            expect(response.body.data[0].name).toBe('Testing Highlight');
+            expect(response.body.data[0].trigger).toBe('!highlight');
+            expect(response.body.data[0].url).toBe('https://highlight-test.com');
         });
     });
 });

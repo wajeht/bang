@@ -436,7 +436,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                         <div style="display: flex; gap: 5px; align-items: center;">
                                             <img loading="lazy" src= "<%~ utils.getFaviconUrl(tabs[i].items[j].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                             <span class="preview">
-                                                <a href="<%~ utils.safeHref(utils.stripHtmlTags(tabs[i].items[j].url)) %>" style="overflow: auto; white-space: nowrap;" title="<%~ utils.stripHtmlTags(tabs[i].items[j].url) %>" target="_blank" rel="noopener noreferrer">
+                                                <a href="<%= utils.safeHref(utils.stripHtmlTags(tabs[i].items[j].url)) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(tabs[i].items[j].url) %>" target="_blank" rel="noopener noreferrer">
                                                     <%~ tabs[i].items[j].url %>
                                                 </a>
                                                 <img class="preview-img" src="<%= utils.getScreenshotUrl(tabs[i].items[j].url) %>" loading="lazy" alt="Preview">

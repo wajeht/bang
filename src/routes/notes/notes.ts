@@ -79,7 +79,6 @@ export function createNotesRouter(ctx: AppContext) {
         });
 
         if (ctx.utils.request.isApiRequest(req)) {
-            ctx.utils.html.applyHighlighting(data, ['title', 'content'], search);
             res.json({ data, pagination, search, sortKey, direction });
             return;
         }

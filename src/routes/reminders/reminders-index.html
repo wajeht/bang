@@ -181,7 +181,7 @@ window.addEventListener('load', handleRowHighlight);
                                         <div style="display: flex; gap: 5px; align-items: center;">
                                             <img loading="lazy" src="<%~ utils.getFaviconUrl(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                             <span class="preview">
-                                                <a href="<%~ utils.safeHref(utils.stripHtmlTags(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title)) %>" style="overflow: auto; white-space: nowrap;" title="<%~ utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
+                                                <a href="<%= utils.safeHref(utils.stripHtmlTags(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title)) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
                                                     <%~ reminders[i].title %>
                                                 </a>
                                                 <img class="preview-img" src="<%= utils.getScreenshotUrl(reminders[i].title.startsWith('http') ? reminders[i].title : 'https://' + reminders[i].title) %>" loading="lazy" alt="Preview">
@@ -199,7 +199,7 @@ window.addEventListener('load', handleRowHighlight);
                                             <div style="display: flex; gap: 5px; align-items: center;">
                                                 <img loading="lazy" src="<%~ utils.getFaviconUrl(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                                 <span class="preview">
-                                                    <a href="<%~ utils.safeHref(utils.stripHtmlTags(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content)) %>" style="overflow: auto; white-space: nowrap;" title="<%~ utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
+                                                    <a href="<%= utils.safeHref(utils.stripHtmlTags(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content)) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(reminders[i].title) %>" target="_blank" rel="noopener noreferrer">
                                                         <%~ reminders[i].content %>
                                                     </a>
                                                     <img class="preview-img" src="<%= utils.getScreenshotUrl(reminders[i].content.startsWith('http') ? reminders[i].content : 'https://' + reminders[i].content) %>" loading="lazy" alt="Preview">

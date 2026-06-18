@@ -108,6 +108,21 @@ export function createSearchRouter(ctx: AppContext) {
                 }),
             ]);
 
+        if (ctx.utils.request.isApiRequest(req)) {
+            res.json({
+                searchQuery,
+                searchType,
+                results: {
+                    bookmarks: bookmarksResult,
+                    actions: actionsResult,
+                    notes: notesResult,
+                    tabs: tabsResult.data || [],
+                    reminders: remindersResult,
+                },
+            });
+            return;
+        }
+
         ctx.utils.html.applyHighlighting(bookmarksResult.data, ['title', 'url'], searchQuery);
         ctx.utils.html.applyHighlighting(
             actionsResult.data,
@@ -122,21 +137,6 @@ export function createSearchRouter(ctx: AppContext) {
             if (tab.items) {
                 ctx.utils.html.applyHighlighting(tab.items, ['title', 'url'], searchQuery);
             }
-        }
-
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.json({
-                searchQuery,
-                searchType,
-                results: {
-                    bookmarks: bookmarksResult,
-                    actions: actionsResult,
-                    notes: notesResult,
-                    tabs: tabsResult.data || [],
-                    reminders: remindersResult,
-                },
-            });
-            return;
         }
 
         return res.render('search/search-results.html', {

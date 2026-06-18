@@ -47,23 +47,22 @@ import { createRemindersRepository } from './routes/reminders/reminders.reposito
 import { createSettingsRepository } from './routes/admin/settings.repository.js';
 import type { AppContext, Models, Services, Utilities, Middlewares } from './type.js';
 
-function warnInsecureProductionConfig(logger: ReturnType<typeof createLogger>): void {
+function validateProductionConfig(): void {
     const insecure: string[] = [];
     if (config.session.secret === 'bang') insecure.push('SESSION_SECRET');
     if (config.app.secretSalt === 'bang') insecure.push('APP_SECRET_SALT');
     if (config.app.apiKeySecret === 'bang') insecure.push('APP_API_KEY_SECRET');
 
     if (insecure.length > 0) {
-        logger.error(
-            `Running in production with default secrets: ${insecure.join(', ')}. ` +
-                `Set these to long random values — the 'bang' default makes session cookies and magic-link login tokens forgeable.`,
+        throw new Error(
+            `Refusing to start production with default secrets: ${insecure.join(', ')}. ` +
+                `Set these to long random values; the 'bang' default makes auth tokens forgeable.`,
         );
     }
 
     if (config.app.appUrl === 'localhost') {
-        logger.error(
-            `Running in production with APP_URL unset (defaulting to 'localhost'); ` +
-                `magic-link login emails will be unusable. Set APP_URL to the full public origin.`,
+        throw new Error(
+            `Refusing to start production with APP_URL unset. Set APP_URL to the full public origin.`,
         );
     }
 }
@@ -81,7 +80,7 @@ export async function createContext(): Promise<AppContext> {
     const logger = createLogger({ service: 'http' });
 
     if (config.app.env === 'production') {
-        warnInsecureProductionConfig(logger);
+        validateProductionConfig();
     }
 
     const errors = {

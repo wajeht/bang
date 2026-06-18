@@ -73,6 +73,24 @@ describe('HtmlUtils', () => {
             expect(htmlUtils.safeHref('http://example.com')).toBe('http://example.com');
         });
 
+        it('should canonicalize characters that can break raw attributes', () => {
+            expect(htmlUtils.safeHref('https://example.com?x=" onmouseover=alert(1)')).toBe(
+                'https://example.com/?x=%22%20onmouseover=alert(1)',
+            );
+            expect(htmlUtils.safeHref('/bookmarks?x=" onmouseover=alert(1)')).toBe(
+                '/bookmarks?x=%22%20onmouseover=alert(1)',
+            );
+        });
+
+        it('should canonicalize app-escaped URL entities', () => {
+            expect(htmlUtils.safeHref('https://example.com/a?b=1&amp;c=2')).toBe(
+                'https://example.com/a?b=1&c=2',
+            );
+            expect(htmlUtils.safeHref('https://example.com?x=&quot; onmouseover=alert(1)')).toBe(
+                'https://example.com/?x=%22%20onmouseover=alert(1)',
+            );
+        });
+
         it('should allow same-origin relative paths', () => {
             expect(htmlUtils.safeHref('/bookmarks?id=1')).toBe('/bookmarks?id=1');
         });
@@ -180,6 +198,7 @@ describe('HtmlUtils', () => {
         it('should decode common HTML entities', () => {
             expect(htmlUtils.decodeHtmlEntities('&lt;test&gt;')).toBe('<test>');
             expect(htmlUtils.decodeHtmlEntities('&amp;')).toBe('&');
+            expect(htmlUtils.decodeHtmlEntities('&quot;&#39;')).toBe('"\'');
             expect(htmlUtils.decodeHtmlEntities('hello&nbsp;world')).toBe('hello world');
         });
 
