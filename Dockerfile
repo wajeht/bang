@@ -44,7 +44,7 @@ WORKDIR /usr/src/app
 # Copy only production dependencies and built files
 COPY --chown=node:node package*.json .npmrc ./
 RUN npm ci --only=production --no-audit --no-fund && \
-    npm rebuild better-sqlite3 bcrypt --ignore-scripts=false && \
+    npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false && \
     npm cache clean --force
 
 # Copy built application

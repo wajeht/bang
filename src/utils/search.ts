@@ -42,8 +42,6 @@ export function createSearch(context: AppContext) {
          * System-level bang commands that cannot be overridden by user-defined bangs
          */
         systemBangs: new Set(['!add', '!bm', '!note', '!del', '!edit', '!find', '!remind']),
-        /** Read-only system bangs; the CSRF gate treats every other system bang as a write (fail-closed) */
-        readSystemBangs: new Set(['!find']),
         /**
          * Default search providers
          */
@@ -1039,19 +1037,6 @@ export function createSearch(context: AppContext) {
                 }
             }
 
-            // CSRF: write bangs mutate on a CSRF-exempt GET and the cookie is SameSite=Lax, so
-            // block cross-site requests; address-bar (Sec-Fetch-Site: none) and same-site still work
-            if (
-                trigger &&
-                commandType === 'bang' &&
-                searchConfig.systemBangs.has(trigger) &&
-                !searchConfig.readSystemBangs.has(trigger) &&
-                context.utils.request.isCrossSiteRequest(req)
-            ) {
-                timer.stop({ outcome: 'blocked', trigger, error: 'cross-site-write' });
-                return res.redirect('/');
-            }
-
             // Process system-level bang commands (!bm, !add, !note)
             if (trigger && commandType === 'bang' && searchConfig.systemBangs.has(trigger)) {
                 // Process bookmark creation command (!bm)
@@ -1645,6 +1630,15 @@ export function createSearch(context: AppContext) {
 
                     timer.stop({ outcome: 'system-bang', trigger, action: 'note-created' });
                     return this.goBack(res);
+                }
+
+                // Process tabs command (!tabs)
+                // Format supported:
+                // 1. !tabs
+                // Example: !tabs
+                if (trigger === '!tabs') {
+                    timer.stop({ outcome: 'system-bang', trigger, action: 'tabs-launch' });
+                    return res.redirect('/tabs/launch');
                 }
 
                 // Process global find command (!find)

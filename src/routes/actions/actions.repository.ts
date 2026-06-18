@@ -13,7 +13,7 @@ export function createActionsRepository(ctx: AppContext): Actions {
         'hidden',
     ]);
     const ALLOWED_UPDATE_FIELDS = new Set(['name', 'trigger', 'url', 'actionType', 'hidden']);
-    const VALID_ACTION_TYPES = new Set<string>(ctx.utils.util.ACTION_TYPES);
+    const VALID_ACTION_TYPES = new Set(['search', 'redirect']);
 
     return {
         all: async ({

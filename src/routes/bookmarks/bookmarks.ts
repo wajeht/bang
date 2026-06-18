@@ -50,12 +50,12 @@ export function createBookmarksRouter(ctx: AppContext) {
             excludeHidden: !canViewHidden,
         });
 
+        ctx.utils.html.applyHighlighting(data, ['title', 'url'], search);
+
         if (ctx.utils.request.isApiRequest(req)) {
             res.json({ data, pagination, search, sortKey, direction });
             return;
         }
-
-        ctx.utils.html.applyHighlighting(data, ['title', 'url'], search);
 
         return res.render('bookmarks/bookmarks-index.html', {
             user: req.session?.user,
@@ -104,8 +104,7 @@ export function createBookmarksRouter(ctx: AppContext) {
                 return res.redirect('/bookmarks');
             }
 
-            // format the rows we already fetched (generateBookmarkHtmlExport would re-run the query)
-            const htmlExport = ctx.utils.util.createBookmarkDocument(bookmarksData);
+            const htmlExport = await ctx.utils.util.generateBookmarkHtmlExport(userId);
 
             res.setHeader(
                 'Content-Disposition',

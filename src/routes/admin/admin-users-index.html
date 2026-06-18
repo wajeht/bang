@@ -113,7 +113,7 @@
                   name="id[]"
                   value="<%~ user.id %>"
                   class="user-checkbox"
-                  data-username="<%= utils.stripHtmlTags(user.username || 'Unknown User') %>"
+                  data-username="<%~ utils.stripHtmlTags(user.username || 'Unknown User') %>"
                   <%= user.is_admin ? 'disabled title="Cannot delete admin users"' : '' %>
                 />
               </td>

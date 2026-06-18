@@ -450,12 +450,18 @@ describe('Mail Utils', () => {
             );
         });
 
-        it('should not process reminders beyond the upcoming 15 minute window', async () => {
-            // Only reminders due after the next window boundary are skipped. Overdue reminders
-            // are intentionally processed (see the overdue test), so this covers the upper bound.
+        it('should not process reminders outside the 15 minute window', async () => {
+            const tooSoon = dayjs.utc().subtract(1, 'minute').toISOString();
             const tooLate = dayjs.utc().add(20, 'minutes').toISOString();
 
             await db('reminders').insert([
+                {
+                    user_id: testUser.id,
+                    title: 'Past reminder',
+                    content: 'Already passed',
+                    reminder_type: 'once',
+                    due_date: tooSoon,
+                },
                 {
                     user_id: testUser.id,
                     title: 'Future reminder',
@@ -471,27 +477,6 @@ describe('Mail Utils', () => {
             await mailUtils.processReminderDigests();
 
             expect(sendEmailSpy).not.toHaveBeenCalled();
-        });
-
-        it('should process overdue reminders that were previously skipped', async () => {
-            const overdue = dayjs.utc().subtract(20, 'minutes').toISOString();
-
-            await db('reminders').insert({
-                user_id: testUser.id,
-                title: 'Overdue reminder',
-                content: 'Was due in the past',
-                reminder_type: 'once',
-                due_date: overdue,
-            });
-
-            const sendEmailSpy = vi.spyOn(mailUtils, 'sendReminderDigestEmail');
-            sendEmailSpy.mockResolvedValue();
-
-            await mailUtils.processReminderDigests();
-
-            expect(sendEmailSpy).toHaveBeenCalled();
-            const remaining = await db('reminders').where('title', 'Overdue reminder');
-            expect(remaining).toHaveLength(0);
         });
 
         it('should handle no due reminders gracefully', async () => {

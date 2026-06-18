@@ -8,94 +8,7 @@ import type {
 } from '../type.js';
 import http from 'node:http';
 import https from 'node:https';
-import net from 'node:net';
-import dns from 'node:dns/promises';
-import type { LookupFunction } from 'node:net';
 import type { Request } from 'express';
-
-const REGEX_IPV6_ZERO_COLON = /[0:]/g;
-const REGEX_IPV6_MAPPED_DOTTED = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/;
-const REGEX_IPV6_MAPPED_HEX = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/;
-
-// SSRF guard: reject user-supplied URLs that resolve to internal/cloud-metadata hosts
-function isPrivateAddress(ip: string): boolean {
-    if (net.isIPv4(ip)) {
-        const parts = ip.split('.');
-        const a = Number(parts[0]);
-        const b = Number(parts[1]);
-        if (a === 0 || a === 10 || a === 127) return true; // this-network, RFC1918, loopback
-        if (a === 169 && b === 254) return true; // link-local (169.254.169.254 metadata)
-        if (a === 172 && b >= 16 && b <= 31) return true; // RFC1918
-        if (a === 192 && b === 168) return true; // RFC1918
-        if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
-        return false;
-    }
-    if (net.isIPv6(ip)) {
-        const lower = ip.toLowerCase();
-        // loopback/unspecified in any zero-padded form: strip 0 and : then check (fail-safe over-match)
-        const stripped = lower.replace(REGEX_IPV6_ZERO_COLON, '');
-        if (stripped === '' || stripped === '1') return true;
-        if (lower.startsWith('fc') || lower.startsWith('fd')) return true; // unique-local
-        if (lower.startsWith('fe80')) return true; // link-local
-        // IPv4-mapped: dotted (::ffff:169.254.169.254) and hex (::ffff:a9fe:a9fe) forms.
-        const mappedDotted = lower.match(REGEX_IPV6_MAPPED_DOTTED);
-        if (mappedDotted && mappedDotted[1]) return isPrivateAddress(mappedDotted[1]);
-        const mappedHex = lower.match(REGEX_IPV6_MAPPED_HEX);
-        if (mappedHex && mappedHex[1] && mappedHex[2]) {
-            const hi = parseInt(mappedHex[1], 16);
-            const lo = parseInt(mappedHex[2], 16);
-            const v4 = `${(hi >> 8) & 0xff}.${hi & 0xff}.${(lo >> 8) & 0xff}.${lo & 0xff}`;
-            return isPrivateAddress(v4);
-        }
-        return false;
-    }
-    return false;
-}
-
-// sync pre-check (protocol + local hostnames + literal private IPs); the authoritative DNS
-// check is at connect time via safeDnsLookup, so there's no rebind TOCTOU
-function isAllowedFetchTarget(url: string): boolean {
-    let parsed: URL;
-    try {
-        parsed = new URL(url);
-    } catch {
-        return false;
-    }
-
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
-
-    const host = parsed.hostname.replace(/^\[|\]$/g, '');
-    if (
-        host === 'localhost' ||
-        host.endsWith('.localhost') ||
-        host.endsWith('.local') ||
-        host.endsWith('.internal')
-    ) {
-        return false;
-    }
-
-    if (net.isIP(host)) return !isPrivateAddress(host);
-    return true;
-}
-
-// DNS lookup for http.get that aborts on a private resolved address; http.get connects to the
-// IP this returns, so the validated IP is the connected IP (no rebind window)
-const safeDnsLookup: LookupFunction = (hostname, options, callback) => {
-    dns.lookup(hostname, options)
-        .then((result) => {
-            const records = Array.isArray(result) ? result : [result];
-            if (records.some((r) => isPrivateAddress(r.address))) {
-                callback(new Error('Refusing to connect to a private address'), '', 0);
-                return;
-            }
-            if (Array.isArray(result)) {
-                callback(null, result);
-            } else {
-                callback(null, result.address, result.family);
-            }
-        })
-        .catch((err: Error) => callback(err, '', 0));
-};
 
 export function createUtil(context: AppContext) {
     const { db, config, errors } = context;
@@ -276,6 +189,15 @@ export function createUtil(context: AppContext) {
             return truncated + '...';
         },
 
+        normalizeUrl(url: string): string {
+            try {
+                new URL(url);
+                return url;
+            } catch {
+                return url.startsWith('http') ? url : `https://${url}`;
+            }
+        },
+
         getFaviconUrl(url: string): string {
             try {
                 return `https://favicon.jaw.dev/?url=${encodeURIComponent(new URL(url).hostname)}`;
@@ -349,7 +271,9 @@ export function createUtil(context: AppContext) {
         },
 
         async fetchPageTitle(url: string): Promise<string> {
-            if (!isAllowedFetchTarget(url)) {
+            try {
+                new URL(url);
+            } catch {
                 return 'Untitled';
             }
 
@@ -360,8 +284,6 @@ export function createUtil(context: AppContext) {
                     url,
                     {
                         timeout: 5000,
-                        // Pin DNS so the connected IP is the one we validate (no rebind TOCTOU).
-                        lookup: safeDnsLookup,
                         headers: {
                             Accept: 'text/html',
                             'User-Agent':
@@ -395,10 +317,6 @@ export function createUtil(context: AppContext) {
                     },
                 );
 
-                req.on('timeout', () => {
-                    req.destroy();
-                    resolve('Untitled');
-                });
                 req.on('error', () => resolve('Untitled'));
                 req.end();
             });
@@ -806,7 +724,6 @@ export function createUtil(context: AppContext) {
                     {
                         method: 'POST',
                         body: formData,
-                        signal: AbortSignal.timeout(5000),
                     },
                 );
 

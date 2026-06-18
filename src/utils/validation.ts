@@ -5,8 +5,6 @@ export function createValidation() {
     const REGEX_URL_PROTOCOL = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
     const REGEX_DOMAIN_PATTERN =
         /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/i;
-    const REGEX_USERNAME = /^[a-zA-Z0-9._-]{1,50}$/;
-    const REGEX_USERNAME_DISALLOWED = /[^a-zA-Z0-9._-]/g;
 
     function isValidUrl(url: string): boolean {
         try {
@@ -80,26 +78,11 @@ export function createValidation() {
         return null;
     }
 
-    function isValidUsername(username: string): boolean {
-        return typeof username === 'string' && REGEX_USERNAME.test(username);
-    }
-
-    // Derive a safe username from a candidate (e.g. an email local-part): the email regex
-    // allows characters like '<' that would otherwise become an XSS payload once rendered.
-    function sanitizeUsername(value: string | null | undefined): string {
-        const cleaned = String(value ?? '')
-            .replace(REGEX_USERNAME_DISALLOWED, '')
-            .slice(0, 40);
-        return cleaned || 'user';
-    }
-
     return {
         isValidUrl,
         isValidEmail,
         isOnlyLettersAndNumbers,
         isUrlLike,
-        isValidUsername,
-        sanitizeUsername,
         extractUrlFromText,
         findDomainUrlInWords,
     };

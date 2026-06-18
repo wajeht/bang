@@ -8,13 +8,12 @@
     <ul>
       <% tabs.forEach(t => { %>
         <li>
-          <a href="<%= utils.safeHref(t.url) %>" target="_blank" rel="noopener noreferrer"><%= t.title %></a>
+          <a href="<%= t.url %>" target="_blank" rel="noopener noreferrer"><%= t.title %></a>
         </li>
       <% }) %>
     </ul>
     <script>
-      // safeJson prevents </script> breakout; safeHref drops non-http(s) so javascript: can't run via window.open
-      const urls = <%~ utils.safeJson(tabs.map(t => utils.safeHref(t.url)).filter(u => u !== '#')) %>;
+      const urls = JSON.parse('<%~ JSON.stringify(tabs.map(t => t.url)) %>');
       let successfulPopups = 0;
       let totalUrls = urls.length;
 
@@ -72,7 +71,7 @@
     <p>Enable JavaScript to auto-open your tabs. Or open these links manually:</p>
     <ul>
       <% tabs.forEach(t => { %>
-        <li><a href="<%= utils.safeHref(t.url) %>" target="_blank"><%= t.title %></a></li>
+        <li><a href="<%= t.url %>" target="_blank"><%= t.title %></a></li>
       <% }) %>
     </ul>
   </noscript>

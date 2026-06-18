@@ -327,7 +327,7 @@ describe('Tabs Routes', () => {
             expect(response.text).not.toContain('<mark>');
         });
 
-        it('should return raw matching data in API response', async () => {
+        it('should highlight search terms in API response', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
             await db('tabs').insert({
@@ -338,8 +338,8 @@ describe('Tabs Routes', () => {
 
             const response = await agent.get('/api/tabs?search=highlight').expect(200);
 
-            expect(response.body.data[0].title).toBe('Testing Highlight');
-            expect(response.body.data[0].trigger).toBe('!highlight');
+            expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
+            expect(response.body.data[0].trigger).toContain('<mark>highlight</mark>');
         });
     });
 

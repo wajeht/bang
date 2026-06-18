@@ -3,12 +3,13 @@ import cors from 'cors';
 import { Eta } from 'eta';
 import bcrypt from 'bcrypt';
 import helmet from 'helmet';
+import dotenv from 'dotenv';
 import cron from 'node-cron';
 import express from 'express';
 import dayjsBase from 'dayjs';
 import jwt from 'jsonwebtoken';
 import { marked, Marked, Renderer } from 'marked';
-import hljs from 'highlight.js/lib/common';
+import hljs from 'highlight.js';
 import crypto from 'node:crypto';
 import flash from 'connect-flash';
 import utc from 'dayjs/plugin/utc.js';
@@ -18,6 +19,7 @@ import session from 'express-session';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import timezone from 'dayjs/plugin/timezone.js';
+import * as dompurify from 'isomorphic-dompurify';
 
 dayjsBase.extend(utc);
 dayjsBase.extend(timezone);
@@ -30,6 +32,7 @@ export const libs = {
     dayjs,
     bcrypt,
     crypto,
+    dotenv,
     nodemailer,
 
     // Markdown & syntax highlighting
@@ -37,6 +40,7 @@ export const libs = {
     marked,
     Marked,
     Renderer,
+    dompurify,
 
     // Scheduling
     cron,

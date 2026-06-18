@@ -50,12 +50,12 @@ export function createActionsRouter(ctx: AppContext) {
             excludeHidden: !canViewHidden,
         });
 
+        ctx.utils.html.applyHighlighting(data, ['name', 'trigger', 'url'], search);
+
         if (ctx.utils.request.isApiRequest(req)) {
             res.json({ data, pagination, search, sortKey, direction });
             return;
         }
-
-        ctx.utils.html.applyHighlighting(data, ['name', 'trigger', 'url'], search);
 
         return res.render('actions/actions-index.html', {
             user: req.session?.user,

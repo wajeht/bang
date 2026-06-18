@@ -2,6 +2,21 @@ import type { AppContext } from '../type.js';
 
 export function createDate(context: AppContext) {
     return {
+        convertToUTC(localDateTimeString: string, timezone: string = 'UTC'): string {
+            try {
+                if (timezone === 'UTC') {
+                    return context.libs.dayjs.utc(localDateTimeString).toISOString();
+                }
+
+                // Parse as local time in the specified timezone, then convert to UTC
+                const localTime = context.libs.dayjs.tz(localDateTimeString, timezone);
+                return localTime.utc().toISOString();
+            } catch {
+                // Fallback: assume input is already UTC
+                return context.libs.dayjs.utc(localDateTimeString).toISOString();
+            }
+        },
+
         formatDateInTimezone(
             utcDateString: string | Date,
             timezone: string = 'UTC',

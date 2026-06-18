@@ -47,26 +47,6 @@ import { createRemindersRepository } from './routes/reminders/reminders.reposito
 import { createSettingsRepository } from './routes/admin/settings.repository.js';
 import type { AppContext, Models, Services, Utilities, Middlewares } from './type.js';
 
-function validateProductionConfig(): void {
-    const insecure: string[] = [];
-    if (config.session.secret === 'bang') insecure.push('SESSION_SECRET');
-    if (config.app.secretSalt === 'bang') insecure.push('APP_SECRET_SALT');
-    if (config.app.apiKeySecret === 'bang') insecure.push('APP_API_KEY_SECRET');
-
-    if (insecure.length > 0) {
-        throw new Error(
-            `Refusing to start production with default secrets: ${insecure.join(', ')}. ` +
-                `Set these to long random values; the 'bang' default makes auth tokens forgeable.`,
-        );
-    }
-
-    if (config.app.appUrl === 'localhost') {
-        throw new Error(
-            `Refusing to start production with APP_URL unset. Set APP_URL to the full public origin.`,
-        );
-    }
-}
-
 export async function createContext(): Promise<AppContext> {
     if (!config) {
         throw new Error('Configuration required for app context');
@@ -78,10 +58,6 @@ export async function createContext(): Promise<AppContext> {
         Log.setLevel(config.app.env === 'development' ? 'DEBUG' : 'INFO');
     }
     const logger = createLogger({ service: 'http' });
-
-    if (config.app.env === 'production') {
-        validateProductionConfig();
-    }
 
     const errors = {
         HttpError,

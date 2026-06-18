@@ -698,7 +698,7 @@ describe('Reminders Routes', () => {
             expect(response.text).not.toContain('<mark>');
         });
 
-        it('should return raw matching data in API response', async () => {
+        it('should highlight search terms in API response', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
             await db('reminders').insert({
@@ -711,8 +711,8 @@ describe('Reminders Routes', () => {
 
             const response = await agent.get('/api/reminders?search=highlight').expect(200);
 
-            expect(response.body.data[0].title).toBe('Testing Highlight');
-            expect(response.body.data[0].content).toBe('This reminder is about highlight testing');
+            expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
+            expect(response.body.data[0].content).toContain('<mark>highlight</mark>');
         });
     });
 

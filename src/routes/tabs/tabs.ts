@@ -162,6 +162,8 @@ export function createTabsRouter(ctx: AppContext) {
             direction,
         });
 
+        ctx.utils.html.applyHighlighting(tabsData, ['title', 'trigger'], search);
+
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({
                 message: 'Tabs retrieved successfully',
@@ -172,14 +174,6 @@ export function createTabsRouter(ctx: AppContext) {
                 direction,
             });
             return;
-        }
-
-        ctx.utils.html.applyHighlighting(tabsData, ['title', 'trigger'], search);
-        // tab items are rendered on the index page too, so escape their fields against stored XSS
-        for (const tab of tabsData) {
-            if (tab.items) {
-                ctx.utils.html.applyHighlighting(tab.items, ['title', 'url'], search);
-            }
         }
 
         return res.render('tabs/tabs-index.html', {

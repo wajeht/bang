@@ -2,24 +2,6 @@ import type { Request, Response, NextFunction } from 'express';
 import type { LayoutOptions, User, AppContext } from '../type.js';
 import { ConnectSessionKnexStore } from 'connect-session-knex';
 
-// keep secrets (login tokens) and private content (the q command) out of request logs
-const REGEX_MAGIC_LINK_PATH = /^\/auth\/magic\//;
-const SENSITIVE_QUERY_KEYS = new Set(['q', 'token', 'password', 'cf-turnstile-response']);
-
-function redactLogPath(path: string): string {
-    return REGEX_MAGIC_LINK_PATH.test(path) ? '/auth/magic/[redacted]' : path;
-}
-
-function redactLogQuery(query: Record<string, unknown>): string | undefined {
-    const keys = Object.keys(query);
-    if (keys.length === 0) return undefined;
-    const safe: Record<string, unknown> = {};
-    for (const key of keys) {
-        safe[key] = SENSITIVE_QUERY_KEYS.has(key) ? '[redacted]' : query[key];
-    }
-    return JSON.stringify(safe);
-}
-
 export function createRequestLoggerMiddleware(ctx: AppContext) {
     return (req: Request, res: Response, next: NextFunction) => {
         const requestId = ctx.libs.crypto.randomUUID().slice(0, 8);
@@ -29,10 +11,11 @@ export function createRequestLoggerMiddleware(ctx: AppContext) {
 
         res.on('finish', () => {
             const duration = Date.now() - start;
+            const hasQuery = req.query && Object.keys(req.query).length > 0;
 
             req.logger.info('request', {
-                path: redactLogPath(req.path),
-                query: redactLogQuery(req.query as Record<string, unknown>),
+                path: req.path,
+                query: hasQuery ? JSON.stringify(req.query) : undefined,
                 status: res.statusCode,
                 duration: `${duration}ms`,
                 userId: req.user?.id || 'anon',
@@ -74,19 +57,13 @@ export function createErrorMiddleware(ctx: AppContext) {
 
         const httpError = error as any;
         const statusCode = httpError.statusCode || 500;
-        const GENERIC_SERVER_ERROR =
+        const message =
+            httpError.message ||
             'The server encountered an internal error or misconfiguration and was unable to complete your request';
-        const message = httpError.message || GENERIC_SERVER_ERROR;
-
-        // don't leak raw 5xx error messages to clients in production (4xx messages are intentional)
-        const clientMessage =
-            statusCode >= 500 && ctx.config.app.env === 'production'
-                ? GENERIC_SERVER_ERROR
-                : message;
 
         if (ctx.utils.request.isApiRequest(req)) {
             const responsePayload: any = {
-                message: statusCode === 422 ? 'Validation errors' : clientMessage,
+                message: statusCode === 422 ? 'Validation errors' : message,
             };
 
             if (statusCode === 422) {
@@ -152,7 +129,7 @@ export function createErrorMiddleware(ctx: AppContext) {
             path: req.path,
             title: 'Error',
             statusCode,
-            message: ctx.config.app.env !== 'production' ? error.stack : clientMessage,
+            message: ctx.config.app.env !== 'production' ? error.stack : message,
         });
     };
 }
@@ -201,12 +178,7 @@ export function createHelmetMiddleware(ctx: AppContext) {
                 'frame-src': ["'self'", '*.cloudflare.com'],
                 'style-src': ["'self'", "'unsafe-inline'", '*.cloudflare.com'],
 
-                'connect-src': [
-                    "'self'",
-                    '*.cloudflare.com',
-                    '*.cloudflareinsights.com',
-                    'https://umami.jaw.dev',
-                ],
+                'connect-src': ["'self'", '*.cloudflare.com', '*.cloudflareinsights.com', 'https://umami.jaw.dev'],
                 'script-src-attr': ["'self'", "'unsafe-inline'"],
                 // Search submissions 302-redirect off-site to arbitrary HTTPS
                 // destinations (Google, DuckDuckGo, custom bang URLs). form-action is
@@ -269,6 +241,7 @@ export function createSetupAppLocals(ctx: AppContext) {
                 script: assetVersions?.script ?? Math.random(),
             },
             utils: {
+                nl2br: ctx.utils.html.nl2br,
                 truncateString: ctx.utils.util.truncateString,
                 capitalize: ctx.utils.util.capitalize,
                 getFaviconUrl: ctx.utils.util.getFaviconUrl,
@@ -276,8 +249,6 @@ export function createSetupAppLocals(ctx: AppContext) {
                 isUrlLike: ctx.utils.validation.isUrlLike,
                 stripHtmlTags: ctx.utils.html.stripHtmlTags,
                 highlightSearchTerm: ctx.utils.html.highlightSearchTerm,
-                safeJson: ctx.utils.html.safeJsonForScript,
-                safeHref: ctx.utils.html.safeHref,
                 formatDateInTimezone: ctx.utils.date.formatDateInTimezone,
             },
         };
@@ -586,11 +557,10 @@ export function createTurnstileMiddleware(ctx: AppContext) {
                 return next();
             }
 
-            if (req.method === 'GET') {
+            if (req.method === 'GET' || ctx.utils.request.isApiRequest(req)) {
                 return next();
             }
 
-            // no API-key skip: /login is a human flow, so a bogus unvalidated Bearer must not bypass Turnstile
             const token = req.body['cf-turnstile-response'];
             if (!token) {
                 throw new ctx.errors.ValidationError({
