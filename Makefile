@@ -1,12 +1,14 @@
 # Docker compose shorthand
 DC := docker compose -f docker-compose.dev.yml
 EXEC := $(DC) exec bang
-DCDB ?= npx tsx /Users/konyein/Dev/dcdb/src/index.ts
+DCDB ?= npx tsx $(HOME)/Dev/dcdb/src/index.ts
+SQLITE3 ?= sqlite3
 PROD_DOCKER_HOST ?= ssh://jaw@192.168.4.161
 PROD_COMPOSE_PROJECT ?= bang
 PROD_COMPOSE_SERVICE ?= bang
 PROD_DB_PATH ?= /usr/src/app/dist/src/db/sqlite/db.sqlite
-LOCAL_DB_PATH ?= /usr/src/app/src/db/sqlite/db.sqlite
+LOCAL_DB_FILE ?= ./src/db/sqlite/db.sqlite
+LOCAL_DB_BACKUP_DIR ?= ./src/db/sqlite/import-backups
 PROD_DB_DUMP ?= ./src/db/sqlite/bang-prod.sql.gz
 
 .PHONY: help push test lint format up down shell deploy pull-prod-db restore-prod-db sync-prod-db
@@ -127,7 +129,25 @@ pull-prod-db:
 	@DOCKER_HOST=$(PROD_DOCKER_HOST) $(DCDB) -p $(PROD_COMPOSE_PROJECT) -s $(PROD_COMPOSE_SERVICE) --dialect sqlite -d $(PROD_DB_PATH) dump -z $(PROD_DB_DUMP)
 
 restore-prod-db:
-	@$(DCDB) -f docker-compose.dev.yml -s bang --dialect sqlite -d $(LOCAL_DB_PATH) restore --replace -y $(PROD_DB_DUMP)
+	@test -f "$(PROD_DB_DUMP)" || (echo "Missing dump: $(PROD_DB_DUMP)" && exit 1)
+	@command -v "$(SQLITE3)" >/dev/null || (echo "Missing sqlite3. Install it or set SQLITE3=/path/to/sqlite3." && exit 1)
+	@if lsof "$(LOCAL_DB_FILE)" "$(LOCAL_DB_FILE)-wal" "$(LOCAL_DB_FILE)-shm" >/dev/null 2>&1; then \
+		echo "Local DB is open. Stop bang before restoring."; \
+		exit 1; \
+	fi
+	@set -e; \
+	tmp_db="$(LOCAL_DB_FILE).tmp"; \
+	backup_dir="$(LOCAL_DB_BACKUP_DIR)/$$(date +%Y%m%d-%H%M%S)"; \
+	rm -f "$$tmp_db" "$$tmp_db-wal" "$$tmp_db-shm"; \
+	gzip -dc "$(PROD_DB_DUMP)" | "$(SQLITE3)" "$$tmp_db"; \
+	test "$$("$(SQLITE3)" "$$tmp_db" 'PRAGMA integrity_check;')" = "ok"; \
+	mkdir -p "$$backup_dir"; \
+	for f in "$(LOCAL_DB_FILE)" "$(LOCAL_DB_FILE)-wal" "$(LOCAL_DB_FILE)-shm"; do \
+		if [ -e "$$f" ]; then cp -p "$$f" "$$backup_dir/$$(basename "$$f")"; fi; \
+	done; \
+	mv "$$tmp_db" "$(LOCAL_DB_FILE)"; \
+	rm -f "$(LOCAL_DB_FILE)-wal" "$(LOCAL_DB_FILE)-shm"; \
+	echo "Restored $(LOCAL_DB_FILE). Backup: $$backup_dir"
 
 sync-prod-db: pull-prod-db restore-prod-db
 
