@@ -821,6 +821,36 @@ describe('insertBookmark', () => {
     });
 });
 
+describe('prefetchScreenshots', () => {
+    it('should prefetch screenshots in batches', async () => {
+        const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+            text: () => Promise.resolve(''),
+        } as unknown as globalThis.Response);
+
+        await utilUtils.prefetchScreenshots(['https://example.com', 'example.org'], {
+            userAgent: 'Bang test',
+        });
+
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
+        expect(fetchSpy).toHaveBeenCalledWith(
+            'https://screenshot.jaw.dev?url=https%3A%2F%2Fexample.com',
+            expect.objectContaining({
+                method: 'HEAD',
+                headers: { 'User-Agent': 'Bang test' },
+            }),
+        );
+        expect(fetchSpy).toHaveBeenCalledWith(
+            'https://screenshot.jaw.dev?url=https%3A%2F%2Fexample.org',
+            expect.objectContaining({
+                method: 'HEAD',
+                headers: { 'User-Agent': 'Bang test' },
+            }),
+        );
+
+        fetchSpy.mockRestore();
+    });
+});
+
 describe('checkDuplicateBookmarkUrl', () => {
     beforeEach(async () => {
         await db('bookmarks').insert({

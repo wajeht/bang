@@ -14,11 +14,11 @@ export function createRemindersRepository(ctx: AppContext): Reminders {
     return {
         all: async ({
             user,
-            perPage = 20,
-            page = 1,
-            search = '',
-            sortKey = 'due_date',
-            direction = 'asc',
+            perPage,
+            page,
+            search,
+            sortKey,
+            direction,
             isLengthAware = true,
         }: RemindersQueryParams) => {
             const query = ctx.db.select(
@@ -134,14 +134,7 @@ export function createRemindersRepository(ctx: AppContext): Reminders {
         },
 
         delete: async (ids: number[], userId: number) => {
-            return ctx.db.transaction(async (trx: any) => {
-                const rowsAffected = await trx('reminders')
-                    .whereIn('id', ids)
-                    .where('user_id', userId)
-                    .delete();
-
-                return rowsAffected;
-            });
+            return ctx.db('reminders').whereIn('id', ids).where('user_id', userId).delete();
         },
     };
 }

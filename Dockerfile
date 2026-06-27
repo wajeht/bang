@@ -1,4 +1,4 @@
-FROM node:26.2.0-slim@sha256:1e738cb88890a15c71880323fbc35a739b7bbc703d72e8bfd1613128f8182f78 AS build
+FROM node:26.4.0-slim@sha256:a1d9d671994fc2d26e297ac56b4b1522a8bc7fa71c43b14cd1b1fe6c5116f7dc AS build
 
 WORKDIR /usr/src/app
 
@@ -31,11 +31,12 @@ RUN npm run build:prod && \
     rm -rf eslint.config.* && \
     rm -rf playwright.config.*
 
-FROM node:26.2.0-slim@sha256:1e738cb88890a15c71880323fbc35a739b7bbc703d72e8bfd1613128f8182f78
+FROM node:26.4.0-slim@sha256:a1d9d671994fc2d26e297ac56b4b1522a8bc7fa71c43b14cd1b1fe6c5116f7dc
 
-# Install runtime dependencies (curl for HEALTHCHECK)
+# Install runtime dependencies.
+# sqlite3 lets dcdb dump/inspect the production SQLite database.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
+    apt-get install -y --no-install-recommends curl sqlite3 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

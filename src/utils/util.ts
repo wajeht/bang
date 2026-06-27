@@ -10,6 +10,17 @@ import http from 'node:http';
 import https from 'node:https';
 import type { Request } from 'express';
 
+const DEFAULT_SCREENSHOT_PREFETCH_BATCH_SIZE = 5;
+const DEFAULT_SCREENSHOT_PREFETCH_TIMEOUT_MS = 10000;
+const DEFAULT_SCREENSHOT_PREFETCH_USER_AGENT = 'Bang/1.0 (https://bang.jaw.dev)';
+
+interface ScreenshotPrefetchOptions {
+    batchSize?: number;
+    delayBetweenBatchesMs?: number;
+    timeoutMs?: number;
+    userAgent?: string;
+}
+
 export function createUtil(context: AppContext) {
     const { db, config, errors } = context;
     const logger = context.logger.tag('service', 'util');
@@ -243,6 +254,44 @@ export function createUtil(context: AppContext) {
                     signal,
                 }).then((res) => res.text().catch(() => {})),
             ]);
+        },
+
+        async prefetchScreenshots(
+            urls: string[],
+            options: ScreenshotPrefetchOptions = {},
+        ): Promise<void> {
+            const batchSize = options.batchSize ?? DEFAULT_SCREENSHOT_PREFETCH_BATCH_SIZE;
+            const delayBetweenBatchesMs = options.delayBetweenBatchesMs ?? 0;
+            const timeoutMs = options.timeoutMs ?? DEFAULT_SCREENSHOT_PREFETCH_TIMEOUT_MS;
+            const userAgent = options.userAgent ?? DEFAULT_SCREENSHOT_PREFETCH_USER_AGENT;
+
+            for (let i = 0; i < urls.length; i += batchSize) {
+                const batch = urls.slice(i, i + batchSize);
+                const requests: Promise<void>[] = [];
+
+                for (const url of batch) {
+                    requests.push(
+                        (async () => {
+                            try {
+                                const response = await fetch(this.getScreenshotUrl(url), {
+                                    method: 'HEAD',
+                                    headers: { 'User-Agent': userAgent },
+                                    signal: AbortSignal.timeout(timeoutMs),
+                                });
+                                await response.text().catch(() => {});
+                            } catch {
+                                // Ignore screenshot cache failures.
+                            }
+                        })(),
+                    );
+                }
+
+                await Promise.allSettled(requests);
+
+                if (delayBetweenBatchesMs > 0 && i + batchSize < urls.length) {
+                    await new Promise((resolve) => setTimeout(resolve, delayBetweenBatchesMs));
+                }
+            }
         },
 
         createBookmarkHtml(bookmark: BookmarkToExport): string {

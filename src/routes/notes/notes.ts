@@ -3,6 +3,8 @@ import type { AppContext, User } from '../../type.js';
 
 export function createNotesRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
+    const NOTE_CONTENT_PREVIEW_LENGTH = 200;
+    const NOTE_CONTENT_PREVIEW_SOURCE_LIMIT = 4000;
 
     const noteRenderer = new ctx.libs.Renderer();
     noteRenderer.code = function ({ text, lang }) {
@@ -72,10 +74,23 @@ export function createNotesRouter(ctx: AppContext) {
 
         const limitedData = data.slice(0, perPage);
         const markdownRemovedData = await Promise.all(
-            limitedData.map(async (d: any) => ({
-                ...d,
-                content: await ctx.utils.util.convertMarkdownToPlainText(d.content, 200),
-            })),
+            limitedData.map(async (d: any) => {
+                const content = String(d.content ?? '');
+                const isSourceTruncated = content.length > NOTE_CONTENT_PREVIEW_SOURCE_LIMIT;
+                let preview = await ctx.utils.util.convertMarkdownToPlainText(
+                    content.slice(0, NOTE_CONTENT_PREVIEW_SOURCE_LIMIT),
+                    NOTE_CONTENT_PREVIEW_LENGTH,
+                );
+
+                if (isSourceTruncated && preview && !preview.endsWith('...')) {
+                    preview = `${preview}...`;
+                }
+
+                return {
+                    ...d,
+                    content: preview,
+                };
+            }),
         );
 
         ctx.utils.html.applyHighlighting(markdownRemovedData, ['title', 'content'], search);

@@ -133,50 +133,16 @@ export function createSearch(context: AppContext) {
     } as const;
 
     const reminderTimingConfig = {
-        /**
-         * Recurring timing options
-         */
-        recurring: [
-            { value: 'daily', text: 'Daily (recurring)' },
-            { value: 'weekly', text: 'Weekly (recurring)' },
-            { value: 'monthly', text: 'Monthly (recurring)' },
-        ],
-        /**
-         * Custom date option
-         */
-        custom: [{ value: 'custom', text: 'Custom Date...' }],
-        /**
-         * All timing options combined for UI dropdowns (pre-computed)
-         */
         allOptions: [
             { value: 'daily', text: 'Daily (recurring)' },
             { value: 'weekly', text: 'Weekly (recurring)' },
             { value: 'monthly', text: 'Monthly (recurring)' },
             { value: 'custom', text: 'Custom Date...' },
         ],
-        /**
-         * All timing values for validation
-         */
-        allValues: ['daily', 'weekly', 'monthly', 'custom'],
-        /**
-         * Valid timing keywords
-         */
         validKeywords: new Set(['daily', 'weekly', 'monthly']),
-        /**
-         * Regex for date pattern matching
-         */
         datePattern: /^(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/\d{4}|\w{3}-\d{1,2})$/,
-        /**
-         * Get all timing options combined for UI dropdowns
-         */
         getAllOptions() {
             return this.allOptions;
-        },
-        /**
-         * Get all supported timing values for validation
-         */
-        getAllValues() {
-            return this.allValues;
         },
     } as const;
 
@@ -497,6 +463,8 @@ export function createSearch(context: AppContext) {
             if (cacheType === 'no-store') {
                 res.set({
                     'Cache-Control': 'no-store',
+                    Pragma: 'no-cache',
+                    Expires: '0',
                 });
             } else {
                 const headers: Record<string, string> = {

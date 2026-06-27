@@ -34,7 +34,6 @@
         "**/*.spec.ts",
         "**/*.browser-test.ts",
         "src/tests/**/*",
-        "scripts/load-test.ts",
         "dist",
         "coverage",
         "public",
