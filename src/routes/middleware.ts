@@ -178,7 +178,12 @@ export function createHelmetMiddleware(ctx: AppContext) {
                 'frame-src': ["'self'", '*.cloudflare.com'],
                 'style-src': ["'self'", "'unsafe-inline'", '*.cloudflare.com'],
 
-                'connect-src': ["'self'", '*.cloudflare.com', '*.cloudflareinsights.com', 'https://umami.jaw.dev'],
+                'connect-src': [
+                    "'self'",
+                    '*.cloudflare.com',
+                    '*.cloudflareinsights.com',
+                    'https://umami.jaw.dev',
+                ],
                 'script-src-attr': ["'self'", "'unsafe-inline'"],
                 // Search submissions 302-redirect off-site to arbitrary HTTPS
                 // destinations (Google, DuckDuckGo, custom bang URLs). form-action is

@@ -37,7 +37,7 @@ function describeCause(cause: unknown): string | undefined {
     try {
         return JSON.stringify(cause);
     } catch {
-        return String(cause);
+        return '[unserializable cause]';
     }
 }
 

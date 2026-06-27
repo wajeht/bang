@@ -8,11 +8,11 @@ export function createBookmarksRepository(ctx: AppContext): Bookmarks {
     return {
         all: async ({
             user,
-            perPage = 10,
-            page = 1,
-            search = '',
-            sortKey = 'created_at',
-            direction = 'desc',
+            perPage,
+            page,
+            search,
+            sortKey,
+            direction,
             excludeHidden = false,
             isLengthAware = true,
         }: BookmarksQueryParams) => {
@@ -138,14 +138,7 @@ export function createBookmarksRepository(ctx: AppContext): Bookmarks {
         },
 
         delete: async (ids: number[], userId: number) => {
-            return ctx.db.transaction(async (trx: any) => {
-                const rowsAffected = await trx('bookmarks')
-                    .whereIn('id', ids)
-                    .where('user_id', userId)
-                    .delete();
-
-                return rowsAffected;
-            });
+            return ctx.db('bookmarks').whereIn('id', ids).where('user_id', userId).delete();
         },
     };
 }

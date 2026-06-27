@@ -8,11 +8,11 @@ export function createTabsRepository(ctx: AppContext): Tabs {
     return {
         all: async ({
             user,
-            perPage = 10,
-            page = 1,
-            search = '',
-            sortKey = 'created_at',
-            direction = 'desc',
+            perPage,
+            page,
+            search,
+            sortKey,
+            direction,
             isLengthAware = true,
         }: TabsQueryParams) => {
             const query = ctx.db
@@ -226,14 +226,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
         },
 
         delete: async (ids: number[], userId: number) => {
-            return ctx.db.transaction(async (trx: any) => {
-                const rowsAffected = await trx('tabs')
-                    .whereIn('id', ids)
-                    .where('user_id', userId)
-                    .delete();
-
-                return rowsAffected;
-            });
+            return ctx.db('tabs').whereIn('id', ids).where('user_id', userId).delete();
         },
     };
 }
