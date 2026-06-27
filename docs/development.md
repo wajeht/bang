@@ -42,7 +42,7 @@ $ npm run dev
 Run test
 
 ```bash
-$ npm npm test
+$ npm test
 ```
 
 Format code

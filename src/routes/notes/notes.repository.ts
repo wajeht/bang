@@ -8,11 +8,11 @@ export function createNotesRepository(ctx: AppContext): Notes {
     return {
         all: async ({
             user,
-            perPage = 10,
-            page = 1,
-            search = '',
-            sortKey = 'created_at',
-            direction = 'desc',
+            perPage,
+            page,
+            search,
+            sortKey,
+            direction,
             excludeHidden = false,
             isLengthAware = true,
         }: NotesQueryParams) => {
@@ -136,14 +136,7 @@ export function createNotesRepository(ctx: AppContext): Notes {
         },
 
         delete: async (ids: number[], userId: number) => {
-            return ctx.db.transaction(async (trx: any) => {
-                const rowsAffected = await trx('notes')
-                    .whereIn('id', ids)
-                    .where('user_id', userId)
-                    .delete();
-
-                return rowsAffected;
-            });
+            return ctx.db('notes').whereIn('id', ids).where('user_id', userId).delete();
         },
     };
 }

@@ -214,35 +214,9 @@ export function createGeneralRouter(ctx: AppContext) {
                     return res.redirect('/bangs');
                 }
 
-                const batchSize = 5;
-                const delayBetweenBatches = 2000;
-
-                for (let i = 0; i < urls.length; i += batchSize) {
-                    const batch = urls.slice(i, i + batchSize);
-                    await Promise.allSettled(
-                        batch.map(async (url) => {
-                            try {
-                                const response = await fetch(
-                                    `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`,
-                                    {
-                                        method: 'HEAD',
-                                        headers: {
-                                            'User-Agent': 'Bang/1.0 (https://bang.jaw.dev)',
-                                        },
-                                        signal: AbortSignal.timeout(10000),
-                                    },
-                                );
-                                await response.text().catch(() => {});
-                            } catch {
-                                // Ignore errors
-                            }
-                        }),
-                    );
-
-                    if (i + batchSize < urls.length) {
-                        await new Promise((resolve) => setTimeout(resolve, delayBetweenBatches));
-                    }
-                }
+                await ctx.utils.util.prefetchScreenshots(urls, {
+                    delayBetweenBatchesMs: 2000,
+                });
 
                 req.flash('success', `Cached ${urls.length} screenshots successfully`);
             } catch (error) {
