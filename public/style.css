@@ -665,37 +665,61 @@ a:hover .sort-icon {
 
 .preview {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    min-width: 0;
+    vertical-align: middle;
+    anchor-name: --preview;
+    anchor-scope: --preview;
+}
+
+.preview > a {
+    max-width: 100%;
+    min-width: 0;
 }
 
 .preview-img {
-    display: none;
-    position: fixed;
+    display: block;
+    position: absolute;
     z-index: 99999;
+    bottom: calc(100% + 6px);
+    left: 0;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     width: 300px;
+    max-width: calc(100vw - 24px);
     height: 158px;
     object-fit: cover;
     background: var(--background-color);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-2px);
+    transition:
+        opacity 0.12s ease,
+        transform 0.12s ease,
+        visibility 0.12s ease;
 }
 
-.preview-loading {
-    display: none;
-    position: fixed;
-    z-index: 99999;
-    width: 300px;
-    height: 158px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--background-color);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    pointer-events: none;
-    justify-content: center;
-    align-items: center;
-    color: var(--text-color);
-    font-size: 0.9em;
+@supports (position-anchor: --preview) {
+    .preview-img {
+        position: fixed;
+        position-anchor: --preview;
+        top: auto;
+        right: auto;
+        bottom: anchor(top);
+        left: anchor(left);
+        margin-bottom: 6px;
+    }
+}
+
+.preview:hover .preview-img,
+.preview:focus-within .preview-img {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
 [data-theme='dark'] .question-mark-btn {
@@ -936,8 +960,7 @@ a:hover .sort-icon {
     }
 
     dialog,
-    .preview-img,
-    .preview-loading {
+    .preview-img {
         display: none !important;
     }
 
