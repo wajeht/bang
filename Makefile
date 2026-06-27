@@ -1,8 +1,15 @@
 # Docker compose shorthand
 DC := docker compose -f docker-compose.dev.yml
 EXEC := $(DC) exec bang
+DCDB ?= npx tsx /Users/konyein/Dev/dcdb/src/index.ts
+PROD_DOCKER_HOST ?= ssh://jaw@192.168.4.161
+PROD_COMPOSE_PROJECT ?= bang
+PROD_COMPOSE_SERVICE ?= bang
+PROD_DB_PATH ?= /usr/src/app/dist/src/db/sqlite/db.sqlite
+LOCAL_DB_PATH ?= /usr/src/app/src/db/sqlite/db.sqlite
+PROD_DB_DUMP ?= ./src/db/sqlite/bang-prod.sql.gz
 
-.PHONY: help push test lint format up down shell deploy
+.PHONY: help push test lint format up down shell deploy pull-prod-db restore-prod-db sync-prod-db
 
 help:
 	@echo "Usage: make [target]"
@@ -33,8 +40,9 @@ help:
 	@echo "  db-rollback Rollback last migration"
 	@echo "  db-seed     Run seeders"
 	@echo "  db-reset    Rollback + migrate + seed"
-	@echo "  pull-prod-db Pull production database"
-	@echo "  push-prod-db Push to production database"
+	@echo "  pull-prod-db Pull production database dump"
+	@echo "  restore-prod-db Restore downloaded prod dump locally"
+	@echo "  sync-prod-db Pull + restore production database locally"
 	@echo ""
 	@echo "Deployment:"
 	@echo "  push        Test + lint + format + commit + push"
@@ -114,6 +122,14 @@ db-reset:
 
 db-clean:
 	@trash ./src/db/sqlite/db.sqlite*
+
+pull-prod-db:
+	@DOCKER_HOST=$(PROD_DOCKER_HOST) $(DCDB) -p $(PROD_COMPOSE_PROJECT) -s $(PROD_COMPOSE_SERVICE) --dialect sqlite -d $(PROD_DB_PATH) dump -z $(PROD_DB_DUMP)
+
+restore-prod-db:
+	@$(DCDB) -f docker-compose.dev.yml -s bang --dialect sqlite -d $(LOCAL_DB_PATH) restore --replace -y $(PROD_DB_DUMP)
+
+sync-prod-db: pull-prod-db restore-prod-db
 
 # === Deployment ===
 

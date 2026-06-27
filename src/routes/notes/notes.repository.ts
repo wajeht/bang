@@ -30,9 +30,7 @@ export function createNotesRepository(ctx: AppContext): Notes {
             query.from('notes').where('user_id', user.id);
 
             if (excludeHidden) {
-                query.where((q: any) => {
-                    q.where('hidden', false).orWhereNull('hidden');
-                });
+                query.whereRaw('(hidden = 0 OR hidden IS NULL)');
             }
 
             if (search) {
