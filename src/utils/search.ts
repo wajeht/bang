@@ -497,6 +497,8 @@ export function createSearch(context: AppContext) {
             if (cacheType === 'no-store') {
                 res.set({
                     'Cache-Control': 'no-store',
+                    Pragma: 'no-cache',
+                    Expires: '0',
                 });
             } else {
                 const headers: Record<string, string> = {
