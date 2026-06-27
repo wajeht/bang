@@ -94,32 +94,12 @@ export async function screenshotPrefetchTask(context: AppContext): Promise<void>
 
         const urlArray = Array.from(urls);
 
-        for (let i = 0; i < urlArray.length; i += PREFETCH_BATCH_SIZE) {
-            const batch = urlArray.slice(i, i + PREFETCH_BATCH_SIZE);
-            await Promise.allSettled(
-                batch.map(async (url) => {
-                    try {
-                        const response = await fetch(
-                            `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`,
-                            {
-                                method: 'HEAD',
-                                headers: {
-                                    'User-Agent': 'Bang/1.0 (https://bang.jaw.dev) Cron',
-                                },
-                                signal: AbortSignal.timeout(PREFETCH_REQUEST_TIMEOUT_MS),
-                            },
-                        );
-                        await response.text().catch(() => {});
-                    } catch {
-                        // Ignore fetch errors
-                    }
-                }),
-            );
-
-            if (i + PREFETCH_BATCH_SIZE < urlArray.length) {
-                await new Promise((resolve) => setTimeout(resolve, PREFETCH_BATCH_DELAY_MS));
-            }
-        }
+        await context.utils.util.prefetchScreenshots(urlArray, {
+            batchSize: PREFETCH_BATCH_SIZE,
+            delayBetweenBatchesMs: PREFETCH_BATCH_DELAY_MS,
+            timeoutMs: PREFETCH_REQUEST_TIMEOUT_MS,
+            userAgent: 'Bang/1.0 (https://bang.jaw.dev) Cron',
+        });
 
         timer.stop({ status: 'success', urls: urlArray.length });
     } catch (error) {
