@@ -214,6 +214,151 @@ describe('Mail Utils', () => {
         });
     });
 
+    describe('sendReminderDigestEmail', () => {
+        let sendMailMock: ReturnType<typeof vi.fn>;
+        let testMailUtils: ReturnType<typeof createMail>;
+
+        beforeEach(async () => {
+            const { createSettingsRepository } =
+                await import('../routes/admin/settings.repository');
+
+            sendMailMock = vi.fn().mockResolvedValue({ messageId: 'test-id' });
+
+            const mockNodemailer = {
+                createTransport: vi.fn().mockReturnValue({ sendMail: sendMailMock }),
+            };
+
+            const prodConfig = {
+                ...config,
+                app: { ...config.app, env: 'production' },
+            };
+
+            const mockLogger = {
+                error: vi.fn(),
+                info: vi.fn(),
+                box: vi.fn(),
+                table: vi.fn(),
+                tag: vi.fn().mockReturnThis(),
+            };
+
+            testMailUtils = createMail({
+                db,
+                config: prodConfig,
+                libs: { ...libs, nodemailer: mockNodemailer },
+                logger: mockLogger,
+                models: { settings: createSettingsRepository({ db, config, libs } as any) },
+            } as any);
+        });
+
+        it('should not send email when reminders array is empty', async () => {
+            await testMailUtils.sendReminderDigestEmail({
+                email: 'test@example.com',
+                username: 'TestUser',
+                reminders: [],
+                date: '2025-08-16',
+            });
+
+            expect(sendMailMock).not.toHaveBeenCalled();
+        });
+
+        it('should send email with clickable links in HTML', async () => {
+            const reminders = [
+                {
+                    id: 1,
+                    title: 'AI Agent Best Practices',
+                    url: 'https://forgecode.dev/blog/ai-agent-best-practices/',
+                    reminder_type: 'recurring' as const,
+                    frequency: 'weekly' as const,
+                },
+                {
+                    id: 2,
+                    title: 'Meeting with team',
+                    reminder_type: 'once' as const,
+                },
+            ];
+
+            await testMailUtils.sendReminderDigestEmail({
+                email: 'test@example.com',
+                username: 'TestUser',
+                reminders,
+                date: '2025-08-16',
+            });
+
+            expect(sendMailMock).toHaveBeenCalledTimes(1);
+            const emailArgs = sendMailMock.mock.calls[0][0];
+
+            expect(emailArgs.to).toBe('test@example.com');
+            expect(emailArgs.subject).toContain('Reminders');
+            expect(emailArgs.subject).toContain('Saturday, August 16, 2025');
+            expect(emailArgs.html).toContain('Hello TestUser');
+            expect(emailArgs.html).toContain(
+                '<a href="https://forgecode.dev/blog/ai-agent-best-practices/">AI Agent Best Practices</a>',
+            );
+            expect(emailArgs.html).toContain('<li>Meeting with team</li>');
+        });
+
+        it('should show "weekly reminders" when all reminders are weekly recurring', async () => {
+            const reminders = [
+                {
+                    id: 1,
+                    title: 'Weekly Report',
+                    reminder_type: 'recurring' as const,
+                    frequency: 'weekly' as const,
+                },
+                {
+                    id: 2,
+                    title: 'Weekly Review',
+                    reminder_type: 'recurring' as const,
+                    frequency: 'weekly' as const,
+                },
+            ];
+
+            await testMailUtils.sendReminderDigestEmail({
+                email: 'test@example.com',
+                username: 'TestUser',
+                reminders,
+                date: '2025-08-16',
+            });
+
+            const emailArgs = sendMailMock.mock.calls[0][0];
+            expect(emailArgs.html).toContain('weekly reminders');
+        });
+
+        it('should show "reminders" when reminder types are mixed', async () => {
+            const reminders = [
+                {
+                    id: 1,
+                    title: 'Daily standup',
+                    reminder_type: 'recurring' as const,
+                    frequency: 'daily' as const,
+                },
+                {
+                    id: 2,
+                    title: 'Doctor appointment',
+                    reminder_type: 'once' as const,
+                },
+                {
+                    id: 3,
+                    title: 'Weekly review',
+                    reminder_type: 'recurring' as const,
+                    frequency: 'weekly' as const,
+                },
+            ];
+
+            await testMailUtils.sendReminderDigestEmail({
+                email: 'test@example.com',
+                username: 'TestUser',
+                reminders,
+                date: '2025-08-16',
+            });
+
+            const emailArgs = sendMailMock.mock.calls[0][0];
+            expect(emailArgs.html).toContain('your reminders for');
+            expect(emailArgs.html).not.toContain('weekly reminders');
+            expect(emailArgs.html).not.toContain('daily reminders');
+        });
+    });
+
     describe('processReminderDigests', () => {
         let testUser: any;
 
@@ -486,6 +631,46 @@ describe('Mail Utils', () => {
             await expect(mailUtils.processReminderDigests()).resolves.not.toThrow();
 
             expect(sendEmailSpy).not.toHaveBeenCalled();
+        });
+
+        it('should allow daily reminders to be processed multiple times', async () => {
+            const dueDate = dayjs.utc().add(5, 'minutes');
+
+            await db('reminders').insert({
+                user_id: testUser.id,
+                title: 'Multi-day daily reminder',
+                content: 'Daily task',
+                reminder_type: 'recurring',
+                frequency: 'daily',
+                due_date: dueDate.toISOString(),
+            });
+
+            const sendEmailSpy = vi.spyOn(mailUtils, 'sendReminderDigestEmail');
+            sendEmailSpy.mockResolvedValue();
+
+            await mailUtils.processReminderDigests();
+
+            let reminder = await db('reminders').where('title', 'Multi-day daily reminder').first();
+            expect(reminder).toBeTruthy();
+            expect(dayjs.utc(reminder.due_date).isAfter(dueDate)).toBe(true);
+
+            const nextDueDate = dayjs.utc().add(5, 'minutes');
+            await db('reminders')
+                .where('title', 'Multi-day daily reminder')
+                .update({ due_date: nextDueDate.toISOString() });
+
+            await mailUtils.processReminderDigests();
+
+            reminder = await db('reminders').where('title', 'Multi-day daily reminder').first();
+            expect(reminder).toBeTruthy();
+
+            const originalChicago = dayjs.tz(nextDueDate.toDate(), 'UTC').tz('America/Chicago');
+            const updatedChicago = dayjs.tz(reminder.due_date, 'UTC').tz('America/Chicago');
+            expect(updatedChicago.hour()).toBe(originalChicago.hour());
+            expect(updatedChicago.minute()).toBe(originalChicago.minute());
+            expect(updatedChicago.startOf('day').diff(originalChicago.startOf('day'), 'day')).toBe(
+                1,
+            );
         });
 
         describe('DST handling', () => {

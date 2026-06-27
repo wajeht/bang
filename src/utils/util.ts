@@ -200,15 +200,6 @@ export function createUtil(context: AppContext) {
             return truncated + '...';
         },
 
-        normalizeUrl(url: string): string {
-            try {
-                new URL(url);
-                return url;
-            } catch {
-                return url.startsWith('http') ? url : `https://${url}`;
-            }
-        },
-
         getFaviconUrl(url: string): string {
             try {
                 return `https://favicon.jaw.dev/?url=${encodeURIComponent(new URL(url).hostname)}`;
