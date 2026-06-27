@@ -14,9 +14,9 @@ describe('knexfile', () => {
             expect(knexConfig.pool?.acquireTimeoutMillis).toBe(15000);
         });
 
-        it('should keep a tiny pool while allowing Knex migrations to run', () => {
+        it('should keep one connection per process (SQLite is single-writer)', () => {
             expect(knexConfig.pool?.min).toBe(0);
-            expect(knexConfig.pool?.max).toBe(2);
+            expect(knexConfig.pool?.max).toBe(1);
         });
 
         it('should configure a non-zero create timeout and idle timeout', () => {

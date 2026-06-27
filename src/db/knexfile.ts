@@ -1,5 +1,4 @@
 import path from 'node:path';
-import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import type { Knex } from 'knex';
 import { createLogger } from '../utils/logger.js';
@@ -7,8 +6,6 @@ import { CustomMigrationSource } from './migration-source.js';
 
 const logger = createLogger({ service: 'knexfile' });
 const isTesting = process.env.NODE_ENV === 'testing' || process.env.APP_ENV === 'testing';
-const testDatabaseName = `bang_test_${process.env.VITEST_POOL_ID || process.env.VITEST_WORKER_ID || process.pid}`;
-const testDatabasePath = path.join(tmpdir(), `${testDatabaseName}.sqlite`);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const migrationsPath = path.resolve(__dirname, 'migrations');
@@ -26,7 +23,7 @@ let knexConfig: Knex.Config = {
     // debug: _developmentEnvironmentOnly,
     pool: {
         min: 0, // No idle connections for SQLite
-        max: 2, // Knex migrations perform parallel metadata reads.
+        max: 1, // Only 1 connection per container (SQLite is single-file)
         acquireTimeoutMillis: 15000, // 15s — fail fast under contention rather than queueing requests
         createTimeoutMillis: 30000, // 30 seconds
         idleTimeoutMillis: 30000, // 30 seconds (close idle connections quickly)
@@ -101,7 +98,7 @@ if (isTesting) {
     knexConfig = {
         ...knexConfig,
         connection: {
-            filename: testDatabasePath,
+            filename: ':memory:',
         },
     };
 }
