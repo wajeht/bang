@@ -987,6 +987,8 @@ describe('search', () => {
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'no-store', // Custom bangs should not be cached
+                    Pragma: 'no-cache',
+                    Expires: '0',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://example.com/search?q=test%20search');
@@ -1100,6 +1102,8 @@ describe('search', () => {
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'no-store', // Custom bangs should not be cached
+                    Pragma: 'no-cache',
+                    Expires: '0',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://mysite.com');
