@@ -61,13 +61,13 @@
 		specScript.textContent = JSON.stringify(specRules);
 		document.head.appendChild(specScript);
 
-		console.log('✅ Speculation rules added:', specRules);
-		console.log('🔍 Debug: Check DevTools > Application > Speculative loads');
+		console.debug('✅ Speculation rules added:', specRules);
+		console.debug('🔍 Debug: Check DevTools > Application > Speculative loads');
 
 		if (document.prerendering) {
-			console.log('🚀 Page is being prerendered!');
+			console.debug('🚀 Page is being prerendered!');
 			document.addEventListener("prerenderingchange", () => {
-				console.log('⚡ Page activated from prerender!', {
+				console.debug('⚡ Page activated from prerender!', {
 					activationStart: performance.getEntriesByType('navigation')[0]?.activationStart
 				});
 			}, { once: true });
@@ -76,11 +76,11 @@
 		document.addEventListener('DOMContentLoaded', () => {
 			const nav = performance.getEntriesByType('navigation')[0];
 			if (nav?.activationStart > 0) {
-				console.log('📊 Prerendered! Activation:', nav.activationStart + 'ms');
+				console.debug('📊 Prerendered! Activation:', nav.activationStart + 'ms');
 			}
 		});
 
 	} else {
-		console.log('❌ Speculation rules not supported');
+		console.debug('❌ Speculation rules not supported');
 	}
 </script>
