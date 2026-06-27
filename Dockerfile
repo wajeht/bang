@@ -33,9 +33,10 @@ RUN npm run build:prod && \
 
 FROM node:26.4.0-slim@sha256:a1d9d671994fc2d26e297ac56b4b1522a8bc7fa71c43b14cd1b1fe6c5116f7dc
 
-# Install runtime dependencies (curl for HEALTHCHECK)
+# Install runtime dependencies.
+# sqlite3 lets dcdb dump/inspect the production SQLite database.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
+    apt-get install -y --no-install-recommends curl sqlite3 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
