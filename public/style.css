@@ -919,6 +919,306 @@ a:hover .sort-icon {
     font-weight: bold;
 }
 
+body > header > nav[aria-label='Main navigation'],
+body > header > nav[aria-label='Main navigation'] > div,
+body > header > nav[aria-label='Main navigation'] ul,
+nav[aria-label='Action management controls'],
+nav[aria-label='Action management controls'] form[action='/actions'],
+main > div:has(nav[aria-label='Settings navigation']),
+main > div:has(nav[aria-label='Settings navigation']) > aside,
+main > div:has(nav[aria-label='Settings navigation']) > section,
+main > div:has(nav[aria-label='Settings navigation']) > section > section {
+    min-width: 0;
+}
+
+body > header > nav[aria-label='Main navigation'] ul {
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+body > header > nav[aria-label='Main navigation'] ul a {
+    white-space: nowrap;
+}
+
+nav[aria-label='Action management controls'] {
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+nav[aria-label='Action management controls'] form[action='/actions'] {
+    flex: 1 1 18rem;
+    min-width: min(100%, 18rem);
+}
+
+nav[aria-label='Action management controls'] form[action='/actions'] search,
+nav[aria-label='Action management controls'] form[action='/actions'] input[type='search'] {
+    min-width: 0;
+    width: 100%;
+}
+
+nav[aria-label='Action management controls'] button {
+    min-width: 44px;
+}
+
+table:has(td[data-label]) th,
+table:has(td[data-label]) td {
+    vertical-align: top;
+}
+
+table:has(td[data-label]) td {
+    overflow: hidden;
+}
+
+td[data-label='URL'] > div {
+    min-width: 0;
+}
+
+td[data-label='URL'] > div > img {
+    flex: 0 0 auto;
+}
+
+td[data-label='URL'] .preview {
+    min-width: 0;
+    width: 100%;
+}
+
+td[data-label='URL'] .preview > a {
+    display: block;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+table:has(td[data-label]) time {
+    display: block;
+}
+
+main > div:has(nav[aria-label='Settings navigation']) > section > section > fieldset,
+main > div:has(nav[aria-label='Settings navigation']) > section > section > form > fieldset,
+main > div:has(nav[aria-label='Settings navigation']) > section > section > div > fieldset {
+    width: min(100%, 36rem) !important;
+    max-width: 100% !important;
+}
+
+main
+    > div:has(nav[aria-label='Settings navigation'])
+    input:not([type='checkbox']):not([type='radio']),
+main > div:has(nav[aria-label='Settings navigation']) select,
+main > div:has(nav[aria-label='Settings navigation']) textarea {
+    width: 100%;
+    min-width: 0;
+}
+
+main > div:has(nav[aria-label='Settings navigation']) input[type='checkbox'],
+main > div:has(nav[aria-label='Settings navigation']) input[type='radio'] {
+    flex: 0 0 auto;
+}
+
+dialog {
+    max-width: calc(100vw - 2rem);
+}
+
+@media (max-width: 700px) {
+    body {
+        padding: 0.75rem;
+    }
+
+    input,
+    button,
+    textarea,
+    select {
+        max-width: 100%;
+    }
+
+    body > header > nav[aria-label='Main navigation'] {
+        align-items: flex-start !important;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    body > header > nav[aria-label='Main navigation'] > div {
+        width: 100%;
+        align-items: flex-start !important;
+        flex-wrap: wrap;
+        gap: 0.75rem !important;
+    }
+
+    body > header > nav[aria-label='Main navigation'] h1 {
+        width: 100%;
+        padding-right: 0 !important;
+        line-height: 1.1;
+    }
+
+    body > header > nav[aria-label='Main navigation'] ul {
+        width: 100%;
+        gap: 0.75rem !important;
+        padding-bottom: 0.25rem !important;
+    }
+
+    body > header > nav[aria-label='Main navigation'] ul a {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 4.75rem;
+        text-align: center;
+    }
+
+    body > header > nav[aria-label='Main navigation'] details {
+        margin-left: auto;
+    }
+
+    section:has(nav[aria-label='Action management controls']) > header {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    nav[aria-label='Action management controls'],
+    nav[aria-label='Action management controls'] form[action='/actions'] {
+        width: 100%;
+    }
+
+    nav[aria-label='Action management controls'] {
+        gap: 0.5rem !important;
+        justify-content: flex-start;
+    }
+
+    nav[aria-label='Action management controls'] form[action='/actions'] {
+        flex-basis: 100%;
+    }
+
+    nav[aria-label='Action management controls'] form[action='/actions'] button[type='submit'],
+    nav[aria-label='Action management controls'] > button,
+    nav[aria-label='Action management controls'] > form:not([action='/actions']) button {
+        min-height: 44px;
+    }
+
+    table:has(td[data-label]),
+    table:has(td[data-label]) tbody,
+    table:has(td[data-label]) tr,
+    table:has(td[data-label]) td {
+        display: block;
+        width: 100%;
+    }
+
+    table:has(td[data-label]) {
+        table-layout: auto;
+    }
+
+    table:has(td[data-label]) thead {
+        display: none !important;
+    }
+
+    table:has(td[data-label]) tr {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        border: 1px solid var(--tr-border-color);
+        border-radius: 4px;
+        background-color: var(--background-color);
+    }
+
+    table:has(td[data-label]) td {
+        display: grid;
+        grid-template-columns: minmax(6.5rem, 34%) minmax(0, 1fr);
+        gap: 0.75rem;
+        align-items: start;
+        border: 0;
+        padding: 0.35rem 0 !important;
+        overflow: visible;
+    }
+
+    table:has(td[data-label]) td::before {
+        content: attr(data-label);
+        color: var(--text-muted-color);
+        font-weight: 600;
+    }
+
+    table:has(td[data-label]) td[data-label='Select'] {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    table:has(td[data-label]) td[data-label='Select']::before {
+        content: '';
+        display: none;
+    }
+
+    table:has(td[data-label]) td[data-label='Actions'] {
+        align-items: center;
+    }
+
+    table:has(td[data-label]) td[data-label='Actions'] details {
+        justify-self: start;
+    }
+
+    table:has(td[data-label]) details div[style*='position: absolute'] {
+        position: static !important;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    td[data-label='URL'] > div {
+        max-width: 100%;
+    }
+
+    .preview-img {
+        display: none;
+    }
+
+    main > div:has(nav[aria-label='Settings navigation']) {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+
+    main > div:has(nav[aria-label='Settings navigation']) > aside {
+        height: auto !important;
+        padding-right: 0 !important;
+    }
+
+    nav[aria-label='Settings navigation'] ul {
+        flex-direction: row !important;
+        gap: 0.75rem !important;
+        overflow-x: auto;
+        padding-bottom: 0.25rem !important;
+    }
+
+    nav[aria-label='Settings navigation'] hr {
+        display: none;
+    }
+
+    nav[aria-label='Settings navigation'] a {
+        white-space: nowrap;
+    }
+
+    main > div:has(nav[aria-label='Settings navigation']) > section {
+        border-top: 1px solid var(--aside-border-color);
+        border-left: 0 !important;
+        padding-top: 1rem;
+        padding-left: 0 !important;
+    }
+
+    main > div:has(nav[aria-label='Settings navigation']) > section > section > fieldset,
+    main > div:has(nav[aria-label='Settings navigation']) > section > section > form > fieldset,
+    main > div:has(nav[aria-label='Settings navigation']) > section > section > div > fieldset {
+        width: 100% !important;
+    }
+
+    fieldset {
+        padding: 0.75rem;
+    }
+
+    dialog {
+        width: calc(100vw - 2rem);
+        min-width: 0;
+    }
+}
+
+@media (max-width: 420px) {
+    table:has(td[data-label]) td {
+        grid-template-columns: 1fr;
+        gap: 0.15rem;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;

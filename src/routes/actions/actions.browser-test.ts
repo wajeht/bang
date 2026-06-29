@@ -45,4 +45,28 @@ test.describe('Actions', () => {
         await page.getByRole('searchbox').press('Enter');
         await expect(page).toHaveURL(`${baseURL}/search/results?q=hello%20world`);
     });
+
+    test('keeps action list readable on mobile', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.goto('/actions/create');
+
+        await page.getByLabel('⚡ Trigger').fill('mobileaction');
+        await page.getByLabel('📝 Name').fill('Mobile Action');
+        await page
+            .getByLabel('🌐 URL')
+            .fill('https://example.com/search?q={{{s}}}&with=a-very-long-query-string');
+        await page.getByLabel('🏷️ Action Type').selectOption('search');
+        await page.getByRole('button', { name: '💾 Save' }).click();
+
+        await expect(page).toHaveURL('/actions');
+        await expect(page.locator('table:has(td[data-label="Trigger"]) thead')).toBeHidden();
+        await expect(page.locator('td[data-label="Trigger"]').first()).toContainText(
+            '!mobileaction',
+        );
+
+        const horizontalOverflow = await page.evaluate(
+            () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        );
+        expect(horizontalOverflow).toBeLessThanOrEqual(1);
+    });
 });

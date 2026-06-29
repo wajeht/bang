@@ -203,19 +203,19 @@ window.addEventListener('load', handleRowHighlight);
                 <tbody>
                     <% for (let i = 0; i < data.length; i++) { %>
                         <tr data-id="<%~ data[i].id %>">
-                            <td style="padding: 10px;">
+                            <td data-label="Select" style="padding: 10px;">
                                 <input type="checkbox" name="id[]" value="<%~ data[i].id %>" class="action-checkbox" data-title="<%~ data[i].name %>" aria-label="Select <%= utils.stripHtmlTags(data[i].name) %>" />
                             </td>
                             <% if (state.user.column_preferences?.actions?.name !== false) { %>
-                                <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%~ data[i].name %></td>
+                                <td data-label="Name" style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%~ data[i].name %></td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.trigger !== false) { %>
-                                <td style="padding: 10px;">
+                                <td data-label="Trigger" style="padding: 10px;">
                                     <code><%~ data[i].trigger %></code>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.url !== false) { %>
-                                <td style="padding: 10px;">
+                                <td data-label="URL" style="padding: 10px;">
                                     <% if (data[i].url) { %>
                                     <div style="display: flex; gap: 5px; align-items: center;">
                                         <img loading="lazy" src= "<%~ utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
@@ -232,19 +232,19 @@ window.addEventListener('load', handleRowHighlight);
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.action_type !== false) { %>
-                                <td style="padding: 10px;">
+                                <td data-label="Type" style="padding: 10px;">
                                     <code><%~ data[i].action_type %></code>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.created_at !== false) { %>
-                                <td style="padding: 10px;">
+                                <td data-label="Created" style="padding: 10px;">
                                     <time datetime="<%= data[i].created_at %>">
                                         <%= utils.formatDateInTimezone(data[i].created_at, state.user.timezone).fullString %>
                                     </time>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.last_read_at !== false) { %>
-                                <td style="padding: 10px;">
+                                <td data-label="Last Read" style="padding: 10px;">
                                     <% if (data[i].last_read_at) { %>
                                         <time datetime="<%= data[i].last_read_at %>">
                                             <%= utils.formatDateInTimezone(data[i].last_read_at, state.user.timezone).fullString %>
@@ -255,7 +255,7 @@ window.addEventListener('load', handleRowHighlight);
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.usage_count !== false) { %>
-                                <td style="padding: 10px;">
+                                <td data-label="Usage" style="padding: 10px;">
                                     <% const usageCount = data[i].usage_count || 0; %>
                                     <span style="display: flex; align-items: center; gap: 4px;">
                                         <%= usageCount %>
@@ -266,7 +266,7 @@ window.addEventListener('load', handleRowHighlight);
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.actions?.hidden !== false && state.user.hidden_items_password) { %>
-                                <td style="padding: 10px;">
+                                <td data-label="Hidden" style="padding: 10px;">
                                     <% if (data[i].hidden == 1) { %>
                                         ✅
                                     <% } else { %>
@@ -274,7 +274,7 @@ window.addEventListener('load', handleRowHighlight);
                                     <% } %>
                                 </td>
                             <% } %>
-                            <td style="padding: 10px;">
+                            <td data-label="Actions" style="padding: 10px;">
                                 <details style="position: relative;">
                                     <summary aria-label="Actions for <%= utils.stripHtmlTags(data[i].name) %>">Actions</summary>
                                     <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
