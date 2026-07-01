@@ -74,7 +74,7 @@
         "knex": "3.3.0",
         "marked": "18.0.5",
         "node-cron": "4.5.0",
-        "nodemailer": "9.0.2"
+        "nodemailer": "9.0.3"
     },
     "devDependencies": {
         "@playwright/test": "1.61.1",
