@@ -52,14 +52,15 @@ export interface AppSession extends AppSessionData {
 }
 
 export interface AppLocals {
-    state?: Record<string, any>;
-    utils?: Record<string, any>;
+    state?: Record<string, unknown>;
+    utils?: Record<string, unknown>;
     csrfToken?: string;
 }
 
 export interface AppEnv {
     Variables: {
-        body: any;
+        // Loose values on purpose: form bodies are dynamic and handlers validate per-field
+        body: Record<string, any>;
         locals: AppLocals;
         session: AppSession;
         sessionChanged: boolean;
@@ -334,13 +335,6 @@ export type Settings = {
     }>;
 };
 
-export type LayoutOptions = {
-    /** Default layout file path relative to views directory */
-    defaultLayout?: string;
-    /** Layout directory path relative to views directory */
-    layoutsDir?: string;
-};
-
 export type TurnstileVerifyResponse = {
     success: boolean;
     'error-codes'?: string[];
@@ -406,11 +400,6 @@ export interface Services {
 
 export interface TemplateUtils {
     render: (view: string, opts?: object) => string;
-    engine: (
-        filePath: string,
-        opts: object,
-        callback: (err: Error | null, html?: string) => void,
-    ) => void;
 }
 
 export interface Utilities {

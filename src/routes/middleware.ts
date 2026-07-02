@@ -26,7 +26,7 @@ interface RateBucket {
 let cachedStaticLocals: {
     copyRightYear: number;
     version: { style: string | number; script: string | number };
-    utils: Record<string, any>;
+    utils: Record<string, unknown>;
 } | null = null;
 
 export function createBodyParserMiddleware(): AppMiddleware {
@@ -42,19 +42,16 @@ export function createBodyParserMiddleware(): AppMiddleware {
             return next();
         }
 
-        if (contentType.includes('application/x-www-form-urlencoded')) {
-            c.set('body', parseFormBody(await c.req.text()));
-            return next();
-        }
-
-        if (contentType.includes('multipart/form-data')) {
-            const body = await c.req.parseBody({ all: true });
-            c.set('body', normalizeParsedBody(body));
+        if (
+            contentType.includes('application/x-www-form-urlencoded') ||
+            contentType.includes('multipart/form-data')
+        ) {
+            c.set('body', normalizeParsedBody(await c.req.parseBody({ all: true })));
             return next();
         }
 
         c.set('body', {});
-        await next();
+        return next();
     };
 }
 
@@ -177,11 +174,10 @@ export function createErrorMiddleware(ctx: AppContext) {
             userId: c.get('user')?.id || session?.user?.id,
         });
 
-        if (!(error instanceof ctx.errors.HttpError)) {
-            error = new ctx.errors.HttpError(500, error.message);
-        }
-
-        const httpError = error as any;
+        const httpError =
+            error instanceof ctx.errors.HttpError
+                ? error
+                : new ctx.errors.HttpError(500, error.message);
         const statusCode = httpError.statusCode || 500;
         const message =
             httpError.message ||
@@ -194,12 +190,8 @@ export function createErrorMiddleware(ctx: AppContext) {
                 session.errors = { general: message };
             }
 
-            session.input = body as Record<string, any>;
-            setFlash(
-                c,
-                'error',
-                Object.values(session.errors as Record<string, string>).join(', '),
-            );
+            session.input = body;
+            setFlash(c, 'error', Object.values(session.errors ?? {}).join(', '));
 
             if (c.req.path === '/login') {
                 return c.redirect('/?modal=login');
@@ -281,7 +273,7 @@ export function createAppLocalStateMiddleware(ctx: AppContext): AppMiddleware {
         const session = c.get('session');
 
         if (FORM_DATA_METHODS.has(c.req.method)) {
-            session.input = (c.get('body') ?? {}) as Record<string, any>;
+            session.input = c.get('body') ?? {};
         }
 
         const locals = await buildAppLocals(ctx, c);
@@ -392,7 +384,7 @@ export function createTurnstileMiddleware(ctx: AppContext): AppMiddleware {
 
         const body = c.get('body') ?? {};
         const token = body['cf-turnstile-response'];
-        if (!token) {
+        if (typeof token !== 'string' || !token) {
             throw new ctx.errors.ValidationError({
                 email: 'Turnstile verification failed: Missing token',
             });
@@ -403,7 +395,7 @@ export function createTurnstileMiddleware(ctx: AppContext): AppMiddleware {
     };
 }
 
-async function buildAppLocals(ctx: AppContext, c: AppContextContext): Promise<AppLocals> {
+function getStaticLocals(ctx: AppContext) {
     if (!cachedStaticLocals) {
         const isProd = ctx.config.app.env === 'production';
         const assetVersions = isProd ? ctx.utils.assets.getAssetVersions() : null;
@@ -426,7 +418,11 @@ async function buildAppLocals(ctx: AppContext, c: AppContextContext): Promise<Ap
             },
         };
     }
+    return cachedStaticLocals;
+}
 
+async function buildAppLocals(ctx: AppContext, c: AppContextContext): Promise<AppLocals> {
+    const staticLocals = getStaticLocals(ctx);
     const session = c.get('session');
     const sessionUser = session?.user;
     const userWithParsedPrefs = sessionUser
@@ -440,21 +436,21 @@ async function buildAppLocals(ctx: AppContext, c: AppContextContext): Promise<Ap
 
     return {
         csrfToken: session.csrfToken ?? '',
-        utils: cachedStaticLocals.utils,
+        utils: staticLocals.utils,
         state: {
             cloudflare_turnstile_site_key: ctx.config.cloudflare.turnstileSiteKey,
             env: ctx.config.app.env,
             user: c.get('user') ?? userWithParsedPrefs,
-            copyRightYear: cachedStaticLocals.copyRightYear,
-            input: (session?.input as Record<string, string>) || {},
-            errors: (session?.errors as Record<string, string>) || {},
+            copyRightYear: staticLocals.copyRightYear,
+            input: session?.input ?? {},
+            errors: session?.errors ?? {},
             flash: {
                 success: getFlashMessages(c, 'success'),
                 error: getFlashMessages(c, 'error'),
                 info: getFlashMessages(c, 'info'),
                 warning: getFlashMessages(c, 'warning'),
             },
-            version: cachedStaticLocals.version,
+            version: staticLocals.version,
             branding: await ctx.models.settings.getBranding(),
         },
     };
@@ -474,40 +470,19 @@ function getLocals(ctx: AppContext, c: AppContextContext) {
     const locals = c.get('locals');
     if (locals?.state) return locals;
 
-    if (!cachedStaticLocals) {
-        const isProd = ctx.config.app.env === 'production';
-        const assetVersions = isProd ? ctx.utils.assets.getAssetVersions() : null;
-        cachedStaticLocals = {
-            copyRightYear: ctx.utils.date.currentYear(),
-            version: {
-                style: assetVersions?.style ?? Math.random(),
-                script: assetVersions?.script ?? Math.random(),
-            },
-            utils: {
-                nl2br: ctx.utils.html.nl2br,
-                truncateString: ctx.utils.util.truncateString,
-                capitalize: ctx.utils.util.capitalize,
-                getFaviconUrl: ctx.utils.util.getFaviconUrl,
-                getScreenshotUrl: ctx.utils.util.getScreenshotUrl,
-                isUrlLike: ctx.utils.validation.isUrlLike,
-                stripHtmlTags: ctx.utils.html.stripHtmlTags,
-                highlightSearchTerm: ctx.utils.html.highlightSearchTerm,
-                formatDateInTimezone: ctx.utils.date.formatDateInTimezone,
-            },
-        };
-    }
+    const staticLocals = getStaticLocals(ctx);
 
     const fallback = {
         csrfToken: c.get('session')?.csrfToken ?? '',
-        utils: cachedStaticLocals.utils,
+        utils: staticLocals.utils,
         state: {
             env: ctx.config.app.env,
             user: c.get('user') ?? c.get('session')?.user,
-            copyRightYear: cachedStaticLocals.copyRightYear,
+            copyRightYear: staticLocals.copyRightYear,
             input: {},
             errors: {},
             flash: { success: [], error: [], info: [], warning: [] },
-            version: cachedStaticLocals.version,
+            version: staticLocals.version,
             cloudflare_turnstile_site_key: ctx.config.cloudflare.turnstileSiteKey,
             branding: {
                 appName: 'Bang',
@@ -528,7 +503,7 @@ function createSession(
     sid: string,
     data: AppSessionData,
 ): AppSession {
-    const session = {
+    const session: AppSession = {
         ...data,
         id: sid,
         save(callback?: (error?: Error) => void) {
@@ -546,7 +521,7 @@ function createSession(
             c.set('sessionChanged', true);
             callback?.();
         },
-    } as AppSession;
+    };
 
     return session;
 }
@@ -568,11 +543,7 @@ async function loadSession(ctx: AppContext, sid: string): Promise<AppSessionData
 }
 
 async function saveSession(ctx: AppContext, session: AppSession) {
-    const data = { ...session } as Record<string, unknown>;
-    delete data.id;
-    delete data.save;
-    delete data.destroy;
-    delete data.regenerate;
+    const { id: _id, save: _save, destroy: _destroy, regenerate: _regenerate, ...data } = session;
 
     await ctx
         .db('sessions')
@@ -593,59 +564,61 @@ function hasSessionData(session: AppSession) {
     return false;
 }
 
-function parseFormBody(rawBody: string) {
-    const params = new URLSearchParams(rawBody);
-    const body: Record<string, any> = {};
-    for (const [rawKey, value] of params.entries()) {
-        assignFormValue(body, rawKey, value);
-    }
-    return body;
-}
-
 function normalizeParsedBody(rawBody: Record<string, unknown>) {
-    const body: Record<string, any> = {};
+    const body: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(rawBody)) {
         assignFormValue(body, key, value);
     }
     return body;
 }
 
-function assignFormValue(body: Record<string, any>, rawKey: string, value: unknown) {
+function assignFormValue(body: Record<string, unknown>, rawKey: string, value: unknown) {
     const parts = rawKey
         .replace(/\]/g, '')
         .split('[')
         .filter((part) => part.length > 0);
+    const firstPart = parts[0];
+    if (firstPart == null) return;
 
-    if (parts.length === 0) return;
+    // parseBody({ all: true }) already returns arrays for `key[]` fields
     if (rawKey.endsWith('[]') && parts.length === 1) {
-        body[parts[0]!] ??= [];
-        body[parts[0]!].push(value);
+        const values = Array.isArray(value) ? value : [value];
+        const existing = body[firstPart];
+        body[firstPart] = Array.isArray(existing) ? [...existing, ...values] : values;
         return;
     }
 
     let current = body;
     for (let i = 0; i < parts.length; i++) {
-        const part = parts[i]!;
+        const part = parts[i];
+        if (part == null) continue;
         const isLast = i === parts.length - 1;
         if (isLast) {
-            if (current[part] == null) {
+            const existing = current[part];
+            if (existing == null) {
                 current[part] = value;
-            } else if (Array.isArray(current[part])) {
-                current[part].push(value);
+            } else if (Array.isArray(existing)) {
+                existing.push(value);
             } else {
-                current[part] = [current[part], value];
+                current[part] = [existing, value];
             }
             continue;
         }
 
-        current[part] ??= {};
-        current = current[part];
+        const next = current[part];
+        if (next != null && typeof next === 'object' && !Array.isArray(next)) {
+            current = next as Record<string, unknown>;
+        } else {
+            const nested: Record<string, unknown> = {};
+            current[part] = nested;
+            current = nested;
+        }
     }
 }
 
 function getClientIp(c: AppContextContext): string {
-    const forwarded = c.req.header('x-forwarded-for');
-    if (forwarded != null) return forwarded.split(',')[0]!.trim();
+    const forwarded = c.req.header('x-forwarded-for')?.split(',')[0]?.trim();
+    if (forwarded) return forwarded;
     const real = c.req.header('x-real-ip');
     if (real != null) return real.trim();
     try {

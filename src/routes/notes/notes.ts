@@ -84,7 +84,7 @@ export function createNotesRouter(ctx: AppContext) {
         ctx.utils.html.applyHighlighting(markdownRemovedData, ['title', 'content'], search);
 
         return renderView(ctx, c, 'notes/notes-index.html', {
-            user: c.get('session').user,
+            user: c.get('user'),
             title: 'Notes',
             path: '/notes',
             layout: '_layouts/auth.html',

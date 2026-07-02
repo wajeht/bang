@@ -1,4 +1,6 @@
 import { config } from './config.js';
+import { readdirSync } from 'node:fs';
+import { Server as HttpServer } from 'node:http';
 import { Socket } from 'node:net';
 import { serve, type ServerType } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
@@ -32,19 +34,20 @@ export async function createApp() {
         }
     }
 
-    const onStaticFound = (_path: string, c: import('hono').Context) => {
-        c.header('Cache-Control', STATIC_CACHE_CONTROL);
-        c.header('Vary', 'Accept-Encoding');
-    };
-
     app.use(trimTrailingSlash());
-    app.use(
-        '/*',
-        serveStatic({
-            root: './public',
-            onFound: onStaticFound,
-        }),
-    );
+    // public/ is flat — mount each file explicitly so dynamic routes skip the fs check.
+    // Headers set before serveStatic because it builds the response before onFound runs.
+    for (const file of readdirSync('./public')) {
+        app.use(
+            `/${file}`,
+            async (c, next) => {
+                c.header('Cache-Control', STATIC_CACHE_CONTROL);
+                c.header('Vary', 'Accept-Encoding');
+                return next();
+            },
+            serveStatic({ root: './public' }),
+        );
+    }
     app.use(
         '*',
         requestId({
@@ -133,12 +136,13 @@ export async function createServer() {
     const { app, ctx } = await createApp();
 
     const server = serve({ fetch: app.fetch, port: config.app.port });
-    const nodeServer = server as any;
 
-    nodeServer.timeout = 120000;
-    nodeServer.keepAliveTimeout = 65000;
-    nodeServer.headersTimeout = 66000;
-    nodeServer.requestTimeout = 120000;
+    if (server instanceof HttpServer) {
+        server.timeout = 120000;
+        server.keepAliveTimeout = 65000;
+        server.headersTimeout = 66000;
+        server.requestTimeout = 120000;
+    }
 
     server.on('connection', (socket: Socket) => {
         activeSockets.add(socket);

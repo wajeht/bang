@@ -107,6 +107,7 @@ export function createDate(_context: AppContext) {
                 month: 'long',
                 day: 'numeric',
                 year: 'numeric',
+                timeZone: timezone,
             }).format(new Date(dateValue.toInstant().epochMilliseconds));
         },
 

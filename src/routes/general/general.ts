@@ -1,12 +1,5 @@
 import { bangs } from '../../db/bang.js';
-import type {
-    AppContext,
-    AppContextContext,
-    AppEnv,
-    Bang,
-    BangWithLowercase,
-    User,
-} from '../../type.js';
+import type { AppContext, AppContextContext, AppEnv, Bang, BangWithLowercase } from '../../type.js';
 import { renderView, setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
@@ -63,7 +56,7 @@ export function createGeneralRouter(ctx: AppContext) {
 
     router.get('/', async (c: AppContextContext) => {
         const searchQuery = c.req.query('q')?.trim() ?? '';
-        const user = c.get('session').user as User | undefined;
+        const user = c.get('session').user ?? undefined;
 
         if (!searchQuery) {
             return renderView(ctx, c, 'general/home.html', {

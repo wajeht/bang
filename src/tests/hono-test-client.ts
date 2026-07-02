@@ -208,13 +208,12 @@ class HonoTestClient {
     }
 }
 
-function request(app: HonoTestApp) {
+export function request(app: HonoTestApp) {
     return new HonoTestClient(app);
 }
 
 request.agent = (app: HonoTestApp) => new HonoTestClient(app);
 
-export default request;
 export type HonoTestAgent = HonoTestClient;
 export type HonoTestRequestChain = HonoTestRequest;
 
@@ -224,7 +223,18 @@ async function buildTestResponse(response: Response): Promise<HonoTestResponse> 
         [...response.headers.entries()].map(([key, value]) => [key.toLowerCase(), value]),
     );
     const contentType = headers['content-type'] ?? '';
-    const body = contentType.includes('application/json') && text ? JSON.parse(text) : {};
+
+    let body: unknown = {};
+    if (contentType.includes('application/json') && text) {
+        try {
+            body = JSON.parse(text);
+        } catch (error) {
+            throw new Error(
+                `Response declared application/json but body is not valid JSON: ${text.slice(0, 200)}`,
+                { cause: error },
+            );
+        }
+    }
 
     return {
         body,

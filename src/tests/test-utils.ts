@@ -1,4 +1,4 @@
-import request from './hono-test-client.js';
+import { request } from './hono-test-client.js';
 import { ctx, createTestUser } from './test-setup.js';
 import type { HonoTestAgent, HonoTestRequestChain } from './hono-test-client.js';
 import type { AppEnv } from '../type.js';

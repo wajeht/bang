@@ -27,7 +27,7 @@ export function createActionsRouter(ctx: AppContext) {
         ctx.utils.html.applyHighlighting(data, ['name', 'trigger', 'url'], search);
 
         return renderView(ctx, c, 'actions/actions-index.html', {
-            user: c.get('session').user,
+            user: c.get('user'),
             path: '/actions',
             title: 'Actions',
             layout: '_layouts/auth.html',

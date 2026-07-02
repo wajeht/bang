@@ -1,7 +1,7 @@
 /// <reference lib="esnext.temporal" />
 
 import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/test-utils.js';
-import request from '../../tests/hono-test-client.js';
+import { request } from '../../tests/hono-test-client.js';
 import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect } from 'vite-plus/test';
 

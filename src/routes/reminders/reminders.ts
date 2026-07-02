@@ -12,7 +12,7 @@ export function createRemindersRouter(ctx: AppContext) {
             title: 'Reminders / New',
             path: '/reminders/create',
             layout: '_layouts/auth.html',
-            user: c.get('session').user,
+            user: c.get('user'),
             timingOptions: ctx.utils.search.reminderTimingConfig.getAllOptions(),
         });
     });
@@ -31,14 +31,14 @@ export function createRemindersRouter(ctx: AppContext) {
             title: 'Reminders / Edit',
             path: `/reminders/${reminderId}/edit`,
             layout: '_layouts/auth.html',
-            user: c.get('session').user,
+            user: c.get('user'),
             reminder,
             timingOptions: ctx.utils.search.reminderTimingConfig.getAllOptions(),
         });
     });
 
     router.get('/reminders/:id/bookmarks/create', ctx.middleware.authentication, async (c) => {
-        const user = c.get('session').user as User;
+        const user = c.get('user') as User;
         const reminderId = parseInt(c.req.param('id') ?? '', 10);
 
         const reminder = await ctx.models.reminders.read(reminderId, user.id);
@@ -51,13 +51,13 @@ export function createRemindersRouter(ctx: AppContext) {
             title: `Reminders / ${reminderId} / Bookmarks / Create`,
             path: `/reminders/${reminderId}/bookmarks/create`,
             layout: '_layouts/auth.html',
-            user: c.get('session').user,
+            user: c.get('user'),
             reminder,
         });
     });
 
     router.post('/reminders/:id/bookmarks', ctx.middleware.authentication, async (c) => {
-        const user = c.get('session').user as User;
+        const user = c.get('user') as User;
         const reminderId = parseInt(c.req.param('id') ?? '', 10);
         const { url, title, pinned, delete_reminder } = c.get('body');
 

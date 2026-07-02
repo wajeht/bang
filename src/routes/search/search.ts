@@ -8,7 +8,7 @@ export function createSearchRouter(ctx: AppContext) {
     router.post('/search', async (c: AppContextContext) => {
         const body = c.get('body');
         const query = body.q?.toString().trim() || '';
-        const user = c.get('session').user as User;
+        const user = c.get('session').user ?? undefined;
 
         return (await ctx.utils.search.search({ c, user, query })) ?? c.body(null);
     });

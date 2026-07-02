@@ -30,7 +30,7 @@ export function createSettingsRouter(ctx: AppContext) {
 
     router.get('/settings/account', ctx.middleware.authentication, async (c) => {
         return renderView(ctx, c, 'settings/settings-account.html', {
-            user: c.get('session').user,
+            user: c.get('user'),
             title: 'Settings Account',
             path: '/settings/account',
             layout: '_layouts/settings.html',
@@ -42,7 +42,7 @@ export function createSettingsRouter(ctx: AppContext) {
 
     router.get('/settings/data', ctx.middleware.authentication, async (c) => {
         return renderView(ctx, c, 'settings/settings-data.html', {
-            user: c.get('session').user,
+            user: c.get('user'),
             title: 'Settings Data',
             path: '/settings/data',
             layout: '_layouts/settings.html',
@@ -51,7 +51,7 @@ export function createSettingsRouter(ctx: AppContext) {
 
     router.get('/settings/danger-zone', ctx.middleware.authentication, async (c) => {
         return renderView(ctx, c, 'settings/settings-danger-zone.html', {
-            user: c.get('session').user,
+            user: c.get('user'),
             title: 'Settings Danger Zone',
             path: '/settings/danger-zone',
             layout: '_layouts/settings.html',

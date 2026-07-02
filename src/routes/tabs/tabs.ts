@@ -10,7 +10,7 @@ export function createTabsRouter(ctx: AppContext) {
             title: 'Tabs / Create',
             path: '/tabs/create',
             layout: '_layouts/auth.html',
-            user: c.get('session').user,
+            user: c.get('user'),
         });
     });
 
@@ -26,13 +26,13 @@ export function createTabsRouter(ctx: AppContext) {
             title: 'Tabs / Edit',
             path: `/tabs/${String(c.req.param('id'))}/edit`,
             layout: '_layouts/auth.html',
-            user: c.get('session').user,
+            user: c.get('user'),
             tab,
         });
     });
 
     router.get('/tabs/:id/launch', ctx.middleware.authentication, async (c) => {
-        const user = c.get('session').user as User;
+        const user = c.get('user') as User;
         const id = c.req.param('id');
 
         const tabGroup = await ctx.models.tabs.read(parseInt(id ?? '', 10), user.id);
@@ -52,7 +52,7 @@ export function createTabsRouter(ctx: AppContext) {
     });
 
     router.get('/tabs/:id/items/create', ctx.middleware.authentication, async (c) => {
-        const user = c.get('session').user as User;
+        const user = c.get('user') as User;
         const tabId = c.req.param('id');
         const tab = await ctx.db('tabs').where({ id: tabId, user_id: user.id }).first();
 

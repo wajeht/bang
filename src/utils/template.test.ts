@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { libs } from '../libs.js';
 import { config } from '../config.js';
 import { createTemplate } from './template.js';
@@ -16,22 +15,14 @@ beforeAll(() => {
     templateUtils = createTemplate(mockContext);
 });
 
-function renderTemplate(filePath: string, opts: object): Promise<string> {
-    return new Promise((resolve, reject) => {
-        templateUtils.engine(filePath, opts, (err, html) => {
-            if (err) reject(err);
-            else resolve(html!);
-        });
-    });
+function renderTemplate(view: string, opts: object): string {
+    return templateUtils.render(view, { ...opts, layout: false });
 }
 
 describe('TemplateUtils', () => {
-    describe('engine', () => {
-        it('should render a component template with escaped output', async () => {
-            const viewsDir = path.join(process.cwd(), 'src/routes');
-            const filePath = path.join(viewsDir, '_components/inputs/text.html');
-
-            const html = await renderTemplate(filePath, {
+    describe('render', () => {
+        it('should render a component template with escaped output', () => {
+            const html = renderTemplate('_components/inputs/text.html', {
                 id: 'test-input',
                 name: 'testField',
                 label: 'Test Label',
@@ -51,18 +42,12 @@ describe('TemplateUtils', () => {
             expect(html).toContain('This is help text');
         });
 
-        it('should handle template errors gracefully', async () => {
-            const viewsDir = path.join(process.cwd(), 'src/routes');
-            const filePath = path.join(viewsDir, 'nonexistent/template.html');
-
-            await expect(renderTemplate(filePath, {})).rejects.toThrow();
+        it('should handle template errors gracefully', () => {
+            expect(() => renderTemplate('nonexistent/template.html', {})).toThrow();
         });
 
-        it('should escape HTML in escaped output tags', async () => {
-            const viewsDir = path.join(process.cwd(), 'src/routes');
-            const filePath = path.join(viewsDir, '_components/inputs/text.html');
-
-            const html = await renderTemplate(filePath, {
+        it('should escape HTML in escaped output tags', () => {
+            const html = renderTemplate('_components/inputs/text.html', {
                 id: 'xss-test',
                 name: 'xssField',
                 label: '<script>alert("xss")</script>',
@@ -75,11 +60,8 @@ describe('TemplateUtils', () => {
             expect(html).toContain('&lt;script&gt;');
         });
 
-        it('should handle conditional rendering', async () => {
-            const viewsDir = path.join(process.cwd(), 'src/routes');
-            const filePath = path.join(viewsDir, '_components/inputs/checkbox.html');
-
-            const html = await renderTemplate(filePath, {
+        it('should handle conditional rendering', () => {
+            const html = renderTemplate('_components/inputs/checkbox.html', {
                 id: 'checkbox-test',
                 name: 'checkboxField',
                 label: 'Check me',
@@ -92,11 +74,8 @@ describe('TemplateUtils', () => {
             expect(html).toContain('Check me');
         });
 
-        it('should handle loop rendering in select options', async () => {
-            const viewsDir = path.join(process.cwd(), 'src/routes');
-            const filePath = path.join(viewsDir, '_components/inputs/select.html');
-
-            const html = await renderTemplate(filePath, {
+        it('should handle loop rendering in select options', () => {
+            const html = renderTemplate('_components/inputs/select.html', {
                 id: 'select-test',
                 name: 'selectField',
                 label: 'Choose one',
@@ -114,11 +93,8 @@ describe('TemplateUtils', () => {
             expect(html).toContain('value="b"');
         });
 
-        it('should render templates with nested includes', async () => {
-            const viewsDir = path.join(process.cwd(), 'src/routes');
-            const filePath = path.join(viewsDir, '_components/inputs/radio.html');
-
-            const html = await renderTemplate(filePath, {
+        it('should render templates with nested includes', () => {
+            const html = renderTemplate('_components/inputs/radio.html', {
                 name: 'gender',
                 legend: 'Select Gender',
                 required: true,
@@ -136,11 +112,8 @@ describe('TemplateUtils', () => {
             expect(html).toContain('Choose your gender');
         });
 
-        it('should handle textarea component', async () => {
-            const viewsDir = path.join(process.cwd(), 'src/routes');
-            const filePath = path.join(viewsDir, '_components/inputs/textarea.html');
-
-            const html = await renderTemplate(filePath, {
+        it('should handle textarea component', () => {
+            const html = renderTemplate('_components/inputs/textarea.html', {
                 id: 'message',
                 name: 'message',
                 label: 'Your Message',
@@ -166,7 +139,7 @@ describe('TemplateUtils', () => {
 
             const prodTemplateUtils = createTemplate(prodContext);
             expect(prodTemplateUtils).toBeDefined();
-            expect(prodTemplateUtils.engine).toBeDefined();
+            expect(prodTemplateUtils.render).toBeDefined();
         });
     });
 });

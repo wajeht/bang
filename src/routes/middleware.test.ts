@@ -61,6 +61,53 @@ describe('middleware', () => {
         expect(await response.json()).toEqual({ userId: user.id });
     });
 
+    it('parses urlencoded bodies with nested brackets and array fields', async () => {
+        const app = createMiddlewareApp(ctx);
+
+        app.post('/body', (c: AppContextContext) => c.json(c.get('body')));
+
+        const form = new URLSearchParams();
+        form.append('username', 'jaw');
+        form.append('column_preferences[bookmarks][title]', 'on');
+        form.append('column_preferences[bookmarks][default_per_page]', '10');
+        form.append('id[]', '1');
+        form.append('id[]', '2');
+
+        const response = await app.request('http://localhost/body', {
+            method: 'POST',
+            headers: { 'content-type': 'application/x-www-form-urlencoded' },
+            body: form.toString(),
+        });
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toEqual({
+            username: 'jaw',
+            column_preferences: {
+                bookmarks: { title: 'on', default_per_page: '10' },
+            },
+            id: ['1', '2'],
+        });
+    });
+
+    it('parses multipart bodies with array fields', async () => {
+        const app = createMiddlewareApp(ctx);
+
+        app.post('/body', (c: AppContextContext) => c.json(c.get('body')));
+
+        const formData = new FormData();
+        formData.append('title', 'hello');
+        formData.append('id[]', '3');
+        formData.append('id[]', '4');
+
+        const response = await app.request('http://localhost/body', {
+            method: 'POST',
+            body: formData,
+        });
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toEqual({ title: 'hello', id: ['3', '4'] });
+    });
+
     it('rejects unsafe requests without a csrf token', async () => {
         const app = createMiddlewareApp(ctx);
 
@@ -111,8 +158,9 @@ describe('middleware', () => {
         app.use('*', ctx.middleware.appLocalState);
         app.get('/', (c: AppContextContext) => {
             const locals = c.get('locals');
+            const branding = locals.state?.branding as { appName?: string } | undefined;
             return c.json({
-                appName: locals.state?.branding?.appName,
+                appName: branding?.appName,
                 csrfToken: locals.csrfToken,
             });
         });

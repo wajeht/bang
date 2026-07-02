@@ -31,19 +31,5 @@ export function createTemplate(context: AppContext) {
                 layout: undefined,
             });
         },
-
-        engine(
-            filePath: string,
-            opts: object,
-            callback: (err: Error | null, html?: string) => void,
-        ) {
-            try {
-                const viewName = './' + path.relative(viewsDir, filePath);
-                const renderedTemplate = eta.render(viewName, opts as Record<string, unknown>);
-                callback(null, renderedTemplate);
-            } catch (error) {
-                callback(error as Error);
-            }
-        },
     };
 }

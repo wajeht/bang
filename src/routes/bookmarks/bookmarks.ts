@@ -27,7 +27,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         ctx.utils.html.applyHighlighting(data, ['title', 'url'], search);
 
         return renderView(ctx, c, 'bookmarks/bookmarks-index.html', {
-            user: c.get('session').user,
+            user: c.get('user'),
             title: 'Bookmarks',
             path: '/bookmarks',
             layout: '_layouts/auth.html',
@@ -50,7 +50,7 @@ export function createBookmarksRouter(ctx: AppContext) {
     });
 
     router.get('/bookmarks/export', ctx.middleware.authentication, async (c) => {
-        const userId = c.get('session').user?.id;
+        const userId = c.get('user')?.id;
 
         if (!userId) {
             throw new ctx.errors.NotFoundError('User not found');
@@ -125,7 +125,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             .db('bookmarks')
             .where({
                 id: c.req.param('id'),
-                user_id: c.get('session').user?.id,
+                user_id: c.get('user')?.id,
             })
             .first();
 

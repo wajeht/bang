@@ -18,7 +18,7 @@ export function createAdminRouter(ctx: AppContext) {
             const branding = await ctx.models.settings.getBranding();
 
             return renderView(ctx, c, 'admin/admin-settings-identity.html', {
-                user: c.get('session').user,
+                user: c.get('user'),
                 title: 'Admin / Identity',
                 path: '/admin/settings/identity',
                 layout: '_layouts/admin.html',
@@ -53,7 +53,7 @@ export function createAdminRouter(ctx: AppContext) {
             const branding = await ctx.models.settings.getBranding();
 
             return renderView(ctx, c, 'admin/admin-settings-visibility.html', {
-                user: c.get('session').user,
+                user: c.get('user'),
                 title: 'Admin / Visibility',
                 path: '/admin/settings/visibility',
                 layout: '_layouts/admin.html',
@@ -103,7 +103,7 @@ export function createAdminRouter(ctx: AppContext) {
                 .paginate({ perPage, currentPage: page, isLengthAware: true });
 
             return renderView(ctx, c, 'admin/admin-users-index.html', {
-                user: c.get('session').user,
+                user: c.get('user'),
                 title: 'Admin / Users',
                 path: '/admin/users',
                 layout: '_layouts/admin.html',
