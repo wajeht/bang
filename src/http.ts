@@ -1,6 +1,6 @@
 import path from 'node:path';
-import { Hono } from 'hono';
 import type { Context, MiddlewareHandler } from 'hono';
+import { OpenAPIHono } from '@hono/zod-openapi';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { AppContext, ApiKeyPayload, Logger, User } from './type.js';
@@ -138,6 +138,7 @@ export interface AppEnv {
         session: AppSession;
         sessionChanged: boolean;
         sessionDestroyed: boolean;
+        requestId: string;
         user: User | undefined;
         apiKeyPayload: ApiKeyPayload | null;
         logger: Logger;
@@ -151,10 +152,12 @@ export type AppHandler = (
     res: AppResponse,
 ) => Promise<Response | void> | Response | void;
 
-export function createHonoApp(): Hono<AppEnv>;
+export type AppOpenAPIHono = OpenAPIHono<AppEnv>;
+
+export function createHonoApp(): AppOpenAPIHono;
 export function createHonoApp(ctx: AppContext): any;
 export function createHonoApp(ctx?: AppContext) {
-    const app = new Hono<AppEnv>();
+    const app = new OpenAPIHono<AppEnv>();
     if (!ctx) return app;
 
     for (const method of ['get', 'post', 'put', 'patch', 'delete'] as const) {

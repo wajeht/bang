@@ -11,16 +11,6 @@ import { createBookmarksRouter } from './bookmarks/bookmarks.js';
 import { createRemindersRouter } from './reminders/reminders.js';
 import { createHonoApp } from '../http.js';
 
-/**
- * @swagger
- * components:
- *   securitySchemes:
- *     BearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
- */
-
 export function createRouter(ctx: AppContext) {
     const router = createHonoApp();
 

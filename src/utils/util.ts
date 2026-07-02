@@ -320,10 +320,17 @@ export function createUtil(context: AppContext) {
             const client = url.startsWith('https') ? https : http;
 
             return new Promise<string>((resolve) => {
+                let isResolved = false;
+                function finish(title: string) {
+                    if (isResolved) return;
+                    isResolved = true;
+                    resolve(title);
+                }
+
                 const req = client.get(
                     url,
                     {
-                        timeout: 5000,
+                        timeout: 3000,
                         headers: {
                             Accept: 'text/html',
                             'User-Agent':
@@ -333,7 +340,7 @@ export function createUtil(context: AppContext) {
                     (res) => {
                         if (res.statusCode !== 200) {
                             req.destroy();
-                            return resolve('Untitled');
+                            return finish('Untitled');
                         }
 
                         let isTitleFound = false;
@@ -345,19 +352,23 @@ export function createUtil(context: AppContext) {
                                 const match = titleRegex.exec(chunk);
                                 if (match && match[1]) {
                                     isTitleFound = true;
-                                    resolve(match[1].slice(0, 100).trim());
+                                    finish(match[1].slice(0, 100).trim());
                                     req.destroy();
                                 }
                             }
                         });
 
                         res.on('end', () => {
-                            if (!isTitleFound) resolve('Untitled');
+                            if (!isTitleFound) finish('Untitled');
                         });
                     },
                 );
 
-                req.on('error', () => resolve('Untitled'));
+                req.on('timeout', () => {
+                    req.destroy();
+                    finish('Untitled');
+                });
+                req.on('error', () => finish('Untitled'));
                 req.end();
             });
         },

@@ -22,7 +22,7 @@ let cachedStaticLocals: {
 
 export function createRequestLoggerMiddleware(ctx: AppContext): AppMiddleware {
     return honoMiddleware(async (c, next) => {
-        const requestId = ctx.libs.crypto.randomUUID().slice(0, 8);
+        const requestId = c.get('requestId') || ctx.libs.crypto.randomUUID().slice(0, 8);
         const start = Date.now();
         const logger = ctx.logger.tag('requestId', requestId).tag('method', c.req.method);
 

@@ -170,13 +170,13 @@ async function minifyJavaScript(): Promise<MinificationSummary> {
                     logLevel: 'error',
                 });
             } else {
-                // Use terser for server files - preserves JSDoc comments for swagger
+                // Use terser for server files after TypeScript has emitted production JS.
                 const code = fs.readFileSync(file, 'utf8');
                 const out = await terserMinify(code, {
                     compress: true,
                     mangle: true,
                     format: {
-                        comments: true,
+                        comments: false,
                     },
                 });
                 fs.writeFileSync(file, out.code ?? code, 'utf8');

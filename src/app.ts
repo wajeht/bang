@@ -2,12 +2,17 @@ import { config } from './config.js';
 import { Socket } from 'node:net';
 import { serve, type ServerType } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
+import { swaggerUI } from '@hono/swagger-ui';
+import { bodyLimit } from 'hono/body-limit';
 import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
+import { etag } from 'hono/etag';
+import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 import { trimTrailingSlash } from 'hono/trailing-slash';
 import { createContext } from './context.js';
 import type { AppContext } from './type.js';
+import { registerApiDocs } from './routes/api-docs.js';
 import { createRouter } from './routes/routes.js';
 import { createBodyParserMiddleware, createHonoApp } from './http.js';
 
@@ -41,10 +46,24 @@ export async function createApp() {
             onFound: onStaticFound,
         }),
     );
+    app.use(
+        '*',
+        requestId({
+            generator: () => ctx.libs.crypto.randomUUID().slice(0, 8),
+        }),
+    );
     app.use('*', ctx.middleware.session);
     app.use('*', ctx.middleware.requestLogger);
+    app.use(
+        '*',
+        bodyLimit({
+            maxSize: 5 * 1024 * 1024,
+            onError: (c) => c.json({ message: 'Payload too large' }, 413),
+        }),
+    );
     app.use('*', createBodyParserMiddleware());
     app.use('*', compress());
+    app.use('*', etag());
     app.use(
         '*',
         cors({
@@ -67,6 +86,7 @@ export async function createApp() {
                     'blob:',
                     ctx.config.app.appUrl,
                     '*.cloudflare.com',
+                    'https://cdn.jsdelivr.net',
                     'https://umami.jaw.dev',
                 ],
                 scriptSrcElem: [
@@ -74,10 +94,17 @@ export async function createApp() {
                     "'unsafe-inline'",
                     '*.cloudflare.com',
                     '*.cloudflareinsights.com',
+                    'https://cdn.jsdelivr.net',
                     'https://umami.jaw.dev',
                 ],
                 frameSrc: ["'self'", '*.cloudflare.com'],
                 styleSrc: ["'self'", "'unsafe-inline'", '*.cloudflare.com'],
+                styleSrcElem: [
+                    "'self'",
+                    "'unsafe-inline'",
+                    '*.cloudflare.com',
+                    'https://cdn.jsdelivr.net',
+                ],
                 connectSrc: [
                     "'self'",
                     '*.cloudflare.com',
@@ -86,6 +113,7 @@ export async function createApp() {
                 ],
                 scriptSrcAttr: ["'self'", "'unsafe-inline'"],
                 formAction: ["'self'", 'https:'],
+                workerSrc: ["'self'", 'blob:'],
             },
             referrerPolicy: 'strict-origin-when-cross-origin',
         }),
@@ -95,16 +123,18 @@ export async function createApp() {
     app.use('*', ctx.middleware.csrf);
     app.use('*', ctx.middleware.appLocalState);
 
-    app.get('/api-docs', (c) =>
-        c.html(
-            ctx.utils.template.render('general/about.html', {
-                ...c.get('locals'),
-                path: '/api-docs',
-                title: 'API Docs',
-            }),
-        ),
-    );
     app.route('/', createRouter(ctx));
+    registerApiDocs(app);
+    app.doc('/api-docs/openapi.json', {
+        openapi: '3.1.0',
+        info: {
+            title: 'Bang API',
+            version: ctx.config.app.version,
+            description: 'API for Bang actions, bookmarks, notes, tabs, reminders, and settings.',
+        },
+        servers: [{ url: '/' }],
+    });
+    app.get('/api-docs', swaggerUI({ url: '/api-docs/openapi.json', title: 'Bang API Docs' }));
     app.notFound(ctx.middleware.notFound);
     app.onError(ctx.middleware.errorHandler);
 
