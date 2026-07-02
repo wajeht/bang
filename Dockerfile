@@ -19,7 +19,7 @@ COPY scripts ./scripts
 COPY README.md ./
 
 # Build with TypeScript incremental compilation (excluding tests) and minify
-RUN npm run build:prod && \
+RUN node --run build:prod && \
     rm -rf src/tests src/**/*.test.* && \
     find dist -name "*.map" -delete && \
     find src/routes -name "*.ts" -delete && \
@@ -62,4 +62,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=120s --retries=3 CMD cur
 
 ENV APP_ENV production
 
-CMD ["node", "--no-warnings", "--max-old-space-size=512", "dist/src/server.js"]
+CMD ["node", "--env-file-if-exists=.env", "--no-warnings", "--max-old-space-size=512", "dist/src/server.js"]

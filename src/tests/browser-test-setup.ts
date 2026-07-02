@@ -2,7 +2,7 @@ import { createDb } from './test-db.js';
 
 export default async function globalSetup() {
     if (process.env.CI) {
-        console.log('Skipping database setup in CI (already done via npm run db:prepare:dev)');
+        console.log('Skipping database setup in CI (already done via node --run db:prepare:dev)');
         return;
     }
 

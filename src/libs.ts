@@ -3,7 +3,6 @@ import cors from 'cors';
 import { Eta } from 'eta';
 import bcrypt from 'bcrypt';
 import helmet from 'helmet';
-import dotenv from 'dotenv';
 import cron from 'node-cron';
 import express from 'express';
 import dayjsBase from 'dayjs';
@@ -32,7 +31,6 @@ export const libs = {
     dayjs,
     bcrypt,
     crypto,
-    dotenv,
     nodemailer,
 
     // Markdown & syntax highlighting
