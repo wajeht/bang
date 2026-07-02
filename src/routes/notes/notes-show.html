@@ -12,7 +12,7 @@
             </div>
         </div>
 
-        <div style="display: flex; gap: 10px;">
+        <nav style="display: flex; gap: 10px;" aria-label="Note management controls">
             <button type="button" onclick="location.href='/notes'" aria-label="Go back to notes list">← Back to Notes</button>
             <form method="POST" action="/notes/<%= note.id %>/pin" style="display: inline;">
                 <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
@@ -24,7 +24,7 @@
             <button type="button" onclick="location.href='/notes/<%= note.id %>/download'" aria-label="Download this note as markdown">⬇️ Download</button>
             <button type="button" onclick="location.href='/notes/<%= note.id %>/edit'" aria-label="Edit this note">✏️ Edit</button>
             <button type="button" onclick="document.getElementById('delete-note-modal').showModal()" aria-label="Delete this note">🗑️ Delete</button>
-        </div>
+        </nav>
     </header>
 
     <article style="background-color: var(--background-color); border-style: solid; border-width: 1px; border-radius: 4px; border-color: var(--card-border-color); padding: 20px; display: flex; flex-direction: column; gap: 10px;">

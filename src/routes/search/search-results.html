@@ -57,27 +57,27 @@
                         <% if (results.bookmarks.data && results.bookmarks.data.length > 0) { %>
                             <% results.bookmarks.data.forEach(function(bookmark) { %>
                                 <tr>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Type" style="padding: 10px;">
                                         <a href="/bookmarks?id=<%~ bookmark.id %>">⭐️ Bookmark</a>
                                     </td>
-                                    <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                    <td data-label="Title" style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <%~ bookmark.title || 'Untitled' %>
                                     </td>
-                                    <td style="padding: 10px;">-</td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Trigger" style="padding: 10px;">-</td>
+                                    <td data-label="URL" style="padding: 10px;">
                                         <a href="<%= utils.stripHtmlTags(bookmark.url) %>" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= utils.stripHtmlTags(bookmark.title) %>" target="_blank" rel="noopener noreferrer">
                                             <img loading="lazy" src="<%~ utils.getFaviconUrl(utils.stripHtmlTags(bookmark.url)) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                             <%~ bookmark.url %>
                                         </a>
                                     </td>
-                                    <td style="padding: 10px;">-</td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Details" style="padding: 10px;">-</td>
+                                    <td data-label="Status" style="padding: 10px;">
                                         <%= bookmark.pinned ? '📌 Pinned' : '📍 Unpinned' %>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Created" style="padding: 10px;">
                                         <time datetime="<%= bookmark.created_at %>"><%= utils.formatDateInTimezone(bookmark.created_at, state.user.timezone).fullString %></time>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Actions" style="padding: 10px;">
                                         <details style="position: relative;">
                                             <summary aria-label="Actions for <%= utils.stripHtmlTags(bookmark.title) || 'Untitled' %>">Actions</summary>
                                             <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
@@ -94,35 +94,35 @@
                         <% if (results.actions.data && results.actions.data.length > 0) { %>
                             <% results.actions.data.forEach(function(action) { %>
                                 <tr>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Type" style="padding: 10px;">
                                         <a href="/actions?id=<%~ action.id %>">🚀 Action</a>
                                     </td>
-                                    <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                    <td data-label="Title" style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <%~ action.name %>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Trigger" style="padding: 10px;">
                                         <code style="background: var(--code-background); padding: 2px 6px; border-radius: 4px; font-size: 0.8em;"><%~ action.trigger %></code>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="URL" style="padding: 10px;">
                                         <a href="<%= utils.stripHtmlTags(action.url) %>" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= utils.stripHtmlTags(action.url) %>" target="_blank" rel="noopener noreferrer">
                                             <img loading="lazy" src="<%~ utils.getFaviconUrl(utils.stripHtmlTags(action.url)) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                             <%~ action.url %>
                                         </a>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Details" style="padding: 10px;">
                                         <code style="background: var(--code-background); padding: 2px 6px; border-radius: 4px; font-size: 0.8em;"><%~ action.action_type %></code>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Status" style="padding: 10px;">
                                         <% if (action.usage_count) { %>
                                             📊 <%= action.usage_count %> uses
                                         <% } else { %>
                                             📊 0 uses
                                         <% } %>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Created" style="padding: 10px;">
                                         <time datetime="<%= action.created_at %>"><%= utils.formatDateInTimezone(action.created_at, state.user.timezone).fullString %></time>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Actions" style="padding: 10px;">
                                         <details style="position: relative;">
                                             <summary aria-label="Actions for <%= utils.stripHtmlTags(action.name) %>">Actions</summary>
                                             <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
@@ -139,26 +139,26 @@
                         <% if (results.notes.data && results.notes.data.length > 0) { %>
                             <% results.notes.data.forEach(function(note) { %>
                                 <tr>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Type" style="padding: 10px;">
                                         <a href="/notes?id=<%~ note.id %>">📝 Note</a>
                                     </td>
-                                    <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                    <td data-label="Title" style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <a href="/notes/<%= note.id %>" title="<%= utils.stripHtmlTags(note.title) %>">
                                             <%~ note.title %>
                                         </a>
                                     </td>
-                                    <td style="padding: 10px;">-</td>
-                                    <td style="padding: 10px;">-</td>
-                                    <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                    <td data-label="Trigger" style="padding: 10px;">-</td>
+                                    <td data-label="URL" style="padding: 10px;">-</td>
+                                    <td data-label="Details" style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <%~ note.content ? note.content.substring(0, 100) + (note.content.length > 100 ? '...' : '') : 'No content' %>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Status" style="padding: 10px;">
                                         <%= note.pinned ? '📌 Pinned' : '📍 Unpinned' %>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Created" style="padding: 10px;">
                                         <time datetime="<%= note.created_at %>"><%= utils.formatDateInTimezone(note.created_at, state.user.timezone).fullString %></time>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Actions" style="padding: 10px;">
                                         <details style="position: relative;">
                                             <summary aria-label="Actions for note <%= utils.stripHtmlTags(note.title) %>">Actions</summary>
                                             <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
@@ -175,24 +175,24 @@
                         <% if (results.tabs && results.tabs.length > 0) { %>
                             <% results.tabs.forEach(function(tab) { %>
                                 <tr>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Type" style="padding: 10px;">
                                         <a href="/tabs?id=<%~ tab.id %>">🔗 Tab</a>
                                     </td>
-                                    <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                    <td data-label="Title" style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <%~ tab.title %>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Trigger" style="padding: 10px;">
                                         <code style="background: var(--code-background); padding: 2px 6px; border-radius: 4px; font-size: 0.8em;"><%~ tab.trigger %></code>
                                     </td>
-                                    <td style="padding: 10px;">-</td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="URL" style="padding: 10px;">-</td>
+                                    <td data-label="Details" style="padding: 10px;">
                                         <span style="background: var(--tag-background); color: var(--tag-color); padding: 2px 8px; border-radius: 12px; font-size: 0.8em;"><%= tab.items_count %> items</span>
                                     </td>
-                                    <td style="padding: 10px;">-</td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Status" style="padding: 10px;">-</td>
+                                    <td data-label="Created" style="padding: 10px;">
                                         <time datetime="<%= tab.created_at %>"><%= utils.formatDateInTimezone(tab.created_at, state.user.timezone).fullString %></time>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Actions" style="padding: 10px;">
                                         <details style="position: relative;">
                                             <summary aria-label="Actions for tab <%= utils.stripHtmlTags(tab.title) %>">Actions</summary>
                                             <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
@@ -209,16 +209,16 @@
                         <% if (results.reminders.data && results.reminders.data.length > 0) { %>
                             <% results.reminders.data.forEach(function(reminder) { %>
                                 <tr>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Type" style="padding: 10px;">
                                         <a href="/reminders?id=<%~ reminder.id %>">⏰ Reminder</a>
                                     </td>
-                                    <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                    <td data-label="Title" style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <a href="/reminders?id=<%= reminder.id %>" title="<%= utils.stripHtmlTags(reminder.title) %>">
                                             <%~ reminder.title %>
                                         </a>
                                     </td>
-                                    <td style="padding: 10px;">-</td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Trigger" style="padding: 10px;">-</td>
+                                    <td data-label="URL" style="padding: 10px;">
                                         <% if (reminder.content && reminder.content.startsWith('http')) { %>
                                             <a href="<%= utils.stripHtmlTags(reminder.content) %>" target="_blank" rel="noopener noreferrer" style="overflow: auto; white-space: nowrap; display: flex; align-items: center; gap: 5px;" title="<%= utils.stripHtmlTags(reminder.content) %>">
                                                 <img loading="lazy" src="<%~ utils.getFaviconUrl(utils.stripHtmlTags(reminder.content)) %>" style="width: 16px; height: 16px; border-radius: 50%;">
@@ -228,24 +228,24 @@
                                             -
                                         <% } %>
                                     </td>
-                                    <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                    <td data-label="Details" style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <% if (reminder.content && !reminder.content.startsWith('http')) { %>
                                             <%~ reminder.content.substring(0, 100) + (reminder.content.length > 100 ? '...' : '') %>
                                         <% } else { %>
                                             <code style="background: var(--code-background); padding: 2px 6px; border-radius: 4px; font-size: 0.8em;"><%= reminder.frequency || 'once' %></code>
                                         <% } %>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Status" style="padding: 10px;">
                                         <% if (reminder.due_date) { %>
                                             ⏰ <%= utils.formatDateInTimezone(reminder.due_date, state.user.timezone).fullString %>
                                         <% } else { %>
                                             -
                                         <% } %>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Created" style="padding: 10px;">
                                         <time datetime="<%= reminder.created_at %>"><%= utils.formatDateInTimezone(reminder.created_at, state.user.timezone).fullString %></time>
                                     </td>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Actions" style="padding: 10px;">
                                         <details style="position: relative;">
                                             <summary aria-label="Actions for reminder <%= utils.stripHtmlTags(reminder.title) %>">Actions</summary>
                                             <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">

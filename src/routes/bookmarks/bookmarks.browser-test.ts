@@ -112,4 +112,26 @@ test.describe('Bookmarks', () => {
         await page.goto('/reminders');
         await expect(page.locator('body')).not.toContainText('Read Documentation');
     });
+
+    test('keeps bookmark list readable on mobile', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.goto('/bookmarks/create');
+
+        await page.getByLabel('📝 Name').fill('Mobile Bookmark');
+        await page
+            .getByLabel('🌐 URL')
+            .fill('https://example.com/some/deep/path?with=a-very-long-query-string');
+        await page.getByRole('button', { name: '💾 Save' }).click();
+
+        await expect(page).toHaveURL('/bookmarks');
+        await expect(page.locator('table:has(td[data-label="Title"]) thead')).toBeHidden();
+        await expect(page.locator('td[data-label="Title"]').first()).toContainText(
+            'Mobile Bookmark',
+        );
+
+        const horizontalOverflow = await page.evaluate(
+            () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        );
+        expect(horizontalOverflow).toBeLessThanOrEqual(1);
+    });
 });

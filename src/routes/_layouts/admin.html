@@ -15,7 +15,7 @@
 
       <div style="display: grid; grid-template-columns: 15% 85%; flex: 1;">
         <aside style="display: inline-block; height: 100%; padding-right: 40px">
-          <nav>
+          <nav aria-label="Admin navigation">
             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
               <li>
                 <a style="font-weight: <%= path === '/admin/users' ? 'bold' : 'normal' %>; <%= path === '/admin/users' ? 'text-decoration: underline' : '' %>; display: block;" href="/admin/users">👥 Users</a>
@@ -36,9 +36,9 @@
           </nav>
         </aside>
 
-        <div style="display: inline-block; border-left: solid 1px var(--aside-border-color); padding-left: 30px">
+        <section style="display: inline-block; border-left: solid 1px var(--aside-border-color); padding-left: 30px">
           <%~ body %>
-        </div>
+        </section>
       </div>
     </main>
 

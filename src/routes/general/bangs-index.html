@@ -137,19 +137,19 @@
                     <% for (let i = 0; i < data.length; i++) { %>
                         <tr>
                             <!-- Suggestion/Name (s) -->
-                             <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%~ data[i].s %></td>
+                             <td data-label="Name" style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><%~ data[i].s %></td>
                             <!-- Trigger (t) -->
-                            <td style="padding: 10px;">
+                            <td data-label="Trigger" style="padding: 10px;">
                                 <code>!<%~ data[i].t %></code>
                             </td>
                             <!-- Domain (d) -->
-                            <td style="padding: 10px;">
+                            <td data-label="Domain" style="padding: 10px;">
                                 <a href="https://<%~ data[i].d %>" title="<%~ data[i].d %>" target="_blank" rel="noopener noreferrer">
                                     <%~ data[i].d %>
                                 </a>
                             </td>
                              <!-- URL (u) -->
-                             <td style="padding: 10px; white-space: nowrap; overflow: auto;">
+                             <td data-label="URL" style="padding: 10px; white-space: nowrap; overflow: auto;">
                                 <div style="display: flex; gap: 5px; align-items: center;">
                                     <img loading="lazy" src= "<%~ utils.getFaviconUrl(data[i].u) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                     <span class="preview">
@@ -161,11 +161,11 @@
                                 </div>
                             </td>
                              <!-- Category (c) -->
-                             <td style="padding: 10px;"><%~ data[i].c %></td>
+                             <td data-label="Category" style="padding: 10px;"><%~ data[i].c %></td>
                              <!-- Subcategory (sc) -->
-                             <td style="padding: 10px;"><%~ data[i].sc %></td>
+                             <td data-label="Subcategory" style="padding: 10px;"><%~ data[i].sc %></td>
                              <!-- Rank (r) -->
-                             <td style="padding: 10px;"><%~ data[i].r %></td>
+                             <td data-label="Rank" style="padding: 10px;"><%~ data[i].r %></td>
                         </tr>
                     <% } %>
                 </tbody>

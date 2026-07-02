@@ -158,17 +158,17 @@ window.addEventListener('load', handleRowHighlight);
                 <tbody>
                     <% for (let i = 0; i < data.length; i++) { %>
                         <tr data-id="<%~ data[i].id %>">
-                            <td style="padding: 10px;">
+                            <td data-label="Select" style="padding: 10px;">
                                 <input type="checkbox" name="id[]" value="<%~ data[i].id %>" class="bookmark-checkbox" data-title="<%~ data[i].title || 'Untitled' %>" aria-label="Select <%= utils.stripHtmlTags(data[i].title || 'Untitled') %>" />
                             </td>
                             <% if (state.user.column_preferences?.bookmarks?.title !== false) { %>
-                                <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                <td data-label="Title" style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                     <% if (data[i].pinned) { %>📌<% } %>
                                     <%~ data[i].title || 'Untitled' %>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.bookmarks?.url !== false) { %>
-                                <td style="padding: 10px;">
+                                <td data-label="URL" style="padding: 10px;">
                                     <div style="display: flex; gap: 5px; align-items: center;">
                                         <img loading="lazy" src= "<%~ utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                         <span class="preview">
@@ -181,19 +181,19 @@ window.addEventListener('load', handleRowHighlight);
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.bookmarks?.pinned !== false) { %>
-                                <td style="padding: 10px;">
+                                <td data-label="Pinned" style="padding: 10px;">
                                     <%= data[i].pinned ? '📌 Yes' : '📍 No' %>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.bookmarks?.created_at !== false) { %>
-                                <td style="padding: 10px;">
+                                <td data-label="Created" style="padding: 10px;">
                                     <time datetime="<%= data[i].created_at %>">
                                         <%= utils.formatDateInTimezone(data[i].created_at, state.user.timezone).fullString %>
                                     </time>
                                 </td>
                             <% } %>
                             <% if (state.user.column_preferences?.bookmarks?.hidden !== false && state.user.hidden_items_password) { %>
-                                <td style="padding: 10px;">
+                                <td data-label="Hidden" style="padding: 10px;">
                                     <% if (data[i].hidden == 1) { %>
                                         ✅
                                     <% } else { %>
@@ -201,7 +201,7 @@ window.addEventListener('load', handleRowHighlight);
                                     <% } %>
                                 </td>
                             <% } %>
-                            <td style="padding: 10px;">
+                            <td data-label="Actions" style="padding: 10px;">
                                 <details style="position: relative;">
                                     <summary aria-label="Actions for <%= utils.stripHtmlTags(data[i].title || 'Untitled') %>">Actions</summary>
                                     <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">
