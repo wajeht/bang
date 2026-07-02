@@ -5,11 +5,10 @@ import { createAdminRouter } from './admin/admin.js';
 import { createNotesRouter } from './notes/notes.js';
 import { createSearchRouter } from './search/search.js';
 import { createActionsRouter } from './actions/actions.js';
-import { createGeneralRouter } from './general/general.js';
+import { createGeneralNativeRouter, createGeneralRouter } from './general/general.js';
 import { createSettingsRouter } from './settings/settings.js';
 import { createBookmarksRouter } from './bookmarks/bookmarks.js';
 import { createRemindersRouter } from './reminders/reminders.js';
-import { createGeneralHonoRouter } from './general/general.hono.js';
 import { createHonoRequestHandler } from './hono/express-adapter.js';
 
 /**
@@ -24,14 +23,14 @@ import { createHonoRequestHandler } from './hono/express-adapter.js';
 
 export function createRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
-    const generalHonoRouter = createGeneralHonoRouter(ctx);
+    const generalNativeRouter = createGeneralNativeRouter(ctx);
 
-    router.get('/healthz', createHonoRequestHandler(generalHonoRouter.fetch));
+    router.get('/healthz', createHonoRequestHandler(generalNativeRouter.fetch));
     router.get(
         '/metrics',
         ctx.middleware.authentication,
         ctx.middleware.adminOnly,
-        createHonoRequestHandler(generalHonoRouter.fetch),
+        createHonoRequestHandler(generalNativeRouter.fetch),
     );
 
     router.use(createAuthRouter(ctx));
