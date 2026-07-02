@@ -9,7 +9,7 @@ import { createGeneralRouter } from './general/general.js';
 import { createSettingsRouter } from './settings/settings.js';
 import { createBookmarksRouter } from './bookmarks/bookmarks.js';
 import { createRemindersRouter } from './reminders/reminders.js';
-import { createHealthzHonoRouter } from './hono/healthz.js';
+import { createGeneralHonoRouter } from './general/general.hono.js';
 import { createHonoRequestHandler } from './hono/express-adapter.js';
 
 /**
@@ -24,9 +24,9 @@ import { createHonoRequestHandler } from './hono/express-adapter.js';
 
 export function createRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
-    const healthzRouter = createHealthzHonoRouter(ctx);
+    const generalHonoRouter = createGeneralHonoRouter(ctx);
 
-    router.get('/healthz', createHonoRequestHandler(healthzRouter.fetch));
+    router.get('/healthz', createHonoRequestHandler(generalHonoRouter.fetch));
 
     router.use(createAuthRouter(ctx));
     router.use(createAdminRouter(ctx));

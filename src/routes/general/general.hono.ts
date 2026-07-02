@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { AppContext } from '../../type.js';
 
-export function createHealthzHonoRouter(ctx: AppContext) {
+export function createGeneralHonoRouter(ctx: AppContext) {
     const app = new Hono();
 
     app.get('/healthz', async (c) => {
