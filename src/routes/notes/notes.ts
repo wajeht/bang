@@ -22,7 +22,7 @@ function createNoteMarkdownRenderer(ctx: AppContext) {
     });
 }
 
-export function createNotesNativeRouter(ctx: AppContext) {
+export function createNotesRouter(ctx: AppContext) {
     const app = new Hono<{ Bindings: HttpBindings }>();
     const sharedMarked = createNoteMarkdownRenderer(ctx);
 
@@ -63,7 +63,7 @@ export function createNotesNativeRouter(ctx: AppContext) {
     return app;
 }
 
-export function createNotesRouter(ctx: AppContext) {
+export function createNotesExpressRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
     const NOTE_CONTENT_PREVIEW_LENGTH = 200;
     const NOTE_CONTENT_PREVIEW_SOURCE_LIMIT = 4000;

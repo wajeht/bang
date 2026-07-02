@@ -3,7 +3,7 @@ import type { HttpBindings } from '@hono/node-server';
 import type { Request, Response } from 'express';
 import type { User, ApiKeyPayload, AppContext } from '../../type.js';
 
-export function createSettingsNativeRouter(ctx: AppContext) {
+export function createSettingsRouter(ctx: AppContext) {
     const app = new Hono<{ Bindings: HttpBindings }>();
 
     app.get('/api/settings/api-key', async (c) => {
@@ -20,7 +20,7 @@ export function createSettingsNativeRouter(ctx: AppContext) {
     return app;
 }
 
-export function createSettingsRouter(ctx: AppContext) {
+export function createSettingsExpressRouter(ctx: AppContext) {
     const VALID_TIMEZONES = new Set([
         'UTC',
         'America/New_York',

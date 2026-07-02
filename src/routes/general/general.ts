@@ -4,7 +4,7 @@ import type { HttpBindings } from '@hono/node-server';
 import type { Request, Response } from 'express';
 import type { Bang, User, AppContext, BangWithLowercase } from '../../type.js';
 
-export function createGeneralNativeRouter(ctx: AppContext) {
+export function createGeneralRouter(ctx: AppContext) {
     const app = new Hono<{ Bindings: HttpBindings }>();
 
     app.get('/healthz', async (c) => {
@@ -129,7 +129,7 @@ export function createGeneralNativeRouter(ctx: AppContext) {
     return app;
 }
 
-export function createGeneralRouter(ctx: AppContext) {
+export function createGeneralExpressRouter(ctx: AppContext) {
     const activeBangsPrefetch = new Set<string>();
 
     const bangsArray = Object.values(bangs as Record<string, Bang>);
