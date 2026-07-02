@@ -9,6 +9,8 @@ import { createGeneralRouter } from './general/general.js';
 import { createSettingsRouter } from './settings/settings.js';
 import { createBookmarksRouter } from './bookmarks/bookmarks.js';
 import { createRemindersRouter } from './reminders/reminders.js';
+import { createHealthzHonoRouter } from './hono/healthz.js';
+import { createHonoRequestHandler } from './hono/express-adapter.js';
 
 /**
  * @swagger
@@ -22,6 +24,9 @@ import { createRemindersRouter } from './reminders/reminders.js';
 
 export function createRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
+    const healthzRouter = createHealthzHonoRouter(ctx);
+
+    router.get('/healthz', createHonoRequestHandler(healthzRouter.fetch));
 
     router.use(createAuthRouter(ctx));
     router.use(createAdminRouter(ctx));

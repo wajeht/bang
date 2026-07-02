@@ -16,18 +16,6 @@ export function createGeneralRouter(ctx: AppContext) {
 
     const router = ctx.libs.express.Router();
 
-    router.get('/healthz', async (req: Request, res: Response) => {
-        await ctx.db.raw('SELECT 1');
-
-        if (ctx.utils.request.expectsJson(req)) {
-            res.status(200).json({ status: 'ok', database: 'connected' });
-            return;
-        }
-
-        res.setHeader('Content-Type', 'text/html').status(200).send('<p>ok</p>');
-        return;
-    });
-
     router.get(
         '/metrics',
         ctx.middleware.authentication,
