@@ -6,13 +6,15 @@ import { bodyLimit } from 'hono/body-limit';
 import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
 import { etag } from 'hono/etag';
+import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 import { trimTrailingSlash } from 'hono/trailing-slash';
 import { createContext } from './context.js';
+import type { AppEnv } from './http.js';
 import type { AppContext } from './type.js';
 import { createRouter } from './routes/routes.js';
-import { createBodyParserMiddleware, createHonoApp } from './http.js';
+import { createBodyParserMiddleware } from './http.js';
 
 export const activeSockets = new Set<Socket>();
 
@@ -20,7 +22,7 @@ const STATIC_CACHE_CONTROL = 'public, max-age=31536000, immutable';
 
 export async function createApp() {
     const ctx = await createContext();
-    const app = createHonoApp();
+    const app = new Hono<AppEnv>();
 
     if (ctx.config.app.env === 'production') {
         try {

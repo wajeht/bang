@@ -1,52 +1,48 @@
 import { bangs } from '../../db/bang.js';
-import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
+import type { AppContextContext, AppEnv } from '../../http.js';
+import { AppResponse, createAppRequest, renderView, setFlash } from '../../http.js';
 import type { Bang, User, AppContext, BangWithLowercase } from '../../type.js';
-import { createHonoApp } from '../../http.js';
+import { Hono } from 'hono';
 
 export function createGeneralRouter(ctx: AppContext) {
-    const router = createHonoApp(ctx);
+    const router = new Hono<AppEnv>();
 
-    router.get('/healthz', async (req: Request, res: Response) => {
+    router.get('/healthz', async (c) => {
         await ctx.db.raw('SELECT 1');
 
-        if (req.header('Content-Type')?.includes('application/json')) {
-            return res.json({ status: 'ok', database: 'connected' });
+        if (c.req.header('Content-Type')?.includes('application/json')) {
+            return c.json({ status: 'ok', database: 'connected' });
         }
 
-        return res.set({ 'Content-Type': 'text/html' }).send('<p>ok</p>');
+        return c.html('<p>ok</p>');
     });
 
-    router.get(
-        '/metrics',
-        ctx.middleware.authentication,
-        ctx.middleware.adminOnly,
-        (_req: Request, res: Response) => {
-            const mem = process.memoryUsage();
-            const cpuUsage = process.cpuUsage();
+    router.get('/metrics', ctx.middleware.authentication, ctx.middleware.adminOnly, (c) => {
+        const mem = process.memoryUsage();
+        const cpuUsage = process.cpuUsage();
 
-            return res.json({
-                memory: {
-                    rss: `${Math.round(mem.rss / 1024 / 1024)} MB`,
-                    heapTotal: `${Math.round(mem.heapTotal / 1024 / 1024)} MB`,
-                    heapUsed: `${Math.round(mem.heapUsed / 1024 / 1024)} MB`,
-                    external: `${Math.round(mem.external / 1024 / 1024)} MB`,
-                    arrayBuffers: `${Math.round((mem.arrayBuffers || 0) / 1024 / 1024)} MB`,
-                },
-                cpu: {
-                    user: `${Math.round(cpuUsage.user / 1000)} ms`,
-                    system: `${Math.round(cpuUsage.system / 1000)} ms`,
-                },
-                process: {
-                    uptime: `${Math.round(process.uptime())} seconds`,
-                    pid: process.pid,
-                    nodeVersion: process.version,
-                    platform: process.platform,
-                    arch: process.arch,
-                },
-                env: ctx.config.app.env,
-            });
-        },
-    );
+        return c.json({
+            memory: {
+                rss: `${Math.round(mem.rss / 1024 / 1024)} MB`,
+                heapTotal: `${Math.round(mem.heapTotal / 1024 / 1024)} MB`,
+                heapUsed: `${Math.round(mem.heapUsed / 1024 / 1024)} MB`,
+                external: `${Math.round(mem.external / 1024 / 1024)} MB`,
+                arrayBuffers: `${Math.round((mem.arrayBuffers || 0) / 1024 / 1024)} MB`,
+            },
+            cpu: {
+                user: `${Math.round(cpuUsage.user / 1000)} ms`,
+                system: `${Math.round(cpuUsage.system / 1000)} ms`,
+            },
+            process: {
+                uptime: `${Math.round(process.uptime())} seconds`,
+                pid: process.pid,
+                nodeVersion: process.version,
+                platform: process.platform,
+                arch: process.arch,
+            },
+            env: ctx.config.app.env,
+        });
+    });
 
     const activeBangsPrefetch = new Set<string>();
 
@@ -59,49 +55,52 @@ export function createGeneralRouter(ctx: AppContext) {
         _dLower: bang.d.toLowerCase(),
     }));
 
-    router.get('/', async (req: Request, res: Response) => {
-        const query = (typeof req.query.q === 'string' ? req.query.q : '').trim();
-        const user = req.session.user as User | undefined;
+    router.get('/', async (c: AppContextContext) => {
+        const searchQuery = c.req.query('q')?.trim() ?? '';
+        const user = c.get('session').user as User | undefined;
 
-        if (!query) {
-            return res.render('general/home.html', {
+        if (!searchQuery) {
+            return renderView(ctx, c, 'general/home.html', {
                 path: '/',
                 title: 'Search',
             });
         }
 
-        await ctx.utils.search.search({ res, user, query, req });
+        const req = createAppRequest(c);
+        const res = new AppResponse(c, ctx);
+        await ctx.utils.search.search({ res, user, query: searchQuery, req });
+        return res.response ?? c.body(null);
     });
 
-    router.get('/about', async (_req: Request, res: Response) => {
-        return res.render('general/about.html', {
+    router.get('/about', async (c) => {
+        return renderView(ctx, c, 'general/about.html', {
             path: '/about',
             title: 'About',
         });
     });
 
-    router.get('/privacy-policy', async (_req: Request, res: Response) => {
-        return res.render('general/privacy-policy.html', {
+    router.get('/privacy-policy', async (c) => {
+        return renderView(ctx, c, 'general/privacy-policy.html', {
             path: '/privacy-policy',
             title: 'Privacy Policy',
         });
     });
 
-    router.get('/terms-of-service', async (_req: Request, res: Response) => {
-        return res.render('general/terms-of-service.html', {
+    router.get('/terms-of-service', async (c) => {
+        return renderView(ctx, c, 'general/terms-of-service.html', {
             path: '/terms-of-service',
             title: 'Terms of Service',
         });
     });
 
-    router.get('/bangs', async (req: Request, res: Response) => {
+    router.get('/bangs', async (c) => {
         const {
             search: searchTermRaw = '',
             sort_key = 't',
             direction = 'asc',
             page = 1,
             per_page = 100,
-        } = req.query;
+        } = c.req.query();
 
         const searchTerm = typeof searchTermRaw === 'string' ? searchTermRaw : '';
         const searchStr = searchTerm.toLowerCase();
@@ -170,10 +169,10 @@ export function createGeneralRouter(ctx: AppContext) {
             highlightedData = data;
         }
 
-        return res.render('general/bangs-index.html', {
+        return renderView(ctx, c, 'general/bangs-index.html', {
             layout: '_layouts/auth.html',
-            user: req.session.user,
-            path: req.path,
+            user: c.get('session').user,
+            path: c.req.path,
             data: highlightedData,
             pagination,
             search: searchTerm,
@@ -186,12 +185,12 @@ export function createGeneralRouter(ctx: AppContext) {
         '/bangs/prefetch',
         ctx.middleware.authentication,
         ctx.middleware.adminOnly,
-        async (req: Request, res: Response) => {
+        async (c: AppContextContext) => {
             const adminId = 'admin';
 
             if (activeBangsPrefetch.has(adminId)) {
-                req.flash('info', 'Screenshot caching already in progress...');
-                return res.redirect('/bangs');
+                setFlash(c, 'info', 'Screenshot caching already in progress...');
+                return c.redirect('/bangs');
             }
 
             activeBangsPrefetch.add(adminId);
@@ -209,23 +208,23 @@ export function createGeneralRouter(ctx: AppContext) {
                 }
 
                 if (urls.length === 0) {
-                    req.flash('info', 'No URLs to prefetch');
-                    return res.redirect('/bangs');
+                    setFlash(c, 'info', 'No URLs to prefetch');
+                    return c.redirect('/bangs');
                 }
 
                 await ctx.utils.util.prefetchScreenshots(urls, {
                     delayBetweenBatchesMs: 2000,
                 });
 
-                req.flash('success', `Cached ${urls.length} screenshots successfully`);
+                setFlash(c, 'success', `Cached ${urls.length} screenshots successfully`);
             } catch (error) {
                 ctx.logger.error('Bangs prefetch failed', { error });
-                req.flash('error', 'Failed to cache screenshots');
+                setFlash(c, 'error', 'Failed to cache screenshots');
             } finally {
                 activeBangsPrefetch.delete(adminId);
             }
 
-            return res.redirect('/bangs');
+            return c.redirect('/bangs');
         },
     );
 

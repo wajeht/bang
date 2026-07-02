@@ -96,14 +96,10 @@ export type User = {
     default_search_provider: DefaultSearchProviders;
     bookmarks_per_page: number;
     actions_per_page: number;
-    api_key: string | null;
-    api_key_version: number;
-    api_key_created_at: string | null;
     created_at: string;
     updated_at: string;
     column_preferences: ColumnPreferences;
     email_verified_at: string | null;
-    autocomplete_search_on_homepage: boolean;
     timezone: string;
     hidden_items_password?: string | null;
     theme: 'system' | 'light' | 'dark';

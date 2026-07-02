@@ -3976,7 +3976,6 @@ describe('Trigger Caching (in-memory)', () => {
                 username: `cachetest_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                 email: `cachetest_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@example.com`,
                 is_admin: false,
-                api_key: `test_api_key_cache_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             })
             .returning('*');
         testUser = user;
@@ -4042,7 +4041,6 @@ describe('Trigger Caching (in-memory)', () => {
                     username: `other_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                     email: `other_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@example.com`,
                     is_admin: false,
-                    api_key: `other_api_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                 })
                 .returning('*');
 
@@ -4119,7 +4117,6 @@ describe('Trigger Caching (in-memory)', () => {
                     username: `iso_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                     email: `iso_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@example.com`,
                     is_admin: false,
-                    api_key: `iso_api_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                 })
                 .returning('*');
 
@@ -4185,7 +4182,6 @@ describe('Bang Search Optimization', () => {
                 username: `bangopt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                 email: `bangopt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@example.com`,
                 is_admin: false,
-                api_key: `test_api_key_bangopt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                 column_preferences: JSON.stringify({}),
             })
             .returning('*');
@@ -4388,7 +4384,6 @@ describe('Bang Search Performance', () => {
                 username: `perftest_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                 email: `perftest_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@example.com`,
                 is_admin: false,
-                api_key: `test_api_key_perf_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                 column_preferences: JSON.stringify({}),
             })
             .returning('*');

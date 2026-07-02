@@ -40,7 +40,6 @@ export function createAuthRouter(ctx: AppContext) {
 
         if (user) {
             user.is_admin = Boolean(user.is_admin);
-            user.autocomplete_search_on_homepage = Boolean(user.autocomplete_search_on_homepage);
         }
 
         if (!user) {
@@ -56,9 +55,6 @@ export function createAuthRouter(ctx: AppContext) {
 
             if (user) {
                 user.is_admin = Boolean(user.is_admin);
-                user.autocomplete_search_on_homepage = Boolean(
-                    user.autocomplete_search_on_homepage,
-                );
             }
         }
 
@@ -117,7 +113,6 @@ export function createAuthRouter(ctx: AppContext) {
         }
 
         user.is_admin = Boolean(user.is_admin);
-        user.autocomplete_search_on_homepage = Boolean(user.autocomplete_search_on_homepage);
 
         const parsedUser = {
             ...user,

@@ -1,6 +1,7 @@
-import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
+import type { AppContextContext, AppEnv } from '../../http.js';
+import { renderView, setFlash } from '../../http.js';
 import type { User, AppContext } from '../../type.js';
-import { createHonoApp } from '../../http.js';
+import { Hono } from 'hono';
 
 export function createSettingsRouter(ctx: AppContext) {
     const VALID_TIMEZONES = new Set([
@@ -22,59 +23,50 @@ export function createSettingsRouter(ctx: AppContext) {
     const VALID_ACTION_TYPES = new Set(['search', 'redirect']);
     const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
-    const router = createHonoApp(ctx);
+    const router = new Hono<AppEnv>();
 
-    router.get('/settings', ctx.middleware.authentication, async (_req: Request, res: Response) => {
-        return res.redirect('/settings/account');
+    router.get('/settings', ctx.middleware.authentication, async (c) => {
+        return c.redirect('/settings/account');
     });
 
-    router.get(
-        '/settings/account',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            return res.render('settings/settings-account.html', {
-                user: req.session?.user,
-                title: 'Settings Account',
-                path: '/settings/account',
-                layout: '_layouts/settings.html',
-                defaultSearchProviders: Object.keys(
-                    ctx.utils.search.searchConfig.defaultSearchProviders,
-                ),
-            });
-        },
-    );
+    router.get('/settings/account', ctx.middleware.authentication, async (c) => {
+        return renderView(ctx, c, 'settings/settings-account.html', {
+            user: c.get('session').user,
+            title: 'Settings Account',
+            path: '/settings/account',
+            layout: '_layouts/settings.html',
+            defaultSearchProviders: Object.keys(
+                ctx.utils.search.searchConfig.defaultSearchProviders,
+            ),
+        });
+    });
 
-    router.get(
-        '/settings/data',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            return res.render('settings/settings-data.html', {
-                user: req.session?.user,
-                title: 'Settings Data',
-                path: '/settings/data',
-                layout: '_layouts/settings.html',
-            });
-        },
-    );
+    router.get('/settings/data', ctx.middleware.authentication, async (c) => {
+        return renderView(ctx, c, 'settings/settings-data.html', {
+            user: c.get('session').user,
+            title: 'Settings Data',
+            path: '/settings/data',
+            layout: '_layouts/settings.html',
+        });
+    });
 
-    router.get(
-        '/settings/danger-zone',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            return res.render('settings/settings-danger-zone.html', {
-                user: req.session?.user,
-                title: 'Settings Danger Zone',
-                path: '/settings/danger-zone',
-                layout: '_layouts/settings.html',
-            });
-        },
-    );
+    router.get('/settings/danger-zone', ctx.middleware.authentication, async (c) => {
+        return renderView(ctx, c, 'settings/settings-danger-zone.html', {
+            user: c.get('session').user,
+            title: 'Settings Danger Zone',
+            path: '/settings/danger-zone',
+            layout: '_layouts/settings.html',
+        });
+    });
 
     router.post(
         '/settings/account',
         ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const { username, email, default_search_provider, timezone, theme } = req.body;
+        async (c: AppContextContext) => {
+            const body = c.get('body');
+            const session = c.get('session');
+            const currentUser = c.get('user') as User;
+            const { username, email, default_search_provider, timezone, theme } = body;
 
             if (!username) {
                 throw new ctx.errors.ValidationError({ username: 'Username is required' });
@@ -116,8 +108,8 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             // Check if username is being changed and if it's already taken by another user
-            const currentUserId = (req.user as User).id;
-            if (username !== (req.user as User).username) {
+            const currentUserId = currentUser.id;
+            if (username !== currentUser.username) {
                 const existingUser = await ctx
                     .db('users')
                     .where({ username })
@@ -131,7 +123,7 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             // Check if email is being changed and if it's already taken by another user
-            if (email !== (req.user as User).email) {
+            if (email !== currentUser.email) {
                 const existingUser = await ctx
                     .db('users')
                     .where({ email })
@@ -156,35 +148,31 @@ export function createSettingsRouter(ctx: AppContext) {
                 .where({ id: currentUserId })
                 .returning('*');
 
-            if (req.session?.user) {
-                req.session.user = {
+            if (session.user) {
+                session.user = {
                     ...updatedUser[0],
                     column_preferences: ctx.utils.util.parseColumnPreferences(
                         updatedUser[0].column_preferences,
                     ),
                 } as User;
-                req.session.save();
+                session.save();
             }
 
-            if (req.user) {
-                req.user = {
-                    ...updatedUser[0],
-                    column_preferences: ctx.utils.util.parseColumnPreferences(
-                        updatedUser[0].column_preferences,
-                    ),
-                } as User;
-            }
+            c.set('user', session.user ?? currentUser);
 
-            req.flash('success', '🔄 updated!');
-            return res.redirect('/settings/account');
+            setFlash(c, 'success', '🔄 updated!');
+            return c.redirect('/settings/account');
         },
     );
 
     router.post(
         '/settings/display',
         ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const { column_preferences } = req.body;
+        async (c: AppContextContext) => {
+            const body = c.get('body');
+            const session = c.get('session');
+            const currentUser = c.get('user') as User;
+            const { column_preferences } = body;
 
             if (!column_preferences || typeof column_preferences !== 'object') {
                 throw new ctx.errors.ValidationError({
@@ -324,10 +312,10 @@ export function createSettingsRouter(ctx: AppContext) {
             // Preserve the view_type if it's not in the form submission
             if (
                 !column_preferences.notes.view_type &&
-                req.session?.user?.column_preferences?.notes?.view_type
+                session.user?.column_preferences?.notes?.view_type
             ) {
                 column_preferences.notes.view_type =
-                    req.session.user.column_preferences.notes.view_type;
+                    session.user.column_preferences.notes.view_type;
             }
 
             // tabs
@@ -368,7 +356,7 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             // users (admin only)
-            if (req.user?.is_admin && column_preferences.users) {
+            if (currentUser.is_admin && column_preferences.users) {
                 if (typeof column_preferences.users !== 'object') {
                     throw new ctx.errors.ValidationError({ users: 'Users must be an object' });
                 }
@@ -479,11 +467,10 @@ export function createSettingsRouter(ctx: AppContext) {
                 }
             }
 
-            const user = req.user as User;
-            const { path, hidden } = req.body;
+            const { path, hidden } = body;
 
             // Merge submitted preferences with existing user preferences to preserve unmodified sections
-            const updatedPreferences = { ...user.column_preferences } as any;
+            const updatedPreferences = { ...currentUser.column_preferences } as any;
             const sections = Object.keys(column_preferences);
             for (let i = 0; i < sections.length; i++) {
                 const section = sections[i] as keyof typeof column_preferences;
@@ -500,29 +487,35 @@ export function createSettingsRouter(ctx: AppContext) {
 
             await ctx
                 .db('users')
-                .where('id', user.id)
+                .where('id', currentUser.id)
                 .update({
                     column_preferences: JSON.stringify(updatedPreferences),
                 });
 
-            req.session.user!.column_preferences = updatedPreferences;
+            if (session.user) {
+                session.user.column_preferences = updatedPreferences;
+            }
 
-            req.user!.column_preferences = updatedPreferences;
+            currentUser.column_preferences = updatedPreferences;
+            c.set('user', currentUser);
 
-            req.flash('success', 'Column settings updated');
+            setFlash(c, 'success', 'Column settings updated');
 
             const basePath = path || '/settings/preferences';
             const redirectUrl = hidden === 'true' ? `${basePath}?hidden=true` : basePath;
-            return res.redirect(redirectUrl);
+            return c.redirect(redirectUrl);
         },
     );
 
     router.post(
         '/settings/hidden-password',
         ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const { currentPassword, newPassword, confirmPassword, removePassword } = req.body;
-            const user = req.session.user as User;
+        async (c: AppContextContext) => {
+            const body = c.get('body');
+            const session = c.get('session');
+            const currentUser = c.get('user') as User;
+            const { currentPassword, newPassword, confirmPassword, removePassword } = body;
+            const user = session.user as User;
 
             if (removePassword === 'on') {
                 if (!user.hidden_items_password) {
@@ -557,17 +550,16 @@ export function createSettingsRouter(ctx: AppContext) {
                     await trx('bangs').where({ user_id: user.id }).update({ hidden: false });
                 });
 
-                if (req.session?.user) {
-                    req.session.user.hidden_items_password = null;
-                    req.session.save();
+                if (session.user) {
+                    session.user.hidden_items_password = null;
+                    session.save();
                 }
 
-                if (req.user) {
-                    req.user.hidden_items_password = null;
-                }
+                currentUser.hidden_items_password = null;
+                c.set('user', currentUser);
 
-                req.flash('success', '🔓 Password removed and all items unhidden');
-                return res.redirect('/settings/account');
+                setFlash(c, 'success', '🔓 Password removed and all items unhidden');
+                return c.redirect('/settings/account');
             }
 
             if (user.hidden_items_password) {
@@ -589,7 +581,7 @@ export function createSettingsRouter(ctx: AppContext) {
                 }
 
                 if (!newPassword) {
-                    return res.redirect('/settings/account');
+                    return c.redirect('/settings/account');
                 }
             } else {
                 if (!newPassword) {
@@ -620,28 +612,29 @@ export function createSettingsRouter(ctx: AppContext) {
                 .where({ id: user.id })
                 .update({ hidden_items_password: hashedPassword });
 
-            if (req.session?.user) {
-                req.session.user.hidden_items_password = hashedPassword;
-                req.session.save();
+            if (session.user) {
+                session.user.hidden_items_password = hashedPassword;
+                session.save();
             }
 
-            if (req.user) {
-                req.user.hidden_items_password = hashedPassword;
-            }
+            currentUser.hidden_items_password = hashedPassword;
+            c.set('user', currentUser);
 
-            req.flash(
+            setFlash(
+                c,
                 'success',
                 user.hidden_items_password ? '🔄 Password updated' : '🔐 Password set',
             );
-            return res.redirect('/settings/account');
+            return c.redirect('/settings/account');
         },
     );
 
     router.post(
         '/settings/data/export',
         ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const { options } = req.body;
+        async (c: AppContextContext) => {
+            const body = c.get('body');
+            const { options } = body;
 
             if (!options || !Array.isArray(options) || options.length === 0) {
                 throw new ctx.errors.ValidationError({
@@ -649,13 +642,13 @@ export function createSettingsRouter(ctx: AppContext) {
                 });
             }
 
-            const userId = (req.user as User).id;
-            const includeBookmarks = req.body.options.includes('bookmarks');
-            const includeActions = req.body.options.includes('actions');
-            const includeNotes = req.body.options.includes('notes');
-            const includeTabs = req.body.options.includes('tabs');
-            const includeReminders = req.body.options.includes('reminders');
-            const includeUserPreferences = req.body.options.includes('user_preferences');
+            const userId = (c.get('user') as User).id;
+            const includeBookmarks = body.options.includes('bookmarks');
+            const includeActions = body.options.includes('actions');
+            const includeNotes = body.options.includes('notes');
+            const includeTabs = body.options.includes('tabs');
+            const includeReminders = body.options.includes('reminders');
+            const includeUserPreferences = body.options.includes('user_preferences');
 
             const exportData = await ctx.utils.util.generateUserDataExport(userId, {
                 includeBookmarks,
@@ -666,21 +659,23 @@ export function createSettingsRouter(ctx: AppContext) {
                 includeReminders,
             });
 
-            res.setHeader(
+            c.header(
                 'Content-Disposition',
                 `attachment; filename=bang-data-export-${exportData.exported_at}.json`,
-            )
-                .setHeader('Content-Type', 'application/json')
-                .send(JSON.stringify(exportData, null, 2));
-            return;
+            );
+            c.header('Content-Type', 'application/json');
+            return c.body(JSON.stringify(exportData, null, 2));
         },
     );
 
     router.post(
         '/settings/data/import',
         ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const { config } = req.body;
+        async (c: AppContextContext) => {
+            const body = c.get('body');
+            const session = c.get('session');
+            const currentUser = c.get('user') as User;
+            const { config } = body;
 
             if (!config) {
                 throw new ctx.errors.ValidationError({ config: 'Please provide a config' });
@@ -688,7 +683,7 @@ export function createSettingsRouter(ctx: AppContext) {
 
             let importData;
             try {
-                importData = JSON.parse(req.body.config);
+                importData = JSON.parse(body.config);
             } catch {
                 throw new ctx.errors.ValidationError({ config: 'Invalid JSON format' });
             }
@@ -697,7 +692,7 @@ export function createSettingsRouter(ctx: AppContext) {
                 throw new ctx.errors.ValidationError({ config: 'Config version must be 1.0' });
             }
 
-            const userId = req.session.user?.id;
+            const userId = session.user?.id;
 
             try {
                 await ctx.db.transaction(async (trx) => {
@@ -868,17 +863,17 @@ export function createSettingsRouter(ctx: AppContext) {
                         if (Object.keys(updateData).length > 0) {
                             await trx('users').where('id', userId).update(updateData);
 
-                            if (req.session?.user) {
+                            if (session.user) {
                                 if (updateData.username) {
-                                    req.session.user.username = updateData.username;
+                                    session.user.username = updateData.username;
                                 }
                                 if (updateData.default_search_provider) {
-                                    req.session.user.default_search_provider =
+                                    session.user.default_search_provider =
                                         updateData.default_search_provider;
                                 }
                                 if (updateData.column_preferences) {
                                     try {
-                                        req.session.user.column_preferences =
+                                        session.user.column_preferences =
                                             typeof updateData.column_preferences === 'string'
                                                 ? JSON.parse(updateData.column_preferences)
                                                 : updateData.column_preferences;
@@ -887,71 +882,77 @@ export function createSettingsRouter(ctx: AppContext) {
                                     }
                                 }
                                 if (updateData.timezone) {
-                                    req.session.user.timezone = updateData.timezone;
+                                    session.user.timezone = updateData.timezone;
                                 }
                                 if (updateData.theme) {
-                                    req.session.user.theme = updateData.theme;
+                                    session.user.theme = updateData.theme;
                                 }
-                                req.session.save();
+                                session.save();
                             }
 
-                            if (req.user) {
-                                if (updateData.username) {
-                                    req.user.username = updateData.username;
-                                }
-                                if (updateData.default_search_provider) {
-                                    req.user.default_search_provider =
-                                        updateData.default_search_provider;
-                                }
-                                if (updateData.column_preferences) {
-                                    try {
-                                        req.user.column_preferences =
-                                            typeof updateData.column_preferences === 'string'
-                                                ? JSON.parse(updateData.column_preferences)
-                                                : updateData.column_preferences;
-                                    } catch {
-                                        // Handle parsing error gracefully
-                                    }
-                                }
-                                if (updateData.timezone) {
-                                    req.user.timezone = updateData.timezone;
-                                }
-                                if (updateData.theme) {
-                                    req.user.theme = updateData.theme;
+                            if (updateData.username) {
+                                currentUser.username = updateData.username;
+                            }
+                            if (updateData.default_search_provider) {
+                                currentUser.default_search_provider =
+                                    updateData.default_search_provider;
+                            }
+                            if (updateData.column_preferences) {
+                                try {
+                                    currentUser.column_preferences =
+                                        typeof updateData.column_preferences === 'string'
+                                            ? JSON.parse(updateData.column_preferences)
+                                            : updateData.column_preferences;
+                                } catch {
+                                    // Handle parsing error gracefully
                                 }
                             }
+                            if (updateData.timezone) {
+                                currentUser.timezone = updateData.timezone;
+                            }
+                            if (updateData.theme) {
+                                currentUser.theme = updateData.theme;
+                            }
+                            c.set('user', currentUser);
                         }
                     }
                 });
 
-                req.flash('success', 'Data imported successfully!');
+                setFlash(c, 'success', 'Data imported successfully!');
             } catch (error) {
                 ctx.logger.error('Import error', { error });
-                req.flash('error', 'Failed to import data. Please check the format and try again.');
+                setFlash(
+                    c,
+                    'error',
+                    'Failed to import data. Please check the format and try again.',
+                );
             }
 
-            return res.redirect('/settings/data');
+            return c.redirect('/settings/data');
         },
     );
 
     router.post(
         '/settings/danger-zone/delete',
         ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.session.user;
+        async (c: AppContextContext) => {
+            const body = c.get('body');
+            const session = c.get('session');
+            const currentUser = c.get('user');
+            const user = session.user;
 
             if (!user) {
                 throw new ctx.errors.NotFoundError('User not found');
             }
 
-            const confirmation = req.body.confirmation?.trim();
+            const confirmation = body.confirmation?.trim();
             if (confirmation !== 'DELETE ACCOUNT') {
                 throw new ctx.errors.ValidationError({
                     confirmation: 'You must type "DELETE ACCOUNT" to confirm account deletion',
                 });
             }
 
-            const exportOptions = req.body.export_options || [];
+            const exportOptions = body.export_options || [];
             const includeJson = Array.isArray(exportOptions)
                 ? exportOptions.includes('json')
                 : exportOptions === 'json';
@@ -964,7 +965,7 @@ export function createSettingsRouter(ctx: AppContext) {
                     await ctx.utils.mail.sendDataExportEmail({
                         email: user.email,
                         username: user.username,
-                        req,
+                        userId: user.id,
                         includeJson,
                         includeHtml,
                     });
@@ -977,31 +978,33 @@ export function createSettingsRouter(ctx: AppContext) {
 
             await ctx.db('users').where({ id: user.id }).delete();
 
-            if ((req.session && req.session.user) || req.user) {
-                req.session.user = null;
-                req.user = undefined;
-                req.session.destroy((error) => {
+            if (session.user || currentUser) {
+                session.user = null;
+                c.set('user', undefined);
+                session.destroy((error) => {
                     if (error) {
-                        throw new ctx.errors.HttpError(500, 'Failed to destroy session', req);
+                        throw new ctx.errors.HttpError(500, 'Failed to destroy session');
                     }
                 });
             }
 
-            return res.redirect(`/?toast=🗑️ You're account has been delted!`);
+            return c.redirect(`/?toast=🗑️ You're account has been delted!`);
         },
     );
 
     router.post(
         '/settings/danger-zone/bulk-delete',
         ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.session.user;
+        async (c: AppContextContext) => {
+            const body = c.get('body');
+            const session = c.get('session');
+            const user = session.user;
 
             if (!user) {
                 throw new ctx.errors.NotFoundError('User not found');
             }
 
-            const deleteOptions = req.body.delete_options || [];
+            const deleteOptions = body.delete_options || [];
             const deleteActions = Array.isArray(deleteOptions)
                 ? deleteOptions.includes('actions')
                 : deleteOptions === 'actions';
@@ -1022,7 +1025,7 @@ export function createSettingsRouter(ctx: AppContext) {
                 deleteActions && deleteTabs && deleteBookmarks && deleteNotes && deleteReminders;
 
             if (allOptionsSelected) {
-                const confirmation = req.body.confirmation?.trim();
+                const confirmation = body.confirmation?.trim();
                 if (confirmation !== 'DELETE DATA') {
                     throw new ctx.errors.ValidationError({
                         confirmation:
@@ -1094,20 +1097,21 @@ export function createSettingsRouter(ctx: AppContext) {
                         processedItems.push(count > 0 ? `${count} reminders` : '0 reminders');
                     }
                     if (processedItems.length > 0) {
-                        req.flash(
+                        setFlash(
+                            c,
                             'success',
                             `🗑️ Successfully processed: ${processedItems.join(', ')}`,
                         );
                     } else {
-                        req.flash('info', 'No data types were selected for deletion');
+                        setFlash(c, 'info', 'No data types were selected for deletion');
                     }
                 });
             } catch (error) {
                 ctx.logger.error('Bulk delete error', { error });
-                req.flash('error', 'Failed to delete data. Please try again.');
+                setFlash(c, 'error', 'Failed to delete data. Please try again.');
             }
 
-            return res.redirect('/settings/danger-zone');
+            return c.redirect('/settings/danger-zone');
         },
     );
 

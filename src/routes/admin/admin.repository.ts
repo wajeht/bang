@@ -8,9 +8,6 @@ export function createUsersRepository(ctx: AppContext) {
                 if (user) {
                     // Convert SQLite integer values to booleans
                     user.is_admin = Boolean(user.is_admin);
-                    user.autocomplete_search_on_homepage = Boolean(
-                        user.autocomplete_search_on_homepage,
-                    );
                 }
                 return user;
             } catch {
@@ -23,9 +20,6 @@ export function createUsersRepository(ctx: AppContext) {
                 if (user) {
                     // Convert SQLite integer values to booleans
                     user.is_admin = Boolean(user.is_admin);
-                    user.autocomplete_search_on_homepage = Boolean(
-                        user.autocomplete_search_on_homepage,
-                    );
                 }
                 return user;
             } catch {

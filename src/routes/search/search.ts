@@ -1,28 +1,31 @@
-import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
-import { createHonoApp } from '../../http.js';
+import type { AppContextContext, AppEnv } from '../../http.js';
+import { AppResponse, createAppRequest, renderView } from '../../http.js';
 import type { AppContext, User } from '../../type.js';
+import { Hono } from 'hono';
 
 export function createSearchRouter(ctx: AppContext) {
-    const router = createHonoApp(ctx);
+    const router = new Hono<AppEnv>();
 
-    router.post('/search', async (req: Request, res: Response) => {
-        const query = req.body.q?.toString().trim() || '';
-        const user = req.session.user as User;
+    router.post('/search', async (c: AppContextContext) => {
+        const req = createAppRequest(c);
+        const res = new AppResponse(c, ctx);
+        const body = c.get('body');
+        const query = body.q?.toString().trim() || '';
+        const user = c.get('session').user as User;
 
         await ctx.utils.search.search({ res, user, query, req });
+        return res.response ?? c.body(null);
     });
 
-    router.get('/search', ctx.middleware.authentication, async (req: Request, res: Response) => {
-        const user = req.user as User;
-        const searchQuery = (typeof req.query.q === 'string' ? req.query.q : '').trim();
-        const searchType = typeof req.query.type === 'string' ? req.query.type : 'global';
+    router.get('/search', ctx.middleware.authentication, async (c: AppContextContext) => {
+        const user = c.get('user') as User;
+        const query = c.req.query();
+        const searchQuery = (typeof query.q === 'string' ? query.q : '').trim();
+        const searchType = typeof query.type === 'string' ? query.type : 'global';
 
         if (!searchQuery) {
-            return res.render('search/search-results.html', {
-                user: req.session?.user,
+            return renderSearchResults(ctx, c, {
                 title: 'Global Search',
-                path: '/search',
-                layout: '_layouts/auth.html',
                 searchQuery: '',
                 searchType,
                 results: {
@@ -36,11 +39,8 @@ export function createSearchRouter(ctx: AppContext) {
         }
 
         if (searchType !== 'global') {
-            return res.render('search/search-results.html', {
-                user: req.session?.user,
+            return renderSearchResults(ctx, c, {
                 title: 'Global Search',
-                path: '/search',
-                layout: '_layouts/auth.html',
                 searchQuery,
                 searchType,
                 results: {
@@ -125,11 +125,8 @@ export function createSearchRouter(ctx: AppContext) {
             }
         }
 
-        return res.render('search/search-results.html', {
-            user: req.session?.user,
+        return renderSearchResults(ctx, c, {
             title: 'Global Search',
-            path: '/search',
-            layout: '_layouts/auth.html',
             searchQuery,
             searchType,
             results: {
@@ -143,4 +140,17 @@ export function createSearchRouter(ctx: AppContext) {
     });
 
     return router;
+}
+
+function renderSearchResults(
+    ctx: AppContext,
+    c: AppContextContext,
+    options: Record<string, unknown>,
+) {
+    return renderView(ctx, c, 'search/search-results.html', {
+        user: c.get('session')?.user,
+        path: '/search',
+        layout: '_layouts/auth.html',
+        ...options,
+    });
 }

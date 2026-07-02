@@ -2,7 +2,7 @@ import { getConnInfo } from '@hono/node-server/conninfo';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { AppContext, User } from '../type.js';
 import type { AppContextContext, AppMiddleware, AppLocals } from '../http.js';
-import { createAppRequest, honoMiddleware } from '../http.js';
+import { createAppRequest } from '../http.js';
 
 const FORM_DATA_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
 const USER_CACHE_TTL = 5 * 60 * 1000;
@@ -21,7 +21,7 @@ let cachedStaticLocals: {
 } | null = null;
 
 export function createRequestLoggerMiddleware(ctx: AppContext): AppMiddleware {
-    return honoMiddleware(async (c, next) => {
+    return async (c, next) => {
         const requestId = c.get('requestId') || ctx.libs.crypto.randomUUID().slice(0, 8);
         const start = Date.now();
         const logger = ctx.logger.tag('requestId', requestId).tag('method', c.req.method);
@@ -48,7 +48,7 @@ export function createRequestLoggerMiddleware(ctx: AppContext): AppMiddleware {
             ua: c.req.header('user-agent')?.slice(0, 50),
             ref: c.req.header('referer')?.slice(0, 100),
         });
-    });
+    };
 }
 
 export function createNotFoundMiddleware(ctx: AppContext) {
@@ -133,7 +133,7 @@ export function createErrorMiddleware(ctx: AppContext) {
 }
 
 export function createAdminOnlyMiddleware(ctx: AppContext): AppMiddleware {
-    return honoMiddleware(async (c, next) => {
+    return async (c, next) => {
         const req = createAppRequest(c);
         const user = c.get('user');
 
@@ -142,18 +142,18 @@ export function createAdminOnlyMiddleware(ctx: AppContext): AppMiddleware {
         }
 
         await next();
-    });
+    };
 }
 
 export function createSpeculationRulesMiddleware(): AppMiddleware {
-    return honoMiddleware(async (c, next) => {
+    return async (c, next) => {
         c.header('Supports-Loading-Mode', 'credentialed-prerender');
         await next();
-    });
+    };
 }
 
 export function createCsrfMiddleware(ctx: AppContext): AppMiddleware {
-    return honoMiddleware(async (c, next) => {
+    return async (c, next) => {
         const req = createAppRequest(c);
         const session = c.get('session');
 
@@ -175,11 +175,11 @@ export function createCsrfMiddleware(ctx: AppContext): AppMiddleware {
 
         c.set('sessionChanged', true);
         await next();
-    });
+    };
 }
 
 export function createAppLocalStateMiddleware(ctx: AppContext): AppMiddleware {
-    return honoMiddleware(async (c, next) => {
+    return async (c, next) => {
         const req = createAppRequest(c);
 
         if (FORM_DATA_METHODS.has(req.method)) {
@@ -194,11 +194,11 @@ export function createAppLocalStateMiddleware(ctx: AppContext): AppMiddleware {
         c.set('sessionChanged', true);
 
         await next();
-    });
+    };
 }
 
 export function createAuthenticationMiddleware(ctx: AppContext): AppMiddleware {
-    return honoMiddleware(async (c, next) => {
+    return async (c, next) => {
         const req = createAppRequest(c);
         let user: User | null = null;
         let needsRefresh = false;
@@ -242,13 +242,13 @@ export function createAuthenticationMiddleware(ctx: AppContext): AppMiddleware {
         }
 
         await next();
-    });
+    };
 }
 
 export function createRateLimitMiddleware(ctx: AppContext): AppMiddleware {
     const buckets = new Map<string, RateBucket>();
 
-    return honoMiddleware(async (c, next) => {
+    return async (c, next) => {
         if (ctx.config.app.env !== 'production') return next();
 
         const ip = getClientIp(c);
@@ -275,11 +275,11 @@ export function createRateLimitMiddleware(ctx: AppContext): AppMiddleware {
 
         const html = ctx.utils.template.render('general/rate-limit.html', getLocals(ctx, c));
         return c.html(html, 429);
-    });
+    };
 }
 
 export function createTurnstileMiddleware(ctx: AppContext): AppMiddleware {
-    return honoMiddleware(async (c, next) => {
+    return async (c, next) => {
         const req = createAppRequest(c);
 
         if (ctx.config.app.env !== 'production') {
@@ -302,7 +302,7 @@ export function createTurnstileMiddleware(ctx: AppContext): AppMiddleware {
 
         await ctx.utils.util.verifyTurnstileToken(token, req.ip);
         await next();
-    });
+    };
 }
 
 async function buildAppLocals(ctx: AppContext, c: AppContextContext): Promise<AppLocals> {

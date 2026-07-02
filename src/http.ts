@@ -1,6 +1,5 @@
 import path from 'node:path';
 import type { Context, MiddlewareHandler } from 'hono';
-import { Hono } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { AppContext, Logger, User } from './type.js';
@@ -8,7 +7,6 @@ import type { AppContext, Logger, User } from './type.js';
 const SESSION_COOKIE_NAME = 'bang.sid';
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 const FORM_DATA_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
-const HONO_MIDDLEWARE = Symbol('honoMiddleware');
 
 export interface AppSessionData {
     redirectTo?: string | null;
@@ -145,55 +143,6 @@ export interface AppEnv {
 
 export type AppContextContext = Context<AppEnv>;
 export type AppMiddleware = MiddlewareHandler<AppEnv>;
-export type AppHandler = (
-    req: AppRequest,
-    res: AppResponse,
-) => Promise<Response | void> | Response | void;
-
-export type AppHono = Hono<AppEnv>;
-
-export function createHonoApp(): AppHono;
-export function createHonoApp(ctx: AppContext): any;
-export function createHonoApp(ctx?: AppContext) {
-    const app = new Hono<AppEnv>();
-    if (!ctx) return app;
-
-    for (const method of ['get', 'post', 'put', 'patch', 'delete'] as const) {
-        const original = app[method].bind(app) as any;
-        (app as any)[method] = (path: string, ...handlers: Function[]) => {
-            const wrappedHandlers = handlers.map((handler) =>
-                isHonoMiddleware(handler) ? handler : handle(ctx, handler as AppHandler),
-            );
-            return original(path, ...wrappedHandlers);
-        };
-    }
-
-    return app;
-}
-
-export function handle(ctx: AppContext, handler: AppHandler) {
-    return async (c: AppContextContext) => {
-        const req = createAppRequest(c);
-        const res = new AppResponse(c, ctx);
-        const response = await handler(req, res);
-        if (response instanceof Response) {
-            return response;
-        }
-        if (res.response) {
-            return res.response;
-        }
-        return c.body(null, res.statusCode as ContentfulStatusCode);
-    };
-}
-
-export function honoMiddleware<T extends Function>(handler: T): T {
-    (handler as any)[HONO_MIDDLEWARE] = true;
-    return handler;
-}
-
-function isHonoMiddleware(handler: Function) {
-    return Boolean((handler as any)[HONO_MIDDLEWARE]);
-}
 
 export function createBodyParserMiddleware(): AppMiddleware {
     return async (c, next) => {

@@ -1,11 +1,12 @@
 import request from './hono-test-client.js';
 import { ctx, createTestUser } from './test-setup.js';
 import type { HonoTestAgent, HonoTestRequestChain } from './hono-test-client.js';
-import type { createHonoApp } from '../http.js';
+import type { AppEnv } from '../http.js';
+import type { Hono } from 'hono';
 
 type Agent = HonoTestAgent;
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
-type TestApp = ReturnType<typeof createHonoApp>;
+type TestApp = Hono<AppEnv>;
 
 function extractCsrfToken(html: string): string {
     const match =

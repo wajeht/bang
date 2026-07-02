@@ -1,6 +1,5 @@
 import { styleText } from 'node:util';
-import type { AppRequest as Request } from '../http.js';
-import type { User, AppContext } from '../type.js';
+import type { AppContext } from '../type.js';
 import type { Attachment } from 'nodemailer/lib/mailer/index.js';
 
 export function createMail(context: AppContext) {
@@ -196,13 +195,13 @@ ${branding.appUrl}`,
         async sendDataExportEmail({
             email,
             username,
-            req,
+            userId,
             includeJson = true,
             includeHtml = true,
         }: {
             email: string;
             username: string;
-            req: Request;
+            userId: number;
             includeJson?: boolean;
             includeHtml?: boolean;
         }): Promise<void> {
@@ -213,7 +212,6 @@ ${branding.appUrl}`,
                 }
 
                 const branding = await context.models.settings.getBranding();
-                const userId = (req.user as User).id;
                 const currentDate = context.libs.dayjs().format('YYYY-MM-DD');
                 const attachments: Attachment[] = [];
                 const exportTypes: string[] = [];

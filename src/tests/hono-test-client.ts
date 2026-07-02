@@ -1,7 +1,7 @@
 import { expect } from 'vite-plus/test';
 
 interface HonoTestApp {
-    request(input: string | Request, requestInit?: RequestInit): Promise<Response>;
+    request(input: string | Request, requestInit?: RequestInit): Response | Promise<Response>;
 }
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';

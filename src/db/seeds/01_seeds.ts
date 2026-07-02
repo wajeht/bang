@@ -28,7 +28,6 @@ export async function seed(knex: Knex): Promise<void> {
                 username: process.env.APP_ADMIN_EMAIL?.split('@')[0] || 'admin',
                 email: process.env.APP_ADMIN_EMAIL || 'admin@example.com',
                 is_admin: true,
-                autocomplete_search_on_homepage: true,
                 default_search_provider: 'duckduckgo',
                 timezone: 'America/Chicago',
                 theme: 'system',

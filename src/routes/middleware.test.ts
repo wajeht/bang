@@ -1,8 +1,9 @@
 import { createContext } from '../context.js';
-import { createBodyParserMiddleware, createHonoApp } from '../http.js';
+import type { AppContextContext, AppEnv } from '../http.js';
+import { createBodyParserMiddleware } from '../http.js';
 import { db } from '../tests/test-setup.js';
-import type { AppRequest, AppResponse } from '../http.js';
 import type { AppContext, User } from '../type.js';
+import { Hono } from 'hono';
 import { describe, it, expect, beforeAll } from 'vite-plus/test';
 
 function getCookie(response: Response) {
@@ -10,7 +11,7 @@ function getCookie(response: Response) {
 }
 
 function createMiddlewareApp(ctx: AppContext) {
-    const app = createHonoApp(ctx);
+    const app = new Hono<AppEnv>();
     app.use('*', ctx.middleware.session);
     app.use('*', ctx.middleware.requestLogger);
     app.use('*', createBodyParserMiddleware());
@@ -28,13 +29,9 @@ describe('middleware', () => {
     it('redirects unauthenticated HTML requests to login', async () => {
         const app = createMiddlewareApp(ctx);
 
-        app.get(
-            '/protected',
-            ctx.middleware.authentication,
-            (_req: AppRequest, res: AppResponse) => {
-                return res.json({ ok: true });
-            },
-        );
+        app.get('/protected', ctx.middleware.authentication, (c: AppContextContext) => {
+            return c.json({ ok: true });
+        });
 
         const response = await app.request('http://localhost/protected');
 
@@ -46,18 +43,15 @@ describe('middleware', () => {
         const user = (await db('users').where({ id: 1 }).first()) as User;
         const app = createMiddlewareApp(ctx);
 
-        app.get('/login-test', (req: AppRequest, res: AppResponse) => {
-            req.session.user = user;
-            req.session.userCachedAt = Date.now();
-            return res.json({ ok: true });
+        app.get('/login-test', (c: AppContextContext) => {
+            const session = c.get('session');
+            session.user = user;
+            session.userCachedAt = Date.now();
+            return c.json({ ok: true });
         });
-        app.get(
-            '/protected',
-            ctx.middleware.authentication,
-            (req: AppRequest, res: AppResponse) => {
-                return res.json({ userId: req.user?.id });
-            },
-        );
+        app.get('/protected', ctx.middleware.authentication, (c: AppContextContext) => {
+            return c.json({ userId: c.get('user')?.id });
+        });
 
         const loginResponse = await app.request('http://localhost/login-test');
         const response = await app.request('http://localhost/protected', {
@@ -72,11 +66,11 @@ describe('middleware', () => {
         const app = createMiddlewareApp(ctx);
 
         app.use('*', ctx.middleware.csrf);
-        app.get('/form', (_req: AppRequest, res: AppResponse) => {
-            return res.json({ csrfToken: res.locals.csrfToken });
+        app.get('/form', (c: AppContextContext) => {
+            return c.json({ csrfToken: c.get('locals').csrfToken });
         });
-        app.post('/form', (_req: AppRequest, res: AppResponse) => {
-            return res.json({ ok: true });
+        app.post('/form', (c: AppContextContext) => {
+            return c.json({ ok: true });
         });
 
         const formResponse = await app.request('http://localhost/form');
@@ -92,11 +86,11 @@ describe('middleware', () => {
         const app = createMiddlewareApp(ctx);
 
         app.use('*', ctx.middleware.csrf);
-        app.get('/form', (_req: AppRequest, res: AppResponse) => {
-            return res.json({ csrfToken: res.locals.csrfToken });
+        app.get('/form', (c: AppContextContext) => {
+            return c.json({ csrfToken: c.get('locals').csrfToken });
         });
-        app.post('/form', (_req: AppRequest, res: AppResponse) => {
-            return res.json({ ok: true });
+        app.post('/form', (c: AppContextContext) => {
+            return c.json({ ok: true });
         });
 
         const formResponse = await app.request('http://localhost/form');
@@ -116,10 +110,11 @@ describe('middleware', () => {
 
         app.use('*', ctx.middleware.csrf);
         app.use('*', ctx.middleware.appLocalState);
-        app.get('/', (_req: AppRequest, res: AppResponse) => {
-            return res.json({
-                appName: res.locals.state?.branding?.appName,
-                csrfToken: res.locals.csrfToken,
+        app.get('/', (c: AppContextContext) => {
+            const locals = c.get('locals');
+            return c.json({
+                appName: locals.state?.branding?.appName,
+                csrfToken: locals.csrfToken,
             });
         });
 

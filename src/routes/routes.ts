@@ -9,10 +9,11 @@ import { createGeneralRouter } from './general/general.js';
 import { createSettingsRouter } from './settings/settings.js';
 import { createBookmarksRouter } from './bookmarks/bookmarks.js';
 import { createRemindersRouter } from './reminders/reminders.js';
-import { createHonoApp } from '../http.js';
+import { Hono } from 'hono';
+import type { AppEnv } from '../http.js';
 
 export function createRouter(ctx: AppContext) {
-    const router = createHonoApp();
+    const router = new Hono<AppEnv>();
 
     router.route('/', createAuthRouter(ctx));
     router.route('/', createAdminRouter(ctx));
