@@ -3518,7 +3518,6 @@ describe('search', () => {
                 expect(insertPageTitle).toHaveBeenCalledWith({
                     reminderId: createdReminder.id,
                     url: 'https://example.com',
-                    req,
                 });
             });
         });
