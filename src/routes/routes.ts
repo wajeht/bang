@@ -32,6 +32,11 @@ export function createRouter(ctx: AppContext) {
         ctx.middleware.adminOnly,
         createHonoRequestHandler(generalNativeRouter.fetch),
     );
+    router.get(
+        '/api/collections',
+        ctx.middleware.authentication,
+        createHonoRequestHandler(generalNativeRouter.fetch),
+    );
 
     router.use(createAuthRouter(ctx));
     router.use(createAdminRouter(ctx));

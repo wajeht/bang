@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
 import { bangs } from '../../db/bang.js';
+import type { HttpBindings } from '@hono/node-server';
 import type { Request, Response } from 'express';
 import type { Bang, User, AppContext, BangWithLowercase } from '../../type.js';
 
 export function createGeneralNativeRouter(ctx: AppContext) {
-    const app = new Hono();
+    const app = new Hono<{ Bindings: HttpBindings }>();
 
     app.get('/healthz', async (c) => {
         await ctx.db.raw('SELECT 1');
@@ -40,6 +41,88 @@ export function createGeneralNativeRouter(ctx: AppContext) {
                 arch: process.arch,
             },
             env: ctx.config.app.env,
+        });
+    });
+
+    /**
+     * GET /api/collections
+     *
+     * @tags Collections
+     * @summary Get all user collections (actions, bookmarks, and notes)
+     *
+     * @security BearerAuth
+     *
+     * @return {object} 200 - success response - application/json
+     * @return {object} 400 - Bad request response - application/json
+     */
+    app.get('/api/collections', async (c) => {
+        const req = c.env.incoming as Request;
+        const user = req.user as User;
+        const actionsParams = ctx.utils.request.extractPaginationParams(req, 'actions');
+        const bookmarksParams = ctx.utils.request.extractPaginationParams(req, 'bookmarks');
+        const notesParams = ctx.utils.request.extractPaginationParams(req, 'notes');
+        const tabsParams = ctx.utils.request.extractPaginationParams(req, 'tabs');
+        const remindersParams = ctx.utils.request.extractPaginationParams(req, 'reminders');
+
+        const [actionsResult, bookmarksResult, notesResult, tabsResult, remindersResult] =
+            await Promise.all([
+                ctx.models.actions.all({
+                    user,
+                    perPage: actionsParams.perPage,
+                    page: actionsParams.page,
+                    search: actionsParams.search,
+                    sortKey: actionsParams.sortKey,
+                    direction: actionsParams.direction,
+                    excludeHidden: true,
+                }),
+                ctx.models.bookmarks.all({
+                    user,
+                    perPage: bookmarksParams.perPage,
+                    page: bookmarksParams.page,
+                    search: bookmarksParams.search,
+                    sortKey: bookmarksParams.sortKey,
+                    direction: bookmarksParams.direction,
+                    excludeHidden: true,
+                }),
+                ctx.models.notes.all({
+                    user,
+                    perPage: notesParams.perPage,
+                    page: notesParams.page,
+                    search: notesParams.search,
+                    sortKey: notesParams.sortKey,
+                    direction: notesParams.direction,
+                    excludeHidden: true,
+                }),
+                ctx.models.tabs.all({
+                    user,
+                    perPage: tabsParams.perPage,
+                    page: tabsParams.page,
+                    search: tabsParams.search,
+                    sortKey: tabsParams.sortKey,
+                    direction: tabsParams.direction,
+                }),
+                ctx.models.reminders.all({
+                    user,
+                    perPage: remindersParams.perPage,
+                    page: remindersParams.page,
+                    search: remindersParams.search,
+                    sortKey: remindersParams.sortKey,
+                    direction: remindersParams.direction,
+                }),
+            ]);
+
+        c.header('Cache-Control', 'private, max-age=60, stale-while-revalidate=300');
+        c.header('Vary', 'Accept-Encoding');
+
+        return c.json({
+            actions: actionsResult,
+            bookmarks: bookmarksResult,
+            notes: notesResult,
+            tabs: tabsResult,
+            reminders: remindersResult,
+            search: actionsParams.search,
+            sortKey: actionsParams.sortKey,
+            direction: actionsParams.direction,
         });
     });
 
@@ -227,103 +310,6 @@ export function createGeneralRouter(ctx: AppContext) {
             }
 
             return res.redirect('/bangs');
-        },
-    );
-
-    /**
-     * GET /api/collections
-     *
-     * @tags Collections
-     * @summary Get all user collections (actions, bookmarks, and notes)
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     */
-    router.get(
-        '/api/collections',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const actionsParams = ctx.utils.request.extractPaginationParams(req, 'actions');
-            const bookmarksParams = ctx.utils.request.extractPaginationParams(req, 'bookmarks');
-            const notesParams = ctx.utils.request.extractPaginationParams(req, 'notes');
-            const tabsParams = ctx.utils.request.extractPaginationParams(req, 'tabs');
-            const remindersParams = ctx.utils.request.extractPaginationParams(req, 'reminders');
-
-            const [actionsResult, bookmarksResult, notesResult, tabsResult, remindersResult] =
-                await Promise.all([
-                    ctx.models.actions.all({
-                        user,
-                        perPage: actionsParams.perPage,
-                        page: actionsParams.page,
-                        search: actionsParams.search,
-                        sortKey: actionsParams.sortKey,
-                        direction: actionsParams.direction,
-                        excludeHidden: true,
-                    }),
-                    ctx.models.bookmarks.all({
-                        user,
-                        perPage: bookmarksParams.perPage,
-                        page: bookmarksParams.page,
-                        search: bookmarksParams.search,
-                        sortKey: bookmarksParams.sortKey,
-                        direction: bookmarksParams.direction,
-                        excludeHidden: true,
-                    }),
-                    ctx.models.notes.all({
-                        user,
-                        perPage: notesParams.perPage,
-                        page: notesParams.page,
-                        search: notesParams.search,
-                        sortKey: notesParams.sortKey,
-                        direction: notesParams.direction,
-                        excludeHidden: true,
-                    }),
-                    ctx.models.tabs.all({
-                        user,
-                        perPage: tabsParams.perPage,
-                        page: tabsParams.page,
-                        search: tabsParams.search,
-                        sortKey: tabsParams.sortKey,
-                        direction: tabsParams.direction,
-                    }),
-                    ctx.models.reminders.all({
-                        user,
-                        perPage: remindersParams.perPage,
-                        page: remindersParams.page,
-                        search: remindersParams.search,
-                        sortKey: remindersParams.sortKey,
-                        direction: remindersParams.direction,
-                    }),
-                ]);
-
-            // CACHING STRATEGY: Browser-based HTTP caching
-            // This eliminates the need for complex client-side cache management
-            res.set({
-                // Cache-Control header breakdown:
-                // - 'private': Cache only in user's browser, not in shared proxies
-                // - 'max-age=60': Cache is fresh for 60 seconds (1 minute)
-                // - 'stale-while-revalidate=300': After 60s, browser can use stale cache
-                //   while fetching fresh data in background for up to 300s (5 minutes)
-                'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
-
-                // Vary header ensures different encodings (gzip, br) are cached separately
-                Vary: 'Accept-Encoding',
-            });
-
-            res.json({
-                actions: actionsResult,
-                bookmarks: bookmarksResult,
-                notes: notesResult,
-                tabs: tabsResult,
-                reminders: remindersResult,
-                search: actionsParams.search, // or bookmarksParams.search, the same search for both
-                sortKey: actionsParams.sortKey, // or bookmarksParams.sortKey, the same sortKey for both
-                direction: actionsParams.direction, // or bookmarksParams.direction, the same direction for both
-            });
-            return;
         },
     );
 
