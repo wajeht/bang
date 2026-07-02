@@ -932,8 +932,11 @@ main > div:has(> aside > nav) > section > section {
 }
 
 body > header > nav[aria-label='Main navigation'] ul {
-    overflow-x: auto;
-    scrollbar-width: thin;
+    flex-wrap: wrap;
+}
+
+body > header > nav[aria-label='Main navigation'] h1 {
+    white-space: nowrap;
 }
 
 body > header > nav[aria-label='Main navigation'] ul a {
@@ -1029,40 +1032,43 @@ dialog {
     }
 
     body > header > nav[aria-label='Main navigation'] {
-        align-items: flex-start !important;
-        flex-wrap: wrap;
-        gap: 0.75rem;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.75rem 1rem;
     }
 
     body > header > nav[aria-label='Main navigation'] > div {
-        width: 100%;
-        align-items: flex-start !important;
-        flex-wrap: wrap;
-        gap: 0.75rem !important;
+        display: contents !important;
     }
 
     body > header > nav[aria-label='Main navigation'] h1 {
-        width: 100%;
+        grid-row: 1;
+        grid-column: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
         padding-right: 0 !important;
         line-height: 1.1;
     }
 
+    body > header > nav[aria-label='Main navigation'] > details {
+        grid-row: 1;
+        grid-column: 2;
+        justify-self: end;
+    }
+
     body > header > nav[aria-label='Main navigation'] ul {
-        width: 100%;
-        gap: 0.75rem !important;
-        padding-bottom: 0.25rem !important;
+        grid-row: 2;
+        grid-column: 1 / -1;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 1rem !important;
     }
 
     body > header > nav[aria-label='Main navigation'] ul a {
-        display: inline-flex;
-        flex-direction: column;
-        align-items: center;
-        min-width: 4.75rem;
-        text-align: center;
-    }
-
-    body > header > nav[aria-label='Main navigation'] details {
-        margin-left: auto;
+        display: block;
+        padding: 0.4rem 0;
     }
 
     header:has(nav[aria-label$='management controls']) {
@@ -1178,10 +1184,9 @@ dialog {
     }
 
     main > div > aside > nav ul {
-        flex-direction: row !important;
-        gap: 0.75rem !important;
-        overflow-x: auto;
-        padding-bottom: 0.25rem !important;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem 1rem !important;
     }
 
     main > div > aside > nav hr {
@@ -1207,6 +1212,15 @@ dialog {
 
     fieldset {
         padding: 0.75rem;
+    }
+
+    form[method='POST'][action='/search'] {
+        width: 100% !important;
+    }
+
+    nav[aria-label='Pagination navigation'] {
+        flex-wrap: wrap;
+        row-gap: 0.5rem;
     }
 
     dialog {
