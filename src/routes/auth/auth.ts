@@ -1,5 +1,5 @@
 import type { AppContext, AppEnv, User } from '../../type.js';
-import { getRequestBaseUrl, setCurrentUser, setFlash } from '../middleware.js';
+import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
 export function createAuthRouter(ctx: AppContext) {
@@ -10,7 +10,7 @@ export function createAuthRouter(ctx: AppContext) {
 
         if (session.user || c.get('user')) {
             session.user = null;
-            setCurrentUser(c, undefined);
+            c.set('user', undefined);
             session.destroy((error) => {
                 if (error) {
                     throw new ctx.errors.HttpError(500, error.message);
@@ -58,7 +58,10 @@ export function createAuthRouter(ctx: AppContext) {
         }
 
         const token = ctx.utils.auth.generateMagicLink({ email });
-        const baseUrl = getRequestBaseUrl(c);
+        const url = new URL(c.req.url);
+        const protocol = c.req.header('x-forwarded-proto') || url.protocol.replace(':', '');
+        const host = c.req.header('host') || url.host;
+        const baseUrl = `${protocol}://${host}`;
 
         void Promise.resolve().then(async () => {
             try {
@@ -122,7 +125,7 @@ export function createAuthRouter(ctx: AppContext) {
         const redirectTo = session.redirectTo || '/actions';
 
         session.regenerate();
-        setCurrentUser(c, parsedUser);
+        c.set('user', parsedUser);
         session.user = parsedUser;
         session.userCachedAt = Date.now();
         setFlash(c, 'success', `🎉 Welcome ${user.username}! You're now logged in.`);

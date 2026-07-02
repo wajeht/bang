@@ -9,7 +9,7 @@ import { createDate } from './date.js';
 import { createRequest } from './request.js';
 import { db } from '../tests/test-setup.js';
 import { createValidation } from './validation.js';
-import type { AppRequest as Request, BookmarkToExport } from '../type.js';
+import type { AppContextContext, BookmarkToExport } from '../type.js';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 let validationUtils: ReturnType<typeof createValidation>;
@@ -18,6 +18,24 @@ let utilUtils: ReturnType<typeof createUtil>;
 let htmlUtils: ReturnType<typeof createHtml>;
 let dateUtils: ReturnType<typeof createDate>;
 let requestUtils: ReturnType<typeof createRequest>;
+
+function createTestContext({
+    query,
+    user,
+}: {
+    query: Record<string, string | undefined>;
+    user: Record<string, any>;
+}): AppContextContext {
+    return {
+        req: {
+            query: () => query,
+        },
+        get: (key: string) => {
+            if (key === 'user') return user;
+            return undefined;
+        },
+    } as unknown as AppContextContext;
+}
 
 beforeAll(async () => {
     const { createBookmarksRepository } = await import('../routes/bookmarks/bookmarks.repository');
@@ -407,9 +425,12 @@ describe.concurrent('extractPagination', () => {
                     actions: { default_per_page: 5 },
                 },
             },
-        } as unknown as Request;
+        };
 
-        const pagination = requestUtils.extractPaginationParams(req, 'bookmarks');
+        const pagination = requestUtils.extractPaginationParamsFromContext(
+            createTestContext(req),
+            'bookmarks',
+        );
         expect(pagination).toEqual({
             perPage: 10,
             page: 2,
@@ -428,9 +449,12 @@ describe.concurrent('extractPagination', () => {
                     actions: { default_per_page: 5 },
                 },
             },
-        } as unknown as Request;
+        };
 
-        const pagination = requestUtils.extractPaginationParams(req, 'bookmarks');
+        const pagination = requestUtils.extractPaginationParamsFromContext(
+            createTestContext(req),
+            'bookmarks',
+        );
         expect(pagination).toEqual({
             perPage: 5,
             page: 1,

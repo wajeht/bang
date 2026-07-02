@@ -6,7 +6,6 @@ import type {
     AppContextContext,
     AppLocals,
     AppMiddleware,
-    AppRequest,
     AppSession,
     AppSessionData,
     User,
@@ -95,57 +94,6 @@ export function createSessionMiddleware(ctx: AppContext): AppMiddleware {
     };
 }
 
-export function createAppRequest(c: AppContextContext): AppRequest {
-    const url = new URL(c.req.url);
-    const headers = Object.fromEntries(
-        [...c.req.raw.headers.entries()].map(([key, value]) => [key.toLowerCase(), value]),
-    );
-    const session = c.get('session');
-    const ip = headers['x-forwarded-for']?.split(',')[0]?.trim() || headers['x-real-ip'];
-
-    return {
-        method: c.req.method,
-        url: url.pathname + url.search,
-        originalUrl: url.pathname + url.search,
-        path: c.req.path,
-        headers,
-        protocol: headers['x-forwarded-proto'] || url.protocol.replace(':', ''),
-        hostname: headers.host?.split(':')[0],
-        query: c.req.query(),
-        params: c.req.param(),
-        body: c.get('body') ?? {},
-        session,
-        user: c.get('user'),
-        logger: c.get('logger'),
-        ip,
-        socket: { remoteAddress: ip },
-        get(name: string) {
-            return headers[name.toLowerCase()];
-        },
-        header(name: string) {
-            return headers[name.toLowerCase()];
-        },
-        flash(type: string, message?: string) {
-            session.flash ??= {};
-            if (message != null) {
-                session.flash[type] ??= [];
-                session.flash[type]!.push(message);
-                c.set('sessionChanged', true);
-                return session.flash[type]!;
-            }
-
-            const messages = session.flash[type] ?? [];
-            delete session.flash[type];
-            c.set('sessionChanged', true);
-            return messages;
-        },
-    };
-}
-
-export function setCurrentUser(c: AppContextContext, user: User | undefined) {
-    c.set('user', user);
-}
-
 export function renderView(
     ctx: AppContext,
     c: AppContextContext,
@@ -169,13 +117,6 @@ export function setFlash(c: AppContextContext, type: string, message: string) {
         [type]: [...(session.flash?.[type] ?? []), message],
     };
     c.set('sessionChanged', true);
-}
-
-export function getRequestBaseUrl(c: AppContextContext) {
-    const url = new URL(c.req.url);
-    const protocol = c.req.header('x-forwarded-proto') || url.protocol.replace(':', '');
-    const host = c.req.header('host') || url.host;
-    return `${protocol}://${host}`;
 }
 
 export function createRequestLoggerMiddleware(ctx: AppContext): AppMiddleware {
@@ -226,19 +167,18 @@ export function createNotFoundMiddleware(ctx: AppContext) {
 
 export function createErrorMiddleware(ctx: AppContext) {
     return async (error: Error, c: AppContextContext) => {
-        const req = createAppRequest(c);
         const logger = c.get('logger') || ctx.logger;
+        const session = c.get('session');
+        const body = c.get('body') ?? {};
 
-        logger.error(`${req.method} ${req.path} - ${error.message}`, {
+        logger.error(`${c.req.method} ${c.req.path} - ${error.message}`, {
             error,
-            url: req.url,
-            userId: req.user?.id || req.session?.user?.id,
+            url: c.req.url,
+            userId: c.get('user')?.id || session?.user?.id,
         });
 
         if (!(error instanceof ctx.errors.HttpError)) {
-            error = new ctx.errors.HttpError(500, error.message, req);
-        } else if (error instanceof ctx.errors.HttpError && !(error as any).request) {
-            (error as any).request = req;
+            error = new ctx.errors.HttpError(500, error.message);
         }
 
         const httpError = error as any;
@@ -249,26 +189,27 @@ export function createErrorMiddleware(ctx: AppContext) {
 
         if (statusCode === 422) {
             if (httpError instanceof ctx.errors.ValidationError) {
-                req.session.errors = httpError.errors;
+                session.errors = httpError.errors;
             } else {
-                req.session.errors = { general: message };
+                session.errors = { general: message };
             }
 
-            req.session.input = req.body as Record<string, any>;
-            req.flash(
+            session.input = body as Record<string, any>;
+            setFlash(
+                c,
                 'error',
-                Object.values(req.session.errors as Record<string, string>).join(', '),
+                Object.values(session.errors as Record<string, string>).join(', '),
             );
 
-            if (req.path === '/login') {
+            if (c.req.path === '/login') {
                 return c.redirect('/?modal=login');
             }
 
-            return c.redirect(req.headers.referer || '/');
+            return c.redirect(c.req.header('referer') || '/');
         }
 
         if (ctx.config.app.env === 'production') {
-            ctx.utils.ntfy.sendErrorNotification(req, error, statusCode);
+            ctx.utils.ntfy.sendErrorNotification(c, error, statusCode);
         } else {
             ctx.logger.info('ntfy error notification suppressed (non-production environment)', {
                 error,
@@ -280,7 +221,7 @@ export function createErrorMiddleware(ctx: AppContext) {
 
         const html = ctx.utils.template.render('general/error.html', {
             ...getLocals(ctx, c),
-            path: req.path,
+            path: c.req.path,
             title: 'Error',
             statusCode,
             message: ctx.config.app.env !== 'production' ? error.stack : message,
@@ -292,11 +233,11 @@ export function createErrorMiddleware(ctx: AppContext) {
 
 export function createAdminOnlyMiddleware(ctx: AppContext): AppMiddleware {
     return async (c, next) => {
-        const req = createAppRequest(c);
         const user = c.get('user');
+        const session = c.get('session');
 
-        if (!user || !user.is_admin || !req.session?.user?.is_admin) {
-            throw new ctx.errors.UnauthorizedError('Unauthorized', req);
+        if (!user || !user.is_admin || !session?.user?.is_admin) {
+            throw new ctx.errors.UnauthorizedError('Unauthorized');
         }
 
         await next();
@@ -312,21 +253,20 @@ export function createSpeculationRulesMiddleware(): AppMiddleware {
 
 export function createCsrfMiddleware(ctx: AppContext): AppMiddleware {
     return async (c, next) => {
-        const req = createAppRequest(c);
         const session = c.get('session');
 
         session.csrfToken ??= ctx.libs.crypto.randomBytes(32).toString('hex');
         c.get('locals').csrfToken = session.csrfToken;
 
         const isSafeMethod =
-            req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS';
+            c.req.method === 'GET' || c.req.method === 'HEAD' || c.req.method === 'OPTIONS';
         if (!isSafeMethod) {
-            const token = req.body?.csrfToken || req.headers['x-csrf-token'];
+            const body = c.get('body') ?? {};
+            const token = body.csrfToken || c.req.header('x-csrf-token');
             if (!token || token !== session.csrfToken) {
                 throw new ctx.errors.HttpError(
                     403,
                     'Invalid or missing CSRF token. Please refresh the page and try again.',
-                    req,
                 );
             }
         }
@@ -338,17 +278,17 @@ export function createCsrfMiddleware(ctx: AppContext): AppMiddleware {
 
 export function createAppLocalStateMiddleware(ctx: AppContext): AppMiddleware {
     return async (c, next) => {
-        const req = createAppRequest(c);
+        const session = c.get('session');
 
-        if (FORM_DATA_METHODS.has(req.method)) {
-            req.session.input = req.body as Record<string, any>;
+        if (FORM_DATA_METHODS.has(c.req.method)) {
+            session.input = (c.get('body') ?? {}) as Record<string, any>;
         }
 
         const locals = await buildAppLocals(ctx, c);
         c.set('locals', locals);
 
-        delete req.session.input;
-        delete req.session.errors;
+        delete session.input;
+        delete session.errors;
         c.set('sessionChanged', true);
 
         await next();
@@ -357,28 +297,29 @@ export function createAppLocalStateMiddleware(ctx: AppContext): AppMiddleware {
 
 export function createAuthenticationMiddleware(ctx: AppContext): AppMiddleware {
     return async (c, next) => {
-        const req = createAppRequest(c);
+        const session = c.get('session');
         let user: User | null = null;
         let needsRefresh = false;
 
-        if (req.session?.user) {
-            const cachedAt = req.session.userCachedAt || 0;
+        if (session?.user) {
+            const cachedAt = session.userCachedAt || 0;
             const cacheExpired = Date.now() - cachedAt > USER_CACHE_TTL;
 
-            if (!cacheExpired && req.session.user.id) {
-                user = req.session.user;
+            if (!cacheExpired && session.user.id) {
+                user = session.user;
             } else {
                 needsRefresh = true;
-                user = await ctx.models.users.read(req.session.user.id);
+                user = await ctx.models.users.read(session.user.id);
                 if (!user) {
-                    req.session.destroy();
+                    session.destroy();
                 }
             }
         }
 
         if (!user) {
-            req.session.redirectTo = req.originalUrl || req.url;
-            req.session.save();
+            const url = new URL(c.req.url);
+            session.redirectTo = url.pathname + url.search;
+            session.save();
             return c.redirect('/?modal=login');
         }
 
@@ -394,9 +335,9 @@ export function createAuthenticationMiddleware(ctx: AppContext): AppMiddleware {
         c.set('user', parsedUser);
 
         if (needsRefresh) {
-            req.session.user = parsedUser;
-            req.session.userCachedAt = Date.now();
-            req.session.save();
+            session.user = parsedUser;
+            session.userCachedAt = Date.now();
+            session.save();
         }
 
         await next();
@@ -438,27 +379,26 @@ export function createRateLimitMiddleware(ctx: AppContext): AppMiddleware {
 
 export function createTurnstileMiddleware(ctx: AppContext): AppMiddleware {
     return async (c, next) => {
-        const req = createAppRequest(c);
-
         if (ctx.config.app.env !== 'production') {
-            req.logger
+            c.get('logger')
                 .tag('middleware', 'turnstile')
                 .info('Skipping in non-production environment');
             return next();
         }
 
-        if (req.method === 'GET') {
+        if (c.req.method === 'GET') {
             return next();
         }
 
-        const token = req.body['cf-turnstile-response'];
+        const body = c.get('body') ?? {};
+        const token = body['cf-turnstile-response'];
         if (!token) {
             throw new ctx.errors.ValidationError({
                 email: 'Turnstile verification failed: Missing token',
             });
         }
 
-        await ctx.utils.util.verifyTurnstileToken(token, req.ip);
+        await ctx.utils.util.verifyTurnstileToken(token, getClientIp(c));
         await next();
     };
 }
@@ -487,8 +427,8 @@ async function buildAppLocals(ctx: AppContext, c: AppContextContext): Promise<Ap
         };
     }
 
-    const req = createAppRequest(c);
-    const sessionUser = req.session?.user;
+    const session = c.get('session');
+    const sessionUser = session?.user;
     const userWithParsedPrefs = sessionUser
         ? {
               ...sessionUser,
@@ -499,25 +439,35 @@ async function buildAppLocals(ctx: AppContext, c: AppContextContext): Promise<Ap
         : undefined;
 
     return {
-        csrfToken: req.session.csrfToken ?? '',
+        csrfToken: session.csrfToken ?? '',
         utils: cachedStaticLocals.utils,
         state: {
             cloudflare_turnstile_site_key: ctx.config.cloudflare.turnstileSiteKey,
             env: ctx.config.app.env,
             user: c.get('user') ?? userWithParsedPrefs,
             copyRightYear: cachedStaticLocals.copyRightYear,
-            input: (req.session?.input as Record<string, string>) || {},
-            errors: (req.session?.errors as Record<string, string>) || {},
+            input: (session?.input as Record<string, string>) || {},
+            errors: (session?.errors as Record<string, string>) || {},
             flash: {
-                success: req.flash('success'),
-                error: req.flash('error'),
-                info: req.flash('info'),
-                warning: req.flash('warning'),
+                success: getFlashMessages(c, 'success'),
+                error: getFlashMessages(c, 'error'),
+                info: getFlashMessages(c, 'info'),
+                warning: getFlashMessages(c, 'warning'),
             },
             version: cachedStaticLocals.version,
             branding: await ctx.models.settings.getBranding(),
         },
     };
+}
+
+function getFlashMessages(c: AppContextContext, type: string): string[] {
+    const session = c.get('session');
+    const messages = session.flash?.[type] ?? [];
+    if (session.flash?.[type]) {
+        delete session.flash[type];
+        c.set('sessionChanged', true);
+    }
+    return messages;
 }
 
 function getLocals(ctx: AppContext, c: AppContextContext) {

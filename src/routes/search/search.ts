@@ -1,20 +1,16 @@
-import { AppResponse } from '../../type.js';
 import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
-import { createAppRequest, renderView } from '../middleware.js';
+import { renderView } from '../middleware.js';
 import { Hono } from 'hono';
 
 export function createSearchRouter(ctx: AppContext) {
     const router = new Hono<AppEnv>();
 
     router.post('/search', async (c: AppContextContext) => {
-        const req = createAppRequest(c);
-        const res = new AppResponse(c, ctx);
         const body = c.get('body');
         const query = body.q?.toString().trim() || '';
         const user = c.get('session').user as User;
 
-        await ctx.utils.search.search({ res, user, query, req });
-        return res.response ?? c.body(null);
+        return (await ctx.utils.search.search({ c, user, query })) ?? c.body(null);
     });
 
     router.get('/search', ctx.middleware.authentication, async (c: AppContextContext) => {

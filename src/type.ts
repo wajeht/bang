@@ -1,5 +1,4 @@
 import type { Context, ErrorHandler, MiddlewareHandler, NotFoundHandler } from 'hono';
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { Knex } from 'knex';
 import type { config } from './config.js';
 import type { CronService as CronServiceType } from './crons.js';
@@ -56,98 +55,6 @@ export interface AppLocals {
     state?: Record<string, any>;
     utils?: Record<string, any>;
     csrfToken?: string;
-}
-
-export interface AppRequest {
-    method: string;
-    url: string;
-    originalUrl: string;
-    path: string;
-    headers: Record<string, string>;
-    protocol: string;
-    hostname?: string;
-    query: Record<string, string>;
-    params: Record<string, string>;
-    body: any;
-    session: AppSession;
-    user: User | undefined;
-    logger: Logger;
-    ip?: string;
-    socket: { remoteAddress?: string };
-    get(name: string): string | undefined;
-    header(name: string): string | undefined;
-    flash(type: string, message?: string): string[];
-}
-
-export class AppResponse {
-    locals: AppLocals;
-    statusCode = 200;
-    response: Response | null = null;
-
-    private readonly headers = new Headers();
-
-    constructor(
-        private readonly c: AppContextContext,
-        private readonly ctx: AppContext,
-    ) {
-        this.locals = c.get('locals');
-    }
-
-    status(statusCode: number) {
-        this.statusCode = statusCode;
-        return this;
-    }
-
-    set(headers: Record<string, string>) {
-        for (const [key, value] of Object.entries(headers)) {
-            this.headers.set(key, value);
-        }
-        return this;
-    }
-
-    setHeader(name: string, value: string) {
-        this.headers.set(name, value);
-        return this;
-    }
-
-    json(data: unknown) {
-        this.applyHeaders();
-        this.response = this.c.json(data, this.statusCode as ContentfulStatusCode);
-        return this.response;
-    }
-
-    send(data: string | ArrayBuffer | Uint8Array) {
-        this.applyHeaders();
-        this.response = new Response(data as BodyInit, {
-            status: this.statusCode,
-            headers: this.headers,
-        });
-        return this.response;
-    }
-
-    render(view: string, options: Record<string, unknown> = {}) {
-        this.applyHeaders();
-        const html = this.ctx.utils.template.render(view, {
-            ...this.locals,
-            csrfToken: this.locals.csrfToken ?? '',
-            ...options,
-        });
-        this.response = this.c.html(html, this.statusCode as ContentfulStatusCode);
-        return this.response;
-    }
-
-    redirect(url: string) {
-        this.applyHeaders();
-        const statusCode = this.statusCode >= 300 && this.statusCode < 400 ? this.statusCode : 302;
-        this.response = this.c.redirect(url, statusCode as 301 | 302 | 303 | 307 | 308);
-        return this.response;
-    }
-
-    private applyHeaders() {
-        for (const [key, value] of this.headers.entries()) {
-            this.c.header(key, value);
-        }
-    }
 }
 
 export interface AppEnv {
@@ -365,10 +272,9 @@ export type ReminderTimingResult = {
 };
 
 export type Search = (options: {
-    res: AppResponse;
+    c: AppContextContext;
     user: User | undefined;
     query: string;
-    req: AppRequest;
 }) => Promise<void | Response>;
 
 export type Pagination = {
@@ -539,35 +445,21 @@ export interface ErrorClasses {
     HttpError: new (
         statusCode: number,
         message: string,
-        req?: AppRequest,
     ) => Error & {
         statusCode: number;
-        request?: AppRequest;
     };
-    NotFoundError: new (
-        message: string,
-        req?: AppRequest,
-    ) => Error & {
+    NotFoundError: new (message: string) => Error & {
         statusCode: number;
-        request?: AppRequest;
     };
     ValidationError: new (errors: Record<string, string> | string) => Error & {
         statusCode: number;
         errors?: Record<string, string>;
     };
-    UnauthorizedError: new (
-        message: string,
-        req?: AppRequest,
-    ) => Error & {
+    UnauthorizedError: new (message: string) => Error & {
         statusCode: number;
-        request?: AppRequest;
     };
-    ForbiddenError: new (
-        message: string,
-        req?: AppRequest,
-    ) => Error & {
+    ForbiddenError: new (message: string) => Error & {
         statusCode: number;
-        request?: AppRequest;
     };
     UnimplementedFunctionError: new (message: string) => Error & { statusCode: number };
 }

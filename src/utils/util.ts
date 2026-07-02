@@ -5,7 +5,6 @@ import type {
     ColumnPreferences,
     PaginateArrayOptions,
     TurnstileVerifyResponse,
-    AppRequest as Request,
 } from '../type.js';
 import http from 'node:http';
 import https from 'node:https';
@@ -437,14 +436,12 @@ export function createUtil(context: AppContext) {
             title,
             pinned,
             hidden,
-            req,
         }: {
             url: string;
             userId: number;
             title?: string;
             pinned?: boolean;
             hidden?: boolean;
-            req?: Request;
         }): Promise<void> {
             try {
                 const [bookmark] = await db('bookmarks')
@@ -458,8 +455,8 @@ export function createUtil(context: AppContext) {
                     .returning('*');
 
                 if (!title) {
-                    void this.insertPageTitle({ bookmarkId: bookmark.id, url, req }).catch(
-                        (error) => logger.error('Error inserting page title', { error, url }),
+                    void this.insertPageTitle({ bookmarkId: bookmark.id, url }).catch((error) =>
+                        logger.error('Error inserting page title', { error, url }),
                     );
                 }
 
@@ -474,13 +471,11 @@ export function createUtil(context: AppContext) {
             actionId,
             reminderId,
             url,
-            req,
         }: {
             bookmarkId?: number;
             actionId?: number;
             reminderId?: number;
             url: string;
-            req?: Request;
         }): Promise<void> {
             const idCount = [bookmarkId, actionId, reminderId].filter(
                 (id) => id !== undefined,
@@ -489,7 +484,6 @@ export function createUtil(context: AppContext) {
                 throw new errors.HttpError(
                     500,
                     'You must pass in exactly one id: either bookmarkId, actionId, or reminderId',
-                    req,
                 );
             }
 

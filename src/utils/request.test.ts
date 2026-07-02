@@ -1,5 +1,5 @@
 import { libs } from '../libs.js';
-import type { AppRequest as Request } from '../type.js';
+import type { AppContextContext } from '../type.js';
 import { config } from '../config.js';
 import { createRequest } from './request.js';
 import { db } from '../tests/test-setup.js';
@@ -7,6 +7,29 @@ import { ValidationError } from '../error.js';
 import { describe, expect, it, beforeAll, vi } from 'vite-plus/test';
 
 let requestUtils: ReturnType<typeof createRequest>;
+
+interface TestRequest {
+    body?: Record<string, any>;
+    params?: Record<string, string | undefined>;
+    query?: Record<string, string | undefined>;
+    session?: Record<string, any>;
+    user?: Record<string, any>;
+}
+
+function createTestContext(req: TestRequest): AppContextContext {
+    return {
+        req: {
+            param: () => req.params ?? {},
+            query: () => req.query ?? {},
+        },
+        get: (key: string) => {
+            if (key === 'body') return req.body ?? {};
+            if (key === 'session') return req.session;
+            if (key === 'user') return req.user;
+            return undefined;
+        },
+    } as unknown as AppContextContext;
+}
 
 beforeAll(async () => {
     const mockLogger = {
@@ -34,9 +57,9 @@ describe.concurrent('extractIdsForDelete', () => {
         const req = {
             params: { id: '123' },
             body: {},
-        } as unknown as Request;
+        };
 
-        const ids = requestUtils.extractIdsForDelete(req);
+        const ids = requestUtils.extractIdsForDeleteFromContext(createTestContext(req));
         expect(ids).toEqual([123]);
     });
 
@@ -44,9 +67,9 @@ describe.concurrent('extractIdsForDelete', () => {
         const req = {
             params: {},
             body: { id: ['1', '2', '3'] },
-        } as unknown as Request;
+        };
 
-        const ids = requestUtils.extractIdsForDelete(req);
+        const ids = requestUtils.extractIdsForDeleteFromContext(createTestContext(req));
         expect(ids).toEqual([1, 2, 3]);
     });
 
@@ -54,9 +77,9 @@ describe.concurrent('extractIdsForDelete', () => {
         const req = {
             params: {},
             body: { id: ['1', 'invalid', '3', 'NaN'] },
-        } as unknown as Request;
+        };
 
-        const ids = requestUtils.extractIdsForDelete(req);
+        const ids = requestUtils.extractIdsForDeleteFromContext(createTestContext(req));
         expect(ids).toEqual([1, 3]);
     });
 
@@ -64,9 +87,9 @@ describe.concurrent('extractIdsForDelete', () => {
         const req = {
             params: { id: '999' },
             body: { id: ['1', '2', '3'] },
-        } as unknown as Request;
+        };
 
-        const ids = requestUtils.extractIdsForDelete(req);
+        const ids = requestUtils.extractIdsForDeleteFromContext(createTestContext(req));
         expect(ids).toEqual([1, 2, 3]);
     });
 
@@ -74,9 +97,9 @@ describe.concurrent('extractIdsForDelete', () => {
         const req = {
             params: { id: '123' },
             body: { id: '456' },
-        } as unknown as Request;
+        };
 
-        const ids = requestUtils.extractIdsForDelete(req);
+        const ids = requestUtils.extractIdsForDeleteFromContext(createTestContext(req));
         expect(ids).toEqual([456]);
     });
 
@@ -84,10 +107,10 @@ describe.concurrent('extractIdsForDelete', () => {
         const req = {
             params: {},
             body: { id: '123' },
-        } as unknown as Request;
+        };
 
         try {
-            requestUtils.extractIdsForDelete(req);
+            requestUtils.extractIdsForDeleteFromContext(createTestContext(req));
             expect.fail('Should have thrown ValidationError');
         } catch (error) {
             expect(error).toBeInstanceOf(ValidationError);
@@ -99,10 +122,10 @@ describe.concurrent('extractIdsForDelete', () => {
         const req = {
             params: {},
             body: {},
-        } as unknown as Request;
+        };
 
         try {
-            requestUtils.extractIdsForDelete(req);
+            requestUtils.extractIdsForDeleteFromContext(createTestContext(req));
             expect.fail('Should have thrown ValidationError');
         } catch (error) {
             expect(error).toBeInstanceOf(ValidationError);
@@ -114,10 +137,10 @@ describe.concurrent('extractIdsForDelete', () => {
         const req = {
             params: {},
             body: { id: ['invalid', 'NaN', 'not-a-number'] },
-        } as unknown as Request;
+        };
 
         try {
-            requestUtils.extractIdsForDelete(req);
+            requestUtils.extractIdsForDeleteFromContext(createTestContext(req));
             expect.fail('Should have thrown ValidationError');
         } catch (error) {
             expect(error).toBeInstanceOf(ValidationError);
@@ -129,9 +152,9 @@ describe.concurrent('extractIdsForDelete', () => {
         const req = {
             params: {},
             body: { id: [1, 2, 3] },
-        } as unknown as Request;
+        };
 
-        const ids = requestUtils.extractIdsForDelete(req);
+        const ids = requestUtils.extractIdsForDeleteFromContext(createTestContext(req));
         expect(ids).toEqual([1, 2, 3]);
     });
 
@@ -139,9 +162,9 @@ describe.concurrent('extractIdsForDelete', () => {
         const req = {
             params: {},
             body: { id: ['1', 2, '3', 4] },
-        } as unknown as Request;
+        };
 
-        const ids = requestUtils.extractIdsForDelete(req);
+        const ids = requestUtils.extractIdsForDeleteFromContext(createTestContext(req));
         expect(ids).toEqual([1, 2, 3, 4]);
     });
 
@@ -149,9 +172,9 @@ describe.concurrent('extractIdsForDelete', () => {
         const req = {
             params: { id: '42' },
             body: {},
-        } as unknown as Request;
+        };
 
-        const ids = requestUtils.extractIdsForDelete(req);
+        const ids = requestUtils.extractIdsForDeleteFromContext(createTestContext(req));
         expect(ids).toEqual([42]);
     });
 
@@ -159,10 +182,10 @@ describe.concurrent('extractIdsForDelete', () => {
         const req = {
             params: {},
             body: { id: [] },
-        } as unknown as Request;
+        };
 
         try {
-            requestUtils.extractIdsForDelete(req);
+            requestUtils.extractIdsForDeleteFromContext(createTestContext(req));
             expect.fail('Should have thrown ValidationError');
         } catch (error) {
             expect(error).toBeInstanceOf(ValidationError);
@@ -229,13 +252,13 @@ describe('canViewHiddenItems', () => {
                 hiddenItemsVerified: true,
                 hiddenItemsVerifiedAt: now - 5 * 60 * 1000, // 5 minutes ago
             },
-        } as unknown as Request;
+        };
 
         const user = {
             hidden_items_password: 'hashed-password',
         } as any;
 
-        const result = requestUtils.canViewHiddenItems(req, user);
+        const result = requestUtils.canViewHiddenItemsFromContext(createTestContext(req), user);
         expect(result.canViewHidden).toBe(true);
         expect(result.hasVerifiedPassword).toBe(true);
         expect(result.showHidden).toBe(true);
@@ -249,13 +272,13 @@ describe('canViewHiddenItems', () => {
                 hiddenItemsVerified: true,
                 hiddenItemsVerifiedAt: now - 5 * 60 * 1000,
             },
-        } as unknown as Request;
+        };
 
         const user = {
             hidden_items_password: 'hashed-password',
         } as any;
 
-        const result = requestUtils.canViewHiddenItems(req, user);
+        const result = requestUtils.canViewHiddenItemsFromContext(createTestContext(req), user);
         expect(result.canViewHidden).toBe(false);
         expect(result.hasVerifiedPassword).toBe(true);
         expect(result.showHidden).toBe(false);
@@ -269,13 +292,13 @@ describe('canViewHiddenItems', () => {
                 hiddenItemsVerified: true,
                 hiddenItemsVerifiedAt: now - 5 * 60 * 1000,
             },
-        } as unknown as Request;
+        };
 
         const user = {
             hidden_items_password: 'hashed-password',
         } as any;
 
-        const result = requestUtils.canViewHiddenItems(req, user);
+        const result = requestUtils.canViewHiddenItemsFromContext(createTestContext(req), user);
         expect(result.canViewHidden).toBe(false);
         expect(result.hasVerifiedPassword).toBe(true);
         expect(result.showHidden).toBe(false);
@@ -289,13 +312,13 @@ describe('canViewHiddenItems', () => {
                 hiddenItemsVerified: false,
                 hiddenItemsVerifiedAt: now - 5 * 60 * 1000,
             },
-        } as unknown as Request;
+        };
 
         const user = {
             hidden_items_password: 'hashed-password',
         } as any;
 
-        const result = requestUtils.canViewHiddenItems(req, user);
+        const result = requestUtils.canViewHiddenItemsFromContext(createTestContext(req), user);
         expect(result.canViewHidden).toBe(false);
         expect(result.hasVerifiedPassword).toBe(false);
         expect(result.showHidden).toBe(true);
@@ -309,13 +332,13 @@ describe('canViewHiddenItems', () => {
                 hiddenItemsVerified: true,
                 hiddenItemsVerifiedAt: now - 31 * 60 * 1000, // 31 minutes ago
             },
-        } as unknown as Request;
+        };
 
         const user = {
             hidden_items_password: 'hashed-password',
         } as any;
 
-        const result = requestUtils.canViewHiddenItems(req, user);
+        const result = requestUtils.canViewHiddenItemsFromContext(createTestContext(req), user);
         expect(result.canViewHidden).toBe(false);
         expect(result.hasVerifiedPassword).toBe(false);
         expect(result.showHidden).toBe(true);
@@ -329,13 +352,13 @@ describe('canViewHiddenItems', () => {
                 hiddenItemsVerified: true,
                 hiddenItemsVerifiedAt: now - 29 * 60 * 1000, // 29 minutes ago
             },
-        } as unknown as Request;
+        };
 
         const user = {
             hidden_items_password: 'hashed-password',
         } as any;
 
-        const result = requestUtils.canViewHiddenItems(req, user);
+        const result = requestUtils.canViewHiddenItemsFromContext(createTestContext(req), user);
         expect(result.canViewHidden).toBe(true);
         expect(result.hasVerifiedPassword).toBe(true);
         expect(result.showHidden).toBe(true);
@@ -349,13 +372,13 @@ describe('canViewHiddenItems', () => {
                 hiddenItemsVerified: true,
                 hiddenItemsVerifiedAt: now - 5 * 60 * 1000,
             },
-        } as unknown as Request;
+        };
 
         const user = {
             hidden_items_password: null,
         } as any;
 
-        const result = requestUtils.canViewHiddenItems(req, user);
+        const result = requestUtils.canViewHiddenItemsFromContext(createTestContext(req), user);
         expect(result.canViewHidden).toBe(false);
         expect(result.hasVerifiedPassword).toBe(true);
         expect(result.showHidden).toBe(true);
@@ -369,13 +392,13 @@ describe('canViewHiddenItems', () => {
                 hiddenItemsVerified: true,
                 hiddenItemsVerifiedAt: now - 5 * 60 * 1000,
             },
-        } as unknown as Request;
+        };
 
         const user = {
             hidden_items_password: '',
         } as any;
 
-        const result = requestUtils.canViewHiddenItems(req, user);
+        const result = requestUtils.canViewHiddenItemsFromContext(createTestContext(req), user);
         expect(result.canViewHidden).toBe(false);
         expect(result.hasVerifiedPassword).toBe(true);
         expect(result.showHidden).toBe(true);
@@ -388,13 +411,13 @@ describe('canViewHiddenItems', () => {
                 hiddenItemsVerified: true,
                 hiddenItemsVerifiedAt: undefined,
             },
-        } as unknown as Request;
+        };
 
         const user = {
             hidden_items_password: 'hashed-password',
         } as any;
 
-        const result = requestUtils.canViewHiddenItems(req, user);
+        const result = requestUtils.canViewHiddenItemsFromContext(createTestContext(req), user);
         expect(result.canViewHidden).toBe(false);
         expect(result.hasVerifiedPassword).toBe(false);
         expect(result.showHidden).toBe(true);
@@ -404,13 +427,13 @@ describe('canViewHiddenItems', () => {
         const req = {
             query: { hidden: 'true' },
             session: undefined,
-        } as unknown as Request;
+        };
 
         const user = {
             hidden_items_password: 'hashed-password',
         } as any;
 
-        const result = requestUtils.canViewHiddenItems(req, user);
+        const result = requestUtils.canViewHiddenItemsFromContext(createTestContext(req), user);
         expect(result.canViewHidden).toBe(false);
         expect(result.hasVerifiedPassword).toBe(false);
         expect(result.showHidden).toBe(true);
@@ -423,13 +446,13 @@ describe('canViewHiddenItems', () => {
             session: {
                 hiddenItemsVerifiedAt: now - 5 * 60 * 1000,
             },
-        } as unknown as Request;
+        };
 
         const user = {
             hidden_items_password: 'hashed-password',
         } as any;
 
-        const result = requestUtils.canViewHiddenItems(req, user);
+        const result = requestUtils.canViewHiddenItemsFromContext(createTestContext(req), user);
         expect(result.canViewHidden).toBe(false);
         expect(result.hasVerifiedPassword).toBe(false);
         expect(result.showHidden).toBe(true);
@@ -443,13 +466,13 @@ describe('canViewHiddenItems', () => {
                 hiddenItemsVerified: true,
                 hiddenItemsVerifiedAt: now - 29 * 60 * 1000, // Just under 30 minutes
             },
-        } as unknown as Request;
+        };
 
         const user = {
             hidden_items_password: 'hashed-password',
         } as any;
 
-        const result = requestUtils.canViewHiddenItems(req, user);
+        const result = requestUtils.canViewHiddenItemsFromContext(createTestContext(req), user);
         expect(result.canViewHidden).toBe(true);
         expect(result.hasVerifiedPassword).toBe(true);
         expect(result.showHidden).toBe(true);

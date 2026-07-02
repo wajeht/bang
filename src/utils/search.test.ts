@@ -2,14 +2,31 @@
 
 import { createContext } from '../context.js';
 import { db } from '../tests/test-setup.js';
-import type {
-    AppRequest as Request,
-    AppResponse as Response,
-    AppSessionData as SessionData,
-} from '../type.js';
+import type { AppContextContext, AppSessionData as SessionData } from '../type.js';
 import { createSearch } from '../utils/search.js';
 import type { User, AppContext } from '../type.js';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
+
+interface Request {
+    body?: Record<string, any>;
+    headers?: Record<string, string>;
+    logger?: any;
+    method?: string;
+    params?: Record<string, string>;
+    path?: string;
+    query?: Record<string, string>;
+    session: SessionData & Record<string, any>;
+    url?: string;
+    user?: User;
+}
+
+interface Response {
+    locals?: Record<string, string | undefined>;
+    redirect: (url: string) => unknown;
+    send: (html: string) => unknown;
+    set: (headers: Record<string, string>) => unknown;
+    status: number | ((statusCode: number) => unknown);
+}
 
 let ctx: AppContext;
 let searchUtils: ReturnType<typeof createSearch>;
@@ -26,6 +43,83 @@ const mockLogger = (): any => ({
     warn: () => {},
     error: () => {},
 });
+
+function createTestContext(
+    req: Request,
+    res: Response = {
+        redirect: vi.fn(),
+        send: vi.fn(),
+        set: vi.fn(),
+        status: () => undefined,
+    },
+): AppContextContext {
+    const headers: Record<string, string> = {};
+    const values = new Map<string, unknown>();
+
+    values.set('session', req.session ?? {});
+    values.set('locals', res.locals ?? {});
+    values.set('body', req.body ?? {});
+    values.set('logger', req.logger ?? mockLogger());
+    values.set('user', req.user);
+
+    function flushHeaders() {
+        if (Object.keys(headers).length > 0) {
+            res.set(headers);
+        }
+    }
+
+    function getHeader(name: string) {
+        const rawHeaders = req.headers ?? {};
+        return rawHeaders[name.toLowerCase()] ?? rawHeaders[name];
+    }
+
+    return {
+        req: {
+            method: req.method ?? 'GET',
+            path: req.path ?? '/',
+            url: req.url ?? 'http://localhost/',
+            header: getHeader,
+            query: () => req.query ?? {},
+            param: () => req.params ?? {},
+        },
+        get: (key: string) => values.get(key),
+        set: (key: string, value: unknown) => {
+            values.set(key, value);
+        },
+        header: (name: string, value: string) => {
+            headers[name] = value;
+        },
+        redirect: (url: string) => {
+            flushHeaders();
+            res.redirect(url);
+            return new globalThis.Response(null, { status: 302 });
+        },
+        html: (html: string, statusCode = 200) => {
+            res.set({ 'Content-Type': 'text/html' });
+            if (typeof res.status === 'function') {
+                res.status(statusCode);
+            } else {
+                res.status = statusCode;
+            }
+            res.send(html);
+            return new globalThis.Response(html, { status: statusCode });
+        },
+    } as unknown as AppContextContext;
+}
+
+function runSearch({
+    req,
+    res,
+    user,
+    query,
+}: {
+    req: Request;
+    res: Response;
+    user: User | undefined;
+    query: string;
+}) {
+    return searchUtils.search({ c: createTestContext(req, res), user, query });
+}
 
 function isoNow() {
     return Temporal.Now.instant().toString();
@@ -80,7 +174,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: undefined as unknown as User,
@@ -115,7 +209,7 @@ describe('search', () => {
 
             isValidUrl.mockReturnValue(true);
 
-            await searchUtils.search({ req, res, user: undefined as unknown as User, query: '!g' });
+            await runSearch({ req, res, user: undefined as unknown as User, query: '!g' });
 
             expect(res.status).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
@@ -144,7 +238,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: undefined, query: '!doesnotexistanywhere' });
+            await runSearch({ req, res, user: undefined, query: '!doesnotexistanywhere' });
 
             expect(res.status).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
@@ -176,7 +270,7 @@ describe('search', () => {
             isValidUrl.mockReturnValue(false);
 
             try {
-                await searchUtils.search({ req, res, user: undefined, query: '!g' });
+                await runSearch({ req, res, user: undefined, query: '!g' });
 
                 expect(res.status).toBe(200);
                 expect(res.set).toHaveBeenCalledWith(
@@ -209,7 +303,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: undefined, query: '!g python' });
+            await runSearch({ req, res, user: undefined, query: '!g python' });
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
@@ -244,7 +338,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: undefined, query: '!g python' });
+            await runSearch({ req, res, user: undefined, query: '!g python' });
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
@@ -284,7 +378,7 @@ describe('search', () => {
                 .mockResolvedValue(undefined);
 
             try {
-                await searchUtils.search({ req, res, user: undefined, query: '!g python' });
+                await runSearch({ req, res, user: undefined, query: '!g python' });
 
                 expect(processDelayedSpy).toHaveBeenCalled();
                 expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
@@ -348,7 +442,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: testUser, query: '@settings' });
+            await runSearch({ req, res, user: testUser, query: '@settings' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -356,7 +450,7 @@ describe('search', () => {
             );
             expect(res.redirect).toHaveBeenCalledWith('/settings');
 
-            await searchUtils.search({ req, res, user: testUser, query: '@b' });
+            await runSearch({ req, res, user: testUser, query: '@b' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -372,7 +466,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: testUser, query: '@NOTES' });
+            await runSearch({ req, res, user: testUser, query: '@NOTES' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -381,7 +475,7 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/notes');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@BM' });
+            await runSearch({ req, res, user: testUser, query: '@BM' });
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks');
         });
 
@@ -392,7 +486,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: testUser, query: '@notes search query' });
+            await runSearch({ req, res, user: testUser, query: '@notes search query' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -401,11 +495,11 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@note another query' });
+            await runSearch({ req, res, user: testUser, query: '@note another query' });
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=another%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@n shorthand' });
+            await runSearch({ req, res, user: testUser, query: '@n shorthand' });
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=shorthand');
         });
 
@@ -416,7 +510,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -430,7 +524,7 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@bm bookmark query' });
+            await runSearch({ req, res, user: testUser, query: '@bm bookmark query' });
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=bookmark%20query');
         });
 
@@ -441,7 +535,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: testUser, query: '@actions search query' });
+            await runSearch({ req, res, user: testUser, query: '@actions search query' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -450,7 +544,7 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@a action query' });
+            await runSearch({ req, res, user: testUser, query: '@a action query' });
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=action%20query');
         });
 
@@ -461,7 +555,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -475,11 +569,11 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/reminders?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@r reminder query' });
+            await runSearch({ req, res, user: testUser, query: '@r reminder query' });
             expect(res.redirect).toHaveBeenCalledWith('/reminders?search=reminder%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@remind test' });
+            await runSearch({ req, res, user: testUser, query: '@remind test' });
             expect(res.redirect).toHaveBeenCalledWith('/reminders?search=test');
         });
 
@@ -490,7 +584,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: testUser, query: '@tabs search query' });
+            await runSearch({ req, res, user: testUser, query: '@tabs search query' });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -499,11 +593,11 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/tabs?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@t tab query' });
+            await runSearch({ req, res, user: testUser, query: '@t tab query' });
             expect(res.redirect).toHaveBeenCalledWith('/tabs?search=tab%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@tab my tabs' });
+            await runSearch({ req, res, user: testUser, query: '@tab my tabs' });
             expect(res.redirect).toHaveBeenCalledWith('/tabs?search=my%20tabs');
         });
 
@@ -514,7 +608,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -544,7 +638,7 @@ describe('search', () => {
 
             const query = '!bm My Bookmark https://example.com';
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -584,7 +678,7 @@ describe('search', () => {
 
             const query = '!bm https://example.com';
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -607,7 +701,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -633,7 +727,7 @@ describe('search', () => {
             const longTitle = 'A'.repeat(256);
             const query = `!bm ${longTitle} https://example.com`;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -663,7 +757,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: userWithPassword,
@@ -697,7 +791,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: userWithoutPassword,
@@ -725,7 +819,7 @@ describe('search', () => {
                 } as unknown as Response;
 
                 isValidUrl.mockReturnValue(true);
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: userWithPassword,
@@ -758,7 +852,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: userWithPassword,
@@ -784,7 +878,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -809,7 +903,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: userWithPassword,
@@ -843,7 +937,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: userWithoutPassword,
@@ -876,7 +970,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: userWithPassword,
@@ -908,7 +1002,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: userWithPassword,
@@ -940,7 +1034,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -997,7 +1091,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -1029,7 +1123,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -1063,7 +1157,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -1112,7 +1206,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -1136,7 +1230,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -1158,7 +1252,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -1205,7 +1299,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -1226,7 +1320,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -1247,7 +1341,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -1275,7 +1369,7 @@ describe('search', () => {
             isValidUrl.mockReturnValue(true);
             insertBookmark.mockImplementation(mockInsertBookmark);
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -1300,7 +1394,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -1323,7 +1417,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: googleUser,
@@ -1352,7 +1446,7 @@ describe('search', () => {
             isValidUrl.mockReturnValue(true);
             checkDuplicateBookmarkUrl.mockRejectedValue(new Error('Database error'));
 
-            await searchUtils.search({
+            await runSearch({
                 req,
                 res,
                 user: testUser,
@@ -1376,7 +1470,7 @@ describe('search', () => {
                     set: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1398,7 +1492,7 @@ describe('search', () => {
                     set: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1418,7 +1512,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1439,7 +1533,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1459,7 +1553,7 @@ describe('search', () => {
                     set: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1481,7 +1575,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1508,7 +1602,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1535,7 +1629,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1562,7 +1656,7 @@ describe('search', () => {
                 const longTitle = 'A'.repeat(256);
                 const query = `!note ${longTitle} | This is the content`;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1586,7 +1680,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1607,7 +1701,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1628,7 +1722,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1649,7 +1743,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1670,7 +1764,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1694,7 +1788,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1726,7 +1820,7 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({ req, res, user: testUser, query });
+                    await runSearch({ req, res, user: testUser, query });
                 }
 
                 // Pin the second note (created in middle)
@@ -1773,7 +1867,7 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({
+                    await runSearch({
                         req,
                         res,
                         user: userWithPassword,
@@ -1806,7 +1900,7 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({
+                    await runSearch({
                         req,
                         res,
                         user: userWithoutPassword,
@@ -1839,7 +1933,7 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({
+                    await runSearch({
                         req,
                         res,
                         user: userWithPassword,
@@ -1869,7 +1963,7 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({
+                    await runSearch({
                         req,
                         res,
                         user: userWithPassword,
@@ -1902,7 +1996,7 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({
+                    await runSearch({
                         req,
                         res,
                         user: userWithPassword,
@@ -1941,7 +2035,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1975,7 +2069,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -1996,7 +2090,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2019,7 +2113,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2044,7 +2138,7 @@ describe('search', () => {
 
                 const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: unauthenticatedUser,
@@ -2078,7 +2172,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2129,7 +2223,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2156,7 +2250,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2173,7 +2267,6 @@ describe('search', () => {
                 expect(insertPageTitle).toHaveBeenCalledWith({
                     actionId: 1001,
                     url: 'https://new-url.com',
-                    req,
                 });
 
                 const updatedBang = await db('bangs')
@@ -2199,7 +2292,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2238,7 +2331,7 @@ describe('search', () => {
                 const mockInsertPageTitle = vi.fn().mockResolvedValue(undefined);
                 insertPageTitle.mockImplementation(mockInsertPageTitle);
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2267,7 +2360,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2290,7 +2383,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2313,7 +2406,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2336,7 +2429,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2361,7 +2454,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(false);
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2382,7 +2475,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2409,7 +2502,7 @@ describe('search', () => {
 
                 const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: unauthenticatedUser,
@@ -2436,7 +2529,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2475,7 +2568,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2523,7 +2616,7 @@ describe('search', () => {
             };
 
             for (const [command, path] of Object.entries(commands)) {
-                await searchUtils.search({ req, res, user: testUser, query: command });
+                await runSearch({ req, res, user: testUser, query: command });
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
                         'Cache-Control': 'private, max-age=3600',
@@ -2543,7 +2636,7 @@ describe('search', () => {
             isValidUrl.mockReturnValue(false);
 
             try {
-                await searchUtils.search({ req, res, user: testUser, query: '!g' });
+                await runSearch({ req, res, user: testUser, query: '!g' });
 
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -2587,7 +2680,7 @@ describe('search', () => {
                     created_at: isoNow(),
                 });
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2622,7 +2715,7 @@ describe('search', () => {
                     created_at: isoNow(),
                 });
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2662,7 +2755,7 @@ describe('search', () => {
                     created_at: isoNow(),
                 });
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2690,7 +2783,7 @@ describe('search', () => {
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate found
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2729,7 +2822,7 @@ describe('search', () => {
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate found for other user
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: otherUser,
@@ -2758,7 +2851,7 @@ describe('search', () => {
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate because title is different
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2794,7 +2887,7 @@ describe('search', () => {
                     created_at: isoNow(),
                 });
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUser,
@@ -2844,7 +2937,7 @@ describe('search', () => {
 
                 isValidUrl.mockRestore();
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2872,7 +2965,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2901,7 +2994,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2930,7 +3023,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -2963,7 +3056,7 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({
+                    await runSearch({
                         req,
                         res,
                         user: testUserWithPreferences,
@@ -2991,7 +3084,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3012,7 +3105,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3034,7 +3127,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3072,7 +3165,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: userWithoutPrefs,
@@ -3096,7 +3189,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3121,7 +3214,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3146,7 +3239,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3171,7 +3264,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3197,7 +3290,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3222,7 +3315,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3247,7 +3340,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3271,7 +3364,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3296,7 +3389,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3321,7 +3414,7 @@ describe('search', () => {
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3348,7 +3441,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3377,7 +3470,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3406,7 +3499,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
+                await runSearch({
                     req,
                     res,
                     user: testUserWithPreferences,
@@ -3720,7 +3813,7 @@ describe('processDelayedSearch', () => {
         const req = { logger: mockLogger(), session: {} } as unknown as Request;
 
         const start = Date.now();
-        await searchUtils.processDelayedSearch(req);
+        await searchUtils.processDelayedSearch(createTestContext(req));
         const duration = Date.now() - start;
 
         expect(duration).toBeLessThan(10);
@@ -3736,7 +3829,7 @@ describe('processDelayedSearch', () => {
         } as unknown as Request;
 
         const start = Date.now();
-        await searchUtils.processDelayedSearch(req);
+        await searchUtils.processDelayedSearch(createTestContext(req));
         const duration = Date.now() - start;
 
         expect(duration).toBeGreaterThanOrEqual(delayMs - 1);
@@ -3751,7 +3844,7 @@ describe('processDelayedSearch', () => {
             },
         } as unknown as Request;
 
-        const delayPromise = searchUtils.processDelayedSearch(req);
+        const delayPromise = searchUtils.processDelayedSearch(createTestContext(req));
 
         let counter = 0;
         const counterPromise = new Promise<number>((resolve) => {
@@ -3785,7 +3878,12 @@ describe('handleAnonymousSearch', () => {
 
         const initialSearchCount = req.session.searchCount || 0;
 
-        await searchUtils.handleAnonymousSearch(req, res, 'test query', 'g', 'test query');
+        await searchUtils.handleAnonymousSearch(
+            createTestContext(req, res),
+            'test query',
+            'g',
+            'test query',
+        );
 
         expect(req.session.searchCount).toBe(initialSearchCount + 1);
         expect(res.redirect).toHaveBeenCalled();
@@ -3864,7 +3962,7 @@ describe('search command handling', () => {
 
             const user = { id: 1 } as User;
 
-            await searchUtils.search({ req, res, user, query: '@notes test' });
+            await runSearch({ req, res, user, query: '@notes test' });
 
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=test');
 
@@ -3893,7 +3991,7 @@ describe('search command handling', () => {
                 rawRemainder: '',
             });
 
-            await searchUtils.search({ req, res, user, query: '!unknown' });
+            await runSearch({ req, res, user, query: '!unknown' });
 
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=unknown');
 
@@ -3920,7 +4018,7 @@ describe('search command handling', () => {
                 rawRemainder: 'regular search',
             });
 
-            await searchUtils.search({ req, res, user, query: 'regular search' });
+            await runSearch({ req, res, user, query: 'regular search' });
 
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=regular%20search');
 
@@ -4224,7 +4322,7 @@ describe('Bang Search Optimization', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        await searchUtils.search({
+        await runSearch({
             req,
             res,
             user: testUser,
@@ -4257,7 +4355,7 @@ describe('Bang Search Optimization', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        await searchUtils.search({
+        await runSearch({
             req,
             res,
             user: testUser,
@@ -4290,7 +4388,7 @@ describe('Bang Search Optimization', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        await searchUtils.search({
+        await runSearch({
             req,
             res,
             user: testUser,
@@ -4316,7 +4414,7 @@ describe('Bang Search Optimization', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        await searchUtils.search({
+        await runSearch({
             req,
             res,
             user: testUser,
@@ -4329,7 +4427,7 @@ describe('Bang Search Optimization', () => {
 
         vi.mocked(res.redirect).mockClear();
 
-        await searchUtils.search({
+        await runSearch({
             req,
             res,
             user: testUser,
@@ -4354,7 +4452,7 @@ describe('Bang Search Optimization', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        await searchUtils.search({
+        await runSearch({
             req,
             res,
             user: testUser,
@@ -4381,7 +4479,7 @@ describe('Bang Search Optimization', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        await searchUtils.search({
+        await runSearch({
             req,
             res,
             user: { ...testUser, default_search_provider: 'duckduckgo' },
@@ -4434,12 +4532,12 @@ describe('Bang Search Performance', () => {
 
         const reqCold = { logger: mockLogger(), session: {} } as unknown as Request;
         const startCold = performance.now();
-        await searchUtils.search({ req: reqCold, res, user: testUser, query: '!g test' });
+        await runSearch({ req: reqCold, res, user: testUser, query: '!g test' });
         const coldTime = performance.now() - startCold;
 
         vi.mocked(res.redirect).mockClear();
         const startWarm = performance.now();
-        await searchUtils.search({ req: reqCold, res, user: testUser, query: '!yt video' });
+        await runSearch({ req: reqCold, res, user: testUser, query: '!yt video' });
         const warmTime = performance.now() - startWarm;
 
         // Warm should be served from cache; allow some variance for system jitter
@@ -4467,7 +4565,7 @@ describe('Bang Search Performance', () => {
         for (let i = 0; i < iterations; i++) {
             vi.mocked(res.redirect).mockClear();
             const start = performance.now();
-            await searchUtils.search({ req, res, user: testUser, query: `!g query${i}` });
+            await runSearch({ req, res, user: testUser, query: `!g query${i}` });
             times.push(performance.now() - start);
         }
 
@@ -4493,7 +4591,7 @@ describe('Bang Search Performance', () => {
             },
         } as unknown as Request;
 
-        await searchUtils.search({ req, res, user: testUser, query: '!custom1' });
+        await runSearch({ req, res, user: testUser, query: '!custom1' });
 
         expect(res.redirect).toHaveBeenCalledWith('https://custom1.com');
     });

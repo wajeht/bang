@@ -1,4 +1,4 @@
-import type { AppContext, AppRequest as Request } from '../type.js';
+import type { AppContext, AppContextContext } from '../type.js';
 
 const SENSITIVE_KEYS = new Set([
     'password',
@@ -42,30 +42,35 @@ function describeCause(cause: unknown): string | undefined {
 
 export function createNtfy(ctx: AppContext) {
     return {
-        sendErrorNotification(req: Request, error: Error, statusCode: number): void {
+        sendErrorNotification(c: AppContextContext, error: Error, statusCode: number): void {
             if (!ctx.config.ntfy.url || !ctx.config.ntfy.topic) return;
 
-            const user = req.session?.user || req.user;
+            const user = c.get('session')?.user || c.get('user');
             const stackLines = error.stack?.split('\n') || [];
             const appLines = stackLines.filter((line) => !line.includes('node_modules'));
             const stack = appLines.slice(0, 8).join('\n') || 'No stack trace';
-            const query = Object.keys(req.query).length > 0 ? JSON.stringify(req.query) : undefined;
-            const body = sanitizeObject(req.body);
+            const requestQuery = c.req.query();
+            const query =
+                Object.keys(requestQuery).length > 0 ? JSON.stringify(requestQuery) : undefined;
+            const body = sanitizeObject(c.get('body') ?? {});
             const bodyStr =
                 body && Object.keys(body as object).length > 0 ? JSON.stringify(body) : undefined;
 
             const data = {
                 severity: statusCode >= 500 ? 'error' : 'warn',
-                method: req.method,
-                path: req.path,
+                method: c.req.method,
+                path: c.req.path,
                 status: statusCode,
                 errorName: error.name,
                 errorMessage: truncate(error.message, 200),
                 user: user?.email || user?.id?.toString() || 'anonymous',
-                ip: req.ip || req.socket?.remoteAddress || undefined,
-                userAgent: truncate(String(req.headers['user-agent'] || ''), 200) || undefined,
-                referer: req.headers.referer || req.headers.referrer || undefined,
-                host: req.hostname || req.headers.host || undefined,
+                ip:
+                    c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
+                    c.req.header('x-real-ip') ||
+                    undefined,
+                userAgent: truncate(String(c.req.header('user-agent') || ''), 200) || undefined,
+                referer: c.req.header('referer') || c.req.header('referrer') || undefined,
+                host: c.req.header('host') || undefined,
                 query: query ? truncate(query, 300) : undefined,
                 body: bodyStr ? truncate(bodyStr, 500) : undefined,
                 cause: describeCause(error.cause),

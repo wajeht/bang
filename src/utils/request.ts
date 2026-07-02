@@ -1,11 +1,4 @@
-import type {
-    AppContext,
-    AppContextContext,
-    AppRequest as Request,
-    AppSession,
-    PageType,
-    User,
-} from '../type.js';
+import type { AppContext, AppContextContext, AppSession, PageType, User } from '../type.js';
 
 export function createRequest(context: AppContext) {
     type PreferenceKey = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders' | 'users';
@@ -98,24 +91,8 @@ export function createRequest(context: AppContext) {
     }
 
     return {
-        async extractUser(req: Request): Promise<User> {
-            if (req.session?.user) {
-                return req.session.user;
-            }
-
-            throw new context.errors.HttpError(500, 'User not found from request!', req);
-        },
-
-        extractPaginationParams(req: Request, pageType: PageType | 'admin') {
-            return getPaginationParams(req.user as User, req.query, pageType);
-        },
-
         extractPaginationParamsFromContext(c: AppContextContext, pageType: PageType | 'admin') {
             return getPaginationParams(c.get('user'), c.req.query(), pageType);
-        },
-
-        extractIdsForDelete(req: Request): number[] {
-            return getIdsForDelete(req.params, req.body);
         },
 
         extractIdsForDeleteFromContext(c: AppContextContext): number[] {
@@ -137,10 +114,6 @@ export function createRequest(context: AppContext) {
                 }
             }
             return url.pathname.replace(/^\/+/, '/') + url.search;
-        },
-
-        canViewHiddenItems(req: Request, user: User) {
-            return canViewHiddenItemsFromState(req.query, req.session, user);
         },
 
         canViewHiddenItemsFromContext(c: AppContextContext, user: User) {

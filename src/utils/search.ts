@@ -1,12 +1,5 @@
 import { bangs as bangsTable } from '../db/bang.js';
-import type {
-    AppContext,
-    AppRequest as Request,
-    AppResponse as Response,
-    Bang,
-    ReminderTimingResult,
-    Search,
-} from '../type.js';
+import type { AppContext, AppContextContext, Bang, ReminderTimingResult, Search } from '../type.js';
 
 export function createSearch(context: AppContext) {
     const TRIGGER_CACHE_MAX = 1000;
@@ -204,26 +197,28 @@ export function createSearch(context: AppContext) {
             triggerCache.delete(userId);
         },
 
-        trackAnonymousUserSearch(req: Request) {
-            req.session.searchCount = req.session.searchCount || 0;
-            req.session.cumulativeDelay = req.session.cumulativeDelay || 0;
+        trackAnonymousUserSearch(c: AppContextContext) {
+            const session = c.get('session');
+            session.searchCount = session.searchCount || 0;
+            session.cumulativeDelay = session.cumulativeDelay || 0;
 
-            req.session.searchCount += 1;
+            session.searchCount += 1;
 
             // delay penalty if search limit is exceeded
-            if (req.session.searchCount > searchConfig.searchLimit) {
-                req.session.cumulativeDelay += searchConfig.delayIncrement;
-                if (req.session.cumulativeDelay > searchConfig.maxCumulativeDelayMs) {
-                    req.session.cumulativeDelay = searchConfig.maxCumulativeDelayMs;
+            if (session.searchCount > searchConfig.searchLimit) {
+                session.cumulativeDelay += searchConfig.delayIncrement;
+                if (session.cumulativeDelay > searchConfig.maxCumulativeDelayMs) {
+                    session.cumulativeDelay = searchConfig.maxCumulativeDelayMs;
                 }
             }
+            c.set('sessionChanged', true);
         },
 
-        redirectWithAlert(res: Response, url: string, message?: string) {
+        redirectWithAlert(c: AppContextContext, url: string, message?: string) {
             const safeMessage = message ? context.utils.html.escapeHtml(message) : '';
             const safeUrl = context.utils.html.escapeHtml(url);
 
-            return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
+            return c.html(`
 			<script>
 				${safeMessage ? `alert("${safeMessage}");` : ''}
 				window.location.href = "${safeUrl}";
@@ -231,19 +226,22 @@ export function createSearch(context: AppContext) {
 		`);
         },
 
-        goBackWithValidationAlert(res: Response, message: string) {
+        goBackWithValidationAlert(c: AppContextContext, message: string) {
             const safeMessage = context.utils.html.escapeHtml(message);
 
-            return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
+            return c.html(
+                `
 			<script>
 				alert("${safeMessage}");
 				window.history.back();
 			</script>
-		`);
+		`,
+                422,
+            );
         },
 
-        goBack(res: Response) {
-            return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
+        goBack(c: AppContextContext) {
+            return c.html(`
 			<script>
 				window.history.back();
 			</script>
@@ -437,7 +435,7 @@ export function createSearch(context: AppContext) {
             };
         },
 
-        getSearchLimitWarning(_req: Request, searchCount: number): string | null {
+        getSearchLimitWarning(searchCount: number): string | null {
             const searchesLeft = searchConfig.searchLimit - searchCount;
             const showWarning = searchCount % 10 === 0 && searchCount !== 0;
 
@@ -452,25 +450,24 @@ export function createSearch(context: AppContext) {
             return null;
         },
 
-        async processDelayedSearch(req: Request): Promise<void> {
-            if (req.session.cumulativeDelay) {
-                await new Promise((resolve) => setTimeout(resolve, req.session.cumulativeDelay));
+        async processDelayedSearch(c: AppContextContext): Promise<void> {
+            const session = c.get('session');
+            if (session.cumulativeDelay) {
+                await new Promise((resolve) => setTimeout(resolve, session.cumulativeDelay));
             }
         },
 
         redirectWithCache(
-            res: Response,
+            c: AppContextContext,
             url: string,
             cacheDuration: number = searchConfig.redirectWithCacheDuration,
             cacheType: 'public' | 'private' | 'no-store' = 'private',
             varyHeaders?: string[],
-        ): void {
+        ): Response {
             if (cacheType === 'no-store') {
-                res.set({
-                    'Cache-Control': 'no-store',
-                    Pragma: 'no-cache',
-                    Expires: '0',
-                });
+                c.header('Cache-Control', 'no-store');
+                c.header('Pragma', 'no-cache');
+                c.header('Expires', '0');
             } else {
                 const headers: Record<string, string> = {
                     'Cache-Control': `${cacheType}, max-age=${cacheDuration * 60}`,
@@ -486,24 +483,26 @@ export function createSearch(context: AppContext) {
                     headers['Vary'] = varyHeaders.join(', ');
                 }
 
-                res.set(headers);
+                for (const [key, value] of Object.entries(headers)) {
+                    c.header(key, value);
+                }
             }
-            res.redirect(url);
+            return c.redirect(url);
         },
 
         async handleAnonymousSearch(
-            req: Request,
-            res: Response,
+            c: AppContextContext,
             query: string,
             triggerWithoutBang: string,
             searchTerm: string,
         ): Promise<globalThis.Response | void> {
-            const warningMessage = this.getSearchLimitWarning(req, req.session.searchCount ?? 0);
+            const session = c.get('session');
+            const warningMessage = this.getSearchLimitWarning(session.searchCount ?? 0);
 
             if (warningMessage) {
-                this.trackAnonymousUserSearch(req);
+                this.trackAnonymousUserSearch(c);
                 return this.redirectWithAlert(
-                    res,
+                    c,
                     searchConfig.defaultSearchProviders['duckduckgo'].replace(
                         '{{{s}}}',
                         encodeURIComponent(searchTerm),
@@ -512,13 +511,13 @@ export function createSearch(context: AppContext) {
                 );
             }
 
-            this.trackAnonymousUserSearch(req);
+            this.trackAnonymousUserSearch(c);
 
-            if (req.session.cumulativeDelay) {
-                const delayPromise = this.processDelayedSearch(req);
+            if (session.cumulativeDelay) {
+                const delayPromise = this.processDelayedSearch(c);
 
                 let redirectUrl = '';
-                const message = `This search was delayed by ${req.session.cumulativeDelay / 1000} seconds due to rate limiting.`;
+                const message = `This search was delayed by ${session.cumulativeDelay / 1000} seconds due to rate limiting.`;
 
                 if (triggerWithoutBang) {
                     const bang = searchConfig.bangs[triggerWithoutBang] as Bang;
@@ -539,7 +538,7 @@ export function createSearch(context: AppContext) {
 
                 await delayPromise;
 
-                return this.redirectWithAlert(res, redirectUrl, message);
+                return this.redirectWithAlert(c, redirectUrl, message);
             }
 
             if (triggerWithoutBang) {
@@ -548,7 +547,7 @@ export function createSearch(context: AppContext) {
                     // Handle search queries with bang (e.g., "!g python")
                     if (searchTerm) {
                         return this.redirectWithCache(
-                            res,
+                            c,
                             this.getBangRedirectUrl(bang, searchTerm),
                             searchConfig.redirectWithCacheDuration,
                             'private',
@@ -559,7 +558,7 @@ export function createSearch(context: AppContext) {
                     // Handle bang-only queries (e.g., "!g") - redirects to service homepage
                     if (context.utils.validation.isValidUrl(bang.u)) {
                         return this.redirectWithCache(
-                            res,
+                            c,
                             this.getBangRedirectUrl(bang, ''),
                             searchConfig.redirectWithCacheDuration,
                             'public',
@@ -576,7 +575,7 @@ export function createSearch(context: AppContext) {
                 !searchConfig.bangs[parsedQuery.triggerWithoutPrefix];
 
             return this.redirectWithCache(
-                res,
+                c,
                 searchConfig.defaultSearchProviders['duckduckgo'].replace(
                     '{{{s}}}',
                     encodeURIComponent(query),
@@ -927,8 +926,8 @@ export function createSearch(context: AppContext) {
             };
         },
 
-        async search({ res, req, user, query }: Parameters<Search>[0]): ReturnType<Search> {
-            const log = req.logger.tag('fn', 'search');
+        async search({ c, user, query }: Parameters<Search>[0]): ReturnType<Search> {
+            const log = c.get('logger').tag('fn', 'search');
             const timer = log.time('search');
 
             const { commandType, trigger, triggerWithoutPrefix, url, searchTerm, rawRemainder } =
@@ -937,8 +936,7 @@ export function createSearch(context: AppContext) {
             if (!user?.id) {
                 timer.stop({ outcome: 'anonymous', trigger: triggerWithoutPrefix || undefined });
                 return this.handleAnonymousSearch(
-                    req,
-                    res,
+                    c,
                     query,
                     triggerWithoutPrefix ?? '',
                     searchTerm ?? '',
@@ -955,7 +953,7 @@ export function createSearch(context: AppContext) {
                     if (directPath) {
                         timer.stop({ outcome: 'direct', trigger });
                         return this.redirectWithCache(
-                            res,
+                            c,
                             directPath,
                             searchConfig.redirectWithCacheDuration,
                             'private',
@@ -977,7 +975,7 @@ export function createSearch(context: AppContext) {
                         }
                         timer.stop({ outcome: 'direct-search', trigger, admin: true });
                         return this.redirectWithCache(
-                            res,
+                            c,
                             `/admin/users?search=${encodeURIComponent(searchTerm)}`,
                             searchConfig.redirectWithCacheDuration,
                             'private',
@@ -988,7 +986,7 @@ export function createSearch(context: AppContext) {
                     if (basePath) {
                         timer.stop({ outcome: 'direct-search', trigger });
                         return this.redirectWithCache(
-                            res,
+                            c,
                             `${basePath}?search=${encodeURIComponent(searchTerm)}`,
                             searchConfig.redirectWithCacheDuration,
                             'private',
@@ -1007,7 +1005,7 @@ export function createSearch(context: AppContext) {
                 if (trigger === '!bm') {
                     if (!url || !context.utils.validation.isValidUrl(url)) {
                         timer.stop({ outcome: 'error', trigger, error: 'invalid-url' });
-                        return this.goBackWithValidationAlert(res, 'Invalid or missing URL');
+                        return this.goBackWithValidationAlert(c, 'Invalid or missing URL');
                     }
 
                     let shouldHide = false;
@@ -1036,7 +1034,7 @@ export function createSearch(context: AppContext) {
                         if (!user.hidden_items_password) {
                             timer.stop({ outcome: 'error', trigger, error: 'no-password' });
                             return this.goBackWithValidationAlert(
-                                res,
+                                c,
                                 'You must set a global password in settings before hiding items',
                             );
                         }
@@ -1055,14 +1053,14 @@ export function createSearch(context: AppContext) {
                             if (newTitle.length > 0) {
                                 timer.stop({ outcome: 'error', trigger, error: 'duplicate' });
                                 return this.goBackWithValidationAlert(
-                                    res,
+                                    c,
                                     `URL already bookmarked as ${existingBookmark.title}. Use a different URL or update the existing bookmark.`,
                                 );
                             }
 
                             timer.stop({ outcome: 'error', trigger, error: 'duplicate' });
                             return this.goBackWithValidationAlert(
-                                res,
+                                c,
                                 `URL already bookmarked as ${existingBookmark.title}. Bookmark already exists.`,
                             );
                         }
@@ -1070,7 +1068,7 @@ export function createSearch(context: AppContext) {
                         if (titleSection && titleSection.length > 255) {
                             timer.stop({ outcome: 'error', trigger, error: 'title-too-long' });
                             return this.goBackWithValidationAlert(
-                                res,
+                                c,
                                 'Title must be shorter than 255 characters',
                             );
                         }
@@ -1086,7 +1084,7 @@ export function createSearch(context: AppContext) {
 
                         timer.stop({ outcome: 'system-bang', trigger, action: 'bookmark-created' });
                         return this.redirectWithCache(
-                            res,
+                            c,
                             url,
                             searchConfig.redirectWithCacheDuration,
                             'no-store',
@@ -1095,7 +1093,7 @@ export function createSearch(context: AppContext) {
                         log.error('bookmark creation failed', { error });
                         timer.stop({ outcome: 'error', trigger, error: 'db-error' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             'Failed to add bookmark. Please check the URL and try again.',
                         );
                     }
@@ -1122,7 +1120,7 @@ export function createSearch(context: AppContext) {
                         if (!user.hidden_items_password) {
                             timer.stop({ outcome: 'error', trigger, error: 'no-password' });
                             return this.goBackWithValidationAlert(
-                                res,
+                                c,
                                 'You must set a global password in settings before hiding items',
                             );
                         }
@@ -1131,7 +1129,7 @@ export function createSearch(context: AppContext) {
                     const firstSpaceIdx = rest.indexOf(' ');
                     if (firstSpaceIdx === -1) {
                         timer.stop({ outcome: 'error', trigger, error: 'invalid-format' });
-                        return this.goBackWithValidationAlert(res, 'Invalid trigger or empty URL');
+                        return this.goBackWithValidationAlert(c, 'Invalid trigger or empty URL');
                     }
 
                     const rawTrigger = rest.slice(0, firstSpaceIdx).trim();
@@ -1139,7 +1137,7 @@ export function createSearch(context: AppContext) {
 
                     if (!rawTrigger || !bangUrl) {
                         timer.stop({ outcome: 'error', trigger, error: 'invalid-format' });
-                        return this.goBackWithValidationAlert(res, 'Invalid trigger or empty URL');
+                        return this.goBackWithValidationAlert(c, 'Invalid trigger or empty URL');
                     }
 
                     const bangTrigger = context.utils.util.normalizeBangTrigger(rawTrigger);
@@ -1156,7 +1154,7 @@ export function createSearch(context: AppContext) {
                         log.error('db error checking bang', { error });
                         timer.stop({ outcome: 'error', trigger, error: 'db-error' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             'Database error occurred while checking bang',
                         );
                     }
@@ -1183,7 +1181,8 @@ export function createSearch(context: AppContext) {
                         const hideFlag = shouldHide ? ' --hide' : '';
 
                         timer.stop({ outcome: 'prompt', trigger, action: 'conflict-retry' });
-                        return res.set({ 'Content-Type': 'text/html' }).status(422).send(`
+                        return c.html(
+                            `
                         <script>
                             const bangUrl = "${safeBangUrl}";
                             const newTrigger = prompt("${safeMessage}");
@@ -1194,7 +1193,9 @@ export function createSearch(context: AppContext) {
                                 window.history.back();
                             }
                         </script>
-                    `);
+                    `,
+                            422,
+                        );
                     }
 
                     let bangs;
@@ -1214,7 +1215,7 @@ export function createSearch(context: AppContext) {
                         log.error('bang creation failed', { error });
                         timer.stop({ outcome: 'error', trigger, error: 'db-error' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             'Failed to create bang. Please try again.',
                         );
                     }
@@ -1225,7 +1226,6 @@ export function createSearch(context: AppContext) {
                         .insertPageTitle({
                             actionId: bangs[0].id,
                             url: bangUrl,
-                            req,
                         })
                         .catch((error) =>
                             log.error('Error inserting page title', { error, url: bangUrl }),
@@ -1234,7 +1234,7 @@ export function createSearch(context: AppContext) {
                     context.utils.util.prefetchAssets(bangUrl);
 
                     timer.stop({ outcome: 'system-bang', trigger, action: 'bang-created' });
-                    return this.goBack(res);
+                    return this.goBack(c);
                 }
 
                 // Process delete bang command (!del)
@@ -1250,7 +1250,7 @@ export function createSearch(context: AppContext) {
                     if (!bangToDelete || bangToDelete.length === 0) {
                         timer.stop({ outcome: 'error', trigger, error: 'missing-trigger' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             'Please specify a trigger to delete',
                         );
                     }
@@ -1278,7 +1278,7 @@ export function createSearch(context: AppContext) {
                         log.error('delete failed', { error });
                         timer.stop({ outcome: 'error', trigger, error: 'db-error' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             'Failed to delete bang. Please try again.',
                         );
                     }
@@ -1286,7 +1286,7 @@ export function createSearch(context: AppContext) {
                     if (deletedBangs === 0 && deletedTabs === 0) {
                         timer.stop({ outcome: 'error', trigger, error: 'not-found' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             `Bang '${bangToDelete}' not found or you don't have permission to delete it`,
                         );
                     }
@@ -1300,7 +1300,7 @@ export function createSearch(context: AppContext) {
                         bangs: deletedBangs,
                         tabs: deletedTabs,
                     });
-                    return this.goBack(res);
+                    return this.goBack(c);
                 }
 
                 // Process edit bang command (!edit)
@@ -1316,7 +1316,7 @@ export function createSearch(context: AppContext) {
                     if (tokens.length < 2 || !tokens[0]) {
                         timer.stop({ outcome: 'error', trigger, error: 'invalid-format' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             'Invalid format. Use: !edit !trigger !newTrigger or !edit !trigger newUrl',
                         );
                     }
@@ -1349,7 +1349,7 @@ export function createSearch(context: AppContext) {
                         log.error('db error checking bang/tab', { error });
                         timer.stop({ outcome: 'error', trigger, error: 'db-error' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             'Database error occurred while checking bang',
                         );
                     }
@@ -1360,7 +1360,7 @@ export function createSearch(context: AppContext) {
                     ) {
                         timer.stop({ outcome: 'error', trigger, error: 'not-found' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             `${oldTrigger} not found or you don't have permission to edit it`,
                         );
                     }
@@ -1375,7 +1375,7 @@ export function createSearch(context: AppContext) {
                         if (searchConfig.systemBangs.has(newTrigger)) {
                             timer.stop({ outcome: 'error', trigger, error: 'system-conflict' });
                             return this.goBackWithValidationAlert(
-                                res,
+                                c,
                                 `${newTrigger} is a system command and cannot be used as a trigger`,
                             );
                         }
@@ -1406,7 +1406,7 @@ export function createSearch(context: AppContext) {
                             log.error('db error checking conflicts', { error });
                             timer.stop({ outcome: 'error', trigger, error: 'db-error' });
                             return this.goBackWithValidationAlert(
-                                res,
+                                c,
                                 'Database error occurred while checking conflicts',
                             );
                         }
@@ -1414,7 +1414,7 @@ export function createSearch(context: AppContext) {
                         if (conflictingBang || conflictingTab) {
                             timer.stop({ outcome: 'error', trigger, error: 'trigger-conflict' });
                             return this.goBackWithValidationAlert(
-                                res,
+                                c,
                                 `${newTrigger} already exists. Please choose a different trigger`,
                             );
                         }
@@ -1426,7 +1426,7 @@ export function createSearch(context: AppContext) {
                         ) {
                             timer.stop({ outcome: 'error', trigger, error: 'invalid-trigger' });
                             return this.goBackWithValidationAlert(
-                                res,
+                                c,
                                 `${newTrigger} trigger can only contain letters and numbers`,
                             );
                         }
@@ -1441,7 +1441,7 @@ export function createSearch(context: AppContext) {
                                 bangUpdates.url = newUrl;
                             } else {
                                 timer.stop({ outcome: 'error', trigger, error: 'invalid-url' });
-                                return this.goBackWithValidationAlert(res, 'Invalid URL format');
+                                return this.goBackWithValidationAlert(c, 'Invalid URL format');
                             }
                         }
                     } else {
@@ -1451,7 +1451,7 @@ export function createSearch(context: AppContext) {
                             bangUpdates.url = newUrl;
                         } else {
                             timer.stop({ outcome: 'error', trigger, error: 'invalid-url' });
-                            return this.goBackWithValidationAlert(res, 'Invalid URL format');
+                            return this.goBackWithValidationAlert(c, 'Invalid URL format');
                         }
                     }
 
@@ -1468,7 +1468,6 @@ export function createSearch(context: AppContext) {
                                     .insertPageTitle({
                                         actionId: existingBang.id,
                                         url: bangUpdates.url || ('' as string),
-                                        req,
                                     })
                                     .catch((error) =>
                                         log.error('Error inserting page title', {
@@ -1483,7 +1482,7 @@ export function createSearch(context: AppContext) {
                             log.error('bang update failed', { error });
                             timer.stop({ outcome: 'error', trigger, error: 'db-error' });
                             return this.goBackWithValidationAlert(
-                                res,
+                                c,
                                 'Failed to update bang. Please try again.',
                             );
                         }
@@ -1500,7 +1499,7 @@ export function createSearch(context: AppContext) {
                             log.error('tab update failed', { error });
                             timer.stop({ outcome: 'error', trigger, error: 'db-error' });
                             return this.goBackWithValidationAlert(
-                                res,
+                                c,
                                 'Failed to update tab. Please try again.',
                             );
                         }
@@ -1511,7 +1510,7 @@ export function createSearch(context: AppContext) {
                     }
 
                     timer.stop({ outcome: 'system-bang', trigger, action: 'edited' });
-                    return this.goBack(res);
+                    return this.goBack(c);
                 }
 
                 // Process note creation command (!note)
@@ -1525,7 +1524,7 @@ export function createSearch(context: AppContext) {
 
                     if (!fullContent) {
                         timer.stop({ outcome: 'error', trigger, error: 'missing-content' });
-                        return this.goBackWithValidationAlert(res, 'Content is required');
+                        return this.goBackWithValidationAlert(c, 'Content is required');
                     }
 
                     let shouldHide = false;
@@ -1542,7 +1541,7 @@ export function createSearch(context: AppContext) {
                         if (!user.hidden_items_password) {
                             timer.stop({ outcome: 'error', trigger, error: 'no-password' });
                             return this.goBackWithValidationAlert(
-                                res,
+                                c,
                                 'You must set a global password in settings before hiding items',
                             );
                         }
@@ -1560,14 +1559,14 @@ export function createSearch(context: AppContext) {
 
                         if (!content) {
                             timer.stop({ outcome: 'error', trigger, error: 'missing-content' });
-                            return this.goBackWithValidationAlert(res, 'Content is required');
+                            return this.goBackWithValidationAlert(c, 'Content is required');
                         }
                     }
 
                     if (title.length > 255) {
                         timer.stop({ outcome: 'error', trigger, error: 'title-too-long' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             'Title must be shorter than 255 characters',
                         );
                     }
@@ -1583,13 +1582,13 @@ export function createSearch(context: AppContext) {
                         log.error('note creation failed', { error });
                         timer.stop({ outcome: 'error', trigger, error: 'db-error' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             'Failed to create note. Please try again.',
                         );
                     }
 
                     timer.stop({ outcome: 'system-bang', trigger, action: 'note-created' });
-                    return this.goBack(res);
+                    return this.goBack(c);
                 }
 
                 // Process tabs command (!tabs)
@@ -1598,7 +1597,7 @@ export function createSearch(context: AppContext) {
                 // Example: !tabs
                 if (trigger === '!tabs') {
                     timer.stop({ outcome: 'system-bang', trigger, action: 'tabs-launch' });
-                    return res.redirect('/tabs/launch');
+                    return c.redirect('/tabs/launch');
                 }
 
                 // Process global find command (!find)
@@ -1610,7 +1609,7 @@ export function createSearch(context: AppContext) {
                     if (!searchTerm || searchTerm.trim().length === 0) {
                         timer.stop({ outcome: 'error', trigger, error: 'missing-term' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             'Please provide a search term for global search',
                         );
                     }
@@ -1621,7 +1620,7 @@ export function createSearch(context: AppContext) {
                     // The search page will handle querying bookmarks, notes, bangs, and tabs
                     timer.stop({ outcome: 'system-bang', trigger, action: 'global-search' });
                     return this.redirectWithCache(
-                        res,
+                        c,
                         `/search?q=${encodedSearchTerm}&type=global`,
                         searchConfig.redirectWithCacheDuration,
                         'private',
@@ -1638,7 +1637,7 @@ export function createSearch(context: AppContext) {
 
                     if (!reminderContent) {
                         timer.stop({ outcome: 'error', trigger, error: 'missing-content' });
-                        return this.goBackWithValidationAlert(res, 'Reminder content is required');
+                        return this.goBackWithValidationAlert(c, 'Reminder content is required');
                     }
 
                     const { when, description, content } = this.parseReminderContent(
@@ -1648,7 +1647,7 @@ export function createSearch(context: AppContext) {
 
                     if (!description) {
                         timer.stop({ outcome: 'error', trigger, error: 'missing-description' });
-                        return this.goBackWithValidationAlert(res, 'Description is required');
+                        return this.goBackWithValidationAlert(c, 'Description is required');
                     }
 
                     // Parse the timing
@@ -1663,7 +1662,7 @@ export function createSearch(context: AppContext) {
                     if (!timing.isValid) {
                         timer.stop({ outcome: 'error', trigger, error: 'invalid-timing' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             'Invalid time format. Use: daily, weekly, monthly, or YYYY-MM-DD',
                         );
                     }
@@ -1693,7 +1692,6 @@ export function createSearch(context: AppContext) {
                                 .insertPageTitle({
                                     reminderId: createdReminder.id,
                                     url: content,
-                                    req,
                                 })
                                 .catch((error) =>
                                     log.error('Error inserting page title', {
@@ -1706,7 +1704,7 @@ export function createSearch(context: AppContext) {
                         log.error('reminder creation failed', { error });
                         timer.stop({ outcome: 'error', trigger, error: 'db-error' });
                         return this.goBackWithValidationAlert(
-                            res,
+                            c,
                             'Failed to create reminder. Please try again.',
                         );
                     }
@@ -1717,7 +1715,7 @@ export function createSearch(context: AppContext) {
                         action: 'reminder-created',
                         timing: timing.type,
                     });
-                    return this.goBack(res);
+                    return this.goBack(c);
                 }
             }
 
@@ -1757,7 +1755,7 @@ export function createSearch(context: AppContext) {
 
                         timer.stop({ outcome: 'user-bang', trigger, action: 'search' });
                         return this.redirectWithCache(
-                            res,
+                            c,
                             url,
                             searchConfig.redirectWithCacheDuration,
                             'no-store', // Don't cache custom bang searches to avoid conflicts
@@ -1768,18 +1766,18 @@ export function createSearch(context: AppContext) {
                         if (customBang.hidden && user.hidden_items_password) {
                             const verificationKey = `bang_${customBang.id}`;
                             const verifiedTime =
-                                req.session?.verifiedHiddenItems?.[verificationKey];
+                                c.get('session')?.verifiedHiddenItems?.[verificationKey];
 
                             if (!verifiedTime || verifiedTime < Date.now()) {
                                 const safeUrl = context.utils.html.escapeHtml(customBang.url);
-                                const csrfToken = res.locals.csrfToken || '';
+                                const csrfToken = c.get('locals').csrfToken || '';
 
                                 timer.stop({
                                     outcome: 'user-bang',
                                     trigger,
                                     action: 'password-prompt',
                                 });
-                                return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
+                                return c.html(`
                             <!DOCTYPE html>
                             <html>
                             <head><title>Password Required</title></head>
@@ -1841,7 +1839,7 @@ export function createSearch(context: AppContext) {
 
                         timer.stop({ outcome: 'user-bang', trigger, action: 'redirect' });
                         return this.redirectWithCache(
-                            res,
+                            c,
                             customBang.url,
                             searchConfig.redirectWithCacheDuration,
                             'no-store', // Don't cache custom bang redirects to avoid conflicts
@@ -1851,7 +1849,7 @@ export function createSearch(context: AppContext) {
                     if (customBang.action_type === 'bookmark') {
                         timer.stop({ outcome: 'user-bang', trigger, action: 'bookmark' });
                         return this.redirectWithCache(
-                            res,
+                            c,
                             `/bookmarks#${customBang.id}`,
                             searchConfig.redirectWithCacheDuration,
                             'private',
@@ -1876,7 +1874,7 @@ export function createSearch(context: AppContext) {
                 if (tab) {
                     timer.stop({ outcome: 'tab', trigger });
                     return this.redirectWithCache(
-                        res,
+                        c,
                         `/tabs/${tab.id}/launch`,
                         searchConfig.redirectWithCacheDuration,
                         'private',
@@ -1893,7 +1891,7 @@ export function createSearch(context: AppContext) {
                     if (searchTerm) {
                         timer.stop({ outcome: 'builtin-bang', trigger });
                         return this.redirectWithCache(
-                            res,
+                            c,
                             this.getBangRedirectUrl(bang, searchTerm),
                             searchConfig.redirectWithCacheDuration,
                             'private',
@@ -1905,7 +1903,7 @@ export function createSearch(context: AppContext) {
                     if (context.utils.validation.isValidUrl(bang.u)) {
                         timer.stop({ outcome: 'builtin-bang', trigger, action: 'homepage' });
                         return this.redirectWithCache(
-                            res,
+                            c,
                             this.getBangRedirectUrl(bang, ''),
                             searchConfig.redirectWithCacheDuration,
                             'public',
@@ -1940,7 +1938,7 @@ export function createSearch(context: AppContext) {
                 trigger: isUnknownBang ? trigger : undefined,
             });
             return this.redirectWithCache(
-                res,
+                c,
                 searchUrl,
                 isUnknownBang ? 0 : searchConfig.redirectWithCacheDuration,
                 isUnknownBang ? 'no-store' : 'private',
