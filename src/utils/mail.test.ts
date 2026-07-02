@@ -248,13 +248,19 @@ describe('Mail Utils', () => {
                 tag: vi.fn().mockReturnThis(),
             };
 
-            testMailUtils = createMail({
+            const mailContext = {
                 db,
                 config: prodConfig,
                 libs: { ...libs, nodemailer: mockNodemailer },
                 logger: mockLogger,
                 models: { settings: createSettingsRepository({ db, config, libs } as any) },
-            } as any);
+                utils: {
+                    date: null as any,
+                    html: createHtml(),
+                },
+            };
+            mailContext.utils.date = createDate(mailContext as any);
+            testMailUtils = createMail(mailContext as any);
         });
 
         it('should not send email when reminders array is empty', async () => {
