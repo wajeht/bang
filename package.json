@@ -52,6 +52,7 @@
         "rebuild:native": "npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false"
     },
     "dependencies": {
+        "@hono/node-server": "2.0.8",
         "bcrypt": "6.0.0",
         "better-sqlite3": "12.11.1",
         "compression": "1.8.1",
@@ -68,6 +69,7 @@
         "express-session": "1.19.0",
         "helmet": "8.2.0",
         "highlight.js": "11.11.1",
+        "hono": "4.12.27",
         "isomorphic-dompurify": "3.13.0",
         "jsonwebtoken": "9.0.3",
         "knex": "3.3.0",
