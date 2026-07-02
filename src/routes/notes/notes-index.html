@@ -239,11 +239,11 @@ window.addEventListener('load', handleRowHighlight);
                     <tbody>
                         <% for (let i = 0; i < data.length; i++) { %>
                             <tr data-id="<%~ data[i].id %>">
-                                <td style="padding: 10px;">
+                                <td data-label="Select" style="padding: 10px;">
                                     <input type="checkbox" name="id[]" value="<%~ data[i].id %>" class="note-checkbox" data-title="<%~ data[i].title || 'Untitled' %>" />
                                 </td>
                                 <% if (state.user.column_preferences?.notes?.title !== false) { %>
-                                    <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                    <td data-label="Title" style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <% if (data[i].pinned) { %>📌<% } %>
                                         <a href="/notes/<%= data[i].id %>" title="<%= utils.stripHtmlTags(data[i].title) %>">
                                             <% if (search && data[i].title) { %>
@@ -255,7 +255,7 @@ window.addEventListener('load', handleRowHighlight);
                                     </td>
                                 <% } %>
                                 <% if (state.user.column_preferences?.notes?.content !== false) { %>
-                                    <td style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                    <td data-label="Content" style="padding: 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
                                         <% if (search && data[i].content) { %>
                                             <%~ data[i].content %>
                                         <% } else { %>
@@ -264,19 +264,19 @@ window.addEventListener('load', handleRowHighlight);
                                     </td>
                                 <% } %>
                                 <% if (state.user.column_preferences?.notes?.pinned !== false) { %>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Pinned" style="padding: 10px;">
                                         <%= data[i].pinned ? '📌 Yes' : '📍 No' %>
                                     </td>
                                 <% } %>
                                 <% if (state.user.column_preferences?.notes?.created_at !== false) { %>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Created" style="padding: 10px;">
                                         <time datetime="<%= data[i].created_at %>">
                                             <%= utils.formatDateInTimezone(data[i].created_at, state.user.timezone).fullString %>
                                         </time>
                                     </td>
                                 <% } %>
                                 <% if (state.user.column_preferences?.notes?.hidden !== false && state.user.hidden_items_password) { %>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Hidden" style="padding: 10px;">
                                         <% if (data[i].hidden == 1) { %>
                                             ✅
                                         <% } else { %>
@@ -284,7 +284,7 @@ window.addEventListener('load', handleRowHighlight);
                                         <% } %>
                                     </td>
                                 <% } %>
-                                <td style="padding: 10px;">
+                                <td data-label="Actions" style="padding: 10px;">
                                     <details style="position: relative;">
                                         <summary aria-label="Actions for note <%= utils.stripHtmlTags(data[i].title) %>">Actions</summary>
                                         <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 150px; gap: 10px;" role="menu">

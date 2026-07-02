@@ -922,12 +922,12 @@ a:hover .sort-icon {
 body > header > nav[aria-label='Main navigation'],
 body > header > nav[aria-label='Main navigation'] > div,
 body > header > nav[aria-label='Main navigation'] ul,
-nav[aria-label='Action management controls'],
-nav[aria-label='Action management controls'] form[action='/actions'],
-main > div:has(nav[aria-label='Settings navigation']),
-main > div:has(nav[aria-label='Settings navigation']) > aside,
-main > div:has(nav[aria-label='Settings navigation']) > section,
-main > div:has(nav[aria-label='Settings navigation']) > section > section {
+nav[aria-label$='management controls'],
+nav[aria-label$='management controls'] form[role='search'],
+main > div:has(> aside > nav),
+main > div:has(> aside > nav) > aside,
+main > div:has(> aside > nav) > section,
+main > div:has(> aside > nav) > section > section {
     min-width: 0;
 }
 
@@ -940,23 +940,23 @@ body > header > nav[aria-label='Main navigation'] ul a {
     white-space: nowrap;
 }
 
-nav[aria-label='Action management controls'] {
+nav[aria-label$='management controls'] {
     gap: 1rem;
     flex-wrap: wrap;
 }
 
-nav[aria-label='Action management controls'] form[action='/actions'] {
+nav[aria-label$='management controls'] form[role='search'] {
     flex: 1 1 18rem;
     min-width: min(100%, 18rem);
 }
 
-nav[aria-label='Action management controls'] form[action='/actions'] search,
-nav[aria-label='Action management controls'] form[action='/actions'] input[type='search'] {
+nav[aria-label$='management controls'] form[role='search'] search,
+nav[aria-label$='management controls'] form[role='search'] input[type='search'] {
     min-width: 0;
     width: 100%;
 }
 
-nav[aria-label='Action management controls'] button {
+nav[aria-label$='management controls'] button {
     min-width: 44px;
 }
 
@@ -993,24 +993,22 @@ table:has(td[data-label]) time {
     display: block;
 }
 
-main > div:has(nav[aria-label='Settings navigation']) > section > section > fieldset,
-main > div:has(nav[aria-label='Settings navigation']) > section > section > form > fieldset,
-main > div:has(nav[aria-label='Settings navigation']) > section > section > div > fieldset {
+main > div:has(> aside > nav) > section > section > fieldset,
+main > div:has(> aside > nav) > section > section > form > fieldset,
+main > div:has(> aside > nav) > section > section > div > fieldset {
     width: min(100%, 36rem) !important;
     max-width: 100% !important;
 }
 
-main
-    > div:has(nav[aria-label='Settings navigation'])
-    input:not([type='checkbox']):not([type='radio']),
-main > div:has(nav[aria-label='Settings navigation']) select,
-main > div:has(nav[aria-label='Settings navigation']) textarea {
+main > div:has(> aside > nav) input:not([type='checkbox']):not([type='radio']),
+main > div:has(> aside > nav) select,
+main > div:has(> aside > nav) textarea {
     width: 100%;
     min-width: 0;
 }
 
-main > div:has(nav[aria-label='Settings navigation']) input[type='checkbox'],
-main > div:has(nav[aria-label='Settings navigation']) input[type='radio'] {
+main > div:has(> aside > nav) input[type='checkbox'],
+main > div:has(> aside > nav) input[type='radio'] {
     flex: 0 0 auto;
 }
 
@@ -1067,48 +1065,53 @@ dialog {
         margin-left: auto;
     }
 
-    section:has(nav[aria-label='Action management controls']) > header {
+    header:has(nav[aria-label$='management controls']) {
         flex-direction: column;
         align-items: stretch !important;
     }
 
-    nav[aria-label='Action management controls'],
-    nav[aria-label='Action management controls'] form[action='/actions'] {
+    nav[aria-label$='management controls'],
+    nav[aria-label$='management controls'] form[role='search'] {
         width: 100%;
     }
 
-    nav[aria-label='Action management controls'] {
+    nav[aria-label$='management controls'] {
         gap: 0.5rem !important;
         justify-content: flex-start;
     }
 
-    nav[aria-label='Action management controls'] form[action='/actions'] {
+    nav[aria-label$='management controls'] form[role='search'] {
         flex-basis: 100%;
     }
 
-    nav[aria-label='Action management controls'] form[action='/actions'] button[type='submit'],
-    nav[aria-label='Action management controls'] > button,
-    nav[aria-label='Action management controls'] > form:not([action='/actions']) button {
+    nav[aria-label$='management controls'] form[role='search'] button[type='submit'],
+    nav[aria-label$='management controls'] > button,
+    nav[aria-label$='management controls'] > form:not([role='search']) button {
         min-height: 44px;
     }
 
     table:has(td[data-label]),
-    table:has(td[data-label]) tbody,
-    table:has(td[data-label]) tr,
-    table:has(td[data-label]) td {
+    table:has(td[data-label]) > tbody,
+    table:has(td[data-label]) > tbody > tr,
+    table:has(td[data-label]) > tbody > tr > td {
         display: block;
         width: 100%;
     }
 
-    table:has(td[data-label]) {
-        table-layout: auto;
+    table:has(td[data-label]) > tbody > tr > td:empty {
+        display: none;
     }
 
-    table:has(td[data-label]) thead {
+    table:has(td[data-label]) {
+        table-layout: auto;
+        min-width: 0 !important;
+    }
+
+    table:has(td[data-label]) > thead {
         display: none !important;
     }
 
-    table:has(td[data-label]) tr {
+    table:has(td[data-label]) > tbody > tr {
         padding: 0.75rem;
         margin-bottom: 0.75rem;
         border: 1px solid var(--tr-border-color);
@@ -1116,7 +1119,7 @@ dialog {
         background-color: var(--background-color);
     }
 
-    table:has(td[data-label]) td {
+    table:has(td[data-label]) > tbody > tr > td[data-label] {
         display: grid;
         grid-template-columns: minmax(6.5rem, 34%) minmax(0, 1fr);
         gap: 0.75rem;
@@ -1126,27 +1129,27 @@ dialog {
         overflow: visible;
     }
 
-    table:has(td[data-label]) td::before {
+    table:has(td[data-label]) > tbody > tr > td[data-label]::before {
         content: attr(data-label);
         color: var(--text-muted-color);
         font-weight: 600;
     }
 
-    table:has(td[data-label]) td[data-label='Select'] {
+    table:has(td[data-label]) > tbody > tr > td[data-label='Select'] {
         display: flex;
         justify-content: flex-start;
     }
 
-    table:has(td[data-label]) td[data-label='Select']::before {
+    table:has(td[data-label]) > tbody > tr > td[data-label='Select']::before {
         content: '';
         display: none;
     }
 
-    table:has(td[data-label]) td[data-label='Actions'] {
+    table:has(td[data-label]) > tbody > tr > td[data-label='Actions'] {
         align-items: center;
     }
 
-    table:has(td[data-label]) td[data-label='Actions'] details {
+    table:has(td[data-label]) > tbody > tr > td[data-label='Actions'] details {
         justify-self: start;
     }
 
@@ -1164,41 +1167,41 @@ dialog {
         display: none;
     }
 
-    main > div:has(nav[aria-label='Settings navigation']) {
+    main > div:has(> aside > nav) {
         grid-template-columns: 1fr !important;
         gap: 1rem;
     }
 
-    main > div:has(nav[aria-label='Settings navigation']) > aside {
+    main > div:has(> aside > nav) > aside {
         height: auto !important;
         padding-right: 0 !important;
     }
 
-    nav[aria-label='Settings navigation'] ul {
+    main > div > aside > nav ul {
         flex-direction: row !important;
         gap: 0.75rem !important;
         overflow-x: auto;
         padding-bottom: 0.25rem !important;
     }
 
-    nav[aria-label='Settings navigation'] hr {
+    main > div > aside > nav hr {
         display: none;
     }
 
-    nav[aria-label='Settings navigation'] a {
+    main > div > aside > nav a {
         white-space: nowrap;
     }
 
-    main > div:has(nav[aria-label='Settings navigation']) > section {
+    main > div:has(> aside > nav) > section {
         border-top: 1px solid var(--aside-border-color);
         border-left: 0 !important;
         padding-top: 1rem;
         padding-left: 0 !important;
     }
 
-    main > div:has(nav[aria-label='Settings navigation']) > section > section > fieldset,
-    main > div:has(nav[aria-label='Settings navigation']) > section > section > form > fieldset,
-    main > div:has(nav[aria-label='Settings navigation']) > section > section > div > fieldset {
+    main > div:has(> aside > nav) > section > section > fieldset,
+    main > div:has(> aside > nav) > section > section > form > fieldset,
+    main > div:has(> aside > nav) > section > section > div > fieldset {
         width: 100% !important;
     }
 
@@ -1213,7 +1216,7 @@ dialog {
 }
 
 @media (max-width: 420px) {
-    table:has(td[data-label]) td {
+    table:has(td[data-label]) > tbody > tr > td[data-label] {
         grid-template-columns: 1fr;
         gap: 0.15rem;
     }

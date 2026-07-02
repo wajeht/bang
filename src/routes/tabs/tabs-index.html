@@ -5,7 +5,7 @@
     if (searchParam && searchParam.trim() !== '') {
         const allDetailsRows = document.querySelectorAll('[id^="details-"]');
         allDetailsRows.forEach(row => {
-            row.style.display = 'table-row';
+            row.style.display = '';
         });
     }
 
@@ -16,7 +16,7 @@
             const tabId = this.dataset.tabId;
             const detailsRow = document.getElementById('details-' + tabId);
             if (detailsRow.style.display === 'none') {
-                detailsRow.style.display = 'table-row';
+                detailsRow.style.display = '';
             } else {
                 detailsRow.style.display = 'none';
             }
@@ -51,7 +51,7 @@
             }
 
             if (detailsRow.style.display === 'none') {
-                detailsRow.style.display = 'table-row'; // expand
+                detailsRow.style.display = ''; // expand
                 event.target.style.cursor = 'n-resize'; // immediately show up arrow
             } else {
                 detailsRow.style.display = 'none'; // collapse
@@ -195,7 +195,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
           </div>
           <p>Manage your saved tab groups <span style="color: red">(using Tabs requires you to have popup allowed/redirect on <code><%= state.branding.appUrl %></code> )</span></p>
       </div>
-      <div style="display: flex; gap: 10px;">
+      <nav style="display: flex; gap: 10px;" aria-label="Tab group management controls">
         <form method="GET" action="/tabs" style="display: flex; gap: 10px;" role="search">
             <%~ include('../_components/inputs/search.html', {
                 id: 'search',
@@ -218,7 +218,7 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
         </form>
         <!-- <button type="button" aria-label="Delete all tab groups" onclick="document.getElementById('delete-all-tabs-modal').showModal()">🗑️</button> -->
         <%~ include('../_components/column-settings.html') %>
-      </div>
+      </nav>
   </header>
 
   <section style="display: flex; flex-direction: column; gap: 10px;">
@@ -291,26 +291,26 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
               <tbody>
                   <% for (let i = 0; i < tabs.length; i++) { %>
                       <tr class="tab-group-row" data-tab-id="<%= tabs[i].id %>" data-id="<%= tabs[i].id %>" style="cursor: pointer;">
-                          <td style="padding: 10px;">
+                          <td data-label="Select" style="padding: 10px;">
                               <input type="checkbox" name="id[]" value="<%~ tabs[i].id %>" class="tab-checkbox" data-title="<%~ tabs[i].title || 'Untitled' %>" data-items="<%= JSON.stringify(tabs[i].items.map(item => ({ title: utils.stripHtmlTags(item.title || ''), url: utils.stripHtmlTags(item.url || '') }))) %>" />
                           </td>
                           <% if (user.column_preferences?.tabs?.title !== false) { %>
-                          <td style="padding: 10px;"><%~ tabs[i].title %></td>
+                          <td data-label="Group" style="padding: 10px;"><%~ tabs[i].title %></td>
                           <% } %>
                           <% if (user.column_preferences?.tabs?.trigger !== false) { %>
-                          <td style="padding: 10px;"><code><%~ tabs[i].trigger %></code></td>
+                          <td data-label="Trigger" style="padding: 10px;"><code><%~ tabs[i].trigger %></code></td>
                           <% } %>
                           <% if (user.column_preferences?.tabs?.items_count !== false) { %>
-                          <td style="padding: 10px;"><%= tabs[i].items.length %></td>
+                          <td data-label="Items" style="padding: 10px;"><%= tabs[i].items.length %></td>
                           <% } %>
                           <% if (user.column_preferences?.tabs?.created_at !== false) { %>
-                          <td style="padding: 10px;">
+                          <td data-label="Created" style="padding: 10px;">
                             <time datetime="<%= tabs[i].created_at %>">
                                 <%= utils.formatDateInTimezone(tabs[i].created_at, state.user.timezone).fullString %>
                             </time>
                           </td>
                           <% } %>
-                          <td style="padding: 10px;">
+                          <td data-label="Actions" style="padding: 10px;">
                             <details style="position: relative; display: inline-flex; align-items: center;">
                               <summary>Actions</summary>
                               <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 200px; gap: 10px;" role="menu">
@@ -397,12 +397,12 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                 <% for (let j = 0; j < tabs[i].items.length; j++) { %>
                                   <tr>
                                     <% if (user.column_preferences?.tabs?.title !== false) { %>
-                                     <td style="padding: 10px;">
+                                     <td data-label="Item" style="padding: 10px;">
                                        <%~ tabs[i].items[j].title %>
                                      </td>
                                      <% } %>
                                      <% if (user.column_preferences?.tabs?.trigger !== false) { %>
-                                     <td style="padding: 10px;">
+                                     <td data-label="URL" style="padding: 10px;">
                                         <div style="display: flex; gap: 5px; align-items: center;">
                                             <img loading="lazy" src= "<%~ utils.getFaviconUrl(tabs[i].items[j].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                             <span class="preview">
@@ -418,13 +418,13 @@ section:has(.tab-checkbox:checked) #delete-selected-btn {
                                     <td style="padding: 10px;"></td>
                                     <% } %>
                                     <% if (user.column_preferences?.tabs?.created_at !== false) { %>
-                                     <td style="padding: 10px;">
+                                     <td data-label="Created" style="padding: 10px;">
                                        <time datetime="<%= tabs[i].items[j].created_at %>">
                                          <%= utils.formatDateInTimezone(tabs[i].items[j].created_at, state.user.timezone).fullString %>
                                        </time>
                                      </td>
                                      <% } %>
-                                    <td style="padding: 10px;">
+                                    <td data-label="Actions" style="padding: 10px;">
                                       <details style="position: relative; display: inline-flex; align-items: center;">
                                         <summary>Actions</summary>
                                         <div style="position: absolute; top: 100%; left: 0; z-index: 1; border: solid 1px var(--summary-content-border-color); display: flex; flex-direction: column; padding: 10px; background-color: var(--background-color); border-radius: 4px; min-width: 200px; gap: 10px;" role="menu">
