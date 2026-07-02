@@ -474,11 +474,11 @@ export function createSearch(context: AppContext) {
             } else {
                 const headers: Record<string, string> = {
                     'Cache-Control': `${cacheType}, max-age=${cacheDuration * 60}`,
-                    Expires: context.libs
-                        .dayjs()
-                        .add(cacheDuration, 'minute')
-                        .toDate()
-                        .toUTCString(),
+                    Expires: context.utils.date.formatUtcHttpDate(
+                        context.utils.date.addToInstant(context.utils.date.nowInstant(), {
+                            minutes: cacheDuration,
+                        }),
+                    ),
                 };
 
                 // Add Vary header to indicate cache should vary based on these headers
@@ -739,87 +739,64 @@ export function createSearch(context: AppContext) {
             const defaultHour = timeParts[0] ? parseInt(timeParts[0], 10) : 9;
             const defaultMinute = timeParts[1] ? parseInt(timeParts[1], 10) : 0;
 
-            // Use timezone-aware dayjs for all date calculations
-            const nowInUserTz = context.libs.dayjs.tz(undefined, userTimezone);
+            const nowInUserTz = context.utils.date.nowZonedDateTime(userTimezone);
 
             // Handle recurring frequencies
             switch (timeStr) {
                 case 'daily': {
                     const dailyNext = nowInUserTz
-                        .add(1, 'day')
-                        .hour(defaultHour)
-                        .minute(defaultMinute)
-                        .second(0)
-                        .millisecond(0)
-                        .tz(userTimezone, true);
+                        .add({ days: 1 })
+                        .with(getReminderTime(defaultHour, defaultMinute));
                     return {
                         isValid: true,
                         type: 'recurring',
                         frequency: 'daily',
                         specificDate: null,
-                        nextDue: dailyNext.utc().toDate(),
+                        nextDue: context.utils.date.toDate(dailyNext),
                     };
                 }
 
                 case 'weekly': {
                     // Always schedule weekly reminders for Saturday
-                    let nextSaturday = nowInUserTz.day(6); // 6 = Saturday
+                    const daysUntilSaturday = (6 - nowInUserTz.dayOfWeek + 7) % 7;
+                    let nextSaturday = nowInUserTz
+                        .add({ days: daysUntilSaturday })
+                        .with(getReminderTime(defaultHour, defaultMinute));
 
                     // If today is Saturday and we haven't passed the reminder time yet,
                     // schedule for today. Otherwise, schedule for next Saturday.
-                    if (
-                        nextSaturday.isBefore(nowInUserTz) ||
-                        (nextSaturday.isSame(nowInUserTz, 'day') &&
-                            nowInUserTz.hour() >= defaultHour &&
-                            nowInUserTz.minute() > defaultMinute)
-                    ) {
-                        nextSaturday = nextSaturday.add(1, 'week');
+                    if (Temporal.ZonedDateTime.compare(nextSaturday, nowInUserTz) <= 0) {
+                        nextSaturday = nextSaturday.add({ weeks: 1 });
                     }
-
-                    nextSaturday = nextSaturday
-                        .hour(defaultHour)
-                        .minute(defaultMinute)
-                        .second(0)
-                        .millisecond(0)
-                        .tz(userTimezone, true);
 
                     return {
                         isValid: true,
                         type: 'recurring',
                         frequency: 'weekly',
                         specificDate: null,
-                        nextDue: nextSaturday.utc().toDate(),
+                        nextDue: context.utils.date.toDate(nextSaturday),
                     };
                 }
 
                 case 'monthly': {
                     // Always schedule monthly reminders for the 1st of the month
-                    let nextFirst = nowInUserTz.date(1);
+                    let nextFirst = nowInUserTz.with({
+                        day: 1,
+                        ...getReminderTime(defaultHour, defaultMinute),
+                    });
 
                     // If today is the 1st and we haven't passed the reminder time yet,
                     // schedule for today. Otherwise, schedule for the 1st of next month.
-                    if (
-                        nextFirst.isBefore(nowInUserTz) ||
-                        (nextFirst.isSame(nowInUserTz, 'day') &&
-                            nowInUserTz.hour() >= defaultHour &&
-                            nowInUserTz.minute() > defaultMinute)
-                    ) {
-                        nextFirst = nextFirst.add(1, 'month');
+                    if (Temporal.ZonedDateTime.compare(nextFirst, nowInUserTz) <= 0) {
+                        nextFirst = nextFirst.add({ months: 1 });
                     }
-
-                    nextFirst = nextFirst
-                        .hour(defaultHour)
-                        .minute(defaultMinute)
-                        .second(0)
-                        .millisecond(0)
-                        .tz(userTimezone, true);
 
                     return {
                         isValid: true,
                         type: 'recurring',
                         frequency: 'monthly',
                         specificDate: null,
-                        nextDue: nextFirst.utc().toDate(),
+                        nextDue: context.utils.date.toDate(nextFirst),
                     };
                 }
             }
@@ -835,73 +812,75 @@ export function createSearch(context: AppContext) {
                 const match = timeStr.match(pattern);
                 if (match) {
                     let targetDate: Date;
+                    let targetDateTime: Temporal.ZonedDateTime;
 
                     if (pattern === datePatterns[0] && match[1] && match[2] && match[3]) {
                         // YYYY-MM-DD
-                        let targetDayjs = context.libs.dayjs
-                            .tz(undefined, userTimezone)
-                            .year(parseInt(match[1]))
-                            .month(parseInt(match[2]) - 1)
-                            .date(parseInt(match[3]))
-                            .hour(defaultHour)
-                            .minute(defaultMinute)
-                            .second(0)
-                            .millisecond(0);
+                        targetDateTime = context.utils.date.fromLocalDateTime(
+                            {
+                                year: parseInt(match[1], 10),
+                                month: parseInt(match[2], 10),
+                                day: parseInt(match[3], 10),
+                                hour: defaultHour,
+                                minute: defaultMinute,
+                            },
+                            userTimezone,
+                        );
 
                         // If the date has already passed, use next year
-                        if (targetDayjs.isBefore(nowInUserTz)) {
-                            targetDayjs = targetDayjs.add(1, 'year');
+                        if (Temporal.ZonedDateTime.compare(targetDateTime, nowInUserTz) < 0) {
+                            targetDateTime = targetDateTime.add({ years: 1 });
                         }
-                        targetDate = targetDayjs.tz(userTimezone, true).utc().toDate();
                     } else if (pattern === datePatterns[1] && match[1] && match[2] && match[3]) {
                         // MM/DD/YYYY
-                        let targetDayjs = context.libs.dayjs
-                            .tz(undefined, userTimezone)
-                            .year(parseInt(match[3]))
-                            .month(parseInt(match[1]) - 1)
-                            .date(parseInt(match[2]))
-                            .hour(defaultHour)
-                            .minute(defaultMinute)
-                            .second(0)
-                            .millisecond(0);
+                        targetDateTime = context.utils.date.fromLocalDateTime(
+                            {
+                                year: parseInt(match[3], 10),
+                                month: parseInt(match[1], 10),
+                                day: parseInt(match[2], 10),
+                                hour: defaultHour,
+                                minute: defaultMinute,
+                            },
+                            userTimezone,
+                        );
 
                         // If the date has already passed, use next year
-                        if (targetDayjs.isBefore(nowInUserTz)) {
-                            targetDayjs = targetDayjs.add(1, 'year');
+                        if (Temporal.ZonedDateTime.compare(targetDateTime, nowInUserTz) < 0) {
+                            targetDateTime = targetDateTime.add({ years: 1 });
                         }
-                        targetDate = targetDayjs.tz(userTimezone, true).utc().toDate();
                     } else if (pattern === datePatterns[2] && match[1] && match[2]) {
                         // Jan-15
                         const monthMap: { [key: string]: number } = {
-                            jan: 0,
-                            feb: 1,
-                            mar: 2,
-                            apr: 3,
-                            may: 4,
-                            jun: 5,
-                            jul: 6,
-                            aug: 7,
-                            sep: 8,
-                            oct: 9,
-                            nov: 10,
-                            dec: 11,
+                            jan: 1,
+                            feb: 2,
+                            mar: 3,
+                            apr: 4,
+                            may: 5,
+                            jun: 6,
+                            jul: 7,
+                            aug: 8,
+                            sep: 9,
+                            oct: 10,
+                            nov: 11,
+                            dec: 12,
                         };
                         const month = monthMap[match[1].toLowerCase()];
                         if (month !== undefined && match[2]) {
-                            let targetDayjs = nowInUserTz
-                                .year(nowInUserTz.year())
-                                .month(month)
-                                .date(parseInt(match[2]))
-                                .hour(defaultHour)
-                                .minute(defaultMinute)
-                                .second(0)
-                                .millisecond(0);
+                            targetDateTime = context.utils.date.fromLocalDateTime(
+                                {
+                                    year: nowInUserTz.year,
+                                    month,
+                                    day: parseInt(match[2], 10),
+                                    hour: defaultHour,
+                                    minute: defaultMinute,
+                                },
+                                userTimezone,
+                            );
 
                             // If the date has already passed this year, use next year
-                            if (targetDayjs.isBefore(nowInUserTz)) {
-                                targetDayjs = targetDayjs.add(1, 'year');
+                            if (Temporal.ZonedDateTime.compare(targetDateTime, nowInUserTz) < 0) {
+                                targetDateTime = targetDateTime.add({ years: 1 });
                             }
-                            targetDate = targetDayjs.tz(userTimezone, true).utc().toDate();
                         } else {
                             continue;
                         }
@@ -909,21 +888,29 @@ export function createSearch(context: AppContext) {
                         continue;
                     }
 
+                    targetDate = context.utils.date.toDate(targetDateTime);
+
                     // Validate the date
                     if (
                         targetDate &&
                         !isNaN(targetDate.getTime()) &&
                         targetDate >=
-                            nowInUserTz.year(nowInUserTz.year()).month(0).date(1).utc().toDate()
+                            context.utils.date.toDate(
+                                context.utils.date.fromLocalDateTime(
+                                    {
+                                        year: nowInUserTz.year,
+                                        month: 1,
+                                        day: 1,
+                                    },
+                                    userTimezone,
+                                ),
+                            )
                     ) {
                         return {
                             isValid: true,
                             type: 'once',
                             frequency: null,
-                            specificDate: context.libs.dayjs
-                                .tz(targetDate, 'UTC')
-                                .tz(userTimezone)
-                                .format('YYYY-MM-DD'),
+                            specificDate: targetDateTime.toPlainDate().toString(),
                             nextDue: targetDate,
                         };
                     }
@@ -936,7 +923,7 @@ export function createSearch(context: AppContext) {
                 type: 'once',
                 frequency: null,
                 specificDate: null,
-                nextDue: context.libs.dayjs().toDate(),
+                nextDue: context.utils.date.toDate(context.utils.date.nowInstant()),
             };
         },
 
@@ -1960,5 +1947,16 @@ export function createSearch(context: AppContext) {
                 isUnknownBang ? undefined : ['Cookie'],
             );
         },
+    };
+}
+
+function getReminderTime(hour: number, minute: number) {
+    return {
+        hour,
+        minute,
+        second: 0,
+        millisecond: 0,
+        microsecond: 0,
+        nanosecond: 0,
     };
 }

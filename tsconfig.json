@@ -22,7 +22,7 @@
         "sourceMap": true,
 
         /* If your code doesn't run in the DOM: */
-        "lib": ["es2022"]
+        "lib": ["es2022", "esnext.temporal", "esnext.intl"]
     },
     "exclude": [
         "node_modules",

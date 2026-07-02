@@ -1,7 +1,11 @@
+/// <reference lib="esnext.temporal" />
+
 import { config } from '../config.js';
 import { createMail } from './mail.js';
 import { createAuth } from './auth.js';
-import { dayjs, libs } from '../libs.js';
+import { createDate } from './date.js';
+import { createHtml } from './html.js';
+import { libs } from '../libs.js';
 import { db } from '../tests/test-setup.js';
 import { createLogger } from '../utils/logger.js';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vite-plus/test';
@@ -16,8 +20,11 @@ describe('Mail Utils', () => {
         db,
         utils: {
             auth: createAuth({ libs, config, logger, db } as any),
+            date: null as any,
+            html: createHtml(),
         },
     } as any;
+    mockContext.utils.date = createDate(mockContext);
 
     const mailUtils = createMail(mockContext);
 
@@ -27,7 +34,7 @@ describe('Mail Utils', () => {
 
     describe('processVerificationReminders', () => {
         it('should find unverified users who registered 7+ days ago', async () => {
-            const eightDaysAgo = dayjs().subtract(8, 'days').toISOString();
+            const eightDaysAgo = isoBeforeNow({ days: 8 });
             await db('users').insert({
                 username: 'unverified',
                 email: 'unverified@example.com',
@@ -53,11 +60,11 @@ describe('Mail Utils', () => {
         });
 
         it('should not send reminders to verified users', async () => {
-            const eightDaysAgo = dayjs().subtract(8, 'days').toISOString();
+            const eightDaysAgo = isoBeforeNow({ days: 8 });
             await db('users').insert({
                 username: 'verified',
                 email: 'verified@example.com',
-                email_verified_at: dayjs().toISOString(),
+                email_verified_at: isoNow(),
                 created_at: eightDaysAgo,
                 updated_at: eightDaysAgo,
             });
@@ -71,7 +78,7 @@ describe('Mail Utils', () => {
         });
 
         it('should not send reminders to users who registered less than 7 days ago', async () => {
-            const fiveDaysAgo = dayjs().subtract(5, 'days').toISOString();
+            const fiveDaysAgo = isoBeforeNow({ days: 5 });
             await db('users').insert({
                 username: 'recent',
                 email: 'recent@example.com',
@@ -89,8 +96,8 @@ describe('Mail Utils', () => {
         });
 
         it('should send reminders to multiple unverified users', async () => {
-            const eightDaysAgo = dayjs().subtract(8, 'days').toISOString();
-            const tenDaysAgo = dayjs().subtract(10, 'days').toISOString();
+            const eightDaysAgo = isoBeforeNow({ days: 8 });
+            const tenDaysAgo = isoBeforeNow({ days: 10 });
 
             await db('users').insert([
                 {
@@ -130,7 +137,7 @@ describe('Mail Utils', () => {
         });
 
         it('should generate valid magic link tokens', async () => {
-            const eightDaysAgo = dayjs().subtract(8, 'days').toISOString();
+            const eightDaysAgo = isoBeforeNow({ days: 8 });
             await db('users').insert({
                 username: 'unverified',
                 email: 'unverified@example.com',
@@ -153,9 +160,9 @@ describe('Mail Utils', () => {
         });
 
         it('should handle mixed scenarios correctly', async () => {
-            const eightDaysAgo = dayjs().subtract(8, 'days').toISOString();
-            const fiveDaysAgo = dayjs().subtract(5, 'days').toISOString();
-            const tenDaysAgo = dayjs().subtract(10, 'days').toISOString();
+            const eightDaysAgo = isoBeforeNow({ days: 8 });
+            const fiveDaysAgo = isoBeforeNow({ days: 5 });
+            const tenDaysAgo = isoBeforeNow({ days: 10 });
 
             await db('users').insert([
                 {
@@ -168,7 +175,7 @@ describe('Mail Utils', () => {
                 {
                     username: 'verified_old',
                     email: 'verified_old@example.com',
-                    email_verified_at: dayjs().toISOString(),
+                    email_verified_at: isoNow(),
                     created_at: tenDaysAgo,
                     updated_at: tenDaysAgo,
                 },
@@ -365,14 +372,14 @@ describe('Mail Utils', () => {
         beforeEach(async () => {
             // Update the global test user for this test suite's needs
             await db('users').where({ id: 1 }).update({
-                email_verified_at: dayjs().toISOString(),
+                email_verified_at: isoNow(),
                 timezone: 'UTC',
             });
             testUser = await db('users').where({ id: 1 }).first();
         });
 
         it('should process one-time reminders and delete them', async () => {
-            const dueDate = dayjs.utc().add(5, 'minutes').toISOString();
+            const dueDate = isoFromNow({ minutes: 5 });
 
             await db('reminders').insert({
                 user_id: testUser.id,
@@ -406,7 +413,7 @@ describe('Mail Utils', () => {
         });
 
         it('should process daily recurring reminders and reschedule them', async () => {
-            const dueDate = dayjs.utc().add(5, 'minutes').toISOString();
+            const dueDate = isoFromNow({ minutes: 5 });
 
             const [reminder] = await db('reminders')
                 .insert({
@@ -430,14 +437,14 @@ describe('Mail Utils', () => {
             expect(remainingReminders).toHaveLength(1);
 
             const updatedReminder = remainingReminders[0];
-            const expectedNextDue = dayjs.utc(dueDate).add(1, 'day');
-            const actualNextDue = dayjs.utc(updatedReminder.due_date);
+            const expectedNextDue = zdt(dueDate).add({ days: 1 });
+            const actualNextDue = zdt(updatedReminder.due_date);
 
-            expect(Math.abs(actualNextDue.diff(expectedNextDue, 'seconds'))).toBeLessThan(2);
+            expect(secondsBetween(actualNextDue, expectedNextDue)).toBeLessThan(2);
         });
 
         it('should process weekly recurring reminders and reschedule them', async () => {
-            const dueDate = dayjs.utc().add(5, 'minutes').toISOString();
+            const dueDate = isoFromNow({ minutes: 5 });
 
             const [reminder] = await db('reminders')
                 .insert({
@@ -461,16 +468,16 @@ describe('Mail Utils', () => {
             expect(remainingReminders).toHaveLength(1);
 
             const updatedReminder = remainingReminders[0];
-            const actualNextDue = dayjs.utc(updatedReminder.due_date);
-            const originalDue = dayjs.utc(dueDate);
+            const actualNextDue = zdt(updatedReminder.due_date);
+            const originalDue = zdt(dueDate);
 
-            expect(actualNextDue.isAfter(originalDue)).toBe(true);
+            expect(isAfter(actualNextDue, originalDue)).toBe(true);
 
-            expect(actualNextDue.day()).toBe(6);
+            expect(actualNextDue.dayOfWeek).toBe(6);
         });
 
         it('should process monthly recurring reminders and reschedule them', async () => {
-            const dueDate = dayjs.utc().add(5, 'minutes').toISOString();
+            const dueDate = isoFromNow({ minutes: 5 });
 
             const [reminder] = await db('reminders')
                 .insert({
@@ -494,17 +501,17 @@ describe('Mail Utils', () => {
             expect(remainingReminders).toHaveLength(1);
 
             const updatedReminder = remainingReminders[0];
-            const expectedNextDue = dayjs.utc(dueDate).add(1, 'month').date(1);
-            const actualNextDue = dayjs.utc(updatedReminder.due_date);
+            const expectedNextDue = zdt(dueDate).add({ months: 1 }).with({ day: 1 });
+            const actualNextDue = zdt(updatedReminder.due_date);
 
             // Monthly reminders should be rescheduled to the 1st of next month
-            expect(actualNextDue.date()).toBe(1);
-            expect(actualNextDue.month()).toBe(expectedNextDue.month());
-            expect(actualNextDue.isAfter(dayjs.utc(dueDate))).toBe(true);
+            expect(actualNextDue.day).toBe(1);
+            expect(actualNextDue.month).toBe(expectedNextDue.month);
+            expect(isAfter(actualNextDue, dueDate)).toBe(true);
         });
 
         it('should group multiple reminders for the same user', async () => {
-            const dueDate = dayjs.utc().add(5, 'minutes').toISOString();
+            const dueDate = isoFromNow({ minutes: 5 });
 
             await db('reminders').insert([
                 {
@@ -553,12 +560,12 @@ describe('Mail Utils', () => {
                 .insert({
                     username: 'testuser2',
                     email: 'testuser2@example.com',
-                    email_verified_at: dayjs().toISOString(),
+                    email_verified_at: isoNow(),
                     timezone: 'UTC',
                 })
                 .returning('*');
 
-            const dueDate = dayjs.utc().add(5, 'minutes').toISOString();
+            const dueDate = isoFromNow({ minutes: 5 });
 
             await db('reminders').insert([
                 {
@@ -596,8 +603,8 @@ describe('Mail Utils', () => {
         });
 
         it('should not process reminders outside the 15 minute window', async () => {
-            const tooSoon = dayjs.utc().subtract(1, 'minute').toISOString();
-            const tooLate = dayjs.utc().add(20, 'minutes').toISOString();
+            const tooSoon = isoBeforeNow({ minutes: 1 });
+            const tooLate = isoFromNow({ minutes: 20 });
 
             await db('reminders').insert([
                 {
@@ -634,7 +641,7 @@ describe('Mail Utils', () => {
         });
 
         it('should allow daily reminders to be processed multiple times', async () => {
-            const dueDate = dayjs.utc().add(5, 'minutes');
+            const dueDate = Temporal.Now.instant().add({ minutes: 5 });
 
             await db('reminders').insert({
                 user_id: testUser.id,
@@ -642,7 +649,7 @@ describe('Mail Utils', () => {
                 content: 'Daily task',
                 reminder_type: 'recurring',
                 frequency: 'daily',
-                due_date: dueDate.toISOString(),
+                due_date: dueDate.toString(),
             });
 
             const sendEmailSpy = vi.spyOn(mailUtils, 'sendReminderDigestEmail');
@@ -652,25 +659,23 @@ describe('Mail Utils', () => {
 
             let reminder = await db('reminders').where('title', 'Multi-day daily reminder').first();
             expect(reminder).toBeTruthy();
-            expect(dayjs.utc(reminder.due_date).isAfter(dueDate)).toBe(true);
+            expect(isAfter(reminder.due_date, dueDate)).toBe(true);
 
-            const nextDueDate = dayjs.utc().add(5, 'minutes');
+            const nextDueDate = Temporal.Now.instant().add({ minutes: 5 });
             await db('reminders')
                 .where('title', 'Multi-day daily reminder')
-                .update({ due_date: nextDueDate.toISOString() });
+                .update({ due_date: nextDueDate.toString() });
 
             await mailUtils.processReminderDigests();
 
             reminder = await db('reminders').where('title', 'Multi-day daily reminder').first();
             expect(reminder).toBeTruthy();
 
-            const originalChicago = dayjs.tz(nextDueDate.toDate(), 'UTC').tz('America/Chicago');
-            const updatedChicago = dayjs.tz(reminder.due_date, 'UTC').tz('America/Chicago');
-            expect(updatedChicago.hour()).toBe(originalChicago.hour());
-            expect(updatedChicago.minute()).toBe(originalChicago.minute());
-            expect(updatedChicago.startOf('day').diff(originalChicago.startOf('day'), 'day')).toBe(
-                1,
-            );
+            const originalChicago = zdt(nextDueDate, 'America/Chicago');
+            const updatedChicago = zdt(reminder.due_date, 'America/Chicago');
+            expect(updatedChicago.hour).toBe(originalChicago.hour);
+            expect(updatedChicago.minute).toBe(originalChicago.minute);
+            expect(updatedChicago.toPlainDate().since(originalChicago.toPlainDate()).days).toBe(1);
         });
 
         describe('DST handling', () => {
@@ -679,17 +684,14 @@ describe('Mail Utils', () => {
                     .insert({
                         username: 'chicago_user',
                         email: 'chicago@example.com',
-                        email_verified_at: dayjs().toISOString(),
+                        email_verified_at: isoNow(),
                         timezone: 'America/Chicago',
                     })
                     .returning('*');
 
                 // Set a daily reminder for 6:00 AM Chicago time (before DST spring forward)
                 // March 9, 2025 at 6:00 AM CST = 12:00 UTC
-                const beforeDST = dayjs
-                    .tz('2025-03-09 06:00:00', 'America/Chicago')
-                    .utc()
-                    .toISOString();
+                const beforeDST = isoFromLocal('2025-03-09 06:00:00', 'America/Chicago');
 
                 const [reminder] = await db('reminders')
                     .insert({
@@ -712,12 +714,10 @@ describe('Mail Utils', () => {
 
                 // Next day is March 10, 2025 (after DST spring forward)
                 // Should still be 6:00 AM CDT (now UTC-5), which is 11:00 UTC
-                const nextDueChicago = dayjs
-                    .tz(updatedReminder.due_date, 'UTC')
-                    .tz('America/Chicago');
+                const nextDueChicago = zdt(updatedReminder.due_date, 'America/Chicago');
 
-                expect(nextDueChicago.hour()).toBe(6);
-                expect(nextDueChicago.minute()).toBe(0);
+                expect(nextDueChicago.hour).toBe(6);
+                expect(nextDueChicago.minute).toBe(0);
             });
 
             it('should preserve local time for daily reminders during DST fall back transition', async () => {
@@ -726,17 +726,14 @@ describe('Mail Utils', () => {
                     .insert({
                         username: 'chicago_user2',
                         email: 'chicago2@example.com',
-                        email_verified_at: dayjs().toISOString(),
+                        email_verified_at: isoNow(),
                         timezone: 'America/Chicago',
                     })
                     .returning('*');
 
                 // Set a daily reminder for 6:00 AM Chicago time (before DST fall back)
                 // November 2, 2025 at 6:00 AM CDT = 11:00 UTC
-                const beforeDST = dayjs
-                    .tz('2025-11-02 06:00:00', 'America/Chicago')
-                    .utc()
-                    .toISOString();
+                const beforeDST = isoFromLocal('2025-11-02 06:00:00', 'America/Chicago');
 
                 const [reminder] = await db('reminders')
                     .insert({
@@ -759,12 +756,10 @@ describe('Mail Utils', () => {
 
                 // Next day is November 3, 2025 (after DST fall back)
                 // Should still be 6:00 AM CST (now UTC-6), which is 12:00 UTC
-                const nextDueChicago = dayjs
-                    .tz(updatedReminder.due_date, 'UTC')
-                    .tz('America/Chicago');
+                const nextDueChicago = zdt(updatedReminder.due_date, 'America/Chicago');
 
-                expect(nextDueChicago.hour()).toBe(6);
-                expect(nextDueChicago.minute()).toBe(0);
+                expect(nextDueChicago.hour).toBe(6);
+                expect(nextDueChicago.minute).toBe(0);
             });
 
             it('should preserve local time for weekly reminders across DST transitions', async () => {
@@ -772,16 +767,13 @@ describe('Mail Utils', () => {
                     .insert({
                         username: 'chicago_user3',
                         email: 'chicago3@example.com',
-                        email_verified_at: dayjs().toISOString(),
+                        email_verified_at: isoNow(),
                         timezone: 'America/Chicago',
                     })
                     .returning('*');
 
                 // Saturday March 8, 2025 at 9:00 AM CST (before DST)
-                const beforeDST = dayjs
-                    .tz('2025-03-08 09:00:00', 'America/Chicago')
-                    .utc()
-                    .toISOString();
+                const beforeDST = isoFromLocal('2025-03-08 09:00:00', 'America/Chicago');
 
                 const [reminder] = await db('reminders')
                     .insert({
@@ -802,13 +794,11 @@ describe('Mail Utils', () => {
                 const [updatedReminder] = await db('reminders').where({ id: reminder.id });
 
                 // Next Saturday is March 15, 2025 (after DST spring forward)
-                const nextDueChicago = dayjs
-                    .tz(updatedReminder.due_date, 'UTC')
-                    .tz('America/Chicago');
+                const nextDueChicago = zdt(updatedReminder.due_date, 'America/Chicago');
 
-                expect(nextDueChicago.hour()).toBe(9);
-                expect(nextDueChicago.minute()).toBe(0);
-                expect(nextDueChicago.day()).toBe(6); // Saturday
+                expect(nextDueChicago.hour).toBe(9);
+                expect(nextDueChicago.minute).toBe(0);
+                expect(nextDueChicago.dayOfWeek).toBe(6); // Saturday
             });
 
             it('should preserve local time for monthly reminders across DST transitions', async () => {
@@ -816,16 +806,13 @@ describe('Mail Utils', () => {
                     .insert({
                         username: 'chicago_user4',
                         email: 'chicago4@example.com',
-                        email_verified_at: dayjs().toISOString(),
+                        email_verified_at: isoNow(),
                         timezone: 'America/Chicago',
                     })
                     .returning('*');
 
                 // February 1, 2025 at 10:00 AM CST (before DST)
-                const beforeDST = dayjs
-                    .tz('2025-02-01 10:00:00', 'America/Chicago')
-                    .utc()
-                    .toISOString();
+                const beforeDST = isoFromLocal('2025-02-01 10:00:00', 'America/Chicago');
 
                 const [reminder] = await db('reminders')
                     .insert({
@@ -846,13 +833,11 @@ describe('Mail Utils', () => {
                 const [updatedReminder] = await db('reminders').where({ id: reminder.id });
 
                 // Next month is March 1, 2025 (before DST, still CST)
-                const nextDueChicago = dayjs
-                    .tz(updatedReminder.due_date, 'UTC')
-                    .tz('America/Chicago');
+                const nextDueChicago = zdt(updatedReminder.due_date, 'America/Chicago');
 
-                expect(nextDueChicago.hour()).toBe(10);
-                expect(nextDueChicago.minute()).toBe(0);
-                expect(nextDueChicago.date()).toBe(1); // First of month
+                expect(nextDueChicago.hour).toBe(10);
+                expect(nextDueChicago.minute).toBe(0);
+                expect(nextDueChicago.day).toBe(1); // First of month
             });
 
             it('should handle multiple daily reminders at same local time for DST timezone user', async () => {
@@ -860,13 +845,13 @@ describe('Mail Utils', () => {
                     .insert({
                         username: 'chicago_batch',
                         email: 'chicago_batch@example.com',
-                        email_verified_at: dayjs().toISOString(),
+                        email_verified_at: isoNow(),
                         timezone: 'America/Chicago',
                     })
                     .returning('*');
 
                 // All reminders due in 5 minutes from now
-                const dueDate = dayjs.utc().add(5, 'minutes').toISOString();
+                const dueDate = isoFromNow({ minutes: 5 });
 
                 await db('reminders').insert([
                     {
@@ -926,18 +911,59 @@ describe('Mail Utils', () => {
 
                 // Check they're all scheduled for the next day at the same local time
                 for (const nextDueDate of dueDates) {
-                    const originalChicagoTime = dayjs.tz(dueDate, 'UTC').tz('America/Chicago');
-                    const nextChicagoTime = dayjs.tz(nextDueDate, 'UTC').tz('America/Chicago');
+                    const originalChicagoTime = zdt(dueDate, 'America/Chicago');
+                    const nextChicagoTime = zdt(nextDueDate, 'America/Chicago');
 
                     // Should preserve the same hour and minute in local time
-                    expect(nextChicagoTime.hour()).toBe(originalChicagoTime.hour());
-                    expect(nextChicagoTime.minute()).toBe(originalChicagoTime.minute());
+                    expect(nextChicagoTime.hour).toBe(originalChicagoTime.hour);
+                    expect(nextChicagoTime.minute).toBe(originalChicagoTime.minute);
 
                     // Should be approximately 1 day later
-                    const daysDiff = nextChicagoTime.diff(originalChicagoTime, 'days');
+                    const daysDiff = nextChicagoTime
+                        .toPlainDate()
+                        .since(originalChicagoTime.toPlainDate()).days;
                     expect(daysDiff).toBe(1);
                 }
             });
         });
     });
 });
+
+function isoNow() {
+    return Temporal.Now.instant().toString();
+}
+
+function isoFromNow(duration: Temporal.DurationLike) {
+    return Temporal.Now.zonedDateTimeISO('UTC').add(duration).toInstant().toString();
+}
+
+function isoBeforeNow(duration: Temporal.DurationLike) {
+    return Temporal.Now.zonedDateTimeISO('UTC').subtract(duration).toInstant().toString();
+}
+
+function zdt(value: string | Temporal.Instant | Temporal.ZonedDateTime, timezone: string = 'UTC') {
+    if (value instanceof Temporal.ZonedDateTime) return value.withTimeZone(timezone);
+    const instant = value instanceof Temporal.Instant ? value : Temporal.Instant.from(value);
+    return instant.toZonedDateTimeISO(timezone);
+}
+
+function isoFromLocal(localDateTime: string, timezone: string) {
+    return Temporal.PlainDateTime.from(localDateTime.replace(' ', 'T'))
+        .toZonedDateTime(timezone)
+        .toInstant()
+        .toString();
+}
+
+function isAfter(
+    actual: string | Temporal.Instant | Temporal.ZonedDateTime,
+    expected: string | Temporal.Instant | Temporal.ZonedDateTime,
+) {
+    return Temporal.Instant.compare(zdt(actual).toInstant(), zdt(expected).toInstant()) > 0;
+}
+
+function secondsBetween(
+    actual: string | Temporal.Instant | Temporal.ZonedDateTime,
+    expected: string | Temporal.Instant | Temporal.ZonedDateTime,
+) {
+    return Math.abs(zdt(actual).epochMilliseconds - zdt(expected).epochMilliseconds) / 1000;
+}

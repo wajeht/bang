@@ -1,4 +1,5 @@
-import { dayjs } from '../libs.js';
+/// <reference lib="esnext.temporal" />
+
 import { createContext } from '../context.js';
 import { db } from '../tests/test-setup.js';
 import type {
@@ -25,6 +26,22 @@ const mockLogger = (): any => ({
     warn: () => {},
     error: () => {},
 });
+
+function isoNow() {
+    return Temporal.Now.instant().toString();
+}
+
+function nowDate() {
+    return new Date(Temporal.Now.instant().epochMilliseconds);
+}
+
+function zdt(value: Date | string, timezone: string = 'UTC') {
+    const instant =
+        value instanceof Date
+            ? Temporal.Instant.from(value.toISOString())
+            : Temporal.Instant.from(value);
+    return instant.toZonedDateTimeISO(timezone);
+}
 
 describe('search', () => {
     beforeAll(async () => {
@@ -2050,8 +2067,8 @@ describe('search', () => {
                     user_id: 1,
                     trigger: '!tabonly',
                     title: 'Tab Only Test',
-                    created_at: dayjs().toDate(),
-                    updated_at: dayjs().toDate(),
+                    created_at: nowDate(),
+                    updated_at: nowDate(),
                 });
 
                 const req = { logger: mockLogger() } as unknown as Request;
@@ -2447,8 +2464,8 @@ describe('search', () => {
                     user_id: 1,
                     trigger: '!edittab',
                     title: 'Edit Tab Test',
-                    created_at: dayjs().toDate(),
-                    updated_at: dayjs().toDate(),
+                    created_at: nowDate(),
+                    updated_at: nowDate(),
                 });
 
                 const req = { logger: mockLogger() } as unknown as Request;
@@ -2548,8 +2565,8 @@ describe('search', () => {
                     user_id: 1,
                     title: 'Existing Bookmark',
                     url: 'https://existing.com',
-                    created_at: dayjs().toDate(),
-                    updated_at: dayjs().toDate(),
+                    created_at: nowDate(),
+                    updated_at: nowDate(),
                 });
             });
 
@@ -2567,7 +2584,7 @@ describe('search', () => {
                     user_id: 1,
                     title: 'Existing Bookmark',
                     url: 'https://existing.com',
-                    created_at: dayjs().toISOString(),
+                    created_at: isoNow(),
                 });
 
                 await searchUtils.search({
@@ -2602,7 +2619,7 @@ describe('search', () => {
                     user_id: 1,
                     title: 'Existing Bookmark',
                     url: 'https://existing.com',
-                    created_at: dayjs().toISOString(),
+                    created_at: isoNow(),
                 });
 
                 await searchUtils.search({
@@ -2642,7 +2659,7 @@ describe('search', () => {
                     user_id: 1,
                     title: 'Test "Quotes" & Special Chars',
                     url: 'https://existing.com',
-                    created_at: dayjs().toISOString(),
+                    created_at: isoNow(),
                 });
 
                 await searchUtils.search({
@@ -2774,7 +2791,7 @@ describe('search', () => {
                     user_id: 1,
                     title: 'Same Title',
                     url: 'https://existing.com',
-                    created_at: dayjs().toISOString(),
+                    created_at: isoNow(),
                 });
 
                 await searchUtils.search({
@@ -3921,8 +3938,8 @@ describe('parseReminderTiming', () => {
         expect(timing.frequency).toBe('weekly');
 
         // The reminder should be scheduled for Saturday
-        const dueDate = dayjs(timing.nextDue);
-        expect(dueDate.day()).toBe(6); // 6 = Saturday
+        const dueDate = zdt(timing.nextDue, 'America/Chicago');
+        expect(dueDate.dayOfWeek).toBe(6); // 6 = Saturday
     });
 
     it('should schedule monthly reminders for the 1st', () => {
@@ -3933,8 +3950,8 @@ describe('parseReminderTiming', () => {
         expect(timing.frequency).toBe('monthly');
 
         // The reminder should be scheduled for the 1st of the month
-        const dueDate = dayjs(timing.nextDue);
-        expect(dueDate.date()).toBe(1); // 1st of the month
+        const dueDate = zdt(timing.nextDue, 'America/Chicago');
+        expect(dueDate.day).toBe(1); // 1st of the month
     });
 
     it('should schedule daily reminders for tomorrow', () => {
@@ -3945,19 +3962,20 @@ describe('parseReminderTiming', () => {
         expect(timing.frequency).toBe('daily');
 
         // The reminder should be scheduled for tomorrow at 9 AM
-        const nowChicago = dayjs.tz(undefined, 'America/Chicago');
-        const dueDate = dayjs(timing.nextDue);
+        const nowChicago = Temporal.Now.zonedDateTimeISO('America/Chicago');
+        const dueDate = zdt(timing.nextDue, 'America/Chicago');
 
         // Check that it's scheduled for 9 AM in Chicago time (not UTC)
-        const dueDateChicago = dueDate.tz('America/Chicago');
-        expect(dueDateChicago.hour()).toBe(9);
-        expect(dueDateChicago.minute()).toBe(0);
+        expect(dueDate.hour).toBe(9);
+        expect(dueDate.minute).toBe(0);
 
         // Should be in the future
-        expect(dueDate.isAfter(nowChicago)).toBe(true);
+        expect(Temporal.ZonedDateTime.compare(dueDate, nowChicago)).toBeGreaterThan(0);
 
         // Should be within the next 32 hours (for tomorrow, accounting for timezone differences)
-        const diff = dueDate.diff(nowChicago, 'hours');
+        const diff =
+            (dueDate.toInstant().epochMilliseconds - nowChicago.toInstant().epochMilliseconds) /
+            (1000 * 60 * 60);
         expect(diff).toBeGreaterThan(0);
         expect(diff).toBeLessThanOrEqual(32);
     });

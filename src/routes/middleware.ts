@@ -468,7 +468,7 @@ async function buildAppLocals(ctx: AppContext, c: AppContextContext): Promise<Ap
         const isProd = ctx.config.app.env === 'production';
         const assetVersions = isProd ? ctx.utils.assets.getAssetVersions() : null;
         cachedStaticLocals = {
-            copyRightYear: ctx.libs.dayjs().year(),
+            copyRightYear: ctx.utils.date.currentYear(),
             version: {
                 style: assetVersions?.style ?? Math.random(),
                 script: assetVersions?.script ?? Math.random(),
@@ -528,7 +528,7 @@ function getLocals(ctx: AppContext, c: AppContextContext) {
         const isProd = ctx.config.app.env === 'production';
         const assetVersions = isProd ? ctx.utils.assets.getAssetVersions() : null;
         cachedStaticLocals = {
-            copyRightYear: ctx.libs.dayjs().year(),
+            copyRightYear: ctx.utils.date.currentYear(),
             version: {
                 style: assetVersions?.style ?? Math.random(),
                 script: assetVersions?.script ?? Math.random(),

@@ -565,7 +565,7 @@ export function createUtil(context: AppContext) {
                 reminders?: Record<string, unknown>[];
                 user_preferences?: Record<string, unknown>;
             } = {
-                exported_at: context.libs.dayjs().toISOString(),
+                exported_at: context.utils.date.nowInstant().toString(),
                 version: '1.0',
             };
 

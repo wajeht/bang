@@ -1,8 +1,21 @@
+/// <reference lib="esnext.temporal" />
+
 import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/test-utils.js';
 import request from '../../tests/hono-test-client.js';
-import { dayjs } from '../../libs.js';
 import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect } from 'vite-plus/test';
+
+function dateInputFromNow(duration: Temporal.DurationLike) {
+    return Temporal.Now.zonedDateTimeISO('UTC').add(duration).toPlainDate().toString();
+}
+
+function isoFromNow(duration: Temporal.DurationLike) {
+    return Temporal.Now.zonedDateTimeISO('UTC').add(duration).toInstant().toString();
+}
+
+function isoBeforeNow(duration: Temporal.DurationLike) {
+    return Temporal.Now.zonedDateTimeISO('UTC').subtract(duration).toInstant().toString();
+}
 
 describe('Reminders Routes', () => {
     describe('GET /reminders', () => {
@@ -59,7 +72,7 @@ describe('Reminders Routes', () => {
         it('should create a new reminder with specific date', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD');
+            const tomorrow = dateInputFromNow({ days: 1 });
 
             const response = await agent.post('/reminders').type('form').send({
                 title: 'Tomorrow Reminder',
@@ -101,7 +114,7 @@ describe('Reminders Routes', () => {
         it('should create a reminder with custom date', async () => {
             const { agent, user } = await authenticateAgent(app);
 
-            const customDate = dayjs().add(7, 'days').format('YYYY-MM-DD');
+            const customDate = dateInputFromNow({ days: 7 });
             const customTime = '14:30';
 
             await agent
@@ -151,7 +164,7 @@ describe('Reminders Routes', () => {
                     title: 'Test Reminder',
                     content: 'Test content',
                     reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
+                    due_date: isoFromNow({ days: 1 }),
                 })
                 .returning('*');
 
@@ -185,7 +198,7 @@ describe('Reminders Routes', () => {
                     title: 'Original Title',
                     content: 'Original content',
                     reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
+                    due_date: isoFromNow({ days: 1 }),
                 })
                 .returning('*');
 
@@ -224,7 +237,7 @@ describe('Reminders Routes', () => {
                     title: 'Other User Reminder',
                     content: 'Other content',
                     reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
+                    due_date: isoFromNow({ days: 1 }),
                 })
                 .returning('*');
 
@@ -263,7 +276,7 @@ describe('Reminders Routes', () => {
                     title: 'To Delete',
                     content: 'Will be deleted',
                     reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
+                    due_date: isoFromNow({ days: 1 }),
                 })
                 .returning('*');
 
@@ -291,7 +304,7 @@ describe('Reminders Routes', () => {
                     title: 'Other User Reminder',
                     content: 'Other content',
                     reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
+                    due_date: isoFromNow({ days: 1 }),
                 })
                 .returning('*');
 
@@ -323,14 +336,14 @@ describe('Reminders Routes', () => {
                     title: 'Daily Reminder',
                     content: 'Daily task',
                     reminder_type: 'daily',
-                    due_date: dayjs().subtract(1, 'day').toISOString(),
+                    due_date: isoBeforeNow({ days: 1 }),
                 },
                 {
                     user_id: user.id,
                     title: 'Weekly Reminder',
                     content: 'Weekly task',
                     reminder_type: 'weekly',
-                    due_date: dayjs().subtract(8, 'days').toISOString(),
+                    due_date: isoBeforeNow({ days: 8 }),
                 },
             ]);
 
@@ -360,7 +373,7 @@ describe('Reminders Routes', () => {
                         title: 'Reminder 1',
                         content: 'Content 1',
                         reminder_type: 'once',
-                        due_date: dayjs().add(1, 'day').toISOString(),
+                        due_date: isoFromNow({ days: 1 }),
                     },
                     {
                         user_id: user.id,
@@ -368,14 +381,14 @@ describe('Reminders Routes', () => {
                         content: 'Content 2',
                         reminder_type: 'recurring',
                         frequency: 'daily',
-                        due_date: dayjs().add(2, 'days').toISOString(),
+                        due_date: isoFromNow({ days: 2 }),
                     },
                     {
                         user_id: user.id,
                         title: 'Reminder 3',
                         content: 'Content 3',
                         reminder_type: 'once',
-                        due_date: dayjs().add(3, 'days').toISOString(),
+                        due_date: isoFromNow({ days: 3 }),
                     },
                 ])
                 .returning('*');
@@ -408,7 +421,7 @@ describe('Reminders Routes', () => {
                     user_id: user.id,
                     title: 'My Reminder',
                     reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
+                    due_date: isoFromNow({ days: 1 }),
                 })
                 .returning('*');
 
@@ -417,7 +430,7 @@ describe('Reminders Routes', () => {
                     user_id: otherUser.id,
                     title: 'Other Reminder',
                     reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
+                    due_date: isoFromNow({ days: 1 }),
                 })
                 .returning('*');
 
@@ -451,14 +464,14 @@ describe('Reminders Routes', () => {
                     title: 'Doctor Appointment',
                     content: 'Visit the doctor for annual checkup',
                     reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
+                    due_date: isoFromNow({ days: 1 }),
                 },
                 {
                     user_id: user.id,
                     title: 'Other Reminder',
                     content: 'Something else',
                     reminder_type: 'once',
-                    due_date: dayjs().add(2, 'days').toISOString(),
+                    due_date: isoFromNow({ days: 2 }),
                 },
             ]);
 
@@ -478,7 +491,7 @@ describe('Reminders Routes', () => {
                 content: 'Weekly team standup meeting',
                 reminder_type: 'recurring',
                 frequency: 'weekly',
-                due_date: dayjs().add(1, 'day').toISOString(),
+                due_date: isoFromNow({ days: 1 }),
             });
 
             const response = await agent.get('/reminders?search=team+meeting').expect(200);
@@ -495,13 +508,13 @@ describe('Reminders Routes', () => {
                     user_id: user.id,
                     title: 'Reminder One',
                     reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
+                    due_date: isoFromNow({ days: 1 }),
                 },
                 {
                     user_id: user.id,
                     title: 'Reminder Two',
                     reminder_type: 'once',
-                    due_date: dayjs().add(2, 'days').toISOString(),
+                    due_date: isoFromNow({ days: 2 }),
                 },
             ]);
 
@@ -528,7 +541,7 @@ describe('Reminders Routes', () => {
                     user_id: user.id,
                     title: 'Test Reminder',
                     reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
+                    due_date: isoFromNow({ days: 1 }),
                 })
                 .returning('*');
 
@@ -569,7 +582,7 @@ describe('Reminders Routes', () => {
                     user_id: user.id,
                     title: 'Test Reminder',
                     reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
+                    due_date: isoFromNow({ days: 1 }),
                 })
                 .returning('*');
 

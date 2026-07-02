@@ -1,3 +1,5 @@
+/// <reference lib="esnext.temporal" />
+
 import {
     createCronService,
     screenshotPrefetchTask,
@@ -9,6 +11,10 @@ import { createContext } from './context.js';
 import { db } from './tests/test-setup.js';
 import type { AppContext } from './type.js';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
+
+function isoBeforeNow(duration: Temporal.DurationLike) {
+    return Temporal.Now.zonedDateTimeISO('UTC').subtract(duration).toInstant().toString();
+}
 
 describe('cron service', () => {
     let ctx: AppContext;
@@ -60,11 +66,8 @@ describe('cron service', () => {
 
     describe('screenshotPrefetchTask: recency filter + limit', () => {
         it('should ignore rows older than the recency cutoff', async () => {
-            const old = ctx.libs.dayjs
-                .utc()
-                .subtract(PREFETCH_RECENT_DAYS + 5, 'day')
-                .toISOString();
-            const recent = ctx.libs.dayjs.utc().subtract(1, 'hour').toISOString();
+            const old = isoBeforeNow({ days: PREFETCH_RECENT_DAYS + 5 });
+            const recent = isoBeforeNow({ hours: 1 });
 
             await db('bookmarks').insert([
                 {
@@ -92,7 +95,7 @@ describe('cron service', () => {
         });
 
         it('should fetch every recent bookmark when count is well under the limit', async () => {
-            const recent = ctx.libs.dayjs.utc().subtract(1, 'hour').toISOString();
+            const recent = isoBeforeNow({ hours: 1 });
             const rows = Array.from({ length: 10 }, (_, i) => ({
                 user_id: 1,
                 url: `https://bm-${i}.example.com`,
@@ -110,7 +113,7 @@ describe('cron service', () => {
         });
 
         it('should deduplicate URLs that appear in multiple tables', async () => {
-            const recent = ctx.libs.dayjs.utc().subtract(1, 'hour').toISOString();
+            const recent = isoBeforeNow({ hours: 1 });
             const dup = 'https://dup.example.com';
 
             await db('bookmarks').insert({
@@ -137,7 +140,7 @@ describe('cron service', () => {
         });
 
         it('should not fetch search-type bangs (only redirect)', async () => {
-            const recent = ctx.libs.dayjs.utc().subtract(1, 'hour').toISOString();
+            const recent = isoBeforeNow({ hours: 1 });
             await db('bangs').insert([
                 {
                     user_id: 1,

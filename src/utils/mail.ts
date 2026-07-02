@@ -33,7 +33,7 @@ export function createMail(context: AppContext) {
         },
 
         logEmailToConsole(mailOptions: any, emailType: string): void {
-            const timestamp = context.libs.dayjs().format('h:mm:ss A');
+            const timestamp = context.utils.date.formatClockTime();
             const width = process.stdout.columns || 100;
             const divider = styleText('dim', '─'.repeat(width - 4));
 
@@ -212,7 +212,7 @@ ${branding.appUrl}`,
                 }
 
                 const branding = await context.models.settings.getBranding();
-                const currentDate = context.libs.dayjs().format('YYYY-MM-DD');
+                const currentDate = context.utils.date.todayInputValue();
                 const attachments: Attachment[] = [];
                 const exportTypes: string[] = [];
                 const appNameLower = branding.appName.toLowerCase();
@@ -312,7 +312,7 @@ ${branding.appUrl}`,
             if (reminders.length === 0) return;
 
             const branding = await context.models.settings.getBranding();
-            const formatDate = context.libs.dayjs(date).format('dddd, MMMM D, YYYY');
+            const formatDate = context.utils.date.formatLongDate(date);
 
             // Determine the frequency type for the header
             const frequencies = new Set(
@@ -388,13 +388,13 @@ ${formatReminderListHTML}
         async processReminderDigests(): Promise<void> {
             try {
                 // Use UTC time for database queries since due_date is stored in UTC
-                const now = context.libs.dayjs.utc();
-                const next15Min = now.add(15, 'minute');
+                const now = context.utils.date.nowInstant();
+                const next15Min = now.add({ minutes: 15 });
 
                 // Get all reminders due in the next 15 minutes
                 // Use UTC ISO format for database comparison
-                const nowFormatted = now.toISOString();
-                const next15MinFormatted = next15Min.toISOString();
+                const nowFormatted = now.toString();
+                const next15MinFormatted = next15Min.toString();
 
                 const dueReminders = await context.db
                     .select('reminders.*', 'users.email', 'users.username', 'users.timezone')
@@ -443,12 +443,12 @@ ${formatReminderListHTML}
                 // Send digest emails to each user
                 for (const userData of Object.values(remindersByUser)) {
                     // Use user's timezone for email date formatting
-                    const userNow = now.tz(userData.timezone);
+                    const userNow = now.toZonedDateTimeISO(userData.timezone);
                     await this.sendReminderDigestEmail({
                         email: userData.email,
                         username: userData.username,
                         reminders: userData.reminders,
-                        date: userNow.format('YYYY-MM-DD'),
+                        date: userNow.toPlainDate().toString(),
                     });
 
                     // Process each reminder
@@ -457,60 +457,53 @@ ${formatReminderListHTML}
                             // Calculate next due date for recurring reminders
                             // Use user's timezone for proper day/time calculations
                             const userTz = userData.timezone || 'UTC';
-                            const currentDue = context.libs.dayjs
-                                .tz(reminder.due_date, 'UTC')
-                                .tz(userTz);
+                            const currentDue = context.utils.date.toZonedDateTime(
+                                reminder.due_date,
+                                userTz,
+                            );
 
                             // Extract the local time to preserve across DST transitions
-                            const hour = currentDue.hour();
-                            const minute = currentDue.minute();
-                            const second = currentDue.second();
+                            const reminderTime = {
+                                hour: currentDue.hour,
+                                minute: currentDue.minute,
+                                second: currentDue.second,
+                                millisecond: 0,
+                                microsecond: 0,
+                                nanosecond: 0,
+                            };
 
-                            let nextDue: ReturnType<typeof context.libs.dayjs>;
+                            let nextDue: Temporal.ZonedDateTime;
 
                             switch (reminder.frequency) {
                                 case 'daily':
                                     // Add 1 day and preserve the local time (handles DST correctly)
-                                    nextDue = currentDue
-                                        .add(1, 'day')
-                                        .hour(hour)
-                                        .minute(minute)
-                                        .second(second);
+                                    nextDue = currentDue.add({ days: 1 }).with(reminderTime);
                                     break;
                                 case 'weekly':
                                     // Add 1 week and preserve the local time
-                                    nextDue = currentDue
-                                        .add(1, 'week')
-                                        .hour(hour)
-                                        .minute(minute)
-                                        .second(second);
+                                    nextDue = currentDue.add({ weeks: 1 }).with(reminderTime);
                                     // Ensure it's still on Saturday (in case of DST changes)
-                                    if (nextDue.day() !== 6) {
+                                    if (nextDue.dayOfWeek !== 6) {
                                         // Find the next Saturday from current position
-                                        const daysUntilSaturday = (6 - nextDue.day() + 7) % 7;
-                                        nextDue = nextDue.add(daysUntilSaturday, 'day');
+                                        const daysUntilSaturday = (6 - nextDue.dayOfWeek + 7) % 7;
+                                        nextDue = nextDue
+                                            .add({ days: daysUntilSaturday })
+                                            .with(reminderTime);
                                     }
                                     break;
                                 case 'monthly':
                                     // Move to the 1st of next month and preserve the local time
                                     nextDue = currentDue
-                                        .add(1, 'month')
-                                        .date(1)
-                                        .hour(hour)
-                                        .minute(minute)
-                                        .second(second);
+                                        .add({ months: 1 })
+                                        .with({ day: 1, ...reminderTime });
                                     break;
                                 default:
                                     continue; // Skip if frequency is not recognized
                             }
 
-                            // Re-apply timezone rules for the target date while keeping local clock time.
-                            // This prevents stale offsets from shifting local day/time across DST boundaries.
-                            nextDue = nextDue.tz(userTz, true);
-
                             // Update recurring reminder with next due date (convert back to UTC)
                             await context.db('reminders').where('id', reminder.id).update({
-                                due_date: nextDue.utc().toISOString(),
+                                due_date: nextDue.toInstant().toString(),
                                 updated_at: context.db.fn.now(),
                             });
                         } else {
@@ -536,8 +529,7 @@ ${formatReminderListHTML}
 
         async processVerificationReminders(baseUrl: string): Promise<void> {
             try {
-                const now = context.libs.dayjs.utc();
-                const sevenDaysAgo = now.subtract(7, 'days').toISOString();
+                const sevenDaysAgo = context.utils.date.subtractFromNow({ days: 7 }).toString();
 
                 const unverifiedUsers = await context
                     .db('users')

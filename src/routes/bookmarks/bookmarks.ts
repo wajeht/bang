@@ -70,7 +70,7 @@ export function createBookmarksRouter(ctx: AppContext) {
 
         c.header(
             'Content-Disposition',
-            `attachment; filename=bookmarks-${ctx.libs.dayjs().format('YYYY-MM-DD')}.html`,
+            `attachment; filename=bookmarks-${ctx.utils.date.todayInputValue()}.html`,
         );
         c.header('Content-Type', 'text/html; charset=UTF-8');
         return c.body(htmlExport);

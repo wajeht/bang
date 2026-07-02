@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt';
-import { dayjs } from '../../libs.js';
 import { createLogger } from '../../utils/logger.js';
 import type { Knex } from 'knex';
 
@@ -295,7 +294,7 @@ Here is the \`content\` of **note 2**.
                 title: 'Personal Journal Entry',
                 pinned: false,
                 hidden: true,
-                content: `## 📔 Personal Journal - ${dayjs().format('MMMM D, YYYY')}
+                content: `## 📔 Personal Journal - ${formatSeedLongDate(Temporal.Now.instant())}
 
 Today was an interesting day...
 
@@ -377,14 +376,9 @@ Today was an interesting day...
 
         await knex('tab_items').insert(tabItems);
 
-        const now = dayjs();
-        const dueNow = now
-            .add(5, 'minute') // 5 minutes from now
-            .format('YYYY-MM-DD HH:mm:ss');
-
-        const dueSoon = now
-            .add(10, 'minute') // 10 minutes from now
-            .format('YYYY-MM-DD HH:mm:ss');
+        const now = Temporal.Now.instant();
+        const dueNow = formatSeedDatabaseDate(addSeedDuration(now, { minutes: 5 }));
+        const dueSoon = formatSeedDatabaseDate(addSeedDuration(now, { minutes: 10 }));
 
         const reminders = [
             {
@@ -433,7 +427,7 @@ Today was an interesting day...
                 content: "This should not appear in today's digest",
                 reminder_type: 'once',
                 frequency: null,
-                due_date: dayjs().add(3, 'day').format('YYYY-MM-DD HH:mm:ss'), // 3 days from now
+                due_date: formatSeedDatabaseDate(addSeedDuration(now, { days: 3 })), // 3 days from now
             },
         ];
 
@@ -442,4 +436,20 @@ Today was an interesting day...
         logger.error('Seed failed:', error);
         throw error;
     }
+}
+
+function formatSeedDatabaseDate(instant: Temporal.Instant) {
+    return instant.toString().replace('T', ' ').slice(0, 19);
+}
+
+function addSeedDuration(instant: Temporal.Instant, duration: Temporal.DurationLike) {
+    return instant.toZonedDateTimeISO('UTC').add(duration).toInstant();
+}
+
+function formatSeedLongDate(instant: Temporal.Instant) {
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+    }).format(new Date(instant.epochMilliseconds));
 }

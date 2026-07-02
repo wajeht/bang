@@ -40,10 +40,9 @@ export async function screenshotPrefetchTask(context: AppContext): Promise<void>
     const log = context.logger.tag('job', 'screenshot-prefetch');
     const timer = log.time('job');
     try {
-        const recentCutoff = context.libs.dayjs
-            .utc()
-            .subtract(PREFETCH_RECENT_DAYS, 'day')
-            .toISOString();
+        const recentCutoff = context.utils.date
+            .subtractFromNow({ days: PREFETCH_RECENT_DAYS })
+            .toString();
 
         const [bookmarks, actions, tabItems, reminders] = await Promise.all([
             context
