@@ -1,5 +1,4 @@
-import type { AppRequest as Request } from '../http.js';
-import type { AppContext } from '../type.js';
+import type { AppContext, AppRequest as Request } from '../type.js';
 
 const SENSITIVE_KEYS = new Set([
     'password',

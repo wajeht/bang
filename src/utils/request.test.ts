@@ -1,5 +1,5 @@
 import { libs } from '../libs.js';
-import type { AppRequest as Request } from '../http.js';
+import type { AppRequest as Request } from '../type.js';
 import { config } from '../config.js';
 import { createRequest } from './request.js';
 import { db } from '../tests/test-setup.js';

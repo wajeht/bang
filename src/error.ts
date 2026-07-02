@@ -1,4 +1,4 @@
-import type { AppRequest } from './http.js';
+import type { AppRequest } from './type.js';
 
 export class HttpError extends Error {
     statusCode: number;

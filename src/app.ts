@@ -11,10 +11,9 @@ import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 import { trimTrailingSlash } from 'hono/trailing-slash';
 import { createContext } from './context.js';
-import type { AppEnv } from './http.js';
-import type { AppContext } from './type.js';
+import type { AppContext, AppEnv } from './type.js';
 import { createRouter } from './routes/routes.js';
-import { createBodyParserMiddleware } from './http.js';
+import { createBodyParserMiddleware } from './routes/middleware.js';
 
 export const activeSockets = new Set<Socket>();
 

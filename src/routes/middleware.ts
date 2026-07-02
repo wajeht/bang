@@ -1,9 +1,19 @@
 import { getConnInfo } from '@hono/node-server/conninfo';
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
-import type { AppContext, User } from '../type.js';
-import type { AppContextContext, AppMiddleware, AppLocals } from '../http.js';
-import { createAppRequest } from '../http.js';
+import type {
+    AppContext,
+    AppContextContext,
+    AppLocals,
+    AppMiddleware,
+    AppRequest,
+    AppSession,
+    AppSessionData,
+    User,
+} from '../type.js';
 
+const SESSION_COOKIE_NAME = 'bang.sid';
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 const FORM_DATA_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
 const USER_CACHE_TTL = 5 * 60 * 1000;
 const RATE_WINDOW_MS = 15 * 60 * 1000;
@@ -19,6 +29,154 @@ let cachedStaticLocals: {
     version: { style: string | number; script: string | number };
     utils: Record<string, any>;
 } | null = null;
+
+export function createBodyParserMiddleware(): AppMiddleware {
+    return async (c, next) => {
+        if (!FORM_DATA_METHODS.has(c.req.method)) {
+            c.set('body', {});
+            return next();
+        }
+
+        const contentType = c.req.header('content-type') ?? '';
+        if (contentType.includes('application/json')) {
+            c.set('body', await c.req.json().catch(() => ({})));
+            return next();
+        }
+
+        if (contentType.includes('application/x-www-form-urlencoded')) {
+            c.set('body', parseFormBody(await c.req.text()));
+            return next();
+        }
+
+        if (contentType.includes('multipart/form-data')) {
+            const body = await c.req.parseBody({ all: true });
+            c.set('body', normalizeParsedBody(body));
+            return next();
+        }
+
+        c.set('body', {});
+        await next();
+    };
+}
+
+export function createSessionMiddleware(ctx: AppContext): AppMiddleware {
+    return async (c, next) => {
+        const cookieSid = getCookie(c, SESSION_COOKIE_NAME);
+        const sid = cookieSid || ctx.libs.crypto.randomUUID();
+        const sessionData = cookieSid ? await loadSession(ctx, cookieSid) : {};
+        const session = createSession(ctx, c, sid, sessionData);
+
+        c.set('session', session);
+        c.set('sessionChanged', !cookieSid);
+        c.set('sessionDestroyed', false);
+
+        await next();
+
+        if (c.get('sessionDestroyed')) {
+            await ctx.db('sessions').where({ sid: session.id }).delete();
+            deleteCookie(c, SESSION_COOKIE_NAME, { path: '/' });
+            return;
+        }
+
+        if (c.get('sessionChanged') || hasSessionData(session)) {
+            await saveSession(ctx, session);
+            setCookie(c, SESSION_COOKIE_NAME, session.id, {
+                path: '/',
+                domain:
+                    ctx.config.app.env === 'production'
+                        ? `.${ctx.config.session.domain}`
+                        : undefined,
+                maxAge: Math.floor(SESSION_TTL_MS / 1000),
+                httpOnly: true,
+                sameSite: 'Lax',
+                secure: ctx.config.app.env === 'production',
+            });
+        }
+    };
+}
+
+export function createAppRequest(c: AppContextContext): AppRequest {
+    const url = new URL(c.req.url);
+    const headers = Object.fromEntries(
+        [...c.req.raw.headers.entries()].map(([key, value]) => [key.toLowerCase(), value]),
+    );
+    const session = c.get('session');
+    const ip = headers['x-forwarded-for']?.split(',')[0]?.trim() || headers['x-real-ip'];
+
+    return {
+        method: c.req.method,
+        url: url.pathname + url.search,
+        originalUrl: url.pathname + url.search,
+        path: c.req.path,
+        headers,
+        protocol: headers['x-forwarded-proto'] || url.protocol.replace(':', ''),
+        hostname: headers.host?.split(':')[0],
+        query: c.req.query(),
+        params: c.req.param(),
+        body: c.get('body') ?? {},
+        session,
+        user: c.get('user'),
+        logger: c.get('logger'),
+        ip,
+        socket: { remoteAddress: ip },
+        get(name: string) {
+            return headers[name.toLowerCase()];
+        },
+        header(name: string) {
+            return headers[name.toLowerCase()];
+        },
+        flash(type: string, message?: string) {
+            session.flash ??= {};
+            if (message != null) {
+                session.flash[type] ??= [];
+                session.flash[type]!.push(message);
+                c.set('sessionChanged', true);
+                return session.flash[type]!;
+            }
+
+            const messages = session.flash[type] ?? [];
+            delete session.flash[type];
+            c.set('sessionChanged', true);
+            return messages;
+        },
+    };
+}
+
+export function setCurrentUser(c: AppContextContext, user: User | undefined) {
+    c.set('user', user);
+}
+
+export function renderView(
+    ctx: AppContext,
+    c: AppContextContext,
+    view: string,
+    options: Record<string, unknown> = {},
+) {
+    const locals = c.get('locals');
+    return c.html(
+        ctx.utils.template.render(view, {
+            ...locals,
+            csrfToken: locals.csrfToken ?? '',
+            ...options,
+        }),
+    );
+}
+
+export function setFlash(c: AppContextContext, type: string, message: string) {
+    const session = c.get('session');
+    session.flash = {
+        ...session.flash,
+        [type]: [...(session.flash?.[type] ?? []), message],
+    };
+    c.set('sessionChanged', true);
+}
+
+export function getRequestBaseUrl(c: AppContextContext) {
+    const url = new URL(c.req.url);
+    const protocol = c.req.header('x-forwarded-proto') || url.protocol.replace(':', '');
+    const host = c.req.header('host') || url.host;
+    return `${protocol}://${host}`;
+}
 
 export function createRequestLoggerMiddleware(ctx: AppContext): AppMiddleware {
     return async (c, next) => {
@@ -412,6 +570,127 @@ function getLocals(ctx: AppContext, c: AppContextContext) {
     };
     c.set('locals', fallback);
     return fallback;
+}
+
+function createSession(
+    ctx: AppContext,
+    c: AppContextContext,
+    sid: string,
+    data: AppSessionData,
+): AppSession {
+    const session = {
+        ...data,
+        id: sid,
+        save(callback?: (error?: Error) => void) {
+            c.set('sessionChanged', true);
+            void saveSession(ctx, session)
+                .then(() => callback?.())
+                .catch((error) => callback?.(error));
+        },
+        destroy(callback?: (error?: Error) => void) {
+            c.set('sessionDestroyed', true);
+            callback?.();
+        },
+        regenerate(callback?: (error?: Error) => void) {
+            session.id = ctx.libs.crypto.randomUUID();
+            c.set('sessionChanged', true);
+            callback?.();
+        },
+    } as AppSession;
+
+    return session;
+}
+
+async function loadSession(ctx: AppContext, sid: string): Promise<AppSessionData> {
+    const row = await ctx.db('sessions').where({ sid }).first();
+    if (!row) return {};
+
+    if (new Date(row.expired).getTime() <= Date.now()) {
+        await ctx.db('sessions').where({ sid }).delete();
+        return {};
+    }
+
+    if (typeof row.sess === 'string') {
+        return JSON.parse(row.sess);
+    }
+
+    return row.sess ?? {};
+}
+
+async function saveSession(ctx: AppContext, session: AppSession) {
+    const data = { ...session } as Record<string, unknown>;
+    delete data.id;
+    delete data.save;
+    delete data.destroy;
+    delete data.regenerate;
+
+    await ctx
+        .db('sessions')
+        .insert({
+            sid: session.id,
+            sess: JSON.stringify(data),
+            expired: new Date(Date.now() + SESSION_TTL_MS),
+        })
+        .onConflict('sid')
+        .merge();
+}
+
+function hasSessionData(session: AppSession) {
+    const ignored = new Set(['id', 'save', 'destroy', 'regenerate']);
+    for (const key of Object.keys(session)) {
+        if (!ignored.has(key)) return true;
+    }
+    return false;
+}
+
+function parseFormBody(rawBody: string) {
+    const params = new URLSearchParams(rawBody);
+    const body: Record<string, any> = {};
+    for (const [rawKey, value] of params.entries()) {
+        assignFormValue(body, rawKey, value);
+    }
+    return body;
+}
+
+function normalizeParsedBody(rawBody: Record<string, unknown>) {
+    const body: Record<string, any> = {};
+    for (const [key, value] of Object.entries(rawBody)) {
+        assignFormValue(body, key, value);
+    }
+    return body;
+}
+
+function assignFormValue(body: Record<string, any>, rawKey: string, value: unknown) {
+    const parts = rawKey
+        .replace(/\]/g, '')
+        .split('[')
+        .filter((part) => part.length > 0);
+
+    if (parts.length === 0) return;
+    if (rawKey.endsWith('[]') && parts.length === 1) {
+        body[parts[0]!] ??= [];
+        body[parts[0]!].push(value);
+        return;
+    }
+
+    let current = body;
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts[i]!;
+        const isLast = i === parts.length - 1;
+        if (isLast) {
+            if (current[part] == null) {
+                current[part] = value;
+            } else if (Array.isArray(current[part])) {
+                current[part].push(value);
+            } else {
+                current[part] = [current[part], value];
+            }
+            continue;
+        }
+
+        current[part] ??= {};
+        current = current[part];
+    }
 }
 
 function getClientIp(c: AppContextContext): string {

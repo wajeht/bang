@@ -17,8 +17,8 @@ import {
     createAppLocalStateMiddleware,
     createAuthenticationMiddleware,
     createSpeculationRulesMiddleware,
+    createSessionMiddleware,
 } from './routes/middleware.js';
-import { createSessionMiddleware } from './http.js';
 import { libs } from './libs.js';
 import { config } from './config.js';
 import { createDatabase } from './db/db.js';

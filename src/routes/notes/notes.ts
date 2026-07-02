@@ -1,6 +1,5 @@
-import type { AppContextContext, AppEnv } from '../../http.js';
-import { renderView, setFlash } from '../../http.js';
-import type { AppContext, User } from '../../type.js';
+import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
+import { renderView, setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
 function createNoteMarkdownRenderer(ctx: AppContext) {

@@ -5,7 +5,7 @@ import type {
     AppRequest as Request,
     AppResponse as Response,
     AppSessionData as SessionData,
-} from '../http.js';
+} from '../type.js';
 import { createSearch } from '../utils/search.js';
 import type { User, AppContext } from '../type.js';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';

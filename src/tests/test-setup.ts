@@ -5,7 +5,7 @@ import { createApp } from '../app.js';
 import { Log } from '../utils/logger.js';
 import { beforeAll, beforeEach, afterAll } from 'vite-plus/test';
 import { createDb, createUser, cleanupTables } from './test-db.js';
-import type { AppEnv } from '../http.js';
+import type { AppEnv } from '../type.js';
 import type { AppContext } from '../type.js';
 import type { Hono } from 'hono';
 

@@ -1,6 +1,5 @@
-import type { AppEnv } from '../../http.js';
-import { getRequestBaseUrl, setCurrentUser, setFlash } from '../../http.js';
-import type { AppContext, User } from '../../type.js';
+import type { AppContext, AppEnv, User } from '../../type.js';
+import { getRequestBaseUrl, setCurrentUser, setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
 export function createAuthRouter(ctx: AppContext) {

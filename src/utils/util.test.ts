@@ -2,7 +2,6 @@ import path from 'node:path';
 import { createUtil } from './util.js';
 import { libs } from '../libs.js';
 import fs from 'node:fs/promises';
-import type { AppRequest as Request } from '../http.js';
 import { config } from '../config.js';
 import { createAuth } from './auth.js';
 import { createHtml } from './html.js';
@@ -10,7 +9,7 @@ import { createDate } from './date.js';
 import { createRequest } from './request.js';
 import { db } from '../tests/test-setup.js';
 import { createValidation } from './validation.js';
-import type { BookmarkToExport } from '../type.js';
+import type { AppRequest as Request, BookmarkToExport } from '../type.js';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 let validationUtils: ReturnType<typeof createValidation>;

@@ -10,7 +10,7 @@ import { createSettingsRouter } from './settings/settings.js';
 import { createBookmarksRouter } from './bookmarks/bookmarks.js';
 import { createRemindersRouter } from './reminders/reminders.js';
 import { Hono } from 'hono';
-import type { AppEnv } from '../http.js';
+import type { AppEnv } from '../type.js';
 
 export function createRouter(ctx: AppContext) {
     const router = new Hono<AppEnv>();

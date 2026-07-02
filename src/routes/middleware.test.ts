@@ -1,8 +1,7 @@
 import { createContext } from '../context.js';
-import type { AppContextContext, AppEnv } from '../http.js';
-import { createBodyParserMiddleware } from '../http.js';
 import { db } from '../tests/test-setup.js';
-import type { AppContext, User } from '../type.js';
+import type { AppContext, AppContextContext, AppEnv, User } from '../type.js';
+import { createBodyParserMiddleware } from './middleware.js';
 import { Hono } from 'hono';
 import { describe, it, expect, beforeAll } from 'vite-plus/test';
 
