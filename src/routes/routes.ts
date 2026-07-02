@@ -2,7 +2,7 @@ import { createTabsRouter } from './tabs/tabs.js';
 import { createAuthRouter } from './auth/auth.js';
 import type { AppContext } from '../type.js';
 import { createAdminRouter } from './admin/admin.js';
-import { createNotesRouter } from './notes/notes.js';
+import { createNotesNativeRouter, createNotesRouter } from './notes/notes.js';
 import { createSearchRouter } from './search/search.js';
 import { createActionsRouter } from './actions/actions.js';
 import { createGeneralNativeRouter, createGeneralRouter } from './general/general.js';
@@ -25,6 +25,7 @@ export function createRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
     const generalNativeRouter = createGeneralNativeRouter(ctx);
     const settingsNativeRouter = createSettingsNativeRouter(ctx);
+    const notesNativeRouter = createNotesNativeRouter(ctx);
 
     router.get('/healthz', createHonoRequestHandler(generalNativeRouter.fetch));
     router.get(
@@ -42,6 +43,11 @@ export function createRouter(ctx: AppContext) {
         '/api/settings/api-key',
         ctx.middleware.authentication,
         createHonoRequestHandler(settingsNativeRouter.fetch),
+    );
+    router.post(
+        '/api/notes/render-markdown',
+        ctx.middleware.authentication,
+        createHonoRequestHandler(notesNativeRouter.fetch),
     );
 
     router.use(createAuthRouter(ctx));

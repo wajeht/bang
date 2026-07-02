@@ -1,11 +1,9 @@
+import { Hono } from 'hono';
+import type { HttpBindings } from '@hono/node-server';
 import type { Request, Response } from 'express';
 import type { AppContext, User } from '../../type.js';
 
-export function createNotesRouter(ctx: AppContext) {
-    const router = ctx.libs.express.Router();
-    const NOTE_CONTENT_PREVIEW_LENGTH = 200;
-    const NOTE_CONTENT_PREVIEW_SOURCE_LIMIT = 4000;
-
+function createNoteMarkdownRenderer(ctx: AppContext) {
     const noteRenderer = new ctx.libs.Renderer();
     noteRenderer.code = function ({ text, lang }) {
         if (lang && ctx.libs.hljs.getLanguage(lang)) {
@@ -15,13 +13,61 @@ export function createNotesRouter(ctx: AppContext) {
         return `<pre><code>${text}</code></pre>`;
     };
 
-    const sharedMarked = new ctx.libs.Marked({
+    return new ctx.libs.Marked({
         renderer: noteRenderer,
         breaks: true,
         gfm: true,
         pedantic: false,
         silent: false,
     });
+}
+
+export function createNotesNativeRouter(ctx: AppContext) {
+    const app = new Hono<{ Bindings: HttpBindings }>();
+    const sharedMarked = createNoteMarkdownRenderer(ctx);
+
+    /**
+     * POST /api/notes/render-markdown
+     *
+     * @tags Notes
+     * @summary Render markdown content to html
+     *
+     * @security BearerAuth
+     *
+     * @param {string} request.body.required - request body
+     *
+     * @return {object} 200 - success response - application/json
+     * @return {object} 400 - Bad request response - application/json
+     * @return {object} 404 - Not found response - application/json
+     */
+    app.post('/api/notes/render-markdown', (c) => {
+        const req = c.env.incoming as Request;
+        const { content } = req.body;
+
+        if (!content || content.trim() === '') {
+            return c.json(
+                {
+                    message: 'Validation errors',
+                    details: { content: 'Content is required' },
+                },
+                422,
+            );
+        }
+
+        const markdown = sharedMarked.parse(content) as string;
+        const sanitized = ctx.libs.dompurify.sanitize(markdown);
+
+        return c.json({ content: sanitized });
+    });
+
+    return app;
+}
+
+export function createNotesRouter(ctx: AppContext) {
+    const router = ctx.libs.express.Router();
+    const NOTE_CONTENT_PREVIEW_LENGTH = 200;
+    const NOTE_CONTENT_PREVIEW_SOURCE_LIMIT = 4000;
+    const sharedMarked = createNoteMarkdownRenderer(ctx);
 
     /**
      * A note
@@ -542,37 +588,6 @@ export function createNotesRouter(ctx: AppContext) {
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}.md"`);
 
             res.send(note.content);
-        },
-    );
-
-    /**
-     * POST /api/notes/render-markdown
-     *
-     * @tags Notes
-     * @summary Render markdown content to html
-     *
-     * @security BearerAuth
-     *
-     * @param {string} request.body.required - request body
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     */
-    router.post(
-        '/api/notes/render-markdown',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const { content } = req.body;
-
-            if (!content || content.trim() === '') {
-                throw new ctx.errors.ValidationError({ content: 'Content is required' });
-            }
-
-            const markdown = sharedMarked.parse(content) as string;
-            const sanitized = ctx.libs.dompurify.sanitize(markdown);
-
-            res.json({ content: sanitized });
         },
     );
 
