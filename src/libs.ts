@@ -2,7 +2,6 @@ import knex from 'knex';
 import { Eta } from 'eta';
 import bcrypt from 'bcrypt';
 import cron from 'node-cron';
-import jwt from 'jsonwebtoken';
 import { marked, Marked, Renderer } from 'marked';
 import hljs from 'highlight.js';
 import crypto from 'node:crypto';
@@ -11,7 +10,6 @@ import * as dompurify from 'isomorphic-dompurify';
 
 export const libs = {
     // Core utilities
-    jwt,
     bcrypt,
     crypto,
     nodemailer,

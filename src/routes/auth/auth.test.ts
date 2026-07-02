@@ -148,7 +148,7 @@ describe('Auth Routes', () => {
                 default_search_provider: 'duckduckgo',
             });
 
-            const token = ctx.utils.auth.generateMagicLink({ email: 'magic@example.com' });
+            const token = await ctx.utils.auth.generateMagicLink({ email: 'magic@example.com' });
 
             const response = await request(app).get(`/auth/magic/${token}`).expect(302);
 
@@ -179,7 +179,7 @@ describe('Auth Routes', () => {
                 default_search_provider: 'duckduckgo',
             });
 
-            const token = ctx.utils.auth.generateMagicLink({ email: 'session@example.com' });
+            const token = await ctx.utils.auth.generateMagicLink({ email: 'session@example.com' });
 
             const agent = request.agent(app);
             await agent.get(`/auth/magic/${token}`).expect(302);
@@ -201,7 +201,7 @@ describe('Auth Routes', () => {
 
             expect(user.email_verified_at).toBeNull();
 
-            const token1 = ctx.utils.auth.generateMagicLink({ email: 'verify@example.com' });
+            const token1 = await ctx.utils.auth.generateMagicLink({ email: 'verify@example.com' });
 
             const agent = request.agent(app);
             await agent.get(`/auth/magic/${token1}`).expect(302);
@@ -214,7 +214,7 @@ describe('Auth Routes', () => {
             expect(verifiedUser.email_verified_at).not.toBeNull();
             const firstVerificationTime = verifiedUser.email_verified_at;
 
-            const token2 = ctx.utils.auth.generateMagicLink({ email: 'verify@example.com' });
+            const token2 = await ctx.utils.auth.generateMagicLink({ email: 'verify@example.com' });
             await agent.get(`/auth/magic/${token2}`).expect(302);
 
             const userAfterSecondLogin = await db('users').where({ id: user.id }).first();

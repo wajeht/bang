@@ -53,7 +53,7 @@ export async function authenticateAgent(app: TestApp, options: AuthOptions = {})
 
     const user = await createTestUser(email, admin);
     const agent = request.agent(app);
-    const token = ctx.utils.auth.generateMagicLink({ email });
+    const token = await ctx.utils.auth.generateMagicLink({ email });
 
     await agent.get(`/auth/magic/${token}`).expect(302);
     await addCsrfToAgent(agent, '/reminders');

@@ -57,7 +57,7 @@ export function createAuthRouter(ctx: AppContext) {
             }
         }
 
-        const token = ctx.utils.auth.generateMagicLink({ email });
+        const token = await ctx.utils.auth.generateMagicLink({ email });
         const url = new URL(c.req.url);
         const protocol = c.req.header('x-forwarded-proto') || url.protocol.replace(':', '');
         const host = c.req.header('host') || url.host;
@@ -92,7 +92,7 @@ export function createAuthRouter(ctx: AppContext) {
     router.get('/auth/magic/:token', async (c) => {
         const token = c.req.param('token') ?? '';
 
-        const decoded = ctx.utils.auth.verifyMagicLink(token);
+        const decoded = await ctx.utils.auth.verifyMagicLink(token);
 
         if (!decoded || !decoded.email) {
             throw new ctx.errors.ValidationError({

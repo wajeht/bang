@@ -24,7 +24,7 @@ export async function ensureTestUserExists(email = 'test@example.com') {
 export async function authenticateUser(page: Page, email = 'test@example.com') {
     const user = await ensureTestUserExists(email);
     const ctx = await getContext();
-    const token = ctx.utils.auth.generateMagicLink({ email });
+    const token = await ctx.utils.auth.generateMagicLink({ email });
 
     await page.goto(`/auth/magic/${token}`);
     await page.waitForURL('/actions', { timeout: 5000 });

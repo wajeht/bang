@@ -154,7 +154,7 @@ describe('Mail Utils', () => {
             const callArgs = sendEmailSpy.mock.calls[0][0];
             const token = callArgs.token;
 
-            const decoded = mockContext.utils.auth.verifyMagicLink(token);
+            const decoded = await mockContext.utils.auth.verifyMagicLink(token);
             expect(decoded).not.toBeNull();
             expect(decoded?.email).toBe('unverified@example.com');
         });

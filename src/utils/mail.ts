@@ -549,7 +549,9 @@ ${formatReminderListHTML}
 
                 const emailsSent: string[] = [];
                 for (const user of unverifiedUsers) {
-                    const token = context.utils.auth.generateMagicLink({ email: user.email });
+                    const token = await context.utils.auth.generateMagicLink({
+                        email: user.email,
+                    });
 
                     await this.sendVerificationReminderEmail({
                         email: user.email,
