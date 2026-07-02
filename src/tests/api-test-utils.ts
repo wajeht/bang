@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { db, ctx, createTestUser } from './test-setup.js';
 import type { Test } from 'supertest';
-import type { Application } from 'express';
+import type { ServerType } from '@hono/node-server';
 
 type Agent = ReturnType<typeof request.agent>;
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
@@ -46,7 +46,7 @@ export interface AuthOptions {
     email?: string;
 }
 
-export async function authenticateAgent(app: Application, options: AuthOptions = {}) {
+export async function authenticateAgent(app: ServerType, options: AuthOptions = {}) {
     const { admin = false, email = admin ? 'admin@example.com' : 'test@example.com' } = options;
 
     const user = await createTestUser(email, admin);
@@ -59,15 +59,15 @@ export async function authenticateAgent(app: Application, options: AuthOptions =
     return { agent, user };
 }
 
-export const authenticateAdminAgent = (app: Application) => authenticateAgent(app, { admin: true });
+export const authenticateAdminAgent = (app: ServerType) => authenticateAgent(app, { admin: true });
 
-export async function createUnauthenticatedAgent(app: Application) {
+export async function createUnauthenticatedAgent(app: ServerType) {
     const agent = request.agent(app);
     await addCsrfToAgent(agent, '/');
     return agent;
 }
 
-export async function authenticateApiAgent(app: Application) {
+export async function authenticateApiAgent(app: ServerType) {
     const user = await createTestUser('test@example.com', false);
 
     const apiKeyVersion = 1;

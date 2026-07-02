@@ -1,8 +1,9 @@
-import type { Request, Response } from 'express';
+import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
+import { createHonoApp } from '../../http.js';
 import type { AppContext, User } from '../../type.js';
 
 export function createAuthRouter(ctx: AppContext) {
-    const router = ctx.libs.express.Router();
+    const router = createHonoApp(ctx);
 
     router.get('/logout', async (req: Request, res: Response) => {
         if ((req.session && req.session.user) || req.user) {
@@ -119,24 +120,14 @@ export function createAuthRouter(ctx: AppContext) {
 
         const redirectTo = req.session.redirectTo || '/actions';
 
-        req.session.regenerate((err) => {
-            if (err) {
-                ctx.logger.error('Failed to regenerate session', { error: err });
-                throw new ctx.errors.HttpError(500, 'Session error', req);
-            }
+        req.session.regenerate();
+        req.user = parsedUser;
+        req.session.user = parsedUser;
+        req.session.userCachedAt = Date.now();
+        req.flash('success', `🎉 Welcome ${user.username}! You're now logged in.`);
+        req.session.save();
 
-            req.user = parsedUser;
-            req.session.user = parsedUser;
-            req.session.userCachedAt = Date.now();
-
-            req.session.save((saveErr) => {
-                if (saveErr) {
-                    ctx.logger.error('Failed to save session', { error: saveErr });
-                }
-                req.flash('success', `🎉 Welcome ${user.username}! You're now logged in.`);
-                return res.redirect(redirectTo);
-            });
-        });
+        return res.redirect(redirectTo);
     });
 
     router.post(

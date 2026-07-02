@@ -1,14 +1,33 @@
 import request from 'supertest';
-import type { Server } from 'node:http';
+import { serve, type ServerType } from '@hono/node-server';
 import { describe, it, expect, vi } from 'vite-plus/test';
 import { createApp, closeServer, activeSockets } from './app.js';
+import type { AppContext } from './type.js';
+
+async function createTestServer(): Promise<{ server: ServerType; ctx: AppContext }> {
+    const { app, ctx } = await createApp();
+    const server = serve({ fetch: app.fetch, port: 0 });
+
+    server.on('connection', (socket) => {
+        activeSockets.add(socket);
+        socket.on('close', () => activeSockets.delete(socket));
+    });
+
+    await new Promise<void>((resolve) => {
+        if (server.listening) resolve();
+        else server.on('listening', resolve);
+    });
+
+    return { server, ctx };
+}
 
 describe('App', () => {
     describe('createApp', () => {
-        it('should create an Express app with context', async () => {
+        it('should create a Hono app with context', async () => {
             const { app, ctx } = await createApp();
 
             expect(app).toBeDefined();
+            expect(app.fetch).toBeDefined();
             expect(ctx).toBeDefined();
             expect(ctx.db).toBeDefined();
             expect(ctx.logger).toBeDefined();
@@ -23,18 +42,12 @@ describe('App', () => {
         });
 
         it('should track connections when HTTP requests are made', async () => {
-            const { app } = await createApp();
-            const server: Server = app.listen(0);
-
-            await new Promise<void>((resolve) => {
-                if (server.listening) resolve();
-                else server.on('listening', resolve);
-            });
+            const { server } = await createTestServer();
 
             activeSockets.clear();
             const initialCount = activeSockets.size;
 
-            await request(app).get('/healthz').expect(200);
+            await request(server).get('/healthz').expect(200);
 
             expect(activeSockets.size).toBeGreaterThanOrEqual(initialCount);
 
@@ -42,15 +55,9 @@ describe('App', () => {
         });
 
         it('should allow clearing sockets via clearActiveSockets', async () => {
-            const { app } = await createApp();
-            const server: Server = app.listen(0);
+            const { server } = await createTestServer();
 
-            await new Promise<void>((resolve) => {
-                if (server.listening) resolve();
-                else server.on('listening', resolve);
-            });
-
-            await request(app).get('/healthz').expect(200);
+            await request(server).get('/healthz').expect(200);
 
             activeSockets.clear();
             expect(activeSockets.size).toBe(0);
@@ -61,13 +68,7 @@ describe('App', () => {
 
     describe('closeServer', () => {
         it('should stop cron service', async () => {
-            const { app, ctx } = await createApp();
-            const server: Server = app.listen(0);
-
-            await new Promise<void>((resolve) => {
-                if (server.listening) resolve();
-                else server.on('listening', resolve);
-            });
+            const { server, ctx } = await createTestServer();
 
             await ctx.services.crons.start();
             expect(ctx.services.crons.getStatus().isRunning).toBe(true);
@@ -85,13 +86,7 @@ describe('App', () => {
         });
 
         it('should destroy database connection', async () => {
-            const { app, ctx } = await createApp();
-            const server: Server = app.listen(0);
-
-            await new Promise<void>((resolve) => {
-                if (server.listening) resolve();
-                else server.on('listening', resolve);
-            });
+            const { server, ctx } = await createTestServer();
 
             const dbDestroySpy = vi.spyOn(ctx.db, 'destroy').mockResolvedValue(undefined);
 
@@ -103,13 +98,7 @@ describe('App', () => {
         });
 
         it('should close HTTP server', async () => {
-            const { app, ctx } = await createApp();
-            const server: Server = app.listen(0);
-
-            await new Promise<void>((resolve) => {
-                if (server.listening) resolve();
-                else server.on('listening', resolve);
-            });
+            const { server, ctx } = await createTestServer();
 
             expect(server.listening).toBe(true);
 
@@ -123,15 +112,9 @@ describe('App', () => {
         });
 
         it('should clear all active sockets', async () => {
-            const { app, ctx } = await createApp();
-            const server: Server = app.listen(0);
+            const { server, ctx } = await createTestServer();
 
-            await new Promise<void>((resolve) => {
-                if (server.listening) resolve();
-                else server.on('listening', resolve);
-            });
-
-            await request(app).get('/healthz').expect(200);
+            await request(server).get('/healthz').expect(200);
 
             const dbDestroySpy = vi.spyOn(ctx.db, 'destroy').mockResolvedValue(undefined);
 
@@ -143,13 +126,7 @@ describe('App', () => {
         });
 
         it('should execute shutdown steps in correct order', async () => {
-            const { app, ctx } = await createApp();
-            const server: Server = app.listen(0);
-
-            await new Promise<void>((resolve) => {
-                if (server.listening) resolve();
-                else server.on('listening', resolve);
-            });
+            const { server, ctx } = await createTestServer();
 
             await ctx.services.crons.start();
 

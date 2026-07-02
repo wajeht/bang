@@ -1,4 +1,4 @@
-import type { Request } from 'express';
+import type { AppRequest as Request } from '../http.js';
 import type { User, PageType, AppContext } from '../type.js';
 
 export function createRequest(context: AppContext) {

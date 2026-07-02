@@ -1,49 +1,52 @@
-import { Hono } from 'hono';
 import { bangs } from '../../db/bang.js';
-import type { HttpBindings } from '@hono/node-server';
-import type { Request, Response } from 'express';
+import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
 import type { Bang, User, AppContext, BangWithLowercase } from '../../type.js';
-import { createHonoRequestHandler } from '../hono/express-adapter.js';
+import { createHonoApp } from '../../http.js';
 
 export function createGeneralRouter(ctx: AppContext) {
-    const app = new Hono<{ Bindings: HttpBindings }>();
+    const router = createHonoApp(ctx);
 
-    app.get('/healthz', async (c) => {
+    router.get('/healthz', async (req: Request, res: Response) => {
         await ctx.db.raw('SELECT 1');
 
-        if (c.req.header('Content-Type')?.includes('application/json')) {
-            return c.json({ status: 'ok', database: 'connected' });
+        if (req.header('Content-Type')?.includes('application/json')) {
+            return res.json({ status: 'ok', database: 'connected' });
         }
 
-        return c.html('<p>ok</p>');
+        return res.set({ 'Content-Type': 'text/html' }).send('<p>ok</p>');
     });
 
-    app.get('/metrics', (c) => {
-        const mem = process.memoryUsage();
-        const cpuUsage = process.cpuUsage();
+    router.get(
+        '/metrics',
+        ctx.middleware.authentication,
+        ctx.middleware.adminOnly,
+        (_req: Request, res: Response) => {
+            const mem = process.memoryUsage();
+            const cpuUsage = process.cpuUsage();
 
-        return c.json({
-            memory: {
-                rss: `${Math.round(mem.rss / 1024 / 1024)} MB`,
-                heapTotal: `${Math.round(mem.heapTotal / 1024 / 1024)} MB`,
-                heapUsed: `${Math.round(mem.heapUsed / 1024 / 1024)} MB`,
-                external: `${Math.round(mem.external / 1024 / 1024)} MB`,
-                arrayBuffers: `${Math.round((mem.arrayBuffers || 0) / 1024 / 1024)} MB`,
-            },
-            cpu: {
-                user: `${Math.round(cpuUsage.user / 1000)} ms`,
-                system: `${Math.round(cpuUsage.system / 1000)} ms`,
-            },
-            process: {
-                uptime: `${Math.round(process.uptime())} seconds`,
-                pid: process.pid,
-                nodeVersion: process.version,
-                platform: process.platform,
-                arch: process.arch,
-            },
-            env: ctx.config.app.env,
-        });
-    });
+            return res.json({
+                memory: {
+                    rss: `${Math.round(mem.rss / 1024 / 1024)} MB`,
+                    heapTotal: `${Math.round(mem.heapTotal / 1024 / 1024)} MB`,
+                    heapUsed: `${Math.round(mem.heapUsed / 1024 / 1024)} MB`,
+                    external: `${Math.round(mem.external / 1024 / 1024)} MB`,
+                    arrayBuffers: `${Math.round((mem.arrayBuffers || 0) / 1024 / 1024)} MB`,
+                },
+                cpu: {
+                    user: `${Math.round(cpuUsage.user / 1000)} ms`,
+                    system: `${Math.round(cpuUsage.system / 1000)} ms`,
+                },
+                process: {
+                    uptime: `${Math.round(process.uptime())} seconds`,
+                    pid: process.pid,
+                    nodeVersion: process.version,
+                    platform: process.platform,
+                    arch: process.arch,
+                },
+                env: ctx.config.app.env,
+            });
+        },
+    );
 
     /**
      * GET /api/collections
@@ -56,76 +59,81 @@ export function createGeneralRouter(ctx: AppContext) {
      * @return {object} 200 - success response - application/json
      * @return {object} 400 - Bad request response - application/json
      */
-    app.get('/api/collections', async (c) => {
-        const req = c.env.incoming as Request;
-        const user = req.user as User;
-        const actionsParams = ctx.utils.request.extractPaginationParams(req, 'actions');
-        const bookmarksParams = ctx.utils.request.extractPaginationParams(req, 'bookmarks');
-        const notesParams = ctx.utils.request.extractPaginationParams(req, 'notes');
-        const tabsParams = ctx.utils.request.extractPaginationParams(req, 'tabs');
-        const remindersParams = ctx.utils.request.extractPaginationParams(req, 'reminders');
+    router.get(
+        '/api/collections',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const actionsParams = ctx.utils.request.extractPaginationParams(req, 'actions');
+            const bookmarksParams = ctx.utils.request.extractPaginationParams(req, 'bookmarks');
+            const notesParams = ctx.utils.request.extractPaginationParams(req, 'notes');
+            const tabsParams = ctx.utils.request.extractPaginationParams(req, 'tabs');
+            const remindersParams = ctx.utils.request.extractPaginationParams(req, 'reminders');
 
-        const [actionsResult, bookmarksResult, notesResult, tabsResult, remindersResult] =
-            await Promise.all([
-                ctx.models.actions.all({
-                    user,
-                    perPage: actionsParams.perPage,
-                    page: actionsParams.page,
-                    search: actionsParams.search,
-                    sortKey: actionsParams.sortKey,
-                    direction: actionsParams.direction,
-                    excludeHidden: true,
-                }),
-                ctx.models.bookmarks.all({
-                    user,
-                    perPage: bookmarksParams.perPage,
-                    page: bookmarksParams.page,
-                    search: bookmarksParams.search,
-                    sortKey: bookmarksParams.sortKey,
-                    direction: bookmarksParams.direction,
-                    excludeHidden: true,
-                }),
-                ctx.models.notes.all({
-                    user,
-                    perPage: notesParams.perPage,
-                    page: notesParams.page,
-                    search: notesParams.search,
-                    sortKey: notesParams.sortKey,
-                    direction: notesParams.direction,
-                    excludeHidden: true,
-                }),
-                ctx.models.tabs.all({
-                    user,
-                    perPage: tabsParams.perPage,
-                    page: tabsParams.page,
-                    search: tabsParams.search,
-                    sortKey: tabsParams.sortKey,
-                    direction: tabsParams.direction,
-                }),
-                ctx.models.reminders.all({
-                    user,
-                    perPage: remindersParams.perPage,
-                    page: remindersParams.page,
-                    search: remindersParams.search,
-                    sortKey: remindersParams.sortKey,
-                    direction: remindersParams.direction,
-                }),
-            ]);
+            const [actionsResult, bookmarksResult, notesResult, tabsResult, remindersResult] =
+                await Promise.all([
+                    ctx.models.actions.all({
+                        user,
+                        perPage: actionsParams.perPage,
+                        page: actionsParams.page,
+                        search: actionsParams.search,
+                        sortKey: actionsParams.sortKey,
+                        direction: actionsParams.direction,
+                        excludeHidden: true,
+                    }),
+                    ctx.models.bookmarks.all({
+                        user,
+                        perPage: bookmarksParams.perPage,
+                        page: bookmarksParams.page,
+                        search: bookmarksParams.search,
+                        sortKey: bookmarksParams.sortKey,
+                        direction: bookmarksParams.direction,
+                        excludeHidden: true,
+                    }),
+                    ctx.models.notes.all({
+                        user,
+                        perPage: notesParams.perPage,
+                        page: notesParams.page,
+                        search: notesParams.search,
+                        sortKey: notesParams.sortKey,
+                        direction: notesParams.direction,
+                        excludeHidden: true,
+                    }),
+                    ctx.models.tabs.all({
+                        user,
+                        perPage: tabsParams.perPage,
+                        page: tabsParams.page,
+                        search: tabsParams.search,
+                        sortKey: tabsParams.sortKey,
+                        direction: tabsParams.direction,
+                    }),
+                    ctx.models.reminders.all({
+                        user,
+                        perPage: remindersParams.perPage,
+                        page: remindersParams.page,
+                        search: remindersParams.search,
+                        sortKey: remindersParams.sortKey,
+                        direction: remindersParams.direction,
+                    }),
+                ]);
 
-        c.header('Cache-Control', 'private, max-age=60, stale-while-revalidate=300');
-        c.header('Vary', 'Accept-Encoding');
+            res.set({
+                'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
+                Vary: 'Accept-Encoding',
+            });
 
-        return c.json({
-            actions: actionsResult,
-            bookmarks: bookmarksResult,
-            notes: notesResult,
-            tabs: tabsResult,
-            reminders: remindersResult,
-            search: actionsParams.search,
-            sortKey: actionsParams.sortKey,
-            direction: actionsParams.direction,
-        });
-    });
+            return res.json({
+                actions: actionsResult,
+                bookmarks: bookmarksResult,
+                notes: notesResult,
+                tabs: tabsResult,
+                reminders: remindersResult,
+                search: actionsParams.search,
+                sortKey: actionsParams.sortKey,
+                direction: actionsParams.direction,
+            });
+        },
+    );
 
     const activeBangsPrefetch = new Set<string>();
 
@@ -137,21 +145,6 @@ export function createGeneralRouter(ctx: AppContext) {
         _sLower: bang.s.toLowerCase(),
         _dLower: bang.d.toLowerCase(),
     }));
-
-    const router = ctx.libs.express.Router();
-
-    router.get('/healthz', createHonoRequestHandler(app.fetch));
-    router.get(
-        '/metrics',
-        ctx.middleware.authentication,
-        ctx.middleware.adminOnly,
-        createHonoRequestHandler(app.fetch),
-    );
-    router.get(
-        '/api/collections',
-        ctx.middleware.authentication,
-        createHonoRequestHandler(app.fetch),
-    );
 
     router.get('/', async (req: Request, res: Response) => {
         const query = (typeof req.query.q === 'string' ? req.query.q : '').trim();

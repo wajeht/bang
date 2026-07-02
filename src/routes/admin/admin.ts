@@ -1,8 +1,9 @@
 import type { AppContext } from '../../type.js';
-import type { Request, Response, NextFunction } from 'express';
+import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
+import { createHonoApp } from '../../http.js';
 
 export function createAdminRouter(ctx: AppContext) {
-    const router = ctx.libs.express.Router();
+    const router = createHonoApp(ctx);
 
     router.get(
         '/admin',
@@ -35,20 +36,16 @@ export function createAdminRouter(ctx: AppContext) {
         '/admin/settings/identity',
         ctx.middleware.authentication,
         ctx.middleware.adminOnly,
-        async (req: Request, res: Response, next: NextFunction) => {
-            try {
-                const { app_name, app_url } = req.body;
+        async (req: Request, res: Response) => {
+            const { app_name, app_url } = req.body;
 
-                await ctx.models.settings.setMany({
-                    'branding.app_name': (app_name as string)?.trim() || 'Bang',
-                    'branding.app_url': (app_url as string)?.trim() || '',
-                });
+            await ctx.models.settings.setMany({
+                'branding.app_name': (app_name as string)?.trim() || 'Bang',
+                'branding.app_url': (app_url as string)?.trim() || '',
+            });
 
-                req.flash('success', 'Identity settings updated successfully');
-                return res.redirect('/admin/settings/identity');
-            } catch (error) {
-                next(error);
-            }
+            req.flash('success', 'Identity settings updated successfully');
+            return res.redirect('/admin/settings/identity');
         },
     );
 
@@ -74,21 +71,17 @@ export function createAdminRouter(ctx: AppContext) {
         '/admin/settings/visibility',
         ctx.middleware.authentication,
         ctx.middleware.adminOnly,
-        async (req: Request, res: Response, next: NextFunction) => {
-            try {
-                const { show_footer, show_search_page, show_about_page } = req.body;
+        async (req: Request, res: Response) => {
+            const { show_footer, show_search_page, show_about_page } = req.body;
 
-                await ctx.models.settings.setMany({
-                    'branding.show_footer': show_footer === 'on' ? 'true' : 'false',
-                    'branding.show_search_page': show_search_page === 'on' ? 'true' : 'false',
-                    'branding.show_about_page': show_about_page === 'on' ? 'true' : 'false',
-                });
+            await ctx.models.settings.setMany({
+                'branding.show_footer': show_footer === 'on' ? 'true' : 'false',
+                'branding.show_search_page': show_search_page === 'on' ? 'true' : 'false',
+                'branding.show_about_page': show_about_page === 'on' ? 'true' : 'false',
+            });
 
-                req.flash('success', 'Visibility settings updated successfully');
-                return res.redirect('/admin/settings/visibility');
-            } catch (error) {
-                next(error);
-            }
+            req.flash('success', 'Visibility settings updated successfully');
+            return res.redirect('/admin/settings/visibility');
         },
     );
 

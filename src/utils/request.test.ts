@@ -1,5 +1,5 @@
 import { libs } from '../libs.js';
-import { Request } from 'express';
+import type { AppRequest as Request } from '../http.js';
 import { config } from '../config.js';
 import { createRequest } from './request.js';
 import { db } from '../tests/test-setup.js';

@@ -1,8 +1,9 @@
-import type { Request, Response } from 'express';
+import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
+import { createHonoApp } from '../../http.js';
 import type { AppContext, User } from '../../type.js';
 
 export function createSearchRouter(ctx: AppContext) {
-    const router = ctx.libs.express.Router();
+    const router = createHonoApp(ctx);
 
     router.post('/search', async (req: Request, res: Response) => {
         const query = req.body.q?.toString().trim() || '';

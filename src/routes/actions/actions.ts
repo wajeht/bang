@@ -1,8 +1,9 @@
-import type { Request, Response } from 'express';
+import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
+import { createHonoApp } from '../../http.js';
 import type { User, AppContext } from '../../type.js';
 
 export function createActionsRouter(ctx: AppContext) {
-    const router = ctx.libs.express.Router();
+    const router = createHonoApp(ctx);
 
     /**
      * An action

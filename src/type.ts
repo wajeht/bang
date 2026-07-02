@@ -1,36 +1,5 @@
-import type * as express from 'express';
-
-declare module 'express-session' {
-    interface SessionData {
-        redirectTo: string | null;
-        user: User | null;
-        input: Record<string, unknown> | null;
-        errors: Record<string, unknown> | null;
-        /** The number of searches performed during the session. */
-        searchCount: number;
-        /** The total cumulative delay time (in milliseconds) encountered during the session. */
-        cumulativeDelay: number;
-        /** Tracks verified hidden items with expiration timestamps */
-        verifiedHiddenItems?: Record<string, number>;
-        /** Whether hidden items password has been verified */
-        hiddenItemsVerified?: boolean;
-        /** Timestamp when hidden items password was verified */
-        hiddenItemsVerifiedAt?: number;
-        /** Timestamp when user data was cached in session */
-        userCachedAt?: number;
-    }
-}
-
-declare global {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace Express {
-        interface Request {
-            user: User | undefined;
-            apiKeyPayload: ApiKeyPayload | null;
-            logger: Logger;
-        }
-    }
-}
+import type { ErrorHandler, NotFoundHandler } from 'hono';
+import type { AppMiddleware, AppRequest, AppResponse } from './http.js';
 
 export type DefaultSearchProviders = 'duckduckgo' | 'google' | 'yahoo' | 'bing';
 
@@ -256,11 +225,11 @@ export type ReminderTimingResult = {
 };
 
 export type Search = (options: {
-    res: express.Response;
+    res: AppResponse;
     user: User | undefined;
     query: string;
-    req: express.Request;
-}) => Promise<void | express.Response>;
+    req: AppRequest;
+}) => Promise<void | Response>;
 
 export type Pagination = {
     total: number;
@@ -407,6 +376,7 @@ export interface Services {
 }
 
 export interface TemplateUtils {
+    render: (view: string, opts?: object) => string;
     engine: (
         filePath: string,
         opts: object,
@@ -429,37 +399,34 @@ export interface Utilities {
 }
 
 export interface Middlewares {
-    authentication: express.RequestHandler;
-    notFound: express.RequestHandler;
-    errorHandler: express.ErrorRequestHandler;
-    turnstile: express.RequestHandler;
-    adminOnly: express.RequestHandler;
-    helmet: express.RequestHandler;
-    session: express.RequestHandler;
-    csrf: express.RequestHandler[];
-    rateLimit: express.RequestHandler;
-    appLocalState: express.RequestHandler;
-    staticAssets: express.RequestHandler;
-    speculationRules: express.RequestHandler;
-    layout: express.RequestHandler;
-    requestLogger: express.RequestHandler;
+    authentication: AppMiddleware;
+    notFound: NotFoundHandler;
+    errorHandler: ErrorHandler;
+    turnstile: AppMiddleware;
+    adminOnly: AppMiddleware;
+    session: AppMiddleware;
+    csrf: AppMiddleware;
+    rateLimit: AppMiddleware;
+    appLocalState: AppMiddleware;
+    speculationRules: AppMiddleware;
+    requestLogger: AppMiddleware;
 }
 
 export interface ErrorClasses {
     HttpError: new (
         statusCode: number,
         message: string,
-        req?: express.Request,
+        req?: AppRequest,
     ) => Error & {
         statusCode: number;
-        request?: express.Request;
+        request?: AppRequest;
     };
     NotFoundError: new (
         message: string,
-        req?: express.Request,
+        req?: AppRequest,
     ) => Error & {
         statusCode: number;
-        request?: express.Request;
+        request?: AppRequest;
     };
     ValidationError: new (errors: Record<string, string> | string) => Error & {
         statusCode: number;
@@ -467,17 +434,17 @@ export interface ErrorClasses {
     };
     UnauthorizedError: new (
         message: string,
-        req?: express.Request,
+        req?: AppRequest,
     ) => Error & {
         statusCode: number;
-        request?: express.Request;
+        request?: AppRequest;
     };
     ForbiddenError: new (
         message: string,
-        req?: express.Request,
+        req?: AppRequest,
     ) => Error & {
         statusCode: number;
-        request?: express.Request;
+        request?: AppRequest;
     };
     UnimplementedFunctionError: new (message: string) => Error & { statusCode: number };
 }

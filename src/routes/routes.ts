@@ -9,6 +9,7 @@ import { createGeneralRouter } from './general/general.js';
 import { createSettingsRouter } from './settings/settings.js';
 import { createBookmarksRouter } from './bookmarks/bookmarks.js';
 import { createRemindersRouter } from './reminders/reminders.js';
+import { createHonoApp } from '../http.js';
 
 /**
  * @swagger
@@ -21,18 +22,18 @@ import { createRemindersRouter } from './reminders/reminders.js';
  */
 
 export function createRouter(ctx: AppContext) {
-    const router = ctx.libs.express.Router();
+    const router = createHonoApp();
 
-    router.use(createAuthRouter(ctx));
-    router.use(createAdminRouter(ctx));
-    router.use(createSettingsRouter(ctx));
-    router.use(createTabsRouter(ctx));
-    router.use(createNotesRouter(ctx));
-    router.use(createActionsRouter(ctx));
-    router.use(createBookmarksRouter(ctx));
-    router.use(createRemindersRouter(ctx));
-    router.use(createSearchRouter(ctx));
-    router.use(createGeneralRouter(ctx));
+    router.route('/', createAuthRouter(ctx));
+    router.route('/', createAdminRouter(ctx));
+    router.route('/', createSettingsRouter(ctx));
+    router.route('/', createTabsRouter(ctx));
+    router.route('/', createNotesRouter(ctx));
+    router.route('/', createActionsRouter(ctx));
+    router.route('/', createBookmarksRouter(ctx));
+    router.route('/', createRemindersRouter(ctx));
+    router.route('/', createSearchRouter(ctx));
+    router.route('/', createGeneralRouter(ctx));
 
     return router;
 }

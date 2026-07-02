@@ -8,7 +8,7 @@ import type {
 } from '../type.js';
 import http from 'node:http';
 import https from 'node:https';
-import type { Request } from 'express';
+import type { AppRequest as Request } from '../http.js';
 
 const DEFAULT_SCREENSHOT_PREFETCH_BATCH_SIZE = 5;
 const DEFAULT_SCREENSHOT_PREFETCH_TIMEOUT_MS = 10000;

@@ -1,23 +1,8 @@
-import { Hono } from 'hono';
-import type { HttpBindings } from '@hono/node-server';
-import type { Request, Response } from 'express';
+import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
 import type { User, ApiKeyPayload, AppContext } from '../../type.js';
-import { createHonoRequestHandler } from '../hono/express-adapter.js';
+import { createHonoApp } from '../../http.js';
 
 export function createSettingsRouter(ctx: AppContext) {
-    const app = new Hono<{ Bindings: HttpBindings }>();
-
-    app.get('/api/settings/api-key', async (c) => {
-        const req = c.env.incoming as Request;
-        const user = await ctx.db('users').where({ id: req.session.user?.id }).first();
-
-        if (!user || !user.api_key) {
-            return c.json({ error: 'API key not found' }, 404);
-        }
-
-        return c.json({ api_key: user.api_key });
-    });
-
     const VALID_TIMEZONES = new Set([
         'UTC',
         'America/New_York',
@@ -37,12 +22,20 @@ export function createSettingsRouter(ctx: AppContext) {
     const VALID_ACTION_TYPES = new Set(['search', 'redirect']);
     const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
-    const router = ctx.libs.express.Router();
+    const router = createHonoApp(ctx);
 
     router.get(
         '/api/settings/api-key',
         ctx.middleware.authentication,
-        createHonoRequestHandler(app.fetch),
+        async (req: Request, res: Response) => {
+            const user = await ctx.db('users').where({ id: req.session.user?.id }).first();
+
+            if (!user || !user.api_key) {
+                return res.status(404).json({ error: 'API key not found' });
+            }
+
+            return res.json({ api_key: user.api_key });
+        },
     );
 
     router.get('/settings', ctx.middleware.authentication, async (_req: Request, res: Response) => {
@@ -574,13 +567,9 @@ export function createSettingsRouter(ctx: AppContext) {
 
             req.session.user!.theme = theme;
             req.user!.theme = theme;
+            req.session.save();
 
-            return new Promise<void>((resolve) => {
-                req.session.save(() => {
-                    res.json({ success: true, theme });
-                    resolve();
-                });
-            });
+            return res.json({ success: true, theme });
         },
     );
 

@@ -2,7 +2,7 @@ import path from 'node:path';
 import { createUtil } from './util.js';
 import { libs } from '../libs.js';
 import fs from 'node:fs/promises';
-import { Request } from 'express';
+import type { AppRequest as Request } from '../http.js';
 import { config } from '../config.js';
 import { createAuth } from './auth.js';
 import { createHtml } from './html.js';

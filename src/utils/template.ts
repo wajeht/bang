@@ -13,6 +13,25 @@ export function createTemplate(context: AppContext) {
     });
 
     return {
+        render(view: string, opts: object = {}) {
+            const renderedTemplate = eta.render('./' + view, opts as Record<string, unknown>);
+            const viewOptions = opts as Record<string, unknown>;
+            const layout =
+                viewOptions.layout === false
+                    ? false
+                    : (viewOptions.layout as string | undefined) || '_layouts/public.html';
+
+            if (!layout) {
+                return renderedTemplate;
+            }
+
+            return eta.render('./' + layout, {
+                ...viewOptions,
+                body: renderedTemplate,
+                layout: undefined,
+            });
+        },
+
         engine(
             filePath: string,
             opts: object,

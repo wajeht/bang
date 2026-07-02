@@ -6,7 +6,7 @@ import {
     UnauthorizedError,
     UnimplementedFunctionError,
 } from './error.js';
-import type { Request } from 'express';
+import type { AppRequest as Request } from './http.js';
 import { describe, it, expect, beforeEach } from 'vite-plus/test';
 
 describe('Error classes', () => {

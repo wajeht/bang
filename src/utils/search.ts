@@ -1,5 +1,5 @@
 import { bangs as bangsTable } from '../db/bang.js';
-import type { Request, Response } from 'express';
+import type { AppRequest as Request, AppResponse as Response } from '../http.js';
 import type { Bang, Search, ReminderTimingResult, AppContext } from '../type.js';
 
 export function createSearch(context: AppContext) {
@@ -492,7 +492,7 @@ export function createSearch(context: AppContext) {
             query: string,
             triggerWithoutBang: string,
             searchTerm: string,
-        ): Promise<Response | void> {
+        ): Promise<globalThis.Response | void> {
             const warningMessage = this.getSearchLimitWarning(req, req.session.searchCount ?? 0);
 
             if (warningMessage) {

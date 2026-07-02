@@ -1,8 +1,6 @@
-import { Hono } from 'hono';
-import type { HttpBindings } from '@hono/node-server';
-import type { Request, Response } from 'express';
+import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
 import type { AppContext, User } from '../../type.js';
-import { createHonoRequestHandler } from '../hono/express-adapter.js';
+import { createHonoApp } from '../../http.js';
 
 function createNoteMarkdownRenderer(ctx: AppContext) {
     const noteRenderer = new ctx.libs.Renderer();
@@ -24,7 +22,7 @@ function createNoteMarkdownRenderer(ctx: AppContext) {
 }
 
 export function createNotesRouter(ctx: AppContext) {
-    const app = new Hono<{ Bindings: HttpBindings }>();
+    const router = createHonoApp(ctx);
     const sharedMarked = createNoteMarkdownRenderer(ctx);
 
     /**
@@ -41,35 +39,28 @@ export function createNotesRouter(ctx: AppContext) {
      * @return {object} 400 - Bad request response - application/json
      * @return {object} 404 - Not found response - application/json
      */
-    app.post('/api/notes/render-markdown', (c) => {
-        const req = c.env.incoming as Request;
-        const { content } = req.body;
-
-        if (!content || content.trim() === '') {
-            return c.json(
-                {
-                    message: 'Validation errors',
-                    details: { content: 'Content is required' },
-                },
-                422,
-            );
-        }
-
-        const markdown = sharedMarked.parse(content) as string;
-        const sanitized = ctx.libs.dompurify.sanitize(markdown);
-
-        return c.json({ content: sanitized });
-    });
-
-    const router = ctx.libs.express.Router();
-    const NOTE_CONTENT_PREVIEW_LENGTH = 200;
-    const NOTE_CONTENT_PREVIEW_SOURCE_LIMIT = 4000;
-
     router.post(
         '/api/notes/render-markdown',
         ctx.middleware.authentication,
-        createHonoRequestHandler(app.fetch),
+        (req: Request, res: Response) => {
+            const { content } = req.body;
+
+            if (!content || content.trim() === '') {
+                return res.status(422).json({
+                    message: 'Validation errors',
+                    details: { content: 'Content is required' },
+                });
+            }
+
+            const markdown = sharedMarked.parse(content) as string;
+            const sanitized = ctx.libs.dompurify.sanitize(markdown);
+
+            return res.json({ content: sanitized });
+        },
     );
+
+    const NOTE_CONTENT_PREVIEW_LENGTH = 200;
+    const NOTE_CONTENT_PREVIEW_SOURCE_LIMIT = 4000;
 
     /**
      * A note

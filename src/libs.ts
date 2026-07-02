@@ -1,22 +1,14 @@
 import knex from 'knex';
-import cors from 'cors';
 import { Eta } from 'eta';
 import bcrypt from 'bcrypt';
-import helmet from 'helmet';
 import cron from 'node-cron';
-import express from 'express';
 import dayjsBase from 'dayjs';
 import jwt from 'jsonwebtoken';
 import { marked, Marked, Renderer } from 'marked';
 import hljs from 'highlight.js';
 import crypto from 'node:crypto';
-import flash from 'connect-flash';
 import utc from 'dayjs/plugin/utc.js';
 import nodemailer from 'nodemailer';
-import { csrfSync } from 'csrf-sync';
-import session from 'express-session';
-import compression from 'compression';
-import rateLimit from 'express-rate-limit';
 import timezone from 'dayjs/plugin/timezone.js';
 import * as dompurify from 'isomorphic-dompurify';
 
@@ -46,16 +38,8 @@ export const libs = {
     // Database
     knex,
 
-    // Express & middleware
+    // Templates
     Eta,
-    cors,
-    flash,
-    helmet,
-    express,
-    session,
-    csrfSync,
-    rateLimit,
-    compression,
 } as const;
 
 export type Libs = typeof libs;

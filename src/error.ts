@@ -1,10 +1,10 @@
-import type { Request } from 'express';
+import type { AppRequest } from './http.js';
 
 export class HttpError extends Error {
     statusCode: number;
-    request?: Request;
+    request?: AppRequest;
 
-    constructor(statusCode = 500, message = 'oh no, something went wrong!', request?: Request) {
+    constructor(statusCode = 500, message = 'oh no, something went wrong!', request?: AppRequest) {
         super(message);
         this.statusCode = statusCode;
         this.request = request;
@@ -13,19 +13,19 @@ export class HttpError extends Error {
 }
 
 export class ForbiddenError extends HttpError {
-    constructor(message = 'forbidden', request?: Request) {
+    constructor(message = 'forbidden', request?: AppRequest) {
         super(403, message, request);
     }
 }
 
 export class UnauthorizedError extends HttpError {
-    constructor(message = 'unauthorized', request?: Request) {
+    constructor(message = 'unauthorized', request?: AppRequest) {
         super(401, message, request);
     }
 }
 
 export class NotFoundError extends HttpError {
-    constructor(message = 'not found', request?: Request) {
+    constructor(message = 'not found', request?: AppRequest) {
         super(404, message, request);
     }
 }
@@ -33,7 +33,7 @@ export class NotFoundError extends HttpError {
 export class ValidationError extends HttpError {
     public errors: Record<string, string> = {};
 
-    constructor(messageOrErrors: string | Record<string, string>, request?: Request) {
+    constructor(messageOrErrors: string | Record<string, string>, request?: AppRequest) {
         let message = 'validation error';
 
         if (typeof messageOrErrors === 'string') {
@@ -51,7 +51,7 @@ export class ValidationError extends HttpError {
 }
 
 export class UnimplementedFunctionError extends HttpError {
-    constructor(message = 'function not implemented', request?: Request) {
+    constructor(message = 'function not implemented', request?: AppRequest) {
         super(501, message, request);
     }
 }

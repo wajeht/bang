@@ -1,5 +1,5 @@
 import { styleText } from 'node:util';
-import type { Request } from 'express';
+import type { AppRequest as Request } from '../http.js';
 import type { User, AppContext } from '../type.js';
 import type { Attachment } from 'nodemailer/lib/mailer/index.js';
 

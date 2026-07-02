@@ -1,17 +1,23 @@
 import { config } from './config.js';
-import { Server } from 'node:http';
+import { Socket } from 'node:net';
+import { serve, type ServerType } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
+import { compress } from 'hono/compress';
+import { cors } from 'hono/cors';
+import { secureHeaders } from 'hono/secure-headers';
+import { trimTrailingSlash } from 'hono/trailing-slash';
 import { createContext } from './context.js';
 import type { AppContext } from './type.js';
 import { createRouter } from './routes/routes.js';
-import { AddressInfo, Socket } from 'node:net';
-import { expressJSDocSwaggerHandler } from './utils/swagger.js';
+import { createBodyParserMiddleware, createHonoApp } from './http.js';
 
 export const activeSockets = new Set<Socket>();
 
+const STATIC_CACHE_CONTROL = 'public, max-age=31536000, immutable';
+
 export async function createApp() {
     const ctx = await createContext();
-
-    const app = ctx.libs.express();
+    const app = createHonoApp();
 
     if (ctx.config.app.env === 'production') {
         try {
@@ -22,50 +28,85 @@ export async function createApp() {
         }
     }
 
-    if (ctx.config.app.env === 'development') {
-        try {
-            const { expressTemplatesReload } = await import('@wajeht/express-templates-reload');
-            expressTemplatesReload({
-                app,
-                watch: [
-                    { path: './public', extensions: ['.css', '.js'] },
-                    { path: './src/routes', extensions: ['.html'] },
+    const onStaticFound = (_path: string, c: import('hono').Context) => {
+        c.header('Cache-Control', STATIC_CACHE_CONTROL);
+        c.header('Vary', 'Accept-Encoding');
+    };
+
+    app.use(trimTrailingSlash());
+    app.use(
+        '/*',
+        serveStatic({
+            root: './public',
+            onFound: onStaticFound,
+        }),
+    );
+    app.use('*', ctx.middleware.session);
+    app.use('*', ctx.middleware.requestLogger);
+    app.use('*', createBodyParserMiddleware());
+    app.use('*', compress());
+    app.use(
+        '*',
+        cors({
+            credentials: true,
+            origin: (origin) => {
+                if (ctx.config.app.env !== 'production') return origin ?? '*';
+                return origin === ctx.config.app.appUrl ? origin : ctx.config.app.appUrl;
+            },
+        }),
+    );
+    app.use(
+        '*',
+        secureHeaders({
+            contentSecurityPolicy: {
+                defaultSrc: ["'self'", ctx.config.app.appUrl, '*.cloudflare.com'],
+                imgSrc: ["'self'", '*'],
+                scriptSrc: [
+                    "'self'",
+                    "'unsafe-inline'",
+                    'blob:',
+                    ctx.config.app.appUrl,
+                    '*.cloudflare.com',
+                    'https://umami.jaw.dev',
                 ],
-                options: { quiet: false },
-            });
-        } catch {
-            ctx.logger.warn('Express templates reload not available in production');
-        }
-    }
+                scriptSrcElem: [
+                    "'self'",
+                    "'unsafe-inline'",
+                    '*.cloudflare.com',
+                    '*.cloudflareinsights.com',
+                    'https://umami.jaw.dev',
+                ],
+                frameSrc: ["'self'", '*.cloudflare.com'],
+                styleSrc: ["'self'", "'unsafe-inline'", '*.cloudflare.com'],
+                connectSrc: [
+                    "'self'",
+                    '*.cloudflare.com',
+                    '*.cloudflareinsights.com',
+                    'https://umami.jaw.dev',
+                ],
+                scriptSrcAttr: ["'self'", "'unsafe-inline'"],
+                formAction: ["'self'", 'https:'],
+            },
+            referrerPolicy: 'strict-origin-when-cross-origin',
+        }),
+    );
+    app.use('*', ctx.middleware.speculationRules);
+    app.use('*', ctx.middleware.rateLimit);
+    app.use('*', ctx.middleware.csrf);
+    app.use('*', ctx.middleware.appLocalState);
 
-    app.set('trust proxy', 1)
-        .use(ctx.middleware.session)
-        .use(ctx.middleware.requestLogger)
-        .use(ctx.libs.flash())
-        .use(ctx.libs.compression())
-        .use(ctx.libs.cors())
-        .use(ctx.middleware.helmet)
-        .use(ctx.middleware.speculationRules)
-        .use(ctx.middleware.rateLimit)
-        .use(ctx.libs.express.json({ limit: '10mb' }))
-        .use(ctx.libs.express.urlencoded({ extended: true, limit: '10mb' }))
-        .use(ctx.middleware.staticAssets)
-        .engine('html', ctx.utils.template.engine)
-        .set('view engine', 'html')
-        .set('views', './src/routes')
-        .use(ctx.middleware.layout)
-        .use(...ctx.middleware.csrf)
-        .use(ctx.middleware.appLocalState)
-        .use(createRouter(ctx));
-
-    try {
-        await expressJSDocSwaggerHandler(app, ctx);
-    } catch (error) {
-        ctx.logger.error('Error initializing Swagger', { error });
-    }
-
-    app.use(ctx.middleware.notFound);
-    app.use(ctx.middleware.errorHandler);
+    app.get('/api-docs', (c) =>
+        c.html(
+            ctx.utils.template.render('general/about.html', {
+                ...c.get('locals'),
+                path: '/api-docs',
+                title: 'API Docs',
+            }),
+        ),
+    );
+    app.route('/', createRouter(ctx));
+    app.notFound(ctx.middleware.notFound);
+    app.onError(ctx.middleware.errorHandler);
 
     return { app, ctx };
 }
@@ -73,12 +114,13 @@ export async function createApp() {
 export async function createServer() {
     const { app, ctx } = await createApp();
 
-    const server: Server = app.listen(config.app.port);
+    const server = serve({ fetch: app.fetch, port: config.app.port });
+    const nodeServer = server as any;
 
-    server.timeout = 120000; // 2 minutes
-    server.keepAliveTimeout = 65000; // 65 seconds
-    server.headersTimeout = 66000; // slightly higher than keepAliveTimeout
-    server.requestTimeout = 120000; // same as timeout
+    nodeServer.timeout = 120000;
+    nodeServer.keepAliveTimeout = 65000;
+    nodeServer.headersTimeout = 66000;
+    nodeServer.requestTimeout = 120000;
 
     server.on('connection', (socket: Socket) => {
         activeSockets.add(socket);
@@ -86,12 +128,7 @@ export async function createServer() {
     });
 
     server.on('listening', async () => {
-        const addr: string | AddressInfo | null = server.address();
-        const bind: string =
-            typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port;
-
-        ctx.logger.info('Server is listening', { bind });
-
+        ctx.logger.info('Server is listening', { bind: `port ${config.app.port}` });
         await ctx.services.crons.start();
     });
 
@@ -100,7 +137,7 @@ export async function createServer() {
             throw error;
         }
 
-        const bind: string =
+        const bind =
             typeof config.app.port === 'string'
                 ? 'Pipe ' + config.app.port
                 : 'Port ' + config.app.port;
@@ -109,11 +146,9 @@ export async function createServer() {
             case 'EACCES':
                 ctx.logger.error('Port requires elevated privileges', { bind });
                 process.exit(1);
-            // eslint-disable-next-line no-fallthrough
             case 'EADDRINUSE':
                 ctx.logger.error('Port is already in use', { bind });
                 process.exit(1);
-            // eslint-disable-next-line no-fallthrough
             default:
                 throw error;
         }
@@ -122,7 +157,7 @@ export async function createServer() {
     return { app, server, ctx };
 }
 
-export async function closeServer({ server, ctx }: { server: Server; ctx: AppContext }) {
+export async function closeServer({ server, ctx }: { server: ServerType; ctx: AppContext }) {
     ctx.logger.info('Shutting down server gracefully');
 
     try {

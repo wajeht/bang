@@ -7,21 +7,18 @@ import {
     UnimplementedFunctionError,
 } from './error.js';
 import {
-    createCsrfMiddleware,
     createErrorMiddleware,
-    createHelmetMiddleware,
-    createLayoutMiddleware,
-    createSessionMiddleware,
+    createCsrfMiddleware,
     createNotFoundMiddleware,
     createTurnstileMiddleware,
     createRateLimitMiddleware,
     createAdminOnlyMiddleware,
-    createStaticAssetsMiddleware,
     createRequestLoggerMiddleware,
     createAppLocalStateMiddleware,
     createAuthenticationMiddleware,
     createSpeculationRulesMiddleware,
 } from './routes/middleware.js';
+import { createSessionMiddleware } from './http.js';
 import { libs } from './libs.js';
 import { config } from './config.js';
 import { createDatabase } from './db/db.js';
@@ -117,21 +114,15 @@ export async function createContext(): Promise<AppContext> {
 
     const middlewares: Middlewares = {
         csrf: createCsrfMiddleware(partialCtx),
-        helmet: createHelmetMiddleware(partialCtx),
         session: createSessionMiddleware(partialCtx),
         notFound: createNotFoundMiddleware(partialCtx),
         errorHandler: createErrorMiddleware(partialCtx),
         turnstile: createTurnstileMiddleware(partialCtx),
         rateLimit: createRateLimitMiddleware(partialCtx),
         adminOnly: createAdminOnlyMiddleware(partialCtx),
-        staticAssets: createStaticAssetsMiddleware(partialCtx),
         appLocalState: createAppLocalStateMiddleware(partialCtx),
         authentication: createAuthenticationMiddleware(partialCtx),
         speculationRules: createSpeculationRulesMiddleware(),
-        layout: createLayoutMiddleware({
-            layoutsDir: '_layouts',
-            defaultLayout: '_layouts/public.html',
-        }),
         requestLogger: createRequestLoggerMiddleware(partialCtx),
     };
 

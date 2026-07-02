@@ -1,10 +1,13 @@
 import { dayjs } from '../libs.js';
 import { createContext } from '../context.js';
 import { db } from '../tests/test-setup.js';
-import { Request, Response } from 'express';
+import type {
+    AppRequest as Request,
+    AppResponse as Response,
+    AppSessionData as SessionData,
+} from '../http.js';
 import { createSearch } from '../utils/search.js';
 import type { User, AppContext } from '../type.js';
-import type { SessionData } from 'express-session';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 let ctx: AppContext;
