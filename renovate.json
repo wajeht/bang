@@ -10,13 +10,12 @@
     },
     "packageRules": [
         {
-            "description": "Group vitest stack — vite-plus-test peer-pins coverage-v8, so they must bump in lockstep",
+            "description": "Group Vite+ and Vitest stack updates so pinned tool versions stay in lockstep",
             "matchPackageNames": [
                 "vitest",
                 "vite-plus",
                 "@vitest/coverage-v8",
-                "@voidzero-dev/vite-plus-core",
-                "@voidzero-dev/vite-plus-test"
+                "@voidzero-dev/vite-plus-core"
             ],
             "groupName": "vitest stack"
         }
