@@ -38,22 +38,6 @@ describe('App', () => {
             expect(ctx.logger).toBeDefined();
             expect(ctx.services.crons).toBeDefined();
         });
-
-        it('should serve OpenAPI docs and Swagger UI', async () => {
-            const { app } = await createApp();
-
-            const specResponse = await app.request('/api-docs/openapi.json');
-            expect(specResponse.status).toBe(200);
-
-            const spec = await specResponse.json();
-            expect(spec.info.title).toBe('Bang API');
-            expect(spec.paths['/api/actions']).toBeDefined();
-            expect(spec.components.securitySchemes.BearerAuth).toBeDefined();
-
-            const uiResponse = await app.request('/api-docs');
-            expect(uiResponse.status).toBe(200);
-            expect(await uiResponse.text()).toContain('SwaggerUIBundle');
-        });
     });
 
     describe('Socket Tracking', () => {

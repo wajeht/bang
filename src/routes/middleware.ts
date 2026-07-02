@@ -28,7 +28,6 @@ export function createRequestLoggerMiddleware(ctx: AppContext): AppMiddleware {
 
         c.set('logger', logger);
         c.set('user', undefined);
-        c.set('apiKeyPayload', null);
         c.set('locals', {});
 
         await next();
@@ -54,12 +53,7 @@ export function createRequestLoggerMiddleware(ctx: AppContext): AppMiddleware {
 
 export function createNotFoundMiddleware(ctx: AppContext) {
     return (c: AppContextContext) => {
-        const req = createAppRequest(c);
-        const message = `Sorry, the ${ctx.utils.request.isApiRequest(req) ? 'resource' : 'page'} you are looking for could not be found.`;
-
-        if (ctx.utils.request.isApiRequest(req)) {
-            return c.json({ message }, 404);
-        }
+        const message = 'Sorry, the page you are looking for could not be found.';
 
         const html = ctx.utils.template.render('general/error.html', {
             ...getLocals(ctx, c),
@@ -94,22 +88,6 @@ export function createErrorMiddleware(ctx: AppContext) {
         const message =
             httpError.message ||
             'The server encountered an internal error or misconfiguration and was unable to complete your request';
-
-        if (ctx.utils.request.isApiRequest(req)) {
-            const responsePayload: any = {
-                message: statusCode === 422 ? 'Validation errors' : message,
-            };
-
-            if (statusCode === 422) {
-                if (httpError instanceof ctx.errors.ValidationError) {
-                    responsePayload.details = httpError.errors;
-                } else {
-                    responsePayload.details = message;
-                }
-            }
-
-            return c.json(responsePayload, statusCode as ContentfulStatusCode);
-        }
 
         if (statusCode === 422) {
             if (httpError instanceof ctx.errors.ValidationError) {
@@ -182,18 +160,16 @@ export function createCsrfMiddleware(ctx: AppContext): AppMiddleware {
         session.csrfToken ??= ctx.libs.crypto.randomBytes(32).toString('hex');
         c.get('locals').csrfToken = session.csrfToken;
 
-        if (!req.path.startsWith('/api/') && !ctx.utils.request.extractApiKey(req)) {
-            const isSafeMethod =
-                req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS';
-            if (!isSafeMethod) {
-                const token = req.body?.csrfToken || req.headers['x-csrf-token'];
-                if (!token || token !== session.csrfToken) {
-                    throw new ctx.errors.HttpError(
-                        403,
-                        'Invalid or missing CSRF token. Please refresh the page and try again.',
-                        req,
-                    );
-                }
+        const isSafeMethod =
+            req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS';
+        if (!isSafeMethod) {
+            const token = req.body?.csrfToken || req.headers['x-csrf-token'];
+            if (!token || token !== session.csrfToken) {
+                throw new ctx.errors.HttpError(
+                    403,
+                    'Invalid or missing CSRF token. Please refresh the page and try again.',
+                    req,
+                );
             }
         }
 
@@ -206,18 +182,16 @@ export function createAppLocalStateMiddleware(ctx: AppContext): AppMiddleware {
     return honoMiddleware(async (c, next) => {
         const req = createAppRequest(c);
 
-        if (!req.path.startsWith('/api/')) {
-            if (FORM_DATA_METHODS.has(req.method)) {
-                req.session.input = req.body as Record<string, any>;
-            }
-
-            const locals = await buildAppLocals(ctx, c);
-            c.set('locals', locals);
-
-            delete req.session.input;
-            delete req.session.errors;
-            c.set('sessionChanged', true);
+        if (FORM_DATA_METHODS.has(req.method)) {
+            req.session.input = req.body as Record<string, any>;
         }
+
+        const locals = await buildAppLocals(ctx, c);
+        c.set('locals', locals);
+
+        delete req.session.input;
+        delete req.session.errors;
+        c.set('sessionChanged', true);
 
         await next();
     });
@@ -226,8 +200,6 @@ export function createAppLocalStateMiddleware(ctx: AppContext): AppMiddleware {
 export function createAuthenticationMiddleware(ctx: AppContext): AppMiddleware {
     return honoMiddleware(async (c, next) => {
         const req = createAppRequest(c);
-        const apiKey = ctx.utils.request.extractApiKey(req);
-
         let user: User | null = null;
         let needsRefresh = false;
 
@@ -246,23 +218,7 @@ export function createAuthenticationMiddleware(ctx: AppContext): AppMiddleware {
             }
         }
 
-        if (apiKey) {
-            const apiKeyPayload = await ctx.utils.auth.verifyApiKey(apiKey);
-
-            if (!apiKeyPayload) {
-                throw new ctx.errors.UnauthorizedError('Invalid API key or Bearer token', req);
-            }
-
-            c.set('apiKeyPayload', apiKeyPayload);
-            user = await ctx.models.users.read(apiKeyPayload.userId);
-            needsRefresh = true;
-        }
-
         if (!user) {
-            if (ctx.utils.request.isApiRequest(req)) {
-                throw new ctx.errors.UnauthorizedError('Unauthorized - API key required', req);
-            }
-
             req.session.redirectTo = req.originalUrl || req.url;
             req.session.save();
             return c.redirect('/?modal=login');
@@ -317,11 +273,6 @@ export function createRateLimitMiddleware(ctx: AppContext): AppMiddleware {
             return next();
         }
 
-        const req = createAppRequest(c);
-        if (ctx.utils.request.isApiRequest(req)) {
-            return c.json({ message: 'Too many requests, please try again later.' }, 429);
-        }
-
         const html = ctx.utils.template.render('general/rate-limit.html', getLocals(ctx, c));
         return c.html(html, 429);
     });
@@ -338,7 +289,7 @@ export function createTurnstileMiddleware(ctx: AppContext): AppMiddleware {
             return next();
         }
 
-        if (req.method === 'GET' || ctx.utils.request.isApiRequest(req)) {
+        if (req.method === 'GET') {
             return next();
         }
 

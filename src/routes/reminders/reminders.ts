@@ -1,11 +1,12 @@
-import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
-import { createHonoApp } from '../../http.js';
+import type { AppContextContext, AppEnv } from '../../http.js';
+import { renderView, setFlash } from '../../http.js';
 import type { User, AppContext } from '../../type.js';
+import { Hono } from 'hono';
 
 export function createRemindersRouter(ctx: AppContext) {
     const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
-    const router = createHonoApp(ctx);
+    const router = new Hono<AppEnv>();
 
     /**
      * A reminder
@@ -20,216 +21,178 @@ export function createRemindersRouter(ctx: AppContext) {
      * @property {string} updated_at - last update timestamp
      */
 
-    router.get(
-        '/reminders/create',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            return res.render('reminders/reminders-new.html', {
-                title: 'Reminders / New',
-                path: '/reminders/create',
-                layout: '_layouts/auth.html',
-                user: req.session?.user,
-                timingOptions: ctx.utils.search.reminderTimingConfig.getAllOptions(),
+    router.get('/reminders/create', ctx.middleware.authentication, async (c) => {
+        return renderView(ctx, c, 'reminders/reminders-new.html', {
+            title: 'Reminders / New',
+            path: '/reminders/create',
+            layout: '_layouts/auth.html',
+            user: c.get('session').user,
+            timingOptions: ctx.utils.search.reminderTimingConfig.getAllOptions(),
+        });
+    });
+
+    router.get('/reminders/:id/edit', ctx.middleware.authentication, async (c) => {
+        const user = c.get('user') as User;
+        const reminderId = parseInt(c.req.param('id') ?? '', 10);
+
+        const reminder = await ctx.models.reminders.read(reminderId, user.id);
+
+        if (!reminder) {
+            throw new ctx.errors.NotFoundError('Reminder not found');
+        }
+
+        return renderView(ctx, c, 'reminders/reminders-edit.html', {
+            title: 'Reminders / Edit',
+            path: `/reminders/${reminderId}/edit`,
+            layout: '_layouts/auth.html',
+            user: c.get('session').user,
+            reminder,
+            timingOptions: ctx.utils.search.reminderTimingConfig.getAllOptions(),
+        });
+    });
+
+    router.get('/reminders/:id/bookmarks/create', ctx.middleware.authentication, async (c) => {
+        const user = c.get('session').user as User;
+        const reminderId = parseInt(c.req.param('id') ?? '', 10);
+
+        const reminder = await ctx.models.reminders.read(reminderId, user.id);
+
+        if (!reminder) {
+            throw new ctx.errors.NotFoundError('Reminder not found');
+        }
+
+        return renderView(ctx, c, 'reminders/reminders-bookmarks-new.html', {
+            title: `Reminders / ${reminderId} / Bookmarks / Create`,
+            path: `/reminders/${reminderId}/bookmarks/create`,
+            layout: '_layouts/auth.html',
+            user: c.get('session').user,
+            reminder,
+        });
+    });
+
+    router.post('/reminders/:id/bookmarks', ctx.middleware.authentication, async (c) => {
+        const user = c.get('session').user as User;
+        const reminderId = parseInt(c.req.param('id') ?? '', 10);
+        const { url, title, pinned, delete_reminder } = c.get('body');
+
+        const reminder = await ctx.models.reminders.read(reminderId, user.id);
+
+        if (!reminder) {
+            throw new ctx.errors.NotFoundError('Reminder not found');
+        }
+
+        if (!title) {
+            throw new ctx.errors.ValidationError({ title: 'Title is required' });
+        }
+
+        if (!url) {
+            throw new ctx.errors.ValidationError({ url: 'URL is required' });
+        }
+
+        if (!ctx.utils.validation.isValidUrl(url)) {
+            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
+        }
+
+        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
+            throw new ctx.errors.ValidationError({
+                pinned: 'Pinned must be a boolean or checkbox value',
             });
-        },
-    );
+        }
 
-    router.get(
-        '/reminders/:id/edit',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const reminderId = parseInt(String(req.params.id ?? ''), 10);
+        const existingBookmark = await ctx.utils.util.checkDuplicateBookmarkUrl(
+            user.id,
+            url,
+            title || '',
+        );
 
-            const reminder = await ctx.models.reminders.read(reminderId, user.id);
-
-            if (!reminder) {
-                throw new ctx.errors.NotFoundError('Reminder not found');
-            }
-
-            return res.render('reminders/reminders-edit.html', {
-                title: 'Reminders / Edit',
-                path: `/reminders/${reminderId}/edit`,
-                layout: '_layouts/auth.html',
-                user: req.session?.user,
-                reminder,
-                timingOptions: ctx.utils.search.reminderTimingConfig.getAllOptions(),
+        if (existingBookmark) {
+            throw new ctx.errors.ValidationError({
+                url: `URL already bookmarked as "${existingBookmark.title}". Please use a different URL or update the existing bookmark.`,
             });
-        },
-    );
+        }
 
-    router.get(
-        '/reminders/:id/bookmarks/create',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.session.user as User;
-            const reminderId = parseInt(String(req.params.id ?? ''), 10);
-
-            const reminder = await ctx.models.reminders.read(reminderId, user.id);
-
-            if (!reminder) {
-                throw new ctx.errors.NotFoundError('Reminder not found');
-            }
-
-            return res.render('reminders/reminders-bookmarks-new.html', {
-                title: `Reminders / ${reminderId} / Bookmarks / Create`,
-                path: `/reminders/${reminderId}/bookmarks/create`,
-                layout: '_layouts/auth.html',
-                user: req.session?.user,
-                reminder,
-            });
-        },
-    );
-
-    router.post(
-        '/reminders/:id/bookmarks',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.session.user as User;
-            const reminderId = parseInt(String(req.params.id ?? ''), 10);
-            const { url, title, pinned, delete_reminder } = req.body;
-
-            const reminder = await ctx.models.reminders.read(reminderId, user.id);
-
-            if (!reminder) {
-                throw new ctx.errors.NotFoundError('Reminder not found');
-            }
-
-            if (!title) {
-                throw new ctx.errors.ValidationError({ title: 'Title is required' });
-            }
-
-            if (!url) {
-                throw new ctx.errors.ValidationError({ url: 'URL is required' });
-            }
-
-            if (!ctx.utils.validation.isValidUrl(url)) {
-                throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
-            }
-
-            if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-                throw new ctx.errors.ValidationError({
-                    pinned: 'Pinned must be a boolean or checkbox value',
-                });
-            }
-
-            const existingBookmark = await ctx.utils.util.checkDuplicateBookmarkUrl(
-                user.id,
+        void ctx.utils.util
+            .insertBookmark({
                 url,
-                title || '',
-            );
+                userId: user.id,
+                title,
+                pinned: pinned === 'on' || pinned === true,
+            })
+            .catch((error) => ctx.logger.error('Failed to insert bookmark', { error }));
 
-            if (existingBookmark) {
-                throw new ctx.errors.ValidationError({
-                    url: `URL already bookmarked as "${existingBookmark.title}". Please use a different URL or update the existing bookmark.`,
-                });
-            }
+        // Delete reminder if requested
+        if (delete_reminder === 'on' || delete_reminder === true) {
+            await ctx.models.reminders.delete([reminderId], user.id);
+        }
 
-            void ctx.utils.util
-                .insertBookmark({
-                    url,
-                    userId: user.id,
-                    title,
-                    pinned: pinned === 'on' || pinned === true,
-                    req,
+        const successMessage =
+            delete_reminder === 'on' || delete_reminder === true
+                ? `Bookmark ${title} created successfully and reminder deleted!`
+                : `Bookmark ${title} created successfully!`;
+
+        setFlash(c, 'success', successMessage);
+        return c.redirect('/reminders');
+    });
+
+    router.post('/reminders/recalculate', ctx.middleware.authentication, async (c) => {
+        const user = c.get('user') as User;
+
+        try {
+            const recurringReminders = await ctx
+                .db('reminders')
+                .where({
+                    user_id: user.id,
+                    reminder_type: 'recurring',
                 })
-                .catch((error) => ctx.logger.error('Failed to insert bookmark', { error }));
+                .whereNotNull('frequency');
 
-            // Delete reminder if requested
-            if (delete_reminder === 'on' || delete_reminder === true) {
-                await ctx.models.reminders.delete([reminderId], user.id);
+            if (recurringReminders.length === 0) {
+                setFlash(c, 'warning', "You don't have any recurring reminders at the moment!");
+                return c.redirect('/reminders');
             }
 
-            const successMessage =
-                delete_reminder === 'on' || delete_reminder === true
-                    ? `Bookmark ${title} created successfully and reminder deleted!`
-                    : `Bookmark ${title} created successfully!`;
+            const updates: { id: number; due_date: string }[] = [];
+            for (const reminder of recurringReminders) {
+                const timing = ctx.utils.search.parseReminderTiming(
+                    reminder.frequency.toLowerCase(),
+                    user.column_preferences?.reminders?.default_reminder_time,
+                    user.timezone,
+                );
 
-            if (ctx.utils.request.isApiRequest(req)) {
-                res.status(201).json({ message: successMessage });
-                return;
-            }
-
-            req.flash('success', successMessage);
-            return res.redirect('/reminders');
-        },
-    );
-
-    router.post(
-        '/reminders/recalculate',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
-
-            try {
-                const recurringReminders = await ctx
-                    .db('reminders')
-                    .where({
-                        user_id: user.id,
-                        reminder_type: 'recurring',
-                    })
-                    .whereNotNull('frequency');
-
-                if (recurringReminders.length === 0) {
-                    req.flash('warning', "You don't have any recurring reminders at the moment!");
-                    return res.redirect('/reminders');
-                }
-
-                const updates: { id: number; due_date: string }[] = [];
-                for (const reminder of recurringReminders) {
-                    const timing = ctx.utils.search.parseReminderTiming(
-                        reminder.frequency.toLowerCase(),
-                        user.column_preferences?.reminders?.default_reminder_time,
-                        user.timezone,
-                    );
-
-                    if (timing.isValid && timing.nextDue) {
-                        updates.push({
-                            id: reminder.id,
-                            due_date:
-                                timing.nextDue instanceof Date
-                                    ? timing.nextDue.toISOString()
-                                    : timing.nextDue,
-                        });
-                    }
-                }
-
-                if (updates.length > 0) {
-                    await ctx.db.transaction(async (trx) => {
-                        for (const update of updates) {
-                            await trx('reminders')
-                                .where({ id: update.id })
-                                .update({ due_date: update.due_date, updated_at: trx.fn.now() });
-                        }
+                if (timing.isValid && timing.nextDue) {
+                    updates.push({
+                        id: reminder.id,
+                        due_date:
+                            timing.nextDue instanceof Date
+                                ? timing.nextDue.toISOString()
+                                : timing.nextDue,
                     });
                 }
-
-                req.flash('success', `Recalculated ${recurringReminders.length} reminders`);
-            } catch {
-                req.flash('error', 'Failed to recalculate reminders');
             }
 
-            return res.redirect('/reminders');
-        },
-    );
+            if (updates.length > 0) {
+                await ctx.db.transaction(async (trx) => {
+                    for (const update of updates) {
+                        await trx('reminders')
+                            .where({ id: update.id })
+                            .update({ due_date: update.due_date, updated_at: trx.fn.now() });
+                    }
+                });
+            }
 
-    /**
-     * GET /api/reminders
-     *
-     * @tags Reminders
-     * @summary Get all reminders
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     */
-    router.get('/api/reminders', ctx.middleware.authentication, getRemindersHandler);
+            setFlash(c, 'success', `Recalculated ${recurringReminders.length} reminders`);
+        } catch {
+            setFlash(c, 'error', 'Failed to recalculate reminders');
+        }
+
+        return c.redirect('/reminders');
+    });
+
     router.get('/reminders', ctx.middleware.authentication, getRemindersHandler);
-    async function getRemindersHandler(req: Request, res: Response) {
-        const user = req.user as User;
+    async function getRemindersHandler(c: AppContextContext) {
+        const user = c.get('user') as User;
         const { perPage, page, search, sortKey, direction } =
-            ctx.utils.request.extractPaginationParams(req, 'reminders');
+            ctx.utils.request.extractPaginationParamsFromContext(c, 'reminders');
 
         const { data: remindersData, pagination } = await ctx.models.reminders.all({
             user,
@@ -242,13 +205,8 @@ export function createRemindersRouter(ctx: AppContext) {
 
         ctx.utils.html.applyHighlighting(remindersData, ['title', 'content'], search);
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.json({ data: remindersData, pagination, search, sortKey, direction });
-            return;
-        }
-
-        return res.render('reminders/reminders-index.html', {
-            user: req.user,
+        return renderView(ctx, c, 'reminders/reminders-index.html', {
+            user,
             title: 'Reminders',
             path: '/reminders',
             layout: '_layouts/auth.html',
@@ -260,62 +218,10 @@ export function createRemindersRouter(ctx: AppContext) {
         });
     }
 
-    /**
-     * GET /api/reminders/{id}
-     *
-     * @tags Reminders
-     * @summary Get a specific reminder
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - reminder id
-     *
-     * @return {Reminder} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.get(
-        '/api/reminders/:id',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const reminder = await ctx.models.reminders.read(
-                parseInt(req.params.id as unknown as string),
-                user.id,
-            );
-
-            if (!reminder) {
-                throw new ctx.errors.NotFoundError('Reminder not found');
-            }
-
-            res.status(200).json({
-                message: 'Reminder retrieved successfully',
-                data: reminder,
-            });
-            return;
-        },
-    );
-
-    /**
-     * POST /api/reminders
-     *
-     * @tags Reminders
-     * @summary Create a new reminder
-     *
-     * @security BearerAuth
-     *
-     * @param {Reminder} request.body.required - reminder info
-     *
-     * @return {object} 201 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.post('/api/reminders', ctx.middleware.authentication, postReminderHandler);
     router.post('/reminders', ctx.middleware.authentication, postReminderHandler);
-    async function postReminderHandler(req: Request, res: Response) {
-        const { title, content, when, custom_date, custom_time } = req.body;
-        const user = req.user as User;
+    async function postReminderHandler(c: AppContextContext) {
+        const { title, content, when, custom_date, custom_time } = c.get('body');
+        const user = c.get('user') as User;
 
         if (!title) {
             throw new ctx.errors.ValidationError({ title: 'Title is required' });
@@ -337,7 +243,7 @@ export function createRemindersRouter(ctx: AppContext) {
         const timeToUse =
             when === 'custom' && custom_time
                 ? custom_time
-                : req.user?.column_preferences?.reminders?.default_reminder_time;
+                : user.column_preferences?.reminders?.default_reminder_time;
         const timing = ctx.utils.search.parseReminderTiming(
             timeInput.toLowerCase(),
             timeToUse,
@@ -355,7 +261,7 @@ export function createRemindersRouter(ctx: AppContext) {
             });
         }
 
-        const reminder = await ctx.models.reminders.create({
+        await ctx.models.reminders.create({
             user_id: user.id,
             title: title.trim(),
             content: trimmedContent,
@@ -365,40 +271,15 @@ export function createRemindersRouter(ctx: AppContext) {
                 timing.nextDue instanceof Date ? timing.nextDue.toISOString() : timing.nextDue,
         });
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(201).json({
-                message: 'Reminder created successfully',
-                data: reminder,
-            });
-            return;
-        }
-
-        req.flash('success', 'Reminder created successfully');
-        return res.redirect('/reminders');
+        setFlash(c, 'success', 'Reminder created successfully');
+        return c.redirect('/reminders');
     }
 
-    /**
-     * PATCH /api/reminders/{id}
-     *
-     * @tags Reminders
-     * @summary Update a reminder
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - reminder id
-     * @param {Reminder} request.body.required - reminder info
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.patch('/api/reminders/:id', ctx.middleware.authentication, updateReminderHandler);
     router.post('/reminders/:id/update', ctx.middleware.authentication, updateReminderHandler);
-    async function updateReminderHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const reminderId = parseInt(req.params.id as string);
-        const { title, content, when, custom_date, custom_time } = req.body;
+    async function updateReminderHandler(c: AppContextContext) {
+        const user = c.get('user') as User;
+        const reminderId = parseInt(c.req.param('id') ?? '', 10);
+        const { title, content, when, custom_date, custom_time } = c.get('body');
 
         if (!title) {
             throw new ctx.errors.ValidationError({ title: 'Title is required' });
@@ -451,104 +332,69 @@ export function createRemindersRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Reminder not found');
         }
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: 'Reminder updated successfully',
-                data: updatedReminder,
-            });
-            return;
-        }
-
-        req.flash('success', 'Reminder updated successfully');
-        return res.redirect('/reminders');
+        setFlash(c, 'success', 'Reminder updated successfully');
+        return c.redirect('/reminders');
     }
 
-    /**
-     * DELETE /api/reminders/{id}
-     *
-     * @tags Reminders
-     * @summary Delete a reminder
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - reminder id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.delete('/api/reminders/:id', ctx.middleware.authentication, deleteReminderHandler);
-    router.post('/api/reminders/delete', ctx.middleware.authentication, deleteReminderHandler);
     router.post('/reminders/:id/delete', ctx.middleware.authentication, deleteReminderHandler);
     router.post('/reminders/delete', ctx.middleware.authentication, deleteReminderHandler);
-    async function deleteReminderHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const reminderIds = ctx.utils.request.extractIdsForDelete(req);
+    async function deleteReminderHandler(c: AppContextContext) {
+        const user = c.get('user') as User;
+        const reminderIds = ctx.utils.request.extractIdsForDeleteFromContext(c);
         const deletedCount = await ctx.models.reminders.delete(reminderIds, user.id);
 
         if (!deletedCount) {
             throw new ctx.errors.NotFoundError('Reminder not found');
         }
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: `${deletedCount} reminder${deletedCount !== 1 ? 's' : ''} deleted successfully`,
-                data: { deletedCount },
-            });
-            return;
-        }
-
-        req.flash(
+        setFlash(
+            c,
             'success',
             `${deletedCount} reminder${deletedCount !== 1 ? 's' : ''} deleted successfully`,
         );
-        return res.redirect('/reminders');
+        return c.redirect('/reminders');
     }
 
     const activePrefetches = new Set<number>();
 
-    router.post(
-        '/reminders/prefetch',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
+    router.post('/reminders/prefetch', ctx.middleware.authentication, async (c) => {
+        const user = c.get('user') as User;
 
-            if (activePrefetches.has(user.id)) {
-                req.flash('info', 'Screenshot caching already in progress...');
-                return res.redirect('/reminders');
+        if (activePrefetches.has(user.id)) {
+            setFlash(c, 'info', 'Screenshot caching already in progress...');
+            return c.redirect('/reminders');
+        }
+
+        const reminders = await ctx
+            .db('reminders')
+            .select('title', 'content')
+            .where({ user_id: user.id })
+            .limit(500);
+
+        const urls: string[] = [];
+        for (const r of reminders) {
+            if (r.title && ctx.utils.validation.isUrlLike(r.title)) {
+                urls.push(r.title.startsWith('http') ? r.title : 'https://' + r.title);
             }
-
-            const reminders = await ctx
-                .db('reminders')
-                .select('title', 'content')
-                .where({ user_id: user.id })
-                .limit(500);
-
-            const urls: string[] = [];
-            for (const r of reminders) {
-                if (r.title && ctx.utils.validation.isUrlLike(r.title)) {
-                    urls.push(r.title.startsWith('http') ? r.title : 'https://' + r.title);
-                }
-                if (r.content && ctx.utils.validation.isUrlLike(r.content)) {
-                    urls.push(r.content.startsWith('http') ? r.content : 'https://' + r.content);
-                }
+            if (r.content && ctx.utils.validation.isUrlLike(r.content)) {
+                urls.push(r.content.startsWith('http') ? r.content : 'https://' + r.content);
             }
+        }
 
-            if (urls.length === 0) {
-                req.flash('info', 'No URLs to cache');
-                return res.redirect('/reminders');
-            }
+        if (urls.length === 0) {
+            setFlash(c, 'info', 'No URLs to cache');
+            return c.redirect('/reminders');
+        }
 
-            activePrefetches.add(user.id);
+        activePrefetches.add(user.id);
 
-            void ctx.utils.util
-                .prefetchScreenshots(urls)
-                .finally(() => activePrefetches.delete(user.id));
+        void ctx.utils.util
+            .prefetchScreenshots(urls)
+            .finally(() => activePrefetches.delete(user.id));
 
-            req.flash('success', `Caching ${urls.length} preview images in background...`);
-            return res.redirect('/reminders');
-        },
-    );
+        setFlash(c, 'success', `Caching ${urls.length} preview images in background...`);
+        return c.redirect('/reminders');
+    });
 
     return router;
 }

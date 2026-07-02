@@ -7,8 +7,6 @@ export type PageType = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders';
 
 export type ActionTypes = 'redirect' | 'search';
 
-export type ApiKeyPayload = { userId: number; apiKeyVersion: number };
-
 export type MagicLinkPayload = { email: string; exp?: number };
 
 export type ReminderType = 'once' | 'recurring';
@@ -16,11 +14,6 @@ export type ReminderType = 'once' | 'recurring';
 export type ReminderFrequency = 'daily' | 'weekly' | 'monthly';
 
 export type Env = 'production' | 'development' | 'testing';
-
-export interface Api {
-    generate: (payload: ApiKeyPayload) => Promise<string>;
-    verify: (apiKey: string) => Promise<ApiKeyPayload | null>;
-}
 
 export type Bang = {
     /** Category of the bang (e.g., "Multimedia", "Online Services"). */

@@ -1,29 +1,25 @@
 import type { AppContext } from '../../type.js';
-import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
-import { createHonoApp } from '../../http.js';
+import type { AppContextContext, AppEnv } from '../../http.js';
+import { renderView, setFlash } from '../../http.js';
+import { Hono } from 'hono';
 
 export function createAdminRouter(ctx: AppContext) {
-    const router = createHonoApp(ctx);
+    const router = new Hono<AppEnv>();
 
-    router.get(
-        '/admin',
-        ctx.middleware.authentication,
-        ctx.middleware.adminOnly,
-        async (_req: Request, res: Response) => {
-            return res.redirect('/admin/users');
-        },
-    );
+    router.get('/admin', ctx.middleware.authentication, ctx.middleware.adminOnly, async (c) => {
+        return c.redirect('/admin/users');
+    });
 
     // Identity settings
     router.get(
         '/admin/settings/identity',
         ctx.middleware.authentication,
         ctx.middleware.adminOnly,
-        async (req: Request, res: Response) => {
+        async (c) => {
             const branding = await ctx.models.settings.getBranding();
 
-            return res.render('admin/admin-settings-identity.html', {
-                user: req.session?.user,
+            return renderView(ctx, c, 'admin/admin-settings-identity.html', {
+                user: c.get('session').user,
                 title: 'Admin / Identity',
                 path: '/admin/settings/identity',
                 layout: '_layouts/admin.html',
@@ -36,16 +32,16 @@ export function createAdminRouter(ctx: AppContext) {
         '/admin/settings/identity',
         ctx.middleware.authentication,
         ctx.middleware.adminOnly,
-        async (req: Request, res: Response) => {
-            const { app_name, app_url } = req.body;
+        async (c) => {
+            const body = c.get('body');
 
             await ctx.models.settings.setMany({
-                'branding.app_name': (app_name as string)?.trim() || 'Bang',
-                'branding.app_url': (app_url as string)?.trim() || '',
+                'branding.app_name': body.app_name?.trim() || 'Bang',
+                'branding.app_url': body.app_url?.trim() || '',
             });
 
-            req.flash('success', 'Identity settings updated successfully');
-            return res.redirect('/admin/settings/identity');
+            setFlash(c, 'success', 'Identity settings updated successfully');
+            return c.redirect('/admin/settings/identity');
         },
     );
 
@@ -54,11 +50,11 @@ export function createAdminRouter(ctx: AppContext) {
         '/admin/settings/visibility',
         ctx.middleware.authentication,
         ctx.middleware.adminOnly,
-        async (req: Request, res: Response) => {
+        async (c) => {
             const branding = await ctx.models.settings.getBranding();
 
-            return res.render('admin/admin-settings-visibility.html', {
-                user: req.session?.user,
+            return renderView(ctx, c, 'admin/admin-settings-visibility.html', {
+                user: c.get('session').user,
                 title: 'Admin / Visibility',
                 path: '/admin/settings/visibility',
                 layout: '_layouts/admin.html',
@@ -71,17 +67,17 @@ export function createAdminRouter(ctx: AppContext) {
         '/admin/settings/visibility',
         ctx.middleware.authentication,
         ctx.middleware.adminOnly,
-        async (req: Request, res: Response) => {
-            const { show_footer, show_search_page, show_about_page } = req.body;
+        async (c) => {
+            const body = c.get('body');
 
             await ctx.models.settings.setMany({
-                'branding.show_footer': show_footer === 'on' ? 'true' : 'false',
-                'branding.show_search_page': show_search_page === 'on' ? 'true' : 'false',
-                'branding.show_about_page': show_about_page === 'on' ? 'true' : 'false',
+                'branding.show_footer': body.show_footer === 'on' ? 'true' : 'false',
+                'branding.show_search_page': body.show_search_page === 'on' ? 'true' : 'false',
+                'branding.show_about_page': body.show_about_page === 'on' ? 'true' : 'false',
             });
 
-            req.flash('success', 'Visibility settings updated successfully');
-            return res.redirect('/admin/settings/visibility');
+            setFlash(c, 'success', 'Visibility settings updated successfully');
+            return c.redirect('/admin/settings/visibility');
         },
     );
 
@@ -89,9 +85,9 @@ export function createAdminRouter(ctx: AppContext) {
         '/admin/users',
         ctx.middleware.authentication,
         ctx.middleware.adminOnly,
-        async (req: Request, res: Response) => {
+        async (c) => {
             const { perPage, page, search, sortKey, direction } =
-                ctx.utils.request.extractPaginationParams(req, 'admin');
+                ctx.utils.request.extractPaginationParamsFromContext(c, 'admin');
 
             const query = ctx.db.select('*').from('users');
 
@@ -107,8 +103,8 @@ export function createAdminRouter(ctx: AppContext) {
                 .orderBy(sortKey || 'created_at', direction || 'desc')
                 .paginate({ perPage, currentPage: page, isLengthAware: true });
 
-            return res.render('admin/admin-users-index.html', {
-                user: req.session?.user,
+            return renderView(ctx, c, 'admin/admin-users-index.html', {
+                user: c.get('session').user,
                 title: 'Admin / Users',
                 path: '/admin/users',
                 layout: '_layouts/admin.html',
@@ -133,17 +129,20 @@ export function createAdminRouter(ctx: AppContext) {
         ctx.middleware.adminOnly,
         deleteUserHandler,
     );
-    async function deleteUserHandler(req: Request, res: Response) {
-        if (req.params.id) {
-            const userId = parseInt(req.params.id as unknown as string);
+    async function deleteUserHandler(c: AppContextContext) {
+        const id = c.req.param('id');
+        const user = c.get('user');
 
-            if (req.user?.is_admin && req.user?.id === userId) {
-                req.flash('info', 'you cannot delete yourself');
-                return res.redirect('/admin/users');
+        if (id) {
+            const userId = parseInt(id, 10);
+
+            if (user?.is_admin && user.id === userId) {
+                setFlash(c, 'info', 'you cannot delete yourself');
+                return c.redirect('/admin/users');
             }
         }
 
-        const userIds = ctx.utils.request.extractIdsForDelete(req);
+        const userIds = ctx.utils.request.extractIdsForDeleteFromContext(c);
 
         const deletedCount = await ctx.db.transaction(async (trx) => {
             const rowsAffected = await trx('users')
@@ -158,11 +157,12 @@ export function createAdminRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('User not found');
         }
 
-        req.flash(
+        setFlash(
+            c,
             'success',
             `${deletedCount} user${deletedCount !== 1 ? 's' : ''} deleted successfully`,
         );
-        return res.redirect('/admin/users');
+        return c.redirect('/admin/users');
     }
 
     return router;

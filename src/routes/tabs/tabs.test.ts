@@ -1,6 +1,6 @@
-import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils.js';
+import { authenticateAgent } from '../../tests/test-utils.js';
 import { db, app } from '../../tests/test-setup.js';
-import { describe, it, expect, vi } from 'vite-plus/test';
+import { describe, it, expect } from 'vite-plus/test';
 
 describe('Tabs Routes', () => {
     describe('Bulk Delete', () => {
@@ -66,113 +66,9 @@ describe('Tabs Routes', () => {
                 await agent.post('/tabs/delete').type('form').send({}).expect(302);
             });
         });
-
-        describe('POST /api/tabs/delete', () => {
-            it('should delete multiple tab groups via API', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
-
-                const [tab1] = await db('tabs')
-                    .insert({ user_id: user.id, title: 'Tab 1', trigger: '!tab1' })
-                    .returning('*');
-                const [tab2] = await db('tabs')
-                    .insert({ user_id: user.id, title: 'Tab 2', trigger: '!tab2' })
-                    .returning('*');
-
-                const response = await agent
-                    .post('/api/tabs/delete')
-                    .send({ id: [tab1.id.toString(), tab2.id.toString()] })
-                    .expect(200);
-
-                expect(response.body.message).toContain('2 tab groups deleted successfully');
-                expect(response.body.data.deletedCount).toBe(2);
-
-                const remainingTabs = await db('tabs').where({ user_id: user.id });
-                expect(remainingTabs).toHaveLength(0);
-            });
-
-            it('should return correct count when some IDs are invalid', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
-
-                const [tab1] = await db('tabs')
-                    .insert({ user_id: user.id, title: 'Tab 1', trigger: '!tab1' })
-                    .returning('*');
-
-                const response = await agent
-                    .post('/api/tabs/delete')
-                    .send({ id: [tab1.id.toString(), '99999'] })
-                    .expect(200);
-
-                expect(response.body.data.deletedCount).toBe(1);
-            });
-
-            it('should require id to be an array', async () => {
-                const { agent } = await authenticateApiAgent(app);
-
-                await agent.post('/api/tabs/delete').send({ id: 'not-an-array' }).expect(422);
-            });
-        });
     });
 
     describe('Tab Items Security', () => {
-        it('should not allow deleting tab items from other users tabs', async () => {
-            const { agent } = await authenticateApiAgent(app);
-
-            const [otherUser] = await db('users')
-                .insert({
-                    username: 'otheruser',
-                    email: 'other@example.com',
-                    is_admin: false,
-                    default_search_provider: 'duckduckgo',
-                })
-                .returning('*');
-
-            const [otherTab] = await db('tabs')
-                .insert({
-                    user_id: otherUser.id,
-                    title: 'Other Tab',
-                    trigger: '!othertab',
-                })
-                .returning('*');
-
-            const [otherTabItem] = await db('tab_items')
-                .insert({
-                    tab_id: otherTab.id,
-                    title: 'Other Item',
-                    url: 'https://example.com',
-                })
-                .returning('*');
-
-            await agent.delete(`/api/tabs/${otherTab.id}/items/${otherTabItem.id}`).expect(404);
-
-            const remainingItems = await db('tab_items').where({ id: otherTabItem.id });
-            expect(remainingItems).toHaveLength(1);
-        });
-
-        it('should allow deleting tab items from own tabs', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
-
-            const [myTab] = await db('tabs')
-                .insert({
-                    user_id: user.id,
-                    title: 'My Tab',
-                    trigger: '!mytab',
-                })
-                .returning('*');
-
-            const [myTabItem] = await db('tab_items')
-                .insert({
-                    tab_id: myTab.id,
-                    title: 'My Item',
-                    url: 'https://example.com',
-                })
-                .returning('*');
-
-            await agent.delete(`/api/tabs/${myTab.id}/items/${myTabItem.id}`).expect(200);
-
-            const remainingItems = await db('tab_items').where({ id: myTabItem.id });
-            expect(remainingItems).toHaveLength(0);
-        });
-
         it('should not allow updating tab items from other users tabs', async () => {
             const { agent } = await authenticateAgent(app);
 
@@ -209,44 +105,6 @@ describe('Tabs Routes', () => {
 
             const item = await db('tab_items').where({ id: otherTabItem.id }).first();
             expect(item.title).toBe('Original Title');
-        });
-    });
-
-    describe('Direction Parameter Security', () => {
-        it('should sanitize direction parameter to prevent SQL injection', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
-
-            await db('tabs').insert([
-                { user_id: user.id, title: 'Tab A', trigger: '!taba' },
-                { user_id: user.id, title: 'Tab B', trigger: '!tabb' },
-            ]);
-
-            const response = await agent
-                .get('/api/tabs?direction=desc;DROP TABLE tabs;--')
-                .expect(200);
-
-            expect(response.body.data).toHaveLength(2);
-
-            const tabsExist = await db('tabs').where({ user_id: user.id });
-            expect(tabsExist).toHaveLength(2);
-        });
-
-        it('should only allow asc or desc for direction', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
-
-            await db('tabs').insert([
-                { user_id: user.id, title: 'Tab A', trigger: '!taba' },
-                { user_id: user.id, title: 'Tab B', trigger: '!tabb' },
-            ]);
-
-            const responseAsc = await agent.get('/api/tabs?direction=asc').expect(200);
-            expect(responseAsc.body.direction).toBe('asc');
-
-            const responseDesc = await agent.get('/api/tabs?direction=desc').expect(200);
-            expect(responseDesc.body.direction).toBe('desc');
-
-            const responseInvalid = await agent.get('/api/tabs?direction=invalid').expect(200);
-            expect(responseInvalid.body.direction).toBe('desc');
         });
     });
 
@@ -326,21 +184,6 @@ describe('Tabs Routes', () => {
             expect(response.text).toContain('Tab Two');
             expect(response.text).not.toContain('<mark>');
         });
-
-        it('should highlight search terms in API response', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
-
-            await db('tabs').insert({
-                user_id: user.id,
-                title: 'Testing Highlight',
-                trigger: '!highlight',
-            });
-
-            const response = await agent.get('/api/tabs?search=highlight').expect(200);
-
-            expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
-            expect(response.body.data[0].trigger).toContain('<mark>highlight</mark>');
-        });
     });
 
     describe('Database Indexes', () => {
@@ -402,47 +245,6 @@ describe('Tabs Routes', () => {
             expect(tabs).toHaveLength(5);
             expect(tabs[0].items_count).toBe(3);
             expect(duration).toBeLessThan(100);
-        });
-    });
-
-    describe('Tab Item Creation', () => {
-        it('should prefetch assets when creating tab item', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
-            const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
-                text: () => Promise.resolve(''),
-            } as unknown as globalThis.Response);
-
-            const [tab] = await db('tabs')
-                .insert({
-                    user_id: user.id,
-                    title: 'Prefetch Test Tab',
-                    trigger: '!prefetchtest',
-                })
-                .returning('*');
-
-            await agent
-                .post(`/api/tabs/${tab.id}/items`)
-                .send({
-                    title: 'Prefetch Item',
-                    url: 'https://prefetch-tab-item.com',
-                })
-                .expect(201);
-
-            await vi.waitFor(() => {
-                expect(fetchSpy).toHaveBeenCalledWith(
-                    expect.stringContaining('screenshot.jaw.dev'),
-                    expect.any(Object),
-                );
-            });
-
-            await vi.waitFor(() => {
-                expect(fetchSpy).toHaveBeenCalledWith(
-                    expect.stringContaining('favicon.jaw.dev'),
-                    expect.any(Object),
-                );
-            });
-
-            fetchSpy.mockRestore();
         });
     });
 });

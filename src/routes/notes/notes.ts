@@ -1,6 +1,7 @@
-import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
+import type { AppContextContext, AppEnv } from '../../http.js';
+import { renderView, setFlash } from '../../http.js';
 import type { AppContext, User } from '../../type.js';
-import { createHonoApp } from '../../http.js';
+import { Hono } from 'hono';
 
 function createNoteMarkdownRenderer(ctx: AppContext) {
     const noteRenderer = new ctx.libs.Renderer();
@@ -22,45 +23,24 @@ function createNoteMarkdownRenderer(ctx: AppContext) {
 }
 
 export function createNotesRouter(ctx: AppContext) {
-    const router = createHonoApp(ctx);
+    const router = new Hono<AppEnv>();
     const sharedMarked = createNoteMarkdownRenderer(ctx);
-
-    /**
-     * POST /api/notes/render-markdown
-     *
-     * @tags Notes
-     * @summary Render markdown content to html
-     *
-     * @security BearerAuth
-     *
-     * @param {string} request.body.required - request body
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     */
-    router.post(
-        '/api/notes/render-markdown',
-        ctx.middleware.authentication,
-        (req: Request, res: Response) => {
-            const { content } = req.body;
-
-            if (!content || content.trim() === '') {
-                return res.status(422).json({
-                    message: 'Validation errors',
-                    details: { content: 'Content is required' },
-                });
-            }
-
-            const markdown = sharedMarked.parse(content) as string;
-            const sanitized = ctx.libs.dompurify.sanitize(markdown);
-
-            return res.json({ content: sanitized });
-        },
-    );
 
     const NOTE_CONTENT_PREVIEW_LENGTH = 200;
     const NOTE_CONTENT_PREVIEW_SOURCE_LIMIT = 4000;
+
+    router.post('/notes/render-markdown', ctx.middleware.authentication, (c) => {
+        const { content } = c.get('body');
+
+        if (!content || content.trim() === '') {
+            throw new ctx.errors.ValidationError({ content: 'Content is required' });
+        }
+
+        const markdown = sharedMarked.parse(content) as string;
+        const sanitized = ctx.libs.dompurify.sanitize(markdown);
+
+        return c.json({ content: sanitized });
+    });
 
     /**
      * A note
@@ -72,28 +52,14 @@ export function createNotesRouter(ctx: AppContext) {
      * @property {string} updated_at - last update timestamp
      */
 
-    /**
-     * GET /api/notes
-     *
-     * @tags Notes
-     * @summary Get all notes
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     */
-    router.get('/api/notes', ctx.middleware.authentication, getNotesHandler);
     router.get('/notes', ctx.middleware.authentication, getNotesHandler);
-    async function getNotesHandler(req: Request, res: Response) {
-        const user = req.user as User;
+    async function getNotesHandler(c: AppContextContext) {
+        const user = c.get('user') as User;
         const { perPage, page, search, sortKey, direction } =
-            ctx.utils.request.extractPaginationParams(req, 'notes');
+            ctx.utils.request.extractPaginationParamsFromContext(c, 'notes');
 
-        const { canViewHidden, hasVerifiedPassword } = ctx.utils.request.canViewHiddenItems(
-            req,
-            user,
-        );
+        const { canViewHidden, hasVerifiedPassword } =
+            ctx.utils.request.canViewHiddenItemsFromContext(c, user);
 
         const { data, pagination } = await ctx.models.notes.all({
             user,
@@ -104,12 +70,6 @@ export function createNotesRouter(ctx: AppContext) {
             direction,
             excludeHidden: !canViewHidden,
         });
-
-        if (ctx.utils.request.isApiRequest(req)) {
-            ctx.utils.html.applyHighlighting(data, ['title', 'content'], search);
-            res.json({ data, pagination, search, sortKey, direction });
-            return;
-        }
 
         const limitedData = data.slice(0, perPage);
         const markdownRemovedData = await Promise.all(
@@ -134,8 +94,8 @@ export function createNotesRouter(ctx: AppContext) {
 
         ctx.utils.html.applyHighlighting(markdownRemovedData, ['title', 'content'], search);
 
-        return res.render('notes/notes-index.html', {
-            user: req.session?.user,
+        return renderView(ctx, c, 'notes/notes-index.html', {
+            user: c.get('session').user,
             title: 'Notes',
             path: '/notes',
             layout: '_layouts/auth.html',
@@ -149,77 +109,47 @@ export function createNotesRouter(ctx: AppContext) {
         });
     }
 
-    router.get(
-        '/notes/create',
-        ctx.middleware.authentication,
-        async (_req: Request, res: Response) => {
-            return res.render('notes/notes-new.html', {
-                title: 'Notes / Create',
-                path: '/notes/create',
-                layout: '_layouts/auth.html',
-            });
-        },
-    );
+    router.get('/notes/create', ctx.middleware.authentication, async (c) => {
+        return renderView(ctx, c, 'notes/notes-new.html', {
+            title: 'Notes / Create',
+            path: '/notes/create',
+            layout: '_layouts/auth.html',
+        });
+    });
 
-    router.get(
-        '/notes/:id/edit',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const note = await ctx.models.notes.read(
-                parseInt(req.params.id as unknown as string),
-                user.id,
-            );
-
-            if (!note) {
-                throw new ctx.errors.NotFoundError('Note not found');
-            }
-
-            return res.render('notes/notes-edit.html', {
-                title: 'Notes / Edit',
-                path: '/notes/edit',
-                layout: '_layouts/auth.html',
-                note,
-            });
-        },
-    );
-
-    /**
-     * GET /api/notes/{id}
-     *
-     * @tags Notes
-     * @summary Get a specific note
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     *
-     * @return {Note} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.get('/api/notes/:id', ctx.middleware.authentication, getNoteHandler);
-    router.get('/notes/:id', ctx.middleware.authentication, getNoteHandler);
-    async function getNoteHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        let note = await ctx.models.notes.read(
-            parseInt(req.params.id as unknown as string),
-            user.id,
-        );
+    router.get('/notes/:id/edit', ctx.middleware.authentication, async (c) => {
+        const user = c.get('user') as User;
+        const note = await ctx.models.notes.read(parseInt(c.req.param('id') ?? '', 10), user.id);
 
         if (!note) {
             throw new ctx.errors.NotFoundError('Note not found');
         }
 
-        if (note.hidden && !ctx.utils.request.isApiRequest(req)) {
+        return renderView(ctx, c, 'notes/notes-edit.html', {
+            title: 'Notes / Edit',
+            path: '/notes/edit',
+            layout: '_layouts/auth.html',
+            note,
+        });
+    });
+
+    router.get('/notes/:id', ctx.middleware.authentication, getNoteHandler);
+    async function getNoteHandler(c: AppContextContext) {
+        const user = c.get('user') as User;
+        let note = await ctx.models.notes.read(parseInt(c.req.param('id') ?? '', 10), user.id);
+
+        if (!note) {
+            throw new ctx.errors.NotFoundError('Note not found');
+        }
+
+        if (note.hidden) {
             const verificationKey = `note_${note.id}`;
-            const verifiedTime = req.session?.verifiedHiddenItems?.[verificationKey];
+            const verifiedTime = c.get('session').verifiedHiddenItems?.[verificationKey];
 
             if (!verifiedTime || verifiedTime < Date.now()) {
-                const csrfToken = res.locals.csrfToken || '';
+                const csrfToken = c.get('locals').csrfToken || '';
 
-                return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
+                return c.html(`
                     <!DOCTYPE html>
                     <html>
                     <head><title>Password Required</title></head>
@@ -273,14 +203,6 @@ export function createNotesRouter(ctx: AppContext) {
             }
         }
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: 'note retrieved successfully',
-                data: note,
-            });
-            return;
-        }
-
         let content: string = '';
 
         try {
@@ -301,7 +223,7 @@ export function createNotesRouter(ctx: AppContext) {
             content,
         };
 
-        return res.render('notes/notes-show.html', {
+        return renderView(ctx, c, 'notes/notes-show.html', {
             title: `Notes / ${note.title}`,
             path: `/notes/${note.id}`,
             layout: '_layouts/auth.html',
@@ -309,24 +231,9 @@ export function createNotesRouter(ctx: AppContext) {
         });
     }
 
-    /**
-     * POST /api/notes
-     *
-     * @tags Notes
-     * @summary Create a new note
-     *
-     * @security BearerAuth
-     *
-     * @param {Note} request.body.required - note info
-     *
-     * @return {object} 201 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.post('/api/notes', ctx.middleware.authentication, postNoteHandler);
     router.post('/notes', ctx.middleware.authentication, postNoteHandler);
-    async function postNoteHandler(req: Request, res: Response) {
-        const { title, content, pinned, hidden } = req.body;
+    async function postNoteHandler(c: AppContextContext) {
+        const { title, content, pinned, hidden } = c.get('body');
 
         if (!title) {
             throw new ctx.errors.ValidationError({ title: 'Title is required' });
@@ -348,7 +255,7 @@ export function createNotesRouter(ctx: AppContext) {
             });
         }
 
-        const user = req.user as User;
+        const user = c.get('user') as User;
 
         if (hidden === 'on' || hidden === true) {
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
@@ -367,35 +274,13 @@ export function createNotesRouter(ctx: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(201).json({ message: `Note ${note.title} created successfully!` });
-            return;
-        }
-
-        req.flash('success', 'Note created successfully');
-        return res.redirect(`/notes/${note.id}`);
+        setFlash(c, 'success', 'Note created successfully');
+        return c.redirect(`/notes/${note.id}`);
     }
 
-    /**
-     * PUT /api/notes/{id}
-     *
-     * @tags Notes
-     * @summary Update a note
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     * @param {Note} request.body.required - note info
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.put('/api/notes/:id', ctx.middleware.authentication, updateNoteHandler);
     router.post('/notes/:id/update', ctx.middleware.authentication, updateNoteHandler);
-    async function updateNoteHandler(req: Request, res: Response) {
-        const { title, content, pinned, hidden } = req.body;
+    async function updateNoteHandler(c: AppContextContext) {
+        const { title, content, pinned, hidden } = c.get('body');
 
         if (!title) {
             throw new ctx.errors.ValidationError({ title: 'Title is required' });
@@ -417,8 +302,8 @@ export function createNotesRouter(ctx: AppContext) {
             });
         }
 
-        const user = req.user as User;
-        const noteId = parseInt(req.params.id as unknown as string);
+        const user = c.get('user') as User;
+        const noteId = parseInt(c.req.param('id') ?? '', 10);
 
         if (hidden === 'on' || hidden === true) {
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
@@ -442,82 +327,39 @@ export function createNotesRouter(ctx: AppContext) {
             hidden: hidden === 'on' || hidden === true,
         });
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({ message: 'note updated successfully' });
-            return;
-        }
-
-        req.flash('success', `Note ${updatedNote.title} updated successfully`);
+        setFlash(c, 'success', `Note ${updatedNote.title} updated successfully`);
 
         if (updatedNote.hidden && !currentNote.hidden) {
-            req.flash('success', 'Note hidden successfully');
-            return res.redirect('/notes');
+            setFlash(c, 'success', 'Note hidden successfully');
+            return c.redirect('/notes');
         }
 
-        return res.redirect(`/notes/${updatedNote.id}`);
+        return c.redirect(`/notes/${updatedNote.id}`);
     }
 
-    /**
-     * DELETE /api/notes/{id}
-     *
-     * @tags Notes
-     * @summary Delete a note
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.delete('/api/notes/:id', ctx.middleware.authentication, deleteNoteHandler);
-    router.post('/api/notes/delete', ctx.middleware.authentication, deleteNoteHandler);
     router.post('/notes/:id/delete', ctx.middleware.authentication, deleteNoteHandler);
     router.post('/notes/delete', ctx.middleware.authentication, deleteNoteHandler);
-    async function deleteNoteHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const noteIds = ctx.utils.request.extractIdsForDelete(req);
+    async function deleteNoteHandler(c: AppContextContext) {
+        const user = c.get('user') as User;
+        const noteIds = ctx.utils.request.extractIdsForDeleteFromContext(c);
         const deletedCount = await ctx.models.notes.delete(noteIds, user.id);
 
         if (!deletedCount) {
             throw new ctx.errors.NotFoundError('Note not found');
         }
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: `${deletedCount} note${deletedCount !== 1 ? 's' : ''} deleted successfully`,
-                data: { deletedCount },
-            });
-            return;
-        }
-
-        req.flash(
+        setFlash(
+            c,
             'success',
             `${deletedCount} note${deletedCount !== 1 ? 's' : ''} deleted successfully`,
         );
-        return res.redirect('/notes');
+        return c.redirect('/notes');
     }
 
-    /**
-     * POST /api/notes/{id}/pin
-     *
-     * @tags Notes
-     * @summary Toggle pin status of a note
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.post('/api/notes/:id/pin', ctx.middleware.authentication, toggleNotePinHandler);
     router.post('/notes/:id/pin', ctx.middleware.authentication, toggleNotePinHandler);
-    async function toggleNotePinHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const noteId = parseInt(req.params.id as unknown as string);
+    async function toggleNotePinHandler(c: AppContextContext) {
+        const user = c.get('user') as User;
+        const noteId = parseInt(c.req.param('id') ?? '', 10);
 
         const currentNote = await ctx.models.notes.read(noteId, user.id);
 
@@ -529,16 +371,8 @@ export function createNotesRouter(ctx: AppContext) {
             pinned: !currentNote.pinned,
         });
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`,
-                data: updatedNote,
-            });
-            return;
-        }
-
-        req.flash('success', `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`);
-        return res.redirect('/notes');
+        setFlash(c, 'success', `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`);
+        return c.redirect('/notes');
     }
 
     /**
@@ -555,34 +389,27 @@ export function createNotesRouter(ctx: AppContext) {
      * @return {object} 404 - Not found response - application/json
      *
      */
-    router.get(
-        '/notes/:id/download',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const note = await ctx.models.notes.read(
-                parseInt(req.params.id as unknown as string),
-                user.id,
-            );
+    router.get('/notes/:id/download', ctx.middleware.authentication, async (c) => {
+        const user = c.get('user') as User;
+        const note = await ctx.models.notes.read(parseInt(c.req.param('id') ?? '', 10), user.id);
 
-            if (!note) {
-                throw new ctx.errors.NotFoundError('Note not found');
-            }
+        if (!note) {
+            throw new ctx.errors.NotFoundError('Note not found');
+        }
 
-            const fileName = note.title
-                .toLowerCase()
-                .trim()
-                .replace(/[^\w\s-]/g, '') // Remove special characters
-                .replace(/\s+/g, '-') // Replace spaces with dashes
-                .replace(/-+/g, '-') // Replace multiple dashes with single dash
-                .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
+        const fileName = note.title
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, '') // Remove special characters
+            .replace(/\s+/g, '-') // Replace spaces with dashes
+            .replace(/-+/g, '-') // Replace multiple dashes with single dash
+            .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
 
-            res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
-            res.setHeader('Content-Disposition', `attachment; filename="${fileName}.md"`);
+        c.header('Content-Type', 'text/markdown; charset=utf-8');
+        c.header('Content-Disposition', `attachment; filename="${fileName}.md"`);
 
-            res.send(note.content);
-        },
-    );
+        return c.body(note.content);
+    });
 
     return router;
 }

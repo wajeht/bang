@@ -28,7 +28,6 @@
                 <a href="/admin" style="font-weight: <%= path === '/admin' ? 'bold' : 'normal' %>; <%= path === '/admin' ? 'text-decoration: underline;' : '' %>" role="menuitem" <%= path === '/admin' ? 'aria-current="page"' : '' %>><span style="display: inline-block; width: 1.5em; text-align: center;">👑</span> Admin</a>
               <% } %>
               <a href="/settings" style="font-weight: <%= path.match(/^\/settings/) ? 'bold' : 'normal' %>; <%= path.match(/^\/settings/) ? 'text-decoration: underline;' : '' %>" role="menuitem" <%= path.match(/^\/settings/) ? 'aria-current="page"' : '' %>><span style="display: inline-block; width: 1.5em; text-align: center;">⚙️</span> Settings</a>
-              <a href="/api-docs" style="font-weight: <%= path.match(/^\/api-docs/) ? 'bold' : 'normal' %>; <%= path.match(/^\/api-docs/) ? 'text-decoration: underline;' : '' %>" role="menuitem" <%= path.match(/^\/api-docs/) ? 'aria-current="page"' : '' %>><span style="display: inline-block; width: 1.5em; text-align: center;">📃</span> API Docs</a>
               <hr style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;" role="separator">
               <a href="/logout" role="menuitem"><span style="display: inline-block; width: 1.5em; text-align: center;">🚪</span> Logout</a>
           </div>

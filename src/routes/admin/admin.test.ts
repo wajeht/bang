@@ -1,4 +1,4 @@
-import { authenticateAgent, authenticateAdminAgent } from '../../tests/api-test-utils.js';
+import { authenticateAgent, authenticateAdminAgent } from '../../tests/test-utils.js';
 import request from '../../tests/hono-test-client.js';
 import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect, beforeEach, beforeAll } from 'vite-plus/test';

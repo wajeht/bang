@@ -2,7 +2,7 @@ import { libs } from '../libs.js';
 import { config } from '../config.js';
 import { createAuth } from './auth.js';
 import { db } from '../tests/test-setup.js';
-import type { ApiKeyPayload, MagicLinkPayload } from '../type.js';
+import type { MagicLinkPayload } from '../type.js';
 import { describe, expect, it, beforeAll, vi } from 'vite-plus/test';
 
 let authUtils: ReturnType<typeof createAuth>;
@@ -19,123 +19,6 @@ beforeAll(async () => {
     } as any;
 
     authUtils = createAuth(mockContext);
-});
-
-describe.concurrent('generateApiKey', () => {
-    it('should generate a valid JWT API key', async () => {
-        const payload: ApiKeyPayload = {
-            userId: 1,
-            apiKeyVersion: 1,
-        };
-
-        const apiKey = await authUtils.generateApiKey(payload);
-
-        expect(apiKey).toBeDefined();
-        expect(typeof apiKey).toBe('string');
-        expect(apiKey.length).toBeGreaterThan(0);
-
-        // Verify it's a valid JWT by decoding it
-        const decoded = libs.jwt.verify(apiKey, config.app.apiKeySecret) as ApiKeyPayload;
-        expect(decoded.userId).toBe(payload.userId);
-        expect(decoded.apiKeyVersion).toBe(payload.apiKeyVersion);
-    });
-
-    it('should generate different keys for different users', async () => {
-        const payload1: ApiKeyPayload = { userId: 1, apiKeyVersion: 1 };
-        const payload2: ApiKeyPayload = { userId: 2, apiKeyVersion: 1 };
-
-        const apiKey1 = await authUtils.generateApiKey(payload1);
-        const apiKey2 = await authUtils.generateApiKey(payload2);
-
-        expect(apiKey1).not.toBe(apiKey2);
-    });
-
-    it('should generate different keys for different versions', async () => {
-        const payload1: ApiKeyPayload = { userId: 1, apiKeyVersion: 1 };
-        const payload2: ApiKeyPayload = { userId: 1, apiKeyVersion: 2 };
-
-        const apiKey1 = await authUtils.generateApiKey(payload1);
-        const apiKey2 = await authUtils.generateApiKey(payload2);
-
-        expect(apiKey1).not.toBe(apiKey2);
-    });
-});
-
-describe('verifyApiKey', () => {
-    it('should verify a valid API key that exists in database', async () => {
-        const payload: ApiKeyPayload = {
-            userId: 1,
-            apiKeyVersion: 1,
-        };
-
-        const apiKey = await authUtils.generateApiKey(payload);
-
-        // Update user with the generated API key
-        await db('users').where({ id: 1 }).update({ api_key: apiKey, api_key_version: 1 });
-
-        const result = await authUtils.verifyApiKey(apiKey);
-
-        expect(result).not.toBeNull();
-        expect(result?.userId).toBe(1);
-        expect(result?.apiKeyVersion).toBe(1);
-    });
-
-    it('should return null for API key not in database', async () => {
-        const payload: ApiKeyPayload = {
-            userId: 1,
-            apiKeyVersion: 1,
-        };
-
-        const apiKey = await authUtils.generateApiKey(payload);
-        // Don't update the database, so the key is valid JWT but not in DB
-
-        await db('users').where({ id: 1 }).update({ api_key: 'different-key' });
-
-        const result = await authUtils.verifyApiKey(apiKey);
-
-        expect(result).toBeNull();
-    });
-
-    it('should return null for invalid JWT format', async () => {
-        const result = await authUtils.verifyApiKey('invalid-jwt-token');
-
-        expect(result).toBeNull();
-    });
-
-    it('should return null for API key with wrong version', async () => {
-        const payload: ApiKeyPayload = {
-            userId: 1,
-            apiKeyVersion: 1,
-        };
-
-        const apiKey = await authUtils.generateApiKey(payload);
-
-        // Update user with the API key but different version
-        await db('users').where({ id: 1 }).update({ api_key: apiKey, api_key_version: 2 });
-
-        const result = await authUtils.verifyApiKey(apiKey);
-
-        expect(result).toBeNull();
-    });
-
-    it('should return null for API key with non-existent user', async () => {
-        const payload: ApiKeyPayload = {
-            userId: 99999, // Non-existent user
-            apiKeyVersion: 1,
-        };
-
-        const apiKey = await authUtils.generateApiKey(payload);
-
-        const result = await authUtils.verifyApiKey(apiKey);
-
-        expect(result).toBeNull();
-    });
-
-    it('should return null for malformed token', async () => {
-        const result = await authUtils.verifyApiKey('not.a.jwt');
-
-        expect(result).toBeNull();
-    });
 });
 
 describe.concurrent('generateMagicLink', () => {

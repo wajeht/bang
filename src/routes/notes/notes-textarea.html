@@ -1,6 +1,6 @@
 <script>
     async function renderMarkdown(content) {
-        const response = await fetch('/api/notes/render-markdown', {
+        const response = await fetch('/notes/render-markdown', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ content: content }),

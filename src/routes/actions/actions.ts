@@ -1,9 +1,10 @@
-import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
-import { createHonoApp } from '../../http.js';
+import type { AppContextContext, AppEnv } from '../../http.js';
+import { renderView, setFlash } from '../../http.js';
 import type { User, AppContext } from '../../type.js';
+import { Hono } from 'hono';
 
 export function createActionsRouter(ctx: AppContext) {
-    const router = createHonoApp(ctx);
+    const router = new Hono<AppEnv>();
 
     /**
      * An action
@@ -17,29 +18,14 @@ export function createActionsRouter(ctx: AppContext) {
      * @property {string} updated_at - last update timestamp
      */
 
-    /**
-     *
-     * GET /api/actions
-     *
-     * @tags Actions
-     * @summary get actions
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     */
-    router.get('/api/actions', ctx.middleware.authentication, getActionsHandler);
     router.get('/actions', ctx.middleware.authentication, getActionsHandler);
-    async function getActionsHandler(req: Request, res: Response) {
-        const user = req.user as User;
+    async function getActionsHandler(c: AppContextContext) {
+        const user = c.get('user') as User;
         const { perPage, page, search, sortKey, direction } =
-            ctx.utils.request.extractPaginationParams(req, 'actions');
+            ctx.utils.request.extractPaginationParamsFromContext(c, 'actions');
 
-        const { canViewHidden, hasVerifiedPassword } = ctx.utils.request.canViewHiddenItems(
-            req,
-            user,
-        );
+        const { canViewHidden, hasVerifiedPassword } =
+            ctx.utils.request.canViewHiddenItemsFromContext(c, user);
 
         const { data, pagination } = await ctx.models.actions.all({
             user,
@@ -53,13 +39,8 @@ export function createActionsRouter(ctx: AppContext) {
 
         ctx.utils.html.applyHighlighting(data, ['name', 'trigger', 'url'], search);
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.json({ data, pagination, search, sortKey, direction });
-            return;
-        }
-
-        return res.render('actions/actions-index.html', {
-            user: req.session?.user,
+        return renderView(ctx, c, 'actions/actions-index.html', {
+            user: c.get('session').user,
             path: '/actions',
             title: 'Actions',
             layout: '_layouts/auth.html',
@@ -73,94 +54,67 @@ export function createActionsRouter(ctx: AppContext) {
         });
     }
 
-    router.get(
-        '/actions/create',
-        ctx.middleware.authentication,
-        async (_req: Request, res: Response) => {
-            return res.render('actions/actions-new.html', {
-                title: 'Actions / New',
-                path: '/actions/create',
-                layout: '_layouts/auth.html',
-                actionTypes: ctx.utils.util.ACTION_TYPES,
-            });
-        },
-    );
+    router.get('/actions/create', ctx.middleware.authentication, async (c) => {
+        return renderView(ctx, c, 'actions/actions-new.html', {
+            title: 'Actions / New',
+            path: '/actions/create',
+            layout: '_layouts/auth.html',
+            actionTypes: ctx.utils.util.ACTION_TYPES,
+        });
+    });
 
-    router.get(
-        '/actions/:id/edit',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const action = await ctx.db
-                .select('bangs.*')
-                .from('bangs')
-                .where({
-                    'bangs.id': req.params.id,
-                    'bangs.user_id': (req.user as User).id,
-                })
-                .first();
+    router.get('/actions/:id/edit', ctx.middleware.authentication, async (c) => {
+        const action = await ctx.db
+            .select('bangs.*')
+            .from('bangs')
+            .where({
+                'bangs.id': c.req.param('id'),
+                'bangs.user_id': (c.get('user') as User).id,
+            })
+            .first();
 
-            if (!action) {
-                throw new ctx.errors.NotFoundError('Action not found');
-            }
+        if (!action) {
+            throw new ctx.errors.NotFoundError('Action not found');
+        }
 
-            return res.render('actions/actions-edit.html', {
-                title: 'Actions / Edit',
-                path: '/actions/edit',
-                layout: '_layouts/auth.html',
-                action,
-            });
-        },
-    );
+        return renderView(ctx, c, 'actions/actions-edit.html', {
+            title: 'Actions / Edit',
+            path: '/actions/edit',
+            layout: '_layouts/auth.html',
+            action,
+        });
+    });
 
-    router.get(
-        '/actions/:id/tabs/create',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const id = parseInt(req.params.id as unknown as string);
-            const action = await ctx
-                .db('bangs')
-                .where({
-                    id,
-                    user_id: req.session.user?.id,
-                })
-                .first();
+    router.get('/actions/:id/tabs/create', ctx.middleware.authentication, async (c) => {
+        const id = parseInt(c.req.param('id'), 10);
+        const session = c.get('session');
+        const action = await ctx
+            .db('bangs')
+            .where({
+                id,
+                user_id: session.user?.id,
+            })
+            .first();
 
-            if (!action) {
-                throw new ctx.errors.NotFoundError('Actions not found');
-            }
+        if (!action) {
+            throw new ctx.errors.NotFoundError('Actions not found');
+        }
 
-            const tabs = await ctx.db('tabs').where({ user_id: req.session.user?.id });
+        const tabs = await ctx.db('tabs').where({ user_id: session.user?.id });
 
-            return res.render('actions/actions-tabs-new.html', {
-                title: `Actions / ${String(id)} / Tabs / Create`,
-                path: `/actions/${String(id)}/tabs/create`,
-                layout: '_layouts/auth.html',
-                action,
-                tabs,
-            });
-        },
-    );
+        return renderView(ctx, c, 'actions/actions-tabs-new.html', {
+            title: `Actions / ${String(id)} / Tabs / Create`,
+            path: `/actions/${String(id)}/tabs/create`,
+            layout: '_layouts/auth.html',
+            action,
+            tabs,
+        });
+    });
 
-    /**
-     *
-     * POST /api/actions
-     *
-     * @tags Actions
-     * @summary create an action
-     *
-     * @security BearerAuth
-     *
-     * @param {Action} request.body.required - action info
-     *
-     * @return {object} 201 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.post('/api/actions', ctx.middleware.authentication, postActionHandler);
     router.post('/actions', ctx.middleware.authentication, postActionHandler);
-    async function postActionHandler(req: Request, res: Response) {
-        const { url, name, actionType, trigger, hidden } = req.body;
-        const user = req.user as User;
+    async function postActionHandler(c: AppContextContext) {
+        const { url, name, actionType, trigger, hidden } = c.get('body');
+        const user = c.get('user') as User;
 
         if (!url) {
             throw new ctx.errors.ValidationError({ url: 'URL is required' });
@@ -239,40 +193,15 @@ export function createActionsRouter(ctx: AppContext) {
 
         ctx.utils.search.invalidateTriggerCache(user.id);
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(201).json({
-                message: `Action ${formattedTrigger} created successfully!`,
-            });
-            return;
-        }
-
-        req.flash('success', `Action ${formattedTrigger} created successfully!`);
-        return res.redirect('/actions');
+        setFlash(c, 'success', `Action ${formattedTrigger} created successfully!`);
+        return c.redirect('/actions');
     }
 
-    /**
-     *
-     * PATCH /api/actions/{id}
-     *
-     * @tags Actions
-     * @summary update an action
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - action id
-     * @param {Action} request.body.required - action info
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.patch('/api/actions/:id', ctx.middleware.authentication, updateActionHandler);
     router.post('/actions/:id/update', ctx.middleware.authentication, updateActionHandler);
-    async function updateActionHandler(req: Request, res: Response) {
-        const { url, name, actionType, trigger, hidden } = req.body;
-        const user = req.user as User;
-        const actionId = req.params.id as unknown as number;
+    async function updateActionHandler(c: AppContextContext) {
+        const { url, name, actionType, trigger, hidden } = c.get('body');
+        const user = c.get('user') as User;
+        const actionId = parseInt(c.req.param('id') ?? '', 10);
 
         if (!url) {
             throw new ctx.errors.ValidationError({ url: 'URL is required' });
@@ -329,7 +258,7 @@ export function createActionsRouter(ctx: AppContext) {
                 trigger: formattedTrigger,
                 user_id: user.id,
             })
-            .whereNot('id', req.params?.id)
+            .whereNot('id', c.req.param('id'))
             .first();
 
         if (existingBang) {
@@ -355,46 +284,21 @@ export function createActionsRouter(ctx: AppContext) {
             ctx.utils.search.invalidateTriggerCache(user.id);
         }
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: `Action ${updatedAction.trigger} updated successfully!`,
-            });
-            return;
-        }
-
-        req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
+        setFlash(c, 'success', `Action ${updatedAction.trigger} updated successfully!`);
 
         if (updatedAction.hidden && !currentAction.hidden) {
-            req.flash('success', 'Action hidden successfully');
-            return res.redirect('/actions');
+            setFlash(c, 'success', 'Action hidden successfully');
+            return c.redirect('/actions');
         }
 
-        return res.redirect('/actions');
+        return c.redirect('/actions');
     }
 
-    /**
-     *
-     * DELETE /api/actions/{id}
-     *
-     * @tags Actions
-     * @summary delete an action
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - action id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.delete('/api/actions/:id', ctx.middleware.authentication, deleteActionHandler);
-    router.post('/api/actions/delete', ctx.middleware.authentication, deleteActionHandler);
     router.post('/actions/:id/delete', ctx.middleware.authentication, deleteActionHandler);
     router.post('/actions/delete', ctx.middleware.authentication, deleteActionHandler);
-    async function deleteActionHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const actionIds = ctx.utils.request.extractIdsForDelete(req);
+    async function deleteActionHandler(c: AppContextContext) {
+        const user = c.get('user') as User;
+        const actionIds = ctx.utils.request.extractIdsForDeleteFromContext(c);
         const deletedCount = await ctx.models.actions.delete(actionIds, user.id);
 
         if (!deletedCount) {
@@ -403,41 +307,19 @@ export function createActionsRouter(ctx: AppContext) {
 
         ctx.utils.search.invalidateTriggerCache(user.id);
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: `${deletedCount} action${deletedCount !== 1 ? 's' : ''} deleted successfully`,
-                data: { deletedCount },
-            });
-            return;
-        }
-
-        req.flash(
+        setFlash(
+            c,
             'success',
             `${deletedCount} action${deletedCount !== 1 ? 's' : ''} deleted successfully`,
         );
-        return res.redirect('/actions');
+        return c.redirect('/actions');
     }
 
-    /**
-     * POST /api/actions/{id}/hide
-     *
-     * @tags Actions
-     * @summary Toggle hidden status of an action
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - action id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
     router.post('/actions/:id/hide', ctx.middleware.authentication, toggleActionHideHandler);
-    router.post('/api/actions/:id/hide', ctx.middleware.authentication, toggleActionHideHandler);
-    async function toggleActionHideHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const actionId = parseInt(req.params.id as unknown as string);
+    async function toggleActionHideHandler(c: AppContextContext) {
+        const user = c.get('user') as User;
+        const body = c.get('body');
+        const actionId = parseInt(c.req.param('id') ?? '', 10);
 
         const dbUser = await ctx.db('users').where({ id: user.id }).first();
         if (!dbUser?.hidden_items_password) {
@@ -463,118 +345,65 @@ export function createActionsRouter(ctx: AppContext) {
             actionType: currentAction.action_type,
         });
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`,
-                data: updatedAction,
-            });
-            return;
-        }
-
-        req.flash('success', `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`);
-        const showHidden = req.body.showHidden === 'true';
-        return res.redirect('/actions' + (showHidden ? '?hidden=true' : ''));
+        setFlash(
+            c,
+            'success',
+            `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`,
+        );
+        const showHidden = body.showHidden === 'true';
+        return c.redirect('/actions' + (showHidden ? '?hidden=true' : ''));
     }
 
-    /**
-     *
-     * GET /api/actions/{id}
-     *
-     * @tags Actions
-     * @summary get a specific action
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - action id
-     *
-     * @return {Action} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.get(
-        '/api/actions/:id',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const action = await ctx.models.actions.read(
-                parseInt(req.params.id as unknown as string),
-                user.id,
-            );
+    router.post('/actions/:id/tabs', ctx.middleware.authentication, async (c) => {
+        const user = c.get('user') as User;
+        const body = c.get('body');
+        const tab_id = parseInt(body.tab_id, 10);
+        const id = parseInt(c.req.param('id'), 10);
 
-            if (!action) {
-                throw new ctx.errors.NotFoundError('Action not found');
-            }
+        await ctx.utils.util.addToTabs(user.id, tab_id, 'bangs', id);
 
-            res.status(200).json({
-                message: 'action retrieved successfully',
-                data: action,
-            });
-        },
-    );
-
-    router.post(
-        '/actions/:id/tabs',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const tab_id = parseInt(req.body.tab_id as unknown as string);
-            const id = parseInt(req.params.id as unknown as string);
-
-            await ctx.utils.util.addToTabs(user.id, tab_id, 'bangs', id);
-
-            if (ctx.utils.request.isApiRequest(req)) {
-                res.status(201).json({ message: 'Tab added successfully' });
-                return;
-            }
-
-            req.flash('success', 'Tab added!');
-            return res.redirect('/actions');
-        },
-    );
+        setFlash(c, 'success', 'Tab added!');
+        return c.redirect('/actions');
+    });
 
     const activePrefetches = new Set<number>();
 
-    router.post(
-        '/actions/prefetch',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
+    router.post('/actions/prefetch', ctx.middleware.authentication, async (c) => {
+        const user = c.get('user') as User;
 
-            if (activePrefetches.has(user.id)) {
-                req.flash('info', 'Screenshot caching already in progress...');
-                return res.redirect('/actions');
-            }
+        if (activePrefetches.has(user.id)) {
+            setFlash(c, 'info', 'Screenshot caching already in progress...');
+            return c.redirect('/actions');
+        }
 
-            const actions = await ctx
-                .db('bangs')
-                .select('url')
-                .where({ user_id: user.id })
-                .whereNotNull('url')
-                .limit(500);
+        const actions = await ctx
+            .db('bangs')
+            .select('url')
+            .where({ user_id: user.id })
+            .whereNotNull('url')
+            .limit(500);
 
-            if (actions.length === 0) {
-                req.flash('warning', "You don't have any actions at the moment!");
-                return res.redirect('/actions');
-            }
+        if (actions.length === 0) {
+            setFlash(c, 'warning', "You don't have any actions at the moment!");
+            return c.redirect('/actions');
+        }
 
-            const urls = actions.map((a: { url: string }) => a.url).filter(Boolean);
+        const urls = actions.map((a: { url: string }) => a.url).filter(Boolean);
 
-            if (urls.length === 0) {
-                req.flash('info', 'No URLs to cache');
-                return res.redirect('/actions');
-            }
+        if (urls.length === 0) {
+            setFlash(c, 'info', 'No URLs to cache');
+            return c.redirect('/actions');
+        }
 
-            activePrefetches.add(user.id);
+        activePrefetches.add(user.id);
 
-            void ctx.utils.util
-                .prefetchScreenshots(urls)
-                .finally(() => activePrefetches.delete(user.id));
+        void ctx.utils.util
+            .prefetchScreenshots(urls)
+            .finally(() => activePrefetches.delete(user.id));
 
-            req.flash('success', `Caching ${urls.length} preview images in background...`);
-            return res.redirect('/actions');
-        },
-    );
+        setFlash(c, 'success', `Caching ${urls.length} preview images in background...`);
+        return c.redirect('/actions');
+    });
 
     return router;
 }

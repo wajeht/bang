@@ -663,7 +663,6 @@ export function createUtil(context: AppContext) {
                           .select(
                               'username',
                               'default_search_provider',
-                              'autocomplete_search_on_homepage',
                               'column_preferences',
                               'timezone',
                               'theme',

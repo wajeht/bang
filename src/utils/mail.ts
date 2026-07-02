@@ -115,14 +115,14 @@ export function createMail(context: AppContext) {
         async sendMagicLinkEmail({
             email,
             token,
-            req,
+            baseUrl,
         }: {
             email: string;
             token: string;
-            req: Request;
+            baseUrl: string;
         }): Promise<void> {
             const branding = await context.models.settings.getBranding();
-            const magicLink = `${req.protocol}://${req.get('host')}/auth/magic/${token}`;
+            const magicLink = `${baseUrl}/auth/magic/${token}`;
 
             const mailOptions = {
                 from: `${branding.appName} <${context.config.email.from}>`,

@@ -1,5 +1,5 @@
 import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
-import type { User, ApiKeyPayload, AppContext } from '../../type.js';
+import type { User, AppContext } from '../../type.js';
 import { createHonoApp } from '../../http.js';
 
 export function createSettingsRouter(ctx: AppContext) {
@@ -23,20 +23,6 @@ export function createSettingsRouter(ctx: AppContext) {
     const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
     const router = createHonoApp(ctx);
-
-    router.get(
-        '/api/settings/api-key',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = await ctx.db('users').where({ id: req.session.user?.id }).first();
-
-            if (!user || !user.api_key) {
-                return res.status(404).json({ error: 'API key not found' });
-            }
-
-            return res.json({ api_key: user.api_key });
-        },
-    );
 
     router.get('/settings', ctx.middleware.authentication, async (_req: Request, res: Response) => {
         return res.redirect('/settings/account');
@@ -88,14 +74,7 @@ export function createSettingsRouter(ctx: AppContext) {
         '/settings/account',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const {
-                username,
-                email,
-                default_search_provider,
-                autocomplete_search_on_homepage,
-                timezone,
-                theme,
-            } = req.body;
+            const { username, email, default_search_provider, timezone, theme } = req.body;
 
             if (!username) {
                 throw new ctx.errors.ValidationError({ username: 'Username is required' });
@@ -129,18 +108,6 @@ export function createSettingsRouter(ctx: AppContext) {
 
             if (!VALID_TIMEZONES.has(timezone)) {
                 throw new ctx.errors.ValidationError({ timezone: 'Invalid timezone selected' });
-            }
-
-            let parsedAutocompleteSearchOnHomepage = false;
-            if (autocomplete_search_on_homepage === undefined) {
-                parsedAutocompleteSearchOnHomepage = false;
-            } else if (autocomplete_search_on_homepage !== 'on') {
-                throw new ctx.errors.ValidationError({
-                    autocomplete_search_on_homepage:
-                        'Invalid autocomplete search on homepage format',
-                });
-            } else {
-                parsedAutocompleteSearchOnHomepage = true;
             }
 
             const validThemes = ['system', 'light', 'dark'];
@@ -183,7 +150,6 @@ export function createSettingsRouter(ctx: AppContext) {
                     email,
                     username,
                     default_search_provider,
-                    autocomplete_search_on_homepage: parsedAutocompleteSearchOnHomepage,
                     timezone,
                     theme,
                 })
@@ -552,80 +518,6 @@ export function createSettingsRouter(ctx: AppContext) {
     );
 
     router.post(
-        '/api/settings/theme',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const { theme } = req.body;
-            const validThemes = ['light', 'dark'];
-
-            if (!theme || !validThemes.includes(theme)) {
-                return res.status(400).json({ error: 'Invalid theme' });
-            }
-
-            const user = req.user as User;
-            await ctx.db('users').where('id', user.id).update({ theme });
-
-            req.session.user!.theme = theme;
-            req.user!.theme = theme;
-            req.session.save();
-
-            return res.json({ success: true, theme });
-        },
-    );
-
-    router.post(
-        '/settings/create-api-key',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = await ctx.db('users').where({ id: req.session.user?.id }).first();
-
-            if (!user) {
-                throw new ctx.errors.NotFoundError('User not found');
-            }
-
-            // Convert SQLite integer values to booleans
-            user.is_admin = Boolean(user.is_admin);
-            user.autocomplete_search_on_homepage = Boolean(user.autocomplete_search_on_homepage);
-
-            const newKeyVersion = (user.api_key_version || 0) + 1;
-
-            const payload: ApiKeyPayload = { userId: user.id, apiKeyVersion: newKeyVersion };
-
-            const [updatedUser] = await ctx
-                .db('users')
-                .where({ id: req.session?.user?.id })
-                .update({
-                    api_key: await ctx.utils.auth.generateApiKey(payload),
-                    api_key_version: newKeyVersion,
-                    api_key_created_at: ctx.db.fn.now(),
-                })
-                .returning('*');
-
-            if (req.session?.user) {
-                req.session.user = {
-                    ...updatedUser,
-                    column_preferences: ctx.utils.util.parseColumnPreferences(
-                        updatedUser.column_preferences,
-                    ),
-                } as User;
-                req.session.save();
-            }
-
-            if (req.user) {
-                req.user = {
-                    ...updatedUser,
-                    column_preferences: ctx.utils.util.parseColumnPreferences(
-                        updatedUser.column_preferences,
-                    ),
-                } as User;
-            }
-
-            req.flash('success', '📱 api key created');
-            return res.redirect(`/settings/account`);
-        },
-    );
-
-    router.post(
         '/settings/hidden-password',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
@@ -955,10 +847,6 @@ export function createSettingsRouter(ctx: AppContext) {
                         if (userPrefs.default_search_provider) {
                             updateData.default_search_provider = userPrefs.default_search_provider;
                         }
-                        if (userPrefs.autocomplete_search_on_homepage !== undefined) {
-                            updateData.autocomplete_search_on_homepage =
-                                userPrefs.autocomplete_search_on_homepage;
-                        }
                         if (userPrefs.column_preferences) {
                             updateData.column_preferences =
                                 typeof userPrefs.column_preferences === 'string'
@@ -988,10 +876,6 @@ export function createSettingsRouter(ctx: AppContext) {
                                     req.session.user.default_search_provider =
                                         updateData.default_search_provider;
                                 }
-                                if (updateData.autocomplete_search_on_homepage !== undefined) {
-                                    req.session.user.autocomplete_search_on_homepage =
-                                        updateData.autocomplete_search_on_homepage;
-                                }
                                 if (updateData.column_preferences) {
                                     try {
                                         req.session.user.column_preferences =
@@ -1018,10 +902,6 @@ export function createSettingsRouter(ctx: AppContext) {
                                 if (updateData.default_search_provider) {
                                     req.user.default_search_provider =
                                         updateData.default_search_provider;
-                                }
-                                if (updateData.autocomplete_search_on_homepage !== undefined) {
-                                    req.user.autocomplete_search_on_homepage =
-                                        updateData.autocomplete_search_on_homepage;
                                 }
                                 if (updateData.column_preferences) {
                                     try {
@@ -1137,18 +1017,9 @@ export function createSettingsRouter(ctx: AppContext) {
             const deleteReminders = Array.isArray(deleteOptions)
                 ? deleteOptions.includes('reminders')
                 : deleteOptions === 'reminders';
-            const deleteApiKeys = Array.isArray(deleteOptions)
-                ? deleteOptions.includes('api_keys')
-                : deleteOptions === 'api_keys';
-
             // Check if all options are selected - if so, require confirmation
             const allOptionsSelected =
-                deleteActions &&
-                deleteTabs &&
-                deleteBookmarks &&
-                deleteNotes &&
-                deleteReminders &&
-                deleteApiKeys;
+                deleteActions && deleteTabs && deleteBookmarks && deleteNotes && deleteReminders;
 
             if (allOptionsSelected) {
                 const confirmation = req.body.confirmation?.trim();
@@ -1165,8 +1036,7 @@ export function createSettingsRouter(ctx: AppContext) {
                 !deleteTabs &&
                 !deleteBookmarks &&
                 !deleteNotes &&
-                !deleteReminders &&
-                !deleteApiKeys
+                !deleteReminders
             ) {
                 throw new ctx.errors.ValidationError({
                     delete_options: 'Please select at least one data type to delete',
@@ -1202,28 +1072,6 @@ export function createSettingsRouter(ctx: AppContext) {
                         deleteCounts.reminders = count;
                     }
 
-                    if (deleteApiKeys) {
-                        await trx('users').where({ id: user.id }).update({
-                            api_key: null,
-                            api_key_version: 0,
-                            api_key_created_at: null,
-                        });
-                        deleteCounts.api_keys = 1;
-
-                        if (req.session?.user) {
-                            req.session.user.api_key = null;
-                            req.session.user.api_key_version = 0;
-                            req.session.user.api_key_created_at = null;
-                            req.session.save();
-                        }
-
-                        if (req.user) {
-                            req.user.api_key = null;
-                            req.user.api_key_version = 0;
-                            req.user.api_key_created_at = null;
-                        }
-                    }
-
                     const processedItems = [];
                     if (deleteActions) {
                         const count = deleteCounts.actions ?? 0;
@@ -1245,10 +1093,6 @@ export function createSettingsRouter(ctx: AppContext) {
                         const count = deleteCounts.reminders ?? 0;
                         processedItems.push(count > 0 ? `${count} reminders` : '0 reminders');
                     }
-                    if (deleteApiKeys) {
-                        processedItems.push('API keys');
-                    }
-
                     if (processedItems.length > 0) {
                         req.flash(
                             'success',

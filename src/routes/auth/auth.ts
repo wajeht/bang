@@ -1,26 +1,30 @@
-import type { AppRequest as Request, AppResponse as Response } from '../../http.js';
-import { createHonoApp } from '../../http.js';
+import type { AppEnv } from '../../http.js';
+import { getRequestBaseUrl, setCurrentUser, setFlash } from '../../http.js';
 import type { AppContext, User } from '../../type.js';
+import { Hono } from 'hono';
 
 export function createAuthRouter(ctx: AppContext) {
-    const router = createHonoApp(ctx);
+    const router = new Hono<AppEnv>();
 
-    router.get('/logout', async (req: Request, res: Response) => {
-        if ((req.session && req.session.user) || req.user) {
-            req.session.user = null;
-            req.user = undefined;
-            req.session.destroy((error) => {
+    router.get('/logout', async (c) => {
+        const session = c.get('session');
+
+        if (session.user || c.get('user')) {
+            session.user = null;
+            setCurrentUser(c, undefined);
+            session.destroy((error) => {
                 if (error) {
-                    throw new ctx.errors.HttpError(500, error.message, req);
+                    throw new ctx.errors.HttpError(500, error.message);
                 }
             });
         }
 
-        return res.redirect(`/?toast=${encodeURIComponent('✌️ see ya!')}`);
+        return c.redirect(`/?toast=${encodeURIComponent('✌️ see ya!')}`);
     });
 
-    router.post('/login', ctx.middleware.turnstile, async (req: Request, res: Response) => {
-        const { email } = req.body;
+    router.post('/login', ctx.middleware.turnstile, async (c) => {
+        const body = c.get('body');
+        const email = typeof body.email === 'string' ? body.email : '';
 
         if (!email) {
             throw new ctx.errors.ValidationError({ email: 'Email is required' });
@@ -59,34 +63,36 @@ export function createAuthRouter(ctx: AppContext) {
         }
 
         const token = ctx.utils.auth.generateMagicLink({ email });
+        const baseUrl = getRequestBaseUrl(c);
 
         void Promise.resolve().then(async () => {
             try {
-                await ctx.utils.mail.sendMagicLinkEmail({ email, token, req });
+                await ctx.utils.mail.sendMagicLinkEmail({ email, token, baseUrl });
             } catch (error) {
                 ctx.logger.error('Failed to send magic link email', { error, email });
             }
         });
 
-        req.flash(
+        setFlash(
+            c,
             'success',
             `📧 Magic link sent to ${email}! Check your email and click the link to log in.`,
         );
-        const referer = req.headers.referer;
+        const referer = c.req.header('referer');
         if (referer) {
             try {
                 const refererUrl = new URL(referer);
                 const appUrl = new URL(ctx.config.app.appUrl);
                 if (refererUrl.host === appUrl.host) {
-                    return res.redirect(refererUrl.pathname + refererUrl.search);
+                    return c.redirect(refererUrl.pathname + refererUrl.search);
                 }
             } catch {}
         }
-        return res.redirect('/');
+        return c.redirect('/');
     });
 
-    router.get('/auth/magic/:token', async (req: Request, res: Response) => {
-        const token = String(req.params.token ?? '');
+    router.get('/auth/magic/:token', async (c) => {
+        const token = c.req.param('token') ?? '';
 
         const decoded = ctx.utils.auth.verifyMagicLink(token);
 
@@ -118,96 +124,83 @@ export function createAuthRouter(ctx: AppContext) {
             column_preferences: ctx.utils.util.parseColumnPreferences(user.column_preferences),
         };
 
-        const redirectTo = req.session.redirectTo || '/actions';
+        const session = c.get('session');
+        const redirectTo = session.redirectTo || '/actions';
 
-        req.session.regenerate();
-        req.user = parsedUser;
-        req.session.user = parsedUser;
-        req.session.userCachedAt = Date.now();
-        req.flash('success', `🎉 Welcome ${user.username}! You're now logged in.`);
-        req.session.save();
+        session.regenerate();
+        setCurrentUser(c, parsedUser);
+        session.user = parsedUser;
+        session.userCachedAt = Date.now();
+        setFlash(c, 'success', `🎉 Welcome ${user.username}! You're now logged in.`);
+        session.save();
 
-        return res.redirect(redirectTo);
+        return c.redirect(redirectTo);
     });
 
-    router.post(
-        '/verify-hidden-password',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const { password, resource_type, resource_id, original_query } = req.body;
-            const user = req.session.user as User;
-            const redirect_url = req.body.redirect_url || req.headers.referer || '/';
-            const modalQuery = { 'verify-password-modal': 'true' };
+    router.post('/verify-hidden-password', ctx.middleware.authentication, async (c) => {
+        const body = c.get('body');
+        const { password, resource_type, resource_id, original_query } = body;
+        const session = c.get('session');
+        const user = session.user as User;
+        const redirect_url = body.redirect_url || c.req.header('referer') || '/';
+        const modalQuery = { 'verify-password-modal': 'true' };
 
-            if (!password) {
-                req.flash('error', 'Password is required');
-                return res.redirect(
-                    ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
-                );
+        if (!password) {
+            setFlash(c, 'error', 'Password is required');
+            return c.redirect(ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery));
+        }
+
+        const dbUser = await ctx.db('users').where({ id: user.id }).first();
+        if (!dbUser?.hidden_items_password) {
+            setFlash(
+                c,
+                'error',
+                'No password set for hidden items. Please set a password in settings first.',
+            );
+            return c.redirect(ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery));
+        }
+
+        const isValid = await ctx.libs.bcrypt.compare(password, dbUser.hidden_items_password);
+
+        if (!isValid) {
+            if (resource_type === 'note') {
+                setFlash(c, 'error', 'Invalid password. Please try again.');
+                return c.redirect(ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery));
             }
 
-            const dbUser = await ctx.db('users').where({ id: user.id }).first();
-            if (!dbUser?.hidden_items_password) {
-                req.flash(
-                    'error',
-                    'No password set for hidden items. Please set a password in settings first.',
-                );
-                return res.redirect(
-                    ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
-                );
+            if (resource_type === 'bang' && original_query) {
+                setFlash(c, 'error', 'Invalid password. Please try again.');
+                return c.redirect(ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery));
             }
 
-            const isValid = await ctx.libs.bcrypt.compare(password, dbUser.hidden_items_password);
+            setFlash(c, 'error', 'Invalid password. Please try again.');
+            return c.redirect(ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery));
+        }
 
-            if (!isValid) {
-                if (resource_type === 'note') {
-                    req.flash('error', 'Invalid password. Please try again.');
-                    return res.redirect(
-                        ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
-                    );
-                }
+        session.verifiedHiddenItems ??= {};
+        const verifiedItems: Record<string, number> = session.verifiedHiddenItems;
 
-                if (resource_type === 'bang' && original_query) {
-                    req.flash('error', 'Invalid password. Please try again.');
-                    return res.redirect(
-                        ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
-                    );
-                }
-
-                req.flash('error', 'Invalid password. Please try again.');
-                return res.redirect(
-                    ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
-                );
+        const now = Date.now();
+        for (const [key, expiry] of Object.entries(verifiedItems)) {
+            if (expiry < now) {
+                delete verifiedItems[key];
             }
+        }
 
-            req.session.verifiedHiddenItems ??= {};
-            const verifiedItems: Record<string, number> = req.session.verifiedHiddenItems;
+        const verificationKey = `${resource_type || 'global'}_${resource_id || 'global'}`;
+        verifiedItems[verificationKey] = now + 30 * 60 * 1000; // 30 minutes
 
-            const now = Date.now();
-            for (const [key, expiry] of Object.entries(verifiedItems)) {
-                if (expiry < now) {
-                    delete verifiedItems[key];
-                }
+        session.hiddenItemsVerified = true;
+        session.hiddenItemsVerifiedAt = now;
+
+        session.save((err) => {
+            if (err) {
+                ctx.logger.error('Failed to save session after hidden items verification: %o', err);
             }
+        });
 
-            const verificationKey = `${resource_type || 'global'}_${resource_id || 'global'}`;
-            verifiedItems[verificationKey] = now + 30 * 60 * 1000; // 30 minutes
-
-            req.session.hiddenItemsVerified = true;
-            req.session.hiddenItemsVerifiedAt = now;
-
-            req.session.save((err) => {
-                if (err) {
-                    ctx.logger.error(
-                        'Failed to save session after hidden items verification: %o',
-                        err,
-                    );
-                }
-            });
-
-            return res.redirect(ctx.utils.request.getSafeRedirectPath(redirect_url));
-        },
-    );
+        return c.redirect(ctx.utils.request.getSafeRedirectPath(redirect_url));
+    });
 
     return router;
 }

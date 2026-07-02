@@ -2,7 +2,6 @@ import { config } from './config.js';
 import { Socket } from 'node:net';
 import { serve, type ServerType } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
-import { swaggerUI } from '@hono/swagger-ui';
 import { bodyLimit } from 'hono/body-limit';
 import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
@@ -12,7 +11,6 @@ import { secureHeaders } from 'hono/secure-headers';
 import { trimTrailingSlash } from 'hono/trailing-slash';
 import { createContext } from './context.js';
 import type { AppContext } from './type.js';
-import { registerApiDocs } from './routes/api-docs.js';
 import { createRouter } from './routes/routes.js';
 import { createBodyParserMiddleware, createHonoApp } from './http.js';
 
@@ -124,17 +122,6 @@ export async function createApp() {
     app.use('*', ctx.middleware.appLocalState);
 
     app.route('/', createRouter(ctx));
-    registerApiDocs(app);
-    app.doc('/api-docs/openapi.json', {
-        openapi: '3.1.0',
-        info: {
-            title: 'Bang API',
-            version: ctx.config.app.version,
-            description: 'API for Bang actions, bookmarks, notes, tabs, reminders, and settings.',
-        },
-        servers: [{ url: '/' }],
-    });
-    app.get('/api-docs', swaggerUI({ url: '/api-docs/openapi.json', title: 'Bang API Docs' }));
     app.notFound(ctx.middleware.notFound);
     app.onError(ctx.middleware.errorHandler);
 

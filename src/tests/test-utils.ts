@@ -1,5 +1,5 @@
 import request from './hono-test-client.js';
-import { db, ctx, createTestUser } from './test-setup.js';
+import { ctx, createTestUser } from './test-setup.js';
 import type { HonoTestAgent, HonoTestRequestChain } from './hono-test-client.js';
 import type { createHonoApp } from '../http.js';
 
@@ -66,30 +66,4 @@ export async function createUnauthenticatedAgent(app: TestApp) {
     const agent = request.agent(app);
     await addCsrfToAgent(agent, '/');
     return agent;
-}
-
-export async function authenticateApiAgent(app: TestApp) {
-    const user = await createTestUser('test@example.com', false);
-
-    const apiKeyVersion = 1;
-    const apiKey = await ctx.utils.auth.generateApiKey({ userId: user.id, apiKeyVersion });
-
-    await db('users').where({ id: user.id }).update({
-        api_key: apiKey,
-        api_key_version: apiKeyVersion,
-        api_key_created_at: new Date().toISOString(),
-    });
-
-    const agent = request.agent(app);
-
-    wrapMethods(agent, ['get', 'post', 'put', 'delete'] as const, (req, method) => {
-        let r = req.set('Authorization', `Bearer ${apiKey}`).set('Accept', 'application/json');
-
-        if (method === 'post' || method === 'put') {
-            r = r.set('Content-Type', 'application/json');
-        }
-        return r;
-    });
-
-    return { agent, user };
 }

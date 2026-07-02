@@ -1,9 +1,9 @@
 import path from 'node:path';
 import type { Context, MiddlewareHandler } from 'hono';
-import { OpenAPIHono } from '@hono/zod-openapi';
+import { Hono } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
-import type { AppContext, ApiKeyPayload, Logger, User } from './type.js';
+import type { AppContext, Logger, User } from './type.js';
 
 const SESSION_COOKIE_NAME = 'bang.sid';
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
@@ -51,7 +51,6 @@ export interface AppRequest {
     body: any;
     session: AppSession;
     user: User | undefined;
-    apiKeyPayload: ApiKeyPayload | null;
     logger: Logger;
     ip?: string;
     socket: { remoteAddress?: string };
@@ -140,7 +139,6 @@ export interface AppEnv {
         sessionDestroyed: boolean;
         requestId: string;
         user: User | undefined;
-        apiKeyPayload: ApiKeyPayload | null;
         logger: Logger;
     };
 }
@@ -152,12 +150,12 @@ export type AppHandler = (
     res: AppResponse,
 ) => Promise<Response | void> | Response | void;
 
-export type AppOpenAPIHono = OpenAPIHono<AppEnv>;
+export type AppHono = Hono<AppEnv>;
 
-export function createHonoApp(): AppOpenAPIHono;
+export function createHonoApp(): AppHono;
 export function createHonoApp(ctx: AppContext): any;
 export function createHonoApp(ctx?: AppContext) {
-    const app = new OpenAPIHono<AppEnv>();
+    const app = new Hono<AppEnv>();
     if (!ctx) return app;
 
     for (const method of ['get', 'post', 'put', 'patch', 'delete'] as const) {
@@ -283,7 +281,6 @@ export function createAppRequest(c: AppContextContext): AppRequest {
         body: c.get('body') ?? {},
         session,
         user: c.get('user'),
-        apiKeyPayload: c.get('apiKeyPayload') ?? null,
         logger: c.get('logger'),
         ip,
         socket: { remoteAddress: ip },
@@ -312,6 +309,38 @@ export function createAppRequest(c: AppContextContext): AppRequest {
 
 export function setCurrentUser(c: AppContextContext, user: User | undefined) {
     c.set('user', user);
+}
+
+export function renderView(
+    ctx: AppContext,
+    c: AppContextContext,
+    view: string,
+    options: Record<string, unknown> = {},
+) {
+    const locals = c.get('locals');
+    return c.html(
+        ctx.utils.template.render(view, {
+            ...locals,
+            csrfToken: locals.csrfToken ?? '',
+            ...options,
+        }),
+    );
+}
+
+export function setFlash(c: AppContextContext, type: string, message: string) {
+    const session = c.get('session');
+    session.flash = {
+        ...session.flash,
+        [type]: [...(session.flash?.[type] ?? []), message],
+    };
+    c.set('sessionChanged', true);
+}
+
+export function getRequestBaseUrl(c: AppContextContext) {
+    const url = new URL(c.req.url);
+    const protocol = c.req.header('x-forwarded-proto') || url.protocol.replace(':', '');
+    const host = c.req.header('host') || url.host;
+    return `${protocol}://${host}`;
 }
 
 function createSession(

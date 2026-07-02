@@ -125,21 +125,6 @@ export function createSearchRouter(ctx: AppContext) {
             }
         }
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.json({
-                searchQuery,
-                searchType,
-                results: {
-                    bookmarks: bookmarksResult,
-                    actions: actionsResult,
-                    notes: notesResult,
-                    tabs: tabsResult.data || [],
-                    reminders: remindersResult,
-                },
-            });
-            return;
-        }
-
         return res.render('search/search-results.html', {
             user: req.session?.user,
             title: 'Global Search',

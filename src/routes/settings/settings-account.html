@@ -1,45 +1,3 @@
-<script>
-  let cachedApiKey = null;
-
-  async function fetchApiKey() {
-    if (cachedApiKey) return cachedApiKey;
-    const response = await fetch('/api/settings/api-key');
-    if (!response.ok) {
-      throw new Error('Failed to fetch API key');
-    }
-    const data = await response.json();
-    cachedApiKey = data.api_key;
-    return cachedApiKey;
-  }
-
-  async function viewApiKey() {
-    const apiKeyPre = document.getElementById('apiKeyPre');
-    const viewOrHideButton = document.getElementById('view-or-hide-button');
-    if (apiKeyPre.textContent === '••••••••••••••••••••••••••••••••••••••••••••••••') {
-      try {
-        const apiKey = await fetchApiKey();
-        apiKeyPre.textContent = apiKey;
-        viewOrHideButton.textContent = '👁️ Hide';
-      } catch (error) {
-        createToast('Failed to fetch API key');
-      }
-    } else {
-      apiKeyPre.textContent = '••••••••••••••••••••••••••••••••••••••••••••••••';
-      viewOrHideButton.textContent = '️👁️ View';
-    }
-  }
-
-  async function copyApiKey() {
-    try {
-      const apiKey = await fetchApiKey();
-      await navigator.clipboard.writeText(apiKey);
-      createToast('🔑 API key copied to clipboard!');
-    } catch (error) {
-      createToast('Failed to copy API key');
-    }
-  }
-</script>
-
 <section style="display: flex; flex-direction: column; gap: 20px; max-width: 100%;">
 
   <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
@@ -115,15 +73,6 @@
         required: true,
         helpText: 'Your timezone for reminder scheduling and date display',
         error: state.errors && state.errors.timezone ? state.errors.timezone : undefined
-      }) %>
-
-      <%~ include('../_components/inputs/checkbox.html', {
-        id: 'autocomplete_search_on_homepage',
-        name: 'autocomplete_search_on_homepage',
-        label: 'Autocomplete Search on Homepage',
-        checked: user.autocomplete_search_on_homepage ? true : false,
-        helpText: 'Enable search suggestions on the homepage',
-        error: state.errors && state.errors.autocomplete_search_on_homepage ? state.errors.autocomplete_search_on_homepage : undefined
       }) %>
 
       <%~ include('../_components/inputs/select.html', {
@@ -202,50 +151,6 @@
         <%= user.hidden_items_password ? '🔄 Update Password' : '➕ Set Password' %>
       </button>
     </form>
-  </fieldset>
-
-  <fieldset style="width: 32.5%; max-width: 32.5%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; background-color: var(--background-color);">
-    <legend>🔑 API Key <% if (user.api_key_version > 0) { %>(v<%= user.api_key_version %>)<% } %></legend>
-
-    <% if (user.api_key) { %>
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; min-width: 0; flex-wrap: wrap;">
-          <a href="/api-docs" target="_blank" rel="noopener noreferrer" style="flex-shrink: 0;">📃 Docs</a>
-          <div style="display: flex; gap: 10px">
-            <button type="button" onclick="viewApiKey()" class="no-style-btn" id="view-or-hide-button" aria-describedby="api-key-display" style="flex-shrink: 0;">👁️ View</button>
-            <button type="button" onclick="copyApiKey()" class="no-style-btn" style="flex-shrink: 0;">📋 Copy</button>
-          </div>
-      </div>
-    <% } %>
-
-    <pre id="apiKeyPre" aria-live="polite" aria-label="API Key display" style="white-space: nowrap; overflow-x: auto; padding: 8px; max-width: 100%; box-sizing: border-box;"><% if (!user.api_key) { %>click to generate api key<% } else { %>••••••••••••••••••••••••••••••••••••••••••••••••<% } %></pre>
-
-    <% if (user.api_key_version > 0) {  %>
-      <button type="button" onclick="document.getElementById('regenerate-modal').showModal()">🔄 Regenerate</button>
-      <dialog id="regenerate-modal" aria-labelledby="regenerate-title">
-        <h2 id="regenerate-title">🔄 Regenerate</h2>
-        <p>This action will invalidate the current key. Are you sure you want to generate a new API key?</p>
-        <form action="/settings/create-api-key" method="post">
-          <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
-          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-            <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-            <button type="submit">🔄 Regenerate</button>
-          </div>
-        </form>
-      </dialog>
-    <% } else { %>
-      <form action="/settings/create-api-key" method="post">
-        <input type="hidden" id="csrfToken" name="csrfToken" value="<%= csrfToken %>" />
-        <button type="submit" style="width: 100%;">➕ Generate</button>
-      </form>
-    <% } %>
-
-    <% if (user.api_key_created_at) { %>
-      <small style="color: #bbb;">Created:
-        <time datetime="<%= user.api_key_created_at %>">
-          <%= utils.formatDateInTimezone(user.api_key_created_at, state.user.timezone).fullString %>
-        </time>
-      </small>
-    <% } %>
   </fieldset>
 
 </section>

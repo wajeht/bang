@@ -1,4 +1,4 @@
-import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/api-test-utils.js';
+import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/test-utils.js';
 import request from '../../tests/hono-test-client.js';
 import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect } from 'vite-plus/test';
@@ -90,7 +90,6 @@ describe('Settings Routes', () => {
                     username: 'updateduser',
                     email: user.email,
                     default_search_provider: 'google',
-                    autocomplete_search_on_homepage: 'on',
                     timezone: 'UTC',
                     theme: 'dark',
                 })
@@ -99,7 +98,6 @@ describe('Settings Routes', () => {
             const updatedUser = await db('users').where({ id: user.id }).first();
             expect(updatedUser.username).toBe('updateduser');
             expect(updatedUser.default_search_provider).toBe('google');
-            expect(updatedUser.autocomplete_search_on_homepage).toBe(1);
             expect(updatedUser.theme).toBe('dark');
         });
 
@@ -112,7 +110,6 @@ describe('Settings Routes', () => {
                     username: user.username,
                     email: user.email,
                     default_search_provider: 'google',
-                    autocomplete_search_on_homepage: 'on',
                     timezone: 'America/New_York',
                     theme: 'light',
                 })
@@ -763,221 +760,6 @@ describe('Settings Routes', () => {
             const responseAfter = await agent.get('/settings/account').expect(200);
             expect(responseAfter.text).not.toContain('"hidden_items_password":null');
             expect(responseAfter.text).toMatch(/"hidden_items_password":"\$2[aby]\$/);
-        });
-    });
-
-    describe('POST /api/settings/theme', () => {
-        it('should require authentication', async () => {
-            const agent = await createUnauthenticatedAgent(app);
-            await agent.post('/api/settings/theme').send({ theme: 'dark' }).expect(401);
-        });
-
-        it('should update theme to dark', async () => {
-            const { agent, user } = await authenticateAgent(app);
-
-            const response = await agent
-                .post('/api/settings/theme')
-                .send({ theme: 'dark' })
-                .expect(200);
-
-            expect(response.body).toEqual({ success: true, theme: 'dark' });
-
-            const updatedUser = await db('users').where({ id: user.id }).first();
-            expect(updatedUser.theme).toBe('dark');
-        });
-
-        it('should update theme to light', async () => {
-            const { agent, user } = await authenticateAgent(app);
-
-            await db('users').where({ id: user.id }).update({ theme: 'dark' });
-
-            const response = await agent
-                .post('/api/settings/theme')
-                .send({ theme: 'light' })
-                .expect(200);
-
-            expect(response.body).toEqual({ success: true, theme: 'light' });
-
-            const updatedUser = await db('users').where({ id: user.id }).first();
-            expect(updatedUser.theme).toBe('light');
-        });
-
-        it('should reject invalid theme', async () => {
-            const { agent } = await authenticateAgent(app);
-
-            const response = await agent
-                .post('/api/settings/theme')
-                .send({ theme: 'invalid' })
-                .expect(400);
-
-            expect(response.body).toEqual({ error: 'Invalid theme' });
-        });
-
-        it('should reject system theme', async () => {
-            const { agent } = await authenticateAgent(app);
-
-            const response = await agent
-                .post('/api/settings/theme')
-                .send({ theme: 'system' })
-                .expect(400);
-
-            expect(response.body).toEqual({ error: 'Invalid theme' });
-        });
-
-        it('should reject missing theme', async () => {
-            const { agent } = await authenticateAgent(app);
-
-            const response = await agent.post('/api/settings/theme').send({}).expect(400);
-
-            expect(response.body).toEqual({ error: 'Invalid theme' });
-        });
-    });
-
-    describe('POST /settings/create-api-key', () => {
-        it('should require authentication', async () => {
-            const agent = await createUnauthenticatedAgent(app);
-            await agent
-                .post('/settings/create-api-key')
-                .send({})
-                .expect(302)
-                .expect('Location', '/?modal=login');
-        });
-
-        it('should create an API key and update the database', async () => {
-            const { agent, user } = await authenticateAgent(app);
-
-            const initialUser = await db('users').where({ id: user.id }).first();
-            expect(initialUser.api_key).toBeNull();
-            expect(initialUser.api_key_version).toBe(0);
-
-            await agent
-                .post('/settings/create-api-key')
-                .send({})
-                .expect(302)
-                .expect('Location', '/settings/account');
-
-            const updatedUser = await db('users').where({ id: user.id }).first();
-            expect(updatedUser.api_key).not.toBeNull();
-            expect(updatedUser.api_key_version).toBe(1);
-            expect(updatedUser.api_key_created_at).not.toBeNull();
-        });
-
-        it('should update session so account page shows API key UI', async () => {
-            const { agent } = await authenticateAgent(app);
-
-            await agent.post('/settings/create-api-key').send({}).expect(302);
-
-            const response = await agent.get('/settings/account').expect(200);
-
-            expect(response.text).toContain('view-or-hide-button');
-            expect(response.text).toContain('Regenerate');
-            expect(response.text).not.toContain('click to generate api key');
-        });
-
-        it('should increment api_key_version on regeneration', async () => {
-            const { agent, user } = await authenticateAgent(app);
-
-            await agent.post('/settings/create-api-key').send({}).expect(302);
-
-            const firstUser = await db('users').where({ id: user.id }).first();
-            expect(firstUser.api_key_version).toBe(1);
-            const firstKey = firstUser.api_key;
-
-            await agent.post('/settings/create-api-key').send({}).expect(302);
-
-            const secondUser = await db('users').where({ id: user.id }).first();
-            expect(secondUser.api_key_version).toBe(2);
-            expect(secondUser.api_key).not.toBe(firstKey);
-        });
-    });
-
-    describe('GET /api/settings/api-key', () => {
-        it('should require authentication', async () => {
-            await request(app).get('/api/settings/api-key').expect(401);
-        });
-
-        it('should return 404 if user has no API key', async () => {
-            const { agent } = await authenticateAgent(app);
-
-            const response = await agent.get('/api/settings/api-key').expect(404);
-
-            expect(response.body.error).toBe('API key not found');
-        });
-
-        it('should return API key if user has one', async () => {
-            const { agent, user } = await authenticateAgent(app);
-
-            await db('users').where({ id: user.id }).update({
-                api_key: 'test-api-key-12345',
-                api_key_version: 1,
-            });
-
-            const response = await agent.get('/api/settings/api-key').expect(200);
-
-            expect(response.body.api_key).toBe('test-api-key-12345');
-        });
-
-        it('should return fresh data from database not cached session', async () => {
-            const { agent, user } = await authenticateAgent(app);
-
-            await db('users').where({ id: user.id }).update({
-                api_key: 'initial-key',
-                api_key_version: 1,
-            });
-
-            const response1 = await agent.get('/api/settings/api-key').expect(200);
-            expect(response1.body.api_key).toBe('initial-key');
-
-            await db('users').where({ id: user.id }).update({
-                api_key: 'updated-key',
-                api_key_version: 2,
-            });
-
-            const response2 = await agent.get('/api/settings/api-key').expect(200);
-            expect(response2.body.api_key).toBe('updated-key');
-        });
-    });
-
-    describe('POST /settings/danger-zone/bulk-delete', () => {
-        it('should update session when deleting API keys', async () => {
-            const { agent, user } = await authenticateAgent(app);
-
-            await agent.post('/settings/create-api-key').send({}).expect(302);
-
-            const userWithKey = await db('users').where({ id: user.id }).first();
-            expect(userWithKey.api_key).not.toBeNull();
-
-            await agent
-                .post('/settings/danger-zone/bulk-delete')
-                .send({ delete_options: ['api_keys'] })
-                .expect(302);
-
-            const updatedUser = await db('users').where({ id: user.id }).first();
-            expect(updatedUser.api_key).toBeNull();
-            expect(updatedUser.api_key_version).toBe(0);
-
-            const response = await agent.get('/settings/account').expect(200);
-            expect(response.text).toContain('click to generate api key');
-            expect(response.text).not.toContain('Regenerate');
-        });
-
-        it('should sync api key fields to session after bulk delete', async () => {
-            const { agent } = await authenticateAgent(app);
-
-            await agent.post('/settings/create-api-key').send({}).expect(302);
-
-            const responseWithKey = await agent.get('/settings/account').expect(200);
-            expect(responseWithKey.text).toContain('"api_key_version":1');
-            expect(responseWithKey.text).not.toContain('"api_key":null');
-
-            await agent
-                .post('/settings/danger-zone/bulk-delete')
-                .send({ delete_options: ['api_keys'] })
-                .expect(302);
-
-            const responseAfterDelete = await agent.get('/settings/account').expect(200);
-            expect(responseAfterDelete.text).toContain('"api_key":null');
-            expect(responseAfterDelete.text).toContain('"api_key_version":0');
         });
     });
 });
