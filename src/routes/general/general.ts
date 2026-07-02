@@ -5,7 +5,7 @@ import type { Request, Response } from 'express';
 import type { Bang, User, AppContext, BangWithLowercase } from '../../type.js';
 import { createHonoRequestHandler } from '../hono/express-adapter.js';
 
-function createGeneralHonoRouter(ctx: AppContext) {
+export function createGeneralRouter(ctx: AppContext) {
     const app = new Hono<{ Bindings: HttpBindings }>();
 
     app.get('/healthz', async (c) => {
@@ -127,10 +127,6 @@ function createGeneralHonoRouter(ctx: AppContext) {
         });
     });
 
-    return app;
-}
-
-export function createGeneralRouter(ctx: AppContext) {
     const activeBangsPrefetch = new Set<string>();
 
     const bangsArray = Object.values(bangs as Record<string, Bang>);
@@ -143,19 +139,18 @@ export function createGeneralRouter(ctx: AppContext) {
     }));
 
     const router = ctx.libs.express.Router();
-    const honoRouter = createGeneralHonoRouter(ctx);
 
-    router.get('/healthz', createHonoRequestHandler(honoRouter.fetch));
+    router.get('/healthz', createHonoRequestHandler(app.fetch));
     router.get(
         '/metrics',
         ctx.middleware.authentication,
         ctx.middleware.adminOnly,
-        createHonoRequestHandler(honoRouter.fetch),
+        createHonoRequestHandler(app.fetch),
     );
     router.get(
         '/api/collections',
         ctx.middleware.authentication,
-        createHonoRequestHandler(honoRouter.fetch),
+        createHonoRequestHandler(app.fetch),
     );
 
     router.get('/', async (req: Request, res: Response) => {

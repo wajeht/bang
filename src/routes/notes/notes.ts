@@ -23,7 +23,7 @@ function createNoteMarkdownRenderer(ctx: AppContext) {
     });
 }
 
-function createNotesHonoRouter(ctx: AppContext) {
+export function createNotesRouter(ctx: AppContext) {
     const app = new Hono<{ Bindings: HttpBindings }>();
     const sharedMarked = createNoteMarkdownRenderer(ctx);
 
@@ -61,20 +61,14 @@ function createNotesHonoRouter(ctx: AppContext) {
         return c.json({ content: sanitized });
     });
 
-    return app;
-}
-
-export function createNotesRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
-    const honoRouter = createNotesHonoRouter(ctx);
     const NOTE_CONTENT_PREVIEW_LENGTH = 200;
     const NOTE_CONTENT_PREVIEW_SOURCE_LIMIT = 4000;
-    const sharedMarked = createNoteMarkdownRenderer(ctx);
 
     router.post(
         '/api/notes/render-markdown',
         ctx.middleware.authentication,
-        createHonoRequestHandler(honoRouter.fetch),
+        createHonoRequestHandler(app.fetch),
     );
 
     /**

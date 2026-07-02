@@ -4,7 +4,7 @@ import type { Request, Response } from 'express';
 import type { User, ApiKeyPayload, AppContext } from '../../type.js';
 import { createHonoRequestHandler } from '../hono/express-adapter.js';
 
-function createSettingsHonoRouter(ctx: AppContext) {
+export function createSettingsRouter(ctx: AppContext) {
     const app = new Hono<{ Bindings: HttpBindings }>();
 
     app.get('/api/settings/api-key', async (c) => {
@@ -18,10 +18,6 @@ function createSettingsHonoRouter(ctx: AppContext) {
         return c.json({ api_key: user.api_key });
     });
 
-    return app;
-}
-
-export function createSettingsRouter(ctx: AppContext) {
     const VALID_TIMEZONES = new Set([
         'UTC',
         'America/New_York',
@@ -42,12 +38,11 @@ export function createSettingsRouter(ctx: AppContext) {
     const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
     const router = ctx.libs.express.Router();
-    const honoRouter = createSettingsHonoRouter(ctx);
 
     router.get(
         '/api/settings/api-key',
         ctx.middleware.authentication,
-        createHonoRequestHandler(honoRouter.fetch),
+        createHonoRequestHandler(app.fetch),
     );
 
     router.get('/settings', ctx.middleware.authentication, async (_req: Request, res: Response) => {
