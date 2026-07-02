@@ -1,5 +1,5 @@
 import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils.js';
-import request from 'supertest';
+import request from '../../tests/hono-test-client.js';
 import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect, vi } from 'vite-plus/test';
 

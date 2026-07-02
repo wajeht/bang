@@ -1,10 +1,11 @@
-import request from 'supertest';
+import request from './hono-test-client.js';
 import { db, ctx, createTestUser } from './test-setup.js';
-import type { Test } from 'supertest';
-import type { ServerType } from '@hono/node-server';
+import type { HonoTestAgent, HonoTestRequestChain } from './hono-test-client.js';
+import type { createHonoApp } from '../http.js';
 
-type Agent = ReturnType<typeof request.agent>;
+type Agent = HonoTestAgent;
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+type TestApp = ReturnType<typeof createHonoApp>;
 
 function extractCsrfToken(html: string): string {
     const match =
@@ -17,7 +18,7 @@ function extractCsrfToken(html: string): string {
 function wrapMethods<T extends HttpMethod>(
     agent: Agent,
     methods: readonly T[],
-    wrap: (req: Test, method: T) => Test,
+    wrap: (req: HonoTestRequestChain, method: T) => HonoTestRequestChain,
 ) {
     for (const method of methods) {
         const original = agent[method].bind(agent);
@@ -46,7 +47,7 @@ export interface AuthOptions {
     email?: string;
 }
 
-export async function authenticateAgent(app: ServerType, options: AuthOptions = {}) {
+export async function authenticateAgent(app: TestApp, options: AuthOptions = {}) {
     const { admin = false, email = admin ? 'admin@example.com' : 'test@example.com' } = options;
 
     const user = await createTestUser(email, admin);
@@ -59,15 +60,15 @@ export async function authenticateAgent(app: ServerType, options: AuthOptions = 
     return { agent, user };
 }
 
-export const authenticateAdminAgent = (app: ServerType) => authenticateAgent(app, { admin: true });
+export const authenticateAdminAgent = (app: TestApp) => authenticateAgent(app, { admin: true });
 
-export async function createUnauthenticatedAgent(app: ServerType) {
+export async function createUnauthenticatedAgent(app: TestApp) {
     const agent = request.agent(app);
     await addCsrfToAgent(agent, '/');
     return agent;
 }
 
-export async function authenticateApiAgent(app: ServerType) {
+export async function authenticateApiAgent(app: TestApp) {
     const user = await createTestUser('test@example.com', false);
 
     const apiKeyVersion = 1;

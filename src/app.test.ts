@@ -1,4 +1,4 @@
-import request from 'supertest';
+import type { AddressInfo } from 'node:net';
 import { serve, type ServerType } from '@hono/node-server';
 import { describe, it, expect, vi } from 'vite-plus/test';
 import { createApp, closeServer, activeSockets } from './app.js';
@@ -19,6 +19,11 @@ async function createTestServer(): Promise<{ server: ServerType; ctx: AppContext
     });
 
     return { server, ctx };
+}
+
+function getServerUrl(server: ServerType) {
+    const address = server.address() as AddressInfo;
+    return `http://127.0.0.1:${address.port}`;
 }
 
 describe('App', () => {
@@ -47,7 +52,8 @@ describe('App', () => {
             activeSockets.clear();
             const initialCount = activeSockets.size;
 
-            await request(server).get('/healthz').expect(200);
+            const response = await fetch(`${getServerUrl(server)}/healthz`);
+            expect(response.status).toBe(200);
 
             expect(activeSockets.size).toBeGreaterThanOrEqual(initialCount);
 
@@ -57,7 +63,8 @@ describe('App', () => {
         it('should allow clearing sockets via clearActiveSockets', async () => {
             const { server } = await createTestServer();
 
-            await request(server).get('/healthz').expect(200);
+            const response = await fetch(`${getServerUrl(server)}/healthz`);
+            expect(response.status).toBe(200);
 
             activeSockets.clear();
             expect(activeSockets.size).toBe(0);
@@ -114,7 +121,8 @@ describe('App', () => {
         it('should clear all active sockets', async () => {
             const { server, ctx } = await createTestServer();
 
-            await request(server).get('/healthz').expect(200);
+            const response = await fetch(`${getServerUrl(server)}/healthz`);
+            expect(response.status).toBe(200);
 
             const dbDestroySpy = vi.spyOn(ctx.db, 'destroy').mockResolvedValue(undefined);
 

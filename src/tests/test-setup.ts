@@ -3,15 +3,15 @@ process.env.NODE_ENV = 'testing';
 
 import { createApp } from '../app.js';
 import { Log } from '../utils/logger.js';
-import { serve, type ServerType } from '@hono/node-server';
 import { beforeAll, beforeEach, afterAll } from 'vite-plus/test';
 import { createDb, createUser, cleanupTables } from './test-db.js';
+import type { createHonoApp } from '../http.js';
 import type { AppContext } from '../type.js';
 
 Log.setLevel('SILENT');
 
 export const db = createDb();
-export let app: ServerType;
+export let app: ReturnType<typeof createHonoApp>;
 export let ctx: AppContext;
 
 export const createTestUser = (email: string, isAdmin = false) =>
@@ -22,7 +22,7 @@ beforeAll(async () => {
     if (!app) {
         const created = await createApp();
         ctx = created.ctx;
-        app = serve({ fetch: created.app.fetch, port: 0 });
+        app = created.app;
     }
 });
 
@@ -32,6 +32,5 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
-    app?.close();
     await db.destroy();
 });

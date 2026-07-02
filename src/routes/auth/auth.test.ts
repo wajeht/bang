@@ -1,6 +1,6 @@
 import { authenticateAgent } from '../../tests/api-test-utils.js';
 import bcrypt from 'bcrypt';
-import request from 'supertest';
+import request from '../../tests/hono-test-client.js';
 import { db, app, ctx } from '../../tests/test-setup.js';
 import { describe, it, expect, beforeAll } from 'vite-plus/test';
 

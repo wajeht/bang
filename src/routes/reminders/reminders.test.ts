@@ -3,7 +3,7 @@ import {
     authenticateApiAgent,
     createUnauthenticatedAgent,
 } from '../../tests/api-test-utils.js';
-import request from 'supertest';
+import request from '../../tests/hono-test-client.js';
 import { dayjs } from '../../libs.js';
 import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect } from 'vite-plus/test';
