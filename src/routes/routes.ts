@@ -27,6 +27,12 @@ export function createRouter(ctx: AppContext) {
     const generalHonoRouter = createGeneralHonoRouter(ctx);
 
     router.get('/healthz', createHonoRequestHandler(generalHonoRouter.fetch));
+    router.get(
+        '/metrics',
+        ctx.middleware.authentication,
+        ctx.middleware.adminOnly,
+        createHonoRequestHandler(generalHonoRouter.fetch),
+    );
 
     router.use(createAuthRouter(ctx));
     router.use(createAdminRouter(ctx));
