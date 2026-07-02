@@ -1,5 +1,4 @@
 import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
-import { renderView } from '../middleware.js';
 import { Hono } from 'hono';
 
 export function createSearchRouter(ctx: AppContext) {
@@ -143,7 +142,7 @@ function renderSearchResults(
     c: AppContextContext,
     options: Record<string, unknown>,
 ) {
-    return renderView(ctx, c, 'search/search-results.html', {
+    return c.render('search/search-results.html', {
         user: c.get('session')?.user,
         path: '/search',
         layout: '_layouts/auth.html',

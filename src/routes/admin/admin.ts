@@ -1,5 +1,5 @@
 import type { AppContext, AppContextContext, AppEnv } from '../../type.js';
-import { renderView, setFlash } from '../middleware.js';
+import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
 export function createAdminRouter(ctx: AppContext) {
@@ -17,7 +17,7 @@ export function createAdminRouter(ctx: AppContext) {
         async (c) => {
             const branding = await ctx.models.settings.getBranding();
 
-            return renderView(ctx, c, 'admin/admin-settings-identity.html', {
+            return c.render('admin/admin-settings-identity.html', {
                 user: c.get('user'),
                 title: 'Admin / Identity',
                 path: '/admin/settings/identity',
@@ -52,7 +52,7 @@ export function createAdminRouter(ctx: AppContext) {
         async (c) => {
             const branding = await ctx.models.settings.getBranding();
 
-            return renderView(ctx, c, 'admin/admin-settings-visibility.html', {
+            return c.render('admin/admin-settings-visibility.html', {
                 user: c.get('user'),
                 title: 'Admin / Visibility',
                 path: '/admin/settings/visibility',
@@ -102,7 +102,7 @@ export function createAdminRouter(ctx: AppContext) {
                 .orderBy(sortKey || 'created_at', direction || 'desc')
                 .paginate({ perPage, currentPage: page, isLengthAware: true });
 
-            return renderView(ctx, c, 'admin/admin-users-index.html', {
+            return c.render('admin/admin-users-index.html', {
                 user: c.get('user'),
                 title: 'Admin / Users',
                 path: '/admin/users',

@@ -124,6 +124,7 @@ export async function createApp() {
     app.use('*', ctx.middleware.rateLimit);
     app.use('*', ctx.middleware.csrf);
     app.use('*', ctx.middleware.appLocalState);
+    app.use('*', ctx.middleware.renderer);
 
     app.route('/', createRouter(ctx));
     app.notFound(ctx.middleware.notFound);

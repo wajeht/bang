@@ -1,5 +1,6 @@
 import { getConnInfo } from '@hono/node-server/conninfo';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
+import { HTTPException } from 'hono/http-exception';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type {
     AppContext,
@@ -91,20 +92,20 @@ export function createSessionMiddleware(ctx: AppContext): AppMiddleware {
     };
 }
 
-export function renderView(
-    ctx: AppContext,
-    c: AppContextContext,
-    view: string,
-    options: Record<string, unknown> = {},
-) {
-    const locals = c.get('locals');
-    return c.html(
-        ctx.utils.template.render(view, {
-            ...locals,
-            csrfToken: locals.csrfToken ?? '',
-            ...options,
-        }),
-    );
+export function createRendererMiddleware(ctx: AppContext): AppMiddleware {
+    return async (c, next) => {
+        c.setRenderer((view, props = {}) => {
+            const locals = c.get('locals');
+            return c.html(
+                ctx.utils.template.render(view, {
+                    ...locals,
+                    csrfToken: locals.csrfToken ?? '',
+                    ...props,
+                }),
+            );
+        });
+        await next();
+    };
 }
 
 export function setFlash(c: AppContextContext, type: string, message: string) {
@@ -174,10 +175,14 @@ export function createErrorMiddleware(ctx: AppContext) {
             userId: c.get('user')?.id || session?.user?.id,
         });
 
-        const httpError =
-            error instanceof ctx.errors.HttpError
-                ? error
-                : new ctx.errors.HttpError(500, error.message);
+        let httpError: InstanceType<typeof ctx.errors.HttpError>;
+        if (error instanceof ctx.errors.HttpError) {
+            httpError = error;
+        } else if (error instanceof HTTPException) {
+            httpError = new ctx.errors.HttpError(error.status, error.message);
+        } else {
+            httpError = new ctx.errors.HttpError(500, error.message);
+        }
         const statusCode = httpError.statusCode || 500;
         const message =
             httpError.message ||

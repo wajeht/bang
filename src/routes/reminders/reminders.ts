@@ -1,5 +1,5 @@
 import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
-import { renderView, setFlash } from '../middleware.js';
+import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
 export function createRemindersRouter(ctx: AppContext) {
@@ -8,7 +8,7 @@ export function createRemindersRouter(ctx: AppContext) {
     const router = new Hono<AppEnv>();
 
     router.get('/reminders/create', ctx.middleware.authentication, async (c) => {
-        return renderView(ctx, c, 'reminders/reminders-new.html', {
+        return c.render('reminders/reminders-new.html', {
             title: 'Reminders / New',
             path: '/reminders/create',
             layout: '_layouts/auth.html',
@@ -27,7 +27,7 @@ export function createRemindersRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Reminder not found');
         }
 
-        return renderView(ctx, c, 'reminders/reminders-edit.html', {
+        return c.render('reminders/reminders-edit.html', {
             title: 'Reminders / Edit',
             path: `/reminders/${reminderId}/edit`,
             layout: '_layouts/auth.html',
@@ -47,7 +47,7 @@ export function createRemindersRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Reminder not found');
         }
 
-        return renderView(ctx, c, 'reminders/reminders-bookmarks-new.html', {
+        return c.render('reminders/reminders-bookmarks-new.html', {
             title: `Reminders / ${reminderId} / Bookmarks / Create`,
             path: `/reminders/${reminderId}/bookmarks/create`,
             layout: '_layouts/auth.html',
@@ -191,7 +191,7 @@ export function createRemindersRouter(ctx: AppContext) {
 
         ctx.utils.html.applyHighlighting(remindersData, ['title', 'content'], search);
 
-        return renderView(ctx, c, 'reminders/reminders-index.html', {
+        return c.render('reminders/reminders-index.html', {
             user,
             title: 'Reminders',
             path: '/reminders',

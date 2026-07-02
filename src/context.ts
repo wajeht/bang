@@ -18,6 +18,7 @@ import {
     createAuthenticationMiddleware,
     createSpeculationRulesMiddleware,
     createSessionMiddleware,
+    createRendererMiddleware,
 } from './routes/middleware.js';
 import { libs } from './libs.js';
 import { config } from './config.js';
@@ -124,6 +125,7 @@ export async function createContext(): Promise<AppContext> {
         authentication: createAuthenticationMiddleware(partialCtx),
         speculationRules: createSpeculationRulesMiddleware(),
         requestLogger: createRequestLoggerMiddleware(partialCtx),
+        renderer: createRendererMiddleware(partialCtx),
     };
 
     partialCtx.middleware = middlewares;

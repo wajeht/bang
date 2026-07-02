@@ -1,12 +1,12 @@
 import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
-import { renderView, setFlash } from '../middleware.js';
+import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
 export function createTabsRouter(ctx: AppContext) {
     const router = new Hono<AppEnv>();
 
     router.get('/tabs/create', ctx.middleware.authentication, async (c) => {
-        return renderView(ctx, c, 'tabs/tabs-new.html', {
+        return c.render('tabs/tabs-new.html', {
             title: 'Tabs / Create',
             path: '/tabs/create',
             layout: '_layouts/auth.html',
@@ -22,7 +22,7 @@ export function createTabsRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Tab group not found');
         }
 
-        return renderView(ctx, c, 'tabs/tabs-edit.html', {
+        return c.render('tabs/tabs-edit.html', {
             title: 'Tabs / Edit',
             path: `/tabs/${String(c.req.param('id'))}/edit`,
             layout: '_layouts/auth.html',
@@ -41,7 +41,7 @@ export function createTabsRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Tab group not found');
         }
 
-        return renderView(ctx, c, 'tabs/tabs-launch.html', {
+        return c.render('tabs/tabs-launch.html', {
             title: `Tabs Launch: ${tabGroup.title}`,
             path: `/tabs/${String(id)}/launch`,
             layout: '_layouts/auth.html',
@@ -60,7 +60,7 @@ export function createTabsRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Tab group not found');
         }
 
-        return renderView(ctx, c, 'tabs/tabs-items-new.html', {
+        return c.render('tabs/tabs-items-new.html', {
             title: 'Add Tab Item',
             path: `/tabs/${String(tabId)}/items/create`,
             layout: '_layouts/auth.html',
@@ -90,7 +90,7 @@ export function createTabsRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Tab item not found');
         }
 
-        return renderView(ctx, c, 'tabs/tabs-items-edit.html', {
+        return c.render('tabs/tabs-items-edit.html', {
             title: 'Edit Tab Item',
             path: `/tabs/${String(id)}/items/${String(itemId)}/edit`,
             layout: '_layouts/auth.html',
@@ -116,7 +116,7 @@ export function createTabsRouter(ctx: AppContext) {
 
         ctx.utils.html.applyHighlighting(tabsData, ['title', 'trigger'], search);
 
-        return renderView(ctx, c, 'tabs/tabs-index.html', {
+        return c.render('tabs/tabs-index.html', {
             title: 'Tabs',
             path: '/tabs',
             layout: '_layouts/auth.html',

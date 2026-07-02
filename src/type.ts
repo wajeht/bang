@@ -74,6 +74,12 @@ export interface AppEnv {
 export type AppContextContext = Context<AppEnv>;
 export type AppMiddleware = MiddlewareHandler<AppEnv>;
 
+declare module 'hono' {
+    interface ContextRenderer {
+        (view: string, props?: Record<string, unknown>): Response;
+    }
+}
+
 export type Bang = {
     /** Category of the bang (e.g., "Multimedia", "Online Services"). */
     c: string;
@@ -428,6 +434,7 @@ export interface Middlewares {
     appLocalState: AppMiddleware;
     speculationRules: AppMiddleware;
     requestLogger: AppMiddleware;
+    renderer: AppMiddleware;
 }
 
 export interface ErrorClasses {

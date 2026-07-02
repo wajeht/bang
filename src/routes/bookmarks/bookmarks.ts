@@ -1,5 +1,5 @@
 import type { AppContext, AppContextContext, AppEnv, BookmarkToExport, User } from '../../type.js';
-import { renderView, setFlash } from '../middleware.js';
+import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
 export function createBookmarksRouter(ctx: AppContext) {
@@ -26,7 +26,7 @@ export function createBookmarksRouter(ctx: AppContext) {
 
         ctx.utils.html.applyHighlighting(data, ['title', 'url'], search);
 
-        return renderView(ctx, c, 'bookmarks/bookmarks-index.html', {
+        return c.render('bookmarks/bookmarks-index.html', {
             user: c.get('user'),
             title: 'Bookmarks',
             path: '/bookmarks',
@@ -42,7 +42,7 @@ export function createBookmarksRouter(ctx: AppContext) {
     }
 
     router.get('/bookmarks/create', ctx.middleware.authentication, async (c) => {
-        return renderView(ctx, c, 'bookmarks/bookmarks-new.html', {
+        return c.render('bookmarks/bookmarks-new.html', {
             title: 'Bookmarks / New',
             path: '/bookmarks/create',
             layout: '_layouts/auth.html',
@@ -86,7 +86,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Bookmark not found');
         }
 
-        return renderView(ctx, c, 'bookmarks/bookmarks-edit.html', {
+        return c.render('bookmarks/bookmarks-edit.html', {
             title: 'Bookmarks / Edit',
             path: '/bookmarks/edit',
             layout: '_layouts/auth.html',
@@ -111,7 +111,7 @@ export function createBookmarksRouter(ctx: AppContext) {
 
         const tabs = await ctx.db('tabs').where({ user_id: session.user?.id });
 
-        return renderView(ctx, c, 'bookmarks/bookmarks-tabs-new.html', {
+        return c.render('bookmarks/bookmarks-tabs-new.html', {
             title: `Bookmarks / ${id} / Tabs / Create`,
             path: `/bookmarks/${id}/tabs/create`,
             layout: '_layouts/auth.html',
@@ -130,7 +130,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             .first();
 
         const id = c.req.param('id');
-        return renderView(ctx, c, 'bookmarks/bookmarks-actions-new.html', {
+        return c.render('bookmarks/bookmarks-actions-new.html', {
             title: `Bookmarks / ${String(id)} / Actions / Create`,
             path: `/bookmarks/${String(id)}/actions/create`,
             layout: '_layouts/auth.html',

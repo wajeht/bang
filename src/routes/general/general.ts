@@ -1,6 +1,6 @@
 import { bangs } from '../../db/bang.js';
 import type { AppContext, AppContextContext, AppEnv, Bang, BangWithLowercase } from '../../type.js';
-import { renderView, setFlash } from '../middleware.js';
+import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
 export function createGeneralRouter(ctx: AppContext) {
@@ -59,7 +59,7 @@ export function createGeneralRouter(ctx: AppContext) {
         const user = c.get('session').user ?? undefined;
 
         if (!searchQuery) {
-            return renderView(ctx, c, 'general/home.html', {
+            return c.render('general/home.html', {
                 path: '/',
                 title: 'Search',
             });
@@ -69,21 +69,21 @@ export function createGeneralRouter(ctx: AppContext) {
     });
 
     router.get('/about', async (c) => {
-        return renderView(ctx, c, 'general/about.html', {
+        return c.render('general/about.html', {
             path: '/about',
             title: 'About',
         });
     });
 
     router.get('/privacy-policy', async (c) => {
-        return renderView(ctx, c, 'general/privacy-policy.html', {
+        return c.render('general/privacy-policy.html', {
             path: '/privacy-policy',
             title: 'Privacy Policy',
         });
     });
 
     router.get('/terms-of-service', async (c) => {
-        return renderView(ctx, c, 'general/terms-of-service.html', {
+        return c.render('general/terms-of-service.html', {
             path: '/terms-of-service',
             title: 'Terms of Service',
         });
@@ -165,7 +165,7 @@ export function createGeneralRouter(ctx: AppContext) {
             highlightedData = data;
         }
 
-        return renderView(ctx, c, 'general/bangs-index.html', {
+        return c.render('general/bangs-index.html', {
             layout: '_layouts/auth.html',
             user: c.get('session').user,
             path: c.req.path,

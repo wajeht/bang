@@ -1,5 +1,5 @@
 import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
-import { renderView, setFlash } from '../middleware.js';
+import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
 function createNoteMarkdownRenderer(ctx: AppContext) {
@@ -83,7 +83,7 @@ export function createNotesRouter(ctx: AppContext) {
 
         ctx.utils.html.applyHighlighting(markdownRemovedData, ['title', 'content'], search);
 
-        return renderView(ctx, c, 'notes/notes-index.html', {
+        return c.render('notes/notes-index.html', {
             user: c.get('user'),
             title: 'Notes',
             path: '/notes',
@@ -99,7 +99,7 @@ export function createNotesRouter(ctx: AppContext) {
     }
 
     router.get('/notes/create', ctx.middleware.authentication, async (c) => {
-        return renderView(ctx, c, 'notes/notes-new.html', {
+        return c.render('notes/notes-new.html', {
             title: 'Notes / Create',
             path: '/notes/create',
             layout: '_layouts/auth.html',
@@ -114,7 +114,7 @@ export function createNotesRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Note not found');
         }
 
-        return renderView(ctx, c, 'notes/notes-edit.html', {
+        return c.render('notes/notes-edit.html', {
             title: 'Notes / Edit',
             path: '/notes/edit',
             layout: '_layouts/auth.html',
@@ -212,7 +212,7 @@ export function createNotesRouter(ctx: AppContext) {
             content,
         };
 
-        return renderView(ctx, c, 'notes/notes-show.html', {
+        return c.render('notes/notes-show.html', {
             title: `Notes / ${note.title}`,
             path: `/notes/${note.id}`,
             layout: '_layouts/auth.html',

@@ -1,5 +1,5 @@
 import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
-import { renderView, setFlash } from '../middleware.js';
+import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
 export function createActionsRouter(ctx: AppContext) {
@@ -26,7 +26,7 @@ export function createActionsRouter(ctx: AppContext) {
 
         ctx.utils.html.applyHighlighting(data, ['name', 'trigger', 'url'], search);
 
-        return renderView(ctx, c, 'actions/actions-index.html', {
+        return c.render('actions/actions-index.html', {
             user: c.get('user'),
             path: '/actions',
             title: 'Actions',
@@ -42,7 +42,7 @@ export function createActionsRouter(ctx: AppContext) {
     }
 
     router.get('/actions/create', ctx.middleware.authentication, async (c) => {
-        return renderView(ctx, c, 'actions/actions-new.html', {
+        return c.render('actions/actions-new.html', {
             title: 'Actions / New',
             path: '/actions/create',
             layout: '_layouts/auth.html',
@@ -64,7 +64,7 @@ export function createActionsRouter(ctx: AppContext) {
             throw new ctx.errors.NotFoundError('Action not found');
         }
 
-        return renderView(ctx, c, 'actions/actions-edit.html', {
+        return c.render('actions/actions-edit.html', {
             title: 'Actions / Edit',
             path: '/actions/edit',
             layout: '_layouts/auth.html',
@@ -89,7 +89,7 @@ export function createActionsRouter(ctx: AppContext) {
 
         const tabs = await ctx.db('tabs').where({ user_id: session.user?.id });
 
-        return renderView(ctx, c, 'actions/actions-tabs-new.html', {
+        return c.render('actions/actions-tabs-new.html', {
             title: `Actions / ${String(id)} / Tabs / Create`,
             path: `/actions/${String(id)}/tabs/create`,
             layout: '_layouts/auth.html',
