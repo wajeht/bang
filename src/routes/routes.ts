@@ -6,7 +6,7 @@ import { createNotesRouter } from './notes/notes.js';
 import { createSearchRouter } from './search/search.js';
 import { createActionsRouter } from './actions/actions.js';
 import { createGeneralNativeRouter, createGeneralRouter } from './general/general.js';
-import { createSettingsRouter } from './settings/settings.js';
+import { createSettingsNativeRouter, createSettingsRouter } from './settings/settings.js';
 import { createBookmarksRouter } from './bookmarks/bookmarks.js';
 import { createRemindersRouter } from './reminders/reminders.js';
 import { createHonoRequestHandler } from './hono/express-adapter.js';
@@ -24,6 +24,7 @@ import { createHonoRequestHandler } from './hono/express-adapter.js';
 export function createRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
     const generalNativeRouter = createGeneralNativeRouter(ctx);
+    const settingsNativeRouter = createSettingsNativeRouter(ctx);
 
     router.get('/healthz', createHonoRequestHandler(generalNativeRouter.fetch));
     router.get(
@@ -36,6 +37,11 @@ export function createRouter(ctx: AppContext) {
         '/api/collections',
         ctx.middleware.authentication,
         createHonoRequestHandler(generalNativeRouter.fetch),
+    );
+    router.get(
+        '/api/settings/api-key',
+        ctx.middleware.authentication,
+        createHonoRequestHandler(settingsNativeRouter.fetch),
     );
 
     router.use(createAuthRouter(ctx));

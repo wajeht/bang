@@ -1,5 +1,24 @@
+import { Hono } from 'hono';
+import type { HttpBindings } from '@hono/node-server';
 import type { Request, Response } from 'express';
 import type { User, ApiKeyPayload, AppContext } from '../../type.js';
+
+export function createSettingsNativeRouter(ctx: AppContext) {
+    const app = new Hono<{ Bindings: HttpBindings }>();
+
+    app.get('/api/settings/api-key', async (c) => {
+        const req = c.env.incoming as Request;
+        const user = await ctx.db('users').where({ id: req.session.user?.id }).first();
+
+        if (!user || !user.api_key) {
+            return c.json({ error: 'API key not found' }, 404);
+        }
+
+        return c.json({ api_key: user.api_key });
+    });
+
+    return app;
+}
 
 export function createSettingsRouter(ctx: AppContext) {
     const VALID_TIMEZONES = new Set([
@@ -611,20 +630,6 @@ export function createSettingsRouter(ctx: AppContext) {
 
             req.flash('success', '📱 api key created');
             return res.redirect(`/settings/account`);
-        },
-    );
-
-    router.get(
-        '/api/settings/api-key',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = await ctx.db('users').where({ id: req.session.user?.id }).first();
-
-            if (!user || !user.api_key) {
-                return res.status(404).json({ error: 'API key not found' });
-            }
-
-            return res.json({ api_key: user.api_key });
         },
     );
 
