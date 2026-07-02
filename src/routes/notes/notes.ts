@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { HttpBindings } from '@hono/node-server';
 import type { Request, Response } from 'express';
 import type { AppContext, User } from '../../type.js';
+import { createHonoRequestHandler } from '../hono/express-adapter.js';
 
 function createNoteMarkdownRenderer(ctx: AppContext) {
     const noteRenderer = new ctx.libs.Renderer();
@@ -22,7 +23,7 @@ function createNoteMarkdownRenderer(ctx: AppContext) {
     });
 }
 
-export function createNotesRouter(ctx: AppContext) {
+function createNotesHonoRouter(ctx: AppContext) {
     const app = new Hono<{ Bindings: HttpBindings }>();
     const sharedMarked = createNoteMarkdownRenderer(ctx);
 
@@ -63,11 +64,18 @@ export function createNotesRouter(ctx: AppContext) {
     return app;
 }
 
-export function createNotesExpressRouter(ctx: AppContext) {
+export function createNotesRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
+    const honoRouter = createNotesHonoRouter(ctx);
     const NOTE_CONTENT_PREVIEW_LENGTH = 200;
     const NOTE_CONTENT_PREVIEW_SOURCE_LIMIT = 4000;
     const sharedMarked = createNoteMarkdownRenderer(ctx);
+
+    router.post(
+        '/api/notes/render-markdown',
+        ctx.middleware.authentication,
+        createHonoRequestHandler(honoRouter.fetch),
+    );
 
     /**
      * A note

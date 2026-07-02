@@ -3,8 +3,9 @@ import { bangs } from '../../db/bang.js';
 import type { HttpBindings } from '@hono/node-server';
 import type { Request, Response } from 'express';
 import type { Bang, User, AppContext, BangWithLowercase } from '../../type.js';
+import { createHonoRequestHandler } from '../hono/express-adapter.js';
 
-export function createGeneralRouter(ctx: AppContext) {
+function createGeneralHonoRouter(ctx: AppContext) {
     const app = new Hono<{ Bindings: HttpBindings }>();
 
     app.get('/healthz', async (c) => {
@@ -129,7 +130,7 @@ export function createGeneralRouter(ctx: AppContext) {
     return app;
 }
 
-export function createGeneralExpressRouter(ctx: AppContext) {
+export function createGeneralRouter(ctx: AppContext) {
     const activeBangsPrefetch = new Set<string>();
 
     const bangsArray = Object.values(bangs as Record<string, Bang>);
@@ -142,6 +143,20 @@ export function createGeneralExpressRouter(ctx: AppContext) {
     }));
 
     const router = ctx.libs.express.Router();
+    const honoRouter = createGeneralHonoRouter(ctx);
+
+    router.get('/healthz', createHonoRequestHandler(honoRouter.fetch));
+    router.get(
+        '/metrics',
+        ctx.middleware.authentication,
+        ctx.middleware.adminOnly,
+        createHonoRequestHandler(honoRouter.fetch),
+    );
+    router.get(
+        '/api/collections',
+        ctx.middleware.authentication,
+        createHonoRequestHandler(honoRouter.fetch),
+    );
 
     router.get('/', async (req: Request, res: Response) => {
         const query = (typeof req.query.q === 'string' ? req.query.q : '').trim();
