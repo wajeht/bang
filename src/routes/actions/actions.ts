@@ -6,18 +6,6 @@ import { Hono } from 'hono';
 export function createActionsRouter(ctx: AppContext) {
     const router = new Hono<AppEnv>();
 
-    /**
-     * An action
-     * @typedef {object} Action
-     * @property {string} id - action id
-     * @property {string} url.required - action url
-     * @property {string} name.required - action name
-     * @property {string} actionType.required - action type
-     * @property {string} trigger.required - trigger condition
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     */
-
     router.get('/actions', ctx.middleware.authentication, getActionsHandler);
     async function getActionsHandler(c: AppContextContext) {
         const user = c.get('user') as User;

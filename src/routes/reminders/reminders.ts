@@ -8,19 +8,6 @@ export function createRemindersRouter(ctx: AppContext) {
 
     const router = new Hono<AppEnv>();
 
-    /**
-     * A reminder
-     * @typedef {object} Reminder
-     * @property {string} id - reminder id
-     * @property {string} title.required - reminder title
-     * @property {string} content - reminder content
-     * @property {string} reminder_type.required - reminder type
-     * @property {string} frequency - reminder frequency
-     * @property {string} due_date - reminder due date
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     */
-
     router.get('/reminders/create', ctx.middleware.authentication, async (c) => {
         return renderView(ctx, c, 'reminders/reminders-new.html', {
             title: 'Reminders / New',

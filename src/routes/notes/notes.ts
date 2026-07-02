@@ -42,16 +42,6 @@ export function createNotesRouter(ctx: AppContext) {
         return c.json({ content: sanitized });
     });
 
-    /**
-     * A note
-     * @typedef {object} Note
-     * @property {string} id - note id
-     * @property {string} title.required - note title
-     * @property {string} content.required - note content
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     */
-
     router.get('/notes', ctx.middleware.authentication, getNotesHandler);
     async function getNotesHandler(c: AppContextContext) {
         const user = c.get('user') as User;

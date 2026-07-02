@@ -6,17 +6,6 @@ import { Hono } from 'hono';
 export function createBookmarksRouter(ctx: AppContext) {
     const router = new Hono<AppEnv>();
 
-    /**
-     * A bookmark
-     * @typedef {object} Bookmark
-     * @property {number} id - bookmark id
-     * @property {string} url.required - bookmark url
-     * @property {string} title.required - bookmark title
-     * @property {string} description - bookmark description
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     */
-
     router.get('/bookmarks', ctx.middleware.authentication, getBookmarksHandler);
     async function getBookmarksHandler(c: AppContextContext) {
         const user = c.get('user') as User;

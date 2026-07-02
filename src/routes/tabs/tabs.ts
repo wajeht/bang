@@ -6,18 +6,6 @@ import { Hono } from 'hono';
 export function createTabsRouter(ctx: AppContext) {
     const router = new Hono<AppEnv>();
 
-    /**
-     *
-     * A tab
-     * @typedef {object} Tab
-     * @property {string} id - tab id
-     * @property {string} title.required - tab title
-     * @property {string} trigger.required - tab trigger
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     *
-     */
-
     router.get('/tabs/create', ctx.middleware.authentication, async (c) => {
         return renderView(ctx, c, 'tabs/tabs-new.html', {
             title: 'Tabs / Create',
@@ -283,19 +271,6 @@ export function createTabsRouter(ctx: AppContext) {
         );
         return c.redirect('/tabs');
     }
-
-    /**
-     *
-     * A tab item
-     * @typedef {object} TabItem
-     * @property {string} id - tab item id
-     * @property {string} tab_id - parent tab id
-     * @property {string} title.required - tab item title
-     * @property {string} url.required - tab item url
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     *
-     */
 
     router.post('/tabs/:id/items/create', ctx.middleware.authentication, postTabItemCreateHandler);
     async function postTabItemCreateHandler(c: AppContextContext) {
