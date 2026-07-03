@@ -2,7 +2,7 @@
 
 import { createContext } from '../context.js';
 import { db } from '../tests/test-setup.js';
-import type { AppContextContext, AppSessionData as SessionData } from '../type.js';
+import type { HonoContext, AppSessionData as SessionData } from '../type.js';
 import { createSearch } from '../utils/search.js';
 import type { User, AppContext } from '../type.js';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
@@ -52,7 +52,7 @@ function createTestContext(
         set: vi.fn(),
         status: () => undefined,
     },
-): AppContextContext {
+): HonoContext {
     const headers: Record<string, string> = {};
     const values = new Map<string, unknown>();
 
@@ -104,7 +104,7 @@ function createTestContext(
             res.send(html);
             return new globalThis.Response(html, { status: statusCode });
         },
-    } as unknown as AppContextContext;
+    } as unknown as HonoContext;
 }
 
 function runSearch({

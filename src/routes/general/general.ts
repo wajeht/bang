@@ -1,5 +1,5 @@
 import { bangs } from '../../db/bang.js';
-import type { AppContext, AppContextContext, AppEnv, Bang, BangWithLowercase } from '../../type.js';
+import type { AppContext, HonoContext, AppEnv, Bang, BangWithLowercase } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
@@ -54,7 +54,7 @@ export function createGeneralRouter(ctx: AppContext) {
         _dLower: bang.d.toLowerCase(),
     }));
 
-    router.get('/', async (c: AppContextContext) => {
+    router.get('/', async (c: HonoContext) => {
         const searchQuery = c.req.query('q')?.trim() ?? '';
         const user = c.get('session').user ?? undefined;
 
@@ -181,7 +181,7 @@ export function createGeneralRouter(ctx: AppContext) {
         '/bangs/prefetch',
         ctx.middleware.authentication,
         ctx.middleware.adminOnly,
-        async (c: AppContextContext) => {
+        async (c: HonoContext) => {
             const adminId = 'admin';
 
             if (activeBangsPrefetch.has(adminId)) {

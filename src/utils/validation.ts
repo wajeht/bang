@@ -2,6 +2,7 @@ export function createValidation() {
     const REGEX_WWW_PREFIX = /^www\./i;
     const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const REGEX_ALPHANUMERIC = /^[a-zA-Z0-9]+$/;
+    const REGEX_CLOCK_TIME = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
     const REGEX_URL_PROTOCOL = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
     const REGEX_DOMAIN_PATTERN =
         /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/i;
@@ -21,6 +22,10 @@ export function createValidation() {
 
     function isOnlyLettersAndNumbers(str: string): boolean {
         return REGEX_ALPHANUMERIC.test(str);
+    }
+
+    function isValidClockTime(str: string): boolean {
+        return REGEX_CLOCK_TIME.test(str);
     }
 
     function isUrlLike(str: string): boolean {
@@ -82,6 +87,7 @@ export function createValidation() {
         isValidUrl,
         isValidEmail,
         isOnlyLettersAndNumbers,
+        isValidClockTime,
         isUrlLike,
         extractUrlFromText,
         findDomainUrlInWords,

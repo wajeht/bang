@@ -1,10 +1,10 @@
-import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
+import type { AppContext, HonoContext, AppEnv, User } from '../../type.js';
 import { Hono } from 'hono';
 
 export function createSearchRouter(ctx: AppContext) {
     const router = new Hono<AppEnv>();
 
-    router.post('/search', async (c: AppContextContext) => {
+    router.post('/search', async (c: HonoContext) => {
         const body = c.get('body');
         const query = body.q?.toString().trim() || '';
         const user = c.get('session').user ?? undefined;
@@ -12,7 +12,7 @@ export function createSearchRouter(ctx: AppContext) {
         return (await ctx.utils.search.search({ c, user, query })) ?? c.body(null);
     });
 
-    router.get('/search', ctx.middleware.authentication, async (c: AppContextContext) => {
+    router.get('/search', ctx.middleware.authentication, async (c: HonoContext) => {
         const user = c.get('user') as User;
         const query = c.req.query();
         const searchQuery = (typeof query.q === 'string' ? query.q : '').trim();
@@ -137,11 +137,7 @@ export function createSearchRouter(ctx: AppContext) {
     return router;
 }
 
-function renderSearchResults(
-    ctx: AppContext,
-    c: AppContextContext,
-    options: Record<string, unknown>,
-) {
+function renderSearchResults(ctx: AppContext, c: HonoContext, options: Record<string, unknown>) {
     return c.render('search/search-results.html', {
         user: c.get('session')?.user,
         path: '/search',

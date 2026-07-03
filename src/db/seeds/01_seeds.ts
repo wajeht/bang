@@ -6,8 +6,8 @@ const logger = createLogger({ service: 'seeds' });
 
 export async function seed(knex: Knex): Promise<void> {
     try {
-        const [{ count }] = (await knex('users').count('* as count')) as any;
-        if (count > 0) {
+        const [row] = await knex('users').count('* as count');
+        if (Number(row?.count ?? 0) > 0) {
             return;
         }
 

@@ -1,4 +1,4 @@
-import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
+import type { AppContext, HonoContext, AppEnv, User } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
@@ -41,7 +41,7 @@ export function createTabsRouter(ctx: AppContext) {
             title: 'Tabs / Edit',
             path: `/tabs/${String(c.req.param('id'))}/edit`,
             layout: '_layouts/auth.html',
-            user: c.get('user'),
+            user,
             tab,
         });
     });
@@ -115,7 +115,7 @@ export function createTabsRouter(ctx: AppContext) {
     });
 
     router.get('/tabs', ctx.middleware.authentication, getTabsPageHandler);
-    async function getTabsPageHandler(c: AppContextContext) {
+    async function getTabsPageHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParamsFromContext(c, 'tabs');
@@ -275,7 +275,7 @@ export function createTabsRouter(ctx: AppContext) {
 
     router.post('/tabs/:id/delete', ctx.middleware.authentication, deleteTabHandler);
     router.post('/tabs/delete', ctx.middleware.authentication, deleteTabHandler);
-    async function deleteTabHandler(c: AppContextContext) {
+    async function deleteTabHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const tabIds = ctx.utils.request.extractIdsForDeleteFromContext(c);
         const deletedCount = await ctx.models.tabs.delete(tabIds, user.id);
@@ -380,7 +380,7 @@ export function createTabsRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         deleteTabItemHandler,
     );
-    async function deleteTabItemHandler(c: AppContextContext) {
+    async function deleteTabItemHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const tabId = parseInt(c.req.param('id') ?? '', 10);
         const itemId = parseInt(c.req.param('itemId') ?? '', 10);

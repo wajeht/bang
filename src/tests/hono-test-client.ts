@@ -14,7 +14,6 @@ export interface HonoTestResponse {
     headers: Record<string, string>;
     raw: Response;
     status: number;
-    statusCode: number;
     text: string;
 }
 
@@ -241,7 +240,6 @@ async function buildTestResponse(response: Response): Promise<HonoTestResponse> 
         headers,
         raw: response,
         status: response.status,
-        statusCode: response.status,
         text,
     };
 }

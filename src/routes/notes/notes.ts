@@ -1,4 +1,4 @@
-import type { AppContext, AppContextContext, AppEnv, Note, User } from '../../type.js';
+import type { AppContext, HonoContext, AppEnv, Note, User } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
@@ -70,7 +70,7 @@ export function createNotesRouter(ctx: AppContext) {
     );
 
     router.get('/notes', ctx.middleware.authentication, getNotesHandler);
-    async function getNotesHandler(c: AppContextContext) {
+    async function getNotesHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParamsFromContext(c, 'notes');
@@ -112,7 +112,7 @@ export function createNotesRouter(ctx: AppContext) {
         ctx.utils.html.applyHighlighting(markdownRemovedData, ['title', 'content'], search);
 
         return c.render('notes/notes-index.html', {
-            user: c.get('user'),
+            user,
             title: 'Notes',
             path: '/notes',
             layout: '_layouts/auth.html',
@@ -151,7 +151,7 @@ export function createNotesRouter(ctx: AppContext) {
     });
 
     router.get('/notes/:id', ctx.middleware.authentication, getNoteHandler);
-    async function getNoteHandler(c: AppContextContext) {
+    async function getNoteHandler(c: HonoContext) {
         const user = c.get('user') as User;
         let note = await ctx.models.notes.read(parseInt(c.req.param('id') ?? '', 10), user.id);
 
@@ -338,7 +338,7 @@ export function createNotesRouter(ctx: AppContext) {
 
     router.post('/notes/:id/delete', ctx.middleware.authentication, deleteNoteHandler);
     router.post('/notes/delete', ctx.middleware.authentication, deleteNoteHandler);
-    async function deleteNoteHandler(c: AppContextContext) {
+    async function deleteNoteHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const noteIds = ctx.utils.request.extractIdsForDeleteFromContext(c);
         const deletedCount = await ctx.models.notes.delete(noteIds, user.id);
@@ -356,7 +356,7 @@ export function createNotesRouter(ctx: AppContext) {
     }
 
     router.post('/notes/:id/pin', ctx.middleware.authentication, toggleNotePinHandler);
-    async function toggleNotePinHandler(c: AppContextContext) {
+    async function toggleNotePinHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const noteId = parseInt(c.req.param('id') ?? '', 10);
 
@@ -374,20 +374,6 @@ export function createNotesRouter(ctx: AppContext) {
         return c.redirect('/notes');
     }
 
-    /**
-     * GET /notes/{id}/download
-     *
-     * @tags Notes
-     * @summary Download a note as markdown file
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     *
-     * @return {string} 200 - markdown file
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
     router.get('/notes/:id/download', ctx.middleware.authentication, async (c) => {
         const user = c.get('user') as User;
         const note = await ctx.models.notes.read(parseInt(c.req.param('id') ?? '', 10), user.id);

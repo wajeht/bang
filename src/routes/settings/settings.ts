@@ -1,4 +1,4 @@
-import type { AppContext, AppContextContext, AppEnv, ColumnPreferences, User } from '../../type.js';
+import type { AppContext, HonoContext, AppEnv, ColumnPreferences, User } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
@@ -22,7 +22,6 @@ export function createSettingsRouter(ctx: AppContext) {
     const VALID_REMINDER_TIMINGS = new Set(['daily', 'weekly', 'monthly']);
     const VALID_NOTE_VIEW_TYPES = new Set(['card', 'table']);
     const VALID_ACTION_TYPES = new Set(['search', 'redirect']);
-    const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
     const router = new Hono<AppEnv>();
 
@@ -163,349 +162,338 @@ export function createSettingsRouter(ctx: AppContext) {
         },
     );
 
-    router.post(
-        '/settings/display',
-        ctx.middleware.authentication,
-        async (c: AppContextContext) => {
-            const body = c.get('body');
-            const session = c.get('session');
-            const currentUser = c.get('user') as User;
-            const { column_preferences } = body;
+    router.post('/settings/display', ctx.middleware.authentication, async (c: HonoContext) => {
+        const body = c.get('body');
+        const session = c.get('session');
+        const currentUser = c.get('user') as User;
+        const { column_preferences } = body;
 
-            if (!column_preferences || typeof column_preferences !== 'object') {
-                throw new ctx.errors.ValidationError({
-                    column_preferences: 'Column preferences must be an object',
-                });
+        if (!column_preferences || typeof column_preferences !== 'object') {
+            throw new ctx.errors.ValidationError({
+                column_preferences: 'Column preferences must be an object',
+            });
+        }
+
+        // bookmarks
+        if (typeof column_preferences.bookmarks !== 'object') {
+            throw new ctx.errors.ValidationError({
+                bookmarks: 'Bookmarks must be an object',
+            });
+        }
+
+        column_preferences.bookmarks.title = column_preferences.bookmarks.title === 'on';
+        column_preferences.bookmarks.url = column_preferences.bookmarks.url === 'on';
+        column_preferences.bookmarks.created_at = column_preferences.bookmarks.created_at === 'on';
+        column_preferences.bookmarks.pinned = column_preferences.bookmarks.pinned === 'on';
+        column_preferences.bookmarks.hidden = column_preferences.bookmarks.hidden === 'on';
+
+        column_preferences.bookmarks.default_per_page = parseInt(
+            column_preferences.bookmarks.default_per_page,
+            10,
+        );
+
+        if (
+            isNaN(column_preferences.bookmarks.default_per_page) ||
+            column_preferences.bookmarks.default_per_page < 1
+        ) {
+            throw new ctx.errors.ValidationError({
+                bookmarks: 'Bookmarks per page must be greater than 0',
+            });
+        }
+
+        if (
+            !column_preferences.bookmarks.title &&
+            !column_preferences.bookmarks.url &&
+            !column_preferences.bookmarks.created_at &&
+            !column_preferences.bookmarks.pinned &&
+            !column_preferences.bookmarks.hidden
+        ) {
+            throw new ctx.errors.ValidationError({
+                bookmarks: 'At least one bookmark column must be enabled',
+            });
+        }
+
+        // actions
+        if (typeof column_preferences.actions !== 'object') {
+            throw new ctx.errors.ValidationError({ actions: 'Actions must be an object' });
+        }
+
+        column_preferences.actions.name = column_preferences.actions.name === 'on';
+        column_preferences.actions.trigger = column_preferences.actions.trigger === 'on';
+        column_preferences.actions.url = column_preferences.actions.url === 'on';
+        column_preferences.actions.action_type = column_preferences.actions.action_type === 'on';
+        column_preferences.actions.created_at = column_preferences.actions.created_at === 'on';
+        column_preferences.actions.last_read_at = column_preferences.actions.last_read_at === 'on';
+        column_preferences.actions.usage_count = column_preferences.actions.usage_count === 'on';
+        column_preferences.actions.hidden = column_preferences.actions.hidden === 'on';
+
+        column_preferences.actions.default_per_page = parseInt(
+            column_preferences.actions.default_per_page,
+            10,
+        );
+
+        if (
+            isNaN(column_preferences.actions.default_per_page) ||
+            column_preferences.actions.default_per_page < 1
+        ) {
+            throw new ctx.errors.ValidationError({
+                actions: 'Actions per page must be greater than 0',
+            });
+        }
+
+        if (
+            !column_preferences.actions.name &&
+            !column_preferences.actions.trigger &&
+            !column_preferences.actions.url &&
+            !column_preferences.actions.action_type &&
+            !column_preferences.actions.last_read_at &&
+            !column_preferences.actions.usage_count &&
+            !column_preferences.actions.hidden &&
+            !column_preferences.actions.created_at
+        ) {
+            throw new ctx.errors.ValidationError({
+                actions: 'At least one action column must be enabled',
+            });
+        }
+
+        // notes
+        if (typeof column_preferences.notes !== 'object') {
+            throw new ctx.errors.ValidationError({ notes: 'Notes must be an object' });
+        }
+
+        column_preferences.notes.title = column_preferences.notes.title === 'on';
+        column_preferences.notes.content = column_preferences.notes.content === 'on';
+        column_preferences.notes.created_at = column_preferences.notes.created_at === 'on';
+        column_preferences.notes.pinned = column_preferences.notes.pinned === 'on';
+        column_preferences.notes.hidden = column_preferences.notes.hidden === 'on';
+
+        if (
+            column_preferences.notes.view_type &&
+            !VALID_NOTE_VIEW_TYPES.has(column_preferences.notes.view_type)
+        ) {
+            column_preferences.notes.view_type = 'table'; // Default to table if invalid
+        }
+
+        if (
+            !column_preferences.notes.title &&
+            !column_preferences.notes.content &&
+            !column_preferences.notes.pinned &&
+            !column_preferences.notes.hidden
+        ) {
+            throw new ctx.errors.ValidationError({
+                notes: 'At least one note column must be enabled',
+            });
+        }
+
+        column_preferences.notes.default_per_page = parseInt(
+            column_preferences.notes.default_per_page,
+            10,
+        );
+
+        if (
+            isNaN(column_preferences.notes.default_per_page) ||
+            column_preferences.notes.default_per_page < 1
+        ) {
+            throw new ctx.errors.ValidationError({
+                notes: 'Notes per page must be greater than 0',
+            });
+        }
+
+        // Preserve the view_type if it's not in the form submission
+        if (
+            !column_preferences.notes.view_type &&
+            session.user?.column_preferences?.notes?.view_type
+        ) {
+            column_preferences.notes.view_type = session.user.column_preferences.notes.view_type;
+        }
+
+        // tabs
+        if (column_preferences.tabs) {
+            if (typeof column_preferences.tabs !== 'object') {
+                throw new ctx.errors.ValidationError({ tabs: 'Tabs must be an object' });
             }
 
-            // bookmarks
-            if (typeof column_preferences.bookmarks !== 'object') {
-                throw new ctx.errors.ValidationError({
-                    bookmarks: 'Bookmarks must be an object',
-                });
-            }
+            column_preferences.tabs.title = column_preferences.tabs.title === 'on';
+            column_preferences.tabs.trigger = column_preferences.tabs.trigger === 'on';
+            column_preferences.tabs.items_count = column_preferences.tabs.items_count === 'on';
+            column_preferences.tabs.created_at = column_preferences.tabs.created_at === 'on';
 
-            column_preferences.bookmarks.title = column_preferences.bookmarks.title === 'on';
-            column_preferences.bookmarks.url = column_preferences.bookmarks.url === 'on';
-            column_preferences.bookmarks.created_at =
-                column_preferences.bookmarks.created_at === 'on';
-            column_preferences.bookmarks.pinned = column_preferences.bookmarks.pinned === 'on';
-            column_preferences.bookmarks.hidden = column_preferences.bookmarks.hidden === 'on';
-
-            column_preferences.bookmarks.default_per_page = parseInt(
-                column_preferences.bookmarks.default_per_page,
+            column_preferences.tabs.default_per_page = parseInt(
+                column_preferences.tabs.default_per_page,
                 10,
             );
 
             if (
-                isNaN(column_preferences.bookmarks.default_per_page) ||
-                column_preferences.bookmarks.default_per_page < 1
+                isNaN(column_preferences.tabs.default_per_page) ||
+                column_preferences.tabs.default_per_page < 1
             ) {
                 throw new ctx.errors.ValidationError({
-                    bookmarks: 'Bookmarks per page must be greater than 0',
+                    tabs: 'Tabs per page must be greater than 0',
                 });
             }
 
             if (
-                !column_preferences.bookmarks.title &&
-                !column_preferences.bookmarks.url &&
-                !column_preferences.bookmarks.created_at &&
-                !column_preferences.bookmarks.pinned &&
-                !column_preferences.bookmarks.hidden
+                !column_preferences.tabs.title &&
+                !column_preferences.tabs.trigger &&
+                !column_preferences.tabs.items_count &&
+                !column_preferences.tabs.created_at
             ) {
                 throw new ctx.errors.ValidationError({
-                    bookmarks: 'At least one bookmark column must be enabled',
+                    tabs: 'At least one tab column must be enabled',
                 });
             }
+        }
 
-            // actions
-            if (typeof column_preferences.actions !== 'object') {
-                throw new ctx.errors.ValidationError({ actions: 'Actions must be an object' });
+        // users (admin only)
+        if (currentUser.is_admin && column_preferences.users) {
+            if (typeof column_preferences.users !== 'object') {
+                throw new ctx.errors.ValidationError({ users: 'Users must be an object' });
             }
 
-            column_preferences.actions.name = column_preferences.actions.name === 'on';
-            column_preferences.actions.trigger = column_preferences.actions.trigger === 'on';
-            column_preferences.actions.url = column_preferences.actions.url === 'on';
-            column_preferences.actions.action_type =
-                column_preferences.actions.action_type === 'on';
-            column_preferences.actions.created_at = column_preferences.actions.created_at === 'on';
-            column_preferences.actions.last_read_at =
-                column_preferences.actions.last_read_at === 'on';
-            column_preferences.actions.usage_count =
-                column_preferences.actions.usage_count === 'on';
-            column_preferences.actions.hidden = column_preferences.actions.hidden === 'on';
+            column_preferences.users.username = column_preferences.users.username === 'on';
+            column_preferences.users.email = column_preferences.users.email === 'on';
+            column_preferences.users.is_admin = column_preferences.users.is_admin === 'on';
+            column_preferences.users.email_verified_at =
+                column_preferences.users.email_verified_at === 'on';
+            column_preferences.users.created_at = column_preferences.users.created_at === 'on';
 
-            column_preferences.actions.default_per_page = parseInt(
-                column_preferences.actions.default_per_page,
+            column_preferences.users.default_per_page = parseInt(
+                column_preferences.users.default_per_page,
                 10,
             );
 
             if (
-                isNaN(column_preferences.actions.default_per_page) ||
-                column_preferences.actions.default_per_page < 1
+                isNaN(column_preferences.users.default_per_page) ||
+                column_preferences.users.default_per_page < 1
             ) {
                 throw new ctx.errors.ValidationError({
-                    actions: 'Actions per page must be greater than 0',
+                    users: 'Users per page must be greater than 0',
                 });
             }
 
             if (
-                !column_preferences.actions.name &&
-                !column_preferences.actions.trigger &&
-                !column_preferences.actions.url &&
-                !column_preferences.actions.action_type &&
-                !column_preferences.actions.last_read_at &&
-                !column_preferences.actions.usage_count &&
-                !column_preferences.actions.hidden &&
-                !column_preferences.actions.created_at
+                !column_preferences.users.username &&
+                !column_preferences.users.email &&
+                !column_preferences.users.is_admin &&
+                !column_preferences.users.email_verified_at &&
+                !column_preferences.users.created_at
             ) {
                 throw new ctx.errors.ValidationError({
-                    actions: 'At least one action column must be enabled',
+                    users: 'At least one user column must be enabled',
+                });
+            }
+        }
+
+        // reminders
+        if (column_preferences.reminders) {
+            if (typeof column_preferences.reminders !== 'object') {
+                throw new ctx.errors.ValidationError({
+                    reminders: 'Reminders must be an object',
                 });
             }
 
-            // notes
-            if (typeof column_preferences.notes !== 'object') {
-                throw new ctx.errors.ValidationError({ notes: 'Notes must be an object' });
-            }
+            column_preferences.reminders.title = column_preferences.reminders.title === 'on';
+            column_preferences.reminders.content = column_preferences.reminders.content === 'on';
+            column_preferences.reminders.due_date = column_preferences.reminders.due_date === 'on';
+            column_preferences.reminders.next_due = column_preferences.reminders.next_due === 'on';
+            column_preferences.reminders.frequency =
+                column_preferences.reminders.frequency === 'on';
+            column_preferences.reminders.created_at =
+                column_preferences.reminders.created_at === 'on';
 
-            column_preferences.notes.title = column_preferences.notes.title === 'on';
-            column_preferences.notes.content = column_preferences.notes.content === 'on';
-            column_preferences.notes.created_at = column_preferences.notes.created_at === 'on';
-            column_preferences.notes.pinned = column_preferences.notes.pinned === 'on';
-            column_preferences.notes.hidden = column_preferences.notes.hidden === 'on';
-
-            if (
-                column_preferences.notes.view_type &&
-                !VALID_NOTE_VIEW_TYPES.has(column_preferences.notes.view_type)
-            ) {
-                column_preferences.notes.view_type = 'table'; // Default to table if invalid
-            }
-
-            if (
-                !column_preferences.notes.title &&
-                !column_preferences.notes.content &&
-                !column_preferences.notes.pinned &&
-                !column_preferences.notes.hidden
-            ) {
-                throw new ctx.errors.ValidationError({
-                    notes: 'At least one note column must be enabled',
-                });
-            }
-
-            column_preferences.notes.default_per_page = parseInt(
-                column_preferences.notes.default_per_page,
+            column_preferences.reminders.default_per_page = parseInt(
+                column_preferences.reminders.default_per_page,
                 10,
             );
 
             if (
-                isNaN(column_preferences.notes.default_per_page) ||
-                column_preferences.notes.default_per_page < 1
+                isNaN(column_preferences.reminders.default_per_page) ||
+                column_preferences.reminders.default_per_page < 1
             ) {
                 throw new ctx.errors.ValidationError({
-                    notes: 'Notes per page must be greater than 0',
+                    reminders: 'Reminders per page must be greater than 0',
                 });
             }
 
-            // Preserve the view_type if it's not in the form submission
+            if (column_preferences.reminders.default_reminder_timing) {
+                if (
+                    !VALID_REMINDER_TIMINGS.has(
+                        column_preferences.reminders.default_reminder_timing,
+                    )
+                ) {
+                    throw new ctx.errors.ValidationError({
+                        reminders: 'Invalid reminder timing. Must be daily, weekly, or monthly',
+                    });
+                }
+            }
+
+            // Validate default_reminder_time (HH:MM format)
+            if (column_preferences.reminders.default_reminder_time) {
+                if (
+                    !ctx.utils.validation.isValidClockTime(
+                        column_preferences.reminders.default_reminder_time,
+                    )
+                ) {
+                    throw new ctx.errors.ValidationError({
+                        reminders: 'Invalid reminder time format. Must be HH:MM (24-hour format)',
+                    });
+                }
+            }
+
             if (
-                !column_preferences.notes.view_type &&
-                session.user?.column_preferences?.notes?.view_type
+                !column_preferences.reminders.title &&
+                !column_preferences.reminders.content &&
+                !column_preferences.reminders.due_date &&
+                !column_preferences.reminders.next_due &&
+                !column_preferences.reminders.frequency &&
+                !column_preferences.reminders.created_at
             ) {
-                column_preferences.notes.view_type =
-                    session.user.column_preferences.notes.view_type;
-            }
-
-            // tabs
-            if (column_preferences.tabs) {
-                if (typeof column_preferences.tabs !== 'object') {
-                    throw new ctx.errors.ValidationError({ tabs: 'Tabs must be an object' });
-                }
-
-                column_preferences.tabs.title = column_preferences.tabs.title === 'on';
-                column_preferences.tabs.trigger = column_preferences.tabs.trigger === 'on';
-                column_preferences.tabs.items_count = column_preferences.tabs.items_count === 'on';
-                column_preferences.tabs.created_at = column_preferences.tabs.created_at === 'on';
-
-                column_preferences.tabs.default_per_page = parseInt(
-                    column_preferences.tabs.default_per_page,
-                    10,
-                );
-
-                if (
-                    isNaN(column_preferences.tabs.default_per_page) ||
-                    column_preferences.tabs.default_per_page < 1
-                ) {
-                    throw new ctx.errors.ValidationError({
-                        tabs: 'Tabs per page must be greater than 0',
-                    });
-                }
-
-                if (
-                    !column_preferences.tabs.title &&
-                    !column_preferences.tabs.trigger &&
-                    !column_preferences.tabs.items_count &&
-                    !column_preferences.tabs.created_at
-                ) {
-                    throw new ctx.errors.ValidationError({
-                        tabs: 'At least one tab column must be enabled',
-                    });
-                }
-            }
-
-            // users (admin only)
-            if (currentUser.is_admin && column_preferences.users) {
-                if (typeof column_preferences.users !== 'object') {
-                    throw new ctx.errors.ValidationError({ users: 'Users must be an object' });
-                }
-
-                column_preferences.users.username = column_preferences.users.username === 'on';
-                column_preferences.users.email = column_preferences.users.email === 'on';
-                column_preferences.users.is_admin = column_preferences.users.is_admin === 'on';
-                column_preferences.users.email_verified_at =
-                    column_preferences.users.email_verified_at === 'on';
-                column_preferences.users.created_at = column_preferences.users.created_at === 'on';
-
-                column_preferences.users.default_per_page = parseInt(
-                    column_preferences.users.default_per_page,
-                    10,
-                );
-
-                if (
-                    isNaN(column_preferences.users.default_per_page) ||
-                    column_preferences.users.default_per_page < 1
-                ) {
-                    throw new ctx.errors.ValidationError({
-                        users: 'Users per page must be greater than 0',
-                    });
-                }
-
-                if (
-                    !column_preferences.users.username &&
-                    !column_preferences.users.email &&
-                    !column_preferences.users.is_admin &&
-                    !column_preferences.users.email_verified_at &&
-                    !column_preferences.users.created_at
-                ) {
-                    throw new ctx.errors.ValidationError({
-                        users: 'At least one user column must be enabled',
-                    });
-                }
-            }
-
-            // reminders
-            if (column_preferences.reminders) {
-                if (typeof column_preferences.reminders !== 'object') {
-                    throw new ctx.errors.ValidationError({
-                        reminders: 'Reminders must be an object',
-                    });
-                }
-
-                column_preferences.reminders.title = column_preferences.reminders.title === 'on';
-                column_preferences.reminders.content =
-                    column_preferences.reminders.content === 'on';
-                column_preferences.reminders.due_date =
-                    column_preferences.reminders.due_date === 'on';
-                column_preferences.reminders.next_due =
-                    column_preferences.reminders.next_due === 'on';
-                column_preferences.reminders.frequency =
-                    column_preferences.reminders.frequency === 'on';
-                column_preferences.reminders.created_at =
-                    column_preferences.reminders.created_at === 'on';
-
-                column_preferences.reminders.default_per_page = parseInt(
-                    column_preferences.reminders.default_per_page,
-                    10,
-                );
-
-                if (
-                    isNaN(column_preferences.reminders.default_per_page) ||
-                    column_preferences.reminders.default_per_page < 1
-                ) {
-                    throw new ctx.errors.ValidationError({
-                        reminders: 'Reminders per page must be greater than 0',
-                    });
-                }
-
-                if (column_preferences.reminders.default_reminder_timing) {
-                    if (
-                        !VALID_REMINDER_TIMINGS.has(
-                            column_preferences.reminders.default_reminder_timing,
-                        )
-                    ) {
-                        throw new ctx.errors.ValidationError({
-                            reminders: 'Invalid reminder timing. Must be daily, weekly, or monthly',
-                        });
-                    }
-                }
-
-                // Validate default_reminder_time (HH:MM format)
-                if (column_preferences.reminders.default_reminder_time) {
-                    if (
-                        !REGEX_TIME_FORMAT.test(column_preferences.reminders.default_reminder_time)
-                    ) {
-                        throw new ctx.errors.ValidationError({
-                            reminders:
-                                'Invalid reminder time format. Must be HH:MM (24-hour format)',
-                        });
-                    }
-                }
-
-                if (
-                    !column_preferences.reminders.title &&
-                    !column_preferences.reminders.content &&
-                    !column_preferences.reminders.due_date &&
-                    !column_preferences.reminders.next_due &&
-                    !column_preferences.reminders.frequency &&
-                    !column_preferences.reminders.created_at
-                ) {
-                    throw new ctx.errors.ValidationError({
-                        reminders: 'At least one reminder column must be enabled',
-                    });
-                }
-            }
-
-            const { path, hidden } = body;
-
-            // Merge submitted preferences with existing user preferences to preserve unmodified sections
-            const updatedPreferences: ColumnPreferences = { ...currentUser.column_preferences };
-            for (const section of Object.keys(column_preferences)) {
-                if (!(section in updatedPreferences)) continue;
-                const key = section as keyof ColumnPreferences;
-                if (column_preferences[key] && typeof column_preferences[key] === 'object') {
-                    updatedPreferences[key] = {
-                        ...updatedPreferences[key],
-                        ...column_preferences[key],
-                    };
-                }
-            }
-
-            await ctx
-                .db('users')
-                .where('id', currentUser.id)
-                .update({
-                    column_preferences: JSON.stringify(updatedPreferences),
+                throw new ctx.errors.ValidationError({
+                    reminders: 'At least one reminder column must be enabled',
                 });
-
-            if (session.user) {
-                session.user.column_preferences = updatedPreferences;
             }
+        }
 
-            currentUser.column_preferences = updatedPreferences;
-            c.set('user', currentUser);
+        const { path, hidden } = body;
 
-            setFlash(c, 'success', 'Column settings updated');
+        // Merge submitted preferences with existing user preferences to preserve unmodified sections
+        const updatedPreferences: ColumnPreferences = { ...currentUser.column_preferences };
+        for (const section of Object.keys(column_preferences)) {
+            if (!(section in updatedPreferences)) continue;
+            const key = section as keyof ColumnPreferences;
+            if (column_preferences[key] && typeof column_preferences[key] === 'object') {
+                updatedPreferences[key] = {
+                    ...updatedPreferences[key],
+                    ...column_preferences[key],
+                };
+            }
+        }
 
-            const basePath = path || '/settings/preferences';
-            const redirectUrl = hidden === 'true' ? `${basePath}?hidden=true` : basePath;
-            return c.redirect(redirectUrl);
-        },
-    );
+        await ctx
+            .db('users')
+            .where('id', currentUser.id)
+            .update({
+                column_preferences: JSON.stringify(updatedPreferences),
+            });
+
+        if (session.user) {
+            session.user.column_preferences = updatedPreferences;
+        }
+
+        currentUser.column_preferences = updatedPreferences;
+        c.set('user', currentUser);
+
+        setFlash(c, 'success', 'Column settings updated');
+
+        const basePath = path || '/settings/preferences';
+        const redirectUrl = hidden === 'true' ? `${basePath}?hidden=true` : basePath;
+        return c.redirect(redirectUrl);
+    });
 
     router.post(
         '/settings/hidden-password',
         ctx.middleware.authentication,
-        async (c: AppContextContext) => {
+        async (c: HonoContext) => {
             const body = c.get('body');
             const session = c.get('session');
             const currentUser = c.get('user') as User;
@@ -624,44 +612,40 @@ export function createSettingsRouter(ctx: AppContext) {
         },
     );
 
-    router.post(
-        '/settings/data/export',
-        ctx.middleware.authentication,
-        async (c: AppContextContext) => {
-            const body = c.get('body');
-            const { options } = body;
+    router.post('/settings/data/export', ctx.middleware.authentication, async (c: HonoContext) => {
+        const body = c.get('body');
+        const { options } = body;
 
-            if (!options || !Array.isArray(options) || options.length === 0) {
-                throw new ctx.errors.ValidationError({
-                    options: 'Please select at least one data type to export',
-                });
-            }
-
-            const userId = (c.get('user') as User).id;
-            const includeBookmarks = body.options.includes('bookmarks');
-            const includeActions = body.options.includes('actions');
-            const includeNotes = body.options.includes('notes');
-            const includeTabs = body.options.includes('tabs');
-            const includeReminders = body.options.includes('reminders');
-            const includeUserPreferences = body.options.includes('user_preferences');
-
-            const exportData = await ctx.utils.util.generateUserDataExport(userId, {
-                includeBookmarks,
-                includeActions,
-                includeNotes,
-                includeUserPreferences,
-                includeTabs,
-                includeReminders,
+        if (!options || !Array.isArray(options) || options.length === 0) {
+            throw new ctx.errors.ValidationError({
+                options: 'Please select at least one data type to export',
             });
+        }
 
-            c.header(
-                'Content-Disposition',
-                `attachment; filename=bang-data-export-${exportData.exported_at}.json`,
-            );
-            c.header('Content-Type', 'application/json');
-            return c.body(JSON.stringify(exportData, null, 2));
-        },
-    );
+        const userId = (c.get('user') as User).id;
+        const includeBookmarks = body.options.includes('bookmarks');
+        const includeActions = body.options.includes('actions');
+        const includeNotes = body.options.includes('notes');
+        const includeTabs = body.options.includes('tabs');
+        const includeReminders = body.options.includes('reminders');
+        const includeUserPreferences = body.options.includes('user_preferences');
+
+        const exportData = await ctx.utils.util.generateUserDataExport(userId, {
+            includeBookmarks,
+            includeActions,
+            includeNotes,
+            includeUserPreferences,
+            includeTabs,
+            includeReminders,
+        });
+
+        c.header(
+            'Content-Disposition',
+            `attachment; filename=bang-data-export-${exportData.exported_at}.json`,
+        );
+        c.header('Content-Type', 'application/json');
+        return c.body(JSON.stringify(exportData, null, 2));
+    });
 
     router.post(
         '/settings/data/import',
@@ -934,7 +918,7 @@ export function createSettingsRouter(ctx: AppContext) {
     router.post(
         '/settings/danger-zone/delete',
         ctx.middleware.authentication,
-        async (c: AppContextContext) => {
+        async (c: HonoContext) => {
             const body = c.get('body');
             const session = c.get('session');
             const currentUser = c.get('user');
@@ -994,7 +978,7 @@ export function createSettingsRouter(ctx: AppContext) {
     router.post(
         '/settings/danger-zone/bulk-delete',
         ctx.middleware.authentication,
-        async (c: AppContextContext) => {
+        async (c: HonoContext) => {
             const body = c.get('body');
             const session = c.get('session');
             const user = session.user;

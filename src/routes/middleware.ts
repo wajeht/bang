@@ -4,7 +4,7 @@ import { HTTPException } from 'hono/http-exception';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type {
     AppContext,
-    AppContextContext,
+    HonoContext,
     AppLocals,
     AppMiddleware,
     AppSession,
@@ -117,7 +117,7 @@ export function createRendererMiddleware(ctx: AppContext): AppMiddleware {
     };
 }
 
-export function setFlash(c: AppContextContext, type: string, message: string) {
+export function setFlash(c: HonoContext, type: string, message: string) {
     const session = c.get('session');
     session.flash = {
         ...session.flash,
@@ -157,11 +157,11 @@ export function createRequestLoggerMiddleware(ctx: AppContext): AppMiddleware {
 }
 
 export function createNotFoundMiddleware(ctx: AppContext) {
-    return (c: AppContextContext) => {
+    return async (c: HonoContext) => {
         const message = 'Sorry, the page you are looking for could not be found.';
 
         const html = ctx.utils.template.render('general/error.html', {
-            ...getLocals(ctx, c),
+            ...(await getLocals(ctx, c)),
             path: c.req.path,
             title: 'Error',
             statusCode: 404,
@@ -172,7 +172,7 @@ export function createNotFoundMiddleware(ctx: AppContext) {
 }
 
 export function createErrorMiddleware(ctx: AppContext) {
-    return async (error: Error, c: AppContextContext) => {
+    return async (error: Error, c: HonoContext) => {
         const logger = c.get('logger') || ctx.logger;
         const session = c.get('session');
         const body = c.get('body') ?? {};
@@ -225,7 +225,7 @@ export function createErrorMiddleware(ctx: AppContext) {
         }
 
         const html = ctx.utils.template.render('general/error.html', {
-            ...getLocals(ctx, c),
+            ...(await getLocals(ctx, c)),
             path: c.req.path,
             title: 'Error',
             statusCode,
@@ -383,7 +383,7 @@ export function createRateLimitMiddleware(ctx: AppContext): AppMiddleware {
             return next();
         }
 
-        const html = ctx.utils.template.render('general/rate-limit.html', getLocals(ctx, c));
+        const html = ctx.utils.template.render('general/rate-limit.html', await getLocals(ctx, c));
         return c.html(html, 429);
     };
 }
@@ -440,7 +440,7 @@ function getStaticLocals(ctx: AppContext) {
     return cachedStaticLocals;
 }
 
-async function buildAppLocals(ctx: AppContext, c: AppContextContext): Promise<AppLocals> {
+async function buildAppLocals(ctx: AppContext, c: HonoContext): Promise<AppLocals> {
     const staticLocals = getStaticLocals(ctx);
     const session = c.get('session');
     const sessionUser = session?.user;
@@ -475,7 +475,7 @@ async function buildAppLocals(ctx: AppContext, c: AppContextContext): Promise<Ap
     };
 }
 
-function getFlashMessages(c: AppContextContext, type: string): string[] {
+function getFlashMessages(c: HonoContext, type: string): string[] {
     const session = c.get('session');
     const messages = session.flash?.[type] ?? [];
     if (session.flash?.[type]) {
@@ -485,7 +485,7 @@ function getFlashMessages(c: AppContextContext, type: string): string[] {
     return messages;
 }
 
-function getLocals(ctx: AppContext, c: AppContextContext) {
+async function getLocals(ctx: AppContext, c: HonoContext): Promise<AppLocals> {
     const locals = c.get('locals');
     if (locals?.state) return locals;
 
@@ -503,13 +503,7 @@ function getLocals(ctx: AppContext, c: AppContextContext) {
             flash: { success: [], error: [], info: [], warning: [] },
             version: staticLocals.version,
             cloudflare_turnstile_site_key: ctx.config.cloudflare.turnstileSiteKey,
-            branding: {
-                appName: 'Bang',
-                appUrl: ctx.config.app.appUrl,
-                showFooter: true,
-                showSearchPage: true,
-                showAboutPage: true,
-            },
+            branding: await ctx.models.settings.getBranding(),
         },
     };
     c.set('locals', fallback);
@@ -518,7 +512,7 @@ function getLocals(ctx: AppContext, c: AppContextContext) {
 
 function createSession(
     ctx: AppContext,
-    c: AppContextContext,
+    c: HonoContext,
     sid: string,
     data: AppSessionData,
 ): AppSession {
@@ -575,7 +569,7 @@ async function saveSession(ctx: AppContext, session: AppSession) {
         .merge();
 }
 
-function getClientIp(c: AppContextContext): string {
+function getClientIp(c: HonoContext): string {
     const forwarded = c.req.header('x-forwarded-for')?.split(',')[0]?.trim();
     if (forwarded) return forwarded;
     const real = c.req.header('x-real-ip');

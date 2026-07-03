@@ -1,6 +1,6 @@
 import { createContext } from '../context.js';
 import { db } from '../tests/test-setup.js';
-import type { AppContext, AppContextContext, AppEnv, User } from '../type.js';
+import type { AppContext, HonoContext, AppEnv, User } from '../type.js';
 import { createBodyParserMiddleware } from './middleware.js';
 import { Hono } from 'hono';
 import { describe, it, expect, beforeAll } from 'vite-plus/test';
@@ -28,7 +28,7 @@ describe('middleware', () => {
     it('redirects unauthenticated HTML requests to login', async () => {
         const app = createMiddlewareApp(ctx);
 
-        app.get('/protected', ctx.middleware.authentication, (c: AppContextContext) => {
+        app.get('/protected', ctx.middleware.authentication, (c: HonoContext) => {
             return c.json({ ok: true });
         });
 
@@ -42,14 +42,14 @@ describe('middleware', () => {
         const user = (await db('users').where({ id: 1 }).first()) as User;
         const app = createMiddlewareApp(ctx);
 
-        app.get('/login-test', (c: AppContextContext) => {
+        app.get('/login-test', (c: HonoContext) => {
             const session = c.get('session');
             session.user = user;
             session.userCachedAt = Date.now();
             session.save();
             return c.json({ ok: true });
         });
-        app.get('/protected', ctx.middleware.authentication, (c: AppContextContext) => {
+        app.get('/protected', ctx.middleware.authentication, (c: HonoContext) => {
             return c.json({ userId: c.get('user')?.id });
         });
 
@@ -66,7 +66,7 @@ describe('middleware', () => {
         const app = createMiddlewareApp(ctx);
 
         app.use('*', ctx.middleware.csrf);
-        app.get('/page', (c: AppContextContext) => c.json({ ok: true }));
+        app.get('/page', (c: HonoContext) => c.json({ ok: true }));
 
         // first request creates the session (csrf token) and sets the cookie
         const first = await app.request('http://localhost/page');
@@ -83,7 +83,7 @@ describe('middleware', () => {
     it('parses urlencoded bodies with dot notation and array fields', async () => {
         const app = createMiddlewareApp(ctx);
 
-        app.post('/body', (c: AppContextContext) => c.json(c.get('body')));
+        app.post('/body', (c: HonoContext) => c.json(c.get('body')));
 
         const form = new URLSearchParams();
         form.append('username', 'jaw');
@@ -111,7 +111,7 @@ describe('middleware', () => {
     it('parses multipart bodies with array fields', async () => {
         const app = createMiddlewareApp(ctx);
 
-        app.post('/body', (c: AppContextContext) => c.json(c.get('body')));
+        app.post('/body', (c: HonoContext) => c.json(c.get('body')));
 
         const formData = new FormData();
         formData.append('title', 'hello');
@@ -131,10 +131,10 @@ describe('middleware', () => {
         const app = createMiddlewareApp(ctx);
 
         app.use('*', ctx.middleware.csrf);
-        app.get('/form', (c: AppContextContext) => {
+        app.get('/form', (c: HonoContext) => {
             return c.json({ csrfToken: c.get('locals').csrfToken });
         });
-        app.post('/form', (c: AppContextContext) => {
+        app.post('/form', (c: HonoContext) => {
             return c.json({ ok: true });
         });
 
@@ -151,10 +151,10 @@ describe('middleware', () => {
         const app = createMiddlewareApp(ctx);
 
         app.use('*', ctx.middleware.csrf);
-        app.get('/form', (c: AppContextContext) => {
+        app.get('/form', (c: HonoContext) => {
             return c.json({ csrfToken: c.get('locals').csrfToken });
         });
-        app.post('/form', (c: AppContextContext) => {
+        app.post('/form', (c: HonoContext) => {
             return c.json({ ok: true });
         });
 
@@ -175,7 +175,7 @@ describe('middleware', () => {
 
         app.use('*', ctx.middleware.csrf);
         app.use('*', ctx.middleware.appLocalState);
-        app.get('/', (c: AppContextContext) => {
+        app.get('/', (c: HonoContext) => {
             const locals = c.get('locals');
             const branding = locals.state?.branding as { appName?: string } | undefined;
             return c.json({

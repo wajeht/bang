@@ -1,4 +1,4 @@
-import type { AppContext, AppContextContext } from '../type.js';
+import type { AppContext, HonoContext } from '../type.js';
 
 const SENSITIVE_KEYS = new Set([
     'password',
@@ -42,7 +42,7 @@ function describeCause(cause: unknown): string | undefined {
 
 export function createNtfy(ctx: AppContext) {
     return {
-        sendErrorNotification(c: AppContextContext, error: Error, statusCode: number): void {
+        sendErrorNotification(c: HonoContext, error: Error, statusCode: number): void {
             if (!ctx.config.ntfy.url || !ctx.config.ntfy.topic) return;
 
             const user = c.get('session')?.user || c.get('user');

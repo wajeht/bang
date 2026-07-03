@@ -1,4 +1,4 @@
-import type { AppContext, AppContextContext, AppEnv } from '../../type.js';
+import type { AppContext, HonoContext, AppEnv } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 
@@ -128,7 +128,7 @@ export function createAdminRouter(ctx: AppContext) {
         ctx.middleware.adminOnly,
         deleteUserHandler,
     );
-    async function deleteUserHandler(c: AppContextContext) {
+    async function deleteUserHandler(c: HonoContext) {
         const id = c.req.param('id');
         const user = c.get('user');
 

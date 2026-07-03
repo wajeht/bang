@@ -71,7 +71,7 @@ export interface AppEnv {
     };
 }
 
-export type AppContextContext = Context<AppEnv>;
+export type HonoContext = Context<AppEnv>;
 export type AppMiddleware = MiddlewareHandler<AppEnv>;
 
 declare module 'hono' {
@@ -279,7 +279,7 @@ export type ReminderTimingResult = {
 };
 
 export type Search = (options: {
-    c: AppContextContext;
+    c: HonoContext;
     user: User | undefined;
     query: string;
 }) => Promise<void | Response>;

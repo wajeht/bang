@@ -1,4 +1,4 @@
-import type { AppContext, AppContextContext, AppEnv, BookmarkToExport, User } from '../../type.js';
+import type { AppContext, HonoContext, AppEnv, BookmarkToExport, User } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
@@ -26,7 +26,7 @@ export function createBookmarksRouter(ctx: AppContext) {
     });
 
     router.get('/bookmarks', ctx.middleware.authentication, getBookmarksHandler);
-    async function getBookmarksHandler(c: AppContextContext) {
+    async function getBookmarksHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParamsFromContext(c, 'bookmarks');
@@ -47,7 +47,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         ctx.utils.html.applyHighlighting(data, ['title', 'url'], search);
 
         return c.render('bookmarks/bookmarks-index.html', {
-            user: c.get('user'),
+            user,
             title: 'Bookmarks',
             path: '/bookmarks',
             layout: '_layouts/auth.html',
@@ -141,15 +141,14 @@ export function createBookmarksRouter(ctx: AppContext) {
     });
 
     router.get('/bookmarks/:id/actions/create', ctx.middleware.authentication, async (c) => {
+        const id = parseInt(c.req.param('id') ?? '', 10);
         const bookmark = await ctx
             .db('bookmarks')
             .where({
-                id: c.req.param('id'),
+                id,
                 user_id: c.get('user')?.id,
             })
             .first();
-
-        const id = c.req.param('id');
         return c.render('bookmarks/bookmarks-actions-new.html', {
             title: `Bookmarks / ${String(id)} / Actions / Create`,
             path: `/bookmarks/${String(id)}/actions/create`,
@@ -268,7 +267,7 @@ export function createBookmarksRouter(ctx: AppContext) {
 
     router.post('/bookmarks/:id/delete', ctx.middleware.authentication, deleteBookmarkHandler);
     router.post('/bookmarks/delete', ctx.middleware.authentication, deleteBookmarkHandler);
-    async function deleteBookmarkHandler(c: AppContextContext) {
+    async function deleteBookmarkHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const bookmarkIds = ctx.utils.request.extractIdsForDeleteFromContext(c);
         const deletedCount = await ctx.models.bookmarks.delete(bookmarkIds, user.id);
@@ -286,7 +285,7 @@ export function createBookmarksRouter(ctx: AppContext) {
     }
 
     router.post('/bookmarks/:id/pin', ctx.middleware.authentication, toggleBookmarkPinHandler);
-    async function toggleBookmarkPinHandler(c: AppContextContext) {
+    async function toggleBookmarkPinHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const bookmarkId = parseInt(c.req.param('id') ?? '', 10);
 
@@ -309,7 +308,7 @@ export function createBookmarksRouter(ctx: AppContext) {
     }
 
     router.post('/bookmarks/:id/hide', ctx.middleware.authentication, toggleBookmarkHideHandler);
-    async function toggleBookmarkHideHandler(c: AppContextContext) {
+    async function toggleBookmarkHideHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const body = c.get('body');
         const bookmarkId = parseInt(c.req.param('id') ?? '', 10);

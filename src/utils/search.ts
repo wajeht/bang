@@ -1,5 +1,5 @@
 import { bangs as bangsTable } from '../db/bang.js';
-import type { AppContext, AppContextContext, Bang, ReminderTimingResult, Search } from '../type.js';
+import type { AppContext, HonoContext, Bang, ReminderTimingResult, Search } from '../type.js';
 
 export function createSearch(context: AppContext) {
     const TRIGGER_CACHE_MAX = 1000;
@@ -197,7 +197,7 @@ export function createSearch(context: AppContext) {
             triggerCache.delete(userId);
         },
 
-        trackAnonymousUserSearch(c: AppContextContext) {
+        trackAnonymousUserSearch(c: HonoContext) {
             const session = c.get('session');
             session.searchCount = session.searchCount || 0;
             session.cumulativeDelay = session.cumulativeDelay || 0;
@@ -214,7 +214,7 @@ export function createSearch(context: AppContext) {
             c.set('sessionChanged', true);
         },
 
-        redirectWithAlert(c: AppContextContext, url: string, message?: string) {
+        redirectWithAlert(c: HonoContext, url: string, message?: string) {
             const safeMessage = message ? context.utils.html.escapeHtml(message) : '';
             const safeUrl = context.utils.html.escapeHtml(url);
 
@@ -226,7 +226,7 @@ export function createSearch(context: AppContext) {
 		`);
         },
 
-        goBackWithValidationAlert(c: AppContextContext, message: string) {
+        goBackWithValidationAlert(c: HonoContext, message: string) {
             const safeMessage = context.utils.html.escapeHtml(message);
 
             return c.html(
@@ -240,7 +240,7 @@ export function createSearch(context: AppContext) {
             );
         },
 
-        goBack(c: AppContextContext) {
+        goBack(c: HonoContext) {
             return c.html(`
 			<script>
 				window.history.back();
@@ -450,7 +450,7 @@ export function createSearch(context: AppContext) {
             return null;
         },
 
-        async processDelayedSearch(c: AppContextContext): Promise<void> {
+        async processDelayedSearch(c: HonoContext): Promise<void> {
             const session = c.get('session');
             if (session.cumulativeDelay) {
                 await new Promise((resolve) => setTimeout(resolve, session.cumulativeDelay));
@@ -458,7 +458,7 @@ export function createSearch(context: AppContext) {
         },
 
         redirectWithCache(
-            c: AppContextContext,
+            c: HonoContext,
             url: string,
             cacheDuration: number = searchConfig.redirectWithCacheDuration,
             cacheType: 'public' | 'private' | 'no-store' = 'private',
@@ -491,7 +491,7 @@ export function createSearch(context: AppContext) {
         },
 
         async handleAnonymousSearch(
-            c: AppContextContext,
+            c: HonoContext,
             query: string,
             triggerWithoutBang: string,
             searchTerm: string,

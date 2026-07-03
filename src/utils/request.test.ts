@@ -1,5 +1,5 @@
 import { libs } from '../libs.js';
-import type { AppContextContext } from '../type.js';
+import type { HonoContext } from '../type.js';
 import { config } from '../config.js';
 import { createRequest } from './request.js';
 import { db } from '../tests/test-setup.js';
@@ -16,7 +16,7 @@ interface TestRequest {
     user?: Record<string, any>;
 }
 
-function createTestContext(req: TestRequest): AppContextContext {
+function createTestContext(req: TestRequest): HonoContext {
     return {
         req: {
             param: () => req.params ?? {},
@@ -28,7 +28,7 @@ function createTestContext(req: TestRequest): AppContextContext {
             if (key === 'user') return req.user;
             return undefined;
         },
-    } as unknown as AppContextContext;
+    } as unknown as HonoContext;
 }
 
 beforeAll(async () => {

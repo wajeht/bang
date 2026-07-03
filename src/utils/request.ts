@@ -1,4 +1,4 @@
-import type { AppContext, AppContextContext, AppSession, PageType, User } from '../type.js';
+import type { AppContext, HonoContext, AppSession, PageType, User } from '../type.js';
 
 export function createRequest(context: AppContext) {
     type PreferenceKey = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders' | 'users';
@@ -93,11 +93,11 @@ export function createRequest(context: AppContext) {
     }
 
     return {
-        extractPaginationParamsFromContext(c: AppContextContext, pageType: PageType | 'admin') {
+        extractPaginationParamsFromContext(c: HonoContext, pageType: PageType | 'admin') {
             return getPaginationParams(c.get('user'), c.req.query(), pageType);
         },
 
-        extractIdsForDeleteFromContext(c: AppContextContext): number[] {
+        extractIdsForDeleteFromContext(c: HonoContext): number[] {
             return getIdsForDelete(c.req.param(), c.get('body') ?? {});
         },
 
@@ -118,7 +118,7 @@ export function createRequest(context: AppContext) {
             return url.pathname.replace(/^\/+/, '/') + url.search;
         },
 
-        canViewHiddenItemsFromContext(c: AppContextContext, user: User) {
+        canViewHiddenItemsFromContext(c: HonoContext, user: User) {
             return canViewHiddenItemsFromState(c.req.query(), c.get('session'), user);
         },
     };

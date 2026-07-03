@@ -1,12 +1,10 @@
-import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
+import type { AppContext, HonoContext, AppEnv, User } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 
 export function createRemindersRouter(ctx: AppContext) {
-    const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-
     const router = new Hono<AppEnv>();
 
     const reminderFormSchema = z.object({
@@ -18,7 +16,7 @@ export function createRemindersRouter(ctx: AppContext) {
             .string()
             .optional()
             .refine(
-                (value) => !value || REGEX_TIME_FORMAT.test(value),
+                (value) => !value || ctx.utils.validation.isValidClockTime(value),
                 'Invalid time format. Must be HH:MM (24-hour format)',
             ),
     });
@@ -198,7 +196,7 @@ export function createRemindersRouter(ctx: AppContext) {
     });
 
     router.get('/reminders', ctx.middleware.authentication, getRemindersHandler);
-    async function getRemindersHandler(c: AppContextContext) {
+    async function getRemindersHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParamsFromContext(c, 'reminders');
@@ -343,7 +341,7 @@ export function createRemindersRouter(ctx: AppContext) {
 
     router.post('/reminders/:id/delete', ctx.middleware.authentication, deleteReminderHandler);
     router.post('/reminders/delete', ctx.middleware.authentication, deleteReminderHandler);
-    async function deleteReminderHandler(c: AppContextContext) {
+    async function deleteReminderHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const reminderIds = ctx.utils.request.extractIdsForDeleteFromContext(c);
         const deletedCount = await ctx.models.reminders.delete(reminderIds, user.id);

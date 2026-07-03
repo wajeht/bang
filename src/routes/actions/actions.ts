@@ -1,4 +1,4 @@
-import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
+import type { AppContext, HonoContext, AppEnv, User } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
@@ -26,7 +26,7 @@ export function createActionsRouter(ctx: AppContext) {
     });
 
     router.get('/actions', ctx.middleware.authentication, getActionsHandler);
-    async function getActionsHandler(c: AppContextContext) {
+    async function getActionsHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParamsFromContext(c, 'actions');
@@ -47,7 +47,7 @@ export function createActionsRouter(ctx: AppContext) {
         ctx.utils.html.applyHighlighting(data, ['name', 'trigger', 'url'], search);
 
         return c.render('actions/actions-index.html', {
-            user: c.get('user'),
+            user,
             path: '/actions',
             title: 'Actions',
             layout: '_layouts/auth.html',
@@ -75,7 +75,7 @@ export function createActionsRouter(ctx: AppContext) {
             .select('bangs.*')
             .from('bangs')
             .where({
-                'bangs.id': c.req.param('id'),
+                'bangs.id': parseInt(c.req.param('id') ?? '', 10),
                 'bangs.user_id': (c.get('user') as User).id,
             })
             .first();
@@ -236,7 +236,7 @@ export function createActionsRouter(ctx: AppContext) {
                     trigger: formattedTrigger,
                     user_id: user.id,
                 })
-                .whereNot('id', c.req.param('id'))
+                .whereNot('id', actionId)
                 .first();
 
             if (existingBang) {
@@ -275,7 +275,7 @@ export function createActionsRouter(ctx: AppContext) {
 
     router.post('/actions/:id/delete', ctx.middleware.authentication, deleteActionHandler);
     router.post('/actions/delete', ctx.middleware.authentication, deleteActionHandler);
-    async function deleteActionHandler(c: AppContextContext) {
+    async function deleteActionHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const actionIds = ctx.utils.request.extractIdsForDeleteFromContext(c);
         const deletedCount = await ctx.models.actions.delete(actionIds, user.id);
@@ -295,7 +295,7 @@ export function createActionsRouter(ctx: AppContext) {
     }
 
     router.post('/actions/:id/hide', ctx.middleware.authentication, toggleActionHideHandler);
-    async function toggleActionHideHandler(c: AppContextContext) {
+    async function toggleActionHideHandler(c: HonoContext) {
         const user = c.get('user') as User;
         const body = c.get('body');
         const actionId = parseInt(c.req.param('id') ?? '', 10);

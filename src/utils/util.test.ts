@@ -9,7 +9,7 @@ import { createDate } from './date.js';
 import { createRequest } from './request.js';
 import { db } from '../tests/test-setup.js';
 import { createValidation } from './validation.js';
-import type { AppContextContext, BookmarkToExport } from '../type.js';
+import type { HonoContext, BookmarkToExport } from '../type.js';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 let validationUtils: ReturnType<typeof createValidation>;
@@ -25,7 +25,7 @@ function createTestContext({
 }: {
     query: Record<string, string | undefined>;
     user: Record<string, any>;
-}): AppContextContext {
+}): HonoContext {
     return {
         req: {
             query: () => query,
@@ -34,7 +34,7 @@ function createTestContext({
             if (key === 'user') return user;
             return undefined;
         },
-    } as unknown as AppContextContext;
+    } as unknown as HonoContext;
 }
 
 beforeAll(async () => {
