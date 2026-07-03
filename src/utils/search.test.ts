@@ -49,9 +49,8 @@ describe('search', () => {
                 session: {
                     searchCount: 0,
                 },
-                params: {
-                    q: '!g python',
-                },
+                query: { q: '!g python' },
+                user: undefined as unknown as User,
             } as unknown as Request;
 
             const res = {
@@ -60,12 +59,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: undefined as unknown as User,
-                query: '!g python',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.status).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
@@ -85,6 +79,8 @@ describe('search', () => {
                 session: {
                     searchCount: 0,
                 },
+                query: { q: '!g' },
+                user: undefined as unknown as User,
             } as unknown as Request;
 
             const res = {
@@ -95,7 +91,7 @@ describe('search', () => {
 
             isValidUrl.mockReturnValue(true);
 
-            await searchUtils.search({ req, res, user: undefined as unknown as User, query: '!g' });
+            await searchUtils.search({ req, res });
 
             expect(res.status).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
@@ -116,6 +112,8 @@ describe('search', () => {
                 session: {
                     searchCount: 0,
                 },
+                query: { q: '!doesnotexistanywhere' },
+                user: undefined,
             } as unknown as Request;
 
             const res = {
@@ -124,7 +122,7 @@ describe('search', () => {
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: undefined, query: '!doesnotexistanywhere' });
+            await searchUtils.search({ req, res });
 
             expect(res.status).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
@@ -145,6 +143,8 @@ describe('search', () => {
                 session: {
                     searchCount: 0,
                 },
+                query: { q: '!g' },
+                user: undefined,
             } as unknown as Request;
 
             const res = {
@@ -156,7 +156,7 @@ describe('search', () => {
             isValidUrl.mockReturnValue(false);
 
             try {
-                await searchUtils.search({ req, res, user: undefined, query: '!g' });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toBe(200);
                 expect(res.set).toHaveBeenCalledWith(
@@ -180,6 +180,8 @@ describe('search', () => {
                     searchCount: 10,
                     cumulativeDelay: 5000,
                 },
+                query: { q: '!g python' },
+                user: undefined,
             } as unknown as Request;
 
             const res = {
@@ -189,7 +191,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: undefined, query: '!g python' });
+            await searchUtils.search({ req, res });
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
@@ -215,6 +217,8 @@ describe('search', () => {
                     searchCount: 60,
                     cumulativeDelay: 5000,
                 },
+                query: { q: '!g python' },
+                user: undefined,
             } as unknown as Request;
 
             const res = {
@@ -224,7 +228,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: undefined, query: '!g python' });
+            await searchUtils.search({ req, res });
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
@@ -250,6 +254,8 @@ describe('search', () => {
                     searchCount: 61,
                     cumulativeDelay: 5000,
                 },
+                query: { q: '!g python' },
+                user: undefined,
             } as unknown as Request;
 
             const res = {
@@ -264,7 +270,7 @@ describe('search', () => {
                 .mockResolvedValue(undefined);
 
             try {
-                await searchUtils.search({ req, res, user: undefined, query: '!g python' });
+                await searchUtils.search({ req, res });
 
                 expect(processDelayedSpy).toHaveBeenCalled();
                 expect(res.set).toHaveBeenCalledWith({ 'Content-Type': 'text/html' });
@@ -322,13 +328,17 @@ describe('search', () => {
         } as User;
 
         it('should handle direct navigation commands', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '@settings' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: testUser, query: '@settings' });
+            await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -336,7 +346,9 @@ describe('search', () => {
             );
             expect(res.redirect).toHaveBeenCalledWith('/settings');
 
-            await searchUtils.search({ req, res, user: testUser, query: '@b' });
+            req.query = { q: '@b' };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -346,13 +358,17 @@ describe('search', () => {
         });
 
         it('should handle uppercased direct commands', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '@NOTES' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: testUser, query: '@NOTES' });
+            await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -361,18 +377,24 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/notes');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@BM' });
+            req.query = { q: '@BM' };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks');
         });
 
         it('should handle direct commands with search terms for @notes', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '@notes search query' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: testUser, query: '@notes search query' });
+            await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -381,27 +403,30 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@note another query' });
+            req.query = { q: '@note another query' };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=another%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@n shorthand' });
+            req.query = { q: '@n shorthand' };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=shorthand');
         });
 
         it('should handle direct commands with search terms for @bookmarks', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '@bookmarks search query' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '@bookmarks search query',
-            });
+            await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -410,18 +435,24 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@bm bookmark query' });
+            req.query = { q: '@bm bookmark query' };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
             expect(res.redirect).toHaveBeenCalledWith('/bookmarks?search=bookmark%20query');
         });
 
         it('should handle direct commands with search terms for @actions', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '@actions search query' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: testUser, query: '@actions search query' });
+            await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -430,23 +461,24 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@a action query' });
+            req.query = { q: '@a action query' };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
             expect(res.redirect).toHaveBeenCalledWith('/actions?search=action%20query');
         });
 
         it('should handle direct commands with search terms for @reminders', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '@reminders search query' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '@reminders search query',
-            });
+            await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -455,22 +487,30 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/reminders?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@r reminder query' });
+            req.query = { q: '@r reminder query' };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
             expect(res.redirect).toHaveBeenCalledWith('/reminders?search=reminder%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@remind test' });
+            req.query = { q: '@remind test' };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
             expect(res.redirect).toHaveBeenCalledWith('/reminders?search=test');
         });
 
         it('should handle direct commands with search terms for @tabs', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '@tabs search query' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({ req, res, user: testUser, query: '@tabs search query' });
+            await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -479,27 +519,30 @@ describe('search', () => {
             expect(res.redirect).toHaveBeenCalledWith('/tabs?search=search%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@t tab query' });
+            req.query = { q: '@t tab query' };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
             expect(res.redirect).toHaveBeenCalledWith('/tabs?search=tab%20query');
 
             vi.mocked(res.redirect).mockClear();
-            await searchUtils.search({ req, res, user: testUser, query: '@tab my tabs' });
+            req.query = { q: '@tab my tabs' };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
             expect(res.redirect).toHaveBeenCalledWith('/tabs?search=my%20tabs');
         });
 
         it('should handle special characters in search terms', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '@notes test & special + characters?' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '@notes test & special + characters?',
-            });
+            await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -524,12 +567,9 @@ describe('search', () => {
 
             const query = '!bm My Bookmark https://example.com';
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query,
-            });
+            req.query = { q: query };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
 
             await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
@@ -564,12 +604,9 @@ describe('search', () => {
 
             const query = '!bm https://example.com';
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query,
-            });
+            req.query = { q: query };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -580,19 +617,18 @@ describe('search', () => {
         });
 
         it('should handle invalid bookmark URLs', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!bm invalid-url' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!bm invalid-url',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.status).toHaveBeenCalledWith(422);
             expect(res.send).toHaveBeenCalledWith(
@@ -613,12 +649,9 @@ describe('search', () => {
             const longTitle = 'A'.repeat(256);
             const query = `!bm ${longTitle} https://example.com`;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query,
-            });
+            req.query = { q: query };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
 
             expect(res.status).toHaveBeenCalledWith(422);
             expect(res.send).toHaveBeenCalledWith(
@@ -635,7 +668,11 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!bm Secret Site https://secret.com --hide' },
+                    user: userWithPassword,
+                } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -643,12 +680,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: userWithPassword,
-                    query: '!bm Secret Site https://secret.com --hide',
-                });
+                await searchUtils.search({ req, res });
 
                 await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
@@ -668,7 +700,11 @@ describe('search', () => {
                     hidden_items_password: null,
                 };
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!bm Secret Site https://secret.com --hide' },
+                    user: userWithoutPassword,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -677,12 +713,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: userWithoutPassword,
-                    query: '!bm Secret Site https://secret.com --hide',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -698,19 +729,18 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!bm https://secret.com --hide' },
+                    user: userWithPassword,
+                } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
                 } as unknown as Response;
 
                 isValidUrl.mockReturnValue(true);
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: userWithPassword,
-                    query: '!bm https://secret.com --hide',
-                });
+                await searchUtils.search({ req, res });
 
                 await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
@@ -730,7 +760,11 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!bm Title with --hide in middle https://example.com' },
+                    user: userWithPassword,
+                } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -738,12 +772,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: userWithPassword,
-                    query: '!bm Title with --hide in middle https://example.com',
-                });
+                await searchUtils.search({ req, res });
 
                 await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
@@ -757,19 +786,18 @@ describe('search', () => {
         });
 
         it('should handle custom bang creation', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!add !new https://newsite.com' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!add !new https://newsite.com',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.send).toHaveBeenCalledWith(expect.stringContaining('window.history.back()'));
@@ -782,19 +810,18 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!add !secret https://secret.com Secret Site --hide' },
+                    user: userWithPassword,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: userWithPassword,
-                    query: '!add !secret https://secret.com Secret Site --hide',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -816,19 +843,18 @@ describe('search', () => {
                     hidden_items_password: null,
                 };
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!add !secret https://secret.com Secret Site --hide' },
+                    user: userWithoutPassword,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: userWithoutPassword,
-                    query: '!add !secret https://secret.com Secret Site --hide',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -849,19 +875,18 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!add !secretsearch https://example.com/search?q=%s --hide' },
+                    user: userWithPassword,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: userWithPassword,
-                    query: '!add !secretsearch https://example.com/search?q=%s --hide',
-                });
+                await searchUtils.search({ req, res });
 
                 // Currently, the code doesn't validate search vs redirect for hidden actions
                 // All actions created with !add are marked as 'redirect' type
@@ -881,19 +906,18 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!add !test https://example.com Name with --hide in middle' },
+                    user: userWithPassword,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: userWithPassword,
-                    query: '!add !test https://example.com Name with --hide in middle',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -913,19 +937,18 @@ describe('search', () => {
 
             await db('bangs').where({ user_id: testUser.id, trigger: '!prefetchadd' }).delete();
 
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!add !prefetchadd https://prefetch-add-test.com' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!add !prefetchadd https://prefetch-add-test.com',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.status).toHaveBeenCalledWith(200);
 
@@ -971,18 +994,17 @@ describe('search', () => {
                 .onConflict(['user_id', 'trigger'])
                 .ignore();
 
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!custom test search' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!custom test search',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -1003,18 +1025,17 @@ describe('search', () => {
                 url: 'https://query-example.com/search?q={query}',
             });
 
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!querytest test search' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!querytest test search',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -1037,18 +1058,17 @@ describe('search', () => {
                 url: 'https://s-example.com/search?q={{{s}}}',
             });
 
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!stest test search' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!stest test search',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -1086,18 +1106,17 @@ describe('search', () => {
                 })
                 .onConflict(['user_id', 'trigger'])
                 .ignore();
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!mysite' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!mysite',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -1110,18 +1129,17 @@ describe('search', () => {
         });
 
         it('should use default search provider when no bang matches', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: 'test search' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: 'test search',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -1132,18 +1150,17 @@ describe('search', () => {
         });
 
         it('should handle non-existent bang as search term', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!nonexistent' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!nonexistent',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -1177,7 +1194,11 @@ describe('search', () => {
                 })
                 .onConflict(['user_id', 'trigger'])
                 .ignore();
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!add !custom https://newsite.com' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn().mockReturnThis(),
@@ -1185,12 +1206,7 @@ describe('search', () => {
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!add !custom https://newsite.com',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.status).toHaveBeenCalledWith(422);
             expect(res.send).toHaveBeenCalledWith(
@@ -1199,19 +1215,18 @@ describe('search', () => {
         });
 
         it('should prevent creation of system bang commands', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!add !bm https://newsite.com' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!add !bm https://newsite.com',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.status).toHaveBeenCalledWith(422);
             expect(res.send).toHaveBeenCalledWith(
@@ -1220,19 +1235,18 @@ describe('search', () => {
         });
 
         it('should handle malformed !add command', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!add' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!add',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.status).toHaveBeenCalledWith(422);
             expect(res.send).toHaveBeenCalledWith(
@@ -1241,7 +1255,11 @@ describe('search', () => {
         });
 
         it('should handle !bm with multi-word title', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!bm This is a very long title https://example.com' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1255,12 +1273,7 @@ describe('search', () => {
             isValidUrl.mockReturnValue(true);
             insertBookmark.mockImplementation(mockInsertBookmark);
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!bm This is a very long title https://example.com',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -1273,19 +1286,18 @@ describe('search', () => {
         });
 
         it('should handle !add with implicit bang prefix', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!add test https://test.com' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!add test https://test.com', // Note: no ! in trigger
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.send).toHaveBeenCalledWith(expect.stringContaining('window.history.back()'));
@@ -1297,18 +1309,17 @@ describe('search', () => {
                 default_search_provider: 'google',
             } as User;
 
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: 'test search' },
+                user: googleUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
             } as unknown as Response;
 
-            await searchUtils.search({
-                req,
-                res,
-                user: googleUser,
-                query: 'test search',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -1321,7 +1332,11 @@ describe('search', () => {
         });
 
         it('should handle bookmark creation errors', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!bm title https://example.com' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -1332,12 +1347,7 @@ describe('search', () => {
             isValidUrl.mockReturnValue(true);
             checkDuplicateBookmarkUrl.mockRejectedValue(new Error('Database error'));
 
-            await searchUtils.search({
-                req,
-                res,
-                user: testUser,
-                query: '!bm title https://example.com',
-            });
+            await searchUtils.search({ req, res });
 
             expect(res.send).toHaveBeenCalledWith(
                 expect.stringContaining(
@@ -1350,18 +1360,17 @@ describe('search', () => {
 
         describe('!find command', () => {
             it('should redirect to global search page with search term', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!find javascript' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!find javascript',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -1372,18 +1381,17 @@ describe('search', () => {
             });
 
             it('should handle multi-word search terms', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!find react hooks tutorial' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!find react hooks tutorial',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.redirect).toHaveBeenCalledWith(
                     '/search?q=react%20hooks%20tutorial&type=global',
@@ -1391,19 +1399,18 @@ describe('search', () => {
             });
 
             it('should reject !find without search term', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!find' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!find',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1412,19 +1419,18 @@ describe('search', () => {
             });
 
             it('should reject !find with only whitespace', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!find   ' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!find   ',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1433,18 +1439,17 @@ describe('search', () => {
             });
 
             it('should encode special characters in search term', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!find test & special + characters?' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!find test & special + characters?',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.redirect).toHaveBeenCalledWith(
                     '/search?q=test%20%26%20special%20%2B%20characters%3F&type=global',
@@ -1454,19 +1459,18 @@ describe('search', () => {
 
         describe('!note command', () => {
             it('should create note with title and content using pipe format', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!note My Note Title | This is the content of the note' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!note My Note Title | This is the content of the note',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1481,19 +1485,18 @@ describe('search', () => {
             });
 
             it('should create note with just content (no title)', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!note This is just content without a title' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!note This is just content without a title',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1508,19 +1511,18 @@ describe('search', () => {
             });
 
             it('should create notes with pinned defaulting to false', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!note Test Note | Test content' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!note Test Note | Test content',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -1542,12 +1544,9 @@ describe('search', () => {
                 const longTitle = 'A'.repeat(256);
                 const query = `!note ${longTitle} | This is the content`;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query,
-                });
+                req.query = { q: query };
+                req.user = testUser;
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1559,19 +1558,18 @@ describe('search', () => {
             });
 
             it('should handle note creation with empty content after pipe', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!note My Title |' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!note My Title |',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1580,19 +1578,18 @@ describe('search', () => {
             });
 
             it('should handle note creation with empty content after pipe (whitespace only)', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!note My Title |   ' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!note My Title |   ',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1601,19 +1598,18 @@ describe('search', () => {
             });
 
             it('should reject note creation with no content', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!note' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!note',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1622,19 +1618,18 @@ describe('search', () => {
             });
 
             it('should reject note creation with only whitespace content', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!note   ' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!note   ',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1643,19 +1638,20 @@ describe('search', () => {
             });
 
             it('should handle note creation with special characters in title and content', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: {
+                        q: '!note Special @#$% Title | Content with special chars: !@#$%^&*()',
+                    },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!note Special @#$% Title | Content with special chars: !@#$%^&*()',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -1667,19 +1663,18 @@ describe('search', () => {
             });
 
             it('should handle note creation with multiple pipes (only first pipe is used as separator)', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!note Title with | pipe | Content also has | more pipes' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!note Title with | pipe | Content also has | more pipes',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -1706,7 +1701,9 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({ req, res, user: testUser, query });
+                    req.query = { q: query };
+                    req.user = testUser;
+                    await searchUtils.search({ req, res });
                 }
 
                 // Pin the second note (created in middle)
@@ -1746,19 +1743,18 @@ describe('search', () => {
                         hidden_items_password: '$2b$10$test-hash',
                     } as User;
 
-                    const req = { logger: mockLogger() } as unknown as Request;
+                    const req = {
+                        logger: mockLogger(),
+                        query: { q: '!note Hidden Note | Secret content --hide' },
+                        user: userWithPassword,
+                    } as unknown as Request;
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({
-                        req,
-                        res,
-                        user: userWithPassword,
-                        query: '!note Hidden Note | Secret content --hide',
-                    });
+                    await searchUtils.search({ req, res });
 
                     expect(res.status).toHaveBeenCalledWith(200);
                     expect(res.send).toHaveBeenCalledWith(
@@ -1779,19 +1775,18 @@ describe('search', () => {
                         hidden_items_password: null,
                     } as User;
 
-                    const req = { logger: mockLogger() } as unknown as Request;
+                    const req = {
+                        logger: mockLogger(),
+                        query: { q: '!note Hidden Note | Secret content --hide' },
+                        user: userWithoutPassword,
+                    } as unknown as Request;
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({
-                        req,
-                        res,
-                        user: userWithoutPassword,
-                        query: '!note Hidden Note | Secret content --hide',
-                    });
+                    await searchUtils.search({ req, res });
 
                     expect(res.status).toHaveBeenCalledWith(422);
                     expect(res.send).toHaveBeenCalledWith(
@@ -1812,19 +1807,18 @@ describe('search', () => {
                         hidden_items_password: '$2b$10$test-hash',
                     } as User;
 
-                    const req = { logger: mockLogger() } as unknown as Request;
+                    const req = {
+                        logger: mockLogger(),
+                        query: { q: '!note Test Note | Content with --hide flag in middle' },
+                        user: userWithPassword,
+                    } as unknown as Request;
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({
-                        req,
-                        res,
-                        user: userWithPassword,
-                        query: '!note Test Note | Content with --hide flag in middle',
-                    });
+                    await searchUtils.search({ req, res });
 
                     expect(res.status).toHaveBeenCalledWith(200);
 
@@ -1842,19 +1836,18 @@ describe('search', () => {
                         hidden_items_password: '$2b$10$test-hash',
                     } as User;
 
-                    const req = { logger: mockLogger() } as unknown as Request;
+                    const req = {
+                        logger: mockLogger(),
+                        query: { q: '!note --hide this is hidden content without title' },
+                        user: userWithPassword,
+                    } as unknown as Request;
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({
-                        req,
-                        res,
-                        user: userWithPassword,
-                        query: '!note --hide this is hidden content without title',
-                    });
+                    await searchUtils.search({ req, res });
 
                     expect(res.status).toHaveBeenCalledWith(200);
                     expect(res.send).toHaveBeenCalledWith(
@@ -1875,19 +1868,18 @@ describe('search', () => {
                         hidden_items_password: '$2b$10$test-hash',
                     } as User;
 
-                    const req = { logger: mockLogger() } as unknown as Request;
+                    const req = {
+                        logger: mockLogger(),
+                        query: { q: '!note --hide Secret Title | Secret content here' },
+                        user: userWithPassword,
+                    } as unknown as Request;
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({
-                        req,
-                        res,
-                        user: userWithPassword,
-                        query: '!note --hide Secret Title | Secret content here',
-                    });
+                    await searchUtils.search({ req, res });
 
                     expect(res.status).toHaveBeenCalledWith(200);
 
@@ -1914,19 +1906,18 @@ describe('search', () => {
             });
 
             it('should successfully delete an existing bang', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!del !deleteme' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!del !deleteme',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1948,19 +1939,18 @@ describe('search', () => {
                     url: 'https://delete-test2.com',
                 });
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!del deleteme2' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!del deleteme2', // No ! prefix
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1969,19 +1959,18 @@ describe('search', () => {
             });
 
             it('should return error when trying to delete non-existent bang', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!del !nonexistent' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!del !nonexistent',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -1992,19 +1981,18 @@ describe('search', () => {
             });
 
             it('should return error when no trigger is provided', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!del' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!del',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2013,23 +2001,20 @@ describe('search', () => {
             });
 
             it('should return error when user is not authenticated', async () => {
+                const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
+
                 const req = {
                     logger: mockLogger(),
                     session: {} as SessionData,
+                    query: { q: '!del !test' },
+                    user: unauthenticatedUser,
                 } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     redirect: vi.fn(),
                 } as unknown as Response;
 
-                const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
-
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: unauthenticatedUser,
-                    query: '!del !test',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -2051,19 +2036,18 @@ describe('search', () => {
                     updated_at: dayjs().toDate(),
                 });
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!del !tabonly' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!del !tabonly',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2102,19 +2086,18 @@ describe('search', () => {
             });
 
             it('should successfully edit bang trigger only', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!edit !editme !newname' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!edit !editme !newname',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2129,19 +2112,18 @@ describe('search', () => {
             });
 
             it('should successfully edit bang URL only', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!edit !editme https://new-url.com' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!edit !editme https://new-url.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2172,19 +2154,18 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!edit !editme https://prefetch-edit-test.com' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!edit !editme https://prefetch-edit-test.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -2206,7 +2187,11 @@ describe('search', () => {
             });
 
             it('should successfully edit both trigger and URL', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!edit !editme !newboth https://both-new.com' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2218,12 +2203,7 @@ describe('search', () => {
                 const mockInsertPageTitle = vi.fn().mockResolvedValue(undefined);
                 insertPageTitle.mockImplementation(mockInsertPageTitle);
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!edit !editme !newboth https://both-new.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2240,19 +2220,18 @@ describe('search', () => {
             });
 
             it('should return error when trying to edit non-existent bang', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!edit !nonexistent !newtrigger' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!edit !nonexistent !newtrigger',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2263,19 +2242,18 @@ describe('search', () => {
             });
 
             it('should return error with invalid format', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!edit !editme' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!edit !editme', // Missing second parameter
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2286,19 +2264,18 @@ describe('search', () => {
             });
 
             it('should return error when trying to use system command as new trigger', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!edit !editme !add' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!edit !editme !add', // !add is a system command
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2309,19 +2286,18 @@ describe('search', () => {
             });
 
             it('should return error when new trigger already exists', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!edit !editme !existing' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!edit !editme !existing', // !existing already exists
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2332,7 +2308,11 @@ describe('search', () => {
             });
 
             it('should return error with invalid URL format', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!edit !editme invalid-url' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2341,12 +2321,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(false);
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!edit !editme invalid-url',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2355,19 +2330,18 @@ describe('search', () => {
             });
 
             it('should return error when trigger contains invalid characters', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!edit !editme !invalid@trigger' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!edit !editme !invalid@trigger',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2378,23 +2352,20 @@ describe('search', () => {
             });
 
             it('should return error when user is not authenticated', async () => {
+                const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
+
                 const req = {
                     logger: mockLogger(),
                     session: {} as SessionData,
+                    query: { q: '!edit !test !newtrigger' },
+                    user: unauthenticatedUser,
                 } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     redirect: vi.fn(),
                 } as unknown as Response;
 
-                const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
-
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: unauthenticatedUser,
-                    query: '!edit !test !newtrigger',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -2407,7 +2378,11 @@ describe('search', () => {
             });
 
             it('should handle editing with trigger without ! prefix', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!edit editme https://new-without-prefix.com' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2416,12 +2391,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!edit editme https://new-without-prefix.com', // No ! prefix on editme
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2448,19 +2418,18 @@ describe('search', () => {
                     updated_at: dayjs().toDate(),
                 });
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!edit !edittab !newtab' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!edit !edittab !newtab',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2504,7 +2473,9 @@ describe('search', () => {
             };
 
             for (const [command, path] of Object.entries(commands)) {
-                await searchUtils.search({ req, res, user: testUser, query: command });
+                req.query = { q: command };
+                req.user = testUser;
+                await searchUtils.search({ req, res });
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
                         'Cache-Control': 'private, max-age=3600',
@@ -2515,7 +2486,11 @@ describe('search', () => {
         });
 
         it('should not redirect to bang service homepage when bang has invalid URL for authenticated bang-only queries', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!g' },
+                user: testUser,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -2524,7 +2499,7 @@ describe('search', () => {
             isValidUrl.mockReturnValue(false);
 
             try {
-                await searchUtils.search({ req, res, user: testUser, query: '!g' });
+                await searchUtils.search({ req, res });
 
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -2552,7 +2527,11 @@ describe('search', () => {
             });
 
             it('should detect duplicate URL and show error with title', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!bm New Title https://existing.com' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2568,12 +2547,7 @@ describe('search', () => {
                     created_at: dayjs().toISOString(),
                 });
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!bm New Title https://existing.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2587,7 +2561,11 @@ describe('search', () => {
             });
 
             it('should detect duplicate URL and show error without title', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!bm https://existing.com' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2603,12 +2581,7 @@ describe('search', () => {
                     created_at: dayjs().toISOString(),
                 });
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!bm https://existing.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2627,7 +2600,11 @@ describe('search', () => {
                     title: 'Test "Quotes" & Special Chars',
                 });
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!bm https://existing.com' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2643,12 +2620,7 @@ describe('search', () => {
                     created_at: dayjs().toISOString(),
                 });
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!bm https://existing.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2662,7 +2634,11 @@ describe('search', () => {
             });
 
             it('should allow bookmark creation with unique URL', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!bm Unique Title https://unique.com' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -2671,12 +2647,7 @@ describe('search', () => {
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate found
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!bm Unique Title https://unique.com',
-                });
+                await searchUtils.search({ req, res });
 
                 await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
@@ -2701,7 +2672,11 @@ describe('search', () => {
                     id: 2,
                 } as User;
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!bm Same URL https://existing.com' },
+                    user: otherUser,
+                } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -2710,12 +2685,7 @@ describe('search', () => {
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate found for other user
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: otherUser,
-                    query: '!bm Same URL https://existing.com', // Same URL as user 1's bookmark
-                });
+                await searchUtils.search({ req, res });
 
                 await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
@@ -2730,7 +2700,11 @@ describe('search', () => {
             });
 
             it('should allow same URL with different title', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!bm Different Title https://existing.com' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -2739,12 +2713,7 @@ describe('search', () => {
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate because title is different
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!bm Different Title https://existing.com', // Same URL, different title
-                });
+                await searchUtils.search({ req, res });
 
                 await vi.waitFor(() => expect(insertBookmark).toHaveBeenCalled());
 
@@ -2759,7 +2728,11 @@ describe('search', () => {
             });
 
             it('should reject same URL with same title as duplicate', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!bm Same Title https://existing.com' },
+                    user: testUser,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2775,12 +2748,7 @@ describe('search', () => {
                     created_at: dayjs().toISOString(),
                 });
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUser,
-                    query: '!bm Same Title https://existing.com', // Same URL, same title
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2816,7 +2784,11 @@ describe('search', () => {
             });
 
             it('should create reminder with default timing (simple format)', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind take out trash' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2825,12 +2797,7 @@ describe('search', () => {
 
                 isValidUrl.mockRestore();
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind take out trash',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2846,19 +2813,18 @@ describe('search', () => {
             });
 
             it('should create reminder with timing keyword (space-separated format)', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind daily google.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind daily google.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2875,19 +2841,18 @@ describe('search', () => {
             });
 
             it('should create reminder with pipe-separated format', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind weekly | check bills | https://bank.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind weekly | check bills | https://bank.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2904,19 +2869,18 @@ describe('search', () => {
             });
 
             it('should create reminder with specific date', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind 2025-12-25 | christmas reminder' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind 2025-12-25 | christmas reminder',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2944,12 +2908,9 @@ describe('search', () => {
                         send: vi.fn(),
                     } as unknown as Response;
 
-                    await searchUtils.search({
-                        req,
-                        res,
-                        user: testUserWithPreferences,
-                        query: `!remind ${timing} test ${timing} reminder`,
-                    });
+                    req.query = { q: `!remind ${timing} test ${timing} reminder` };
+                    req.user = testUserWithPreferences;
+                    await searchUtils.search({ req, res });
 
                     expect(res.status).toHaveBeenCalledWith(200);
 
@@ -2965,19 +2926,18 @@ describe('search', () => {
             });
 
             it('should reject reminder with no content', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -2986,19 +2946,18 @@ describe('search', () => {
             });
 
             it('should reject reminder with empty description', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind daily |' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind daily |',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(422);
                 expect(res.send).toHaveBeenCalledWith(
@@ -3008,19 +2967,18 @@ describe('search', () => {
 
             it('should treat invalid timing as description when not a valid keyword', async () => {
                 isValidUrl.mockRestore();
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind invalid-timing test reminder' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind invalid-timing test reminder',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3046,19 +3004,18 @@ describe('search', () => {
                     timezone: null,
                 } as unknown as User;
 
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind test reminder without prefs' },
+                    user: userWithoutPrefs,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: userWithoutPrefs,
-                    query: '!remind test reminder without prefs',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3070,19 +3027,18 @@ describe('search', () => {
             });
 
             it('should handle reminder with URL in content', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind daily check website https://example.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind daily check website https://example.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3095,19 +3051,18 @@ describe('search', () => {
             });
 
             it('should detect URL as description without pipe (daily timing)', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind daily google.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind daily google.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3120,19 +3075,18 @@ describe('search', () => {
             });
 
             it('should detect URL as description without pipe (weekly timing)', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind weekly https://example.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind weekly https://example.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3145,19 +3099,18 @@ describe('search', () => {
             });
 
             it('should detect URL as description with default timing', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind https://github.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind https://github.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3171,19 +3124,18 @@ describe('search', () => {
 
             it('should split description and URL content when text precedes URL', async () => {
                 isValidUrl.mockRestore();
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind title google.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind title google.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3196,19 +3148,18 @@ describe('search', () => {
             });
 
             it('should split description and URL content with timing keyword', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind monthly check website https://example.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind monthly check website https://example.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3221,19 +3172,20 @@ describe('search', () => {
             });
 
             it('should handle reminder with special characters', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: {
+                        q: '!remind daily | special chars: !@#$%^&*() | content with symbols',
+                    },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind daily | special chars: !@#$%^&*() | content with symbols',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3245,19 +3197,18 @@ describe('search', () => {
             });
 
             it('should handle pipe format without timing keyword (uses default timing)', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind title | google' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind title | google',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3270,19 +3221,18 @@ describe('search', () => {
             });
 
             it('should handle pipe format with URL as content', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind check website | https://example.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind check website | https://example.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3295,19 +3245,18 @@ describe('search', () => {
             });
 
             it('should handle pipe format with timing and URL domain', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind daily title | google.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
                 } as unknown as Response;
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind daily title | google.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3320,7 +3269,11 @@ describe('search', () => {
             });
 
             it('should handle URL-only reminder with default timing and set title to Untitled', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind google.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3329,12 +3282,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind google.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3349,7 +3297,11 @@ describe('search', () => {
             });
 
             it('should handle URL-only reminder with https protocol and set title to Untitled', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind https://example.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3358,12 +3310,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind https://example.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3378,7 +3325,11 @@ describe('search', () => {
             });
 
             it('should call insertPageTitle for URL-only reminders', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = {
+                    logger: mockLogger(),
+                    query: { q: '!remind https://example.com' },
+                    user: testUserWithPreferences,
+                } as unknown as Request;
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3387,12 +3338,7 @@ describe('search', () => {
 
                 isValidUrl.mockReturnValue(true);
 
-                await searchUtils.search({
-                    req,
-                    res,
-                    user: testUserWithPreferences,
-                    query: '!remind https://example.com',
-                });
+                await searchUtils.search({ req, res });
 
                 expect(res.status).toHaveBeenCalledWith(200);
 
@@ -3828,7 +3774,13 @@ describe('search command handling', () => {
 
     describe('direct commands handling', () => {
         it('should handle direct commands with explicit commandType', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const user = { id: 1 } as User;
+
+            const req = {
+                logger: mockLogger(),
+                query: { q: '@notes test' },
+                user: user,
+            } as unknown as Request;
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -3843,9 +3795,7 @@ describe('search command handling', () => {
                 rawRemainder: 'test',
             });
 
-            const user = { id: 1 } as User;
-
-            await searchUtils.search({ req, res, user, query: '@notes test' });
+            await searchUtils.search({ req, res });
 
             expect(res.redirect).toHaveBeenCalledWith('/notes?search=test');
 
@@ -3855,15 +3805,20 @@ describe('search command handling', () => {
 
     describe('search function with commandType', () => {
         it('should handle bang commandType with unknown bang', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
-            const res = {
-                redirect: vi.fn(),
-                set: vi.fn(),
-            } as unknown as Response;
             const user = {
                 id: 1,
                 default_search_provider: 'duckduckgo',
             } as User;
+
+            const req = {
+                logger: mockLogger(),
+                query: { q: '!unknown' },
+                user: user,
+            } as unknown as Request;
+            const res = {
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
 
             const parseSearchQuerySpy = vi.spyOn(searchUtils, 'parseSearchQuery').mockReturnValue({
                 commandType: 'bang',
@@ -3874,7 +3829,7 @@ describe('search command handling', () => {
                 rawRemainder: '',
             });
 
-            await searchUtils.search({ req, res, user, query: '!unknown' });
+            await searchUtils.search({ req, res });
 
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=unknown');
 
@@ -3882,15 +3837,20 @@ describe('search command handling', () => {
         });
 
         it('should handle regular search with null commandType', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
-            const res = {
-                redirect: vi.fn(),
-                set: vi.fn(),
-            } as unknown as Response;
             const user = {
                 id: 1,
                 default_search_provider: 'duckduckgo',
             } as User;
+
+            const req = {
+                logger: mockLogger(),
+                query: { q: 'regular search' },
+                user: user,
+            } as unknown as Request;
+            const res = {
+                redirect: vi.fn(),
+                set: vi.fn(),
+            } as unknown as Response;
 
             const parseSearchQuerySpy = vi.spyOn(searchUtils, 'parseSearchQuery').mockReturnValue({
                 commandType: null,
@@ -3901,7 +3861,7 @@ describe('search command handling', () => {
                 rawRemainder: 'regular search',
             });
 
-            await searchUtils.search({ req, res, user, query: 'regular search' });
+            await searchUtils.search({ req, res });
 
             expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=regular%20search');
 
@@ -4201,6 +4161,8 @@ describe('Bang Search Optimization', () => {
                 tabTriggers: [],
                 triggersCachedAt: Date.now(),
             },
+            query: { q: '!g python' },
+            user: testUser,
         } as unknown as Request;
 
         const res = {
@@ -4208,12 +4170,7 @@ describe('Bang Search Optimization', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        await searchUtils.search({
-            req,
-            res,
-            user: testUser,
-            query: '!g python',
-        });
+        await searchUtils.search({ req, res });
 
         expect(res.redirect).toHaveBeenCalledWith('https://www.google.com/search?q=python');
     });
@@ -4234,6 +4191,8 @@ describe('Bang Search Optimization', () => {
                 tabTriggers: [],
                 triggersCachedAt: Date.now(),
             },
+            query: { q: '!g python' },
+            user: testUser,
         } as unknown as Request;
 
         const res = {
@@ -4241,12 +4200,7 @@ describe('Bang Search Optimization', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        await searchUtils.search({
-            req,
-            res,
-            user: testUser,
-            query: '!g python',
-        });
+        await searchUtils.search({ req, res });
 
         expect(res.redirect).toHaveBeenCalledWith('https://my-google.com/search?q=python');
     });
@@ -4267,6 +4221,8 @@ describe('Bang Search Optimization', () => {
                 tabTriggers: ['!mytabs'],
                 triggersCachedAt: Date.now(),
             },
+            query: { q: '!mytabs' },
+            user: testUser,
         } as unknown as Request;
 
         const res = {
@@ -4274,12 +4230,7 @@ describe('Bang Search Optimization', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        await searchUtils.search({
-            req,
-            res,
-            user: testUser,
-            query: '!mytabs',
-        });
+        await searchUtils.search({ req, res });
 
         expect(res.redirect).toHaveBeenCalledWith(`/tabs/${tab.id}/launch`);
     });
@@ -4293,19 +4244,19 @@ describe('Bang Search Optimization', () => {
             action_type: 'redirect',
         });
 
-        const req = { logger: mockLogger(), session: {} } as unknown as Request;
+        const req = {
+            logger: mockLogger(),
+            session: {},
+            query: { q: '!g python' },
+            user: testUser,
+        } as unknown as Request;
 
         const res = {
             redirect: vi.fn(),
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        await searchUtils.search({
-            req,
-            res,
-            user: testUser,
-            query: '!g python',
-        });
+        await searchUtils.search({ req, res });
 
         // First search populated the cache; loadCachedTriggers should now see !custom
         const triggers = await searchUtils.loadCachedTriggers(testUser.id);
@@ -4313,12 +4264,9 @@ describe('Bang Search Optimization', () => {
 
         vi.mocked(res.redirect).mockClear();
 
-        await searchUtils.search({
-            req,
-            res,
-            user: testUser,
-            query: '!custom',
-        });
+        req.query = { q: '!custom' };
+        req.user = testUser;
+        await searchUtils.search({ req, res });
 
         expect(res.redirect).toHaveBeenCalledWith('https://custom.com');
     });
@@ -4331,6 +4279,8 @@ describe('Bang Search Optimization', () => {
                 tabTriggersMap: {},
                 triggersCachedAt: Date.now(),
             },
+            query: { q: '!yt video' },
+            user: testUser,
         } as unknown as Request;
 
         const res = {
@@ -4338,12 +4288,7 @@ describe('Bang Search Optimization', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        await searchUtils.search({
-            req,
-            res,
-            user: testUser,
-            query: '!yt video',
-        });
+        await searchUtils.search({ req, res });
 
         expect(res.redirect).toHaveBeenCalledWith(
             'https://www.youtube.com/results?search_query=video',
@@ -4358,6 +4303,8 @@ describe('Bang Search Optimization', () => {
                 tabTriggers: [],
                 triggersCachedAt: Date.now(),
             },
+            query: { q: '!unknownbang' },
+            user: { ...testUser, default_search_provider: 'duckduckgo' },
         } as unknown as Request;
 
         const res = {
@@ -4365,12 +4312,7 @@ describe('Bang Search Optimization', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        await searchUtils.search({
-            req,
-            res,
-            user: { ...testUser, default_search_provider: 'duckduckgo' },
-            query: '!unknownbang',
-        });
+        await searchUtils.search({ req, res });
 
         expect(res.redirect).toHaveBeenCalledWith('https://duckduckgo.com/?q=unknownbang');
     });
@@ -4417,14 +4359,21 @@ describe('Bang Search Performance', () => {
             set: vi.fn().mockReturnThis(),
         } as unknown as Response;
 
-        const reqCold = { logger: mockLogger(), session: {} } as unknown as Request;
+        const reqCold = {
+            logger: mockLogger(),
+            session: {},
+            query: { q: '!g test' },
+            user: testUser,
+        } as unknown as Request;
         const startCold = performance.now();
-        await searchUtils.search({ req: reqCold, res, user: testUser, query: '!g test' });
+        await searchUtils.search({ req: reqCold, res });
         const coldTime = performance.now() - startCold;
 
         vi.mocked(res.redirect).mockClear();
         const startWarm = performance.now();
-        await searchUtils.search({ req: reqCold, res, user: testUser, query: '!yt video' });
+        reqCold.query = { q: '!yt video' };
+        reqCold.user = testUser;
+        await searchUtils.search({ req: reqCold, res });
         const warmTime = performance.now() - startWarm;
 
         // Warm should be served from cache; allow some variance for system jitter
@@ -4452,7 +4401,9 @@ describe('Bang Search Performance', () => {
         for (let i = 0; i < iterations; i++) {
             vi.mocked(res.redirect).mockClear();
             const start = performance.now();
-            await searchUtils.search({ req, res, user: testUser, query: `!g query${i}` });
+            req.query = { q: `!g query${i}` };
+            req.user = testUser;
+            await searchUtils.search({ req, res });
             times.push(performance.now() - start);
         }
 
@@ -4476,9 +4427,11 @@ describe('Bang Search Performance', () => {
                 tabTriggers: ['!mytab'],
                 triggersCachedAt: Date.now(),
             },
+            query: { q: '!custom1' },
+            user: testUser,
         } as unknown as Request;
 
-        await searchUtils.search({ req, res, user: testUser, query: '!custom1' });
+        await searchUtils.search({ req, res });
 
         expect(res.redirect).toHaveBeenCalledWith('https://custom1.com');
     });
