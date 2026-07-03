@@ -152,7 +152,7 @@ describe('authenticationMiddleware', () => {
         } as unknown as User;
 
         req.session!.user = sessionUser;
-        req.headers = {}; // No API key
+        req.headers = {};
 
         await authenticationMiddleware(req as Request, res as Response, next);
 
@@ -163,51 +163,9 @@ describe('authenticationMiddleware', () => {
         expect(res.redirect || next).toBeTruthy();
     });
 
-    it('should authenticate user with API key', async () => {
-        const apiKeyPayload = { userId: testUser.id, apiKeyVersion: 1 };
-        const apiKey = await ctx.utils.auth.generateApiKey(apiKeyPayload);
-
-        // Store API key in user
-        await db('users').where({ id: testUser.id }).update({
-            api_key: apiKey,
-            api_key_version: 1,
-        });
-
-        // Set API key in request header
-        req.headers = { authorization: `Bearer ${apiKey}` };
-
-        await authenticationMiddleware(req as Request, res as Response, next);
-
-        expect(req.user).toEqual(
-            expect.objectContaining({
-                id: testUser.id,
-                username: testUser.username,
-                email: testUser.email,
-            }),
-        );
-        expect(req.user!.column_preferences.bookmarks.title).toBe(true);
-        expect(req.user!.column_preferences.bookmarks.default_per_page).toBe(10);
-        expect(req.user!.column_preferences.actions.default_per_page).toBe(10);
-
-        expect(req.session!.user).toBeDefined();
-        expect(req.session!.save).toHaveBeenCalled();
-
-        expect(next).toHaveBeenCalledWith();
-    });
-
-    it('should throw UnauthorizedError if API key is invalid', async () => {
-        const apiKey = 'invalid-api-key';
-        req.headers = { authorization: `Bearer ${apiKey}` };
-
-        await authenticationMiddleware(req as Request, res as Response, next);
-
-        expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
-        expect(ctx.logger.error).toHaveBeenCalled();
-    });
-
     it('should redirect to login if no user found and not API request', async () => {
         req.session!.user = undefined;
-        req.headers = {}; // No API key
+        req.headers = {};
 
         await authenticationMiddleware(req as Request, res as Response, next);
 
@@ -223,8 +181,8 @@ describe('authenticationMiddleware', () => {
 
     it('should throw UnauthorizedError if no user found and is API request', async () => {
         req.session!.user = undefined;
-        req.headers = { accept: 'application/json' }; // API request marker
-        (req as any).path = '/api/test'; // API path
+        req.method = 'GET';
+        req.headers = { accept: 'application/json' };
 
         await authenticationMiddleware(req as Request, res as Response, next);
 
@@ -457,7 +415,6 @@ describe('errorMiddleware', () => {
 
     it('should handle API requests with different error types', async () => {
         req.headers = { accept: 'application/json' };
-        (req as any).path = '/api/test';
 
         const notFoundError = new NotFoundError('API resource not found');
         await errorMiddleware(
@@ -475,7 +432,10 @@ describe('errorMiddleware', () => {
 
         vi.resetAllMocks();
         req.headers = { accept: 'application/json' };
-        (req as any).path = '/api/test';
+        req.header = vi.fn((name: string) => {
+            const headers = (req as any).headers || {};
+            return headers[name.toLowerCase()];
+        });
         res = {
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
@@ -559,24 +519,6 @@ describe('AppLocalStateMiddleware', () => {
         };
 
         next = vi.fn();
-    });
-
-    it('should skip setting up locals for API routes', async () => {
-        (req as any).path = '/api/settings/api-key';
-
-        await appLocalStateMiddleware(req as Request, res as Response, next);
-
-        expect(next).toHaveBeenCalled();
-        expect(res.locals).toEqual({});
-    });
-
-    it('should skip setting up locals for nested API routes', async () => {
-        (req as any).path = '/api/notes/render-markdown';
-
-        await appLocalStateMiddleware(req as Request, res as Response, next);
-
-        expect(next).toHaveBeenCalled();
-        expect(res.locals).toEqual({});
     });
 
     it('should set up locals for non-API routes', async () => {
@@ -890,15 +832,6 @@ describe('CsrfMiddleware', () => {
 
         expect(req.session!.save).toHaveBeenCalled();
         expect(res.locals!.csrfToken).toBeDefined();
-    });
-
-    it('should skip CSRF protection for API routes', () => {
-        (req as any).path = '/api/test';
-        req.method = 'POST';
-
-        csrfMiddleware[0](req as Request, res as Response, next);
-
-        expect(next).toHaveBeenCalled();
     });
 
     it('should skip CSRF protection for GET requests', () => {

@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { User, ApiKeyPayload, AppContext } from '../../type.js';
+import type { User, AppContext } from '../../type.js';
 
 export function createSettingsRouter(ctx: AppContext) {
     const VALID_TIMEZONES = new Set([
@@ -537,7 +537,7 @@ export function createSettingsRouter(ctx: AppContext) {
     );
 
     router.post(
-        '/api/settings/theme',
+        '/settings/theme',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const { theme } = req.body;
@@ -559,72 +559,6 @@ export function createSettingsRouter(ctx: AppContext) {
                     resolve();
                 });
             });
-        },
-    );
-
-    router.post(
-        '/settings/create-api-key',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = await ctx.db('users').where({ id: req.session.user?.id }).first();
-
-            if (!user) {
-                throw new ctx.errors.NotFoundError('User not found');
-            }
-
-            // Convert SQLite integer values to booleans
-            user.is_admin = Boolean(user.is_admin);
-            user.autocomplete_search_on_homepage = Boolean(user.autocomplete_search_on_homepage);
-
-            const newKeyVersion = (user.api_key_version || 0) + 1;
-
-            const payload: ApiKeyPayload = { userId: user.id, apiKeyVersion: newKeyVersion };
-
-            const [updatedUser] = await ctx
-                .db('users')
-                .where({ id: req.session?.user?.id })
-                .update({
-                    api_key: await ctx.utils.auth.generateApiKey(payload),
-                    api_key_version: newKeyVersion,
-                    api_key_created_at: ctx.db.fn.now(),
-                })
-                .returning('*');
-
-            if (req.session?.user) {
-                req.session.user = {
-                    ...updatedUser,
-                    column_preferences: ctx.utils.util.parseColumnPreferences(
-                        updatedUser.column_preferences,
-                    ),
-                } as User;
-                req.session.save();
-            }
-
-            if (req.user) {
-                req.user = {
-                    ...updatedUser,
-                    column_preferences: ctx.utils.util.parseColumnPreferences(
-                        updatedUser.column_preferences,
-                    ),
-                } as User;
-            }
-
-            req.flash('success', '📱 api key created');
-            return res.redirect(`/settings/account`);
-        },
-    );
-
-    router.get(
-        '/api/settings/api-key',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = await ctx.db('users').where({ id: req.session.user?.id }).first();
-
-            if (!user || !user.api_key) {
-                return res.status(404).json({ error: 'API key not found' });
-            }
-
-            return res.json({ api_key: user.api_key });
         },
     );
 
@@ -1140,18 +1074,10 @@ export function createSettingsRouter(ctx: AppContext) {
             const deleteReminders = Array.isArray(deleteOptions)
                 ? deleteOptions.includes('reminders')
                 : deleteOptions === 'reminders';
-            const deleteApiKeys = Array.isArray(deleteOptions)
-                ? deleteOptions.includes('api_keys')
-                : deleteOptions === 'api_keys';
 
             // Check if all options are selected - if so, require confirmation
             const allOptionsSelected =
-                deleteActions &&
-                deleteTabs &&
-                deleteBookmarks &&
-                deleteNotes &&
-                deleteReminders &&
-                deleteApiKeys;
+                deleteActions && deleteTabs && deleteBookmarks && deleteNotes && deleteReminders;
 
             if (allOptionsSelected) {
                 const confirmation = req.body.confirmation?.trim();
@@ -1168,8 +1094,7 @@ export function createSettingsRouter(ctx: AppContext) {
                 !deleteTabs &&
                 !deleteBookmarks &&
                 !deleteNotes &&
-                !deleteReminders &&
-                !deleteApiKeys
+                !deleteReminders
             ) {
                 throw new ctx.errors.ValidationError({
                     delete_options: 'Please select at least one data type to delete',
@@ -1205,28 +1130,6 @@ export function createSettingsRouter(ctx: AppContext) {
                         deleteCounts.reminders = count;
                     }
 
-                    if (deleteApiKeys) {
-                        await trx('users').where({ id: user.id }).update({
-                            api_key: null,
-                            api_key_version: 0,
-                            api_key_created_at: null,
-                        });
-                        deleteCounts.api_keys = 1;
-
-                        if (req.session?.user) {
-                            req.session.user.api_key = null;
-                            req.session.user.api_key_version = 0;
-                            req.session.user.api_key_created_at = null;
-                            req.session.save();
-                        }
-
-                        if (req.user) {
-                            req.user.api_key = null;
-                            req.user.api_key_version = 0;
-                            req.user.api_key_created_at = null;
-                        }
-                    }
-
                     const processedItems = [];
                     if (deleteActions) {
                         const count = deleteCounts.actions ?? 0;
@@ -1247,9 +1150,6 @@ export function createSettingsRouter(ctx: AppContext) {
                     if (deleteReminders) {
                         const count = deleteCounts.reminders ?? 0;
                         processedItems.push(count > 0 ? `${count} reminders` : '0 reminders');
-                    }
-                    if (deleteApiKeys) {
-                        processedItems.push('API keys');
                     }
 
                     if (processedItems.length > 0) {

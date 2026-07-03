@@ -273,6 +273,7 @@ export function createSetupAppLocals(ctx: AppContext) {
 
         res.locals.state = {
             cloudflare_turnstile_site_key: ctx.config.cloudflare.turnstileSiteKey,
+            csrfToken: res.locals.csrfToken ?? '',
             env: ctx.config.app.env,
             user: req.user ?? userWithParsedPrefs,
             copyRightYear: cachedStaticLocals!.copyRightYear,
@@ -313,14 +314,6 @@ export function createCsrfMiddleware(ctx: AppContext) {
 
     return [
         (req: Request, res: Response, next: NextFunction) => {
-            if (req.path.startsWith('/api/')) {
-                return next();
-            }
-
-            if (ctx.utils.request.extractApiKey(req)) {
-                return next();
-            }
-
             // Skip CSRF protection for safe HTTP methods that don't modify data
             if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
                 return next();
@@ -362,11 +355,6 @@ export function createAppLocalStateMiddleware(ctx: AppContext) {
 
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
-            // Skip for API routes - they don't need template locals
-            if (req.path.startsWith('/api/')) {
-                return next();
-            }
-
             // Set session input for form data before setting up locals
             if (FORM_DATA_METHODS.has(req.method) && req.session) {
                 req.session.input = req.body as Record<string, any>;
@@ -400,8 +388,6 @@ export function createAuthenticationMiddleware(ctx: AppContext) {
         next: NextFunction,
     ) {
         try {
-            const apiKey = ctx.utils.request.extractApiKey(req);
-
             let user: User | null = null;
             let needsRefresh = false;
 
@@ -429,20 +415,9 @@ export function createAuthenticationMiddleware(ctx: AppContext) {
                 }
             }
 
-            if (apiKey) {
-                const apiKeyPayload = await ctx.utils.auth.verifyApiKey(apiKey);
-
-                if (!apiKeyPayload) {
-                    throw new ctx.errors.UnauthorizedError('Invalid API key or Bearer token', req);
-                }
-
-                user = await ctx.models.users.read(apiKeyPayload.userId);
-                needsRefresh = true;
-            }
-
             if (!user) {
                 if (ctx.utils.request.isApiRequest(req)) {
-                    throw new ctx.errors.UnauthorizedError('Unauthorized - API key required', req);
+                    throw new ctx.errors.UnauthorizedError('Unauthorized', req);
                 }
 
                 if (req.session) {

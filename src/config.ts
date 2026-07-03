@@ -9,7 +9,6 @@ export const config = {
         appUrl: process.env.APP_URL || 'localhost',
         adminEmail: process.env.APP_ADMIN_EMAIL || '',
         secretSalt: process.env.APP_SECRET_SALT || 'bang',
-        apiKeySecret: process.env.APP_API_KEY_SECRET || 'bang',
         slowRequestMs: parseInt(process.env.APP_SLOW_REQUEST_MS || '1000', 10),
     } as const,
 

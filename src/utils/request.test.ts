@@ -220,66 +220,6 @@ describe.concurrent('getSafeRedirectPath', () => {
     });
 });
 
-describe.concurrent('extractApiKey', () => {
-    it('should extract API key from X-API-KEY header', () => {
-        const req = {
-            header: (name: string) => {
-                if (name === 'X-API-KEY') return 'test-api-key-123';
-                return undefined;
-            },
-        } as unknown as Request;
-
-        const apiKey = requestUtils.extractApiKey(req);
-        expect(apiKey).toBe('test-api-key-123');
-    });
-
-    it('should extract API key from Authorization Bearer token', () => {
-        const req = {
-            header: (name: string) => {
-                if (name === 'Authorization') return 'Bearer my-bearer-token-456';
-                return undefined;
-            },
-        } as unknown as Request;
-
-        const apiKey = requestUtils.extractApiKey(req);
-        expect(apiKey).toBe('my-bearer-token-456');
-    });
-
-    it('should prioritize Authorization Bearer over X-API-KEY', () => {
-        const req = {
-            header: (name: string) => {
-                if (name === 'X-API-KEY') return 'x-api-key-value';
-                if (name === 'Authorization') return 'Bearer bearer-token-value';
-                return undefined;
-            },
-        } as unknown as Request;
-
-        const apiKey = requestUtils.extractApiKey(req);
-        expect(apiKey).toBe('bearer-token-value');
-    });
-
-    it('should return undefined when no API key headers present', () => {
-        const req = {
-            header: () => undefined,
-        } as unknown as Request;
-
-        const apiKey = requestUtils.extractApiKey(req);
-        expect(apiKey).toBeUndefined();
-    });
-
-    it('should return undefined for non-Bearer Authorization header', () => {
-        const req = {
-            header: (name: string) => {
-                if (name === 'Authorization') return 'Basic some-basic-auth';
-                return undefined;
-            },
-        } as unknown as Request;
-
-        const apiKey = requestUtils.extractApiKey(req);
-        expect(apiKey).toBeUndefined();
-    });
-});
-
 describe.concurrent('expectsJson', () => {
     it('should return true when Content-Type includes application/json', () => {
         const req = {
@@ -324,42 +264,6 @@ describe.concurrent('expectsJson', () => {
 });
 
 describe.concurrent('isApiRequest', () => {
-    it('should return true for paths starting with /api/', () => {
-        const req = {
-            path: '/api/users',
-            method: 'GET',
-            header: () => undefined,
-        } as unknown as Request;
-
-        expect(requestUtils.isApiRequest(req)).toBe(true);
-    });
-
-    it('should return true when API key is present in X-API-KEY header', () => {
-        const req = {
-            path: '/some-path',
-            method: 'GET',
-            header: (name: string) => {
-                if (name === 'X-API-KEY') return 'test-api-key';
-                return undefined;
-            },
-        } as unknown as Request;
-
-        expect(requestUtils.isApiRequest(req)).toBe(true);
-    });
-
-    it('should return true when API key is present in Authorization Bearer', () => {
-        const req = {
-            path: '/some-path',
-            method: 'GET',
-            header: (name: string) => {
-                if (name === 'Authorization') return 'Bearer test-token';
-                return undefined;
-            },
-        } as unknown as Request;
-
-        expect(requestUtils.isApiRequest(req)).toBe(true);
-    });
-
     it('should return true for GET request with Accept: application/json', () => {
         const req = {
             path: '/some-path',

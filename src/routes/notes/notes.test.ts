@@ -1,8 +1,4 @@
-import {
-    authenticateAgent,
-    authenticateApiAgent,
-    createUnauthenticatedAgent,
-} from '../../tests/api-test-utils.js';
+import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/api-test-utils.js';
 import request from 'supertest';
 import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect } from 'vite-plus/test';
@@ -34,7 +30,7 @@ describe('Notes Routes', () => {
         });
 
         it('should return notes as JSON', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             await db('notes').insert({
                 user_id: user.id,
@@ -43,7 +39,10 @@ describe('Notes Routes', () => {
                 pinned: false,
             });
 
-            const response = await agent.get('/notes').expect(200);
+            const response = await agent
+                .get('/notes')
+                .set('Accept', 'application/json')
+                .expect(200);
 
             expect(response.body.data).toBeInstanceOf(Array);
             expect(response.body.data).toHaveLength(1);
@@ -114,10 +113,11 @@ describe('Notes Routes', () => {
 
     describe('POST /notes (JSON)', () => {
         it('should create a new note via API', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             const response = await agent
                 .post('/notes')
+                .set('Accept', 'application/json')
                 .send({
                     title: 'API Note',
                     content: 'API content',
@@ -497,21 +497,22 @@ describe('Notes Routes', () => {
         });
     });
 
-    describe('POST /api/notes/render-markdown', () => {
+    describe('POST /notes/render-markdown', () => {
         it('should require authentication', async () => {
-            await request(app)
-                .post('/api/notes/render-markdown')
+            const agent = await createUnauthenticatedAgent(app);
+            await agent
+                .post('/notes/render-markdown')
                 .set('Accept', 'application/json')
-                .set('Content-Type', 'application/json')
                 .send({ markdown: '# Test' })
                 .expect(401);
         });
 
         it('should render markdown to HTML', async () => {
-            const { agent } = await authenticateApiAgent(app);
+            const { agent } = await authenticateAgent(app);
 
             const response = await agent
-                .post('/api/notes/render-markdown')
+                .post('/notes/render-markdown')
+                .set('Accept', 'application/json')
                 .send({ content: '# Heading\n\n**Bold text**' })
                 .expect(200);
 
@@ -520,9 +521,12 @@ describe('Notes Routes', () => {
         });
 
         it('should handle empty markdown', async () => {
-            const { agent } = await authenticateApiAgent(app);
+            const { agent } = await authenticateAgent(app);
 
-            const response = await agent.post('/api/notes/render-markdown').send({ content: '' });
+            const response = await agent
+                .post('/notes/render-markdown')
+                .set('Accept', 'application/json')
+                .send({ content: '' });
 
             if (response.status === 422) {
                 expect(response.body.message).toContain('Validation');
@@ -533,10 +537,11 @@ describe('Notes Routes', () => {
         });
 
         it('should sanitize XSS in script tags', async () => {
-            const { agent } = await authenticateApiAgent(app);
+            const { agent } = await authenticateAgent(app);
 
             const response = await agent
-                .post('/api/notes/render-markdown')
+                .post('/notes/render-markdown')
+                .set('Accept', 'application/json')
                 .send({ content: '<script>alert("xss")</script>' })
                 .expect(200);
 
@@ -545,10 +550,11 @@ describe('Notes Routes', () => {
         });
 
         it('should sanitize XSS in event handlers', async () => {
-            const { agent } = await authenticateApiAgent(app);
+            const { agent } = await authenticateAgent(app);
 
             const response = await agent
-                .post('/api/notes/render-markdown')
+                .post('/notes/render-markdown')
+                .set('Accept', 'application/json')
                 .send({ content: '<img src="x" onerror="alert(1)">' })
                 .expect(200);
 
@@ -557,10 +563,11 @@ describe('Notes Routes', () => {
         });
 
         it('should sanitize XSS in javascript: URLs', async () => {
-            const { agent } = await authenticateApiAgent(app);
+            const { agent } = await authenticateAgent(app);
 
             const response = await agent
-                .post('/api/notes/render-markdown')
+                .post('/notes/render-markdown')
+                .set('Accept', 'application/json')
                 .send({ content: '<a href="javascript:alert(1)">click</a>' })
                 .expect(200);
 
@@ -568,10 +575,11 @@ describe('Notes Routes', () => {
         });
 
         it('should allow safe HTML elements', async () => {
-            const { agent } = await authenticateApiAgent(app);
+            const { agent } = await authenticateAgent(app);
 
             const response = await agent
-                .post('/api/notes/render-markdown')
+                .post('/notes/render-markdown')
+                .set('Accept', 'application/json')
                 .send({ content: '# Heading\n\n<strong>Bold</strong>\n\n<em>Italic</em>' })
                 .expect(200);
 
@@ -654,10 +662,11 @@ describe('Notes Routes', () => {
 
         describe('POST /notes - Hidden field (JSON)', () => {
             it('should reject creating hidden note without global password via API', async () => {
-                const { agent } = await authenticateApiAgent(app);
+                const { agent } = await authenticateAgent(app);
 
                 const response = await agent
                     .post('/notes')
+                    .set('Accept', 'application/json')
                     .send({
                         title: 'Hidden Note',
                         content: 'Secret content',
@@ -669,7 +678,7 @@ describe('Notes Routes', () => {
             });
 
             it('should create hidden note with global password via API', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 await db('users')
                     .where({ id: user.id })
@@ -677,6 +686,7 @@ describe('Notes Routes', () => {
 
                 const response = await agent
                     .post('/notes')
+                    .set('Accept', 'application/json')
                     .send({
                         title: 'Hidden API Note',
                         content: 'Secret API content',
@@ -693,7 +703,7 @@ describe('Notes Routes', () => {
 
         describe('POST /notes/:id/update - Update hidden field (JSON)', () => {
             it('should allow toggling hidden status with global password', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 await db('users')
                     .where({ id: user.id })
@@ -710,6 +720,7 @@ describe('Notes Routes', () => {
 
                 await agent
                     .post(`/notes/${note.id}/update`)
+                    .set('Accept', 'application/json')
                     .send({
                         title: 'Test Note',
                         content: 'Test content',
@@ -722,7 +733,7 @@ describe('Notes Routes', () => {
             });
 
             it('should reject hiding note without global password', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 const [note] = await db('notes')
                     .insert({
@@ -735,6 +746,7 @@ describe('Notes Routes', () => {
 
                 const response = await agent
                     .post(`/notes/${note.id}/update`)
+                    .set('Accept', 'application/json')
                     .send({
                         title: 'Test Note',
                         content: 'Test content',
@@ -748,7 +760,7 @@ describe('Notes Routes', () => {
 
         describe('GET /notes - Hidden notes exclusion (JSON)', () => {
             it('should exclude hidden notes from API listing', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 await db('users')
                     .where({ id: user.id })
@@ -769,7 +781,10 @@ describe('Notes Routes', () => {
                     },
                 ]);
 
-                const response = await agent.get('/notes').expect(200);
+                const response = await agent
+                    .get('/notes')
+                    .set('Accept', 'application/json')
+                    .expect(200);
 
                 expect(response.body.data).toHaveLength(1);
                 expect(response.body.data[0].title).toBe('Public Note');
@@ -841,7 +856,7 @@ describe('Notes Routes', () => {
 
         describe('POST /notes/delete (JSON)', () => {
             it('should delete multiple notes via API', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 const [note1] = await db('notes')
                     .insert({ user_id: user.id, title: 'Note 1', content: 'Content 1' })
@@ -852,6 +867,7 @@ describe('Notes Routes', () => {
 
                 const response = await agent
                     .post('/notes/delete')
+                    .set('Accept', 'application/json')
                     .send({ id: [note1.id.toString(), note2.id.toString()] })
                     .expect(200);
 
@@ -863,7 +879,7 @@ describe('Notes Routes', () => {
             });
 
             it('should return correct count when some IDs are invalid', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 const [note1] = await db('notes')
                     .insert({ user_id: user.id, title: 'Note 1', content: 'Content 1' })
@@ -871,6 +887,7 @@ describe('Notes Routes', () => {
 
                 const response = await agent
                     .post('/notes/delete')
+                    .set('Accept', 'application/json')
                     .send({ id: [note1.id.toString(), '99999'] })
                     .expect(200);
 
@@ -878,9 +895,13 @@ describe('Notes Routes', () => {
             });
 
             it('should require id to be an array', async () => {
-                const { agent } = await authenticateApiAgent(app);
+                const { agent } = await authenticateAgent(app);
 
-                await agent.post('/notes/delete').send({ id: 'not-an-array' }).expect(422);
+                await agent
+                    .post('/notes/delete')
+                    .set('Accept', 'application/json')
+                    .send({ id: 'not-an-array' })
+                    .expect(422);
             });
         });
     });
@@ -936,7 +957,7 @@ describe('Notes Routes', () => {
         });
 
         it('should highlight search terms in API response', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             await db('notes').insert({
                 user_id: user.id,
@@ -944,7 +965,10 @@ describe('Notes Routes', () => {
                 content: 'This note is about highlight testing',
             });
 
-            const response = await agent.get('/notes?search=highlight').expect(200);
+            const response = await agent
+                .get('/notes?search=highlight')
+                .set('Accept', 'application/json')
+                .expect(200);
 
             expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
             expect(response.body.data[0].content).toContain('<mark>highlight</mark>');
