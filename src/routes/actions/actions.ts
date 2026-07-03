@@ -4,8 +4,7 @@ import type { User, AppContext } from '../../type.js';
 export function createActionsRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
-    router.get('/actions', ctx.middleware.authentication, getActionsHandler);
-    async function getActionsHandler(req: Request, res: Response) {
+    router.get('/actions', ctx.middleware.authentication, async (req: Request, res: Response) => {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'actions');
@@ -45,7 +44,7 @@ export function createActionsRouter(ctx: AppContext) {
             showHidden: canViewHidden,
             hiddenItemsVerified: hasVerifiedPassword,
         });
-    }
+    });
 
     router.get(
         '/actions/create',
@@ -115,8 +114,7 @@ export function createActionsRouter(ctx: AppContext) {
         },
     );
 
-    router.post('/actions', ctx.middleware.authentication, postActionHandler);
-    async function postActionHandler(req: Request, res: Response) {
+    router.post('/actions', ctx.middleware.authentication, async (req: Request, res: Response) => {
         const { url, name, actionType, trigger, hidden } = req.body;
         const user = req.user as User;
 
@@ -206,111 +204,114 @@ export function createActionsRouter(ctx: AppContext) {
 
         req.flash('success', `Action ${formattedTrigger} created successfully!`);
         return res.redirect('/actions');
-    }
+    });
 
-    router.post('/actions/:id/update', ctx.middleware.authentication, updateActionHandler);
-    async function updateActionHandler(req: Request, res: Response) {
-        const { url, name, actionType, trigger, hidden } = req.body;
-        const user = req.user as User;
-        const actionId = req.params.id as unknown as number;
+    router.post(
+        '/actions/:id/update',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const { url, name, actionType, trigger, hidden } = req.body;
+            const user = req.user as User;
+            const actionId = req.params.id as unknown as number;
 
-        if (!url) {
-            throw new ctx.errors.ValidationError({ url: 'URL is required' });
-        }
+            if (!url) {
+                throw new ctx.errors.ValidationError({ url: 'URL is required' });
+            }
 
-        if (!name) {
-            throw new ctx.errors.ValidationError({ name: 'Name is required' });
-        }
+            if (!name) {
+                throw new ctx.errors.ValidationError({ name: 'Name is required' });
+            }
 
-        if (!actionType) {
-            throw new ctx.errors.ValidationError({ actionType: 'Action type is required' });
-        }
+            if (!actionType) {
+                throw new ctx.errors.ValidationError({ actionType: 'Action type is required' });
+            }
 
-        if (!trigger) {
-            throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
-        }
+            if (!trigger) {
+                throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
+            }
 
-        if (!ctx.utils.validation.isValidUrl(url)) {
-            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
-        }
+            if (!ctx.utils.validation.isValidUrl(url)) {
+                throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
+            }
 
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new ctx.errors.ValidationError({
-                hidden: 'Hidden must be a boolean or checkbox value',
-            });
-        }
-
-        if ((hidden === 'on' || hidden === true) && actionType !== 'redirect') {
-            throw new ctx.errors.ValidationError({
-                hidden: 'Only redirect-type actions can be hidden',
-            });
-        }
-
-        if (hidden === 'on' || hidden === true) {
-            const dbUser = await ctx.db('users').where({ id: user.id }).first();
-            if (!dbUser?.hidden_items_password) {
+            if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
                 throw new ctx.errors.ValidationError({
-                    hidden: 'You must set a global password in settings before hiding items',
+                    hidden: 'Hidden must be a boolean or checkbox value',
                 });
             }
-        }
 
-        if (!ctx.utils.validation.isOnlyLettersAndNumbers(trigger.slice(1))) {
-            throw new ctx.errors.ValidationError({
-                trigger: 'Trigger can only contain letters and numbers',
-            });
-        }
+            if ((hidden === 'on' || hidden === true) && actionType !== 'redirect') {
+                throw new ctx.errors.ValidationError({
+                    hidden: 'Only redirect-type actions can be hidden',
+                });
+            }
 
-        const formattedTrigger = ctx.utils.util.normalizeBangTrigger(trigger);
+            if (hidden === 'on' || hidden === true) {
+                const dbUser = await ctx.db('users').where({ id: user.id }).first();
+                if (!dbUser?.hidden_items_password) {
+                    throw new ctx.errors.ValidationError({
+                        hidden: 'You must set a global password in settings before hiding items',
+                    });
+                }
+            }
 
-        const existingBang = await ctx
-            .db('bangs')
-            .where({
+            if (!ctx.utils.validation.isOnlyLettersAndNumbers(trigger.slice(1))) {
+                throw new ctx.errors.ValidationError({
+                    trigger: 'Trigger can only contain letters and numbers',
+                });
+            }
+
+            const formattedTrigger = ctx.utils.util.normalizeBangTrigger(trigger);
+
+            const existingBang = await ctx
+                .db('bangs')
+                .where({
+                    trigger: formattedTrigger,
+                    user_id: user.id,
+                })
+                .whereNot('id', req.params?.id)
+                .first();
+
+            if (existingBang) {
+                throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
+            }
+
+            const currentAction = await ctx.models.actions.read(actionId, user.id);
+
+            if (!currentAction) {
+                throw new ctx.errors.NotFoundError('Action not found');
+            }
+
+            const updatedAction = await ctx.models.actions.update(actionId, user.id, {
                 trigger: formattedTrigger,
-                user_id: user.id,
-            })
-            .whereNot('id', req.params?.id)
-            .first();
-
-        if (existingBang) {
-            throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
-        }
-
-        const currentAction = await ctx.models.actions.read(actionId, user.id);
-
-        if (!currentAction) {
-            throw new ctx.errors.NotFoundError('Action not found');
-        }
-
-        const updatedAction = await ctx.models.actions.update(actionId, user.id, {
-            trigger: formattedTrigger,
-            name: name.trim(),
-            url,
-            action_type: actionType,
-            actionType: actionType,
-            hidden: hidden === 'on' || hidden === true,
-        });
-
-        if (currentAction.trigger !== formattedTrigger) {
-            ctx.utils.search.invalidateTriggerCache(user.id);
-        }
-
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: `Action ${updatedAction.trigger} updated successfully!`,
+                name: name.trim(),
+                url,
+                action_type: actionType,
+                actionType: actionType,
+                hidden: hidden === 'on' || hidden === true,
             });
-            return;
-        }
 
-        req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
+            if (currentAction.trigger !== formattedTrigger) {
+                ctx.utils.search.invalidateTriggerCache(user.id);
+            }
 
-        if (updatedAction.hidden && !currentAction.hidden) {
-            req.flash('success', 'Action hidden successfully');
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(200).json({
+                    message: `Action ${updatedAction.trigger} updated successfully!`,
+                });
+                return;
+            }
+
+            req.flash('success', `Action ${updatedAction.trigger} updated successfully!`);
+
+            if (updatedAction.hidden && !currentAction.hidden) {
+                req.flash('success', 'Action hidden successfully');
+                return res.redirect('/actions');
+            }
+
             return res.redirect('/actions');
-        }
-
-        return res.redirect('/actions');
-    }
+        },
+    );
 
     router.post('/actions/:id/delete', ctx.middleware.authentication, deleteActionHandler);
     router.post('/actions/delete', ctx.middleware.authentication, deleteActionHandler);
@@ -340,47 +341,53 @@ export function createActionsRouter(ctx: AppContext) {
         return res.redirect('/actions');
     }
 
-    router.post('/actions/:id/hide', ctx.middleware.authentication, toggleActionHideHandler);
-    async function toggleActionHideHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const actionId = parseInt(req.params.id as unknown as string);
+    router.post(
+        '/actions/:id/hide',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const actionId = parseInt(req.params.id as unknown as string);
 
-        const dbUser = await ctx.db('users').where({ id: user.id }).first();
-        if (!dbUser?.hidden_items_password) {
-            throw new ctx.errors.ValidationError({
-                hidden: 'You must set a global password in settings before hiding items',
+            const dbUser = await ctx.db('users').where({ id: user.id }).first();
+            if (!dbUser?.hidden_items_password) {
+                throw new ctx.errors.ValidationError({
+                    hidden: 'You must set a global password in settings before hiding items',
+                });
+            }
+
+            const currentAction = await ctx.models.actions.read(actionId, user.id);
+
+            if (!currentAction) {
+                throw new ctx.errors.NotFoundError('Action not found');
+            }
+
+            if (!currentAction.hidden && currentAction.action_type !== 'redirect') {
+                throw new ctx.errors.ValidationError({
+                    hidden: 'Only redirect-type actions can be hidden',
+                });
+            }
+
+            const updatedAction = await ctx.models.actions.update(actionId, user.id, {
+                hidden: !currentAction.hidden,
+                actionType: currentAction.action_type,
             });
-        }
 
-        const currentAction = await ctx.models.actions.read(actionId, user.id);
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(200).json({
+                    message: `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`,
+                    data: updatedAction,
+                });
+                return;
+            }
 
-        if (!currentAction) {
-            throw new ctx.errors.NotFoundError('Action not found');
-        }
-
-        if (!currentAction.hidden && currentAction.action_type !== 'redirect') {
-            throw new ctx.errors.ValidationError({
-                hidden: 'Only redirect-type actions can be hidden',
-            });
-        }
-
-        const updatedAction = await ctx.models.actions.update(actionId, user.id, {
-            hidden: !currentAction.hidden,
-            actionType: currentAction.action_type,
-        });
-
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`,
-                data: updatedAction,
-            });
-            return;
-        }
-
-        req.flash('success', `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`);
-        const showHidden = req.body.showHidden === 'true';
-        return res.redirect('/actions' + (showHidden ? '?hidden=true' : ''));
-    }
+            req.flash(
+                'success',
+                `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`,
+            );
+            const showHidden = req.body.showHidden === 'true';
+            return res.redirect('/actions' + (showHidden ? '?hidden=true' : ''));
+        },
+    );
 
     router.post(
         '/actions/:id/tabs',

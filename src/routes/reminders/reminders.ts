@@ -199,8 +199,7 @@ export function createRemindersRouter(ctx: AppContext) {
         },
     );
 
-    router.get('/reminders', ctx.middleware.authentication, getRemindersHandler);
-    async function getRemindersHandler(req: Request, res: Response) {
+    router.get('/reminders', ctx.middleware.authentication, async (req: Request, res: Response) => {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'reminders');
@@ -232,141 +231,147 @@ export function createRemindersRouter(ctx: AppContext) {
             sortKey,
             direction,
         });
-    }
+    });
 
-    router.post('/reminders', ctx.middleware.authentication, postReminderHandler);
-    async function postReminderHandler(req: Request, res: Response) {
-        const { title, content, when, custom_date, custom_time } = req.body;
-        const user = req.user as User;
+    router.post(
+        '/reminders',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const { title, content, when, custom_date, custom_time } = req.body;
+            const user = req.user as User;
 
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
+            if (!title) {
+                throw new ctx.errors.ValidationError({ title: 'Title is required' });
+            }
 
-        const trimmedContent = content ? content.trim() : null;
+            const trimmedContent = content ? content.trim() : null;
 
-        if (!when) {
-            throw new ctx.errors.ValidationError({ when: 'When is required' });
-        }
+            if (!when) {
+                throw new ctx.errors.ValidationError({ when: 'When is required' });
+            }
 
-        if (custom_time && !REGEX_TIME_FORMAT.test(custom_time)) {
-            throw new ctx.errors.ValidationError({
-                custom_time: 'Invalid time format. Must be HH:MM (24-hour format)',
+            if (custom_time && !REGEX_TIME_FORMAT.test(custom_time)) {
+                throw new ctx.errors.ValidationError({
+                    custom_time: 'Invalid time format. Must be HH:MM (24-hour format)',
+                });
+            }
+
+            const timeInput = when === 'custom' ? custom_date : when;
+            const timeToUse =
+                when === 'custom' && custom_time
+                    ? custom_time
+                    : req.user?.column_preferences?.reminders?.default_reminder_time;
+            const timing = ctx.utils.search.parseReminderTiming(
+                timeInput.toLowerCase(),
+                timeToUse,
+                user.timezone,
+            );
+            if (!timing.isValid) {
+                throw new ctx.errors.ValidationError({
+                    when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
+                });
+            }
+
+            if (timing.type === 'once' && !timing.nextDue) {
+                throw new ctx.errors.ValidationError({
+                    when: 'One-time reminders must have a specific date. Please select a date.',
+                });
+            }
+
+            const reminder = await ctx.models.reminders.create({
+                user_id: user.id,
+                title: title.trim(),
+                content: trimmedContent,
+                reminder_type: timing.type,
+                frequency: timing.frequency,
+                due_date:
+                    timing.nextDue instanceof Date ? timing.nextDue.toISOString() : timing.nextDue,
             });
-        }
 
-        const timeInput = when === 'custom' ? custom_date : when;
-        const timeToUse =
-            when === 'custom' && custom_time
-                ? custom_time
-                : req.user?.column_preferences?.reminders?.default_reminder_time;
-        const timing = ctx.utils.search.parseReminderTiming(
-            timeInput.toLowerCase(),
-            timeToUse,
-            user.timezone,
-        );
-        if (!timing.isValid) {
-            throw new ctx.errors.ValidationError({
-                when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(201).json({
+                    message: 'Reminder created successfully',
+                    data: reminder,
+                });
+                return;
+            }
+
+            req.flash('success', 'Reminder created successfully');
+            return res.redirect('/reminders');
+        },
+    );
+
+    router.post(
+        '/reminders/:id/update',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const reminderId = parseInt(req.params.id as string);
+            const { title, content, when, custom_date, custom_time } = req.body;
+
+            if (!title) {
+                throw new ctx.errors.ValidationError({ title: 'Title is required' });
+            }
+
+            const trimmedContent = content ? content.trim() : null;
+
+            if (!when) {
+                throw new ctx.errors.ValidationError({ when: 'When is required' });
+            }
+
+            if (custom_time && !REGEX_TIME_FORMAT.test(custom_time)) {
+                throw new ctx.errors.ValidationError({
+                    custom_time: 'Invalid time format. Must be HH:MM (24-hour format)',
+                });
+            }
+
+            const timeInput = when === 'custom' ? custom_date : when;
+            const timeToUse =
+                when === 'custom' && custom_time
+                    ? custom_time
+                    : user.column_preferences?.reminders?.default_reminder_time;
+            const timing = ctx.utils.search.parseReminderTiming(
+                timeInput.toLowerCase(),
+                timeToUse,
+                user.timezone,
+            );
+            if (!timing.isValid) {
+                throw new ctx.errors.ValidationError({
+                    when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
+                });
+            }
+
+            if (timing.type === 'once' && !timing.nextDue) {
+                throw new ctx.errors.ValidationError({
+                    when: 'One-time reminders must have a specific date. Please select a date.',
+                });
+            }
+
+            const updatedReminder = await ctx.models.reminders.update(reminderId, user.id, {
+                title,
+                content: trimmedContent,
+                reminder_type: timing.type,
+                frequency: timing.frequency,
+                due_date:
+                    timing.nextDue instanceof Date ? timing.nextDue.toISOString() : timing.nextDue,
             });
-        }
 
-        if (timing.type === 'once' && !timing.nextDue) {
-            throw new ctx.errors.ValidationError({
-                when: 'One-time reminders must have a specific date. Please select a date.',
-            });
-        }
+            if (!updatedReminder) {
+                throw new ctx.errors.NotFoundError('Reminder not found');
+            }
 
-        const reminder = await ctx.models.reminders.create({
-            user_id: user.id,
-            title: title.trim(),
-            content: trimmedContent,
-            reminder_type: timing.type,
-            frequency: timing.frequency,
-            due_date:
-                timing.nextDue instanceof Date ? timing.nextDue.toISOString() : timing.nextDue,
-        });
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(200).json({
+                    message: 'Reminder updated successfully',
+                    data: updatedReminder,
+                });
+                return;
+            }
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(201).json({
-                message: 'Reminder created successfully',
-                data: reminder,
-            });
-            return;
-        }
-
-        req.flash('success', 'Reminder created successfully');
-        return res.redirect('/reminders');
-    }
-
-    router.post('/reminders/:id/update', ctx.middleware.authentication, updateReminderHandler);
-    async function updateReminderHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const reminderId = parseInt(req.params.id as string);
-        const { title, content, when, custom_date, custom_time } = req.body;
-
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
-
-        const trimmedContent = content ? content.trim() : null;
-
-        if (!when) {
-            throw new ctx.errors.ValidationError({ when: 'When is required' });
-        }
-
-        if (custom_time && !REGEX_TIME_FORMAT.test(custom_time)) {
-            throw new ctx.errors.ValidationError({
-                custom_time: 'Invalid time format. Must be HH:MM (24-hour format)',
-            });
-        }
-
-        const timeInput = when === 'custom' ? custom_date : when;
-        const timeToUse =
-            when === 'custom' && custom_time
-                ? custom_time
-                : user.column_preferences?.reminders?.default_reminder_time;
-        const timing = ctx.utils.search.parseReminderTiming(
-            timeInput.toLowerCase(),
-            timeToUse,
-            user.timezone,
-        );
-        if (!timing.isValid) {
-            throw new ctx.errors.ValidationError({
-                when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
-            });
-        }
-
-        if (timing.type === 'once' && !timing.nextDue) {
-            throw new ctx.errors.ValidationError({
-                when: 'One-time reminders must have a specific date. Please select a date.',
-            });
-        }
-
-        const updatedReminder = await ctx.models.reminders.update(reminderId, user.id, {
-            title,
-            content: trimmedContent,
-            reminder_type: timing.type,
-            frequency: timing.frequency,
-            due_date:
-                timing.nextDue instanceof Date ? timing.nextDue.toISOString() : timing.nextDue,
-        });
-
-        if (!updatedReminder) {
-            throw new ctx.errors.NotFoundError('Reminder not found');
-        }
-
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: 'Reminder updated successfully',
-                data: updatedReminder,
-            });
-            return;
-        }
-
-        req.flash('success', 'Reminder updated successfully');
-        return res.redirect('/reminders');
-    }
+            req.flash('success', 'Reminder updated successfully');
+            return res.redirect('/reminders');
+        },
+    );
 
     router.post('/reminders/:id/delete', ctx.middleware.authentication, deleteReminderHandler);
     router.post('/reminders/delete', ctx.middleware.authentication, deleteReminderHandler);
