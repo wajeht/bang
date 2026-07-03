@@ -2493,7 +2493,6 @@ describe('search', () => {
             const commands = {
                 '@a': '/actions',
                 '@actions': '/actions',
-                '@api': '/api-docs',
                 '@b': '/bangs',
                 '@bang': '/bangs',
                 '@bm': '/bookmarks',

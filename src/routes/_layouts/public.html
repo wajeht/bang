@@ -30,7 +30,6 @@
               <% if (state.user.is_admin) { %>
                 <a href="/admin" style="font-weight: <%= path === '/admin' ? 'bold' : 'normal' %>; <%= path === '/admin' ? 'text-decoration: underline;' : '' %>"><span style="display: inline-block; width: 1.5em; text-align: center;">👑</span> Admin</a>
               <% } %>
-              <a href="/api-docs" style="font-weight: <%= path === '/api-docs' ? 'bold' : 'normal' %>; <%= path === '/api-docs' ? 'text-decoration: underline;' : '' %>"><span style="display: inline-block; width: 1.5em; text-align: center;">📄</span> API Docs</a>
               <a href="/settings" style="font-weight: <%= path.match(/^\/settings/) ? 'bold' : 'normal' %>; <%= path.match(/^\/settings/) ? 'text-decoration: underline;' : '' %>"><span style="display: inline-block; width: 1.5em; text-align: center;">⚙️</span> Settings</a>
               <hr style="border: none; border-top: solid 1px var(--link-divider-color); margin: 5px 0;">
               <a href="/logout"><span style="display: inline-block; width: 1.5em; text-align: center;">🚪</span> Logout</a>

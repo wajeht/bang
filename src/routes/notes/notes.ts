@@ -23,28 +23,6 @@ export function createNotesRouter(ctx: AppContext) {
         silent: false,
     });
 
-    /**
-     * A note
-     * @typedef {object} Note
-     * @property {string} id - note id
-     * @property {string} title.required - note title
-     * @property {string} content.required - note content
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     */
-
-    /**
-     * GET /api/notes
-     *
-     * @tags Notes
-     * @summary Get all notes
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     */
-    router.get('/api/notes', ctx.middleware.authentication, getNotesHandler);
     router.get('/notes', ctx.middleware.authentication, getNotesHandler);
     async function getNotesHandler(req: Request, res: Response) {
         const user = req.user as User;
@@ -145,22 +123,6 @@ export function createNotesRouter(ctx: AppContext) {
         },
     );
 
-    /**
-     * GET /api/notes/{id}
-     *
-     * @tags Notes
-     * @summary Get a specific note
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     *
-     * @return {Note} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.get('/api/notes/:id', ctx.middleware.authentication, getNoteHandler);
     router.get('/notes/:id', ctx.middleware.authentication, getNoteHandler);
     async function getNoteHandler(req: Request, res: Response) {
         const user = req.user as User;
@@ -270,21 +232,6 @@ export function createNotesRouter(ctx: AppContext) {
         });
     }
 
-    /**
-     * POST /api/notes
-     *
-     * @tags Notes
-     * @summary Create a new note
-     *
-     * @security BearerAuth
-     *
-     * @param {Note} request.body.required - note info
-     *
-     * @return {object} 201 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.post('/api/notes', ctx.middleware.authentication, postNoteHandler);
     router.post('/notes', ctx.middleware.authentication, postNoteHandler);
     async function postNoteHandler(req: Request, res: Response) {
         const { title, content, pinned, hidden } = req.body;
@@ -337,23 +284,6 @@ export function createNotesRouter(ctx: AppContext) {
         return res.redirect(`/notes/${note.id}`);
     }
 
-    /**
-     * PUT /api/notes/{id}
-     *
-     * @tags Notes
-     * @summary Update a note
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     * @param {Note} request.body.required - note info
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.put('/api/notes/:id', ctx.middleware.authentication, updateNoteHandler);
     router.post('/notes/:id/update', ctx.middleware.authentication, updateNoteHandler);
     async function updateNoteHandler(req: Request, res: Response) {
         const { title, content, pinned, hidden } = req.body;
@@ -418,22 +348,6 @@ export function createNotesRouter(ctx: AppContext) {
         return res.redirect(`/notes/${updatedNote.id}`);
     }
 
-    /**
-     * DELETE /api/notes/{id}
-     *
-     * @tags Notes
-     * @summary Delete a note
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.delete('/api/notes/:id', ctx.middleware.authentication, deleteNoteHandler);
-    router.post('/api/notes/delete', ctx.middleware.authentication, deleteNoteHandler);
     router.post('/notes/:id/delete', ctx.middleware.authentication, deleteNoteHandler);
     router.post('/notes/delete', ctx.middleware.authentication, deleteNoteHandler);
     async function deleteNoteHandler(req: Request, res: Response) {
@@ -460,21 +374,6 @@ export function createNotesRouter(ctx: AppContext) {
         return res.redirect('/notes');
     }
 
-    /**
-     * POST /api/notes/{id}/pin
-     *
-     * @tags Notes
-     * @summary Toggle pin status of a note
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.post('/api/notes/:id/pin', ctx.middleware.authentication, toggleNotePinHandler);
     router.post('/notes/:id/pin', ctx.middleware.authentication, toggleNotePinHandler);
     async function toggleNotePinHandler(req: Request, res: Response) {
         const user = req.user as User;
@@ -502,20 +401,6 @@ export function createNotesRouter(ctx: AppContext) {
         return res.redirect('/notes');
     }
 
-    /**
-     * GET /notes/{id}/download
-     *
-     * @tags Notes
-     * @summary Download a note as markdown file
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - note id
-     *
-     * @return {string} 200 - markdown file
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
     router.get(
         '/notes/:id/download',
         ctx.middleware.authentication,
@@ -545,20 +430,6 @@ export function createNotesRouter(ctx: AppContext) {
         },
     );
 
-    /**
-     * POST /api/notes/render-markdown
-     *
-     * @tags Notes
-     * @summary Render markdown content to html
-     *
-     * @security BearerAuth
-     *
-     * @param {string} request.body.required - request body
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     */
     router.post(
         '/api/notes/render-markdown',
         ctx.middleware.authentication,

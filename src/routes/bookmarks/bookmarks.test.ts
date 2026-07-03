@@ -79,12 +79,12 @@ describe('Bookmarks Routes', () => {
             });
         });
 
-        describe('POST /api/bookmarks - Hidden field via API', () => {
+        describe('POST /bookmarks - Hidden field (JSON)', () => {
             it('should reject creating hidden bookmark without global password via API', async () => {
                 const { agent } = await authenticateApiAgent(app);
 
                 const response = await agent
-                    .post('/api/bookmarks')
+                    .post('/bookmarks')
                     .send({
                         title: 'Hidden Bookmark',
                         url: 'https://example.com',
@@ -103,7 +103,7 @@ describe('Bookmarks Routes', () => {
                     .update({ hidden_items_password: 'hashed_password' });
 
                 const response = await agent
-                    .post('/api/bookmarks')
+                    .post('/bookmarks')
                     .send({
                         title: 'Hidden API Bookmark',
                         url: 'https://secret.com',
@@ -183,7 +183,7 @@ describe('Bookmarks Routes', () => {
             });
         });
 
-        describe('GET /api/bookmarks - Hidden bookmarks exclusion', () => {
+        describe('GET /bookmarks - Hidden bookmarks exclusion (JSON)', () => {
             it('should exclude hidden bookmarks from API listing', async () => {
                 const { agent, user } = await authenticateApiAgent(app);
 
@@ -206,14 +206,14 @@ describe('Bookmarks Routes', () => {
                     },
                 ]);
 
-                const response = await agent.get('/api/bookmarks').expect(200);
+                const response = await agent.get('/bookmarks').expect(200);
 
                 expect(response.body.data).toHaveLength(1);
                 expect(response.body.data[0].title).toBe('Public Bookmark');
             });
         });
 
-        describe('POST /api/bookmarks/:id/pin - Pin/unpin with hidden bookmarks', () => {
+        describe('POST /bookmarks/:id/pin - Pin/unpin with hidden bookmarks (JSON)', () => {
             it('should toggle pin status for hidden bookmark with global password via API', async () => {
                 const { agent, user } = await authenticateApiAgent(app);
 
@@ -231,7 +231,7 @@ describe('Bookmarks Routes', () => {
                     })
                     .returning('*');
 
-                const response = await agent.post(`/api/bookmarks/${bookmark.id}/pin`).expect(200);
+                const response = await agent.post(`/bookmarks/${bookmark.id}/pin`).expect(200);
 
                 expect(response.body.message).toContain('pinned successfully');
 
@@ -335,7 +335,7 @@ describe('Bookmarks Routes', () => {
             });
         });
 
-        describe('POST /api/bookmarks/:id/hide - Toggle hidden status via API', () => {
+        describe('POST /bookmarks/:id/hide - Toggle hidden status (JSON)', () => {
             it('should toggle hidden status via API when global password is set', async () => {
                 const { agent, user } = await authenticateApiAgent(app);
 
@@ -352,7 +352,7 @@ describe('Bookmarks Routes', () => {
                     })
                     .returning('*');
 
-                const response = await agent.post(`/api/bookmarks/${bookmark.id}/hide`).expect(200);
+                const response = await agent.post(`/bookmarks/${bookmark.id}/hide`).expect(200);
 
                 expect(response.body.message).toContain('hidden successfully');
 
@@ -372,7 +372,7 @@ describe('Bookmarks Routes', () => {
                     })
                     .returning('*');
 
-                const response = await agent.post(`/api/bookmarks/${bookmark.id}/hide`).expect(422);
+                const response = await agent.post(`/bookmarks/${bookmark.id}/hide`).expect(422);
 
                 expect(response.body.message).toContain('Validation');
 
@@ -387,7 +387,7 @@ describe('Bookmarks Routes', () => {
                     .where({ id: user.id })
                     .update({ hidden_items_password: 'hashed_password' });
 
-                await agent.post('/api/bookmarks/99999/hide').expect(404);
+                await agent.post('/bookmarks/99999/hide').expect(404);
             });
         });
     });
@@ -459,7 +459,7 @@ describe('Bookmarks Routes', () => {
         });
     });
 
-    describe('POST /api/bookmarks/delete', () => {
+    describe('POST /bookmarks/delete (JSON)', () => {
         it('should delete multiple bookmarks via API', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
@@ -472,7 +472,7 @@ describe('Bookmarks Routes', () => {
                 .returning('*');
 
             const response = await agent
-                .post('/api/bookmarks/delete')
+                .post('/bookmarks/delete')
                 .send({ id: [bookmarks[0].id, bookmarks[1].id] })
                 .expect(200);
 
@@ -492,7 +492,7 @@ describe('Bookmarks Routes', () => {
                 .returning('*');
 
             const response = await agent
-                .post('/api/bookmarks/delete')
+                .post('/bookmarks/delete')
                 .send({ id: [bookmark.id, 99999] })
                 .expect(200);
 
@@ -502,7 +502,7 @@ describe('Bookmarks Routes', () => {
         it('should require id to be an array', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            await agent.post('/api/bookmarks/delete').send({ id: 'not-an-array' }).expect(422);
+            await agent.post('/bookmarks/delete').send({ id: 'not-an-array' }).expect(422);
         });
     });
 
@@ -584,7 +584,7 @@ describe('Bookmarks Routes', () => {
             });
         });
 
-        describe('POST /api/bookmarks - Same URL with different title via API', () => {
+        describe('POST /bookmarks - Same URL with different title (JSON)', () => {
             it('should allow creating bookmark with same URL but different title via API', async () => {
                 const { agent, user } = await authenticateApiAgent(app);
 
@@ -595,7 +595,7 @@ describe('Bookmarks Routes', () => {
                 });
 
                 const response = await agent
-                    .post('/api/bookmarks')
+                    .post('/bookmarks')
                     .send({
                         title: 'Different Title',
                         url: 'https://example.com',
@@ -628,7 +628,7 @@ describe('Bookmarks Routes', () => {
                 });
 
                 const response = await agent
-                    .post('/api/bookmarks')
+                    .post('/bookmarks')
                     .send({
                         title: 'Same Title',
                         url: 'https://example.com',
@@ -702,7 +702,7 @@ describe('Bookmarks Routes', () => {
                 url: 'https://highlight-test.com',
             });
 
-            const response = await agent.get('/api/bookmarks?search=highlight').expect(200);
+            const response = await agent.get('/bookmarks?search=highlight').expect(200);
 
             expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
             expect(response.body.data[0].url).toContain('<mark>highlight</mark>');

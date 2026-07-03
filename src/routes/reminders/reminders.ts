@@ -6,19 +6,6 @@ export function createRemindersRouter(ctx: AppContext) {
 
     const router = ctx.libs.express.Router();
 
-    /**
-     * A reminder
-     * @typedef {object} Reminder
-     * @property {string} id - reminder id
-     * @property {string} title.required - reminder title
-     * @property {string} content - reminder content
-     * @property {string} reminder_type.required - reminder type
-     * @property {string} frequency - reminder frequency
-     * @property {string} due_date - reminder due date
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     */
-
     router.get(
         '/reminders/create',
         ctx.middleware.authentication,
@@ -212,18 +199,6 @@ export function createRemindersRouter(ctx: AppContext) {
         },
     );
 
-    /**
-     * GET /api/reminders
-     *
-     * @tags Reminders
-     * @summary Get all reminders
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     */
-    router.get('/api/reminders', ctx.middleware.authentication, getRemindersHandler);
     router.get('/reminders', ctx.middleware.authentication, getRemindersHandler);
     async function getRemindersHandler(req: Request, res: Response) {
         const user = req.user as User;
@@ -259,58 +234,6 @@ export function createRemindersRouter(ctx: AppContext) {
         });
     }
 
-    /**
-     * GET /api/reminders/{id}
-     *
-     * @tags Reminders
-     * @summary Get a specific reminder
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - reminder id
-     *
-     * @return {Reminder} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.get(
-        '/api/reminders/:id',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const reminder = await ctx.models.reminders.read(
-                parseInt(req.params.id as unknown as string),
-                user.id,
-            );
-
-            if (!reminder) {
-                throw new ctx.errors.NotFoundError('Reminder not found');
-            }
-
-            res.status(200).json({
-                message: 'Reminder retrieved successfully',
-                data: reminder,
-            });
-            return;
-        },
-    );
-
-    /**
-     * POST /api/reminders
-     *
-     * @tags Reminders
-     * @summary Create a new reminder
-     *
-     * @security BearerAuth
-     *
-     * @param {Reminder} request.body.required - reminder info
-     *
-     * @return {object} 201 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.post('/api/reminders', ctx.middleware.authentication, postReminderHandler);
     router.post('/reminders', ctx.middleware.authentication, postReminderHandler);
     async function postReminderHandler(req: Request, res: Response) {
         const { title, content, when, custom_date, custom_time } = req.body;
@@ -376,23 +299,6 @@ export function createRemindersRouter(ctx: AppContext) {
         return res.redirect('/reminders');
     }
 
-    /**
-     * PATCH /api/reminders/{id}
-     *
-     * @tags Reminders
-     * @summary Update a reminder
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - reminder id
-     * @param {Reminder} request.body.required - reminder info
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.patch('/api/reminders/:id', ctx.middleware.authentication, updateReminderHandler);
     router.post('/reminders/:id/update', ctx.middleware.authentication, updateReminderHandler);
     async function updateReminderHandler(req: Request, res: Response) {
         const user = req.user as User;
@@ -462,22 +368,6 @@ export function createRemindersRouter(ctx: AppContext) {
         return res.redirect('/reminders');
     }
 
-    /**
-     * DELETE /api/reminders/{id}
-     *
-     * @tags Reminders
-     * @summary Delete a reminder
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - reminder id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.delete('/api/reminders/:id', ctx.middleware.authentication, deleteReminderHandler);
-    router.post('/api/reminders/delete', ctx.middleware.authentication, deleteReminderHandler);
     router.post('/reminders/:id/delete', ctx.middleware.authentication, deleteReminderHandler);
     router.post('/reminders/delete', ctx.middleware.authentication, deleteReminderHandler);
     async function deleteReminderHandler(req: Request, res: Response) {

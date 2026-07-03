@@ -67,7 +67,7 @@ describe('Tabs Routes', () => {
             });
         });
 
-        describe('POST /api/tabs/delete', () => {
+        describe('POST /tabs/delete (JSON)', () => {
             it('should delete multiple tab groups via API', async () => {
                 const { agent, user } = await authenticateApiAgent(app);
 
@@ -79,7 +79,7 @@ describe('Tabs Routes', () => {
                     .returning('*');
 
                 const response = await agent
-                    .post('/api/tabs/delete')
+                    .post('/tabs/delete')
                     .send({ id: [tab1.id.toString(), tab2.id.toString()] })
                     .expect(200);
 
@@ -98,7 +98,7 @@ describe('Tabs Routes', () => {
                     .returning('*');
 
                 const response = await agent
-                    .post('/api/tabs/delete')
+                    .post('/tabs/delete')
                     .send({ id: [tab1.id.toString(), '99999'] })
                     .expect(200);
 
@@ -108,7 +108,7 @@ describe('Tabs Routes', () => {
             it('should require id to be an array', async () => {
                 const { agent } = await authenticateApiAgent(app);
 
-                await agent.post('/api/tabs/delete').send({ id: 'not-an-array' }).expect(422);
+                await agent.post('/tabs/delete').send({ id: 'not-an-array' }).expect(422);
             });
         });
     });
@@ -142,7 +142,7 @@ describe('Tabs Routes', () => {
                 })
                 .returning('*');
 
-            await agent.delete(`/api/tabs/${otherTab.id}/items/${otherTabItem.id}`).expect(404);
+            await agent.post(`/tabs/${otherTab.id}/items/${otherTabItem.id}/delete`).expect(404);
 
             const remainingItems = await db('tab_items').where({ id: otherTabItem.id });
             expect(remainingItems).toHaveLength(1);
@@ -167,7 +167,7 @@ describe('Tabs Routes', () => {
                 })
                 .returning('*');
 
-            await agent.delete(`/api/tabs/${myTab.id}/items/${myTabItem.id}`).expect(200);
+            await agent.post(`/tabs/${myTab.id}/items/${myTabItem.id}/delete`).expect(200);
 
             const remainingItems = await db('tab_items').where({ id: myTabItem.id });
             expect(remainingItems).toHaveLength(0);
@@ -221,9 +221,7 @@ describe('Tabs Routes', () => {
                 { user_id: user.id, title: 'Tab B', trigger: '!tabb' },
             ]);
 
-            const response = await agent
-                .get('/api/tabs?direction=desc;DROP TABLE tabs;--')
-                .expect(200);
+            const response = await agent.get('/tabs?direction=desc;DROP TABLE tabs;--').expect(200);
 
             expect(response.body.data).toHaveLength(2);
 
@@ -239,13 +237,13 @@ describe('Tabs Routes', () => {
                 { user_id: user.id, title: 'Tab B', trigger: '!tabb' },
             ]);
 
-            const responseAsc = await agent.get('/api/tabs?direction=asc').expect(200);
+            const responseAsc = await agent.get('/tabs?direction=asc').expect(200);
             expect(responseAsc.body.direction).toBe('asc');
 
-            const responseDesc = await agent.get('/api/tabs?direction=desc').expect(200);
+            const responseDesc = await agent.get('/tabs?direction=desc').expect(200);
             expect(responseDesc.body.direction).toBe('desc');
 
-            const responseInvalid = await agent.get('/api/tabs?direction=invalid').expect(200);
+            const responseInvalid = await agent.get('/tabs?direction=invalid').expect(200);
             expect(responseInvalid.body.direction).toBe('desc');
         });
     });
@@ -336,7 +334,7 @@ describe('Tabs Routes', () => {
                 trigger: '!highlight',
             });
 
-            const response = await agent.get('/api/tabs?search=highlight').expect(200);
+            const response = await agent.get('/tabs?search=highlight').expect(200);
 
             expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
             expect(response.body.data[0].trigger).toContain('<mark>highlight</mark>');
@@ -421,7 +419,7 @@ describe('Tabs Routes', () => {
                 .returning('*');
 
             await agent
-                .post(`/api/tabs/${tab.id}/items`)
+                .post(`/tabs/${tab.id}/items/create`)
                 .send({
                     title: 'Prefetch Item',
                     url: 'https://prefetch-tab-item.com',

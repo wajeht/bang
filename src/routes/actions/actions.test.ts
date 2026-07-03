@@ -1,12 +1,16 @@
-import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils.js';
+import {
+    authenticateAgent,
+    authenticateApiAgent,
+    createUnauthenticatedAgent,
+} from '../../tests/api-test-utils.js';
 import request from 'supertest';
 import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect, vi } from 'vite-plus/test';
 
 describe('Actions API', () => {
-    describe('GET /api/actions', () => {
+    describe('GET /actions (JSON)', () => {
         it('should require authentication', async () => {
-            await request(app).get('/api/actions').expect(401);
+            await request(app).get('/actions').set('Accept', 'application/json').expect(401);
         });
 
         it('should return actions for authenticated user', async () => {
@@ -21,7 +25,7 @@ describe('Actions API', () => {
                 usage_count: 0,
             });
 
-            const response = await agent.get('/api/actions').expect(200);
+            const response = await agent.get('/actions').expect(200);
 
             expect(response.headers['content-type']).toMatch(/application\/json/);
             expect(response.body).toHaveProperty('data');
@@ -35,17 +39,19 @@ describe('Actions API', () => {
         it('should return empty list when user has no actions', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            const response = await agent.get('/api/actions').expect(200);
+            const response = await agent.get('/actions').expect(200);
 
             expect(response.body.data).toHaveLength(0);
             expect(response.body.pagination.total).toBe(0);
         });
     });
 
-    describe('POST /api/actions', () => {
+    describe('POST /actions (JSON)', () => {
         it('should require authentication', async () => {
-            await request(app)
-                .post('/api/actions')
+            const agent = await createUnauthenticatedAgent(app);
+            await agent
+                .post('/actions')
+                .set('Accept', 'application/json')
                 .send({
                     name: 'Test Action',
                     trigger: 'test',
@@ -64,7 +70,7 @@ describe('Actions API', () => {
                 actionType: 'search',
             };
 
-            const response = await agent.post('/api/actions').send(actionData).expect(201);
+            const response = await agent.post('/actions').send(actionData).expect(201);
 
             expect(response.headers['content-type']).toMatch(/application\/json/);
             expect(response.body).toHaveProperty('message');
@@ -78,7 +84,7 @@ describe('Actions API', () => {
             } as unknown as globalThis.Response);
 
             await agent
-                .post('/api/actions')
+                .post('/actions')
                 .send({
                     name: 'Redirect Action',
                     trigger: '!redirectprefetch',
@@ -111,7 +117,7 @@ describe('Actions API', () => {
             } as unknown as globalThis.Response);
 
             await agent
-                .post('/api/actions')
+                .post('/actions')
                 .send({
                     name: 'Search Action',
                     trigger: '!searchprefetch',
@@ -133,17 +139,17 @@ describe('Actions API', () => {
         it('should validate required fields', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            await agent.post('/api/actions').send({}).expect(422);
+            await agent.post('/actions').send({}).expect(422);
         });
     });
 
     describe('Hidden Actions Functionality', () => {
-        describe('POST /api/actions - Hidden field', () => {
+        describe('POST /actions - Hidden field (JSON)', () => {
             it('should reject creating hidden action without global password', async () => {
                 const { agent } = await authenticateApiAgent(app);
 
                 const response = await agent
-                    .post('/api/actions')
+                    .post('/actions')
                     .send({
                         name: 'Hidden Action',
                         trigger: '!hidden',
@@ -164,7 +170,7 @@ describe('Actions API', () => {
                     .update({ hidden_items_password: 'hashed_password' });
 
                 const response = await agent
-                    .post('/api/actions')
+                    .post('/actions')
                     .send({
                         name: 'Hidden Action',
                         trigger: '!hidden',
@@ -191,7 +197,7 @@ describe('Actions API', () => {
                     .update({ hidden_items_password: 'hashed_password' });
 
                 const response = await agent
-                    .post('/api/actions')
+                    .post('/actions')
                     .send({
                         name: 'Hidden Search',
                         trigger: '!hsearch',
@@ -230,7 +236,8 @@ describe('Actions API', () => {
                     .returning('*');
 
                 await agent
-                    .patch(`/api/actions/${action.id}`)
+                    .post(`/actions/${action.id}/update`)
+                    .set('Accept', 'application/json')
                     .send({
                         name: 'Test Action',
                         trigger: '!test',
@@ -275,7 +282,7 @@ describe('Actions API', () => {
             });
         });
 
-        describe('GET /api/actions - Hidden actions exclusion', () => {
+        describe('GET /actions - Hidden actions exclusion (JSON)', () => {
             it('should exclude hidden actions from API listing', async () => {
                 const { agent, user } = await authenticateApiAgent(app);
 
@@ -302,7 +309,7 @@ describe('Actions API', () => {
                     },
                 ]);
 
-                const response = await agent.get('/api/actions').expect(200);
+                const response = await agent.get('/actions').expect(200);
 
                 expect(response.body.data).toHaveLength(1);
                 expect(response.body.data[0].trigger).toBe('!public');
@@ -421,7 +428,7 @@ describe('Actions API', () => {
             });
         });
 
-        describe('POST /api/actions/:id/hide - Toggle hidden status via API', () => {
+        describe('POST /actions/:id/hide - Toggle hidden status (JSON)', () => {
             it('should toggle hidden status via API when global password is set', async () => {
                 const { agent, user } = await authenticateApiAgent(app);
 
@@ -440,7 +447,7 @@ describe('Actions API', () => {
                     })
                     .returning('*');
 
-                const response = await agent.post(`/api/actions/${action.id}/hide`).expect(200);
+                const response = await agent.post(`/actions/${action.id}/hide`).expect(200);
 
                 expect(response.body.message).toContain('hidden successfully');
 
@@ -462,7 +469,7 @@ describe('Actions API', () => {
                     })
                     .returning('*');
 
-                const response = await agent.post(`/api/actions/${action.id}/hide`).expect(422);
+                const response = await agent.post(`/actions/${action.id}/hide`).expect(422);
 
                 expect(response.body.message).toContain('Validation');
 
@@ -488,7 +495,7 @@ describe('Actions API', () => {
                     })
                     .returning('*');
 
-                const response = await agent.post(`/api/actions/${action.id}/hide`).expect(422);
+                const response = await agent.post(`/actions/${action.id}/hide`).expect(422);
 
                 expect(response.body.message).toContain('Validation');
 
@@ -503,7 +510,7 @@ describe('Actions API', () => {
                     .where({ id: user.id })
                     .update({ hidden_items_password: 'hashed_password' });
 
-                await agent.post('/api/actions/99999/hide').expect(404);
+                await agent.post('/actions/99999/hide').expect(404);
             });
         });
     });
@@ -601,7 +608,7 @@ describe('Actions API', () => {
         });
     });
 
-    describe('POST /api/actions/delete', () => {
+    describe('POST /actions/delete (JSON)', () => {
         it('should delete multiple actions via API', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
@@ -632,7 +639,7 @@ describe('Actions API', () => {
                 .returning('*');
 
             const response = await agent
-                .post('/api/actions/delete')
+                .post('/actions/delete')
                 .send({ id: [actions[0].id, actions[1].id] })
                 .expect(200);
 
@@ -658,7 +665,7 @@ describe('Actions API', () => {
                 .returning('*');
 
             const response = await agent
-                .post('/api/actions/delete')
+                .post('/actions/delete')
                 .send({ id: [action.id, 99999] })
                 .expect(200);
 
@@ -668,7 +675,7 @@ describe('Actions API', () => {
         it('should require id to be an array', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            await agent.post('/api/actions/delete').send({ id: 'not-an-array' }).expect(422);
+            await agent.post('/actions/delete').send({ id: 'not-an-array' }).expect(422);
         });
     });
 
@@ -756,7 +763,7 @@ describe('Actions API', () => {
                 action_type: 'redirect',
             });
 
-            const response = await agent.get('/api/actions?search=highlight').expect(200);
+            const response = await agent.get('/actions?search=highlight').expect(200);
 
             expect(response.body.data[0].name).toContain('<mark>Highlight</mark>');
             expect(response.body.data[0].trigger).toContain('<mark>highlight</mark>');
