@@ -176,6 +176,34 @@ function initializeDetailsElements() {
     }
 }
 
+/**
+ * Highlights a resource linked with ?id=... after redirects from create/edit flows.
+ */
+function initializeLinkedResourceHighlight() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+
+    if (!id) return;
+
+    const targets = Array.from(document.querySelectorAll('[data-id]')).filter(
+        (element) => element instanceof HTMLElement && element.dataset.id === id,
+    );
+
+    if (targets.length === 0) return;
+
+    targets.forEach((target) => {
+        target.classList.add('highlight-div');
+        setTimeout(() => target.classList.remove('highlight-div'), 2000);
+    });
+
+    requestAnimationFrame(() =>
+        targets[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+    );
+    urlParams.delete('id');
+    const newUrl = `${window.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
+    history.replaceState({}, document.title, newUrl);
+}
+
 // Note: getLocalStorageData and setLocalStorageData are now defined globally in head.html
 // This ensures theme can be set early to prevent FOUC, and functions can be reused
 
@@ -219,13 +247,13 @@ function toggleTheme() {
         body: JSON.stringify({ theme: newTheme }),
     })
         .then((r) => r.json())
-        .then((data) => console.log('Theme saved:', data))
         .catch((err) => console.error('Theme save failed:', err));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeToast();
     initializeDetailsElements();
+    initializeLinkedResourceHighlight();
 
     const { user } = getAppLocalState();
 
@@ -238,3 +266,5 @@ document.addEventListener('DOMContentLoaded', () => {
         updateButtonText(currentTheme);
     }
 });
+
+window.addEventListener('load', initializeLinkedResourceHighlight);
