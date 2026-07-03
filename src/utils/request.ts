@@ -2,7 +2,6 @@ import type { Request } from 'express';
 import type { User, PageType, AppContext } from '../type.js';
 
 export function createRequest(context: AppContext) {
-    const logger = context.logger.tag('service', 'request');
     type PreferenceKey = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders' | 'users';
     const PAGE_TYPE_TO_PREFERENCE: Record<PageType | 'admin', PreferenceKey> = {
         actions: 'actions',
@@ -15,19 +14,6 @@ export function createRequest(context: AppContext) {
 
     return {
         async extractUser(req: Request): Promise<User> {
-            if (this.isApiRequest(req) && req.apiKeyPayload) {
-                try {
-                    return await context.db
-                        .select('*')
-                        .from('users')
-                        .where({ id: req.apiKeyPayload.userId })
-                        .first();
-                } catch (error) {
-                    logger.tag('op', 'extract-user').error('Failed to extract user', { error });
-                    throw new context.errors.HttpError(500, 'Failed to extract user!', req);
-                }
-            }
-
             if (req.session?.user) {
                 return req.session.user;
             }
@@ -106,30 +92,11 @@ export function createRequest(context: AppContext) {
             return url.pathname.replace(/^\/+/, '/') + url.search;
         },
 
-        extractApiKey(req: Request): string | undefined {
-            const apiKey = req.header('X-API-KEY');
-            const authHeader = req.header('Authorization');
-
-            if (authHeader?.startsWith('Bearer ')) {
-                return authHeader.substring(7);
-            }
-
-            return apiKey;
-        },
-
         expectsJson(req: Request): boolean {
             return req.header('Content-Type')?.includes('application/json') || false;
         },
 
         isApiRequest(req: Request): boolean {
-            if (req.path.startsWith('/api/')) {
-                return true;
-            }
-
-            if (this.extractApiKey(req)) {
-                return true;
-            }
-
             const acceptsJson = req.header('Accept')?.includes('application/json');
             const sendsJson = req.header('Content-Type')?.includes('application/json');
 

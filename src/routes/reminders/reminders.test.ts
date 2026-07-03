@@ -1,8 +1,4 @@
-import {
-    authenticateAgent,
-    authenticateApiAgent,
-    createUnauthenticatedAgent,
-} from '../../tests/api-test-utils.js';
+import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/api-test-utils.js';
 import request from 'supertest';
 import { dayjs } from '../../libs.js';
 import { db, app } from '../../tests/test-setup.js';
@@ -35,7 +31,7 @@ describe('Reminders Routes', () => {
         });
 
         it('should return reminders as JSON', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             await db('reminders').insert({
                 user_id: user.id,
@@ -167,9 +163,9 @@ describe('Reminders Routes', () => {
 
     describe('POST /reminders (JSON)', () => {
         it('should create a new reminder via API', async () => {
-            const { agent } = await authenticateApiAgent(app);
+            const { agent } = await authenticateAgent(app);
 
-            const response = await agent.post('/reminders').send({
+            const response = await agent.post('/reminders').set('Accept', 'application/json').send({
                 title: 'API Reminder',
                 content: 'API content',
                 when: 'weekly',
@@ -496,7 +492,7 @@ describe('Reminders Routes', () => {
 
     describe('POST /reminders/delete (JSON)', () => {
         it('should delete multiple reminders via API', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             const reminders = await db('reminders')
                 .insert([
@@ -527,6 +523,7 @@ describe('Reminders Routes', () => {
 
             const response = await agent
                 .post('/reminders/delete')
+                .set('Accept', 'application/json')
                 .send({ id: [reminders[0].id, reminders[1].id] })
                 .expect(200);
 
@@ -539,7 +536,7 @@ describe('Reminders Routes', () => {
         });
 
         it('should return correct count when some IDs are invalid', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             const [reminder] = await db('reminders')
                 .insert({
@@ -552,6 +549,7 @@ describe('Reminders Routes', () => {
 
             const response = await agent
                 .post('/reminders/delete')
+                .set('Accept', 'application/json')
                 .send({ id: [reminder.id, 99999] })
                 .expect(200);
 
@@ -559,9 +557,13 @@ describe('Reminders Routes', () => {
         });
 
         it('should require id to be an array', async () => {
-            const { agent } = await authenticateApiAgent(app);
+            const { agent } = await authenticateAgent(app);
 
-            await agent.post('/reminders/delete').send({ id: 'not-an-array' }).expect(422);
+            await agent
+                .post('/reminders/delete')
+                .set('Accept', 'application/json')
+                .send({ id: 'not-an-array' })
+                .expect(422);
         });
     });
 
@@ -637,7 +639,7 @@ describe('Reminders Routes', () => {
         });
 
         it('should highlight search terms in API response', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             await db('reminders').insert({
                 user_id: user.id,
@@ -647,7 +649,10 @@ describe('Reminders Routes', () => {
                 due_date: dayjs().add(1, 'day').toISOString(),
             });
 
-            const response = await agent.get('/reminders?search=highlight').expect(200);
+            const response = await agent
+                .get('/reminders?search=highlight')
+                .set('Accept', 'application/json')
+                .expect(200);
 
             expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
             expect(response.body.data[0].content).toContain('<mark>highlight</mark>');

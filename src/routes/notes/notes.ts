@@ -434,7 +434,7 @@ export function createNotesRouter(ctx: AppContext) {
     );
 
     router.post(
-        '/api/notes/render-markdown',
+        '/notes/render-markdown',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const { content } = req.body;

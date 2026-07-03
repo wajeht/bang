@@ -1,37 +1,8 @@
-import type { ApiKeyPayload, MagicLinkPayload, AppContext } from '../type.js';
+import type { MagicLinkPayload, AppContext } from '../type.js';
 
 export function createAuth(context: AppContext) {
     const logger = context.logger.tag('service', 'auth');
     return {
-        async verifyApiKey(apiKey: string): Promise<ApiKeyPayload | null> {
-            try {
-                const decodedApiKeyPayload = context.libs.jwt.verify(
-                    apiKey,
-                    context.config.app.apiKeySecret,
-                ) as ApiKeyPayload;
-
-                const app = await context
-                    .db('users')
-                    .where({
-                        id: decodedApiKeyPayload.userId,
-                        api_key: apiKey,
-                        api_key_version: decodedApiKeyPayload.apiKeyVersion,
-                    })
-                    .first();
-
-                if (!app) return null;
-
-                return decodedApiKeyPayload;
-            } catch (error) {
-                logger.error('Failed to verify API key', { error });
-                return null;
-            }
-        },
-
-        async generateApiKey(payload: ApiKeyPayload): Promise<string> {
-            return context.libs.jwt.sign(payload, context.config.app.apiKeySecret);
-        },
-
         verifyMagicLink(token: string): MagicLinkPayload | null {
             try {
                 return context.libs.jwt.verify(

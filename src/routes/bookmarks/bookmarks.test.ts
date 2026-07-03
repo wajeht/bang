@@ -1,4 +1,4 @@
-import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils.js';
+import { authenticateAgent } from '../../tests/api-test-utils.js';
 import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect, vi } from 'vite-plus/test';
 
@@ -81,10 +81,11 @@ describe('Bookmarks Routes', () => {
 
         describe('POST /bookmarks - Hidden field (JSON)', () => {
             it('should reject creating hidden bookmark without global password via API', async () => {
-                const { agent } = await authenticateApiAgent(app);
+                const { agent } = await authenticateAgent(app);
 
                 const response = await agent
                     .post('/bookmarks')
+                    .set('Accept', 'application/json')
                     .send({
                         title: 'Hidden Bookmark',
                         url: 'https://example.com',
@@ -96,7 +97,7 @@ describe('Bookmarks Routes', () => {
             });
 
             it('should create hidden bookmark with global password via API', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 await db('users')
                     .where({ id: user.id })
@@ -104,6 +105,7 @@ describe('Bookmarks Routes', () => {
 
                 const response = await agent
                     .post('/bookmarks')
+                    .set('Accept', 'application/json')
                     .send({
                         title: 'Hidden API Bookmark',
                         url: 'https://secret.com',
@@ -185,7 +187,7 @@ describe('Bookmarks Routes', () => {
 
         describe('GET /bookmarks - Hidden bookmarks exclusion (JSON)', () => {
             it('should exclude hidden bookmarks from API listing', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 await db('users')
                     .where({ id: user.id })
@@ -206,7 +208,10 @@ describe('Bookmarks Routes', () => {
                     },
                 ]);
 
-                const response = await agent.get('/bookmarks').expect(200);
+                const response = await agent
+                    .get('/bookmarks')
+                    .set('Accept', 'application/json')
+                    .expect(200);
 
                 expect(response.body.data).toHaveLength(1);
                 expect(response.body.data[0].title).toBe('Public Bookmark');
@@ -215,7 +220,7 @@ describe('Bookmarks Routes', () => {
 
         describe('POST /bookmarks/:id/pin - Pin/unpin with hidden bookmarks (JSON)', () => {
             it('should toggle pin status for hidden bookmark with global password via API', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 await db('users')
                     .where({ id: user.id })
@@ -231,7 +236,11 @@ describe('Bookmarks Routes', () => {
                     })
                     .returning('*');
 
-                const response = await agent.post(`/bookmarks/${bookmark.id}/pin`).expect(200);
+                const response = await agent
+                    .post(`/bookmarks/${bookmark.id}/pin`)
+                    .set('Accept', 'application/json')
+                    .send({})
+                    .expect(200);
 
                 expect(response.body.message).toContain('pinned successfully');
 
@@ -337,7 +346,7 @@ describe('Bookmarks Routes', () => {
 
         describe('POST /bookmarks/:id/hide - Toggle hidden status (JSON)', () => {
             it('should toggle hidden status via API when global password is set', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 await db('users')
                     .where({ id: user.id })
@@ -352,7 +361,11 @@ describe('Bookmarks Routes', () => {
                     })
                     .returning('*');
 
-                const response = await agent.post(`/bookmarks/${bookmark.id}/hide`).expect(200);
+                const response = await agent
+                    .post(`/bookmarks/${bookmark.id}/hide`)
+                    .set('Accept', 'application/json')
+                    .send({})
+                    .expect(200);
 
                 expect(response.body.message).toContain('hidden successfully');
 
@@ -361,7 +374,7 @@ describe('Bookmarks Routes', () => {
             });
 
             it('should reject hiding via API without global password', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 const [bookmark] = await db('bookmarks')
                     .insert({
@@ -372,7 +385,11 @@ describe('Bookmarks Routes', () => {
                     })
                     .returning('*');
 
-                const response = await agent.post(`/bookmarks/${bookmark.id}/hide`).expect(422);
+                const response = await agent
+                    .post(`/bookmarks/${bookmark.id}/hide`)
+                    .set('Accept', 'application/json')
+                    .send({})
+                    .expect(422);
 
                 expect(response.body.message).toContain('Validation');
 
@@ -381,13 +398,17 @@ describe('Bookmarks Routes', () => {
             });
 
             it('should return 404 for non-existent bookmark via API', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 await db('users')
                     .where({ id: user.id })
                     .update({ hidden_items_password: 'hashed_password' });
 
-                await agent.post('/bookmarks/99999/hide').expect(404);
+                await agent
+                    .post('/bookmarks/99999/hide')
+                    .set('Accept', 'application/json')
+                    .send({})
+                    .expect(404);
             });
         });
     });
@@ -461,7 +482,7 @@ describe('Bookmarks Routes', () => {
 
     describe('POST /bookmarks/delete (JSON)', () => {
         it('should delete multiple bookmarks via API', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             const bookmarks = await db('bookmarks')
                 .insert([
@@ -473,6 +494,7 @@ describe('Bookmarks Routes', () => {
 
             const response = await agent
                 .post('/bookmarks/delete')
+                .set('Accept', 'application/json')
                 .send({ id: [bookmarks[0].id, bookmarks[1].id] })
                 .expect(200);
 
@@ -485,7 +507,7 @@ describe('Bookmarks Routes', () => {
         });
 
         it('should return correct count when some IDs are invalid', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             const [bookmark] = await db('bookmarks')
                 .insert({ user_id: user.id, title: 'Bookmark 1', url: 'https://one.com' })
@@ -493,6 +515,7 @@ describe('Bookmarks Routes', () => {
 
             const response = await agent
                 .post('/bookmarks/delete')
+                .set('Accept', 'application/json')
                 .send({ id: [bookmark.id, 99999] })
                 .expect(200);
 
@@ -500,9 +523,13 @@ describe('Bookmarks Routes', () => {
         });
 
         it('should require id to be an array', async () => {
-            const { agent } = await authenticateApiAgent(app);
+            const { agent } = await authenticateAgent(app);
 
-            await agent.post('/bookmarks/delete').send({ id: 'not-an-array' }).expect(422);
+            await agent
+                .post('/bookmarks/delete')
+                .set('Accept', 'application/json')
+                .send({ id: 'not-an-array' })
+                .expect(422);
         });
     });
 
@@ -586,7 +613,7 @@ describe('Bookmarks Routes', () => {
 
         describe('POST /bookmarks - Same URL with different title (JSON)', () => {
             it('should allow creating bookmark with same URL but different title via API', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 await db('bookmarks').insert({
                     user_id: user.id,
@@ -596,6 +623,7 @@ describe('Bookmarks Routes', () => {
 
                 const response = await agent
                     .post('/bookmarks')
+                    .set('Accept', 'application/json')
                     .send({
                         title: 'Different Title',
                         url: 'https://example.com',
@@ -619,7 +647,7 @@ describe('Bookmarks Routes', () => {
             });
 
             it('should reject creating bookmark with same URL and same title via API', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 await db('bookmarks').insert({
                     user_id: user.id,
@@ -629,6 +657,7 @@ describe('Bookmarks Routes', () => {
 
                 const response = await agent
                     .post('/bookmarks')
+                    .set('Accept', 'application/json')
                     .send({
                         title: 'Same Title',
                         url: 'https://example.com',
@@ -694,7 +723,7 @@ describe('Bookmarks Routes', () => {
         });
 
         it('should highlight search terms in API response', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             await db('bookmarks').insert({
                 user_id: user.id,
@@ -702,7 +731,10 @@ describe('Bookmarks Routes', () => {
                 url: 'https://highlight-test.com',
             });
 
-            const response = await agent.get('/bookmarks?search=highlight').expect(200);
+            const response = await agent
+                .get('/bookmarks?search=highlight')
+                .set('Accept', 'application/json')
+                .expect(200);
 
             expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
             expect(response.body.data[0].url).toContain('<mark>highlight</mark>');

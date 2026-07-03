@@ -128,14 +128,6 @@
                 label: '⏰ Delete all reminders',
                 checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('reminders') : state.input.delete_options === 'reminders')
               }) %>
-
-              <%~ include('../_components/inputs/checkbox.html', {
-                id: 'delete-api-keys-checkbox',
-                name: 'delete_options[]',
-                value: 'api_keys',
-                label: '🔑 Delete all API keys',
-                checked: state.input && state.input.delete_options && (Array.isArray(state.input.delete_options) ? state.input.delete_options.includes('api_keys') : state.input.delete_options === 'api_keys')
-              }) %>
             </div>
 
             <% if (state.errors && state.errors.delete_options) { %>
@@ -186,8 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
     'delete-tabs-checkbox',
     'delete-bookmarks-checkbox',
     'delete-notes-checkbox',
-    'delete-reminders-checkbox',
-    'delete-api-keys-checkbox'
+    'delete-reminders-checkbox'
   ].map(id => document.getElementById(id));
 
   function updateConfirmationVisibility() {

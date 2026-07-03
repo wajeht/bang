@@ -81,6 +81,7 @@ function initializeToast() {
 /**
  * @typedef {Object} AppLocalState
  * @property {Object|null} user - The user object or null if not available.
+ * @property {string} csrfToken - The CSRF token for JSON requests.
  * @property {number} copyRightYear - The current year.
  * @property {Record<string, any>} input - The input data stored in the session.
  * @property {Record<string, any>} errors - The error messages stored in the session.
@@ -212,9 +213,11 @@ function toggleTheme() {
     document.documentElement.setAttribute('data-theme', newTheme);
     updateButtonText(newTheme);
 
-    fetch('/api/settings/theme', {
+    const { csrfToken } = getAppLocalState();
+
+    fetch('/settings/theme', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken || '' },
         credentials: 'same-origin',
         body: JSON.stringify({ theme: newTheme }),
     })

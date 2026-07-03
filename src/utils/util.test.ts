@@ -10,7 +10,7 @@ import { createDate } from './date.js';
 import { createRequest } from './request.js';
 import { db } from '../tests/test-setup.js';
 import { createValidation } from './validation.js';
-import type { ApiKeyPayload, BookmarkToExport } from '../type.js';
+import type { BookmarkToExport } from '../type.js';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 let validationUtils: ReturnType<typeof createValidation>;
@@ -392,53 +392,7 @@ describe.concurrent('fetchPageTitle', () => {
     });
 });
 
-describe.concurrent('getApiKey', () => {
-    it('should return the API key from the X-API-KEY header', () => {
-        const req = {
-            header: vi.fn().mockReturnValue('test-api-key'),
-        } as unknown as Request;
-
-        expect(requestUtils.extractApiKey(req)).toBe('test-api-key');
-        expect(req.header).toHaveBeenCalledWith('X-API-KEY');
-    });
-
-    it('should return the Bearer token from the Authorization header', () => {
-        const req = {
-            header: vi.fn().mockReturnValue('Bearer test-bearer-token'),
-        } as unknown as Request;
-
-        expect(requestUtils.extractApiKey(req)).toBe('test-bearer-token');
-        expect(req.header).toHaveBeenCalledWith('Authorization');
-    });
-
-    it('should return undefined if no API key or Bearer token is present', () => {
-        const req = {
-            header: vi.fn().mockReturnValue(undefined),
-        } as unknown as Request;
-
-        expect(requestUtils.extractApiKey(req)).toBeUndefined();
-    });
-});
-
 describe.concurrent('isApiRequest', () => {
-    it('should return true if API key is present', () => {
-        const req = {
-            header: vi.fn().mockReturnValue('test-api-key'),
-            path: '/some/path',
-        } as unknown as Request;
-
-        expect(requestUtils.isApiRequest(req)).toBe(true);
-    });
-
-    it('should return true if path starts with /api', () => {
-        const req = {
-            header: vi.fn().mockReturnValue(undefined),
-            path: '/api/some/path',
-        } as unknown as Request;
-
-        expect(requestUtils.isApiRequest(req)).toBe(true);
-    });
-
     it('should return true if expectJson returns true', () => {
         const req = {
             header: vi.fn().mockReturnValue('application/json'),
@@ -522,62 +476,6 @@ describe.concurrent('extractPagination', () => {
             search: '',
             sortKey: 'created_at',
             direction: 'desc',
-        });
-    });
-});
-
-describe('api', () => {
-    beforeEach(async () => {
-        await db('users').where({ id: 1 }).update({
-            api_key: 'test-api-key',
-            api_key_version: 1,
-        });
-    });
-
-    describe('generate', () => {
-        it('should generate a valid API key', async () => {
-            const payload = { userId: 1, apiKeyVersion: 1 };
-            const apiKey = await authUtils.generateApiKey(payload);
-
-            const decoded = libs.jwt.verify(apiKey, config.app.apiKeySecret) as ApiKeyPayload;
-            expect(decoded.userId).toBe(payload.userId);
-            expect(decoded.apiKeyVersion).toBe(payload.apiKeyVersion);
-        });
-    });
-
-    describe('verify', () => {
-        it('should return payload for a valid API key', async () => {
-            const payload = { userId: 1, apiKeyVersion: 1 };
-            const apiKey = await authUtils.generateApiKey(payload);
-
-            await db('users').where({ id: 1 }).update({
-                api_key: apiKey,
-                api_key_version: payload.apiKeyVersion,
-            });
-
-            const verifiedPayload = await authUtils.verifyApiKey(apiKey);
-            expect(verifiedPayload).toEqual(expect.objectContaining(payload));
-        });
-
-        it('should return null for an invalid API key', async () => {
-            const invalidApiKey = 'invalid-api-key';
-            const verifiedPayload = await authUtils.verifyApiKey(invalidApiKey);
-            expect(verifiedPayload).toBeNull();
-        });
-
-        it('should return null if the API key does not match the user', async () => {
-            const payload = { userId: 1, apiKeyVersion: 1 };
-            const apiKey = await authUtils.generateApiKey(payload);
-
-            await db('users').where({ id: 1 }).update({ api_key: 'different-api-key' });
-
-            const verifiedPayload = await authUtils.verifyApiKey(apiKey);
-            expect(verifiedPayload).toBeNull();
-
-            await db('users').where({ id: 1 }).update({
-                api_key: 'test-api-key',
-                api_key_version: 1,
-            });
         });
     });
 });

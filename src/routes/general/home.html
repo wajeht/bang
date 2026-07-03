@@ -75,8 +75,8 @@
 
     async function getActionsAndBookmarks() {
       try {
-        const response = await fetch('/api/collections?per_page=999999999999', {
-          headers: { 'Content-Type': 'application/json' }
+        const response = await fetch('/collections?per_page=999999999999', {
+          headers: { 'Accept': 'application/json' }
           // CACHING NOTE: No cache headers needed here!
           // The browser automatically respects the Cache-Control headers
           // sent by the server (max-age=60, stale-while-revalidate=300)

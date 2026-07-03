@@ -231,7 +231,7 @@ export function createGeneralRouter(ctx: AppContext) {
     );
 
     router.get(
-        '/api/collections',
+        '/collections',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;

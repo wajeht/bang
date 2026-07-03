@@ -9,6 +9,7 @@
 }
 
 html {
+    scrollbar-gutter: stable;
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
 }

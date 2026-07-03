@@ -26,7 +26,6 @@ declare global {
     namespace Express {
         interface Request {
             user: User | undefined;
-            apiKeyPayload: ApiKeyPayload | null;
             logger: Logger;
         }
     }
@@ -38,8 +37,6 @@ export type PageType = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders';
 
 export type ActionTypes = 'redirect' | 'search';
 
-export type ApiKeyPayload = { userId: number; apiKeyVersion: number };
-
 export type MagicLinkPayload = { email: string; exp?: number };
 
 export type ReminderType = 'once' | 'recurring';
@@ -47,11 +44,6 @@ export type ReminderType = 'once' | 'recurring';
 export type ReminderFrequency = 'daily' | 'weekly' | 'monthly';
 
 export type Env = 'production' | 'development' | 'testing';
-
-export interface Api {
-    generate: (payload: ApiKeyPayload) => Promise<string>;
-    verify: (apiKey: string) => Promise<ApiKeyPayload | null>;
-}
 
 export type Bang = {
     /** Category of the bang (e.g., "Multimedia", "Online Services"). */
@@ -134,9 +126,6 @@ export type User = {
     default_search_provider: DefaultSearchProviders;
     bookmarks_per_page: number;
     actions_per_page: number;
-    api_key: string | null;
-    api_key_version: number;
-    api_key_created_at: string | null;
     created_at: string;
     updated_at: string;
     column_preferences: ColumnPreferences;

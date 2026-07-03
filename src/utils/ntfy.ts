@@ -1,14 +1,7 @@
 import type { Request } from 'express';
 import type { AppContext } from '../type.js';
 
-const SENSITIVE_KEYS = new Set([
-    'password',
-    'token',
-    'secret',
-    'apikey',
-    'api_key',
-    'authorization',
-]);
+const SENSITIVE_KEYS = new Set(['password', 'token', 'secret', 'apikey', 'authorization']);
 
 function sanitizeObject(obj: unknown, depth = 0): unknown {
     if (depth > 3 || obj == null) return obj;

@@ -1,4 +1,4 @@
-import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils.js';
+import { authenticateAgent } from '../../tests/api-test-utils.js';
 import { db, app } from '../../tests/test-setup.js';
 import { describe, it, expect, vi } from 'vite-plus/test';
 
@@ -69,7 +69,7 @@ describe('Tabs Routes', () => {
 
         describe('POST /tabs/delete (JSON)', () => {
             it('should delete multiple tab groups via API', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 const [tab1] = await db('tabs')
                     .insert({ user_id: user.id, title: 'Tab 1', trigger: '!tab1' })
@@ -80,6 +80,7 @@ describe('Tabs Routes', () => {
 
                 const response = await agent
                     .post('/tabs/delete')
+                    .set('Accept', 'application/json')
                     .send({ id: [tab1.id.toString(), tab2.id.toString()] })
                     .expect(200);
 
@@ -91,7 +92,7 @@ describe('Tabs Routes', () => {
             });
 
             it('should return correct count when some IDs are invalid', async () => {
-                const { agent, user } = await authenticateApiAgent(app);
+                const { agent, user } = await authenticateAgent(app);
 
                 const [tab1] = await db('tabs')
                     .insert({ user_id: user.id, title: 'Tab 1', trigger: '!tab1' })
@@ -99,6 +100,7 @@ describe('Tabs Routes', () => {
 
                 const response = await agent
                     .post('/tabs/delete')
+                    .set('Accept', 'application/json')
                     .send({ id: [tab1.id.toString(), '99999'] })
                     .expect(200);
 
@@ -106,16 +108,20 @@ describe('Tabs Routes', () => {
             });
 
             it('should require id to be an array', async () => {
-                const { agent } = await authenticateApiAgent(app);
+                const { agent } = await authenticateAgent(app);
 
-                await agent.post('/tabs/delete').send({ id: 'not-an-array' }).expect(422);
+                await agent
+                    .post('/tabs/delete')
+                    .set('Accept', 'application/json')
+                    .send({ id: 'not-an-array' })
+                    .expect(422);
             });
         });
     });
 
     describe('Tab Items Security', () => {
         it('should not allow deleting tab items from other users tabs', async () => {
-            const { agent } = await authenticateApiAgent(app);
+            const { agent } = await authenticateAgent(app);
 
             const [otherUser] = await db('users')
                 .insert({
@@ -142,14 +148,18 @@ describe('Tabs Routes', () => {
                 })
                 .returning('*');
 
-            await agent.post(`/tabs/${otherTab.id}/items/${otherTabItem.id}/delete`).expect(404);
+            await agent
+                .post(`/tabs/${otherTab.id}/items/${otherTabItem.id}/delete`)
+                .set('Accept', 'application/json')
+                .send({})
+                .expect(404);
 
             const remainingItems = await db('tab_items').where({ id: otherTabItem.id });
             expect(remainingItems).toHaveLength(1);
         });
 
         it('should allow deleting tab items from own tabs', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             const [myTab] = await db('tabs')
                 .insert({
@@ -167,7 +177,11 @@ describe('Tabs Routes', () => {
                 })
                 .returning('*');
 
-            await agent.post(`/tabs/${myTab.id}/items/${myTabItem.id}/delete`).expect(200);
+            await agent
+                .post(`/tabs/${myTab.id}/items/${myTabItem.id}/delete`)
+                .set('Accept', 'application/json')
+                .send({})
+                .expect(200);
 
             const remainingItems = await db('tab_items').where({ id: myTabItem.id });
             expect(remainingItems).toHaveLength(0);
@@ -214,14 +228,17 @@ describe('Tabs Routes', () => {
 
     describe('Direction Parameter Security', () => {
         it('should sanitize direction parameter to prevent SQL injection', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             await db('tabs').insert([
                 { user_id: user.id, title: 'Tab A', trigger: '!taba' },
                 { user_id: user.id, title: 'Tab B', trigger: '!tabb' },
             ]);
 
-            const response = await agent.get('/tabs?direction=desc;DROP TABLE tabs;--').expect(200);
+            const response = await agent
+                .get('/tabs?direction=desc;DROP TABLE tabs;--')
+                .set('Accept', 'application/json')
+                .expect(200);
 
             expect(response.body.data).toHaveLength(2);
 
@@ -230,20 +247,29 @@ describe('Tabs Routes', () => {
         });
 
         it('should only allow asc or desc for direction', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             await db('tabs').insert([
                 { user_id: user.id, title: 'Tab A', trigger: '!taba' },
                 { user_id: user.id, title: 'Tab B', trigger: '!tabb' },
             ]);
 
-            const responseAsc = await agent.get('/tabs?direction=asc').expect(200);
+            const responseAsc = await agent
+                .get('/tabs?direction=asc')
+                .set('Accept', 'application/json')
+                .expect(200);
             expect(responseAsc.body.direction).toBe('asc');
 
-            const responseDesc = await agent.get('/tabs?direction=desc').expect(200);
+            const responseDesc = await agent
+                .get('/tabs?direction=desc')
+                .set('Accept', 'application/json')
+                .expect(200);
             expect(responseDesc.body.direction).toBe('desc');
 
-            const responseInvalid = await agent.get('/tabs?direction=invalid').expect(200);
+            const responseInvalid = await agent
+                .get('/tabs?direction=invalid')
+                .set('Accept', 'application/json')
+                .expect(200);
             expect(responseInvalid.body.direction).toBe('desc');
         });
     });
@@ -326,7 +352,7 @@ describe('Tabs Routes', () => {
         });
 
         it('should highlight search terms in API response', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
 
             await db('tabs').insert({
                 user_id: user.id,
@@ -334,7 +360,10 @@ describe('Tabs Routes', () => {
                 trigger: '!highlight',
             });
 
-            const response = await agent.get('/tabs?search=highlight').expect(200);
+            const response = await agent
+                .get('/tabs?search=highlight')
+                .set('Accept', 'application/json')
+                .expect(200);
 
             expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
             expect(response.body.data[0].trigger).toContain('<mark>highlight</mark>');
@@ -405,7 +434,7 @@ describe('Tabs Routes', () => {
 
     describe('Tab Item Creation', () => {
         it('should prefetch assets when creating tab item', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
+            const { agent, user } = await authenticateAgent(app);
             const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
                 text: () => Promise.resolve(''),
             } as unknown as globalThis.Response);
@@ -420,6 +449,7 @@ describe('Tabs Routes', () => {
 
             await agent
                 .post(`/tabs/${tab.id}/items/create`)
+                .set('Accept', 'application/json')
                 .send({
                     title: 'Prefetch Item',
                     url: 'https://prefetch-tab-item.com',
