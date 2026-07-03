@@ -23,8 +23,7 @@ export function createNotesRouter(ctx: AppContext) {
         silent: false,
     });
 
-    router.get('/notes', ctx.middleware.authentication, getNotesHandler);
-    async function getNotesHandler(req: Request, res: Response) {
+    router.get('/notes', ctx.middleware.authentication, async (req: Request, res: Response) => {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'notes');
@@ -86,7 +85,7 @@ export function createNotesRouter(ctx: AppContext) {
             showHidden: canViewHidden,
             hiddenItemsVerified: hasVerifiedPassword,
         });
-    }
+    });
 
     router.get(
         '/notes/create',
@@ -123,8 +122,7 @@ export function createNotesRouter(ctx: AppContext) {
         },
     );
 
-    router.get('/notes/:id', ctx.middleware.authentication, getNoteHandler);
-    async function getNoteHandler(req: Request, res: Response) {
+    router.get('/notes/:id', ctx.middleware.authentication, async (req: Request, res: Response) => {
         const user = req.user as User;
         let note = await ctx.models.notes.read(
             parseInt(req.params.id as unknown as string),
@@ -230,10 +228,9 @@ export function createNotesRouter(ctx: AppContext) {
             layout: '_layouts/auth.html',
             note,
         });
-    }
+    });
 
-    router.post('/notes', ctx.middleware.authentication, postNoteHandler);
-    async function postNoteHandler(req: Request, res: Response) {
+    router.post('/notes', ctx.middleware.authentication, async (req: Request, res: Response) => {
         const { title, content, pinned, hidden } = req.body;
 
         if (!title) {
@@ -282,71 +279,74 @@ export function createNotesRouter(ctx: AppContext) {
 
         req.flash('success', 'Note created successfully');
         return res.redirect(`/notes/${note.id}`);
-    }
+    });
 
-    router.post('/notes/:id/update', ctx.middleware.authentication, updateNoteHandler);
-    async function updateNoteHandler(req: Request, res: Response) {
-        const { title, content, pinned, hidden } = req.body;
+    router.post(
+        '/notes/:id/update',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const { title, content, pinned, hidden } = req.body;
 
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
+            if (!title) {
+                throw new ctx.errors.ValidationError({ title: 'Title is required' });
+            }
 
-        if (!content) {
-            throw new ctx.errors.ValidationError({ content: 'Content is required' });
-        }
+            if (!content) {
+                throw new ctx.errors.ValidationError({ content: 'Content is required' });
+            }
 
-        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-            throw new ctx.errors.ValidationError({
-                pinned: 'Pinned must be a boolean or checkbox value',
-            });
-        }
-
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new ctx.errors.ValidationError({
-                hidden: 'Hidden must be a boolean or checkbox value',
-            });
-        }
-
-        const user = req.user as User;
-        const noteId = parseInt(req.params.id as unknown as string);
-
-        if (hidden === 'on' || hidden === true) {
-            const dbUser = await ctx.db('users').where({ id: user.id }).first();
-            if (!dbUser?.hidden_items_password) {
+            if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
                 throw new ctx.errors.ValidationError({
-                    hidden: 'You must set a global password in settings before hiding items',
+                    pinned: 'Pinned must be a boolean or checkbox value',
                 });
             }
-        }
 
-        const currentNote = await ctx.models.notes.read(noteId, user.id);
+            if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+                throw new ctx.errors.ValidationError({
+                    hidden: 'Hidden must be a boolean or checkbox value',
+                });
+            }
 
-        if (!currentNote) {
-            throw new ctx.errors.NotFoundError('Note not found');
-        }
+            const user = req.user as User;
+            const noteId = parseInt(req.params.id as unknown as string);
 
-        const updatedNote = await ctx.models.notes.update(noteId, user.id, {
-            title: title.trim(),
-            content: content.trim(),
-            pinned: pinned === 'on' || pinned === true,
-            hidden: hidden === 'on' || hidden === true,
-        });
+            if (hidden === 'on' || hidden === true) {
+                const dbUser = await ctx.db('users').where({ id: user.id }).first();
+                if (!dbUser?.hidden_items_password) {
+                    throw new ctx.errors.ValidationError({
+                        hidden: 'You must set a global password in settings before hiding items',
+                    });
+                }
+            }
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({ message: 'note updated successfully' });
-            return;
-        }
+            const currentNote = await ctx.models.notes.read(noteId, user.id);
 
-        req.flash('success', `Note ${updatedNote.title} updated successfully`);
+            if (!currentNote) {
+                throw new ctx.errors.NotFoundError('Note not found');
+            }
 
-        if (updatedNote.hidden && !currentNote.hidden) {
-            req.flash('success', 'Note hidden successfully');
-            return res.redirect('/notes');
-        }
+            const updatedNote = await ctx.models.notes.update(noteId, user.id, {
+                title: title.trim(),
+                content: content.trim(),
+                pinned: pinned === 'on' || pinned === true,
+                hidden: hidden === 'on' || hidden === true,
+            });
 
-        return res.redirect(`/notes/${updatedNote.id}`);
-    }
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(200).json({ message: 'note updated successfully' });
+                return;
+            }
+
+            req.flash('success', `Note ${updatedNote.title} updated successfully`);
+
+            if (updatedNote.hidden && !currentNote.hidden) {
+                req.flash('success', 'Note hidden successfully');
+                return res.redirect('/notes');
+            }
+
+            return res.redirect(`/notes/${updatedNote.id}`);
+        },
+    );
 
     router.post('/notes/:id/delete', ctx.middleware.authentication, deleteNoteHandler);
     router.post('/notes/delete', ctx.middleware.authentication, deleteNoteHandler);
@@ -374,32 +374,35 @@ export function createNotesRouter(ctx: AppContext) {
         return res.redirect('/notes');
     }
 
-    router.post('/notes/:id/pin', ctx.middleware.authentication, toggleNotePinHandler);
-    async function toggleNotePinHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const noteId = parseInt(req.params.id as unknown as string);
+    router.post(
+        '/notes/:id/pin',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const noteId = parseInt(req.params.id as unknown as string);
 
-        const currentNote = await ctx.models.notes.read(noteId, user.id);
+            const currentNote = await ctx.models.notes.read(noteId, user.id);
 
-        if (!currentNote) {
-            throw new ctx.errors.NotFoundError('Note not found');
-        }
+            if (!currentNote) {
+                throw new ctx.errors.NotFoundError('Note not found');
+            }
 
-        const updatedNote = await ctx.models.notes.update(noteId, user.id, {
-            pinned: !currentNote.pinned,
-        });
-
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`,
-                data: updatedNote,
+            const updatedNote = await ctx.models.notes.update(noteId, user.id, {
+                pinned: !currentNote.pinned,
             });
-            return;
-        }
 
-        req.flash('success', `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`);
-        return res.redirect('/notes');
-    }
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(200).json({
+                    message: `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`,
+                    data: updatedNote,
+                });
+                return;
+            }
+
+            req.flash('success', `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`);
+            return res.redirect('/notes');
+        },
+    );
 
     router.get(
         '/notes/:id/download',

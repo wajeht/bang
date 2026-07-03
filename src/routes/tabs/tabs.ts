@@ -121,8 +121,7 @@ export function createTabsRouter(ctx: AppContext) {
         },
     );
 
-    router.get('/tabs', ctx.middleware.authentication, getTabsPageHandler);
-    async function getTabsPageHandler(req: Request, res: Response) {
+    router.get('/tabs', ctx.middleware.authentication, async (req: Request, res: Response) => {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'tabs');
@@ -161,10 +160,9 @@ export function createTabsRouter(ctx: AppContext) {
             sortKey,
             direction,
         });
-    }
+    });
 
-    router.post('/tabs', ctx.middleware.authentication, postTabsPageHandler);
-    async function postTabsPageHandler(req: Request, res: Response) {
+    router.post('/tabs', ctx.middleware.authentication, async (req: Request, res: Response) => {
         const user = req.user as User;
         const { title, trigger } = req.body;
 
@@ -222,76 +220,79 @@ export function createTabsRouter(ctx: AppContext) {
 
         req.flash('success', 'Tab group created!');
         return res.redirect('/tabs');
-    }
+    });
 
-    router.post('/tabs/:id/update', ctx.middleware.authentication, updateTabHandler);
-    async function updateTabHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const { title, trigger } = req.body;
+    router.post(
+        '/tabs/:id/update',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const { title, trigger } = req.body;
 
-        const tab = await ctx.models.tabs.read(parseInt(req.params.id as string), user.id);
+            const tab = await ctx.models.tabs.read(parseInt(req.params.id as string), user.id);
 
-        if (!tab) {
-            throw new ctx.errors.NotFoundError('Tab group not found');
-        }
+            if (!tab) {
+                throw new ctx.errors.NotFoundError('Tab group not found');
+            }
 
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
+            if (!title) {
+                throw new ctx.errors.ValidationError({ title: 'Title is required' });
+            }
 
-        if (!trigger) {
-            throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
-        }
+            if (!trigger) {
+                throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
+            }
 
-        const formattedTrigger: string = ctx.utils.util.normalizeBangTrigger(trigger);
+            const formattedTrigger: string = ctx.utils.util.normalizeBangTrigger(trigger);
 
-        if (!ctx.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
-            throw new ctx.errors.ValidationError({
-                trigger: 'Trigger can only contain letters and numbers',
-            });
-        }
+            if (!ctx.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
+                throw new ctx.errors.ValidationError({
+                    trigger: 'Trigger can only contain letters and numbers',
+                });
+            }
 
-        const existingAction = await ctx.db.select('*').from('bangs').where({
-            user_id: user.id,
-            trigger: formattedTrigger,
-        });
-
-        if (existingAction.length) {
-            throw new ctx.errors.ValidationError({
-                trigger: 'This trigger already exists in Actions. Please choose another one!',
-            });
-        }
-
-        const existingTab = await ctx
-            .db('tabs')
-            .where({
-                trigger: formattedTrigger,
+            const existingAction = await ctx.db.select('*').from('bangs').where({
                 user_id: user.id,
-            })
-            .whereNot({ id: tab.id })
-            .first();
+                trigger: formattedTrigger,
+            });
 
-        if (existingTab) {
-            throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
-        }
+            if (existingAction.length) {
+                throw new ctx.errors.ValidationError({
+                    trigger: 'This trigger already exists in Actions. Please choose another one!',
+                });
+            }
 
-        await ctx.models.tabs.update(parseInt(req.params.id as string), user.id, {
-            title,
-            trigger: formattedTrigger,
-        });
+            const existingTab = await ctx
+                .db('tabs')
+                .where({
+                    trigger: formattedTrigger,
+                    user_id: user.id,
+                })
+                .whereNot({ id: tab.id })
+                .first();
 
-        if (tab.trigger !== formattedTrigger) {
-            ctx.utils.search.invalidateTriggerCache(user.id);
-        }
+            if (existingTab) {
+                throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
+            }
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({ message: 'Tab group updated successfully' });
-            return;
-        }
+            await ctx.models.tabs.update(parseInt(req.params.id as string), user.id, {
+                title,
+                trigger: formattedTrigger,
+            });
 
-        req.flash('success', 'Tab group updated!');
-        return res.redirect('/tabs');
-    }
+            if (tab.trigger !== formattedTrigger) {
+                ctx.utils.search.invalidateTriggerCache(user.id);
+            }
+
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(200).json({ message: 'Tab group updated successfully' });
+                return;
+            }
+
+            req.flash('success', 'Tab group updated!');
+            return res.redirect('/tabs');
+        },
+    );
 
     router.post('/tabs/:id/delete', ctx.middleware.authentication, deleteTabHandler);
     router.post('/tabs/delete', ctx.middleware.authentication, deleteTabHandler);
@@ -318,136 +319,137 @@ export function createTabsRouter(ctx: AppContext) {
         return res.redirect('/tabs');
     }
 
-    router.post('/tabs/:id/items/create', ctx.middleware.authentication, postTabItemCreateHandler);
-    async function postTabItemCreateHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const tabId = req.params.id;
-        const { title, url } = req.body;
+    router.post(
+        '/tabs/:id/items/create',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const tabId = req.params.id;
+            const { title, url } = req.body;
 
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
+            if (!title) {
+                throw new ctx.errors.ValidationError({ title: 'Title is required' });
+            }
 
-        if (!url) {
-            throw new ctx.errors.ValidationError({ url: 'URL is required' });
-        }
+            if (!url) {
+                throw new ctx.errors.ValidationError({ url: 'URL is required' });
+            }
 
-        if (!ctx.utils.validation.isValidUrl(url)) {
-            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
-        }
+            if (!ctx.utils.validation.isValidUrl(url)) {
+                throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
+            }
 
-        const tab = await ctx.db('tabs').where({ id: tabId, user_id: user.id }).first();
+            const tab = await ctx.db('tabs').where({ id: tabId, user_id: user.id }).first();
 
-        if (!tab) {
-            throw new ctx.errors.NotFoundError('Tab group not found');
-        }
+            if (!tab) {
+                throw new ctx.errors.NotFoundError('Tab group not found');
+            }
 
-        await ctx.db('tab_items').insert({
-            tab_id: tab.id,
-            title,
-            url,
-        });
+            await ctx.db('tab_items').insert({
+                tab_id: tab.id,
+                title,
+                url,
+            });
 
-        ctx.utils.util.prefetchAssets(url);
+            ctx.utils.util.prefetchAssets(url);
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(201).json({ message: 'Tab item created successfully' });
-            return;
-        }
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(201).json({ message: 'Tab item created successfully' });
+                return;
+            }
 
-        req.flash('success', 'Tab item added!');
-        return res.redirect('/tabs');
-    }
+            req.flash('success', 'Tab item added!');
+            return res.redirect('/tabs');
+        },
+    );
 
     router.post(
         '/tabs/:id/items/:itemId/update',
         ctx.middleware.authentication,
-        postTabItemUpdateHandler,
-    );
-    async function postTabItemUpdateHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const { id, itemId } = req.params;
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const { id, itemId } = req.params;
 
-        const tab = await ctx.db('tabs').where({ id, user_id: user.id }).first();
+            const tab = await ctx.db('tabs').where({ id, user_id: user.id }).first();
 
-        if (!tab) {
-            throw new ctx.errors.NotFoundError('Tab group not found');
-        }
+            if (!tab) {
+                throw new ctx.errors.NotFoundError('Tab group not found');
+            }
 
-        const { title, url } = req.body;
+            const { title, url } = req.body;
 
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
+            if (!title) {
+                throw new ctx.errors.ValidationError({ title: 'Title is required' });
+            }
 
-        if (!url) {
-            throw new ctx.errors.ValidationError({ url: 'URL is required' });
-        }
+            if (!url) {
+                throw new ctx.errors.ValidationError({ url: 'URL is required' });
+            }
 
-        if (!ctx.utils.validation.isValidUrl(url)) {
-            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
-        }
+            if (!ctx.utils.validation.isValidUrl(url)) {
+                throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
+            }
 
-        const tabItem = await ctx.db('tab_items').where({ id: itemId, tab_id: id }).first();
+            const tabItem = await ctx.db('tab_items').where({ id: itemId, tab_id: id }).first();
 
-        if (!tabItem) {
-            throw new ctx.errors.NotFoundError('Tab item not found');
-        }
+            if (!tabItem) {
+                throw new ctx.errors.NotFoundError('Tab item not found');
+            }
 
-        await ctx.db.transaction(async (trx) => {
-            await trx('tab_items').where({ id: itemId, tab_id: id }).update({
-                title,
-                url,
-                updated_at: ctx.db.fn.now(),
+            await ctx.db.transaction(async (trx) => {
+                await trx('tab_items').where({ id: itemId, tab_id: id }).update({
+                    title,
+                    url,
+                    updated_at: ctx.db.fn.now(),
+                });
+
+                await trx('tabs').where({ id }).update({ updated_at: ctx.db.fn.now() });
             });
 
-            await trx('tabs').where({ id }).update({ updated_at: ctx.db.fn.now() });
-        });
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(200).json({ message: 'Tab item updated successfully' });
+                return;
+            }
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({ message: 'Tab item updated successfully' });
-            return;
-        }
-
-        req.flash('success', 'Tab item updated!');
-        return res.redirect(`/tabs`);
-    }
+            req.flash('success', 'Tab item updated!');
+            return res.redirect(`/tabs`);
+        },
+    );
 
     router.post(
         '/tabs/:id/items/:itemId/delete',
         ctx.middleware.authentication,
-        deleteTabItemHandler,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const tabId = parseInt(req.params.id as unknown as string);
+            const itemId = parseInt(req.params.itemId as unknown as string);
+
+            const tab = await ctx.db('tabs').where({ id: tabId, user_id: user.id }).first();
+
+            if (!tab) {
+                throw new ctx.errors.NotFoundError('Tab group not found');
+            }
+
+            const tabItem = await ctx.db('tab_items').where({ id: itemId, tab_id: tabId }).first();
+
+            if (!tabItem) {
+                throw new ctx.errors.NotFoundError('Tab item not found');
+            }
+
+            await ctx.db.transaction(async (trx) => {
+                await trx('tab_items').where({ id: itemId, tab_id: tabId }).delete();
+                await trx('tabs').where({ id: tabId }).update({ updated_at: ctx.db.fn.now() });
+            });
+
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(200).json({ message: 'Tab item deleted successfully' });
+                return;
+            }
+
+            req.flash('success', 'Tab item deleted!');
+            return res.redirect(`/tabs`);
+        },
     );
-    async function deleteTabItemHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const tabId = parseInt(req.params.id as unknown as string);
-        const itemId = parseInt(req.params.itemId as unknown as string);
-
-        const tab = await ctx.db('tabs').where({ id: tabId, user_id: user.id }).first();
-
-        if (!tab) {
-            throw new ctx.errors.NotFoundError('Tab group not found');
-        }
-
-        const tabItem = await ctx.db('tab_items').where({ id: itemId, tab_id: tabId }).first();
-
-        if (!tabItem) {
-            throw new ctx.errors.NotFoundError('Tab item not found');
-        }
-
-        await ctx.db.transaction(async (trx) => {
-            await trx('tab_items').where({ id: itemId, tab_id: tabId }).delete();
-            await trx('tabs').where({ id: tabId }).update({ updated_at: ctx.db.fn.now() });
-        });
-
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({ message: 'Tab item deleted successfully' });
-            return;
-        }
-
-        req.flash('success', 'Tab item deleted!');
-        return res.redirect(`/tabs`);
-    }
 
     const activePrefetches = new Set<number>();
 

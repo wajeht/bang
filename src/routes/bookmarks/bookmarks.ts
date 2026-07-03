@@ -4,8 +4,7 @@ import type { User, BookmarkToExport, AppContext } from '../../type.js';
 export function createBookmarksRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
-    router.get('/bookmarks', ctx.middleware.authentication, getBookmarksHandler);
-    async function getBookmarksHandler(req: Request, res: Response) {
+    router.get('/bookmarks', ctx.middleware.authentication, async (req: Request, res: Response) => {
         const user = req.user as User;
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'bookmarks');
@@ -45,7 +44,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             showHidden: canViewHidden,
             hiddenItemsVerified: hasVerifiedPassword,
         });
-    }
+    });
 
     router.get(
         '/bookmarks/create',
@@ -162,145 +161,151 @@ export function createBookmarksRouter(ctx: AppContext) {
         },
     );
 
-    router.post('/bookmarks', ctx.middleware.authentication, postBookmarkHandler);
-    async function postBookmarkHandler(req: Request, res: Response) {
-        const { url, title, pinned, hidden } = req.body;
+    router.post(
+        '/bookmarks',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const { url, title, pinned, hidden } = req.body;
 
-        if (!url) {
-            throw new ctx.errors.ValidationError({ url: 'URL is required' });
-        }
+            if (!url) {
+                throw new ctx.errors.ValidationError({ url: 'URL is required' });
+            }
 
-        if (!ctx.utils.validation.isValidUrl(url)) {
-            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
-        }
+            if (!ctx.utils.validation.isValidUrl(url)) {
+                throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
+            }
 
-        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-            throw new ctx.errors.ValidationError({
-                pinned: 'Pinned must be a boolean or checkbox value',
-            });
-        }
-
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new ctx.errors.ValidationError({
-                hidden: 'Hidden must be a boolean or checkbox value',
-            });
-        }
-
-        const user = req.user as User;
-
-        if (hidden === 'on' || hidden === true) {
-            const dbUser = await ctx.db('users').where({ id: user.id }).first();
-            if (!dbUser?.hidden_items_password) {
+            if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
                 throw new ctx.errors.ValidationError({
-                    hidden: 'You must set a global password in settings before hiding items',
+                    pinned: 'Pinned must be a boolean or checkbox value',
                 });
             }
-        }
-        const existingBookmark = await ctx.utils.util.checkDuplicateBookmarkUrl(
-            user.id,
-            url,
-            title || '',
-        );
 
-        if (existingBookmark) {
-            throw new ctx.errors.ValidationError({
-                url: `URL already bookmarked as "${existingBookmark.title}". Please use a different URL or update the existing bookmark.`,
-            });
-        }
-
-        void Promise.resolve().then(async () => {
-            try {
-                await ctx.utils.util.insertBookmark({
-                    url,
-                    userId: (req.user as User).id,
-                    title,
-                    pinned: pinned === 'on' || pinned === true,
-                    hidden: hidden === 'on' || hidden === true,
-                    req,
-                });
-            } catch (error) {
-                ctx.logger.error('Background bookmark insertion failed', { error, url, title });
-            }
-        });
-
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(201).json({ message: `Bookmark ${title} created successfully!` });
-            return;
-        }
-
-        req.flash('success', `Bookmark ${title} created successfully!`);
-        return res.redirect('/bookmarks');
-    }
-
-    router.post('/bookmarks/:id/update', ctx.middleware.authentication, updateBookmarkHandler);
-    async function updateBookmarkHandler(req: Request, res: Response) {
-        const { url, title, pinned, hidden } = req.body;
-
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
-
-        if (!url) {
-            throw new ctx.errors.ValidationError({ url: 'URL is required' });
-        }
-
-        if (!ctx.utils.validation.isValidUrl(url)) {
-            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
-        }
-
-        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-            throw new ctx.errors.ValidationError({
-                pinned: 'Pinned must be a boolean or checkbox value',
-            });
-        }
-
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new ctx.errors.ValidationError({
-                hidden: 'Hidden must be a boolean or checkbox value',
-            });
-        }
-
-        const user = req.user as User;
-        const bookmarkId = req.params.id as unknown as number;
-
-        if (hidden === 'on' || hidden === true) {
-            const dbUser = await ctx.db('users').where({ id: user.id }).first();
-            if (!dbUser?.hidden_items_password) {
+            if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
                 throw new ctx.errors.ValidationError({
-                    hidden: 'You must set a global password in settings before hiding items',
+                    hidden: 'Hidden must be a boolean or checkbox value',
                 });
             }
-        }
 
-        const currentBookmark = await ctx.models.bookmarks.read(bookmarkId, user.id);
-        if (!currentBookmark) {
-            throw new ctx.errors.NotFoundError('Bookmark not found');
-        }
+            const user = req.user as User;
 
-        const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
-            url,
-            title,
-            pinned: pinned === 'on' || pinned === true,
-            hidden: hidden === 'on' || hidden === true,
-        });
+            if (hidden === 'on' || hidden === true) {
+                const dbUser = await ctx.db('users').where({ id: user.id }).first();
+                if (!dbUser?.hidden_items_password) {
+                    throw new ctx.errors.ValidationError({
+                        hidden: 'You must set a global password in settings before hiding items',
+                    });
+                }
+            }
+            const existingBookmark = await ctx.utils.util.checkDuplicateBookmarkUrl(
+                user.id,
+                url,
+                title || '',
+            );
 
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: `Bookmark ${updatedBookmark.title} updated successfully!`,
-                data: updatedBookmark,
+            if (existingBookmark) {
+                throw new ctx.errors.ValidationError({
+                    url: `URL already bookmarked as "${existingBookmark.title}". Please use a different URL or update the existing bookmark.`,
+                });
+            }
+
+            void Promise.resolve().then(async () => {
+                try {
+                    await ctx.utils.util.insertBookmark({
+                        url,
+                        userId: (req.user as User).id,
+                        title,
+                        pinned: pinned === 'on' || pinned === true,
+                        hidden: hidden === 'on' || hidden === true,
+                        req,
+                    });
+                } catch (error) {
+                    ctx.logger.error('Background bookmark insertion failed', { error, url, title });
+                }
             });
-            return;
-        }
 
-        req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(201).json({ message: `Bookmark ${title} created successfully!` });
+                return;
+            }
 
-        if (updatedBookmark.hidden && !currentBookmark.hidden) {
-            req.flash('success', 'Bookmark hidden successfully');
+            req.flash('success', `Bookmark ${title} created successfully!`);
             return res.redirect('/bookmarks');
-        }
+        },
+    );
 
-        return res.redirect('/bookmarks');
-    }
+    router.post(
+        '/bookmarks/:id/update',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const { url, title, pinned, hidden } = req.body;
+
+            if (!title) {
+                throw new ctx.errors.ValidationError({ title: 'Title is required' });
+            }
+
+            if (!url) {
+                throw new ctx.errors.ValidationError({ url: 'URL is required' });
+            }
+
+            if (!ctx.utils.validation.isValidUrl(url)) {
+                throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
+            }
+
+            if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
+                throw new ctx.errors.ValidationError({
+                    pinned: 'Pinned must be a boolean or checkbox value',
+                });
+            }
+
+            if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+                throw new ctx.errors.ValidationError({
+                    hidden: 'Hidden must be a boolean or checkbox value',
+                });
+            }
+
+            const user = req.user as User;
+            const bookmarkId = req.params.id as unknown as number;
+
+            if (hidden === 'on' || hidden === true) {
+                const dbUser = await ctx.db('users').where({ id: user.id }).first();
+                if (!dbUser?.hidden_items_password) {
+                    throw new ctx.errors.ValidationError({
+                        hidden: 'You must set a global password in settings before hiding items',
+                    });
+                }
+            }
+
+            const currentBookmark = await ctx.models.bookmarks.read(bookmarkId, user.id);
+            if (!currentBookmark) {
+                throw new ctx.errors.NotFoundError('Bookmark not found');
+            }
+
+            const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
+                url,
+                title,
+                pinned: pinned === 'on' || pinned === true,
+                hidden: hidden === 'on' || hidden === true,
+            });
+
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(200).json({
+                    message: `Bookmark ${updatedBookmark.title} updated successfully!`,
+                    data: updatedBookmark,
+                });
+                return;
+            }
+
+            req.flash('success', `Bookmark ${updatedBookmark.title} updated successfully!`);
+
+            if (updatedBookmark.hidden && !currentBookmark.hidden) {
+                req.flash('success', 'Bookmark hidden successfully');
+                return res.redirect('/bookmarks');
+            }
+
+            return res.redirect('/bookmarks');
+        },
+    );
 
     router.post('/bookmarks/:id/delete', ctx.middleware.authentication, deleteBookmarkHandler);
     router.post('/bookmarks/delete', ctx.middleware.authentication, deleteBookmarkHandler);
@@ -328,73 +333,79 @@ export function createBookmarksRouter(ctx: AppContext) {
         return res.redirect('/bookmarks');
     }
 
-    router.post('/bookmarks/:id/pin', ctx.middleware.authentication, toggleBookmarkPinHandler);
-    async function toggleBookmarkPinHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const bookmarkId = parseInt(req.params.id as unknown as string);
+    router.post(
+        '/bookmarks/:id/pin',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const bookmarkId = parseInt(req.params.id as unknown as string);
 
-        const currentBookmark = await ctx.models.bookmarks.read(bookmarkId, user.id);
+            const currentBookmark = await ctx.models.bookmarks.read(bookmarkId, user.id);
 
-        if (!currentBookmark) {
-            throw new ctx.errors.NotFoundError('Bookmark not found');
-        }
+            if (!currentBookmark) {
+                throw new ctx.errors.NotFoundError('Bookmark not found');
+            }
 
-        const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
-            pinned: !currentBookmark.pinned,
-        });
-
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: `Bookmark ${updatedBookmark.pinned ? 'pinned' : 'unpinned'} successfully`,
-                data: updatedBookmark,
+            const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
+                pinned: !currentBookmark.pinned,
             });
-            return;
-        }
 
-        req.flash(
-            'success',
-            `Bookmark ${updatedBookmark.pinned ? 'pinned' : 'unpinned'} successfully`,
-        );
-        return res.redirect('/bookmarks');
-    }
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(200).json({
+                    message: `Bookmark ${updatedBookmark.pinned ? 'pinned' : 'unpinned'} successfully`,
+                    data: updatedBookmark,
+                });
+                return;
+            }
 
-    router.post('/bookmarks/:id/hide', ctx.middleware.authentication, toggleBookmarkHideHandler);
-    async function toggleBookmarkHideHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const bookmarkId = parseInt(req.params.id as unknown as string);
+            req.flash(
+                'success',
+                `Bookmark ${updatedBookmark.pinned ? 'pinned' : 'unpinned'} successfully`,
+            );
+            return res.redirect('/bookmarks');
+        },
+    );
 
-        const dbUser = await ctx.db('users').where({ id: user.id }).first();
-        if (!dbUser?.hidden_items_password) {
-            throw new ctx.errors.ValidationError({
-                hidden: 'You must set a global password in settings before hiding items',
+    router.post(
+        '/bookmarks/:id/hide',
+        ctx.middleware.authentication,
+        async (req: Request, res: Response) => {
+            const user = req.user as User;
+            const bookmarkId = parseInt(req.params.id as unknown as string);
+
+            const dbUser = await ctx.db('users').where({ id: user.id }).first();
+            if (!dbUser?.hidden_items_password) {
+                throw new ctx.errors.ValidationError({
+                    hidden: 'You must set a global password in settings before hiding items',
+                });
+            }
+
+            const currentBookmark = await ctx.models.bookmarks.read(bookmarkId, user.id);
+
+            if (!currentBookmark) {
+                throw new ctx.errors.NotFoundError('Bookmark not found');
+            }
+
+            const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
+                hidden: !currentBookmark.hidden,
             });
-        }
 
-        const currentBookmark = await ctx.models.bookmarks.read(bookmarkId, user.id);
+            if (ctx.utils.request.isApiRequest(req)) {
+                res.status(200).json({
+                    message: `Bookmark ${updatedBookmark.hidden ? 'hidden' : 'unhidden'} successfully`,
+                    data: updatedBookmark,
+                });
+                return;
+            }
 
-        if (!currentBookmark) {
-            throw new ctx.errors.NotFoundError('Bookmark not found');
-        }
-
-        const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
-            hidden: !currentBookmark.hidden,
-        });
-
-        if (ctx.utils.request.isApiRequest(req)) {
-            res.status(200).json({
-                message: `Bookmark ${updatedBookmark.hidden ? 'hidden' : 'unhidden'} successfully`,
-                data: updatedBookmark,
-            });
-            return;
-        }
-
-        req.flash(
-            'success',
-            `Bookmark ${updatedBookmark.hidden ? 'hidden' : 'unhidden'} successfully`,
-        );
-        const showHidden = req.body.showHidden === 'true';
-        return res.redirect('/bookmarks' + (showHidden ? '?hidden=true' : ''));
-    }
+            req.flash(
+                'success',
+                `Bookmark ${updatedBookmark.hidden ? 'hidden' : 'unhidden'} successfully`,
+            );
+            const showHidden = req.body.showHidden === 'true';
+            return res.redirect('/bookmarks' + (showHidden ? '?hidden=true' : ''));
+        },
+    );
 
     router.post(
         '/bookmarks/:id/tabs',
