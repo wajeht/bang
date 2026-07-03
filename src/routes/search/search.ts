@@ -5,10 +5,7 @@ export function createSearchRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
     router.post('/search', async (req: Request, res: Response) => {
-        const query = req.body.q?.toString().trim() || '';
-        const user = req.session.user as User;
-
-        await ctx.utils.search.search({ res, user, query, req });
+        await ctx.utils.search.search({ res, req });
     });
 
     router.get('/search', ctx.middleware.authentication, async (req: Request, res: Response) => {

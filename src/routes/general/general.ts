@@ -62,7 +62,6 @@ export function createGeneralRouter(ctx: AppContext) {
 
     router.get('/', async (req: Request, res: Response) => {
         const query = (typeof req.query.q === 'string' ? req.query.q : '').trim();
-        const user = req.session.user as User | undefined;
 
         if (!query) {
             return res.render('general/home.html', {
@@ -71,7 +70,7 @@ export function createGeneralRouter(ctx: AppContext) {
             });
         }
 
-        await ctx.utils.search.search({ res, user, query, req });
+        await ctx.utils.search.search({ res, req });
     });
 
     router.get('/about', async (_req: Request, res: Response) => {

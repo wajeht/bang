@@ -257,8 +257,6 @@ export type ReminderTimingResult = {
 
 export type Search = (options: {
     res: express.Response;
-    user: User | undefined;
-    query: string;
     req: express.Request;
 }) => Promise<void | express.Response>;
 

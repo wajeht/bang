@@ -1,6 +1,6 @@
 import { bangs as bangsTable } from '../db/bang.js';
 import type { Request, Response } from 'express';
-import type { Bang, Search, ReminderTimingResult, AppContext } from '../type.js';
+import type { Bang, Search, ReminderTimingResult, AppContext, User } from '../type.js';
 
 export function createSearch(context: AppContext) {
     const TRIGGER_CACHE_MAX = 1000;
@@ -149,6 +149,18 @@ export function createSearch(context: AppContext) {
     return {
         searchConfig,
         reminderTimingConfig,
+
+        getSearchQuery(req: Request): string {
+            if (req.method === 'POST') {
+                return req.body?.q?.toString().trim() || '';
+            }
+
+            return typeof req.query.q === 'string' ? req.query.q.trim() : '';
+        },
+
+        getSearchUser(req: Request): User | undefined {
+            return req.user ?? req.session?.user ?? undefined;
+        },
 
         /**
          * Load and cache user's bang and tab triggers in process memory for O(1) lookup.
@@ -935,9 +947,11 @@ export function createSearch(context: AppContext) {
             };
         },
 
-        async search({ res, req, user, query }: Parameters<Search>[0]): ReturnType<Search> {
+        async search({ res, req }: Parameters<Search>[0]): ReturnType<Search> {
             const log = req.logger.tag('fn', 'search');
             const timer = log.time('search');
+            const user = this.getSearchUser(req);
+            const query = this.getSearchQuery(req);
 
             const { commandType, trigger, triggerWithoutPrefix, url, searchTerm, rawRemainder } =
                 this.parseSearchQuery(query);
