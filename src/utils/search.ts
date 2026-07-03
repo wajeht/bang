@@ -76,7 +76,6 @@ export function createSearch(context: AppContext) {
             ['@actions', '/actions'],
             ['@am', '/admin'],
             ['@admin', '/admin'],
-            ['@api', '/api-docs'],
             ['@b', '/bangs'],
             ['@bang', '/bangs'],
             ['@bangs', '/bangs'],

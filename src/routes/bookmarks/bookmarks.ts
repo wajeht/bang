@@ -4,31 +4,6 @@ import type { User, BookmarkToExport, AppContext } from '../../type.js';
 export function createBookmarksRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
-    /**
-     * A bookmark
-     * @typedef {object} Bookmark
-     * @property {number} id - bookmark id
-     * @property {string} url.required - bookmark url
-     * @property {string} title.required - bookmark title
-     * @property {string} description - bookmark description
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     */
-
-    /**
-     *
-     * GET /api/bookmarks
-     *
-     * @tags Bookmarks
-     * @summary get bookmarks
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.get('/api/bookmarks', ctx.middleware.authentication, getBookmarksHandler);
     router.get('/bookmarks', ctx.middleware.authentication, getBookmarksHandler);
     async function getBookmarksHandler(req: Request, res: Response) {
         const user = req.user as User;
@@ -187,22 +162,6 @@ export function createBookmarksRouter(ctx: AppContext) {
         },
     );
 
-    /**
-     *
-     * POST /api/bookmarks
-     *
-     * @tags Bookmarks
-     * @summary create a bookmark
-     *
-     * @security BearerAuth
-     *
-     * @param {Bookmark} request.body.required - bookmark info
-     *
-     * @return {object} 201 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.post('/api/bookmarks', ctx.middleware.authentication, postBookmarkHandler);
     router.post('/bookmarks', ctx.middleware.authentication, postBookmarkHandler);
     async function postBookmarkHandler(req: Request, res: Response) {
         const { url, title, pinned, hidden } = req.body;
@@ -273,24 +232,6 @@ export function createBookmarksRouter(ctx: AppContext) {
         return res.redirect('/bookmarks');
     }
 
-    /**
-     *
-     * PATCH /api/bookmarks/{id}
-     *
-     * @tags Bookmarks
-     * @summary update a bookmark
-     *
-     * @security BearerAuth
-     *
-     * @param {number} id.path.required - bookmark id
-     * @param {Bookmark} request.body.required - bookmark info
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.patch('/api/bookmarks/:id', ctx.middleware.authentication, updateBookmarkHandler);
     router.post('/bookmarks/:id/update', ctx.middleware.authentication, updateBookmarkHandler);
     async function updateBookmarkHandler(req: Request, res: Response) {
         const { url, title, pinned, hidden } = req.body;
@@ -361,24 +302,6 @@ export function createBookmarksRouter(ctx: AppContext) {
         return res.redirect('/bookmarks');
     }
 
-    /**
-     *
-     * DELETE /api/bookmarks/{id}
-     *
-     * @tags Bookmarks
-     * @summary delete a bookmark
-     *
-     * @security BearerAuth
-     *
-     * @param {number} id.path.required - bookmark id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.delete('/api/bookmarks/:id', ctx.middleware.authentication, deleteBookmarkHandler);
-    router.post('/api/bookmarks/delete', ctx.middleware.authentication, deleteBookmarkHandler);
     router.post('/bookmarks/:id/delete', ctx.middleware.authentication, deleteBookmarkHandler);
     router.post('/bookmarks/delete', ctx.middleware.authentication, deleteBookmarkHandler);
     async function deleteBookmarkHandler(req: Request, res: Response) {
@@ -405,22 +328,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         return res.redirect('/bookmarks');
     }
 
-    /**
-     * POST /api/bookmarks/{id}/pin
-     *
-     * @tags Bookmarks
-     * @summary Toggle pin status of a bookmark
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - bookmark id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
     router.post('/bookmarks/:id/pin', ctx.middleware.authentication, toggleBookmarkPinHandler);
-    router.post('/api/bookmarks/:id/pin', ctx.middleware.authentication, toggleBookmarkPinHandler);
     async function toggleBookmarkPinHandler(req: Request, res: Response) {
         const user = req.user as User;
         const bookmarkId = parseInt(req.params.id as unknown as string);
@@ -450,27 +358,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         return res.redirect('/bookmarks');
     }
 
-    /**
-     * POST /api/bookmarks/{id}/hide
-     *
-     * @tags Bookmarks
-     * @summary Toggle hidden status of a bookmark
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - bookmark id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
     router.post('/bookmarks/:id/hide', ctx.middleware.authentication, toggleBookmarkHideHandler);
-    router.post(
-        '/api/bookmarks/:id/hide',
-        ctx.middleware.authentication,
-        toggleBookmarkHideHandler,
-    );
     async function toggleBookmarkHideHandler(req: Request, res: Response) {
         const user = req.user as User;
         const bookmarkId = parseInt(req.params.id as unknown as string);
@@ -507,43 +395,6 @@ export function createBookmarksRouter(ctx: AppContext) {
         const showHidden = req.body.showHidden === 'true';
         return res.redirect('/bookmarks' + (showHidden ? '?hidden=true' : ''));
     }
-
-    /**
-     *
-     * GET /api/bookmarks/{id}
-     *
-     * @tags Bookmarks
-     * @summary get a specific bookmark
-     *
-     * @security BearerAuth
-     *
-     * @param {number} id.path.required - bookmark id
-     *
-     * @return {Bookmark} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.get(
-        '/api/bookmarks/:id',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const bookmark = await ctx.models.bookmarks.read(
-                parseInt(req.params.id as unknown as string),
-                user.id,
-            );
-
-            if (!bookmark) {
-                throw new ctx.errors.NotFoundError('Bookmark not found');
-            }
-
-            res.status(200).json({
-                message: 'Bookmark retrieved successfully',
-                data: bookmark,
-            });
-        },
-    );
 
     router.post(
         '/bookmarks/:id/tabs',

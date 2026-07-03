@@ -29,9 +29,9 @@ describe('Reminders Routes', () => {
         });
     });
 
-    describe('GET /api/reminders', () => {
+    describe('GET /reminders (JSON)', () => {
         it('should require authentication', async () => {
-            await request(app).get('/api/reminders').set('Accept', 'application/json').expect(401);
+            await request(app).get('/reminders').set('Accept', 'application/json').expect(401);
         });
 
         it('should return reminders as JSON', async () => {
@@ -46,7 +46,7 @@ describe('Reminders Routes', () => {
             });
 
             const response = await agent
-                .get('/api/reminders')
+                .get('/reminders')
                 .set('Accept', 'application/json')
                 .expect(200);
 
@@ -165,11 +165,11 @@ describe('Reminders Routes', () => {
         });
     });
 
-    describe('POST /api/reminders', () => {
+    describe('POST /reminders (JSON)', () => {
         it('should create a new reminder via API', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            const response = await agent.post('/api/reminders').send({
+            const response = await agent.post('/reminders').send({
                 title: 'API Reminder',
                 content: 'API content',
                 when: 'weekly',
@@ -184,68 +184,6 @@ describe('Reminders Routes', () => {
 
             const reminder = await db('reminders').where({ id: response.body.data.id }).first();
             expect(reminder).toBeDefined();
-        });
-    });
-
-    describe('GET /reminders/:id', () => {
-        it('should require authentication', async () => {
-            await request(app)
-                .get('/api/reminders/1')
-                .set('Accept', 'application/json')
-                .expect(401);
-        });
-
-        it('should return 404 for non-existent reminder', async () => {
-            const { agent } = await authenticateAgent(app);
-
-            await agent.get('/api/reminders/99999').set('Accept', 'application/json').expect(404);
-        });
-
-        it('should return reminder details for owner', async () => {
-            const { agent, user } = await authenticateApiAgent(app);
-
-            const [reminder] = await db('reminders')
-                .insert({
-                    user_id: user.id,
-                    title: 'Test Reminder',
-                    content: 'Test content',
-                    reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
-                })
-                .returning('*');
-
-            const response = await agent.get(`/api/reminders/${reminder.id}`).expect(200);
-
-            expect(response.body.data.title).toBe('Test Reminder');
-            expect(response.body.data.content).toBe('Test content');
-        });
-
-        it('should not allow viewing reminders from other users', async () => {
-            const { agent } = await authenticateApiAgent(app);
-
-            const [otherUser] = await db('users')
-                .insert({
-                    username: 'otheruser',
-                    email: 'other@example.com',
-                    is_admin: false,
-                    default_search_provider: 'duckduckgo',
-                })
-                .returning('*');
-
-            const [reminder] = await db('reminders')
-                .insert({
-                    user_id: otherUser.id,
-                    title: 'Other User Reminder',
-                    content: 'Other content',
-                    reminder_type: 'once',
-                    due_date: dayjs().add(1, 'day').toISOString(),
-                })
-                .returning('*');
-
-            await agent
-                .get(`/api/reminders/${reminder.id}`)
-                .set('Accept', 'application/json')
-                .expect(404);
         });
     });
 
@@ -556,7 +494,7 @@ describe('Reminders Routes', () => {
         });
     });
 
-    describe('POST /api/reminders/delete', () => {
+    describe('POST /reminders/delete (JSON)', () => {
         it('should delete multiple reminders via API', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
@@ -588,7 +526,7 @@ describe('Reminders Routes', () => {
                 .returning('*');
 
             const response = await agent
-                .post('/api/reminders/delete')
+                .post('/reminders/delete')
                 .send({ id: [reminders[0].id, reminders[1].id] })
                 .expect(200);
 
@@ -613,7 +551,7 @@ describe('Reminders Routes', () => {
                 .returning('*');
 
             const response = await agent
-                .post('/api/reminders/delete')
+                .post('/reminders/delete')
                 .send({ id: [reminder.id, 99999] })
                 .expect(200);
 
@@ -623,7 +561,7 @@ describe('Reminders Routes', () => {
         it('should require id to be an array', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            await agent.post('/api/reminders/delete').send({ id: 'not-an-array' }).expect(422);
+            await agent.post('/reminders/delete').send({ id: 'not-an-array' }).expect(422);
         });
     });
 
@@ -709,7 +647,7 @@ describe('Reminders Routes', () => {
                 due_date: dayjs().add(1, 'day').toISOString(),
             });
 
-            const response = await agent.get('/api/reminders?search=highlight').expect(200);
+            const response = await agent.get('/reminders?search=highlight').expect(200);
 
             expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
             expect(response.body.data[0].content).toContain('<mark>highlight</mark>');

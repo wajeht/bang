@@ -4,31 +4,6 @@ import type { User, AppContext } from '../../type.js';
 export function createActionsRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
 
-    /**
-     * An action
-     * @typedef {object} Action
-     * @property {string} id - action id
-     * @property {string} url.required - action url
-     * @property {string} name.required - action name
-     * @property {string} actionType.required - action type
-     * @property {string} trigger.required - trigger condition
-     * @property {string} created_at - creation timestamp
-     * @property {string} updated_at - last update timestamp
-     */
-
-    /**
-     *
-     * GET /api/actions
-     *
-     * @tags Actions
-     * @summary get actions
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     */
-    router.get('/api/actions', ctx.middleware.authentication, getActionsHandler);
     router.get('/actions', ctx.middleware.authentication, getActionsHandler);
     async function getActionsHandler(req: Request, res: Response) {
         const user = req.user as User;
@@ -140,22 +115,6 @@ export function createActionsRouter(ctx: AppContext) {
         },
     );
 
-    /**
-     *
-     * POST /api/actions
-     *
-     * @tags Actions
-     * @summary create an action
-     *
-     * @security BearerAuth
-     *
-     * @param {Action} request.body.required - action info
-     *
-     * @return {object} 201 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     *
-     */
-    router.post('/api/actions', ctx.middleware.authentication, postActionHandler);
     router.post('/actions', ctx.middleware.authentication, postActionHandler);
     async function postActionHandler(req: Request, res: Response) {
         const { url, name, actionType, trigger, hidden } = req.body;
@@ -249,24 +208,6 @@ export function createActionsRouter(ctx: AppContext) {
         return res.redirect('/actions');
     }
 
-    /**
-     *
-     * PATCH /api/actions/{id}
-     *
-     * @tags Actions
-     * @summary update an action
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - action id
-     * @param {Action} request.body.required - action info
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.patch('/api/actions/:id', ctx.middleware.authentication, updateActionHandler);
     router.post('/actions/:id/update', ctx.middleware.authentication, updateActionHandler);
     async function updateActionHandler(req: Request, res: Response) {
         const { url, name, actionType, trigger, hidden } = req.body;
@@ -371,24 +312,6 @@ export function createActionsRouter(ctx: AppContext) {
         return res.redirect('/actions');
     }
 
-    /**
-     *
-     * DELETE /api/actions/{id}
-     *
-     * @tags Actions
-     * @summary delete an action
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - action id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.delete('/api/actions/:id', ctx.middleware.authentication, deleteActionHandler);
-    router.post('/api/actions/delete', ctx.middleware.authentication, deleteActionHandler);
     router.post('/actions/:id/delete', ctx.middleware.authentication, deleteActionHandler);
     router.post('/actions/delete', ctx.middleware.authentication, deleteActionHandler);
     async function deleteActionHandler(req: Request, res: Response) {
@@ -417,23 +340,7 @@ export function createActionsRouter(ctx: AppContext) {
         return res.redirect('/actions');
     }
 
-    /**
-     * POST /api/actions/{id}/hide
-     *
-     * @tags Actions
-     * @summary Toggle hidden status of an action
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - action id
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
     router.post('/actions/:id/hide', ctx.middleware.authentication, toggleActionHideHandler);
-    router.post('/api/actions/:id/hide', ctx.middleware.authentication, toggleActionHideHandler);
     async function toggleActionHideHandler(req: Request, res: Response) {
         const user = req.user as User;
         const actionId = parseInt(req.params.id as unknown as string);
@@ -474,43 +381,6 @@ export function createActionsRouter(ctx: AppContext) {
         const showHidden = req.body.showHidden === 'true';
         return res.redirect('/actions' + (showHidden ? '?hidden=true' : ''));
     }
-
-    /**
-     *
-     * GET /api/actions/{id}
-     *
-     * @tags Actions
-     * @summary get a specific action
-     *
-     * @security BearerAuth
-     *
-     * @param {string} id.path.required - action id
-     *
-     * @return {Action} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     * @return {object} 404 - Not found response - application/json
-     *
-     */
-    router.get(
-        '/api/actions/:id',
-        ctx.middleware.authentication,
-        async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const action = await ctx.models.actions.read(
-                parseInt(req.params.id as unknown as string),
-                user.id,
-            );
-
-            if (!action) {
-                throw new ctx.errors.NotFoundError('Action not found');
-            }
-
-            res.status(200).json({
-                message: 'action retrieved successfully',
-                data: action,
-            });
-        },
-    );
 
     router.post(
         '/actions/:id/tabs',

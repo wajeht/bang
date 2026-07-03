@@ -78,7 +78,6 @@ test('can navigate through user menu', async ({ page }) => {
     await expect(page.getByRole('link', { name: '📝 Notes' })).toBeVisible();
     await expect(page.getByRole('link', { name: '🚀 Actions' })).toBeVisible();
     await expect(page.getByRole('link', { name: '⭐️ Bookmarks' })).toBeVisible();
-    await expect(page.locator('a[href="/api-docs"]')).toBeVisible();
     await expect(page.locator('a[href="/settings"]')).toBeVisible();
     await expect(page.locator('a[href="/logout"]')).toBeVisible();
 

@@ -270,7 +270,6 @@ Use `@` to **navigate to internal pages** within Command.
 @r, @reminders             → /reminders
 @s, @settings              → /settings
 @admin                     → /admin
-@api                       → /api-docs
 @data                      → /settings/data
 ```
 

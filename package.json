@@ -63,7 +63,6 @@
         "esbuild": "0.28.1",
         "eta": "4.6.0",
         "express": "5.2.1",
-        "express-jsdoc-swagger": "1.8.0",
         "express-rate-limit": "8.5.2",
         "express-session": "1.19.0",
         "helmet": "8.2.0",

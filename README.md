@@ -34,7 +34,6 @@ Before you can use the Bang command from your browser's search bar, you need to 
 
 - `@data` - Access data
 - `@admin` - Access admin
-- `@api` - Access API docs
 - `@b`, `@bangs` - Go to home page
 - `@s`, `@settings` - Access settings
 - `@t`, `@tab`, `@tabs` - Access your tabs

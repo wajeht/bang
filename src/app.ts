@@ -4,7 +4,6 @@ import { createContext } from './context.js';
 import type { AppContext } from './type.js';
 import { createRouter } from './routes/routes.js';
 import { AddressInfo, Socket } from 'node:net';
-import { expressJSDocSwaggerHandler } from './utils/swagger.js';
 
 export const activeSockets = new Set<Socket>();
 
@@ -57,12 +56,6 @@ export async function createApp() {
         .use(...ctx.middleware.csrf)
         .use(ctx.middleware.appLocalState)
         .use(createRouter(ctx));
-
-    try {
-        await expressJSDocSwaggerHandler(app, ctx);
-    } catch (error) {
-        ctx.logger.error('Error initializing Swagger', { error });
-    }
 
     app.use(ctx.middleware.notFound);
     app.use(ctx.middleware.errorHandler);

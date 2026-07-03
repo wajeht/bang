@@ -8,7 +8,7 @@
         "resolveJsonModule": true,
         "moduleDetection": "force",
         "isolatedModules": true,
-        "removeComments": false, // Keep JSDoc comments for swagger API docs
+        "removeComments": true,
 
         /* Strictness */
         "strict": true,

@@ -230,17 +230,6 @@ export function createGeneralRouter(ctx: AppContext) {
         },
     );
 
-    /**
-     * GET /api/collections
-     *
-     * @tags Collections
-     * @summary Get all user collections (actions, bookmarks, and notes)
-     *
-     * @security BearerAuth
-     *
-     * @return {object} 200 - success response - application/json
-     * @return {object} 400 - Bad request response - application/json
-     */
     router.get(
         '/api/collections',
         ctx.middleware.authentication,

@@ -28,9 +28,9 @@ describe('Notes Routes', () => {
         });
     });
 
-    describe('GET /api/notes', () => {
+    describe('GET /notes (JSON)', () => {
         it('should require authentication', async () => {
-            await request(app).get('/api/notes').set('Accept', 'application/json').expect(401);
+            await request(app).get('/notes').set('Accept', 'application/json').expect(401);
         });
 
         it('should return notes as JSON', async () => {
@@ -43,7 +43,7 @@ describe('Notes Routes', () => {
                 pinned: false,
             });
 
-            const response = await agent.get('/api/notes').expect(200);
+            const response = await agent.get('/notes').expect(200);
 
             expect(response.body.data).toBeInstanceOf(Array);
             expect(response.body.data).toHaveLength(1);
@@ -112,12 +112,12 @@ describe('Notes Routes', () => {
         });
     });
 
-    describe('POST /api/notes', () => {
+    describe('POST /notes (JSON)', () => {
         it('should create a new note via API', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
             const response = await agent
-                .post('/api/notes')
+                .post('/notes')
                 .send({
                     title: 'API Note',
                     content: 'API content',
@@ -652,12 +652,12 @@ describe('Notes Routes', () => {
             });
         });
 
-        describe('POST /api/notes - Hidden field via API', () => {
+        describe('POST /notes - Hidden field (JSON)', () => {
             it('should reject creating hidden note without global password via API', async () => {
                 const { agent } = await authenticateApiAgent(app);
 
                 const response = await agent
-                    .post('/api/notes')
+                    .post('/notes')
                     .send({
                         title: 'Hidden Note',
                         content: 'Secret content',
@@ -676,7 +676,7 @@ describe('Notes Routes', () => {
                     .update({ hidden_items_password: 'hashed_password' });
 
                 const response = await agent
-                    .post('/api/notes')
+                    .post('/notes')
                     .send({
                         title: 'Hidden API Note',
                         content: 'Secret API content',
@@ -691,7 +691,7 @@ describe('Notes Routes', () => {
             });
         });
 
-        describe('PUT /api/notes/:id - Update hidden field', () => {
+        describe('POST /notes/:id/update - Update hidden field (JSON)', () => {
             it('should allow toggling hidden status with global password', async () => {
                 const { agent, user } = await authenticateApiAgent(app);
 
@@ -709,7 +709,7 @@ describe('Notes Routes', () => {
                     .returning('*');
 
                 await agent
-                    .put(`/api/notes/${note.id}`)
+                    .post(`/notes/${note.id}/update`)
                     .send({
                         title: 'Test Note',
                         content: 'Test content',
@@ -734,7 +734,7 @@ describe('Notes Routes', () => {
                     .returning('*');
 
                 const response = await agent
-                    .put(`/api/notes/${note.id}`)
+                    .post(`/notes/${note.id}/update`)
                     .send({
                         title: 'Test Note',
                         content: 'Test content',
@@ -746,7 +746,7 @@ describe('Notes Routes', () => {
             });
         });
 
-        describe('GET /api/notes - Hidden notes exclusion', () => {
+        describe('GET /notes - Hidden notes exclusion (JSON)', () => {
             it('should exclude hidden notes from API listing', async () => {
                 const { agent, user } = await authenticateApiAgent(app);
 
@@ -769,7 +769,7 @@ describe('Notes Routes', () => {
                     },
                 ]);
 
-                const response = await agent.get('/api/notes').expect(200);
+                const response = await agent.get('/notes').expect(200);
 
                 expect(response.body.data).toHaveLength(1);
                 expect(response.body.data[0].title).toBe('Public Note');
@@ -839,7 +839,7 @@ describe('Notes Routes', () => {
             });
         });
 
-        describe('POST /api/notes/delete', () => {
+        describe('POST /notes/delete (JSON)', () => {
             it('should delete multiple notes via API', async () => {
                 const { agent, user } = await authenticateApiAgent(app);
 
@@ -851,7 +851,7 @@ describe('Notes Routes', () => {
                     .returning('*');
 
                 const response = await agent
-                    .post('/api/notes/delete')
+                    .post('/notes/delete')
                     .send({ id: [note1.id.toString(), note2.id.toString()] })
                     .expect(200);
 
@@ -870,7 +870,7 @@ describe('Notes Routes', () => {
                     .returning('*');
 
                 const response = await agent
-                    .post('/api/notes/delete')
+                    .post('/notes/delete')
                     .send({ id: [note1.id.toString(), '99999'] })
                     .expect(200);
 
@@ -880,7 +880,7 @@ describe('Notes Routes', () => {
             it('should require id to be an array', async () => {
                 const { agent } = await authenticateApiAgent(app);
 
-                await agent.post('/api/notes/delete').send({ id: 'not-an-array' }).expect(422);
+                await agent.post('/notes/delete').send({ id: 'not-an-array' }).expect(422);
             });
         });
     });
@@ -944,7 +944,7 @@ describe('Notes Routes', () => {
                 content: 'This note is about highlight testing',
             });
 
-            const response = await agent.get('/api/notes?search=highlight').expect(200);
+            const response = await agent.get('/notes?search=highlight').expect(200);
 
             expect(response.body.data[0].title).toContain('<mark>Highlight</mark>');
             expect(response.body.data[0].content).toContain('<mark>highlight</mark>');
