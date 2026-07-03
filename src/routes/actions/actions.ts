@@ -1,9 +1,29 @@
 import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 
 export function createActionsRouter(ctx: AppContext) {
     const router = new Hono<AppEnv>();
+
+    const actionFormSchema = z.object({
+        url: z
+            .string('URL is required')
+            .min(1, 'URL is required')
+            .refine((value) => ctx.utils.validation.isValidUrl(value), 'Invalid URL format'),
+        name: z.string('Name is required').min(1, 'Name is required'),
+        actionType: z.enum(['redirect', 'search'], {
+            error: (issue) =>
+                issue.input === undefined || issue.input === ''
+                    ? 'Action type is required'
+                    : 'Invalid action type',
+        }),
+        trigger: z.string('Trigger is required').min(1, 'Trigger is required'),
+        hidden: z
+            .union([z.boolean(), z.literal('on')], 'Hidden must be a boolean or checkbox value')
+            .optional(),
+    });
 
     router.get('/actions', ctx.middleware.authentication, getActionsHandler);
     async function getActionsHandler(c: AppContextContext) {
@@ -98,188 +118,160 @@ export function createActionsRouter(ctx: AppContext) {
         });
     });
 
-    router.post('/actions', ctx.middleware.authentication, postActionHandler);
-    async function postActionHandler(c: AppContextContext) {
-        const { url, name, actionType, trigger, hidden } = c.get('body');
-        const user = c.get('user') as User;
+    router.post(
+        '/actions',
+        ctx.middleware.authentication,
+        zValidator('form', actionFormSchema, (result) => {
+            if (!result.success) {
+                const errors: Record<string, string> = {};
+                for (const issue of result.error.issues) {
+                    errors[String(issue.path[0] ?? 'general')] ??= issue.message;
+                }
+                throw new ctx.errors.ValidationError(errors);
+            }
+        }),
+        async (c) => {
+            const { url, name, actionType, trigger, hidden } = c.req.valid('form');
+            const user = c.get('user') as User;
 
-        if (!url) {
-            throw new ctx.errors.ValidationError({ url: 'URL is required' });
-        }
-
-        if (!name) {
-            throw new ctx.errors.ValidationError({ name: 'Name is required' });
-        }
-
-        if (!actionType) {
-            throw new ctx.errors.ValidationError({ actionType: 'Action type is required' });
-        }
-
-        if (!trigger) {
-            throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
-        }
-
-        if (!ctx.utils.validation.isValidUrl(url)) {
-            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
-        }
-
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new ctx.errors.ValidationError({
-                hidden: 'Hidden must be a boolean or checkbox value',
-            });
-        }
-
-        if ((hidden === 'on' || hidden === true) && actionType !== 'redirect') {
-            throw new ctx.errors.ValidationError({
-                hidden: 'Only redirect-type actions can be hidden',
-            });
-        }
-
-        if (hidden === 'on' || hidden === true) {
-            const dbUser = await ctx.db('users').where({ id: user.id }).first();
-            if (!dbUser?.hidden_items_password) {
+            if ((hidden === 'on' || hidden === true) && actionType !== 'redirect') {
                 throw new ctx.errors.ValidationError({
-                    hidden: 'You must set a global password in settings before hiding items',
+                    hidden: 'Only redirect-type actions can be hidden',
                 });
             }
-        }
 
-        const formattedTrigger: string = ctx.utils.util.normalizeBangTrigger(trigger);
+            if (hidden === 'on' || hidden === true) {
+                const dbUser = await ctx.db('users').where({ id: user.id }).first();
+                if (!dbUser?.hidden_items_password) {
+                    throw new ctx.errors.ValidationError({
+                        hidden: 'You must set a global password in settings before hiding items',
+                    });
+                }
+            }
 
-        if (!ctx.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
-            throw new ctx.errors.ValidationError({
-                trigger: 'Trigger can only contain letters and numbers',
-            });
-        }
+            const formattedTrigger: string = ctx.utils.util.normalizeBangTrigger(trigger);
 
-        const existingBang = await ctx
-            .db('bangs')
-            .where({
-                trigger: formattedTrigger,
-                user_id: user.id,
-            })
-            .first();
-
-        if (existingBang) {
-            throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
-        }
-
-        await ctx.models.actions.create({
-            name: name.trim(),
-            trigger: formattedTrigger.toLowerCase(),
-            url,
-            action_type: actionType,
-            actionType: actionType,
-            user_id: user.id,
-            hidden: hidden === 'on' || hidden === true,
-        });
-
-        if (actionType === 'redirect') {
-            ctx.utils.util.prefetchAssets(url);
-        }
-
-        ctx.utils.search.invalidateTriggerCache(user.id);
-
-        setFlash(c, 'success', `Action ${formattedTrigger} created successfully!`);
-        return c.redirect('/actions');
-    }
-
-    router.post('/actions/:id/update', ctx.middleware.authentication, updateActionHandler);
-    async function updateActionHandler(c: AppContextContext) {
-        const { url, name, actionType, trigger, hidden } = c.get('body');
-        const user = c.get('user') as User;
-        const actionId = parseInt(c.req.param('id') ?? '', 10);
-
-        if (!url) {
-            throw new ctx.errors.ValidationError({ url: 'URL is required' });
-        }
-
-        if (!name) {
-            throw new ctx.errors.ValidationError({ name: 'Name is required' });
-        }
-
-        if (!actionType) {
-            throw new ctx.errors.ValidationError({ actionType: 'Action type is required' });
-        }
-
-        if (!trigger) {
-            throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
-        }
-
-        if (!ctx.utils.validation.isValidUrl(url)) {
-            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
-        }
-
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new ctx.errors.ValidationError({
-                hidden: 'Hidden must be a boolean or checkbox value',
-            });
-        }
-
-        if ((hidden === 'on' || hidden === true) && actionType !== 'redirect') {
-            throw new ctx.errors.ValidationError({
-                hidden: 'Only redirect-type actions can be hidden',
-            });
-        }
-
-        if (hidden === 'on' || hidden === true) {
-            const dbUser = await ctx.db('users').where({ id: user.id }).first();
-            if (!dbUser?.hidden_items_password) {
+            if (!ctx.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
                 throw new ctx.errors.ValidationError({
-                    hidden: 'You must set a global password in settings before hiding items',
+                    trigger: 'Trigger can only contain letters and numbers',
                 });
             }
-        }
 
-        if (!ctx.utils.validation.isOnlyLettersAndNumbers(trigger.slice(1))) {
-            throw new ctx.errors.ValidationError({
-                trigger: 'Trigger can only contain letters and numbers',
-            });
-        }
+            const existingBang = await ctx
+                .db('bangs')
+                .where({
+                    trigger: formattedTrigger,
+                    user_id: user.id,
+                })
+                .first();
 
-        const formattedTrigger = ctx.utils.util.normalizeBangTrigger(trigger);
+            if (existingBang) {
+                throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
+            }
 
-        const existingBang = await ctx
-            .db('bangs')
-            .where({
-                trigger: formattedTrigger,
+            await ctx.models.actions.create({
+                name: name.trim(),
+                trigger: formattedTrigger.toLowerCase(),
+                url,
+                action_type: actionType,
+                actionType: actionType,
                 user_id: user.id,
-            })
-            .whereNot('id', c.req.param('id'))
-            .first();
+                hidden: hidden === 'on' || hidden === true,
+            });
 
-        if (existingBang) {
-            throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
-        }
+            if (actionType === 'redirect') {
+                ctx.utils.util.prefetchAssets(url);
+            }
 
-        const currentAction = await ctx.models.actions.read(actionId, user.id);
-
-        if (!currentAction) {
-            throw new ctx.errors.NotFoundError('Action not found');
-        }
-
-        const updatedAction = await ctx.models.actions.update(actionId, user.id, {
-            trigger: formattedTrigger,
-            name: name.trim(),
-            url,
-            action_type: actionType,
-            actionType: actionType,
-            hidden: hidden === 'on' || hidden === true,
-        });
-
-        if (currentAction.trigger !== formattedTrigger) {
             ctx.utils.search.invalidateTriggerCache(user.id);
-        }
 
-        setFlash(c, 'success', `Action ${updatedAction.trigger} updated successfully!`);
-
-        if (updatedAction.hidden && !currentAction.hidden) {
-            setFlash(c, 'success', 'Action hidden successfully');
+            setFlash(c, 'success', `Action ${formattedTrigger} created successfully!`);
             return c.redirect('/actions');
-        }
+        },
+    );
 
-        return c.redirect('/actions');
-    }
+    router.post(
+        '/actions/:id/update',
+        ctx.middleware.authentication,
+        zValidator('form', actionFormSchema, (result) => {
+            if (!result.success) {
+                const errors: Record<string, string> = {};
+                for (const issue of result.error.issues) {
+                    errors[String(issue.path[0] ?? 'general')] ??= issue.message;
+                }
+                throw new ctx.errors.ValidationError(errors);
+            }
+        }),
+        async (c) => {
+            const { url, name, actionType, trigger, hidden } = c.req.valid('form');
+            const user = c.get('user') as User;
+            const actionId = parseInt(c.req.param('id') ?? '', 10);
+
+            if ((hidden === 'on' || hidden === true) && actionType !== 'redirect') {
+                throw new ctx.errors.ValidationError({
+                    hidden: 'Only redirect-type actions can be hidden',
+                });
+            }
+
+            if (hidden === 'on' || hidden === true) {
+                const dbUser = await ctx.db('users').where({ id: user.id }).first();
+                if (!dbUser?.hidden_items_password) {
+                    throw new ctx.errors.ValidationError({
+                        hidden: 'You must set a global password in settings before hiding items',
+                    });
+                }
+            }
+
+            if (!ctx.utils.validation.isOnlyLettersAndNumbers(trigger.slice(1))) {
+                throw new ctx.errors.ValidationError({
+                    trigger: 'Trigger can only contain letters and numbers',
+                });
+            }
+
+            const formattedTrigger = ctx.utils.util.normalizeBangTrigger(trigger);
+
+            const existingBang = await ctx
+                .db('bangs')
+                .where({
+                    trigger: formattedTrigger,
+                    user_id: user.id,
+                })
+                .whereNot('id', c.req.param('id'))
+                .first();
+
+            if (existingBang) {
+                throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
+            }
+
+            const currentAction = await ctx.models.actions.read(actionId, user.id);
+
+            if (!currentAction) {
+                throw new ctx.errors.NotFoundError('Action not found');
+            }
+
+            const updatedAction = await ctx.models.actions.update(actionId, user.id, {
+                trigger: formattedTrigger,
+                name: name.trim(),
+                url,
+                action_type: actionType,
+                actionType: actionType,
+                hidden: hidden === 'on' || hidden === true,
+            });
+
+            if (currentAction.trigger !== formattedTrigger) {
+                ctx.utils.search.invalidateTriggerCache(user.id);
+            }
+
+            setFlash(c, 'success', `Action ${updatedAction.trigger} updated successfully!`);
+
+            if (updatedAction.hidden && !currentAction.hidden) {
+                setFlash(c, 'success', 'Action hidden successfully');
+                return c.redirect('/actions');
+            }
+
+            return c.redirect('/actions');
+        },
+    );
 
     router.post('/actions/:id/delete', ctx.middleware.authentication, deleteActionHandler);
     router.post('/actions/delete', ctx.middleware.authentication, deleteActionHandler);

@@ -1,6 +1,8 @@
 import type { AppContext, AppEnv, User } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 
 export function createAuthRouter(ctx: AppContext) {
     const router = new Hono<AppEnv>();
@@ -21,73 +23,85 @@ export function createAuthRouter(ctx: AppContext) {
         return c.redirect(`/?toast=${encodeURIComponent('✌️ see ya!')}`);
     });
 
-    router.post('/login', ctx.middleware.turnstile, async (c) => {
-        const body = c.get('body');
-        const email = typeof body.email === 'string' ? body.email : '';
+    const loginFormSchema = z.object({
+        email: z
+            .string('Email is required')
+            .min(1, 'Email is required')
+            .refine(
+                (value) => ctx.utils.validation.isValidEmail(value),
+                'Please enter a valid email address',
+            ),
+    });
 
-        if (!email) {
-            throw new ctx.errors.ValidationError({ email: 'Email is required' });
-        }
+    router.post(
+        '/login',
+        ctx.middleware.turnstile,
+        zValidator('form', loginFormSchema, (result) => {
+            if (!result.success) {
+                const errors: Record<string, string> = {};
+                for (const issue of result.error.issues) {
+                    errors[String(issue.path[0] ?? 'general')] ??= issue.message;
+                }
+                throw new ctx.errors.ValidationError(errors);
+            }
+        }),
+        async (c) => {
+            const { email } = c.req.valid('form');
 
-        if (!ctx.utils.validation.isValidEmail(email)) {
-            throw new ctx.errors.ValidationError({
-                email: 'Please enter a valid email address',
-            });
-        }
-
-        let user = await ctx.db('users').where({ email }).first();
-
-        if (user) {
-            user.is_admin = Boolean(user.is_admin);
-        }
-
-        if (!user) {
-            const username = email.split('@')[0];
-            [user] = await ctx
-                .db('users')
-                .insert({
-                    username,
-                    email,
-                    is_admin: ctx.config.app.adminEmail === email,
-                })
-                .returning('*');
+            let user = await ctx.db('users').where({ email }).first();
 
             if (user) {
                 user.is_admin = Boolean(user.is_admin);
             }
-        }
 
-        const token = await ctx.utils.auth.generateMagicLink({ email });
-        const url = new URL(c.req.url);
-        const protocol = c.req.header('x-forwarded-proto') || url.protocol.replace(':', '');
-        const host = c.req.header('host') || url.host;
-        const baseUrl = `${protocol}://${host}`;
+            if (!user) {
+                const username = email.split('@')[0];
+                [user] = await ctx
+                    .db('users')
+                    .insert({
+                        username,
+                        email,
+                        is_admin: ctx.config.app.adminEmail === email,
+                    })
+                    .returning('*');
 
-        void Promise.resolve().then(async () => {
-            try {
-                await ctx.utils.mail.sendMagicLinkEmail({ email, token, baseUrl });
-            } catch (error) {
-                ctx.logger.error('Failed to send magic link email', { error, email });
-            }
-        });
-
-        setFlash(
-            c,
-            'success',
-            `📧 Magic link sent to ${email}! Check your email and click the link to log in.`,
-        );
-        const referer = c.req.header('referer');
-        if (referer) {
-            try {
-                const refererUrl = new URL(referer);
-                const appUrl = new URL(ctx.config.app.appUrl);
-                if (refererUrl.host === appUrl.host) {
-                    return c.redirect(refererUrl.pathname + refererUrl.search);
+                if (user) {
+                    user.is_admin = Boolean(user.is_admin);
                 }
-            } catch {}
-        }
-        return c.redirect('/');
-    });
+            }
+
+            const token = await ctx.utils.auth.generateMagicLink({ email });
+            const url = new URL(c.req.url);
+            const protocol = c.req.header('x-forwarded-proto') || url.protocol.replace(':', '');
+            const host = c.req.header('host') || url.host;
+            const baseUrl = `${protocol}://${host}`;
+
+            void Promise.resolve().then(async () => {
+                try {
+                    await ctx.utils.mail.sendMagicLinkEmail({ email, token, baseUrl });
+                } catch (error) {
+                    ctx.logger.error('Failed to send magic link email', { error, email });
+                }
+            });
+
+            setFlash(
+                c,
+                'success',
+                `📧 Magic link sent to ${email}! Check your email and click the link to log in.`,
+            );
+            const referer = c.req.header('referer');
+            if (referer) {
+                try {
+                    const refererUrl = new URL(referer);
+                    const appUrl = new URL(ctx.config.app.appUrl);
+                    if (refererUrl.host === appUrl.host) {
+                        return c.redirect(refererUrl.pathname + refererUrl.search);
+                    }
+                } catch {}
+            }
+            return c.redirect('/');
+        },
+    );
 
     router.get('/auth/magic/:token', async (c) => {
         const token = c.req.param('token') ?? '';

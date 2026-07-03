@@ -1,6 +1,8 @@
-import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
+import type { AppContext, AppContextContext, AppEnv, ColumnPreferences, User } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 
 export function createSettingsRouter(ctx: AppContext) {
     const VALID_TIMEZONES = new Set([
@@ -23,6 +25,33 @@ export function createSettingsRouter(ctx: AppContext) {
     const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
     const router = new Hono<AppEnv>();
+
+    const accountFormSchema = z.object({
+        username: z.string('Username is required').min(1, 'Username is required'),
+        email: z
+            .string('Email is required')
+            .min(1, 'Email is required')
+            .refine(
+                (value) => ctx.utils.validation.isValidEmail(value),
+                'Please enter a valid email address',
+            ),
+        default_search_provider: z
+            .string('Default search provider is required')
+            .min(1, 'Default search provider is required')
+            .refine(
+                (value) => ctx.utils.search.searchConfig.validSearchProviders.has(value),
+                'Invalid search provider selected',
+            ),
+        timezone: z
+            .string('Timezone is required')
+            .min(1, 'Timezone is required')
+            .refine((value) => VALID_TIMEZONES.has(value), 'Invalid timezone selected'),
+        theme: z.enum(['system', 'light', 'dark'], { error: 'Invalid theme selected' }),
+    });
+
+    const dataImportSchema = z.object({
+        config: z.string('Please provide a config').min(1, 'Please provide a config'),
+    });
 
     router.get('/settings', ctx.middleware.authentication, async (c) => {
         return c.redirect('/settings/account');
@@ -61,50 +90,20 @@ export function createSettingsRouter(ctx: AppContext) {
     router.post(
         '/settings/account',
         ctx.middleware.authentication,
-        async (c: AppContextContext) => {
-            const body = c.get('body');
+        zValidator('form', accountFormSchema, (result) => {
+            if (!result.success) {
+                const errors: Record<string, string> = {};
+                for (const issue of result.error.issues) {
+                    errors[String(issue.path[0] ?? 'general')] ??= issue.message;
+                }
+                throw new ctx.errors.ValidationError(errors);
+            }
+        }),
+        async (c) => {
             const session = c.get('session');
             const currentUser = c.get('user') as User;
-            const { username, email, default_search_provider, timezone, theme } = body;
-
-            if (!username) {
-                throw new ctx.errors.ValidationError({ username: 'Username is required' });
-            }
-
-            if (!email) {
-                throw new ctx.errors.ValidationError({ email: 'Email is required' });
-            }
-
-            if (!default_search_provider) {
-                throw new ctx.errors.ValidationError({
-                    default_search_provider: 'Default search provider is required',
-                });
-            }
-
-            if (!ctx.utils.validation.isValidEmail(email)) {
-                throw new ctx.errors.ValidationError({
-                    email: 'Please enter a valid email address',
-                });
-            }
-
-            if (!ctx.utils.search.searchConfig.validSearchProviders.has(default_search_provider)) {
-                throw new ctx.errors.ValidationError({
-                    default_search_provider: 'Invalid search provider selected',
-                });
-            }
-
-            if (!timezone) {
-                throw new ctx.errors.ValidationError({ timezone: 'Timezone is required' });
-            }
-
-            if (!VALID_TIMEZONES.has(timezone)) {
-                throw new ctx.errors.ValidationError({ timezone: 'Invalid timezone selected' });
-            }
-
-            const validThemes = ['system', 'light', 'dark'];
-            if (!theme || !validThemes.includes(theme)) {
-                throw new ctx.errors.ValidationError({ theme: 'Invalid theme selected' });
-            }
+            const { username, email, default_search_provider, timezone, theme } =
+                c.req.valid('form');
 
             // Check if username is being changed and if it's already taken by another user
             const currentUserId = currentUser.id;
@@ -469,17 +468,14 @@ export function createSettingsRouter(ctx: AppContext) {
             const { path, hidden } = body;
 
             // Merge submitted preferences with existing user preferences to preserve unmodified sections
-            const updatedPreferences = { ...currentUser.column_preferences } as any;
-            const sections = Object.keys(column_preferences);
-            for (let i = 0; i < sections.length; i++) {
-                const section = sections[i] as keyof typeof column_preferences;
-                if (
-                    column_preferences[section] &&
-                    typeof column_preferences[section] === 'object'
-                ) {
-                    updatedPreferences[section] = {
-                        ...updatedPreferences[section],
-                        ...column_preferences[section],
+            const updatedPreferences: ColumnPreferences = { ...currentUser.column_preferences };
+            for (const section of Object.keys(column_preferences)) {
+                if (!(section in updatedPreferences)) continue;
+                const key = section as keyof ColumnPreferences;
+                if (column_preferences[key] && typeof column_preferences[key] === 'object') {
+                    updatedPreferences[key] = {
+                        ...updatedPreferences[key],
+                        ...column_preferences[key],
                     };
                 }
             }
@@ -670,19 +666,23 @@ export function createSettingsRouter(ctx: AppContext) {
     router.post(
         '/settings/data/import',
         ctx.middleware.authentication,
-        async (c: AppContextContext) => {
-            const body = c.get('body');
+        zValidator('form', dataImportSchema, (result) => {
+            if (!result.success) {
+                const errors: Record<string, string> = {};
+                for (const issue of result.error.issues) {
+                    errors[String(issue.path[0] ?? 'general')] ??= issue.message;
+                }
+                throw new ctx.errors.ValidationError(errors);
+            }
+        }),
+        async (c) => {
             const session = c.get('session');
             const currentUser = c.get('user') as User;
-            const { config } = body;
-
-            if (!config) {
-                throw new ctx.errors.ValidationError({ config: 'Please provide a config' });
-            }
+            const { config } = c.req.valid('form');
 
             let importData;
             try {
-                importData = JSON.parse(body.config);
+                importData = JSON.parse(config);
             } catch {
                 throw new ctx.errors.ValidationError({ config: 'Invalid JSON format' });
             }

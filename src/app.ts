@@ -11,6 +11,7 @@ import { etag } from 'hono/etag';
 import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
+import { timeout } from 'hono/timeout';
 import { trimTrailingSlash } from 'hono/trailing-slash';
 import { createContext } from './context.js';
 import type { AppContext, AppEnv } from './type.js';
@@ -54,6 +55,7 @@ export async function createApp() {
             generator: () => ctx.libs.crypto.randomUUID().slice(0, 8),
         }),
     );
+    app.use('*', timeout(30_000));
     app.use('*', ctx.middleware.session);
     app.use('*', ctx.middleware.requestLogger);
     app.use(

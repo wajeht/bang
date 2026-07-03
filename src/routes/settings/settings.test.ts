@@ -73,6 +73,7 @@ describe('Settings Routes', () => {
             const agent = await createUnauthenticatedAgent(app);
             await agent
                 .post('/settings/account')
+                .type('form')
                 .send({
                     username: 'newuser',
                     email: 'new@example.com',
@@ -86,6 +87,7 @@ describe('Settings Routes', () => {
 
             await agent
                 .post('/settings/account')
+                .type('form')
                 .send({
                     username: 'updateduser',
                     email: user.email,
@@ -106,6 +108,7 @@ describe('Settings Routes', () => {
 
             await agent
                 .post('/settings/account')
+                .type('form')
                 .send({
                     username: user.username,
                     email: user.email,
@@ -128,6 +131,7 @@ describe('Settings Routes', () => {
 
             await agent
                 .post('/settings/account')
+                .type('form')
                 .send({
                     username: user.username,
                     email: 'invalid-email',
@@ -150,6 +154,7 @@ describe('Settings Routes', () => {
 
             await agent
                 .post('/settings/account')
+                .type('form')
                 .send({
                     username: 'existinguser',
                     email: 'test@example.com',
@@ -165,6 +170,7 @@ describe('Settings Routes', () => {
 
             await agent
                 .post('/settings/account')
+                .type('form')
                 .send({
                     username: user.username,
                     email: user.email,
@@ -307,6 +313,7 @@ describe('Settings Routes', () => {
             const agent = await createUnauthenticatedAgent(app);
             await agent
                 .post('/settings/data/import')
+                .type('form')
                 .send({
                     config: JSON.stringify({
                         version: '1.0',
@@ -334,6 +341,7 @@ describe('Settings Routes', () => {
 
             await agent
                 .post('/settings/data/import')
+                .type('form')
                 .send({
                     config: JSON.stringify(importData),
                 })
@@ -370,6 +378,7 @@ describe('Settings Routes', () => {
 
             await agent
                 .post('/settings/data/import')
+                .type('form')
                 .send({
                     config: JSON.stringify(importData),
                 })
@@ -433,6 +442,7 @@ describe('Settings Routes', () => {
 
             await agent
                 .post('/settings/data/import')
+                .type('form')
                 .send({
                     config: JSON.stringify(importData),
                 })
@@ -489,6 +499,7 @@ describe('Settings Routes', () => {
 
             await agent
                 .post('/settings/data/import')
+                .type('form')
                 .send({
                     config: JSON.stringify(importData),
                 })
@@ -517,6 +528,7 @@ describe('Settings Routes', () => {
 
             await agent
                 .post('/settings/data/import')
+                .type('form')
                 .send({ config: JSON.stringify(importData) })
                 .expect(302);
 
@@ -537,6 +549,7 @@ describe('Settings Routes', () => {
 
             await agent
                 .post('/settings/data/import')
+                .type('form')
                 .send({ config: JSON.stringify(importData) })
                 .expect(302);
 
@@ -558,6 +571,7 @@ describe('Settings Routes', () => {
 
             await agent
                 .post('/settings/data/import')
+                .type('form')
                 .send({ config: JSON.stringify(importData) })
                 .expect(302);
 

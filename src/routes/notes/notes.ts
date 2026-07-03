@@ -1,6 +1,25 @@
-import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
+import type { AppContext, AppContextContext, AppEnv, Note, User } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+
+const noteFormSchema = z.object({
+    title: z.string('Title is required').min(1, 'Title is required'),
+    content: z.string('Content is required').min(1, 'Content is required'),
+    pinned: z
+        .union([z.boolean(), z.literal('on')], 'Pinned must be a boolean or checkbox value')
+        .optional(),
+    hidden: z
+        .union([z.boolean(), z.literal('on')], 'Hidden must be a boolean or checkbox value')
+        .optional(),
+});
+
+const renderMarkdownSchema = z.object({
+    content: z
+        .string('Content is required')
+        .refine((value) => value.trim() !== '', 'Content is required'),
+});
 
 function createNoteMarkdownRenderer(ctx: AppContext) {
     const noteRenderer = new ctx.libs.Renderer();
@@ -28,18 +47,27 @@ export function createNotesRouter(ctx: AppContext) {
     const NOTE_CONTENT_PREVIEW_LENGTH = 200;
     const NOTE_CONTENT_PREVIEW_SOURCE_LIMIT = 4000;
 
-    router.post('/notes/render-markdown', ctx.middleware.authentication, (c) => {
-        const { content } = c.get('body');
+    router.post(
+        '/notes/render-markdown',
+        ctx.middleware.authentication,
+        zValidator('json', renderMarkdownSchema, (result) => {
+            if (!result.success) {
+                const errors: Record<string, string> = {};
+                for (const issue of result.error.issues) {
+                    errors[String(issue.path[0] ?? 'general')] ??= issue.message;
+                }
+                throw new ctx.errors.ValidationError(errors);
+            }
+        }),
+        (c) => {
+            const { content } = c.req.valid('json');
 
-        if (!content || content.trim() === '') {
-            throw new ctx.errors.ValidationError({ content: 'Content is required' });
-        }
+            const markdown = sharedMarked.parse(content) as string;
+            const sanitized = ctx.libs.dompurify.sanitize(markdown);
 
-        const markdown = sharedMarked.parse(content) as string;
-        const sanitized = ctx.libs.dompurify.sanitize(markdown);
-
-        return c.json({ content: sanitized });
-    });
+            return c.json({ content: sanitized });
+        },
+    );
 
     router.get('/notes', ctx.middleware.authentication, getNotesHandler);
     async function getNotesHandler(c: AppContextContext) {
@@ -62,7 +90,7 @@ export function createNotesRouter(ctx: AppContext) {
 
         const limitedData = data.slice(0, perPage);
         const markdownRemovedData = await Promise.all(
-            limitedData.map(async (d: any) => {
+            limitedData.map(async (d: Note) => {
                 const content = String(d.content ?? '');
                 const isSourceTruncated = content.length > NOTE_CONTENT_PREVIEW_SOURCE_LIMIT;
                 let preview = await ctx.utils.util.convertMarkdownToPlainText(
@@ -220,111 +248,93 @@ export function createNotesRouter(ctx: AppContext) {
         });
     }
 
-    router.post('/notes', ctx.middleware.authentication, postNoteHandler);
-    async function postNoteHandler(c: AppContextContext) {
-        const { title, content, pinned, hidden } = c.get('body');
-
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
-
-        if (!content) {
-            throw new ctx.errors.ValidationError({ content: 'Content is required' });
-        }
-
-        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-            throw new ctx.errors.ValidationError({
-                pinned: 'Pinned must be a boolean or checkbox value',
-            });
-        }
-
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new ctx.errors.ValidationError({
-                hidden: 'Hidden must be a boolean or checkbox value',
-            });
-        }
-
-        const user = c.get('user') as User;
-
-        if (hidden === 'on' || hidden === true) {
-            const dbUser = await ctx.db('users').where({ id: user.id }).first();
-            if (!dbUser?.hidden_items_password) {
-                throw new ctx.errors.ValidationError({
-                    hidden: 'You must set a global password in settings before hiding items',
-                });
+    router.post(
+        '/notes',
+        ctx.middleware.authentication,
+        zValidator('form', noteFormSchema, (result) => {
+            if (!result.success) {
+                const errors: Record<string, string> = {};
+                for (const issue of result.error.issues) {
+                    errors[String(issue.path[0] ?? 'general')] ??= issue.message;
+                }
+                throw new ctx.errors.ValidationError(errors);
             }
-        }
+        }),
+        async (c) => {
+            const { title, content, pinned, hidden } = c.req.valid('form');
+            const user = c.get('user') as User;
 
-        const note = await ctx.models.notes.create({
-            user_id: user.id,
-            title: title.trim(),
-            content: content.trim(),
-            pinned: pinned === 'on' || pinned === true,
-            hidden: hidden === 'on' || hidden === true,
-        });
-
-        setFlash(c, 'success', 'Note created successfully');
-        return c.redirect(`/notes/${note.id}`);
-    }
-
-    router.post('/notes/:id/update', ctx.middleware.authentication, updateNoteHandler);
-    async function updateNoteHandler(c: AppContextContext) {
-        const { title, content, pinned, hidden } = c.get('body');
-
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
-
-        if (!content) {
-            throw new ctx.errors.ValidationError({ content: 'Content is required' });
-        }
-
-        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
-            throw new ctx.errors.ValidationError({
-                pinned: 'Pinned must be a boolean or checkbox value',
-            });
-        }
-
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
-            throw new ctx.errors.ValidationError({
-                hidden: 'Hidden must be a boolean or checkbox value',
-            });
-        }
-
-        const user = c.get('user') as User;
-        const noteId = parseInt(c.req.param('id') ?? '', 10);
-
-        if (hidden === 'on' || hidden === true) {
-            const dbUser = await ctx.db('users').where({ id: user.id }).first();
-            if (!dbUser?.hidden_items_password) {
-                throw new ctx.errors.ValidationError({
-                    hidden: 'You must set a global password in settings before hiding items',
-                });
+            if (hidden === 'on' || hidden === true) {
+                const dbUser = await ctx.db('users').where({ id: user.id }).first();
+                if (!dbUser?.hidden_items_password) {
+                    throw new ctx.errors.ValidationError({
+                        hidden: 'You must set a global password in settings before hiding items',
+                    });
+                }
             }
-        }
 
-        const currentNote = await ctx.models.notes.read(noteId, user.id);
+            const note = await ctx.models.notes.create({
+                user_id: user.id,
+                title: title.trim(),
+                content: content.trim(),
+                pinned: pinned === 'on' || pinned === true,
+                hidden: hidden === 'on' || hidden === true,
+            });
 
-        if (!currentNote) {
-            throw new ctx.errors.NotFoundError('Note not found');
-        }
+            setFlash(c, 'success', 'Note created successfully');
+            return c.redirect(`/notes/${note.id}`);
+        },
+    );
 
-        const updatedNote = await ctx.models.notes.update(noteId, user.id, {
-            title: title.trim(),
-            content: content.trim(),
-            pinned: pinned === 'on' || pinned === true,
-            hidden: hidden === 'on' || hidden === true,
-        });
+    router.post(
+        '/notes/:id/update',
+        ctx.middleware.authentication,
+        zValidator('form', noteFormSchema, (result) => {
+            if (!result.success) {
+                const errors: Record<string, string> = {};
+                for (const issue of result.error.issues) {
+                    errors[String(issue.path[0] ?? 'general')] ??= issue.message;
+                }
+                throw new ctx.errors.ValidationError(errors);
+            }
+        }),
+        async (c) => {
+            const { title, content, pinned, hidden } = c.req.valid('form');
+            const user = c.get('user') as User;
+            const noteId = parseInt(c.req.param('id') ?? '', 10);
 
-        setFlash(c, 'success', `Note ${updatedNote.title} updated successfully`);
+            if (hidden === 'on' || hidden === true) {
+                const dbUser = await ctx.db('users').where({ id: user.id }).first();
+                if (!dbUser?.hidden_items_password) {
+                    throw new ctx.errors.ValidationError({
+                        hidden: 'You must set a global password in settings before hiding items',
+                    });
+                }
+            }
 
-        if (updatedNote.hidden && !currentNote.hidden) {
-            setFlash(c, 'success', 'Note hidden successfully');
-            return c.redirect('/notes');
-        }
+            const currentNote = await ctx.models.notes.read(noteId, user.id);
 
-        return c.redirect(`/notes/${updatedNote.id}`);
-    }
+            if (!currentNote) {
+                throw new ctx.errors.NotFoundError('Note not found');
+            }
+
+            const updatedNote = await ctx.models.notes.update(noteId, user.id, {
+                title: title.trim(),
+                content: content.trim(),
+                pinned: pinned === 'on' || pinned === true,
+                hidden: hidden === 'on' || hidden === true,
+            });
+
+            setFlash(c, 'success', `Note ${updatedNote.title} updated successfully`);
+
+            if (updatedNote.hidden && !currentNote.hidden) {
+                setFlash(c, 'success', 'Note hidden successfully');
+                return c.redirect('/notes');
+            }
+
+            return c.redirect(`/notes/${updatedNote.id}`);
+        },
+    );
 
     router.post('/notes/:id/delete', ctx.middleware.authentication, deleteNoteHandler);
     router.post('/notes/delete', ctx.middleware.authentication, deleteNoteHandler);

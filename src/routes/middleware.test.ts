@@ -46,6 +46,7 @@ describe('middleware', () => {
             const session = c.get('session');
             session.user = user;
             session.userCachedAt = Date.now();
+            session.save();
             return c.json({ ok: true });
         });
         app.get('/protected', ctx.middleware.authentication, (c: AppContextContext) => {
@@ -61,15 +62,33 @@ describe('middleware', () => {
         expect(await response.json()).toEqual({ userId: user.id });
     });
 
-    it('parses urlencoded bodies with nested brackets and array fields', async () => {
+    it('does not persist the session again when nothing changed', async () => {
+        const app = createMiddlewareApp(ctx);
+
+        app.use('*', ctx.middleware.csrf);
+        app.get('/page', (c: AppContextContext) => c.json({ ok: true }));
+
+        // first request creates the session (csrf token) and sets the cookie
+        const first = await app.request('http://localhost/page');
+        expect(first.headers.get('set-cookie')).toBeTruthy();
+
+        // second request changes nothing, so no save and no new cookie
+        const second = await app.request('http://localhost/page', {
+            headers: { cookie: getCookie(first) },
+        });
+        expect(second.status).toBe(200);
+        expect(second.headers.get('set-cookie')).toBeNull();
+    });
+
+    it('parses urlencoded bodies with dot notation and array fields', async () => {
         const app = createMiddlewareApp(ctx);
 
         app.post('/body', (c: AppContextContext) => c.json(c.get('body')));
 
         const form = new URLSearchParams();
         form.append('username', 'jaw');
-        form.append('column_preferences[bookmarks][title]', 'on');
-        form.append('column_preferences[bookmarks][default_per_page]', '10');
+        form.append('column_preferences.bookmarks.title', 'on');
+        form.append('column_preferences.bookmarks.default_per_page', '10');
         form.append('id[]', '1');
         form.append('id[]', '2');
 

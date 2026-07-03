@@ -1,6 +1,37 @@
 import { styleText } from 'node:util';
-import type { AppContext } from '../type.js';
+import type { AppContext, ReminderFrequency, ReminderType } from '../type.js';
 import type { Attachment } from 'nodemailer/lib/mailer/index.js';
+
+interface MailOptions {
+    from: string;
+    to: string;
+    subject: string;
+    text?: string;
+    html?: string;
+    attachments?: Attachment[];
+}
+
+interface DueReminderRow {
+    id: number;
+    title: string;
+    content: string | null;
+    reminder_type: ReminderType;
+    frequency: ReminderFrequency | null;
+    due_date: string;
+    user_id: number;
+    email: string;
+    username: string;
+    timezone: string | null;
+}
+
+interface DigestReminder {
+    id: number;
+    title: string;
+    url?: string;
+    reminder_type: ReminderType;
+    frequency?: ReminderFrequency;
+    due_date: string;
+}
 
 export function createMail(context: AppContext) {
     const logger = context.logger.tag('service', 'mail');
@@ -20,7 +51,7 @@ export function createMail(context: AppContext) {
     });
 
     return {
-        async sendEmailWithFallback(mailOptions: any, emailType: string): Promise<void> {
+        async sendEmailWithFallback(mailOptions: MailOptions, emailType: string): Promise<void> {
             if (
                 DEV_ENVIRONMENTS.has(context.config.app.env) &&
                 (await this.isMailpitRunning()) === false
@@ -32,7 +63,7 @@ export function createMail(context: AppContext) {
             await emailTransporter.sendMail(mailOptions);
         },
 
-        logEmailToConsole(mailOptions: any, emailType: string): void {
+        logEmailToConsole(mailOptions: MailOptions, emailType: string): void {
             const timestamp = context.utils.date.formatClockTime();
             const width = process.stdout.columns || 100;
             const divider = styleText('dim', '─'.repeat(width - 4));
@@ -49,14 +80,12 @@ export function createMail(context: AppContext) {
                 headerLines.push(divider);
                 headerLines.push(styleText('blue', '📎 Attachments:'));
                 for (let i = 0; i < mailOptions.attachments.length; i++) {
-                    const att = mailOptions.attachments[i] as {
-                        filename: string;
-                        contentType: string;
-                    };
+                    const att = mailOptions.attachments[i];
+                    if (!att) continue;
                     headerLines.push(
                         styleText('dim', `  ${i + 1}. `) +
-                            styleText('white', att.filename) +
-                            styleText('dim', ` (${att.contentType})`),
+                            styleText('white', String(att.filename || '')) +
+                            styleText('dim', ` (${att.contentType || ''})`),
                     );
                 }
             }
@@ -396,7 +425,7 @@ ${formatReminderListHTML}
                 const nowFormatted = now.toString();
                 const next15MinFormatted = next15Min.toString();
 
-                const dueReminders = await context.db
+                const dueReminders: DueReminderRow[] = await context.db
                     .select('reminders.*', 'users.email', 'users.username', 'users.timezone')
                     .from('reminders')
                     .join('users', 'reminders.user_id', 'users.id')
@@ -410,35 +439,32 @@ ${formatReminderListHTML}
                 }
 
                 // Group reminders by user
-                const remindersByUser = dueReminders.reduce(
-                    (
-                        acc: Record<
-                            number,
-                            { email: string; username: string; timezone: string; reminders: any[] }
-                        >,
-                        reminder: any,
-                    ) => {
-                        const userId = reminder.user_id;
-                        if (!acc[userId]) {
-                            acc[userId] = {
-                                email: reminder.email,
-                                username: reminder.username,
-                                timezone: reminder.timezone || 'UTC',
-                                reminders: [],
-                            };
-                        }
-                        acc[userId].reminders.push({
-                            id: reminder.id,
-                            title: reminder.title,
-                            url: reminder.content, // Map content to url for email compatibility
-                            reminder_type: reminder.reminder_type,
-                            frequency: reminder.frequency,
-                            due_date: reminder.due_date,
-                        });
-                        return acc;
-                    },
-                    {},
-                );
+                const remindersByUser: Record<
+                    number,
+                    {
+                        email: string;
+                        username: string;
+                        timezone: string;
+                        reminders: DigestReminder[];
+                    }
+                > = {};
+                for (const reminder of dueReminders) {
+                    const userData = (remindersByUser[reminder.user_id] ??= {
+                        email: reminder.email,
+                        username: reminder.username,
+                        timezone: reminder.timezone || 'UTC',
+                        reminders: [],
+                    });
+                    userData.reminders.push({
+                        id: reminder.id,
+                        title: reminder.title,
+                        // Map content to url for email compatibility
+                        url: reminder.content ?? undefined,
+                        reminder_type: reminder.reminder_type,
+                        frequency: reminder.frequency ?? undefined,
+                        due_date: reminder.due_date,
+                    });
+                }
 
                 // Send digest emails to each user
                 for (const userData of Object.values(remindersByUser)) {

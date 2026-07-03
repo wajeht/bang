@@ -1,9 +1,24 @@
 import type { AppContext, AppContextContext, AppEnv, User } from '../../type.js';
 import { setFlash } from '../middleware.js';
 import { Hono } from 'hono';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 
 export function createTabsRouter(ctx: AppContext) {
     const router = new Hono<AppEnv>();
+
+    const tabFormSchema = z.object({
+        title: z.string('Title is required').min(1, 'Title is required'),
+        trigger: z.string('Trigger is required').min(1, 'Trigger is required'),
+    });
+
+    const tabItemFormSchema = z.object({
+        title: z.string('Title is required').min(1, 'Title is required'),
+        url: z
+            .string('URL is required')
+            .min(1, 'URL is required')
+            .refine((value) => ctx.utils.validation.isValidUrl(value), 'Invalid URL format'),
+    });
 
     router.get('/tabs/create', ctx.middleware.authentication, async (c) => {
         return c.render('tabs/tabs-new.html', {
@@ -129,126 +144,134 @@ export function createTabsRouter(ctx: AppContext) {
         });
     }
 
-    router.post('/tabs', ctx.middleware.authentication, postTabsPageHandler);
-    async function postTabsPageHandler(c: AppContextContext) {
-        const user = c.get('user') as User;
-        const { title, trigger } = c.get('body');
+    router.post(
+        '/tabs',
+        ctx.middleware.authentication,
+        zValidator('form', tabFormSchema, (result) => {
+            if (!result.success) {
+                const errors: Record<string, string> = {};
+                for (const issue of result.error.issues) {
+                    errors[String(issue.path[0] ?? 'general')] ??= issue.message;
+                }
+                throw new ctx.errors.ValidationError(errors);
+            }
+        }),
+        async (c) => {
+            const user = c.get('user') as User;
+            const { title, trigger } = c.req.valid('form');
 
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
+            const formattedTrigger: string = ctx.utils.util.normalizeBangTrigger(trigger);
 
-        if (!trigger) {
-            throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
-        }
+            if (!ctx.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
+                throw new ctx.errors.ValidationError({
+                    trigger: 'Trigger can only contain letters and numbers',
+                });
+            }
 
-        const formattedTrigger: string = ctx.utils.util.normalizeBangTrigger(trigger);
+            const existingTab = await ctx
+                .db('tabs')
+                .where({
+                    trigger: formattedTrigger,
+                    user_id: user.id,
+                })
+                .first();
 
-        if (!ctx.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
-            throw new ctx.errors.ValidationError({
-                trigger: 'Trigger can only contain letters and numbers',
-            });
-        }
-
-        const existingTab = await ctx
-            .db('tabs')
-            .where({
-                trigger: formattedTrigger,
+            const existingAction = await ctx.db.select('*').from('bangs').where({
                 user_id: user.id,
-            })
-            .first();
-
-        const existingAction = await ctx.db.select('*').from('bangs').where({
-            user_id: user.id,
-            trigger: formattedTrigger,
-        });
-
-        if (existingAction.length) {
-            throw new ctx.errors.ValidationError({
-                trigger: 'This trigger already exists in Actions. Please choose another one!',
-            });
-        }
-
-        if (existingTab) {
-            throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
-        }
-
-        await ctx.models.tabs.create({
-            user_id: user.id,
-            title,
-            trigger: formattedTrigger,
-        });
-
-        ctx.utils.search.invalidateTriggerCache(user.id);
-
-        setFlash(c, 'success', 'Tab group created!');
-        return c.redirect('/tabs');
-    }
-
-    router.post('/tabs/:id/update', ctx.middleware.authentication, updateTabHandler);
-    async function updateTabHandler(c: AppContextContext) {
-        const user = c.get('user') as User;
-        const { title, trigger } = c.get('body');
-        const id = parseInt(c.req.param('id') ?? '', 10);
-
-        const tab = await ctx.models.tabs.read(id, user.id);
-
-        if (!tab) {
-            throw new ctx.errors.NotFoundError('Tab group not found');
-        }
-
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
-
-        if (!trigger) {
-            throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
-        }
-
-        const formattedTrigger: string = ctx.utils.util.normalizeBangTrigger(trigger);
-
-        if (!ctx.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
-            throw new ctx.errors.ValidationError({
-                trigger: 'Trigger can only contain letters and numbers',
-            });
-        }
-
-        const existingAction = await ctx.db.select('*').from('bangs').where({
-            user_id: user.id,
-            trigger: formattedTrigger,
-        });
-
-        if (existingAction.length) {
-            throw new ctx.errors.ValidationError({
-                trigger: 'This trigger already exists in Actions. Please choose another one!',
-            });
-        }
-
-        const existingTab = await ctx
-            .db('tabs')
-            .where({
                 trigger: formattedTrigger,
+            });
+
+            if (existingAction.length) {
+                throw new ctx.errors.ValidationError({
+                    trigger: 'This trigger already exists in Actions. Please choose another one!',
+                });
+            }
+
+            if (existingTab) {
+                throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
+            }
+
+            await ctx.models.tabs.create({
                 user_id: user.id,
-            })
-            .whereNot({ id: tab.id })
-            .first();
+                title,
+                trigger: formattedTrigger,
+            });
 
-        if (existingTab) {
-            throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
-        }
-
-        await ctx.models.tabs.update(id, user.id, {
-            title,
-            trigger: formattedTrigger,
-        });
-
-        if (tab.trigger !== formattedTrigger) {
             ctx.utils.search.invalidateTriggerCache(user.id);
-        }
 
-        setFlash(c, 'success', 'Tab group updated!');
-        return c.redirect('/tabs');
-    }
+            setFlash(c, 'success', 'Tab group created!');
+            return c.redirect('/tabs');
+        },
+    );
+
+    router.post(
+        '/tabs/:id/update',
+        ctx.middleware.authentication,
+        zValidator('form', tabFormSchema, (result) => {
+            if (!result.success) {
+                const errors: Record<string, string> = {};
+                for (const issue of result.error.issues) {
+                    errors[String(issue.path[0] ?? 'general')] ??= issue.message;
+                }
+                throw new ctx.errors.ValidationError(errors);
+            }
+        }),
+        async (c) => {
+            const user = c.get('user') as User;
+            const { title, trigger } = c.req.valid('form');
+            const id = parseInt(c.req.param('id') ?? '', 10);
+
+            const tab = await ctx.models.tabs.read(id, user.id);
+
+            if (!tab) {
+                throw new ctx.errors.NotFoundError('Tab group not found');
+            }
+
+            const formattedTrigger: string = ctx.utils.util.normalizeBangTrigger(trigger);
+
+            if (!ctx.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
+                throw new ctx.errors.ValidationError({
+                    trigger: 'Trigger can only contain letters and numbers',
+                });
+            }
+
+            const existingAction = await ctx.db.select('*').from('bangs').where({
+                user_id: user.id,
+                trigger: formattedTrigger,
+            });
+
+            if (existingAction.length) {
+                throw new ctx.errors.ValidationError({
+                    trigger: 'This trigger already exists in Actions. Please choose another one!',
+                });
+            }
+
+            const existingTab = await ctx
+                .db('tabs')
+                .where({
+                    trigger: formattedTrigger,
+                    user_id: user.id,
+                })
+                .whereNot({ id: tab.id })
+                .first();
+
+            if (existingTab) {
+                throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
+            }
+
+            await ctx.models.tabs.update(id, user.id, {
+                title,
+                trigger: formattedTrigger,
+            });
+
+            if (tab.trigger !== formattedTrigger) {
+                ctx.utils.search.invalidateTriggerCache(user.id);
+            }
+
+            setFlash(c, 'success', 'Tab group updated!');
+            return c.redirect('/tabs');
+        },
+    );
 
     router.post('/tabs/:id/delete', ctx.middleware.authentication, deleteTabHandler);
     router.post('/tabs/delete', ctx.middleware.authentication, deleteTabHandler);
@@ -271,91 +294,86 @@ export function createTabsRouter(ctx: AppContext) {
         return c.redirect('/tabs');
     }
 
-    router.post('/tabs/:id/items/create', ctx.middleware.authentication, postTabItemCreateHandler);
-    async function postTabItemCreateHandler(c: AppContextContext) {
-        const user = c.get('user') as User;
-        const tabId = c.req.param('id');
-        const { title, url } = c.get('body');
+    router.post(
+        '/tabs/:id/items/create',
+        ctx.middleware.authentication,
+        zValidator('form', tabItemFormSchema, (result) => {
+            if (!result.success) {
+                const errors: Record<string, string> = {};
+                for (const issue of result.error.issues) {
+                    errors[String(issue.path[0] ?? 'general')] ??= issue.message;
+                }
+                throw new ctx.errors.ValidationError(errors);
+            }
+        }),
+        async (c) => {
+            const user = c.get('user') as User;
+            const tabId = c.req.param('id');
+            const { title, url } = c.req.valid('form');
 
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
+            const tab = await ctx.db('tabs').where({ id: tabId, user_id: user.id }).first();
 
-        if (!url) {
-            throw new ctx.errors.ValidationError({ url: 'URL is required' });
-        }
+            if (!tab) {
+                throw new ctx.errors.NotFoundError('Tab group not found');
+            }
 
-        if (!ctx.utils.validation.isValidUrl(url)) {
-            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
-        }
+            await ctx.db('tab_items').insert({
+                tab_id: tab.id,
+                title,
+                url,
+            });
 
-        const tab = await ctx.db('tabs').where({ id: tabId, user_id: user.id }).first();
+            ctx.utils.util.prefetchAssets(url);
 
-        if (!tab) {
-            throw new ctx.errors.NotFoundError('Tab group not found');
-        }
-
-        await ctx.db('tab_items').insert({
-            tab_id: tab.id,
-            title,
-            url,
-        });
-
-        ctx.utils.util.prefetchAssets(url);
-
-        setFlash(c, 'success', 'Tab item added!');
-        return c.redirect('/tabs');
-    }
+            setFlash(c, 'success', 'Tab item added!');
+            return c.redirect('/tabs');
+        },
+    );
 
     router.post(
         '/tabs/:id/items/:itemId/update',
         ctx.middleware.authentication,
-        postTabItemUpdateHandler,
-    );
-    async function postTabItemUpdateHandler(c: AppContextContext) {
-        const user = c.get('user') as User;
-        const id = c.req.param('id');
-        const itemId = c.req.param('itemId');
+        zValidator('form', tabItemFormSchema, (result) => {
+            if (!result.success) {
+                const errors: Record<string, string> = {};
+                for (const issue of result.error.issues) {
+                    errors[String(issue.path[0] ?? 'general')] ??= issue.message;
+                }
+                throw new ctx.errors.ValidationError(errors);
+            }
+        }),
+        async (c) => {
+            const user = c.get('user') as User;
+            const id = c.req.param('id');
+            const itemId = c.req.param('itemId');
+            const { title, url } = c.req.valid('form');
 
-        const tab = await ctx.db('tabs').where({ id, user_id: user.id }).first();
+            const tab = await ctx.db('tabs').where({ id, user_id: user.id }).first();
 
-        if (!tab) {
-            throw new ctx.errors.NotFoundError('Tab group not found');
-        }
+            if (!tab) {
+                throw new ctx.errors.NotFoundError('Tab group not found');
+            }
 
-        const { title, url } = c.get('body');
+            const tabItem = await ctx.db('tab_items').where({ id: itemId, tab_id: id }).first();
 
-        if (!title) {
-            throw new ctx.errors.ValidationError({ title: 'Title is required' });
-        }
+            if (!tabItem) {
+                throw new ctx.errors.NotFoundError('Tab item not found');
+            }
 
-        if (!url) {
-            throw new ctx.errors.ValidationError({ url: 'URL is required' });
-        }
+            await ctx.db.transaction(async (trx) => {
+                await trx('tab_items').where({ id: itemId, tab_id: id }).update({
+                    title,
+                    url,
+                    updated_at: ctx.db.fn.now(),
+                });
 
-        if (!ctx.utils.validation.isValidUrl(url)) {
-            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
-        }
-
-        const tabItem = await ctx.db('tab_items').where({ id: itemId, tab_id: id }).first();
-
-        if (!tabItem) {
-            throw new ctx.errors.NotFoundError('Tab item not found');
-        }
-
-        await ctx.db.transaction(async (trx) => {
-            await trx('tab_items').where({ id: itemId, tab_id: id }).update({
-                title,
-                url,
-                updated_at: ctx.db.fn.now(),
+                await trx('tabs').where({ id }).update({ updated_at: ctx.db.fn.now() });
             });
 
-            await trx('tabs').where({ id }).update({ updated_at: ctx.db.fn.now() });
-        });
-
-        setFlash(c, 'success', 'Tab item updated!');
-        return c.redirect(`/tabs`);
-    }
+            setFlash(c, 'success', 'Tab item updated!');
+            return c.redirect(`/tabs`);
+        },
+    );
 
     router.post(
         '/tabs/:id/items/:itemId/delete',

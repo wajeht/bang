@@ -47,7 +47,16 @@ export function createBodyParserMiddleware(): AppMiddleware {
             contentType.includes('application/x-www-form-urlencoded') ||
             contentType.includes('multipart/form-data')
         ) {
-            c.set('body', normalizeParsedBody(await c.req.parseBody({ all: true })));
+            const body = await c.req.parseBody({ all: true, dot: true });
+            // parseBody keeps the `[]` suffix on array field names (e.g. `id[]`)
+            for (const key of Object.keys(body)) {
+                const value = body[key];
+                if (key.endsWith('[]') && value !== undefined) {
+                    body[key.slice(0, -2)] = value;
+                    delete body[key];
+                }
+            }
+            c.set('body', body);
             return next();
         }
 
@@ -75,7 +84,7 @@ export function createSessionMiddleware(ctx: AppContext): AppMiddleware {
             return;
         }
 
-        if (c.get('sessionChanged') || hasSessionData(session)) {
+        if (c.get('sessionChanged')) {
             await saveSession(ctx, session);
             setCookie(c, SESSION_COOKIE_NAME, session.id, {
                 path: '/',
@@ -124,7 +133,6 @@ export function createRequestLoggerMiddleware(ctx: AppContext): AppMiddleware {
         const logger = ctx.logger.tag('requestId', requestId).tag('method', c.req.method);
 
         c.set('logger', logger);
-        c.set('user', undefined);
         c.set('locals', {});
 
         await next();
@@ -252,7 +260,10 @@ export function createCsrfMiddleware(ctx: AppContext): AppMiddleware {
     return async (c, next) => {
         const session = c.get('session');
 
-        session.csrfToken ??= ctx.libs.crypto.randomBytes(32).toString('hex');
+        if (session.csrfToken == null) {
+            session.csrfToken = ctx.libs.crypto.randomBytes(32).toString('hex');
+            c.set('sessionChanged', true);
+        }
         c.get('locals').csrfToken = session.csrfToken;
 
         const isSafeMethod =
@@ -268,7 +279,6 @@ export function createCsrfMiddleware(ctx: AppContext): AppMiddleware {
             }
         }
 
-        c.set('sessionChanged', true);
         await next();
     };
 }
@@ -276,6 +286,8 @@ export function createCsrfMiddleware(ctx: AppContext): AppMiddleware {
 export function createAppLocalStateMiddleware(ctx: AppContext): AppMiddleware {
     return async (c, next) => {
         const session = c.get('session');
+        // input/errors persisted by a previous request's 422 need a save to clear
+        const hadValidationState = session.input != null || session.errors != null;
 
         if (FORM_DATA_METHODS.has(c.req.method)) {
             session.input = c.get('body') ?? {};
@@ -286,7 +298,9 @@ export function createAppLocalStateMiddleware(ctx: AppContext): AppMiddleware {
 
         delete session.input;
         delete session.errors;
-        c.set('sessionChanged', true);
+        if (hadValidationState) {
+            c.set('sessionChanged', true);
+        }
 
         await next();
     };
@@ -559,66 +573,6 @@ async function saveSession(ctx: AppContext, session: AppSession) {
         })
         .onConflict('sid')
         .merge();
-}
-
-function hasSessionData(session: AppSession) {
-    const ignored = new Set(['id', 'save', 'destroy', 'regenerate']);
-    for (const key of Object.keys(session)) {
-        if (!ignored.has(key)) return true;
-    }
-    return false;
-}
-
-function normalizeParsedBody(rawBody: Record<string, unknown>) {
-    const body: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(rawBody)) {
-        assignFormValue(body, key, value);
-    }
-    return body;
-}
-
-function assignFormValue(body: Record<string, unknown>, rawKey: string, value: unknown) {
-    const parts = rawKey
-        .replace(/\]/g, '')
-        .split('[')
-        .filter((part) => part.length > 0);
-    const firstPart = parts[0];
-    if (firstPart == null) return;
-
-    // parseBody({ all: true }) already returns arrays for `key[]` fields
-    if (rawKey.endsWith('[]') && parts.length === 1) {
-        const values = Array.isArray(value) ? value : [value];
-        const existing = body[firstPart];
-        body[firstPart] = Array.isArray(existing) ? [...existing, ...values] : values;
-        return;
-    }
-
-    let current = body;
-    for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-        if (part == null) continue;
-        const isLast = i === parts.length - 1;
-        if (isLast) {
-            const existing = current[part];
-            if (existing == null) {
-                current[part] = value;
-            } else if (Array.isArray(existing)) {
-                existing.push(value);
-            } else {
-                current[part] = [existing, value];
-            }
-            continue;
-        }
-
-        const next = current[part];
-        if (next != null && typeof next === 'object' && !Array.isArray(next)) {
-            current = next as Record<string, unknown>;
-        } else {
-            const nested: Record<string, unknown> = {};
-            current[part] = nested;
-            current = nested;
-        }
-    }
 }
 
 function getClientIp(c: AppContextContext): string {

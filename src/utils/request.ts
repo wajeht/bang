@@ -37,7 +37,7 @@ export function createRequest(context: AppContext) {
 
     function getIdsForDelete(
         params: Record<string, string | undefined>,
-        body: Record<string, any>,
+        body: Record<string, unknown>,
     ): number[] {
         let ids: number[] = [];
 
@@ -49,7 +49,7 @@ export function createRequest(context: AppContext) {
             if (Array.isArray(body.id)) {
                 ids = [];
                 for (const rawId of body.id) {
-                    const parsed = parseInt(rawId, 10);
+                    const parsed = parseInt(String(rawId), 10);
                     if (!isNaN(parsed)) {
                         ids.push(parsed);
                     }
@@ -58,7 +58,9 @@ export function createRequest(context: AppContext) {
                 if (!params.id) {
                     throw new context.errors.ValidationError({ id: 'IDs array is required' });
                 }
-                ids = [parseInt(body.id, 10)];
+                if (typeof body.id === 'string' || typeof body.id === 'number') {
+                    ids = [parseInt(String(body.id), 10)];
+                }
             }
         }
 

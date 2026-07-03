@@ -53,6 +53,7 @@
     },
     "dependencies": {
         "@hono/node-server": "2.0.8",
+        "@hono/zod-validator": "0.8.0",
         "bcrypt": "6.0.0",
         "better-sqlite3": "12.11.1",
         "esbuild": "0.28.1",
@@ -63,7 +64,8 @@
         "knex": "3.3.0",
         "marked": "18.0.5",
         "node-cron": "4.5.0",
-        "nodemailer": "9.0.3"
+        "nodemailer": "9.0.3",
+        "zod": "4.4.3"
     },
     "devDependencies": {
         "@playwright/test": "1.61.1",
