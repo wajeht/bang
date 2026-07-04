@@ -163,6 +163,7 @@ export function createHelmetMiddleware(ctx: AppContext) {
                 'script-src': [
                     "'self'",
                     "'unsafe-inline'",
+                    "'wasm-unsafe-eval'",
                     'blob:',
                     ctx.config.app.appUrl,
                     'https://cdn.jsdelivr.net',
