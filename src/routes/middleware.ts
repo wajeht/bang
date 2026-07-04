@@ -163,7 +163,7 @@ export function createHelmetMiddleware(ctx: AppContext) {
                 'script-src': [
                     "'self'",
                     "'unsafe-inline'",
-                    "'wasm-unsafe-eval'",
+                    "'unsafe-eval'", // Cap widget WASM solver + instrumentation (new Function in about:srcdoc)
                     'blob:',
                     ctx.config.app.appUrl,
                     'https://umami.jaw.dev',
