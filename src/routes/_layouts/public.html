@@ -75,7 +75,7 @@
           }) %>
 
           <% if (state.env === 'production') { %>
-            <cap-widget data-cap-api-endpoint="<%~ state.cap_api_endpoint %>"></cap-widget>
+            <cap-widget data-cap-api-endpoint="<%~ state.cap_api_endpoint %>" style="display: block; width: 100%; --cap-widget-width: 100%;"></cap-widget>
           <% } %>
 
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
@@ -86,7 +86,7 @@
       </dialog>
 
       <% if (state.env === 'production') { %>
-        <script src="/cap-widget-0.1.56.js" defer></script>
+        <script src="/cap-widget-0.1.56.min.js" defer></script>
       <% } %>
 
       <script>

@@ -159,7 +159,7 @@ export function createHelmetMiddleware(ctx: AppContext) {
             directives: {
                 ...ctx.libs.helmet.contentSecurityPolicy.getDefaultDirectives(),
                 'default-src': ["'self'", ctx.config.app.appUrl],
-                'img-src': ["'self'", '*'],
+                'img-src': ["'self'", '*', 'data:'],
                 'script-src': [
                     "'self'",
                     "'unsafe-inline'",
