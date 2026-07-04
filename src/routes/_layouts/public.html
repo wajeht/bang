@@ -75,18 +75,28 @@
           }) %>
 
           <% if (state.env === 'production') { %>
-            <cap-widget data-cap-api-endpoint="<%~ state.cap_api_endpoint %>" style="display: block; width: 100%; --cap-widget-width: 100%;"></cap-widget>
+            <cap-widget id="cap-widget" data-cap-api-endpoint="<%~ state.cap_api_endpoint %>" style="display: block; width: 100%; --cap-widget-width: 100%;"></cap-widget>
           <% } %>
 
           <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
             <button type="button" onclick="this.closest('dialog').close()">❌ Cancel</button>
-            <button type="submit">🚀 Send</button>
+            <button type="submit" id="login-submit"<% if (state.env === 'production') { %> disabled<% } %>>🚀 Send</button>
           </div>
         </form>
       </dialog>
 
       <% if (state.env === 'production') { %>
         <script src="https://cdn.jsdelivr.net/npm/@cap.js/widget@0.1.56" defer></script>
+        <script>
+          document.addEventListener('DOMContentLoaded', () => {
+            const widget = document.getElementById('cap-widget');
+            const submit = document.getElementById('login-submit');
+            if (!widget || !submit) return;
+            widget.addEventListener('solve', () => { submit.disabled = false; });
+            widget.addEventListener('reset', () => { submit.disabled = true; });
+            widget.addEventListener('error', () => { submit.disabled = true; });
+          });
+        </script>
       <% } %>
 
       <script>
