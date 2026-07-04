@@ -171,6 +171,7 @@ export function createHelmetMiddleware(ctx: AppContext) {
                 'script-src-elem': [
                     "'self'",
                     "'unsafe-inline'",
+                    'https://cdn.jsdelivr.net',
                     '*.cloudflareinsights.com',
                     'https://umami.jaw.dev',
                 ],
@@ -181,6 +182,7 @@ export function createHelmetMiddleware(ctx: AppContext) {
                 'connect-src': [
                     "'self'",
                     ctx.config.cap.apiUrl,
+                    'https://cdn.jsdelivr.net',
                     '*.cloudflareinsights.com',
                     'https://umami.jaw.dev',
                 ],
