@@ -18,7 +18,7 @@ export function createAuthRouter(ctx: AppContext) {
         return res.redirect(`/?toast=${encodeURIComponent('✌️ see ya!')}`);
     });
 
-    router.post('/login', ctx.middleware.turnstile, async (req: Request, res: Response) => {
+    router.post('/login', ctx.middleware.cap, async (req: Request, res: Response) => {
         const { email } = req.body;
 
         if (!email) {

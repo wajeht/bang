@@ -158,30 +158,30 @@ export function createHelmetMiddleware(ctx: AppContext) {
             useDefaults: true,
             directives: {
                 ...ctx.libs.helmet.contentSecurityPolicy.getDefaultDirectives(),
-                'default-src': ["'self'", ctx.config.app.appUrl, '*.cloudflare.com'],
+                'default-src': ["'self'", ctx.config.app.appUrl],
                 'img-src': ["'self'", '*'],
                 'script-src': [
                     "'self'",
                     "'unsafe-inline'",
                     'blob:',
                     ctx.config.app.appUrl,
-                    '*.cloudflare.com',
+                    'https://cdn.jsdelivr.net',
                     'https://umami.jaw.dev',
                 ],
                 'script-src-elem': [
                     "'self'",
                     "'unsafe-inline'",
-                    '*.cloudflare.com',
-                    '*.cloudflareinsights.com',
+                    'https://cdn.jsdelivr.net',
                     'https://umami.jaw.dev',
                 ],
-                'frame-src': ["'self'", '*.cloudflare.com'],
-                'style-src': ["'self'", "'unsafe-inline'", '*.cloudflare.com'],
+                'worker-src': ["'self'", 'blob:'],
+                'frame-src': ["'self'"],
+                'style-src': ["'self'", "'unsafe-inline'"],
 
                 'connect-src': [
                     "'self'",
-                    '*.cloudflare.com',
-                    '*.cloudflareinsights.com',
+                    ctx.config.cap.apiUrl,
+                    'https://cdn.jsdelivr.net',
                     'https://umami.jaw.dev',
                 ],
                 'script-src-attr': ["'self'", "'unsafe-inline'"],
@@ -272,7 +272,7 @@ export function createSetupAppLocals(ctx: AppContext) {
             : undefined;
 
         res.locals.state = {
-            cloudflare_turnstile_site_key: ctx.config.cloudflare.turnstileSiteKey,
+            cap_api_endpoint: `${ctx.config.cap.apiUrl}/${ctx.config.cap.siteKey}/`,
             env: ctx.config.app.env,
             user: req.user ?? userWithParsedPrefs,
             copyRightYear: cachedStaticLocals!.copyRightYear,
@@ -552,13 +552,11 @@ export function createLayoutMiddleware(options: LayoutOptions = {}) {
     };
 }
 
-export function createTurnstileMiddleware(ctx: AppContext) {
-    return async function turnstileMiddleware(req: Request, _res: Response, next: NextFunction) {
+export function createCapMiddleware(ctx: AppContext) {
+    return async function capMiddleware(req: Request, _res: Response, next: NextFunction) {
         try {
             if (ctx.config.app.env !== 'production') {
-                req.logger
-                    .tag('middleware', 'turnstile')
-                    .info('Skipping in non-production environment');
+                req.logger.tag('middleware', 'cap').info('Skipping in non-production environment');
                 return next();
             }
 
@@ -566,15 +564,14 @@ export function createTurnstileMiddleware(ctx: AppContext) {
                 return next();
             }
 
-            const token = req.body['cf-turnstile-response'];
+            const token = req.body['cap-token'];
             if (!token) {
                 throw new ctx.errors.ValidationError({
-                    email: 'Turnstile verification failed: Missing token',
+                    email: 'Captcha verification failed: Missing token',
                 });
             }
 
-            const ip = (req.headers['cf-connecting-ip'] as string) || req.ip;
-            await ctx.utils.util.verifyTurnstileToken(token, ip);
+            await ctx.utils.util.verifyCapToken(token);
 
             next();
         } catch (error) {

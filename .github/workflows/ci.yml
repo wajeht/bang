@@ -36,9 +36,10 @@ env:
     NTFY_TOPIC: 'bang'
     NTFY_TOKEN: ''
 
-    # cloudflare
-    CLOUDFLARE_TURNSTILE_SITE_KEY: 'deeznutz'
-    CLOUDFLARE_TURNSTILE_SECRET_KEY: 'joemama'
+    # cap (self-hosted captcha)
+    CAP_SITE_KEY: 'deeznutz'
+    CAP_SECRET: 'joemama'
+    CAP_API_URL: 'https://cap.example.test'
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}

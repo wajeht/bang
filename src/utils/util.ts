@@ -4,7 +4,7 @@ import type {
     BookmarkToExport,
     ColumnPreferences,
     PaginateArrayOptions,
-    TurnstileVerifyResponse,
+    CapVerifyResponse,
 } from '../type.js';
 import http from 'node:http';
 import https from 'node:https';
@@ -747,36 +747,23 @@ export function createUtil(context: AppContext) {
             return this.createBookmarkDocument(bookmarks);
         },
 
-        async verifyTurnstileToken(
-            token: string,
-            remoteip?: string,
-        ): Promise<TurnstileVerifyResponse> {
-            const formData = new URLSearchParams();
-            formData.append('secret', config.cloudflare.turnstileSecretKey);
-            formData.append('response', token);
-            if (remoteip) {
-                formData.append('remoteip', remoteip);
-            }
-
+        async verifyCapToken(token: string): Promise<CapVerifyResponse> {
             try {
-                const result = await fetch(
-                    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-                    {
-                        method: 'POST',
-                        body: formData,
-                    },
-                );
+                const result = await fetch(`${config.cap.apiUrl}/siteverify`, {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({ secret: config.cap.secretKey, response: token }),
+                });
 
-                const outcome = (await result.json()) as TurnstileVerifyResponse;
+                const outcome = (await result.json()) as CapVerifyResponse;
 
                 if (!outcome.success) {
-                    const errors = outcome['error-codes']?.join(', ') || 'Unknown error';
-                    throw new Error(`Turnstile validation failed: ${errors}`);
+                    throw new Error('Cap validation failed');
                 }
 
                 return outcome;
             } catch (error) {
-                throw new Error(`Failed to verify Turnstile token: ${(error as Error).message}`);
+                throw new Error(`Failed to verify Cap token: ${(error as Error).message}`);
             }
         },
 

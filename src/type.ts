@@ -324,13 +324,9 @@ export type LayoutOptions = {
     layoutsDir?: string;
 };
 
-export type TurnstileVerifyResponse = {
+export type CapVerifyResponse = {
     success: boolean;
-    'error-codes'?: string[];
     challenge_ts?: string;
-    hostname?: string;
-    action?: string;
-    cdata?: string;
 };
 
 export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'SILENT';
@@ -430,7 +426,7 @@ export interface Middlewares {
     authentication: express.RequestHandler;
     notFound: express.RequestHandler;
     errorHandler: express.ErrorRequestHandler;
-    turnstile: express.RequestHandler;
+    cap: express.RequestHandler;
     adminOnly: express.RequestHandler;
     helmet: express.RequestHandler;
     session: express.RequestHandler;

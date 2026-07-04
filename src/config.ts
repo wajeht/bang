@@ -33,8 +33,9 @@ export const config = {
         token: process.env.NTFY_TOKEN || '',
     } as const,
 
-    cloudflare: {
-        turnstileSiteKey: process.env.CLOUDFLARE_TURNSTILE_SITE_KEY || 'sitekey',
-        turnstileSecretKey: process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || 'secretkey',
+    cap: {
+        siteKey: process.env.CAP_SITE_KEY || 'sitekey',
+        secretKey: process.env.CAP_SECRET || 'secretkey',
+        apiUrl: process.env.CAP_API_URL || 'https://cap.jaw.dev',
     } as const,
 } as const;
