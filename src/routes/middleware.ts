@@ -166,13 +166,11 @@ export function createHelmetMiddleware(ctx: AppContext) {
                     "'wasm-unsafe-eval'",
                     'blob:',
                     ctx.config.app.appUrl,
-                    'https://cdn.jsdelivr.net',
                     'https://umami.jaw.dev',
                 ],
                 'script-src-elem': [
                     "'self'",
                     "'unsafe-inline'",
-                    'https://cdn.jsdelivr.net',
                     '*.cloudflareinsights.com',
                     'https://umami.jaw.dev',
                 ],
@@ -183,7 +181,6 @@ export function createHelmetMiddleware(ctx: AppContext) {
                 'connect-src': [
                     "'self'",
                     ctx.config.cap.apiUrl,
-                    'https://cdn.jsdelivr.net',
                     '*.cloudflareinsights.com',
                     'https://umami.jaw.dev',
                 ],
