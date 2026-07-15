@@ -1,4 +1,4 @@
-FROM node:26.5.0-slim@sha256:384e94c8c33ce0daae4ecbd00fa604ebabaa18f26fc508132f8da45035bf0219 AS build
+FROM node:26.5.0-slim@sha256:715e55e4b84e4bb0ff48e49b398a848f08e55daed8eb6a0ea1839ae53bc57583 AS build
 
 WORKDIR /usr/src/app
 
@@ -31,7 +31,7 @@ RUN node --run build:prod && \
     rm -rf eslint.config.* && \
     rm -rf playwright.config.*
 
-FROM node:26.5.0-slim@sha256:384e94c8c33ce0daae4ecbd00fa604ebabaa18f26fc508132f8da45035bf0219
+FROM node:26.5.0-slim@sha256:715e55e4b84e4bb0ff48e49b398a848f08e55daed8eb6a0ea1839ae53bc57583
 
 # Install runtime dependencies.
 # sqlite3 lets dcdb dump/inspect the production SQLite database.
