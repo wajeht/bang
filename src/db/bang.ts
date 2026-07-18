@@ -85920,12 +85920,13 @@ export const bangs: Record<string, any> = {
         sc: 'Misc',
     },
     scp: {
-        s: 'SCP Foundation',
-        d: 'www.scp-wiki.net',
-        t: 'scp',
-        u: 'https://www.scp-wiki.net/search:site/a/p/q/{{{s}}}',
         c: 'Entertainment',
+        d: 'www.scp-wiki.net',
+        r: 29,
+        s: 'SCP Foundation',
         sc: 'Misc',
+        t: 'scp',
+        u: 'http://www.scp-wiki.net/search:site/a/p/q/{{{s}}} ',
     },
     scq: {
         s: 'SensCritique',
@@ -114834,6 +114835,14 @@ export const bangs: Record<string, any> = {
         u: 'https://www.royalroad.com/fictions/search?title={{{s}}}',
         c: 'Multimedia',
         sc: 'Books',
+    },
+    rpcs3: {
+        s: 'RPCS3 Wiki',
+        d: 'wiki.rpcs3.net',
+        t: 'rpcs3',
+        u: 'https://wiki.rpcs3.net/index.php?title=Special%3ASearch&search={{{s}}}',
+        c: 'Research',
+        sc: 'Reference',
     },
     rsca: {
         s: 'Royal Society Collections Catalogues, archives',
