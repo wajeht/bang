@@ -35,7 +35,7 @@ jobs:
               run: npm ci
 
             - name: Rebuild native modules
-              run: npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false
+              run: npm rebuild bcrypt esbuild --ignore-scripts=false
 
             - name: Update bangs from multiple sources
               run: node --run build:bang

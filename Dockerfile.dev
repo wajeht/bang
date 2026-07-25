@@ -25,7 +25,7 @@ WORKDIR /usr/src/app
 COPY package.json package-lock.json .npmrc ./
 
 RUN npm ci && \
-    npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false
+    npm rebuild bcrypt esbuild --ignore-scripts=false
 
 COPY ./ ./
 
