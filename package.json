@@ -49,11 +49,11 @@
         "db:seed:run": "node --env-file-if-exists=.env --import=tsx ./node_modules/knex/bin/cli.js seed:run --knexfile=./src/db/knexfile.ts",
         "db:seed:run:prod": "node --env-file-if-exists=.env ./node_modules/knex/bin/cli.js seed:run --knexfile=./dist/src/db/knexfile.js",
         "rmds": "find . -name '.DS_Store' -delete",
-        "rebuild:native": "npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false"
+        "rebuild:native": "npm rebuild bcrypt esbuild --ignore-scripts=false"
     },
     "dependencies": {
         "bcrypt": "6.0.0",
-        "better-sqlite3": "12.11.1",
+        "better-sqlite3": "13.0.1",
         "compression": "1.8.1",
         "connect-flash": "0.1.1",
         "connect-session-knex": "5.0.0",

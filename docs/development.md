@@ -24,12 +24,14 @@ $ npm install
 ```
 
 This project's `.npmrc` sets `ignore-scripts=true` for supply-chain safety, which means
-native dependencies (`better-sqlite3`, `bcrypt`) won't be built automatically. Rebuild
-them explicitly:
+native dependencies such as `bcrypt` won't be built automatically. Rebuild them
+explicitly:
 
 ```bash
 $ npm run rebuild:native
 ```
+
+`better-sqlite3` v13 ships N-API binaries in its package and should not be force-rebuilt.
 
 Skipping this step will cause tests and the dev server to hang at module load.
 

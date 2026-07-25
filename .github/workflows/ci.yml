@@ -68,7 +68,7 @@ jobs:
               run: npm ci
 
             - name: Rebuild native modules
-              run: npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false
+              run: npm rebuild bcrypt esbuild --ignore-scripts=false
 
             - name: Verify package signatures
               run: npm audit signatures
@@ -101,7 +101,7 @@ jobs:
               run: npm ci
 
             - name: Rebuild native modules
-              run: npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false
+              run: npm rebuild bcrypt esbuild --ignore-scripts=false
 
             - name: Cache Playwright browsers
               uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -153,7 +153,7 @@ jobs:
               run: npm ci
 
             - name: Rebuild native modules
-              run: npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false
+              run: npm rebuild bcrypt esbuild --ignore-scripts=false
 
             - name: Lint codes
               run: node --run lint
@@ -180,7 +180,7 @@ jobs:
               run: npm ci
 
             - name: Rebuild native modules
-              run: npm rebuild better-sqlite3 bcrypt esbuild --ignore-scripts=false
+              run: npm rebuild bcrypt esbuild --ignore-scripts=false
 
             - name: Format codes
               run: node --run format
