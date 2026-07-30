@@ -569,7 +569,8 @@ export function createSearch(context: AppContext) {
                             res,
                             this.getBangRedirectUrl(bang, ''),
                             searchConfig.redirectWithCacheDuration,
-                            'public',
+                            'private',
+                            ['Cookie'],
                         );
                     }
                 }
@@ -1918,8 +1919,7 @@ export function createSearch(context: AppContext) {
                             res,
                             this.getBangRedirectUrl(bang, searchTerm),
                             searchConfig.redirectWithCacheDuration,
-                            'private',
-                            ['Cookie'], // Vary by Cookie to handle user-specific results
+                            'no-store',
                         );
                     }
 
@@ -1930,7 +1930,7 @@ export function createSearch(context: AppContext) {
                             res,
                             this.getBangRedirectUrl(bang, ''),
                             searchConfig.redirectWithCacheDuration,
-                            'public',
+                            'no-store',
                         );
                     }
                 }
