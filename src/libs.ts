@@ -7,7 +7,7 @@ import cron from 'node-cron';
 import express from 'express';
 import dayjsBase from 'dayjs';
 import jwt from 'jsonwebtoken';
-import { marked, Marked, Renderer } from 'marked';
+import { Marked, Renderer } from 'marked';
 import hljs from 'highlight.js';
 import crypto from 'node:crypto';
 import flash from 'connect-flash';
@@ -35,7 +35,6 @@ export const libs = {
 
     // Markdown & syntax highlighting
     hljs,
-    marked,
     Marked,
     Renderer,
     dompurify,

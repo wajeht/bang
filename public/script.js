@@ -266,5 +266,3 @@ document.addEventListener('DOMContentLoaded', () => {
         updateButtonText(currentTheme);
     }
 });
-
-window.addEventListener('load', initializeLinkedResourceHighlight);
