@@ -48,11 +48,6 @@ export type ReminderFrequency = 'daily' | 'weekly' | 'monthly';
 
 export type Env = 'production' | 'development' | 'testing';
 
-export interface Api {
-    generate: (payload: ApiKeyPayload) => Promise<string>;
-    verify: (apiKey: string) => Promise<ApiKeyPayload | null>;
-}
-
 export type Bang = {
     /** Category of the bang (e.g., "Multimedia", "Online Services"). */
     c: string;
@@ -259,13 +254,6 @@ export type Search = (options: {
     res: express.Response;
     req: express.Request;
 }) => Promise<void | express.Response>;
-
-export type Pagination = {
-    total: number;
-    perPage: number;
-    page: number;
-    totalPages: number;
-};
 
 /**
  * Generic repository interface for CRUD operations.

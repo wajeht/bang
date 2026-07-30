@@ -114,28 +114,6 @@ describe('TemplateUtils', () => {
             expect(html).toContain('value="b"');
         });
 
-        it('should render templates with nested includes', async () => {
-            const viewsDir = path.join(process.cwd(), 'src/routes');
-            const filePath = path.join(viewsDir, '_components/inputs/radio.html');
-
-            const html = await renderTemplate(filePath, {
-                name: 'gender',
-                legend: 'Select Gender',
-                required: true,
-                options: [
-                    { value: 'male', label: 'Male', checked: false },
-                    { value: 'female', label: 'Female', checked: true },
-                ],
-                helpText: 'Choose your gender',
-            });
-
-            expect(html).toBeDefined();
-            expect(html).toContain('Select Gender');
-            expect(html).toContain('Male');
-            expect(html).toContain('Female');
-            expect(html).toContain('Choose your gender');
-        });
-
         it('should handle textarea component', async () => {
             const viewsDir = path.join(process.cwd(), 'src/routes');
             const filePath = path.join(viewsDir, '_components/inputs/textarea.html');

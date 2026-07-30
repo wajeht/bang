@@ -60,27 +60,5 @@
 
 		specScript.textContent = JSON.stringify(specRules);
 		document.head.appendChild(specScript);
-
-		console.debug('✅ Speculation rules added:', specRules);
-		console.debug('🔍 Debug: Check DevTools > Application > Speculative loads');
-
-		if (document.prerendering) {
-			console.debug('🚀 Page is being prerendered!');
-			document.addEventListener("prerenderingchange", () => {
-				console.debug('⚡ Page activated from prerender!', {
-					activationStart: performance.getEntriesByType('navigation')[0]?.activationStart
-				});
-			}, { once: true });
-		}
-
-		document.addEventListener('DOMContentLoaded', () => {
-			const nav = performance.getEntriesByType('navigation')[0];
-			if (nav?.activationStart > 0) {
-				console.debug('📊 Prerendered! Activation:', nav.activationStart + 'ms');
-			}
-		});
-
-	} else {
-		console.debug('❌ Speculation rules not supported');
 	}
 </script>

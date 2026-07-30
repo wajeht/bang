@@ -2,7 +2,6 @@ import type { Request } from 'express';
 import type { User, PageType, AppContext } from '../type.js';
 
 export function createRequest(context: AppContext) {
-    const logger = context.logger.tag('service', 'request');
     type PreferenceKey = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders' | 'users';
     const PAGE_TYPE_TO_PREFERENCE: Record<PageType | 'admin', PreferenceKey> = {
         actions: 'actions',
@@ -14,27 +13,6 @@ export function createRequest(context: AppContext) {
     };
 
     return {
-        async extractUser(req: Request): Promise<User> {
-            if (this.isApiRequest(req) && req.apiKeyPayload) {
-                try {
-                    return await context.db
-                        .select('*')
-                        .from('users')
-                        .where({ id: req.apiKeyPayload.userId })
-                        .first();
-                } catch (error) {
-                    logger.tag('op', 'extract-user').error('Failed to extract user', { error });
-                    throw new context.errors.HttpError(500, 'Failed to extract user!', req);
-                }
-            }
-
-            if (req.session?.user) {
-                return req.session.user;
-            }
-
-            throw new context.errors.HttpError(500, 'User not found from request!', req);
-        },
-
         extractPaginationParams(req: Request, pageType: PageType | 'admin') {
             const user = req.user as User;
 
