@@ -96,7 +96,8 @@ describe('search', () => {
             expect(res.status).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    'Cache-Control': 'public, max-age=3600',
+                    'Cache-Control': 'private, max-age=3600',
+                    Vary: 'Cookie',
                 }),
             );
             expect(res.redirect).toHaveBeenCalledWith('https://www.google.com');
@@ -4172,6 +4173,13 @@ describe('Bang Search Optimization', () => {
 
         await searchUtils.search({ req, res });
 
+        expect(res.set).toHaveBeenCalledWith(
+            expect.objectContaining({
+                'Cache-Control': 'no-store',
+                Pragma: 'no-cache',
+                Expires: '0',
+            }),
+        );
         expect(res.redirect).toHaveBeenCalledWith('https://www.google.com/search?q=python');
     });
 
