@@ -76,7 +76,7 @@
         "nodemailer": "9.0.3"
     },
     "devDependencies": {
-        "@playwright/test": "1.62.0",
+        "@playwright/test": "1.62.1",
         "@types/bcrypt": "6.0.0",
         "@types/clean-css": "4.2.11",
         "@types/compression": "1.8.1",
