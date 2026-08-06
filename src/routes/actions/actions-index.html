@@ -198,7 +198,7 @@
                                 <td style="padding: 10px;">
                                     <% if (data[i].url) { %>
                                     <div style="display: flex; gap: 5px; align-items: center;">
-                                        <img loading="lazy" src= "<%~ utils.getFaviconUrl(data[i].url) %>" alt="<%~ new URL(data[i].url).origin %>'s favison" style="width: 16px; height: 16px; border-radius: 50%;">
+                                        <img loading="lazy" src="<%~ utils.getFaviconUrl(data[i].url) %>" style="width: 16px; height: 16px; border-radius: 50%;">
                                         <span class="preview">
                                             <a href="<%= utils.stripHtmlTags(data[i].url) %>" style="overflow: auto; white-space: nowrap;" title="<%= utils.stripHtmlTags(data[i].url) %>" target="_blank" rel="noopener noreferrer">
                                                 <%~ data[i].url %>
