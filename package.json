@@ -67,7 +67,7 @@
         "express-rate-limit": "8.6.2",
         "express-session": "1.19.0",
         "helmet": "8.3.0",
-        "highlight.js": "11.11.1",
+        "highlight.js": "11.11.2",
         "isomorphic-dompurify": "3.13.0",
         "jsonwebtoken": "9.0.3",
         "knex": "3.3.0",
