@@ -113676,6 +113676,7 @@ export const bangs: Record<string, any> = {
         s: 'OpenRouter',
         d: 'openrouter.ai',
         t: 'opr',
+        ts: ['openrouter'],
         u: 'https://openrouter.ai/models?q={{{s}}}',
         c: 'Online Services',
         sc: 'AI Chatbots',
@@ -114263,6 +114264,14 @@ export const bangs: Record<string, any> = {
         u: 'https://lunalux.io/search/?q={{{s}}}',
         c: 'Tech',
         sc: 'Blogs',
+    },
+    klipy: {
+        s: 'KLIPY',
+        d: 'klipy.com',
+        t: 'klipy',
+        u: 'https://klipy.com/search/{{{s}}}',
+        c: 'Multimedia',
+        sc: 'Images',
     },
     kon: {
         s: 'Konsolentreff.de',
