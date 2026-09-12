@@ -31982,7 +31982,7 @@ export const bangs: Record<string, any> = {
         d: 'www.fangraphs.com',
         t: 'fangraphs',
         ts: ['fg'],
-        u: 'https://www.fangraphs.com/players.aspx?lastname={{{s}}}',
+        u: 'https://www.fangraphs.com/search?q={{{s}}}',
         c: 'Entertainment',
         sc: 'Sports',
     },
