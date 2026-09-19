@@ -113,7 +113,7 @@
                   name="id[]"
                   value="<%~ user.id %>"
                   class="user-checkbox"
-                  data-username="<%~ utils.stripHtmlTags(user.username || 'Unknown User') %>"
+                  data-username="<%= utils.stripHtmlTags(user.username || 'Unknown User') %>"
                   <%= user.is_admin ? 'disabled title="Cannot delete admin users"' : '' %>
                 />
               </td>
@@ -141,7 +141,9 @@
                   <button
                       type="button"
                       class="no-style-btn"
-                      onclick="showDeleteUserModal('<%= user.id %>', '<%= utils.stripHtmlTags(user.username || 'Unknown User').replace(/'/g, '\\\'') %>')"
+                      data-user-id="<%= user.id %>"
+                      data-username="<%= utils.stripHtmlTags(user.username || 'Unknown User') %>"
+                      onclick="showDeleteUserModal(this.dataset.userId, this.dataset.username)"
                       aria-label="Delete user <%= utils.stripHtmlTags(user.username) %>"
                   >
                     🗑️ Delete

@@ -36,6 +36,52 @@ describe('Admin Routes', () => {
         });
     });
 
+    describe('User content rendering', () => {
+        it.each(['', ' ', 'audit'])(
+            'should render stored markup as text for search %s',
+            async (search) => {
+                const { agent: owner, user } = await authenticateAgent(app);
+                const username = '<img src=x onerror="audit()"> audit " data-audit="injected';
+                await owner
+                    .post('/settings/account')
+                    .send({
+                        username,
+                        email: user.email,
+                        default_search_provider: 'duckduckgo',
+                        timezone: 'UTC',
+                        theme: 'light',
+                    })
+                    .expect(302);
+                const { agent } = await authenticateAdminAgent(app);
+                const response = await agent.get('/admin/users').query({ search }).expect(200);
+                expect(response.text).not.toContain('<img src=x onerror=');
+                expect(response.text).not.toContain('data-audit="injected');
+                expect(response.text).toContain('&lt;img');
+                expect(response.text).toContain(
+                    'data-username="audit &quot; data-audit=&quot;injected"',
+                );
+                if (search === 'audit') expect(response.text).toContain('<mark>audit</mark>');
+            },
+        );
+    });
+
+    it('should keep quoted usernames out of delete-handler JavaScript', async () => {
+        const { user } = await authenticateAgent(app);
+        const username = "audit \\\' quoted";
+        await db('users').where({ id: user.id }).update({ username });
+        const { agent } = await authenticateAdminAgent(app);
+        const response = await agent.get('/admin/users').expect(200);
+        const handlers = response.text.match(/onclick="showDeleteUserModal[^"\n]*"/g) ?? [];
+        expect(handlers.length).toBeGreaterThan(0);
+        for (const handler of handlers) {
+            expect(handler).toBe(
+                'onclick="showDeleteUserModal(this.dataset.userId, this.dataset.username)"',
+            );
+        }
+        expect(response.text).toContain('data-user-id="' + user.id + '"');
+        expect(response.text).toContain('data-username="audit \\\&#39; quoted"');
+    });
+
     describe('Bulk Delete', () => {
         describe('POST /admin/users/delete', () => {
             it('should delete multiple non-admin users', async () => {

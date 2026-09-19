@@ -248,6 +248,7 @@ export function createSetupAppLocals(ctx: AppContext) {
                 script: assetVersions?.script ?? Math.random(),
             },
             utils: {
+                serializeForScript: ctx.utils.html.serializeForScript,
                 nl2br: ctx.utils.html.nl2br,
                 truncateString: ctx.utils.util.truncateString,
                 capitalize: ctx.utils.util.capitalize,

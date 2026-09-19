@@ -11,6 +11,7 @@ export function createHtml() {
     const REGEX_GT_ENTITY = /&gt;/g;
     const REGEX_AMP_ENTITY = /&amp;/g;
     const REGEX_NL2BR = /(?:\r\n|\r|\n|\t| )/g;
+    const REGEX_SCRIPT_UNSAFE = /[<>&\u2028\u2029]/g;
     const REGEX_HTML_CHARS = /[&<>"']/g;
 
     const HTML_ENTITIES: Record<string, string> = {
@@ -30,6 +31,13 @@ export function createHtml() {
     };
 
     return {
+        serializeForScript(value: unknown): string {
+            return (JSON.stringify(value) ?? 'null').replace(
+                REGEX_SCRIPT_UNSAFE,
+                (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`,
+            );
+        },
+
         escapeHtml(text: string): string {
             return text.replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES[char] || char);
         },
@@ -38,35 +46,37 @@ export function createHtml() {
             text: string | null | undefined,
             searchTerm: string | null | undefined,
         ) {
-            if (!searchTerm || !text) return text;
-
-            const original = String(text || '');
-            const trimmedSearch = searchTerm.trim();
-
-            if (!trimmedSearch) return original;
-
-            const searchWords = trimmedSearch.split(REGEX_WHITESPACE);
-            const wordCount = searchWords.length;
-
-            let hasValidWords = false;
-            const escapedWords: string[] = [];
-            for (let i = 0; i < wordCount; i++) {
-                const word = searchWords[i];
-                if (word && word.length > 0) {
-                    escapedWords.push(word.replace(REGEX_ESCAPE_SPECIAL, '\\$&'));
-                    hasValidWords = true;
-                }
-            }
-
-            if (!hasValidWords) return original;
-
+            if (text == null) return text;
+            const original = String(text);
             const escaped = original.replace(
                 REGEX_HTML_CHARS,
-                (char) => HTML_ENTITIES[char] || char,
+                (char) => HTML_ENTITIES[char] ?? char,
             );
+            const trimmedSearch = searchTerm?.trim();
+            if (!trimmedSearch) return escaped;
+
+            const escapedWords: string[] = [];
+            for (const word of trimmedSearch.split(REGEX_WHITESPACE)) {
+                if (word) escapedWords.push(word.replace(REGEX_ESCAPE_SPECIAL, '\\$&'));
+            }
+            if (!escapedWords.length) return escaped;
 
             const searchRegex = new RegExp(escapedWords.join('|'), 'gi');
-            return escaped.replace(searchRegex, (match) => `<mark>${match}</mark>`);
+            let result = '';
+            let previousEnd = 0;
+            for (const match of original.matchAll(searchRegex)) {
+                result += original
+                    .slice(previousEnd, match.index)
+                    .replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES[char] ?? char);
+                result += `<mark>${match[0].replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES[char] ?? char)}</mark>`;
+                previousEnd = match.index + match[0].length;
+            }
+            return (
+                result +
+                original
+                    .slice(previousEnd)
+                    .replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES[char] ?? char)
+            );
         },
 
         applyHighlighting<T extends Record<string, any>>(
