@@ -3872,6 +3872,30 @@ describe('search command handling', () => {
 });
 
 describe('parseReminderTiming', () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it.each([
+        ['weekly', '2026-09-19 09:29:00', '09:30', '2026-09-19T09:30:00-05:00'],
+        ['weekly', '2026-09-19 09:30:00', '09:30', '2026-09-26T09:30:00-05:00'],
+        ['weekly', '2026-09-19 09:31:00', '09:30', '2026-09-26T09:30:00-05:00'],
+        ['weekly', '2026-09-19 10:00:00', '09:00', '2026-09-26T09:00:00-05:00'],
+        ['weekly', '2026-03-07 10:00:00', '09:00', '2026-03-14T09:00:00-05:00'],
+        ['monthly', '2026-10-01 09:29:00', '09:30', '2026-10-01T09:30:00-05:00'],
+        ['monthly', '2026-10-01 09:30:00', '09:30', '2026-11-01T09:30:00-06:00'],
+        ['monthly', '2026-10-01 09:31:00', '09:30', '2026-11-01T09:30:00-06:00'],
+        ['monthly', '2026-10-01 10:00:00', '09:00', '2026-11-01T09:00:00-06:00'],
+    ])('should schedule %s at %s with %s for %s', (frequency, current, time, expected) => {
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(dayjs.tz(current, 'America/Chicago').toDate());
+
+        const timing = searchUtils.parseReminderTiming(frequency, time, 'America/Chicago');
+
+        expect(timing.isValid).toBe(true);
+        expect(dayjs(timing.nextDue).tz('America/Chicago').format()).toBe(expected);
+    });
+
     it('should schedule weekly reminders for Saturday', () => {
         const timing = searchUtils.parseReminderTiming('weekly', '09:00', 'America/Chicago');
 

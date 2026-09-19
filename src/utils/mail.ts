@@ -395,21 +395,19 @@ ${formatReminderListHTML}
                 const now = context.libs.dayjs.utc();
                 const next15Min = now.add(15, 'minute');
 
-                // Get all reminders due in the next 15 minutes
-                // Use UTC ISO format for database comparison
-                const nowFormatted = now.toISOString();
+                // Include missed deliveries after downtime, retaining the 15-minute lookahead.
                 const next15MinFormatted = next15Min.toISOString();
 
                 const dueReminders = await context.db
                     .select('reminders.*', 'users.email', 'users.username', 'users.timezone')
                     .from('reminders')
                     .join('users', 'reminders.user_id', 'users.id')
-                    .whereBetween('reminders.due_date', [nowFormatted, next15MinFormatted])
+                    .where('reminders.due_date', '<=', next15MinFormatted)
                     .orderBy('users.id')
                     .orderBy('reminders.created_at');
 
                 if (dueReminders.length === 0) {
-                    logger.info('No reminders due in the next 15 minutes');
+                    logger.info('No pending reminders due within 15 minutes');
                     return;
                 }
 
@@ -465,59 +463,43 @@ ${formatReminderListHTML}
                     // Process each reminder
                     for (const reminder of userData.reminders) {
                         if (reminder.reminder_type === 'recurring' && reminder.frequency) {
-                            // Calculate next due date for recurring reminders
-                            // Use user's timezone for proper day/time calculations
-                            const userTz = userData.timezone || 'UTC';
-                            const currentDue = context.libs.dayjs
-                                .tz(reminder.due_date, 'UTC')
-                                .tz(userTz);
+                            const userTz = userData.timezone;
+                            const currentDue = context.libs.dayjs.utc(reminder.due_date).tz(userTz);
+                            // Send one catch-up notification, then jump directly to a future
+                            // occurrence instead of replaying every missed interval.
+                            const reference = currentDue.isAfter(now) ? currentDue : now.tz(userTz);
+                            const clockTime = currentDue.format('HH:mm:ss.SSS');
 
-                            // Extract the local time to preserve across DST transitions
-                            const hour = currentDue.hour();
-                            const minute = currentDue.minute();
-                            const second = currentDue.second();
+                            function atReminderTime(date: typeof reference) {
+                                return context.libs.dayjs.tz(
+                                    `${date.format('YYYY-MM-DD')} ${clockTime}`,
+                                    userTz,
+                                );
+                            }
 
-                            let nextDue: ReturnType<typeof context.libs.dayjs>;
-
+                            let nextDue: typeof reference;
                             switch (reminder.frequency) {
                                 case 'daily':
-                                    // Add 1 day and preserve the local time (handles DST correctly)
-                                    nextDue = currentDue
-                                        .add(1, 'day')
-                                        .hour(hour)
-                                        .minute(minute)
-                                        .second(second);
+                                    nextDue = atReminderTime(reference);
+                                    if (!nextDue.isAfter(now) || !nextDue.isAfter(currentDue)) {
+                                        nextDue = atReminderTime(nextDue.add(1, 'day'));
+                                    }
                                     break;
                                 case 'weekly':
-                                    // Add 1 week and preserve the local time
-                                    nextDue = currentDue
-                                        .add(1, 'week')
-                                        .hour(hour)
-                                        .minute(minute)
-                                        .second(second);
-                                    // Ensure it's still on Saturday (in case of DST changes)
-                                    if (nextDue.day() !== 6) {
-                                        // Find the next Saturday from current position
-                                        const daysUntilSaturday = (6 - nextDue.day() + 7) % 7;
-                                        nextDue = nextDue.add(daysUntilSaturday, 'day');
+                                    nextDue = atReminderTime(reference.day(6));
+                                    if (!nextDue.isAfter(now) || !nextDue.isAfter(currentDue)) {
+                                        nextDue = atReminderTime(nextDue.add(1, 'week'));
                                     }
                                     break;
                                 case 'monthly':
-                                    // Move to the 1st of next month and preserve the local time
-                                    nextDue = currentDue
-                                        .add(1, 'month')
-                                        .date(1)
-                                        .hour(hour)
-                                        .minute(minute)
-                                        .second(second);
+                                    nextDue = atReminderTime(reference.date(1));
+                                    if (!nextDue.isAfter(now) || !nextDue.isAfter(currentDue)) {
+                                        nextDue = atReminderTime(nextDue.add(1, 'month'));
+                                    }
                                     break;
                                 default:
-                                    continue; // Skip if frequency is not recognized
+                                    continue;
                             }
-
-                            // Re-apply timezone rules for the target date while keeping local clock time.
-                            // This prevents stale offsets from shifting local day/time across DST boundaries.
-                            nextDue = nextDue.tz(userTz, true);
 
                             // Update recurring reminder with next due date (convert back to UTC)
                             await context.db('reminders').where('id', reminder.id).update({
