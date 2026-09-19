@@ -1,3 +1,4 @@
+import { escapeLikePattern } from '../../utils/sql-like.js';
 import type { Note, Notes, NotesQueryParams, AppContext } from '../../type.js';
 
 export function createNotesRepository(ctx: AppContext): Notes {
@@ -51,7 +52,7 @@ export function createNotesRepository(ctx: AppContext): Notes {
                     for (let i = 0; i < rawTerms.length; i++) {
                         const term = rawTerms[i];
                         if (term && term.length > 0) {
-                            searchTerms.push(term.replace(/[%_]/g, '\\$&'));
+                            searchTerms.push(escapeLikePattern(term));
                         }
                     }
 
@@ -60,10 +61,9 @@ export function createNotesRepository(ctx: AppContext): Notes {
                         for (let i = 0; i < searchTerms.length; i++) {
                             const term = searchTerms[i]!;
                             q.andWhere((subQ: any) => {
-                                subQ.whereRaw('LOWER(title) LIKE ?', [`%${term}%`]).orWhereRaw(
-                                    'LOWER(content) LIKE ?',
-                                    [`%${term}%`],
-                                );
+                                subQ.whereRaw("LOWER(title) LIKE ? ESCAPE '\\'", [
+                                    `%${term}%`,
+                                ]).orWhereRaw("LOWER(content) LIKE ? ESCAPE '\\'", [`%${term}%`]);
                             });
                         }
                     });

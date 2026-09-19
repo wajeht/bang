@@ -1,3 +1,4 @@
+import { escapeLikePattern } from '../../utils/sql-like.js';
 import type { Action, Actions, ActionsQueryParams, AppContext } from '../../type.js';
 
 export function createActionsRepository(ctx: AppContext): Actions {
@@ -80,7 +81,7 @@ export function createActionsRepository(ctx: AppContext): Actions {
                     for (let i = 0; i < rawTerms.length; i++) {
                         const term = rawTerms[i];
                         if (term && term.length > 0) {
-                            searchTerms.push(term.replace(/[%_]/g, '\\$&'));
+                            searchTerms.push(escapeLikePattern(term));
                         }
                     }
 
@@ -89,9 +90,13 @@ export function createActionsRepository(ctx: AppContext): Actions {
                         for (let i = 0; i < searchTerms.length; i++) {
                             const term = searchTerms[i]!;
                             q.andWhere((subQ: any) => {
-                                subQ.whereRaw('LOWER(bangs.name) LIKE ?', [`%${term}%`])
-                                    .orWhereRaw('LOWER(bangs.trigger) LIKE ?', [`%${term}%`])
-                                    .orWhereRaw('LOWER(bangs.url) LIKE ?', [`%${term}%`]);
+                                subQ.whereRaw("LOWER(bangs.name) LIKE ? ESCAPE '\\'", [`%${term}%`])
+                                    .orWhereRaw("LOWER(bangs.trigger) LIKE ? ESCAPE '\\'", [
+                                        `%${term}%`,
+                                    ])
+                                    .orWhereRaw("LOWER(bangs.url) LIKE ? ESCAPE '\\'", [
+                                        `%${term}%`,
+                                    ]);
                             });
                         }
                     });

@@ -27,6 +27,7 @@ export function createUtil(context: AppContext) {
 
     const plainTextMarked = new context.libs.Marked({ gfm: true, breaks: true });
     const FTS_TOKEN_REGEX = /[A-Za-z0-9_]+/g;
+    const REGEX_LITERAL_SEARCH_CHARACTERS = /[%_\\]/;
 
     const ACTION_TYPES = ['search', 'redirect'] as const;
 
@@ -90,6 +91,9 @@ export function createUtil(context: AppContext) {
         ACTION_TYPES,
 
         buildFtsQuery(search: string): string | null {
+            // FTS tokenization drops punctuation that literal searches must preserve.
+            if (REGEX_LITERAL_SEARCH_CHARACTERS.test(search)) return null;
+
             const terms = search.match(FTS_TOKEN_REGEX);
 
             if (!terms || terms.length === 0 || terms.some((term) => term.length < 2)) {
