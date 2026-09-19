@@ -7,7 +7,9 @@ export function createAuth(context: AppContext) {
     });
 
     const magicLinkPayload = context.libs.z.object({
-        email: context.libs.z.email(),
+        email: context.libs.z
+            .string()
+            .refine((email) => context.utils.validation.isValidEmail(email)),
         exp: context.libs.z.number().optional(),
     });
 
