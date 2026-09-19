@@ -152,4 +152,7 @@ opencode*
 .agents
 skills-lock.json
 dcdb.sh
-tools
+tools/*
+!tools/oxlint/
+tools/oxlint/*
+!tools/oxlint/anti-slop/

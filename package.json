@@ -73,7 +73,8 @@
         "knex": "3.3.0",
         "marked": "18.0.13",
         "node-cron": "4.6.0",
-        "nodemailer": "9.1.1"
+        "nodemailer": "9.1.1",
+        "zod": "4.6.5"
     },
     "devDependencies": {
         "@oxlint/plugins": "1.75.0",
@@ -95,6 +96,7 @@
         "@wajeht/express-templates-reload": "3.0.0",
         "clean-css": "5.3.3",
         "html-minifier-terser": "7.2.0",
+        "node-mocks-http": "1.18.1",
         "supertest": "7.2.2",
         "tsx": "4.23.13",
         "vite-plus": "0.2.7"
