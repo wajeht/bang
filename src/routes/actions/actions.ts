@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { validateActionShortcut } from '../../utils/action-shortcut.js';
 import type { User, AppContext } from '../../type.js';
 
 export function createActionsRouter(ctx: AppContext) {
@@ -179,9 +180,7 @@ export function createActionsRouter(ctx: AppContext) {
             throw new ctx.errors.ValidationError({ trigger: 'Trigger is required' });
         }
 
-        if (!ctx.utils.validation.isValidUrl(url)) {
-            throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
-        }
+        const formattedTrigger = validateActionShortcut(ctx, trigger, url);
 
         if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
             throw new ctx.errors.ValidationError({
@@ -204,14 +203,6 @@ export function createActionsRouter(ctx: AppContext) {
             }
         }
 
-        const formattedTrigger: string = ctx.utils.util.normalizeBangTrigger(trigger);
-
-        if (!ctx.utils.validation.isOnlyLettersAndNumbers(formattedTrigger.slice(1))) {
-            throw new ctx.errors.ValidationError({
-                trigger: 'Trigger can only contain letters and numbers',
-            });
-        }
-
         const existingBang = await ctx
             .db('bangs')
             .where({
@@ -226,7 +217,7 @@ export function createActionsRouter(ctx: AppContext) {
 
         await ctx.models.actions.create({
             name: name.trim(),
-            trigger: formattedTrigger.toLowerCase(),
+            trigger: formattedTrigger,
             url,
             action_type: actionType,
             actionType: actionType,

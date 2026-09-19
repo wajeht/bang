@@ -1,7 +1,92 @@
 import { authenticateAgent, authenticateApiAgent } from '../../tests/api-test-utils.js';
 import request from 'supertest';
-import { db, app } from '../../tests/test-setup.js';
-import { describe, it, expect, vi } from 'vite-plus/test';
+import { db, app, ctx } from '../../tests/test-setup.js';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vite-plus/test';
+
+describe('Action creation validation', () => {
+    beforeEach(() => {
+        vi.spyOn(ctx.utils.util, 'fetchPageTitle').mockResolvedValue('Example page');
+        vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response());
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it.each([
+        {
+            trigger: '!bad-trigger',
+            url: 'https://example.com',
+            message: 'Trigger can only contain letters and numbers',
+        },
+        {
+            trigger: '!bad_trigger',
+            url: 'https://example.com',
+            message: 'Trigger can only contain letters and numbers',
+        },
+        { trigger: '!badurl', url: 'not-a-url', message: 'Invalid URL format' },
+    ])(
+        'should reject $trigger with $url through command, form, and API creation',
+        async ({ trigger, url, message }) => {
+            const { agent, user } = await authenticateAgent(app);
+
+            const commandResponse = await agent
+                .get('/')
+                .query({ q: `!add ${trigger} ${url}` })
+                .expect(422);
+            expect(commandResponse.text).toContain(message);
+            await agent
+                .post('/actions')
+                .set('Referer', '/actions/create')
+                .send({ name: 'Invalid shortcut', trigger, url, actionType: 'redirect' })
+                .expect(302)
+                .expect('Location', '/actions/create');
+            const formResponse = await agent.get('/actions/create').expect(200);
+            expect(formResponse.text).toContain(message);
+            const apiResponse = await agent
+                .post('/api/actions')
+                .set('Accept', 'application/json')
+                .send({ name: 'Invalid shortcut', trigger, url, actionType: 'redirect' })
+                .expect(422);
+            expect(Object.values(apiResponse.body.details)).toContain(message);
+            expect(await db('bangs').where({ user_id: user.id })).toHaveLength(0);
+        },
+    );
+
+    it.each(['http://example.com/path', 'https://example.com/path', 'mailto:test@example.com'])(
+        'should accept %s with the same normalized trigger through command, form, and API creation',
+        async (url) => {
+            const { agent, user } = await authenticateAgent(app);
+            await ctx.utils.search.loadCachedTriggers(user.id);
+
+            await agent
+                .get('/')
+                .query({ q: `!add Command123 ${url}` })
+                .expect(200);
+            await agent.get('/').query({ q: '!command123' }).expect(302).expect('Location', url);
+            await agent
+                .post('/actions')
+                .send({ name: 'Form shortcut', trigger: 'Form123', url, actionType: 'redirect' })
+                .expect(302);
+            await agent.get('/').query({ q: '!form123' }).expect(302).expect('Location', url);
+            await agent
+                .post('/api/actions')
+                .set('Accept', 'application/json')
+                .send({ name: 'API shortcut', trigger: 'Api123', url, actionType: 'redirect' })
+                .expect(201);
+            await agent.get('/').query({ q: '!api123' }).expect(302).expect('Location', url);
+
+            const shortcuts = await db('bangs').where({ user_id: user.id }).orderBy('trigger');
+            expect(shortcuts).toHaveLength(3);
+            expect(shortcuts[0].trigger).toBe('!api123');
+            expect(shortcuts[1].trigger).toBe('!command123');
+            expect(shortcuts[2].trigger).toBe('!form123');
+            for (const shortcut of shortcuts) {
+                expect(shortcut.url).toBe(url);
+            }
+        },
+    );
+});
 
 describe('Actions API', () => {
     describe('GET /api/actions', () => {
