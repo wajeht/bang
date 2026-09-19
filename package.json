@@ -89,7 +89,6 @@
         "@types/html-minifier-terser": "7.0.2",
         "@types/jsonwebtoken": "9.0.10",
         "@types/node": "25.9.8",
-        "@types/nodemailer": "8.0.2",
         "@types/supertest": "7.2.1",
         "@typescript/native-preview": "7.0.0-dev.20260707.2",
         "@vitest/coverage-v8": "4.1.10",
