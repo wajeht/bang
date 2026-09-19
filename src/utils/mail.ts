@@ -1,7 +1,7 @@
 import { styleText } from 'node:util';
 import type { Request } from 'express';
 import type { AppContext } from '../type.js';
-import type { Attachment } from 'nodemailer/lib/mailer/index.js';
+import type { Attachment } from 'nodemailer';
 
 export function createMail(context: AppContext) {
     const logger = context.logger.tag('service', 'mail');
