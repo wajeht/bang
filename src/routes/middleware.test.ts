@@ -1,3 +1,5 @@
+import { createUserFixture } from '../tests/test-db.js';
+import { createRequestFixture, createResponseFixture } from '../tests/http-fixtures.js';
 import {
     createCsrfMiddleware,
     createErrorMiddleware,
@@ -7,15 +9,15 @@ import {
 } from './middleware.js';
 import { createContext } from '../context.js';
 import { db } from '../tests/test-setup.js';
-import { Session } from 'express-session';
-import type { User, AppContext } from '../type.js';
-import type { Request, Response, NextFunction } from 'express';
+
+import type { AppContext } from '../type.js';
+import type { NextFunction } from 'express';
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vite-plus/test';
 import { NotFoundError, ValidationError, ForbiddenError, UnauthorizedError } from '../error.js';
 
 describe('authenticationMiddleware', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
+    let req: ReturnType<typeof createRequestFixture>;
+    let res: ReturnType<typeof createResponseFixture>;
     let next: NextFunction;
     let testUser: any;
     let ctx: AppContext;
@@ -34,7 +36,7 @@ describe('authenticationMiddleware', () => {
         vi.spyOn(ctx.logger, 'info').mockImplementation(() => {});
         vi.spyOn(ctx.logger, 'tag').mockReturnValue(ctx.logger);
 
-        req = {
+        req = createRequestFixture({
             session: {
                 destroy: vi.fn((callback) => callback(null)),
                 save: vi.fn(),
@@ -42,39 +44,39 @@ describe('authenticationMiddleware', () => {
                 reload: vi.fn(),
                 touch: vi.fn(),
                 id: 'test-session-id',
-                cookie: { maxAge: 30000 },
+                cookie: { maxAge: 30000, originalMaxAge: 30000 },
                 user: undefined,
                 redirectTo: undefined,
-            } as unknown as Session & { user?: any; redirectTo?: string },
+            },
             originalUrl: '/dashboard',
             url: '/dashboard',
             path: '/dashboard',
             user: undefined,
             headers: {},
             header: vi.fn((name: string) => {
-                const headers = (req as any).headers || {};
+                const headers = req.headers || {};
 
                 return headers[name.toLowerCase()];
             }),
-        };
+        });
 
-        res = {
+        res = createResponseFixture({
             redirect: vi.fn(),
-        };
+        });
 
         next = vi.fn();
     });
 
     it('should authenticate user from session', async () => {
-        const sessionUser = {
+        const sessionUser = createUserFixture({
             id: testUser.id,
             username: testUser.username,
             email: testUser.email,
-        } as unknown as User;
+        });
 
         req.session!.user = sessionUser;
 
-        await authenticationMiddleware(req as Request, res as Response, next);
+        await authenticationMiddleware(req, res, next);
 
         expect(req.user).toEqual(
             expect.objectContaining({
@@ -94,7 +96,7 @@ describe('authenticationMiddleware', () => {
 
     it('should skip parseColumnPreferences on a fresh session-cache hit', async () => {
         // Simulate a recently-cached session user with already-parsed prefs
-        const parsedUser = {
+        const parsedUser = createUserFixture({
             id: testUser.id,
             username: testUser.username,
             email: testUser.email,
@@ -106,15 +108,15 @@ describe('authenticationMiddleware', () => {
                 reminders: { default_per_page: 25 },
                 users: { default_per_page: 25 },
             },
-        } as unknown as User;
+        });
 
         req.session!.user = parsedUser;
-        (req.session as any).userCachedAt = Date.now(); // fresh cache → needsRefresh=false
+        req.session.userCachedAt = Date.now(); // fresh cache → needsRefresh=false
 
         const parseSpy = vi.spyOn(ctx.utils.util, 'parseColumnPreferences');
         const dbReadSpy = vi.spyOn(ctx.models.users, 'read');
 
-        await authenticationMiddleware(req as Request, res as Response, next);
+        await authenticationMiddleware(req, res, next);
 
         expect(parseSpy).not.toHaveBeenCalled();
         expect(dbReadSpy).not.toHaveBeenCalled();
@@ -127,17 +129,17 @@ describe('authenticationMiddleware', () => {
     });
 
     it('should re-parse column_preferences on a stale session-cache miss', async () => {
-        const sessionUser = {
+        const sessionUser = createUserFixture({
             id: testUser.id,
             username: testUser.username,
             email: testUser.email,
-        } as unknown as User;
+        });
 
         req.session!.user = sessionUser;
         // userCachedAt absent → cache treated as expired → needsRefresh=true
         const parseSpy = vi.spyOn(ctx.utils.util, 'parseColumnPreferences');
 
-        await authenticationMiddleware(req as Request, res as Response, next);
+        await authenticationMiddleware(req, res, next);
 
         expect(parseSpy).toHaveBeenCalled();
         expect(req.user!.column_preferences.bookmarks.default_per_page).toBe(10);
@@ -146,16 +148,16 @@ describe('authenticationMiddleware', () => {
     });
 
     it('should destroy session if user in session not found in db', async () => {
-        const sessionUser = {
+        const sessionUser = createUserFixture({
             id: 999999, // Non-existent ID
             username: 'nonexistent',
             email: 'nonexistent@example.com',
-        } as unknown as User;
+        });
 
         req.session!.user = sessionUser;
         req.headers = {}; // No API key
 
-        await authenticationMiddleware(req as Request, res as Response, next);
+        await authenticationMiddleware(req, res, next);
 
         expect(req.session!.destroy).toHaveBeenCalled();
 
@@ -177,7 +179,7 @@ describe('authenticationMiddleware', () => {
         // Set API key in request header
         req.headers = { authorization: `Bearer ${apiKey}` };
 
-        await authenticationMiddleware(req as Request, res as Response, next);
+        await authenticationMiddleware(req, res, next);
 
         expect(req.user).toEqual(
             expect.objectContaining({
@@ -200,7 +202,7 @@ describe('authenticationMiddleware', () => {
         const apiKey = 'invalid-api-key';
         req.headers = { authorization: `Bearer ${apiKey}` };
 
-        await authenticationMiddleware(req as Request, res as Response, next);
+        await authenticationMiddleware(req, res, next);
 
         expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
         expect(ctx.logger.error).toHaveBeenCalled();
@@ -210,12 +212,12 @@ describe('authenticationMiddleware', () => {
         req.session!.user = undefined;
         req.headers = {}; // No API key
 
-        await authenticationMiddleware(req as Request, res as Response, next);
+        await authenticationMiddleware(req, res, next);
 
         // After DI refactoring, middleware should either redirect or call next
         // Just verify that one of them was called
         const wasRedirectedOrNext =
-            (res.redirect as any).mock.calls.length > 0 || (next as any).mock.calls.length > 0;
+            vi.mocked(res.redirect).mock.calls.length > 0 || vi.mocked(next).mock.calls.length > 0;
 
         expect(wasRedirectedOrNext).toBe(true);
 
@@ -226,9 +228,9 @@ describe('authenticationMiddleware', () => {
     it('should throw UnauthorizedError if no user found and is API request', async () => {
         req.session!.user = undefined;
         req.headers = { accept: 'application/json' }; // API request marker
-        (req as any).path = '/api/test'; // API path
+        req = createRequestFixture({ ...req, path: '/api/test' }); // API path
 
-        await authenticationMiddleware(req as Request, res as Response, next);
+        await authenticationMiddleware(req, res, next);
 
         expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
         expect(ctx.logger.error).toHaveBeenCalled();
@@ -247,15 +249,15 @@ describe('authenticationMiddleware', () => {
 
         const nullPrefUser = users[0];
 
-        const sessionUser = {
+        const sessionUser = createUserFixture({
             id: nullPrefUser.id,
             username: nullPrefUser.username,
             email: nullPrefUser.email,
-        } as unknown as User;
+        });
 
         req.session!.user = sessionUser;
 
-        await authenticationMiddleware(req as Request, res as Response, next);
+        await authenticationMiddleware(req, res, next);
 
         expect(req.user).toEqual(
             expect.objectContaining({
@@ -280,15 +282,15 @@ describe('authenticationMiddleware', () => {
         const testError = new Error('Test database error');
         vi.spyOn(ctx.models.users, 'read').mockRejectedValue(testError);
 
-        const sessionUser = {
+        const sessionUser = createUserFixture({
             id: testUser.id,
             username: testUser.username,
             email: testUser.email,
-        } as unknown as User;
+        });
 
         req.session!.user = sessionUser;
 
-        await authenticationMiddleware(req as Request, res as Response, next);
+        await authenticationMiddleware(req, res, next);
 
         expect(ctx.logger.error).toHaveBeenCalled();
         expect(next).toHaveBeenCalledWith(expect.any(Error));
@@ -296,8 +298,8 @@ describe('authenticationMiddleware', () => {
 });
 
 describe('errorMiddleware', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
+    let req: ReturnType<typeof createRequestFixture>;
+    let res: ReturnType<typeof createResponseFixture>;
     let next: NextFunction;
     let ctx: AppContext;
     let errorMiddleware: any;
@@ -315,7 +317,7 @@ describe('errorMiddleware', () => {
     beforeEach(() => {
         vi.resetAllMocks();
 
-        req = {
+        req = createRequestFixture({
             method: 'GET',
             path: '/test',
             url: '/test',
@@ -329,33 +331,28 @@ describe('errorMiddleware', () => {
                 reload: vi.fn(),
                 touch: vi.fn(),
                 id: 'test-session-id',
-                cookie: { maxAge: 30000 },
-            } as unknown as Session,
+                cookie: { maxAge: 30000, originalMaxAge: 30000 },
+            },
             flash: vi.fn().mockReturnValue([]),
             header: vi.fn((name: string) => {
-                const headers = (req as any).headers || {};
+                const headers = req.headers || {};
 
                 return headers[name.toLowerCase()];
             }),
-        };
-        res = {
+        });
+        res = createResponseFixture({
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
             redirect: vi.fn().mockReturnThis(),
             locals: {},
-        };
+        });
         next = vi.fn();
     });
 
     it('should preserve the correct status code for different error types', async () => {
         const notFoundError = new NotFoundError('Resource not found');
-        await errorMiddleware(
-            notFoundError,
-            req as unknown as Request,
-            res as unknown as Response,
-            next,
-        );
+        await errorMiddleware(notFoundError, req, res, next);
         expect(res.status).toHaveBeenCalledWith(404);
         expect(res.render).toHaveBeenCalledWith(
             'general/error.html',
@@ -366,39 +363,29 @@ describe('errorMiddleware', () => {
         );
 
         vi.resetAllMocks();
-        res = {
+        res = createResponseFixture({
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
             redirect: vi.fn().mockReturnThis(),
             locals: {},
-        };
+        });
 
         const validationError = new ValidationError('Invalid input');
-        await errorMiddleware(
-            validationError,
-            req as unknown as Request,
-            res as unknown as Response,
-            next,
-        );
+        await errorMiddleware(validationError, req, res, next);
         expect(res.redirect).toHaveBeenCalledWith('/');
 
         vi.resetAllMocks();
-        res = {
+        res = createResponseFixture({
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
             redirect: vi.fn().mockReturnThis(),
             locals: {},
-        };
+        });
 
         const unauthorizedError = new UnauthorizedError('Unauthorized access');
-        await errorMiddleware(
-            unauthorizedError,
-            req as unknown as Request,
-            res as unknown as Response,
-            next,
-        );
+        await errorMiddleware(unauthorizedError, req, res, next);
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.render).toHaveBeenCalledWith(
             'general/error.html',
@@ -409,21 +396,16 @@ describe('errorMiddleware', () => {
         );
 
         vi.resetAllMocks();
-        res = {
+        res = createResponseFixture({
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
             redirect: vi.fn().mockReturnThis(),
             locals: {},
-        };
+        });
 
         const forbiddenError = new ForbiddenError('Forbidden access');
-        await errorMiddleware(
-            forbiddenError,
-            req as unknown as Request,
-            res as unknown as Response,
-            next,
-        );
+        await errorMiddleware(forbiddenError, req, res, next);
         expect(res.status).toHaveBeenCalledWith(403);
         expect(res.render).toHaveBeenCalledWith(
             'general/error.html',
@@ -434,21 +416,16 @@ describe('errorMiddleware', () => {
         );
 
         vi.resetAllMocks();
-        res = {
+        res = createResponseFixture({
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
             redirect: vi.fn().mockReturnThis(),
             locals: {},
-        };
+        });
 
         const regularError = new Error('Something went wrong');
-        await errorMiddleware(
-            regularError,
-            req as unknown as Request,
-            res as unknown as Response,
-            next,
-        );
+        await errorMiddleware(regularError, req, res, next);
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.render).toHaveBeenCalledWith(
             'general/error.html',
@@ -461,15 +438,10 @@ describe('errorMiddleware', () => {
 
     it('should handle API requests with different error types', async () => {
         req.headers = { accept: 'application/json' };
-        (req as any).path = '/api/test';
+        req = createRequestFixture({ ...req, path: '/api/test' });
 
         const notFoundError = new NotFoundError('API resource not found');
-        await errorMiddleware(
-            notFoundError,
-            req as unknown as Request,
-            res as unknown as Response,
-            next,
-        );
+        await errorMiddleware(notFoundError, req, res, next);
         expect(res.status).toHaveBeenCalledWith(404);
         expect(res.json).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -479,22 +451,17 @@ describe('errorMiddleware', () => {
 
         vi.resetAllMocks();
         req.headers = { accept: 'application/json' };
-        (req as any).path = '/api/test';
-        res = {
+        req = createRequestFixture({ ...req, path: '/api/test' });
+        res = createResponseFixture({
             status: vi.fn().mockReturnThis(),
             json: vi.fn().mockReturnThis(),
             render: vi.fn().mockReturnThis(),
             redirect: vi.fn().mockReturnThis(),
             locals: {},
-        };
+        });
 
         const validationError = new ValidationError('{"fields":{"name":"Required"}}');
-        await errorMiddleware(
-            validationError,
-            req as unknown as Request,
-            res as unknown as Response,
-            next,
-        );
+        await errorMiddleware(validationError, req, res, next);
         expect(res.status).toHaveBeenCalledWith(422);
         expect(res.json).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -513,12 +480,7 @@ describe('errorMiddleware', () => {
             email: 'Email is invalid',
         };
 
-        await errorMiddleware(
-            validationError,
-            req as unknown as Request,
-            res as unknown as Response,
-            next,
-        );
+        await errorMiddleware(validationError, req, res, next);
 
         expect(req.flash).toHaveBeenCalledWith('error', 'Name is required, Email is invalid');
         expect(res.redirect).toHaveBeenCalledWith('/test-page');
@@ -526,8 +488,8 @@ describe('errorMiddleware', () => {
 });
 
 describe('AppLocalStateMiddleware', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
+    let req: ReturnType<typeof createRequestFixture>;
+    let res: ReturnType<typeof createResponseFixture>;
     let next: NextFunction;
     let ctx: AppContext;
     let appLocalStateMiddleware: any;
@@ -540,7 +502,7 @@ describe('AppLocalStateMiddleware', () => {
     beforeEach(() => {
         vi.resetAllMocks();
 
-        req = {
+        req = createRequestFixture({
             method: 'GET',
             path: '/dashboard',
             url: '/dashboard',
@@ -551,99 +513,104 @@ describe('AppLocalStateMiddleware', () => {
                 reload: vi.fn(),
                 touch: vi.fn(),
                 id: 'test-session-id',
-                cookie: { maxAge: 30000 },
-                user: { id: 1, username: 'test' },
-            } as unknown as Session & { user?: any },
+                cookie: { maxAge: 30000, originalMaxAge: 30000 },
+                user: createUserFixture({ id: 1, username: 'test' }),
+            },
             user: undefined,
             flash: vi.fn().mockReturnValue([]),
-        };
+        });
 
-        res = {
+        res = createResponseFixture({
             locals: {},
-        };
+        });
 
         next = vi.fn();
     });
 
     it('should skip setting up locals for API routes', async () => {
-        (req as any).path = '/api/settings/api-key';
+        req = createRequestFixture({ ...req, path: '/api/settings/api-key' });
 
-        await appLocalStateMiddleware(req as Request, res as Response, next);
+        await appLocalStateMiddleware(req, res, next);
 
         expect(next).toHaveBeenCalled();
         expect(res.locals).toEqual({});
     });
 
     it('should skip setting up locals for nested API routes', async () => {
-        (req as any).path = '/api/notes/render-markdown';
+        req = createRequestFixture({ ...req, path: '/api/notes/render-markdown' });
 
-        await appLocalStateMiddleware(req as Request, res as Response, next);
+        await appLocalStateMiddleware(req, res, next);
 
         expect(next).toHaveBeenCalled();
         expect(res.locals).toEqual({});
     });
 
     it('should set up locals for non-API routes', async () => {
-        (req as any).path = '/dashboard';
+        req = createRequestFixture({ ...req, path: '/dashboard' });
 
-        await appLocalStateMiddleware(req as Request, res as Response, next);
+        await appLocalStateMiddleware(req, res, next);
 
         expect(next).toHaveBeenCalled();
         expect(res.locals).toHaveProperty('state');
         expect(res.locals).toHaveProperty('utils');
-        expect((res.locals as any).state).toHaveProperty('copyRightYear');
-        expect((res.locals as any).state).toHaveProperty('version');
+        expect(res.locals.state).toHaveProperty('copyRightYear');
+        expect(res.locals.state).toHaveProperty('version');
     });
 
     it('should set up locals for HTML page routes', async () => {
-        (req as any).path = '/bookmarks';
+        req = createRequestFixture({ ...req, path: '/bookmarks' });
 
-        await appLocalStateMiddleware(req as Request, res as Response, next);
+        await appLocalStateMiddleware(req, res, next);
 
         expect(next).toHaveBeenCalled();
         expect(res.locals).toHaveProperty('state');
-        expect((res.locals as any).state.user).toBeDefined();
+        expect(res.locals.state.user).toBeDefined();
     });
 
     it('should cache static values across multiple calls', async () => {
-        (req as any).path = '/notes';
+        req = createRequestFixture({ ...req, path: '/notes' });
 
-        await appLocalStateMiddleware(req as Request, res as Response, next);
+        await appLocalStateMiddleware(req, res, next);
 
-        const firstCopyRightYear = (res.locals as any).state.copyRightYear;
-        const firstVersion = (res.locals as any).state.version;
+        const firstCopyRightYear = res.locals.state.copyRightYear;
+        const firstVersion = res.locals.state.version;
 
         // Reset and call again
         res.locals = {};
-        (req as any).path = '/reminders';
+        req = createRequestFixture({ ...req, path: '/reminders' });
 
-        await appLocalStateMiddleware(req as Request, res as Response, next);
+        await appLocalStateMiddleware(req, res, next);
 
-        const secondCopyRightYear = (res.locals as any).state.copyRightYear;
-        const secondVersion = (res.locals as any).state.version;
+        const secondCopyRightYear = res.locals.state.copyRightYear;
+        const secondVersion = res.locals.state.version;
 
         expect(firstCopyRightYear).toBe(secondCopyRightYear);
         expect(firstVersion).toBe(secondVersion);
     });
 
     it('should provide utility functions in locals', async () => {
-        (req as any).path = '/tabs';
+        req = createRequestFixture({ ...req, path: '/tabs' });
 
-        await appLocalStateMiddleware(req as Request, res as Response, next);
+        await appLocalStateMiddleware(req, res, next);
 
-        expect((res.locals as any).utils).toHaveProperty('nl2br');
-        expect((res.locals as any).utils).toHaveProperty('truncateString');
-        expect((res.locals as any).utils).toHaveProperty('capitalize');
-        expect((res.locals as any).utils).toHaveProperty('getFaviconUrl');
-        expect((res.locals as any).utils).toHaveProperty('stripHtmlTags');
-        expect((res.locals as any).utils).toHaveProperty('highlightSearchTerm');
-        expect((res.locals as any).utils).toHaveProperty('formatDateInTimezone');
+        expect(res.locals.utils).toHaveProperty('nl2br');
+        expect(res.locals.utils).toHaveProperty('truncateString');
+        expect(res.locals.utils).toHaveProperty('capitalize');
+        expect(res.locals.utils).toHaveProperty('getFaviconUrl');
+        expect(res.locals.utils).toHaveProperty('stripHtmlTags');
+        expect(res.locals.utils).toHaveProperty('highlightSearchTerm');
+        expect(res.locals.utils).toHaveProperty('formatDateInTimezone');
     });
 });
 
 describe('RequestLoggerMiddleware', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response> & { on: ReturnType<typeof vi.fn>; get: ReturnType<typeof vi.fn> };
+    let req: ReturnType<typeof createRequestFixture>;
+
+    let res: ReturnType<typeof createResponseFixture> & {
+        on: ReturnType<typeof vi.fn>;
+        get: ReturnType<typeof vi.fn>;
+    };
+
     let next: NextFunction;
     let ctx: AppContext;
     let requestLoggerMiddleware: ReturnType<typeof createRequestLoggerMiddleware>;
@@ -661,7 +628,7 @@ describe('RequestLoggerMiddleware', () => {
             time: vi.fn(),
             table: vi.fn(),
             box: vi.fn(),
-        } as any);
+        });
         requestLoggerMiddleware = createRequestLoggerMiddleware(ctx);
     });
 
@@ -669,64 +636,66 @@ describe('RequestLoggerMiddleware', () => {
         vi.clearAllMocks();
         finishHandler = null;
 
-        req = {
+        req = createRequestFixture({
             method: 'GET',
             path: '/test',
             query: {},
             ip: '127.0.0.1',
-            socket: { remoteAddress: '127.0.0.1' } as any,
+            socket: { remoteAddress: '127.0.0.1' },
             user: undefined,
             get: vi.fn().mockReturnValue(undefined),
-        };
+        });
 
-        res = {
+        res = createResponseFixture({
             statusCode: 200,
             on: vi.fn((event: string, handler: (...args: any[]) => void) => {
                 if (event === 'finish') {
                     finishHandler = handler;
                 }
-            }) as any,
+
+                return res;
+            }),
             get: vi.fn().mockReturnValue(undefined),
-        };
+        });
 
         next = vi.fn();
     });
 
     it('should add logger to request object', () => {
-        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        requestLoggerMiddleware(req, res, next);
 
         expect(req.logger).toBeDefined();
-        expect(typeof req.logger?.info).toBe('function');
+        expect(req.logger?.info).toBeTypeOf('function');
     });
 
     it('should call next', () => {
-        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        requestLoggerMiddleware(req, res, next);
 
         expect(next).toHaveBeenCalled();
     });
 
     it('should register finish handler on response', () => {
-        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        requestLoggerMiddleware(req, res, next);
 
         expect(res.on).toHaveBeenCalledWith('finish', expect.any(Function));
     });
 
     it('should create logger with requestId and method tags', () => {
-        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        requestLoggerMiddleware(req, res, next);
 
         expect(ctx.logger.tag).toHaveBeenCalledWith('requestId', expect.any(String));
     });
 
     it('should generate 8-character requestId', () => {
-        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        requestLoggerMiddleware(req, res, next);
 
-        const tagCall = (ctx.logger.tag as ReturnType<typeof vi.fn>).mock.calls[0];
+        const tagCall = vi.mocked(ctx.logger.tag).mock.calls[0];
         expect(tagCall[0]).toBe('requestId');
         expect(tagCall[1]).toHaveLength(8);
     });
 
     it('should log request on finish', () => {
-        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        requestLoggerMiddleware(req, res, next);
 
         expect(finishHandler).not.toBeNull();
         finishHandler!();
@@ -743,7 +712,7 @@ describe('RequestLoggerMiddleware', () => {
     it('should include query string when present', () => {
         req.query = { search: 'test', page: '1' };
 
-        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        requestLoggerMiddleware(req, res, next);
         finishHandler!();
 
         expect(req.logger?.info).toHaveBeenCalledWith(
@@ -757,7 +726,7 @@ describe('RequestLoggerMiddleware', () => {
     it('should not include query when empty', () => {
         req.query = {};
 
-        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        requestLoggerMiddleware(req, res, next);
         finishHandler!();
 
         expect(req.logger?.info).toHaveBeenCalledWith(
@@ -769,9 +738,9 @@ describe('RequestLoggerMiddleware', () => {
     });
 
     it('should include userId when user is authenticated', () => {
-        req.user = { id: 42 } as any;
+        req.user = createUserFixture({ id: 42 });
 
-        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        requestLoggerMiddleware(req, res, next);
         finishHandler!();
 
         expect(req.logger?.info).toHaveBeenCalledWith(
@@ -785,7 +754,7 @@ describe('RequestLoggerMiddleware', () => {
     it('should use anon for userId when not authenticated', () => {
         req.user = undefined;
 
-        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        requestLoggerMiddleware(req, res, next);
         finishHandler!();
 
         expect(req.logger?.info).toHaveBeenCalledWith(
@@ -807,7 +776,7 @@ describe('RequestLoggerMiddleware', () => {
             return callCount === 1 ? 0 : ctx.config.app.slowRequestMs + 100;
         });
 
-        requestLoggerMiddleware(req as Request, res as unknown as Response, next);
+        requestLoggerMiddleware(req, res, next);
         finishHandler!();
 
         expect(req.logger?.info).toHaveBeenCalledWith(
@@ -822,8 +791,8 @@ describe('RequestLoggerMiddleware', () => {
 });
 
 describe('CsrfMiddleware', () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
+    let req: ReturnType<typeof createRequestFixture>;
+    let res: ReturnType<typeof createResponseFixture>;
     let next: NextFunction;
     let ctx: AppContext;
     let csrfMiddleware: ReturnType<typeof createCsrfMiddleware>;
@@ -838,7 +807,7 @@ describe('CsrfMiddleware', () => {
         vi.spyOn(ctx.logger, 'error').mockImplementation(() => {});
         vi.spyOn(ctx.logger, 'tag').mockReturnValue(ctx.logger);
 
-        req = {
+        req = createRequestFixture({
             method: 'GET',
             path: '/test',
             body: {},
@@ -850,59 +819,64 @@ describe('CsrfMiddleware', () => {
                 reload: vi.fn(),
                 touch: vi.fn(),
                 id: 'test-session-id',
-                cookie: { maxAge: 30000 },
-            } as unknown as Session,
+                cookie: { maxAge: 30000, originalMaxAge: 30000 },
+            },
             header: vi.fn((name: string) => {
-                const headers = (req as any).headers || {};
+                const headers = req.headers || {};
 
                 return headers[name.toLowerCase()];
             }),
-        };
+        });
 
-        res = {
+        res = createResponseFixture({
             locals: {},
-        };
+        });
 
         next = vi.fn();
     });
 
     it('should generate CSRF token and save session', async () => {
-        csrfMiddleware[0](req as Request, res as Response, next);
+        csrfMiddleware[0](req, res, next);
         expect(next).toHaveBeenCalled();
 
         vi.resetAllMocks();
 
-        csrfMiddleware[1](req as Request, res as Response, next);
+        csrfMiddleware[1](req, res, next);
 
         expect(res.locals).toHaveProperty('csrfToken');
-        expect(typeof res.locals!.csrfToken).toBe('string');
+        expect(res.locals!.csrfToken).toBeTypeOf('string');
         expect(res.locals!.csrfToken.length).toBeGreaterThan(0);
         expect(req.session!.save).toHaveBeenCalled();
         expect(next).toHaveBeenCalled();
     });
 
     it('should save session after CSRF token generation for new visitors', async () => {
-        req.session = {
-            destroy: vi.fn((callback) => callback(null)),
-            save: vi.fn((callback) => callback && callback(null)),
-            regenerate: vi.fn(),
-            reload: vi.fn(),
-            touch: vi.fn(),
-            id: 'new-session-id',
-            cookie: { maxAge: 30000 },
-        } as unknown as Session;
+        req = createRequestFixture({
+            method: 'GET',
+            path: '/test',
+            headers: {},
+            session: {
+                destroy: vi.fn((callback) => callback(null)),
+                save: vi.fn((callback) => callback && callback(null)),
+                regenerate: vi.fn(),
+                reload: vi.fn(),
+                touch: vi.fn(),
+                id: 'new-session-id',
+                cookie: { maxAge: 30000 },
+            },
+        });
 
-        csrfMiddleware[1](req as Request, res as Response, next);
+        csrfMiddleware[1](req, res, next);
 
         expect(req.session!.save).toHaveBeenCalled();
         expect(res.locals!.csrfToken).toBeDefined();
     });
 
     it('should skip CSRF protection for API routes', () => {
-        (req as any).path = '/api/test';
+        req = createRequestFixture({ ...req, path: '/api/test' });
         req.method = 'POST';
 
-        csrfMiddleware[0](req as Request, res as Response, next);
+        csrfMiddleware[0](req, res, next);
 
         expect(next).toHaveBeenCalled();
     });
@@ -910,7 +884,7 @@ describe('CsrfMiddleware', () => {
     it('should skip CSRF protection for GET requests', () => {
         req.method = 'GET';
 
-        csrfMiddleware[0](req as Request, res as Response, next);
+        csrfMiddleware[0](req, res, next);
 
         expect(next).toHaveBeenCalled();
     });
@@ -919,7 +893,7 @@ describe('CsrfMiddleware', () => {
         const saveError = new Error('Session save failed');
         req.session!.save = vi.fn((callback) => callback && callback(saveError));
 
-        csrfMiddleware[1](req as Request, res as Response, next);
+        csrfMiddleware[1](req, res, next);
 
         await vi.waitFor(() => {
             expect(ctx.logger.error).toHaveBeenCalledWith(
@@ -930,9 +904,9 @@ describe('CsrfMiddleware', () => {
     });
 
     it('should set empty token and continue if token generation fails', () => {
-        req.session = undefined as any;
+        Object.assign(req, { session: undefined });
 
-        csrfMiddleware[1](req as Request, res as Response, next);
+        csrfMiddleware[1](req, res, next);
 
         expect(res.locals!.csrfToken).toBe('');
         expect(next).toHaveBeenCalled();

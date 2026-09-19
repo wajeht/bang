@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module';
+import { z } from 'zod';
 import knex from 'knex';
 import cors from 'cors';
 import { Eta } from 'eta';
@@ -26,7 +28,13 @@ dayjsBase.extend(timezone);
 
 export const dayjs = dayjsBase;
 
+const expressJSDocSwagger: typeof import('express-jsdoc-swagger').default = createRequire(
+    import.meta.url,
+)('express-jsdoc-swagger');
+
 export const libs = {
+    expressJSDocSwagger,
+    z,
     // Core utilities
     jwt,
     dayjs,

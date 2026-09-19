@@ -1,10 +1,9 @@
 import { authenticateAgent, authenticateAdminAgent } from '../../tests/api-test-utils.js';
 import request from 'supertest';
-import { db, app } from '../../tests/test-setup.js';
+import { db, app, ctx } from '../../tests/test-setup.js';
 import { describe, it, expect, beforeEach, beforeAll } from 'vite-plus/test';
 import { createSettingsRepository } from './settings.repository.js';
 import { config } from '../../config.js';
-import { libs } from '../../libs.js';
 
 describe('Admin Routes', () => {
     describe('GET /admin', () => {
@@ -381,7 +380,6 @@ describe('SettingsRepository', () => {
     let settingsRepo: ReturnType<typeof createSettingsRepository>;
 
     beforeAll(() => {
-        const ctx = { db, config, libs } as any;
         settingsRepo = createSettingsRepository(ctx);
     });
 

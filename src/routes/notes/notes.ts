@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { AppContext, User } from '../../type.js';
+import type { AppContext } from '../../type.js';
 
 export function createNotesRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
@@ -50,7 +50,7 @@ export function createNotesRouter(ctx: AppContext) {
     router.get('/notes', ctx.middleware.authentication, getNotesHandler);
 
     async function getNotesHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
 
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'notes');
@@ -133,10 +133,10 @@ export function createNotesRouter(ctx: AppContext) {
         '/notes/:id/edit',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
 
             const note = await ctx.models.notes.read(
-                parseInt(req.params.id as unknown as string),
+                parseInt(String(req.params.id ?? '')),
                 user.id,
             );
 
@@ -174,12 +174,9 @@ export function createNotesRouter(ctx: AppContext) {
     router.get('/notes/:id', ctx.middleware.authentication, getNoteHandler);
 
     async function getNoteHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
 
-        let note = await ctx.models.notes.read(
-            parseInt(req.params.id as unknown as string),
-            user.id,
-        );
+        let note = await ctx.models.notes.read(parseInt(String(req.params.id ?? '')), user.id);
 
         if (!note) {
             throw new ctx.errors.NotFoundError('Note not found');
@@ -263,7 +260,7 @@ export function createNotesRouter(ctx: AppContext) {
                 .replace(/<template/g, '&lt;template')
                 .replace(/<\/template>/g, '&lt;/template&gt;');
 
-            content = sharedMarked.parse(escapedContent) as string;
+            content = sharedMarked.parse(escapedContent, { async: false });
         } catch (_error) {
             content = '';
             ctx.logger.error(`cannot parse content into markdown`, { error: _error });
@@ -310,19 +307,19 @@ export function createNotesRouter(ctx: AppContext) {
             throw new ctx.errors.ValidationError({ content: 'Content is required' });
         }
 
-        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
+        if (!ctx.utils.validation.formFlag.safeParse(pinned).success) {
             throw new ctx.errors.ValidationError({
                 pinned: 'Pinned must be a boolean or checkbox value',
             });
         }
 
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+        if (!ctx.utils.validation.formFlag.safeParse(hidden).success) {
             throw new ctx.errors.ValidationError({
                 hidden: 'Hidden must be a boolean or checkbox value',
             });
         }
 
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
 
         if (hidden === 'on' || hidden === true) {
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
@@ -383,20 +380,20 @@ export function createNotesRouter(ctx: AppContext) {
             throw new ctx.errors.ValidationError({ content: 'Content is required' });
         }
 
-        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
+        if (!ctx.utils.validation.formFlag.safeParse(pinned).success) {
             throw new ctx.errors.ValidationError({
                 pinned: 'Pinned must be a boolean or checkbox value',
             });
         }
 
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+        if (!ctx.utils.validation.formFlag.safeParse(hidden).success) {
             throw new ctx.errors.ValidationError({
                 hidden: 'Hidden must be a boolean or checkbox value',
             });
         }
 
-        const user = req.user as User;
-        const noteId = parseInt(req.params.id as unknown as string);
+        const user = ctx.utils.request.requireUser(req.user);
+        const noteId = parseInt(String(req.params.id ?? ''));
 
         if (hidden === 'on' || hidden === true) {
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
@@ -460,7 +457,7 @@ export function createNotesRouter(ctx: AppContext) {
     router.post('/notes/delete', ctx.middleware.authentication, deleteNoteHandler);
 
     async function deleteNoteHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
         const noteIds = ctx.utils.request.extractIdsForDelete(req);
         const deletedCount = await ctx.models.notes.delete(noteIds, user.id);
 
@@ -503,8 +500,8 @@ export function createNotesRouter(ctx: AppContext) {
     router.post('/notes/:id/pin', ctx.middleware.authentication, toggleNotePinHandler);
 
     async function toggleNotePinHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const noteId = parseInt(req.params.id as unknown as string);
+        const user = ctx.utils.request.requireUser(req.user);
+        const noteId = parseInt(String(req.params.id ?? ''));
 
         const currentNote = await ctx.models.notes.read(noteId, user.id);
 
@@ -550,10 +547,10 @@ export function createNotesRouter(ctx: AppContext) {
         '/notes/:id/download',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
 
             const note = await ctx.models.notes.read(
-                parseInt(req.params.id as unknown as string),
+                parseInt(String(req.params.id ?? '')),
                 user.id,
             );
 
@@ -602,7 +599,7 @@ export function createNotesRouter(ctx: AppContext) {
                 throw new ctx.errors.ValidationError({ content: 'Content is required' });
             }
 
-            const markdown = sharedMarked.parse(content) as string;
+            const markdown = sharedMarked.parse(content, { async: false });
             const sanitized = ctx.libs.dompurify.sanitize(markdown);
 
             res.json({ content: sanitized });

@@ -1,3 +1,4 @@
+import type { Action, Note, Tab, TabItem, Reminder, User } from '../type.js';
 import type {
     Bookmark,
     AppContext,
@@ -15,6 +16,32 @@ const DEFAULT_SCREENSHOT_PREFETCH_TIMEOUT_MS = 10000;
 
 const DEFAULT_SCREENSHOT_PREFETCH_USER_AGENT = 'Bang/1.0 (https://bang.jaw.dev)';
 
+interface UserDataExport {
+    exported_at: string;
+    version: string;
+    bookmarks?: Pick<Bookmark, 'title' | 'url' | 'pinned' | 'hidden' | 'created_at'>[];
+    actions?: Pick<Action, 'trigger' | 'name' | 'url' | 'action_type' | 'hidden' | 'created_at'>[];
+    notes?: Pick<Note, 'title' | 'content' | 'pinned' | 'hidden' | 'created_at'>[];
+    tabs?: Array<
+        Pick<Tab, 'trigger' | 'title' | 'created_at' | 'updated_at'> & {
+            items: Pick<TabItem, 'title' | 'url' | 'created_at' | 'updated_at'>[];
+        }
+    >;
+    reminders?: Pick<
+        Reminder,
+        'title' | 'content' | 'due_date' | 'reminder_type' | 'frequency' | 'created_at'
+    >[];
+    user_preferences?: Pick<
+        User,
+        | 'username'
+        | 'default_search_provider'
+        | 'autocomplete_search_on_homepage'
+        | 'column_preferences'
+        | 'timezone'
+        | 'theme'
+    >;
+}
+
 interface ScreenshotPrefetchOptions {
     batchSize?: number;
     delayBetweenBatchesMs?: number;
@@ -24,6 +51,85 @@ interface ScreenshotPrefetchOptions {
 
 export function createUtil(context: AppContext) {
     const { db, config, errors } = context;
+    const { z } = context.libs;
+
+    const columnPreferencesSchema = z
+        .object({
+            bookmarks: z
+                .object({
+                    title: z.boolean().optional(),
+                    url: z.boolean().optional(),
+                    default_per_page: z.number().optional(),
+                    created_at: z.boolean().optional(),
+                    pinned: z.boolean().optional(),
+                    hidden: z.boolean().optional(),
+                })
+                .partial()
+                .catch({}),
+            actions: z
+                .object({
+                    name: z.boolean().optional(),
+                    trigger: z.boolean().optional(),
+                    url: z.boolean().optional(),
+                    action_type: z.boolean().optional(),
+                    usage_count: z.boolean().optional(),
+                    default_per_page: z.number().optional(),
+                    created_at: z.boolean().optional(),
+                    last_read_at: z.boolean().optional(),
+                    hidden: z.boolean().optional(),
+                })
+                .partial()
+                .catch({}),
+            notes: z
+                .object({
+                    title: z.boolean().optional(),
+                    content: z.boolean().optional(),
+                    default_per_page: z.number().optional(),
+                    created_at: z.boolean().optional(),
+                    pinned: z.boolean().optional(),
+                    view_type: z.enum(['table', 'list']).optional(),
+                    hidden: z.boolean().optional(),
+                })
+                .partial()
+                .catch({}),
+            tabs: z
+                .object({
+                    title: z.boolean().optional(),
+                    trigger: z.boolean().optional(),
+                    items_count: z.boolean().optional(),
+                    default_per_page: z.number().optional(),
+                    created_at: z.boolean().optional(),
+                })
+                .partial()
+                .catch({}),
+            reminders: z
+                .object({
+                    title: z.boolean().optional(),
+                    content: z.boolean().optional(),
+                    due_date: z.boolean().optional(),
+                    frequency: z.boolean().optional(),
+                    default_per_page: z.number().optional(),
+                    created_at: z.boolean().optional(),
+                    default_reminder_timing: z.string().optional(),
+                    default_reminder_time: z.string().optional(),
+                })
+                .partial()
+                .catch({}),
+            users: z
+                .object({
+                    username: z.boolean().optional(),
+                    email: z.boolean().optional(),
+                    is_admin: z.boolean().optional(),
+                    email_verified_at: z.boolean().optional(),
+                    created_at: z.boolean().optional(),
+                    default_per_page: z.number().optional(),
+                })
+                .partial()
+                .catch({}),
+        })
+        .partial()
+        .catch({});
+
     const logger = context.logger.tag('service', 'util');
 
     const plainTextMarked = new context.libs.Marked({ gfm: true, breaks: true });
@@ -104,17 +210,16 @@ export function createUtil(context: AppContext) {
             return terms.map((term) => `"${term}"*`).join(' AND ');
         },
 
-        parseColumnPreferences(raw: string | object | null | undefined): ColumnPreferences {
-            let parsed: Partial<ColumnPreferences> = {};
+        parseColumnPreferences<T>(raw: T): ColumnPreferences {
+            let parsed;
+            const serialized = z.string().safeParse(raw);
 
-            if (typeof raw === 'string') {
-                try {
-                    parsed = JSON.parse(raw);
-                } catch {
-                    parsed = {};
-                }
-            } else if (raw && typeof raw === 'object') {
-                parsed = raw as Partial<ColumnPreferences>;
+            try {
+                parsed = columnPreferencesSchema.parse(
+                    serialized.success ? JSON.parse(serialized.data) : raw,
+                );
+            } catch {
+                parsed = columnPreferencesSchema.parse({});
             }
 
             return {
@@ -189,7 +294,7 @@ export function createUtil(context: AppContext) {
             return str[0]?.toUpperCase() + str.substring(1);
         },
 
-        truncateString(str: string, maxLength = 5) {
+        truncateString(str: string | null | undefined, maxLength = 5) {
             if (!str) return '';
 
             if (str.length <= maxLength) {
@@ -327,7 +432,7 @@ export function createUtil(context: AppContext) {
         },
 
         async convertMarkdownToPlainText(
-            markdownInput: string,
+            markdownInput: string | null | undefined,
             maxLength?: number,
         ): Promise<string> {
             if (!markdownInput?.trim()) {
@@ -335,7 +440,7 @@ export function createUtil(context: AppContext) {
             }
 
             try {
-                const htmlOutput = plainTextMarked.parse(markdownInput) as string;
+                const htmlOutput = plainTextMarked.parse(markdownInput, { async: false });
                 let plainText = htmlOutput.replace(/<(?!\/?mark\b)[^>]*>/g, '');
                 plainText = plainText.replace(/\s+/g, ' ').trim();
 
@@ -492,16 +597,7 @@ export function createUtil(context: AppContext) {
                 includeTabs?: boolean;
                 includeReminders?: boolean;
             } = {},
-        ): Promise<{
-            exported_at: string;
-            version: string;
-            bookmarks?: Record<string, unknown>[];
-            actions?: Record<string, unknown>[];
-            notes?: Record<string, unknown>[];
-            tabs?: Record<string, unknown>[];
-            reminders?: Record<string, unknown>[];
-            user_preferences?: Record<string, unknown>;
-        }> {
+        ): Promise<UserDataExport> {
             const {
                 includeBookmarks = true,
                 includeActions = true,
@@ -511,16 +607,7 @@ export function createUtil(context: AppContext) {
                 includeReminders = true,
             } = options;
 
-            const exportData: {
-                exported_at: string;
-                version: string;
-                bookmarks?: Record<string, unknown>[];
-                actions?: Record<string, unknown>[];
-                notes?: Record<string, unknown>[];
-                tabs?: Record<string, unknown>[];
-                reminders?: Record<string, unknown>[];
-                user_preferences?: Record<string, unknown>;
-            } = {
+            const exportData: UserDataExport = {
                 exported_at: context.libs.dayjs().toISOString(),
                 version: '1.0',
             };
@@ -573,23 +660,20 @@ export function createUtil(context: AppContext) {
                     .select('tab_id', 'title', 'url', 'created_at', 'updated_at')
                     .orderBy('created_at', 'asc');
 
-                const itemsByTabId = tabItems.reduce(
-                    (acc: any, item: any) => {
-                        if (!acc[item.tab_id]) {
-                            acc[item.tab_id] = [];
-                        }
+                const itemsByTabId = tabItems.reduce((acc: any, item: any) => {
+                    if (!acc[item.tab_id]) {
+                        acc[item.tab_id] = [];
+                    }
 
-                        acc[item.tab_id].push({
-                            title: item.title,
-                            url: item.url,
-                            created_at: item.created_at,
-                            updated_at: item.updated_at,
-                        });
+                    acc[item.tab_id].push({
+                        title: item.title,
+                        url: item.url,
+                        created_at: item.created_at,
+                        updated_at: item.updated_at,
+                    });
 
-                        return acc;
-                    },
-                    {} as Record<number, any[]>,
-                );
+                    return acc;
+                }, {});
 
                 return tabs.map((tab: any) => ({
                     trigger: tab.trigger,
@@ -650,10 +734,9 @@ export function createUtil(context: AppContext) {
             if (includeReminders) exportData.reminders = reminders;
 
             if (includeUserPreferences && userPrefs) {
-                if (typeof userPrefs.column_preferences === 'string') {
-                    userPrefs.column_preferences = JSON.parse(userPrefs.column_preferences);
-                }
-
+                userPrefs.column_preferences = this.parseColumnPreferences(
+                    userPrefs.column_preferences,
+                );
                 exportData.user_preferences = userPrefs;
             }
 
@@ -661,10 +744,10 @@ export function createUtil(context: AppContext) {
         },
 
         async generateBookmarkHtmlExport(userId: number): Promise<string> {
-            const bookmarks = (await db
+            const bookmarks = await db
                 .select('url', 'title', db.raw("strftime('%s', created_at) as add_date"))
                 .from('bookmarks')
-                .where({ user_id: userId })) as BookmarkToExport[];
+                .where({ user_id: userId });
 
             return this.createBookmarkDocument(bookmarks);
         },
@@ -677,7 +760,12 @@ export function createUtil(context: AppContext) {
                     body: JSON.stringify({ secret: config.cap.secretKey, response: token }),
                 });
 
-                const outcome = (await result.json()) as CapVerifyResponse;
+                const outcome = context.libs.z
+                    .object({
+                        success: context.libs.z.boolean(),
+                        challenge_ts: context.libs.z.string().optional(),
+                    })
+                    .parse(await result.json());
 
                 if (!outcome.success) {
                     throw new Error('Cap validation failed');
@@ -685,7 +773,10 @@ export function createUtil(context: AppContext) {
 
                 return outcome;
             } catch (error) {
-                throw new Error(`Failed to verify Cap token: ${(error as Error).message}`);
+                throw new Error(
+                    `Failed to verify Cap token: ${error instanceof Error ? error.message : String(error)}`,
+                    { cause: error },
+                );
             }
         },
 

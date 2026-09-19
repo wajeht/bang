@@ -1,16 +1,18 @@
+import { createUserFixture } from '../tests/test-db.js';
+import { createRequestFixture } from '../tests/http-fixtures.js';
 import path from 'node:path';
 import { createUtil } from './util.js';
 import { libs } from '../libs.js';
 import fs from 'node:fs/promises';
-import { Request } from 'express';
+
 import { config } from '../config.js';
 import { createAuth } from './auth.js';
 import { createHtml } from './html.js';
 import { createDate } from './date.js';
 import { createRequest } from './request.js';
-import { db } from '../tests/test-setup.js';
+import { db, ctx } from '../tests/test-setup.js';
 import { createValidation } from './validation.js';
-import type { ApiKeyPayload, BookmarkToExport } from '../type.js';
+import type { BookmarkToExport } from '../type.js';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 let validationUtils: ReturnType<typeof createValidation>;
@@ -25,42 +27,15 @@ let dateUtils: ReturnType<typeof createDate>;
 
 let requestUtils: ReturnType<typeof createRequest>;
 
-beforeAll(async () => {
-    const { createBookmarksRepository } = await import('../routes/bookmarks/bookmarks.repository');
-    const { createSettingsRepository } = await import('../routes/admin/settings.repository');
-
-    const mockContext = {
-        db,
-        config,
-        libs,
-        logger: { error: vi.fn(), info: vi.fn(), tag: vi.fn().mockReturnThis() },
-        utils: {} as any,
-        models: {} as any,
-        errors: {} as any,
-    } as any;
-
-    validationUtils = createValidation();
-    authUtils = createAuth(mockContext);
-    htmlUtils = createHtml();
-    dateUtils = createDate(mockContext);
-    requestUtils = createRequest(mockContext);
-
-    mockContext.utils = {
+beforeAll(() => {
+    ({
         validation: validationUtils,
         auth: authUtils,
+        util: utilUtils,
         html: htmlUtils,
         date: dateUtils,
         request: requestUtils,
-    };
-
-    mockContext.models = {
-        bookmarks: createBookmarksRepository(mockContext),
-        settings: createSettingsRepository(mockContext),
-    };
-
-    utilUtils = createUtil(mockContext);
-
-    mockContext.utils.util = utilUtils;
+    } = ctx.utils);
 });
 
 describe.concurrent('truncateString', () => {
@@ -380,27 +355,27 @@ describe.concurrent('escapeHtml', () => {
 
 describe.concurrent('getApiKey', () => {
     it('should return the API key from the X-API-KEY header', () => {
-        const req = {
+        const req = createRequestFixture({
             header: vi.fn().mockReturnValue('test-api-key'),
-        } as unknown as Request;
+        });
 
         expect(requestUtils.extractApiKey(req)).toBe('test-api-key');
         expect(req.header).toHaveBeenCalledWith('X-API-KEY');
     });
 
     it('should return the Bearer token from the Authorization header', () => {
-        const req = {
+        const req = createRequestFixture({
             header: vi.fn().mockReturnValue('Bearer test-bearer-token'),
-        } as unknown as Request;
+        });
 
         expect(requestUtils.extractApiKey(req)).toBe('test-bearer-token');
         expect(req.header).toHaveBeenCalledWith('Authorization');
     });
 
     it('should return undefined if no API key or Bearer token is present', () => {
-        const req = {
+        const req = createRequestFixture({
             header: vi.fn().mockReturnValue(undefined),
-        } as unknown as Request;
+        });
 
         expect(requestUtils.extractApiKey(req)).toBeUndefined();
     });
@@ -408,37 +383,37 @@ describe.concurrent('getApiKey', () => {
 
 describe.concurrent('isApiRequest', () => {
     it('should return true if API key is present', () => {
-        const req = {
+        const req = createRequestFixture({
             header: vi.fn().mockReturnValue('test-api-key'),
             path: '/some/path',
-        } as unknown as Request;
+        });
 
         expect(requestUtils.isApiRequest(req)).toBe(true);
     });
 
     it('should return true if path starts with /api', () => {
-        const req = {
+        const req = createRequestFixture({
             header: vi.fn().mockReturnValue(undefined),
             path: '/api/some/path',
-        } as unknown as Request;
+        });
 
         expect(requestUtils.isApiRequest(req)).toBe(true);
     });
 
     it('should return true if expectJson returns true', () => {
-        const req = {
+        const req = createRequestFixture({
             header: vi.fn().mockReturnValue('application/json'),
             path: '/some/path',
-        } as unknown as Request;
+        });
 
         expect(requestUtils.isApiRequest(req)).toBe(true);
     });
 
     it('should return false if none of the conditions are met', () => {
-        const req = {
+        const req = createRequestFixture({
             header: vi.fn().mockReturnValue(undefined),
             path: '/some/path',
-        } as unknown as Request;
+        });
 
         expect(requestUtils.isApiRequest(req)).toBe(false);
     });
@@ -446,17 +421,17 @@ describe.concurrent('isApiRequest', () => {
 
 describe.concurrent('expectJson', () => {
     it('should return true if Content-Type is application/json', () => {
-        const req = {
+        const req = createRequestFixture({
             header: vi.fn().mockReturnValue('application/json'),
-        } as unknown as Request;
+        });
 
         expect(requestUtils.expectsJson(req)).toBe(true);
     });
 
     it('should return false if Content-Type is not application/json', () => {
-        const req = {
+        const req = createRequestFixture({
             header: vi.fn().mockReturnValue('text/html'),
-        } as unknown as Request;
+        });
 
         expect(requestUtils.expectsJson(req)).toBe(false);
     });
@@ -464,7 +439,7 @@ describe.concurrent('expectJson', () => {
 
 describe.concurrent('extractPagination', () => {
     it('should return pagination parameters from the request', () => {
-        const req = {
+        const req = createRequestFixture({
             query: {
                 per_page: '10',
                 page: '2',
@@ -472,13 +447,13 @@ describe.concurrent('extractPagination', () => {
                 sort_key: 'title',
                 direction: 'asc',
             },
-            user: {
+            user: createUserFixture({
                 column_preferences: {
                     bookmarks: { default_per_page: 5 },
                     actions: { default_per_page: 5 },
                 },
-            },
-        } as unknown as Request;
+            }),
+        });
 
         const pagination = requestUtils.extractPaginationParams(req, 'bookmarks');
         expect(pagination).toEqual({
@@ -491,15 +466,15 @@ describe.concurrent('extractPagination', () => {
     });
 
     it('should return default values if query parameters are not provided', () => {
-        const req = {
+        const req = createRequestFixture({
             query: {},
-            user: {
+            user: createUserFixture({
                 column_preferences: {
                     bookmarks: { default_per_page: 5 },
                     actions: { default_per_page: 5 },
                 },
-            },
-        } as unknown as Request;
+            }),
+        });
 
         const pagination = requestUtils.extractPaginationParams(req, 'bookmarks');
         expect(pagination).toEqual({
@@ -525,7 +500,16 @@ describe('api', () => {
             const payload = { userId: 1, apiKeyVersion: 1 };
             const apiKey = await authUtils.generateApiKey(payload);
 
-            const decoded = libs.jwt.verify(apiKey, config.app.apiKeySecret) as ApiKeyPayload;
+            const decoded = libs.z
+                .object({
+                    userId: libs.z.number().optional(),
+                    apiKeyVersion: libs.z.number().optional(),
+                    email: libs.z.string().optional(),
+                    exp: libs.z.number().optional(),
+                    iat: libs.z.number(),
+                })
+                .parse(libs.jwt.verify(apiKey, config.app.apiKeySecret));
+
             expect(decoded.userId).toBe(payload.userId);
             expect(decoded.apiKeyVersion).toBe(payload.apiKeyVersion);
         });
@@ -751,9 +735,7 @@ describe('insertBookmark', () => {
     });
 
     it('should call prefetchAssets when bookmark is inserted', async () => {
-        const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
-            text: () => Promise.resolve(''),
-        } as unknown as globalThis.Response);
+        const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(new globalThis.Response(''));
 
         await utilUtils.insertBookmark({
             url: 'https://prefetch-test.com',
@@ -781,9 +763,7 @@ describe('insertBookmark', () => {
 
 describe('prefetchScreenshots', () => {
     it('should prefetch screenshots in batches', async () => {
-        const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
-            text: () => Promise.resolve(''),
-        } as unknown as globalThis.Response);
+        const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(new globalThis.Response(''));
 
         await utilUtils.prefetchScreenshots(['https://example.com', 'example.org'], {
             userAgent: 'Bang test',
@@ -1000,8 +980,8 @@ describe('convertMarkdownToPlainText (hoisted Marked instance)', () => {
     it('should return empty string for empty/whitespace input', async () => {
         expect(await utilUtils.convertMarkdownToPlainText('')).toBe('');
         expect(await utilUtils.convertMarkdownToPlainText('   ')).toBe('');
-        expect(await utilUtils.convertMarkdownToPlainText(null as any)).toBe('');
-        expect(await utilUtils.convertMarkdownToPlainText(undefined as any)).toBe('');
+        expect(await utilUtils.convertMarkdownToPlainText(null)).toBe('');
+        expect(await utilUtils.convertMarkdownToPlainText(undefined)).toBe('');
     });
 
     it('should strip markdown syntax and HTML tags', async () => {
@@ -1075,5 +1055,48 @@ describe('generateUserDataExport', () => {
         } finally {
             await db.schema.renameTable('unavailable_export_notes', 'notes');
         }
+    });
+});
+
+describe('preference input validation', () => {
+    it('should preserve valid saved preferences while filling omitted fields', () => {
+        const preferences = utilUtils.parseColumnPreferences(
+            JSON.stringify({ notes: { title: false, view_type: 'list' } }),
+        );
+
+        expect(preferences.notes.title).toBe(false);
+        expect(preferences.notes.view_type).toBe('list');
+        expect(preferences.notes.default_per_page).toBe(10);
+        expect(preferences.bookmarks.title).toBe(true);
+    });
+
+    it.each(['{broken', null, [], { notes: { title: 'on' } }])(
+        'should use defaults for malformed saved preferences: %j',
+        (input) => {
+            expect(utilUtils.parseColumnPreferences(input).notes).toEqual(
+                utilUtils.parseColumnPreferences({}).notes,
+            );
+        },
+    );
+
+    it('should ignore array and object pagination query values', () => {
+        const req = createRequestFixture({
+            user: createUserFixture(),
+            query: {
+                search: ['secret', 'second'],
+                per_page: { value: '100' },
+                page: ['2'],
+                sort_key: { name: 'title' },
+                direction: ['asc'],
+            },
+        });
+
+        expect(requestUtils.extractPaginationParams(req, 'bookmarks')).toEqual({
+            perPage: 10,
+            page: 1,
+            search: '',
+            sortKey: 'created_at',
+            direction: 'desc',
+        });
     });
 });

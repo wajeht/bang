@@ -47,15 +47,19 @@ export function createErrorMiddleware(ctx: AppContext) {
             userId: req.user?.id || req.session?.user?.id,
         });
 
-        if ((error as { code?: string }).code === 'EBADCSRFTOKEN') {
+        if ('code' in error && error.code === 'EBADCSRFTOKEN') {
             error = new ctx.errors.HttpError(403, error.message, req);
         } else if (!(error instanceof ctx.errors.HttpError)) {
             error = new ctx.errors.HttpError(500, error.message, req);
-        } else if (error instanceof ctx.errors.HttpError && !(error as any).request) {
-            (error as any).request = req;
+        } else if (error instanceof ctx.errors.HttpError && !error.request) {
+            error.request = req;
         }
 
-        const httpError = error as any;
+        const httpError =
+            error instanceof ctx.errors.HttpError
+                ? error
+                : new ctx.errors.HttpError(500, error.message, req);
+
         const statusCode = httpError.statusCode || 500;
 
         const message =
@@ -88,16 +92,13 @@ export function createErrorMiddleware(ctx: AppContext) {
                     req.session.errors = { general: message };
                 }
 
-                req.session.input = req.body as Record<string, any>;
+                req.session.input = req.body;
             }
 
             const referer = req.headers?.referer || '/';
 
             if (req.session && req.session.errors) {
-                req.flash(
-                    'error',
-                    Object.values(req.session.errors as Record<string, string>).join(', '),
-                );
+                req.flash('error', Object.values(req.session.errors).join(', '));
             }
 
             if (req.path === '/login') {
@@ -237,7 +238,16 @@ export function createSessionMiddleware(ctx: AppContext) {
 let cachedStaticLocals: {
     copyRightYear: number;
     version: { style: string | number; script: string | number };
-    utils: Record<string, any>;
+    utils: Pick<
+        AppContext['utils']['html'],
+        'serializeForScript' | 'nl2br' | 'stripHtmlTags' | 'highlightSearchTerm'
+    > &
+        Pick<
+            AppContext['utils']['util'],
+            'truncateString' | 'capitalize' | 'getFaviconUrl' | 'getScreenshotUrl'
+        > &
+        Pick<AppContext['utils']['validation'], 'isUrlLike'> &
+        Pick<AppContext['utils']['date'], 'formatDateInTimezone'>;
 } | null = null;
 
 export function createSetupAppLocals(ctx: AppContext) {
@@ -283,8 +293,8 @@ export function createSetupAppLocals(ctx: AppContext) {
             env: ctx.config.app.env,
             user: req.user ?? userWithParsedPrefs,
             copyRightYear: cachedStaticLocals!.copyRightYear,
-            input: (req.session?.input as Record<string, string>) || {},
-            errors: (req.session?.errors as Record<string, string>) || {},
+            input: req.session?.input || {},
+            errors: req.session?.errors || {},
             flash: {
                 success: req.flash ? req.flash('success') : [],
                 error: req.flash ? req.flash('error') : [],
@@ -306,7 +316,7 @@ export function createCsrfMiddleware(ctx: AppContext) {
             }
 
             if (req.headers['x-csrf-token']) {
-                return req.headers['x-csrf-token'] as string;
+                return req.headers['x-csrf-token'];
             }
 
             return undefined;
@@ -378,7 +388,7 @@ export function createAppLocalStateMiddleware(ctx: AppContext) {
 
             // Set session input for form data before setting up locals
             if (FORM_DATA_METHODS.has(req.method) && req.session) {
-                req.session.input = req.body as Record<string, any>;
+                req.session.input = req.body;
             }
 
             createSetupAppLocals(ctx)(req, res);
@@ -475,9 +485,9 @@ export function createAuthenticationMiddleware(ctx: AppContext) {
                     column_preferences: ctx.utils.util.parseColumnPreferences(
                         user?.column_preferences,
                     ),
-                } as User;
+                };
             } else {
-                parsedUser = user as User;
+                parsedUser = user;
             }
 
             req.user = parsedUser;
@@ -491,15 +501,7 @@ export function createAuthenticationMiddleware(ctx: AppContext) {
 
             next();
         } catch (error) {
-            ctx.logger
-                .tag('middleware', 'auth')
-                .error(`Authentication error: ${(error as Error).message}`, {
-                    error: {
-                        name: (error as Error).name,
-                        message: (error as Error).message,
-                        stack: (error as Error).stack,
-                    },
-                });
+            ctx.logger.tag('middleware', 'auth').error('Authentication error', { error });
             next(error);
         }
     };

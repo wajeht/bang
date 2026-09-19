@@ -1,6 +1,6 @@
 import { styleText } from 'node:util';
 import type { Request } from 'express';
-import type { User, AppContext } from '../type.js';
+import type { AppContext } from '../type.js';
 import type { Attachment } from 'nodemailer/lib/mailer/index.js';
 
 export function createMail(context: AppContext) {
@@ -52,11 +52,7 @@ export function createMail(context: AppContext) {
                 headerLines.push(styleText('blue', '📎 Attachments:'));
 
                 for (let i = 0; i < mailOptions.attachments.length; i++) {
-                    const att = mailOptions.attachments[i] as {
-                        filename: string;
-                        contentType: string;
-                    };
-
+                    const att = mailOptions.attachments[i];
                     headerLines.push(
                         styleText('dim', `  ${i + 1}. `) +
                             styleText('white', att.filename) +
@@ -220,7 +216,7 @@ ${branding.appUrl}`,
                 }
 
                 const branding = await context.models.settings.getBranding();
-                const userId = (req.user as User).id;
+                const userId = context.utils.request.requireUser(req.user).id;
                 const currentDate = context.libs.dayjs().format('YYYY-MM-DD');
                 const attachments: Attachment[] = [];
                 const exportTypes: string[] = [];

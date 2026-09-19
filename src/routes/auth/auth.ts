@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { AppContext, User } from '../../type.js';
+import type { AppContext } from '../../type.js';
 
 export function createAuthRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
@@ -149,7 +149,7 @@ export function createAuthRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const { password, resource_type, resource_id, original_query } = req.body;
-            const user = req.session.user as User;
+            const user = ctx.utils.request.requireUser(req.session.user);
             const redirect_url = req.body.redirect_url || req.headers.referer || '/';
             const modalQuery = { 'verify-password-modal': 'true' };
 

@@ -16,7 +16,8 @@ export function createTabsRepository(ctx: AppContext): Tabs {
             direction,
             isLengthAware = true,
         }: TabsQueryParams) => {
-            const query = ctx.db
+            const query = ctx
+                .db<Tab>('tabs')
                 .select(
                     'tabs.id',
                     'tabs.user_id',
@@ -99,7 +100,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                 query.orderBy('tabs.created_at', 'desc');
             }
 
-            const result = await query.paginate({
+            const result = await ctx.database.paginate(query, {
                 perPage,
                 currentPage: page,
                 isLengthAware,
@@ -111,7 +112,9 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                 const tabIds: number[] = [];
 
                 for (let i = 0; i < result.data.length; i++) {
-                    tabIds.push((result.data[i] as any).id);
+                    const tab = result.data[i];
+
+                    if (tab?.id != null) tabIds.push(tab.id);
                 }
 
                 let itemsQuery = ctx.db
@@ -163,7 +166,9 @@ export function createTabsRepository(ctx: AppContext): Tabs {
 
                 // Assign items to tabs
                 for (let i = 0; i < result.data.length; i++) {
-                    const tab = result.data[i] as any;
+                    const tab = result.data[i];
+
+                    if (!tab?.id) continue;
                     tab.items = itemsByTab[tab.id] || [];
                 }
             }
@@ -218,7 +223,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
 
         update: async (id: number, userId: number, updates: Partial<Tab>) => {
             // Filter to only allowed update fields
-            const updateData: Record<string, unknown> = {};
+            const updateData: Partial<Tab> = {};
             const entries = Object.entries(updates);
 
             for (let i = 0; i < entries.length; i++) {
@@ -228,7 +233,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                 const [key, value] = entry;
 
                 if (ALLOWED_UPDATE_FIELDS.has(key)) {
-                    updateData[key] = value;
+                    Object.assign(updateData, { [key]: value });
                 }
             }
 

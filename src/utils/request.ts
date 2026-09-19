@@ -22,21 +22,37 @@ export function createRequest(context: AppContext) {
     };
 
     return {
+        requireUser(user: User | null | undefined): User {
+            if (!user) throw new context.errors.UnauthorizedError();
+
+            return user;
+        },
         extractPaginationParams(req: Request, pageType: PageType | 'admin') {
-            const user = req.user as User;
+            const user = this.requireUser(req.user);
 
             const prefKey = PAGE_TYPE_TO_PREFERENCE[pageType];
             const prefs = user.column_preferences[prefKey];
             const defaultPerPage = prefs?.default_per_page || (pageType === 'reminders' ? 20 : 10);
 
-            const rawDirection = (req.query.direction as string)?.toLowerCase();
+            const rawDirection = context.libs.z
+                .string()
+                .catch('')
+                .parse(req.query.direction)
+                ?.toLowerCase();
+
             const direction = rawDirection === 'asc' ? 'asc' : 'desc';
 
             return {
-                perPage: parseInt(req.query.per_page as string, 10) || defaultPerPage || 10,
-                page: parseInt(req.query.page as string, 10) || 1,
-                search: ((req.query.search as string) || '').toLowerCase(),
-                sortKey: (req.query.sort_key as string) || 'created_at',
+                perPage:
+                    parseInt(context.libs.z.string().catch('').parse(req.query.per_page), 10) ||
+                    defaultPerPage ||
+                    10,
+                page: parseInt(context.libs.z.string().catch('').parse(req.query.page), 10) || 1,
+                search: (
+                    context.libs.z.string().catch('').parse(req.query.search) || ''
+                ).toLowerCase(),
+                sortKey:
+                    context.libs.z.string().catch('').parse(req.query.sort_key) || 'created_at',
                 direction,
             };
         },
@@ -46,7 +62,7 @@ export function createRequest(context: AppContext) {
 
             // Check if ID is provided in params
             if (req.params.id) {
-                ids = [parseInt(req.params.id as unknown as string)];
+                ids = [parseInt(String(req.params.id ?? ''))];
             }
 
             // Check if IDs are provided in body (for bulk delete)

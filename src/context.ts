@@ -71,21 +71,34 @@ export async function createContext(): Promise<AppContext> {
 
     const database = createDatabase({ config, logger, libs });
 
-    const partialCtx = {
+    // Lazy references let mutually dependent factories share one fully typed context.
+    const ctx: AppContext = {
         libs,
         config,
         errors,
         logger,
         database,
         db: database.instance,
-    } as any;
+        get utils() {
+            return utilities;
+        },
+        get models() {
+            return models;
+        },
+        get middleware() {
+            return middlewares;
+        },
+        get services() {
+            return services;
+        },
+    };
 
     const html = createHtml();
-    const auth = createAuth(partialCtx);
-    const date = createDate(partialCtx);
-    const utils = createUtil(partialCtx);
-    const validation = createValidation();
-    const request = createRequest(partialCtx);
+    const auth = createAuth(ctx);
+    const date = createDate(ctx);
+    const utils = createUtil(ctx);
+    const validation = createValidation(ctx);
+    const request = createRequest(ctx);
     const assets = createAssets();
 
     const utilities: Utilities = {
@@ -96,55 +109,45 @@ export async function createContext(): Promise<AppContext> {
         request,
         validation,
         util: utils,
-        mail: createMail(partialCtx),
-        search: createSearch(partialCtx),
-        template: createTemplate(partialCtx),
-        ntfy: createNtfy(partialCtx),
+        mail: createMail(ctx),
+        search: createSearch(ctx),
+        template: createTemplate(ctx),
+        ntfy: createNtfy(ctx),
     };
-
-    partialCtx.utils = utilities;
 
     const models: Models = {
-        tabs: createTabsRepository(partialCtx),
-        notes: createNotesRepository(partialCtx),
-        users: createUsersRepository(partialCtx),
-        actions: createActionsRepository(partialCtx),
-        bookmarks: createBookmarksRepository(partialCtx),
-        reminders: createRemindersRepository(partialCtx),
-        settings: createSettingsRepository(partialCtx),
+        tabs: createTabsRepository(ctx),
+        notes: createNotesRepository(ctx),
+        users: createUsersRepository(ctx),
+        actions: createActionsRepository(ctx),
+        bookmarks: createBookmarksRepository(ctx),
+        reminders: createRemindersRepository(ctx),
+        settings: createSettingsRepository(ctx),
     };
 
-    partialCtx.models = models;
-
     const middlewares: Middlewares = {
-        csrf: createCsrfMiddleware(partialCtx),
-        helmet: createHelmetMiddleware(partialCtx),
-        session: createSessionMiddleware(partialCtx),
-        notFound: createNotFoundMiddleware(partialCtx),
-        errorHandler: createErrorMiddleware(partialCtx),
-        cap: createCapMiddleware(partialCtx),
-        rateLimit: createRateLimitMiddleware(partialCtx),
-        adminOnly: createAdminOnlyMiddleware(partialCtx),
-        staticAssets: createStaticAssetsMiddleware(partialCtx),
-        appLocalState: createAppLocalStateMiddleware(partialCtx),
-        authentication: createAuthenticationMiddleware(partialCtx),
+        csrf: createCsrfMiddleware(ctx),
+        helmet: createHelmetMiddleware(ctx),
+        session: createSessionMiddleware(ctx),
+        notFound: createNotFoundMiddleware(ctx),
+        errorHandler: createErrorMiddleware(ctx),
+        cap: createCapMiddleware(ctx),
+        rateLimit: createRateLimitMiddleware(ctx),
+        adminOnly: createAdminOnlyMiddleware(ctx),
+        staticAssets: createStaticAssetsMiddleware(ctx),
+        appLocalState: createAppLocalStateMiddleware(ctx),
+        authentication: createAuthenticationMiddleware(ctx),
         speculationRules: createSpeculationRulesMiddleware(),
         layout: createLayoutMiddleware({
             layoutsDir: '_layouts',
             defaultLayout: '_layouts/public.html',
         }),
-        requestLogger: createRequestLoggerMiddleware(partialCtx),
+        requestLogger: createRequestLoggerMiddleware(ctx),
     };
-
-    partialCtx.middleware = middlewares;
 
     const services: Services = {
-        crons: createCronService(partialCtx),
+        crons: createCronService(ctx),
     };
-
-    partialCtx.services = services;
-
-    const ctx: AppContext = partialCtx as AppContext;
 
     return config.app.env === 'production' ? Object.freeze(ctx) : ctx;
 }

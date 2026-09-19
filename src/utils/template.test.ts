@@ -1,3 +1,4 @@
+import { ctx } from '../tests/test-setup.js';
 import path from 'node:path';
 import { libs } from '../libs.js';
 import { config } from '../config.js';
@@ -7,16 +8,13 @@ import { describe, expect, it, beforeAll, vi } from 'vite-plus/test';
 let templateUtils: ReturnType<typeof createTemplate>;
 
 beforeAll(() => {
-    const mockContext = {
-        config,
-        libs,
-        logger: { error: vi.fn(), info: vi.fn() },
-    } as any;
-
-    templateUtils = createTemplate(mockContext);
+    templateUtils = ctx.utils.template;
 });
 
-function renderTemplate(filePath: string, opts: object): Promise<string> {
+function renderTemplate(
+    filePath: string,
+    opts: Parameters<ReturnType<typeof createTemplate>['engine']>[1],
+): Promise<string> {
     return new Promise((resolve, reject) => {
         templateUtils.engine(filePath, opts, (err, html) => {
             if (err) reject(err);
@@ -43,7 +41,7 @@ describe('TemplateUtils', () => {
             });
 
             expect(html).toBeDefined();
-            expect(typeof html).toBe('string');
+            expect(html).toBeTypeOf('string');
             expect(html.length).toBeGreaterThan(0);
             expect(html).toContain('test-input');
             expect(html).toContain('Test Label');
@@ -137,10 +135,11 @@ describe('TemplateUtils', () => {
 
         it('should use cache in production mode', () => {
             const prodContext = {
+                ...ctx,
                 config: { ...config, app: { ...config.app, env: 'production' } },
                 libs,
-                logger: { error: vi.fn(), info: vi.fn() },
-            } as any;
+                logger: { ...ctx.logger, error: vi.fn(), info: vi.fn() },
+            };
 
             const prodTemplateUtils = createTemplate(prodContext);
             expect(prodTemplateUtils).toBeDefined();

@@ -32,8 +32,8 @@ function handleUncaughtException(error: Error, origin: string) {
     process.exit(1);
 }
 
-function handleUnhandledRejection(reason: unknown, _promise: Promise<unknown>) {
-    logger.error('Unhandled Rejection', { reason });
+function handleUnhandledRejection(cause: unknown, _promise: Promise<unknown>) {
+    logger.error('Unhandled Rejection', { cause });
     process.exit(1);
 }
 

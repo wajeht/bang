@@ -9,9 +9,8 @@ interface BangSource {
 
 interface Dependencies {
     fetch: typeof fetch;
-    fs: typeof fs;
-    console: typeof console;
-    process: typeof process;
+    fs: { promises: Pick<typeof fs.promises, 'writeFile'> };
+    console: Pick<typeof console, 'log' | 'error'>;
 }
 
 export function mergeBangSources(
@@ -36,12 +35,12 @@ export function mergeBangSources(
 export async function fetchBangsFromSource(url: string, fetcher = fetch): Promise<Bang[]> {
     if (url.startsWith('http')) {
         const response = await fetcher(url);
-        const data = (await response.json()) as any;
+        const data = await response.json();
 
         return Array.isArray(data) ? data : data.bangs || [];
     } else {
         const fileContent = await fs.promises.readFile(url, 'utf8');
-        const module = JSON.parse(fileContent) as any;
+        const module = JSON.parse(fileContent);
 
         return Array.isArray(module) ? module : module.bangs || [];
     }
@@ -68,7 +67,7 @@ export function getDefaultSources(): BangSource[] {
     ];
 }
 
-export function parseCliArgs(args: string[]): { sources?: BangSource[]; outputPath?: string } {
+export function parseCliArgs(args: string[]): ParseCliArgsResult {
     if (args.length === 0) {
         return {
             sources: getDefaultSources(),
@@ -103,7 +102,6 @@ export async function buildBangs(
         fetch,
         fs,
         console,
-        process,
     },
 ): Promise<{ totalBangs: number; duplicates: number }> {
     const fetchedSources: { bangs: Bang[]; priority: number }[] = [];
@@ -170,4 +168,9 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
 // tsx ./src/banger.mts https://raw.githubusercontent.com/kagisearch/bangs/refs/heads/main/data/bangs.json ./src/db/bang.ts
 if (import.meta.url === `file://${process.argv[1]}`) {
     main().catch(console.error);
+}
+
+interface ParseCliArgsResult {
+    sources?: BangSource[];
+    outputPath?: string;
 }

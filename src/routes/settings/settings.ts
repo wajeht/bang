@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { User, ApiKeyPayload, AppContext } from '../../type.js';
+import type { ApiKeyPayload, AppContext } from '../../type.js';
 
 export function createSettingsRouter(ctx: AppContext) {
     const VALID_TIMEZONES = new Set([
@@ -137,9 +137,9 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             // Check if username is being changed and if it's already taken by another user
-            const currentUserId = (req.user as User).id;
+            const currentUserId = ctx.utils.request.requireUser(req.user).id;
 
-            if (username !== (req.user as User).username) {
+            if (username !== ctx.utils.request.requireUser(req.user).username) {
                 const existingUser = await ctx
                     .db('users')
                     .where({ username })
@@ -154,7 +154,7 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             // Check if email is being changed and if it's already taken by another user
-            if (email !== (req.user as User).email) {
+            if (email !== ctx.utils.request.requireUser(req.user).email) {
                 const existingUser = await ctx
                     .db('users')
                     .where({ email })
@@ -187,7 +187,7 @@ export function createSettingsRouter(ctx: AppContext) {
                     column_preferences: ctx.utils.util.parseColumnPreferences(
                         updatedUser[0].column_preferences,
                     ),
-                } as User;
+                };
                 req.session.save();
             }
 
@@ -197,7 +197,7 @@ export function createSettingsRouter(ctx: AppContext) {
                     column_preferences: ctx.utils.util.parseColumnPreferences(
                         updatedUser[0].column_preferences,
                     ),
-                } as User;
+                };
             }
 
             req.flash('success', '🔄 updated!');
@@ -212,14 +212,17 @@ export function createSettingsRouter(ctx: AppContext) {
         async (req: Request, res: Response) => {
             const { column_preferences } = req.body;
 
-            if (!column_preferences || typeof column_preferences !== 'object') {
+            if (
+                !column_preferences ||
+                !ctx.utils.validation.formSection.safeParse(column_preferences).success
+            ) {
                 throw new ctx.errors.ValidationError({
                     column_preferences: 'Column preferences must be an object',
                 });
             }
 
             // bookmarks
-            if (typeof column_preferences.bookmarks !== 'object') {
+            if (!ctx.utils.validation.formSection.safeParse(column_preferences.bookmarks).success) {
                 throw new ctx.errors.ValidationError({
                     bookmarks: 'Bookmarks must be an object',
                 });
@@ -259,7 +262,7 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             // actions
-            if (typeof column_preferences.actions !== 'object') {
+            if (!ctx.utils.validation.formSection.safeParse(column_preferences.actions).success) {
                 throw new ctx.errors.ValidationError({ actions: 'Actions must be an object' });
             }
 
@@ -305,7 +308,7 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             // notes
-            if (typeof column_preferences.notes !== 'object') {
+            if (!ctx.utils.validation.formSection.safeParse(column_preferences.notes).success) {
                 throw new ctx.errors.ValidationError({ notes: 'Notes must be an object' });
             }
 
@@ -358,7 +361,7 @@ export function createSettingsRouter(ctx: AppContext) {
 
             // tabs
             if (column_preferences.tabs) {
-                if (typeof column_preferences.tabs !== 'object') {
+                if (!ctx.utils.validation.formSection.safeParse(column_preferences.tabs).success) {
                     throw new ctx.errors.ValidationError({ tabs: 'Tabs must be an object' });
                 }
 
@@ -395,7 +398,7 @@ export function createSettingsRouter(ctx: AppContext) {
 
             // users (admin only)
             if (req.user?.is_admin && column_preferences.users) {
-                if (typeof column_preferences.users !== 'object') {
+                if (!ctx.utils.validation.formSection.safeParse(column_preferences.users).success) {
                     throw new ctx.errors.ValidationError({ users: 'Users must be an object' });
                 }
 
@@ -435,7 +438,10 @@ export function createSettingsRouter(ctx: AppContext) {
 
             // reminders
             if (column_preferences.reminders) {
-                if (typeof column_preferences.reminders !== 'object') {
+                if (
+                    !ctx.utils.validation.formSection.safeParse(column_preferences.reminders)
+                        .success
+                ) {
                     throw new ctx.errors.ValidationError({
                         reminders: 'Reminders must be an object',
                     });
@@ -505,19 +511,25 @@ export function createSettingsRouter(ctx: AppContext) {
                 }
             }
 
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
             const { path, hidden } = req.body;
 
             // Merge submitted preferences with existing user preferences to preserve unmodified sections
-            const updatedPreferences = { ...user.column_preferences } as any;
-            const sections = Object.keys(column_preferences);
+            const updatedPreferences = { ...user.column_preferences };
 
-            for (let i = 0; i < sections.length; i++) {
-                const section = sections[i] as keyof typeof column_preferences;
+            const sections = [
+                'bookmarks',
+                'actions',
+                'notes',
+                'tabs',
+                'reminders',
+                'users',
+            ] as const;
 
+            for (const section of sections) {
                 if (
                     column_preferences[section] &&
-                    typeof column_preferences[section] === 'object'
+                    ctx.utils.validation.formSection.safeParse(column_preferences[section]).success
                 ) {
                     updatedPreferences[section] = {
                         ...updatedPreferences[section],
@@ -557,7 +569,7 @@ export function createSettingsRouter(ctx: AppContext) {
                 return res.status(400).json({ error: 'Invalid theme' });
             }
 
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
             await ctx.db('users').where('id', user.id).update({ theme });
 
             req.session.user!.theme = theme;
@@ -606,7 +618,7 @@ export function createSettingsRouter(ctx: AppContext) {
                     column_preferences: ctx.utils.util.parseColumnPreferences(
                         updatedUser.column_preferences,
                     ),
-                } as User;
+                };
                 req.session.save();
             }
 
@@ -616,7 +628,7 @@ export function createSettingsRouter(ctx: AppContext) {
                     column_preferences: ctx.utils.util.parseColumnPreferences(
                         updatedUser.column_preferences,
                     ),
-                } as User;
+                };
             }
 
             req.flash('success', '📱 api key created');
@@ -644,7 +656,7 @@ export function createSettingsRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const { currentPassword, newPassword, confirmPassword, removePassword } = req.body;
-            const user = req.session.user as User;
+            const user = ctx.utils.request.requireUser(req.session.user);
 
             if (removePassword === 'on') {
                 if (!user.hidden_items_password) {
@@ -773,7 +785,7 @@ export function createSettingsRouter(ctx: AppContext) {
                 });
             }
 
-            const userId = (req.user as User).id;
+            const userId = ctx.utils.request.requireUser(req.user).id;
             const includeBookmarks = req.body.options.includes('bookmarks');
             const includeActions = req.body.options.includes('actions');
             const includeNotes = req.body.options.includes('notes');
@@ -921,7 +933,7 @@ export function createSettingsRouter(ctx: AppContext) {
                                     })
                                     .returning('id');
 
-                                tabId = newTabId;
+                                tabId = newTabId.id;
                             } else {
                                 tabId = existingTab.id;
                             }
@@ -930,7 +942,7 @@ export function createSettingsRouter(ctx: AppContext) {
                             if (tabData.items?.length > 0) {
                                 const tabItems = tabData.items.map(
                                     (item: { title: string; url: string }) => ({
-                                        tab_id: typeof tabId === 'object' ? tabId.id : tabId,
+                                        tab_id: tabId,
                                         title: item.title,
                                         url: item.url,
                                         created_at: ctx.db.fn.now(),
@@ -985,10 +997,9 @@ export function createSettingsRouter(ctx: AppContext) {
                         }
 
                         if (userPrefs.column_preferences) {
-                            updateData.column_preferences =
-                                typeof userPrefs.column_preferences === 'string'
-                                    ? userPrefs.column_preferences
-                                    : JSON.stringify(userPrefs.column_preferences);
+                            updateData.column_preferences = JSON.stringify(
+                                ctx.utils.util.parseColumnPreferences(userPrefs.column_preferences),
+                            );
                         }
 
                         if (userPrefs.timezone) {
@@ -1026,9 +1037,9 @@ export function createSettingsRouter(ctx: AppContext) {
                                 if (updateData.column_preferences) {
                                     try {
                                         req.session.user.column_preferences =
-                                            typeof updateData.column_preferences === 'string'
-                                                ? JSON.parse(updateData.column_preferences)
-                                                : updateData.column_preferences;
+                                            ctx.utils.util.parseColumnPreferences(
+                                                updateData.column_preferences,
+                                            );
                                     } catch {
                                         // Handle parsing error gracefully
                                     }
@@ -1063,9 +1074,9 @@ export function createSettingsRouter(ctx: AppContext) {
                                 if (updateData.column_preferences) {
                                     try {
                                         req.user.column_preferences =
-                                            typeof updateData.column_preferences === 'string'
-                                                ? JSON.parse(updateData.column_preferences)
-                                                : updateData.column_preferences;
+                                            ctx.utils.util.parseColumnPreferences(
+                                                updateData.column_preferences,
+                                            );
                                     } catch {
                                         // Handle parsing error gracefully
                                     }

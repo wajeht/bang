@@ -2,9 +2,10 @@ import { libs } from '../libs.js';
 import { config } from '../config.js';
 import { createDatabase } from '../db/db.js';
 import { createLogger } from '../utils/logger.js';
+import type { User, ColumnPreferences } from '../type.js';
 import type { Knex } from 'knex';
 
-const defaultColumnPreferences = {
+const defaultColumnPreferences: ColumnPreferences = {
     bookmarks: {
         title: true,
         url: true,
@@ -14,6 +15,7 @@ const defaultColumnPreferences = {
         hidden: true,
     },
     actions: {
+        action_type: true,
         name: true,
         trigger: true,
         url: true,
@@ -132,11 +134,11 @@ export async function cleanupTables(db: Knex) {
     await db.transaction(async (trx) => {
         await trx.raw('PRAGMA foreign_keys = OFF');
 
-        const rows = (await trx
+        const rows = await trx
             .select('name')
             .from('sqlite_master')
             .where({ type: 'table' })
-            .whereIn('name', [...DATA_TABLES, ...FTS_TABLES])) as Array<{ name: string }>;
+            .whereIn('name', [...DATA_TABLES, ...FTS_TABLES]);
 
         const existingTables = new Set(rows.map((row) => row.name));
 
@@ -180,4 +182,39 @@ export async function cleanupUserData(db: Knex, emailPattern: string = '%@exampl
 
         await trx('users').whereIn('id', userIds).del();
     });
+}
+
+export function createUserFixture(
+    overrides: Partial<Omit<User, 'column_preferences'>> & {
+        column_preferences?: { [K in keyof ColumnPreferences]?: Partial<ColumnPreferences[K]> };
+    } = {},
+): User {
+    const preferences = overrides.column_preferences;
+    return {
+        id: 1,
+        username: 'testuser',
+        email: 'test@example.com',
+        is_admin: false,
+        default_search_provider: 'duckduckgo',
+        bookmarks_per_page: 10,
+        actions_per_page: 10,
+        api_key: null,
+        api_key_version: 1,
+        api_key_created_at: null,
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z',
+        email_verified_at: null,
+        autocomplete_search_on_homepage: true,
+        timezone: 'America/Chicago',
+        theme: 'system',
+        ...overrides,
+        column_preferences: {
+            bookmarks: { ...defaultColumnPreferences.bookmarks, ...preferences?.bookmarks },
+            actions: { ...defaultColumnPreferences.actions, ...preferences?.actions },
+            notes: { ...defaultColumnPreferences.notes, ...preferences?.notes },
+            tabs: { ...defaultColumnPreferences.tabs, ...preferences?.tabs },
+            reminders: { ...defaultColumnPreferences.reminders, ...preferences?.reminders },
+            users: { ...defaultColumnPreferences.users, ...preferences?.users },
+        },
+    };
 }

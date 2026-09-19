@@ -416,9 +416,9 @@ describe('Tabs Routes', () => {
         it('should prefetch assets when creating tab item', async () => {
             const { agent, user } = await authenticateApiAgent(app);
 
-            const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
-                text: () => Promise.resolve(''),
-            } as unknown as globalThis.Response);
+            const fetchSpy = vi
+                .spyOn(global, 'fetch')
+                .mockResolvedValue(new globalThis.Response(''));
 
             const [tab] = await db('tabs')
                 .insert({

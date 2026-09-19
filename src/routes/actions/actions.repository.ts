@@ -113,7 +113,7 @@ export function createActionsRepository(ctx: AppContext): Actions {
                 query.orderBy('bangs.created_at', 'desc');
             }
 
-            return query.paginate({ perPage, currentPage: page, isLengthAware });
+            return ctx.database.paginate(query, { perPage, currentPage: page, isLengthAware });
         },
 
         create: async (action: Action & { actionType: string }) => {
@@ -168,7 +168,7 @@ export function createActionsRepository(ctx: AppContext): Actions {
             updates: Partial<Action> & { actionType: string },
         ) => {
             // Filter to only allowed update fields
-            const updateData: Record<string, unknown> = {};
+            const updateData: Partial<Action> & { actionType?: string } = {};
             const entries = Object.entries(updates);
 
             for (let i = 0; i < entries.length; i++) {
@@ -178,7 +178,7 @@ export function createActionsRepository(ctx: AppContext): Actions {
                 const [key, value] = entry;
 
                 if (ALLOWED_UPDATE_FIELDS.has(key)) {
-                    updateData[key] = value;
+                    Object.assign(updateData, { [key]: value });
                 }
             }
 
@@ -190,7 +190,9 @@ export function createActionsRepository(ctx: AppContext): Actions {
                 throw new Error('Invalid action type');
             }
 
-            updateData.action_type = updates.actionType;
+            updateData.action_type = ctx.libs.z
+                .enum(['search', 'redirect'])
+                .parse(updates.actionType);
 
             const { actionType: _actionType, ...rest } = updateData;
 

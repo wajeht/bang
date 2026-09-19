@@ -1,11 +1,11 @@
 import { bangs } from '../../db/bang.js';
 import type { Request, Response } from 'express';
-import type { Bang, User, AppContext, BangWithLowercase } from '../../type.js';
+import type { Bang, AppContext, BangWithLowercase } from '../../type.js';
 
 export function createGeneralRouter(ctx: AppContext) {
     const activeBangsPrefetch = new Set<string>();
 
-    const bangsArray = Object.values(bangs as Record<string, Bang>);
+    const bangsArray = Object.values(bangs);
 
     const bangsWithLowercase: BangWithLowercase[] = bangsArray.map((bang) => ({
         ...bang,
@@ -63,7 +63,7 @@ export function createGeneralRouter(ctx: AppContext) {
     );
 
     router.get('/', async (req: Request, res: Response) => {
-        const query = (typeof req.query.q === 'string' ? req.query.q : '').trim();
+        const query = ctx.libs.z.string().catch('').parse(req.query.q).trim();
 
         if (!query) {
             return res.render('general/home.html', {
@@ -105,10 +105,16 @@ export function createGeneralRouter(ctx: AppContext) {
             per_page = 100,
         } = req.query;
 
-        const searchTerm = typeof searchTermRaw === 'string' ? searchTermRaw : '';
+        const searchTerm = ctx.libs.z.string().catch('').parse(searchTermRaw);
         const searchStr = searchTerm.toLowerCase();
         const hasSearch = searchStr.length > 0;
-        const key = sort_key as keyof Bang;
+
+        const sortKey = ctx.libs.z
+            .enum(['t', 's', 'd', 'c', 'sc', 'r', 'u'])
+            .catch('t')
+            .parse(sort_key);
+
+        const key = sortKey;
         const isAsc = direction === 'asc';
         const sortMultiplier = isAsc ? 1 : -1;
 
@@ -259,7 +265,7 @@ export function createGeneralRouter(ctx: AppContext) {
         '/api/collections',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
             const actionsParams = ctx.utils.request.extractPaginationParams(req, 'actions');
             const bookmarksParams = ctx.utils.request.extractPaginationParams(req, 'bookmarks');
             const notesParams = ctx.utils.request.extractPaginationParams(req, 'notes');

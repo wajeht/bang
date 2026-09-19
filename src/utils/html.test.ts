@@ -144,7 +144,7 @@ describe('HtmlUtils', () => {
 
         it('should handle empty strings', () => {
             expect(htmlUtils.nl2br('')).toBe('');
-            expect(htmlUtils.nl2br(null as any)).toBe('');
+            expect(htmlUtils.nl2br(null)).toBe('');
         });
     });
 

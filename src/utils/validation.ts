@@ -1,4 +1,8 @@
-export function createValidation() {
+import type { AppContext } from '../type.js';
+
+export function createValidation({ libs }: Pick<AppContext, 'libs'>) {
+    const formFlag = libs.z.union([libs.z.boolean(), libs.z.literal('on')]).optional();
+    const formSection = libs.z.record(libs.z.string(), libs.z.json());
     const REGEX_WWW_PREFIX = /^www\./i;
     const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const REGEX_ALPHANUMERIC = /^[a-zA-Z0-9]+$/;
@@ -25,8 +29,11 @@ export function createValidation() {
         return REGEX_ALPHANUMERIC.test(str);
     }
 
-    function isUrlLike(str: string): boolean {
-        if (!str || typeof str !== 'string') return false;
+    function isUrlLike<T>(input: T): boolean {
+        const parsed = libs.z.string().safeParse(input);
+
+        if (!parsed.success || !parsed.data) return false;
+        const str = parsed.data;
 
         const trimmed = str.trim();
 
@@ -87,6 +94,8 @@ export function createValidation() {
     }
 
     return {
+        formFlag,
+        formSection,
         isValidUrl,
         isValidEmail,
         isOnlyLettersAndNumbers,

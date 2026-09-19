@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { validateActionShortcut } from '../../utils/action-shortcut.js';
-import type { User, AppContext } from '../../type.js';
+import type { AppContext } from '../../type.js';
 
 export function createActionsRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
@@ -33,7 +33,7 @@ export function createActionsRouter(ctx: AppContext) {
     router.get('/actions', ctx.middleware.authentication, getActionsHandler);
 
     async function getActionsHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
 
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'actions');
@@ -98,7 +98,7 @@ export function createActionsRouter(ctx: AppContext) {
                 .from('bangs')
                 .where({
                     'bangs.id': req.params.id,
-                    'bangs.user_id': (req.user as User).id,
+                    'bangs.user_id': ctx.utils.request.requireUser(req.user).id,
                 })
                 .first();
 
@@ -121,7 +121,7 @@ export function createActionsRouter(ctx: AppContext) {
         '/actions/:id/tabs/create',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const id = parseInt(req.params.id as unknown as string);
+            const id = parseInt(String(req.params.id ?? ''));
 
             const action = await ctx
                 .db('bangs')
@@ -169,7 +169,7 @@ export function createActionsRouter(ctx: AppContext) {
 
     async function postActionHandler(req: Request, res: Response) {
         const { url, name, actionType, trigger, hidden } = req.body;
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
 
         if (!url) {
             throw new ctx.errors.ValidationError({ url: 'URL is required' });
@@ -189,7 +189,7 @@ export function createActionsRouter(ctx: AppContext) {
 
         const formattedTrigger = validateActionShortcut(ctx, trigger, url);
 
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+        if (!ctx.utils.validation.formFlag.safeParse(hidden).success) {
             throw new ctx.errors.ValidationError({
                 hidden: 'Hidden must be a boolean or checkbox value',
             });
@@ -274,8 +274,8 @@ export function createActionsRouter(ctx: AppContext) {
 
     async function updateActionHandler(req: Request, res: Response) {
         const { url, name, actionType, trigger, hidden } = req.body;
-        const user = req.user as User;
-        const actionId = req.params.id as unknown as number;
+        const user = ctx.utils.request.requireUser(req.user);
+        const actionId = Number(req.params.id);
 
         if (!url) {
             throw new ctx.errors.ValidationError({ url: 'URL is required' });
@@ -297,7 +297,7 @@ export function createActionsRouter(ctx: AppContext) {
             throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
         }
 
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+        if (!ctx.utils.validation.formFlag.safeParse(hidden).success) {
             throw new ctx.errors.ValidationError({
                 hidden: 'Hidden must be a boolean or checkbox value',
             });
@@ -402,7 +402,7 @@ export function createActionsRouter(ctx: AppContext) {
     router.post('/actions/delete', ctx.middleware.authentication, deleteActionHandler);
 
     async function deleteActionHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
         const actionIds = ctx.utils.request.extractIdsForDelete(req);
         const deletedCount = await ctx.models.actions.delete(actionIds, user.id);
 
@@ -448,8 +448,8 @@ export function createActionsRouter(ctx: AppContext) {
     router.post('/api/actions/:id/hide', ctx.middleware.authentication, toggleActionHideHandler);
 
     async function toggleActionHideHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const actionId = parseInt(req.params.id as unknown as string);
+        const user = ctx.utils.request.requireUser(req.user);
+        const actionId = parseInt(String(req.params.id ?? ''));
 
         const dbUser = await ctx.db('users').where({ id: user.id }).first();
 
@@ -513,10 +513,10 @@ export function createActionsRouter(ctx: AppContext) {
         '/api/actions/:id',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
 
             const action = await ctx.models.actions.read(
-                parseInt(req.params.id as unknown as string),
+                parseInt(String(req.params.id ?? '')),
                 user.id,
             );
 
@@ -537,9 +537,9 @@ export function createActionsRouter(ctx: AppContext) {
         '/actions/:id/tabs',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const tab_id = parseInt(req.body.tab_id as unknown as string);
-            const id = parseInt(req.params.id as unknown as string);
+            const user = ctx.utils.request.requireUser(req.user);
+            const tab_id = parseInt(req.body.tab_id);
+            const id = parseInt(String(req.params.id ?? ''));
 
             const item = await ctx.models.actions.read(id, user.id);
 
@@ -566,7 +566,7 @@ export function createActionsRouter(ctx: AppContext) {
         '/actions/prefetch',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
 
             if (activePrefetches.has(user.id)) {
                 req.flash('info', 'Screenshot caching already in progress...');

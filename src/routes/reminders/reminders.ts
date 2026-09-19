@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { User, AppContext } from '../../type.js';
+import type { AppContext } from '../../type.js';
 
 export function createRemindersRouter(ctx: AppContext) {
     const REGEX_TIME_FORMAT = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
@@ -37,7 +37,7 @@ export function createRemindersRouter(ctx: AppContext) {
         '/reminders/:id/edit',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
             const reminderId = parseInt(String(req.params.id ?? ''), 10);
 
             const reminder = await ctx.models.reminders.read(reminderId, user.id);
@@ -61,7 +61,7 @@ export function createRemindersRouter(ctx: AppContext) {
         '/reminders/:id/bookmarks/create',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.session.user as User;
+            const user = ctx.utils.request.requireUser(req.session.user);
             const reminderId = parseInt(String(req.params.id ?? ''), 10);
 
             const reminder = await ctx.models.reminders.read(reminderId, user.id);
@@ -84,7 +84,7 @@ export function createRemindersRouter(ctx: AppContext) {
         '/reminders/:id/bookmarks',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.session.user as User;
+            const user = ctx.utils.request.requireUser(req.session.user);
             const reminderId = parseInt(String(req.params.id ?? ''), 10);
             const { url, title, pinned, delete_reminder } = req.body;
 
@@ -106,7 +106,7 @@ export function createRemindersRouter(ctx: AppContext) {
                 throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
             }
 
-            if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
+            if (!ctx.utils.validation.formFlag.safeParse(pinned).success) {
                 throw new ctx.errors.ValidationError({
                     pinned: 'Pinned must be a boolean or checkbox value',
                 });
@@ -160,7 +160,7 @@ export function createRemindersRouter(ctx: AppContext) {
         '/reminders/recalculate',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
 
             try {
                 const recurringReminders = await ctx
@@ -231,7 +231,7 @@ export function createRemindersRouter(ctx: AppContext) {
     router.get('/reminders', ctx.middleware.authentication, getRemindersHandler);
 
     async function getRemindersHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
 
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'reminders');
@@ -285,10 +285,10 @@ export function createRemindersRouter(ctx: AppContext) {
         '/api/reminders/:id',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
 
             const reminder = await ctx.models.reminders.read(
-                parseInt(req.params.id as unknown as string),
+                parseInt(String(req.params.id ?? '')),
                 user.id,
             );
 
@@ -324,7 +324,7 @@ export function createRemindersRouter(ctx: AppContext) {
 
     async function postReminderHandler(req: Request, res: Response) {
         const { title, content, when, custom_date, custom_time } = req.body;
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
 
         if (!title) {
             throw new ctx.errors.ValidationError({ title: 'Title is required' });
@@ -411,8 +411,8 @@ export function createRemindersRouter(ctx: AppContext) {
     router.post('/reminders/:id/update', ctx.middleware.authentication, updateReminderHandler);
 
     async function updateReminderHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const reminderId = parseInt(req.params.id as string);
+        const user = ctx.utils.request.requireUser(req.user);
+        const reminderId = parseInt(String(req.params.id ?? ''));
         const { title, content, when, custom_date, custom_time } = req.body;
 
         if (!title) {
@@ -503,7 +503,7 @@ export function createRemindersRouter(ctx: AppContext) {
     router.post('/reminders/delete', ctx.middleware.authentication, deleteReminderHandler);
 
     async function deleteReminderHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
         const reminderIds = ctx.utils.request.extractIdsForDelete(req);
         const deletedCount = await ctx.models.reminders.delete(reminderIds, user.id);
 
@@ -534,7 +534,7 @@ export function createRemindersRouter(ctx: AppContext) {
         '/reminders/prefetch',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
 
             if (activePrefetches.has(user.id)) {
                 req.flash('info', 'Screenshot caching already in progress...');

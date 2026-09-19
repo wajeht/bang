@@ -1,3 +1,4 @@
+import { createRequestFixture } from './tests/http-fixtures.js';
 import {
     HttpError,
     NotFoundError,
@@ -6,20 +7,20 @@ import {
     UnauthorizedError,
     UnimplementedFunctionError,
 } from './error.js';
-import type { Request } from 'express';
+
 import { describe, it, expect, beforeEach } from 'vite-plus/test';
 
 describe('Error classes', () => {
-    let mockRequest: Partial<Request>;
+    let mockRequest: ReturnType<typeof createRequestFixture>;
 
     beforeEach(() => {
-        mockRequest = {
+        mockRequest = createRequestFixture({
             method: 'GET',
             url: '/test',
             headers: {},
             query: {},
             body: {},
-        };
+        });
     });
 
     describe('HttpError base class', () => {
@@ -37,35 +38,35 @@ describe('Error classes', () => {
         });
 
         it('should store the request object when provided', () => {
-            const error = new HttpError(500, 'Server error', mockRequest as Request);
+            const error = new HttpError(500, 'Server error', mockRequest);
             expect(error.request).toEqual(mockRequest);
         });
     });
 
     describe('Error subclasses', () => {
         it('ForbiddenError should set correct status code', () => {
-            const error = new ForbiddenError('No access', mockRequest as Request);
+            const error = new ForbiddenError('No access', mockRequest);
             expect(error.statusCode).toBe(403);
             expect(error.message).toBe('No access');
             expect(error.request).toEqual(mockRequest);
         });
 
         it('UnauthorizedError should set correct status code', () => {
-            const error = new UnauthorizedError('Login required', mockRequest as Request);
+            const error = new UnauthorizedError('Login required', mockRequest);
             expect(error.statusCode).toBe(401);
             expect(error.message).toBe('Login required');
             expect(error.request).toEqual(mockRequest);
         });
 
         it('NotFoundError should set correct status code', () => {
-            const error = new NotFoundError('Resource not found', mockRequest as Request);
+            const error = new NotFoundError('Resource not found', mockRequest);
             expect(error.statusCode).toBe(404);
             expect(error.message).toBe('Resource not found');
             expect(error.request).toEqual(mockRequest);
         });
 
         it('ValidationError should set correct status code and handle string messages', () => {
-            const error = new ValidationError('Invalid input', mockRequest as Request);
+            const error = new ValidationError('Invalid input', mockRequest);
             expect(error.statusCode).toBe(422);
             expect(error.message).toBe('Invalid input');
             expect(error.request).toEqual(mockRequest);
@@ -74,20 +75,28 @@ describe('Error classes', () => {
 
         it('ValidationError should handle error objects', () => {
             const errors = { email: 'Invalid email', password: 'Too short' };
-            const error = new ValidationError(errors, mockRequest as Request);
+            const error = new ValidationError(errors, mockRequest);
             expect(error.statusCode).toBe(422);
             expect(error.errors).toEqual(errors);
         });
 
         it('UnimplementedFunctionError should set correct status code', () => {
-            const error = new UnimplementedFunctionError(
-                'Not implemented yet',
-                mockRequest as Request,
-            );
+            const error = new UnimplementedFunctionError('Not implemented yet', mockRequest);
 
             expect(error.statusCode).toBe(501);
             expect(error.message).toBe('Not implemented yet');
             expect(error.request).toEqual(mockRequest);
         });
+    });
+});
+
+describe('field error dictionaries', () => {
+    it('should preserve errors in a dictionary without a prototype', () => {
+        const fields = { email: 'Invalid email' };
+        Object.setPrototypeOf(fields, null);
+        const error = new ValidationError(fields);
+
+        expect(error.errors).toEqual({ email: 'Invalid email' });
+        expect(error.statusCode).toBe(422);
     });
 });

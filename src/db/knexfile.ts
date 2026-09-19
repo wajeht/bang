@@ -91,7 +91,7 @@ let knexConfig: Knex.Config = {
                 done(null, conn);
             } catch (err: any) {
                 logger.error('Error establishing database connection', { error: err });
-                done(err as Error, conn);
+                done(err, conn);
             }
         },
     },
