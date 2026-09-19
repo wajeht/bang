@@ -1,6 +1,6 @@
 import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/api-test-utils.js';
 import request from 'supertest';
-import { db, app } from '../../tests/test-setup.js';
+import { db, app, ctx } from '../../tests/test-setup.js';
 import { describe, it, expect } from 'vite-plus/test';
 
 describe('Settings Routes', () => {
@@ -306,6 +306,84 @@ describe('Settings Routes', () => {
     });
 
     describe('POST /settings/data/import', () => {
+        it('should resolve imported shortcuts immediately after warming the trigger cache', async () => {
+            const { agent, user } = await authenticateAgent(app);
+            await ctx.utils.search.loadCachedTriggers(user.id);
+
+            await agent
+                .post('/settings/data/import')
+                .send({
+                    config: JSON.stringify({
+                        version: '1.0',
+                        actions: [
+                            {
+                                trigger: '!importedbang',
+                                name: 'Imported',
+                                url: 'https://example.com/imported',
+                                action_type: 'redirect',
+                            },
+                            {
+                                trigger: '!g',
+                                name: 'Google override',
+                                url: 'https://example.com/override',
+                                action_type: 'redirect',
+                            },
+                        ],
+                        tabs: [{ trigger: '!importedtabs', title: 'Imported tabs', items: [] }],
+                    }),
+                })
+                .expect(302);
+
+            await agent
+                .get('/')
+                .query({ q: '!importedbang' })
+                .expect(302)
+                .expect('Location', 'https://example.com/imported');
+            await agent
+                .get('/')
+                .query({ q: '!g' })
+                .expect(302)
+                .expect('Location', 'https://example.com/override');
+            const tab = await db('tabs')
+                .where({ user_id: user.id, trigger: '!importedtabs' })
+                .first();
+            await agent
+                .get('/')
+                .query({ q: '!importedtabs' })
+                .expect(302)
+                .expect('Location', `/tabs/${tab.id}/launch`);
+        });
+
+        it('should preserve the trigger cache when an import rolls back', async () => {
+            const { agent, user } = await authenticateAgent(app);
+            const cached = await ctx.utils.search.loadCachedTriggers(user.id);
+
+            await agent
+                .post('/settings/data/import')
+                .send({
+                    config: JSON.stringify({
+                        version: '1.0',
+                        actions: [
+                            {
+                                trigger: '!rollback',
+                                name: 'Rollback',
+                                url: 'https://example.com',
+                                action_type: 'redirect',
+                            },
+                        ],
+                        tabs: [{ trigger: '!invalidtab', items: [] }],
+                    }),
+                })
+                .expect(302);
+
+            expect(
+                await db('bangs').where({ user_id: user.id, trigger: '!rollback' }).first(),
+            ).toBeUndefined();
+            const afterImport = await ctx.utils.search.loadCachedTriggers(user.id);
+            expect(afterImport.bangTriggers).toBe(cached.bangTriggers);
+            expect(afterImport.tabTriggers).toBe(cached.tabTriggers);
+        });
+
         it('should require authentication', async () => {
             const agent = await createUnauthenticatedAgent(app);
             await agent
