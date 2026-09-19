@@ -39,6 +39,7 @@ const defaultColumnPreferences: ColumnPreferences = {
         title: true,
         content: true,
         due_date: true,
+        next_due: true,
         frequency: true,
         default_per_page: 10,
         created_at: true,

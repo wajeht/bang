@@ -105,6 +105,7 @@ export type ColumnPreferences = {
         title: boolean;
         content: boolean;
         due_date: boolean;
+        next_due: boolean;
         frequency: boolean;
         default_per_page: number;
         created_at: boolean;
