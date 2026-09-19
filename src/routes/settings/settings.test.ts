@@ -315,6 +315,18 @@ describe('Settings Routes', () => {
             expect(preferences.reminders.title).toBe(true);
             expect(preferences.reminders.default_reminder_timing).toBe('weekly');
             expect(preferences.reminders.default_reminder_time).toBe('14:30');
+
+            const freshAgent = request.agent(app);
+            const token = ctx.utils.auth.generateMagicLink({ email: user.email });
+            await freshAgent.get(`/auth/magic/${token}`).expect(302);
+
+            const remindersResponse = await freshAgent.get('/reminders').expect(200);
+            expect(remindersResponse.text).toMatch(
+                /name="column_preferences\[reminders\]\[next_due\]"\s*>/,
+            );
+
+            const exported = await ctx.utils.util.generateUserDataExport(user.id);
+            expect(exported.user_preferences?.column_preferences.reminders.next_due).toBe(false);
         });
     });
 

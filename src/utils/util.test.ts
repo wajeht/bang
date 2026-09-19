@@ -1061,13 +1061,18 @@ describe('generateUserDataExport', () => {
 describe('preference input validation', () => {
     it('should preserve valid saved preferences while filling omitted fields', () => {
         const preferences = utilUtils.parseColumnPreferences(
-            JSON.stringify({ notes: { title: false, view_type: 'card' } }),
+            JSON.stringify({
+                notes: { title: false, view_type: 'card' },
+                reminders: { next_due: false },
+            }),
         );
 
         expect(preferences.notes.title).toBe(false);
         expect(preferences.notes.view_type).toBe('card');
         expect(preferences.notes.default_per_page).toBe(10);
         expect(preferences.bookmarks.title).toBe(true);
+        expect(preferences.reminders.next_due).toBe(false);
+        expect(utilUtils.parseColumnPreferences({}).reminders.next_due).toBe(true);
     });
 
     it.each(['{broken', null, [], { notes: { title: 'on' } }])(
