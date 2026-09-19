@@ -57,6 +57,7 @@ export function createErrorMiddleware(ctx: AppContext) {
 
         const httpError = error as any;
         const statusCode = httpError.statusCode || 500;
+
         const message =
             httpError.message ||
             'The server encountered an internal error or misconfiguration and was unable to complete your request';
@@ -75,6 +76,7 @@ export function createErrorMiddleware(ctx: AppContext) {
             }
 
             res.status(statusCode).json(responsePayload);
+
             return;
         }
 
@@ -88,6 +90,7 @@ export function createErrorMiddleware(ctx: AppContext) {
 
                 req.session.input = req.body as Record<string, any>;
             }
+
             const referer = req.headers?.referer || '/';
 
             if (req.session && req.session.errors) {
@@ -265,6 +268,7 @@ export function createSetupAppLocals(ctx: AppContext) {
     return (req: Request, res: Response) => {
         // Ensure column_preferences is always parsed for session user
         const sessionUser = req.session?.user;
+
         const userWithParsedPrefs = sessionUser
             ? {
                   ...sessionUser,
@@ -334,6 +338,7 @@ export function createCsrfMiddleware(ctx: AppContext) {
         (req: Request, res: Response, next: NextFunction) => {
             try {
                 res.locals.csrfToken = generateToken(req);
+
                 // Ensure session is saved after CSRF token generation
                 // This is needed because saveUninitialized: false means
                 // the session won't auto-save for new visitors
@@ -348,6 +353,7 @@ export function createCsrfMiddleware(ctx: AppContext) {
                         }
                     });
                 }
+
                 next();
             } catch (error) {
                 ctx.logger
@@ -419,6 +425,7 @@ export function createAuthenticationMiddleware(ctx: AppContext) {
                     // Cache expired or missing timestamp, refresh from DB
                     needsRefresh = true;
                     user = await ctx.models.users.read(req.session.user.id);
+
                     // If user exists in session but not in DB, clear the session
                     if (!user) {
                         req.session.destroy((err) => {
@@ -454,12 +461,14 @@ export function createAuthenticationMiddleware(ctx: AppContext) {
                 }
 
                 res.redirect('/?modal=login');
+
                 return;
             }
 
             // On cache hit the session-stored user already has parsed column_preferences,
             // so only re-parse when we refreshed from DB.
             let parsedUser: User;
+
             if (needsRefresh) {
                 parsedUser = {
                     ...user,
@@ -506,6 +515,7 @@ export function createRateLimitMiddleware(ctx: AppContext) {
             if (ctx.utils.request.isApiRequest(req)) {
                 return res.json({ message: 'Too many requests, please try again later.' });
             }
+
             return res.status(429).render('general/rate-limit.html');
         },
         skip: (_req: Request, _res: Response) => ctx.config.app.env !== 'production',
@@ -531,6 +541,7 @@ export function createLayoutMiddleware(options: LayoutOptions = {}) {
                 viewOptions.layout === false
                     ? false
                     : viewOptions.layout || defaultOptions.defaultLayout;
+
             const options = { ...viewOptions };
 
             if (!layout) {
@@ -560,6 +571,7 @@ export function createCapMiddleware(ctx: AppContext) {
         try {
             if (ctx.config.app.env !== 'production') {
                 req.logger.tag('middleware', 'cap').info('Skipping in non-production environment');
+
                 return next();
             }
 
@@ -568,6 +580,7 @@ export function createCapMiddleware(ctx: AppContext) {
             }
 
             const token = req.body['cap-token'];
+
             if (!token) {
                 throw new ctx.errors.ValidationError({
                     email: 'Captcha verification failed: Missing token',

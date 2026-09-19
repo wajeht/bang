@@ -5,9 +5,11 @@ import { createLogger } from '../utils/logger.js';
 import { CustomMigrationSource } from './migration-source.js';
 
 const logger = createLogger({ service: 'knexfile' });
+
 const isTesting = process.env.NODE_ENV === 'testing' || process.env.APP_ENV === 'testing';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const migrationsPath = path.resolve(__dirname, 'migrations');
 
 let knexConfig: Knex.Config = {
@@ -84,6 +86,7 @@ let knexConfig: Knex.Config = {
                 if (!isTesting) {
                     logger.info('New database connection established');
                 }
+
                 logger.info('afterCreate: calling done callback');
                 done(null, conn);
             } catch (err: any) {

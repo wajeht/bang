@@ -783,6 +783,7 @@ describe('Notes Routes', () => {
                 const [note1] = await db('notes')
                     .insert({ user_id: user.id, title: 'Note 1', content: 'Content 1' })
                     .returning('*');
+
                 const [note2] = await db('notes')
                     .insert({ user_id: user.id, title: 'Note 2', content: 'Content 2' })
                     .returning('*');
@@ -846,6 +847,7 @@ describe('Notes Routes', () => {
                 const [note1] = await db('notes')
                     .insert({ user_id: user.id, title: 'Note 1', content: 'Content 1' })
                     .returning('*');
+
                 const [note2] = await db('notes')
                     .insert({ user_id: user.id, title: 'Note 2', content: 'Content 2' })
                     .returning('*');

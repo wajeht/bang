@@ -11,6 +11,7 @@ async function createHiddenItems(userId: number) {
             hidden: true,
         })
         .returning('*');
+
     const [bookmark] = await db('bookmarks')
         .insert({
             user_id: userId,
@@ -19,6 +20,7 @@ async function createHiddenItems(userId: number) {
             hidden: true,
         })
         .returning('*');
+
     const [action] = await db('bangs')
         .insert({
             user_id: userId,
@@ -29,6 +31,7 @@ async function createHiddenItems(userId: number) {
             hidden: true,
         })
         .returning('*');
+
     return { note, bookmark, action };
 }
 
@@ -38,12 +41,14 @@ async function createLockedSession() {
         .post('/settings/hidden-password')
         .send({ newPassword: 'test-password' })
         .expect(302);
+
     return { agent, user, ...(await createHiddenItems(user.id)) };
 }
 
 describe('Hidden item authorization', () => {
     it('should deny session access across HTML and JSON route variants until password verification', async () => {
         const { agent, note, bookmark, action } = await createLockedSession();
+
         const paths = [
             `/notes/${note.id}/edit`,
             `/notes/${note.id}/download`,
@@ -53,12 +58,14 @@ describe('Hidden item authorization', () => {
             `/actions/${action.id}/edit`,
             `/api/actions/${action.id}`,
         ];
+
         for (const path of paths) {
             const response = await agent.get(path).expect(403);
             expect(response.text).not.toContain('private-note-marker');
             expect(response.text).not.toContain('private-bookmark-marker');
             expect(response.text).not.toContain('private-action-marker');
         }
+
         await agent.get(`/notes/${note.id}`).set('Accept', 'application/json').expect(403);
         const prompt = await agent.get(`/notes/${note.id}`).expect(200);
         expect(prompt.text).toContain('Password Required');
@@ -74,11 +81,14 @@ describe('Hidden item authorization', () => {
                 redirect_url: `/notes/${note.id}`,
             })
             .expect(302);
+
         for (const path of paths) await agent.get(path).expect(200);
+
         const response = await agent
             .get(`/notes/${note.id}`)
             .set('Accept', 'application/json')
             .expect(200);
+
         expect(response.body.data.content).toBe('private-note-marker');
     });
 
@@ -104,6 +114,7 @@ describe('Hidden item authorization', () => {
             .expect(403);
         await agent.post(`/bookmarks/${bookmark.id}/hide`).send({}).expect(403);
         await agent.post(`/actions/${action.id}/hide`).send({}).expect(403);
+
         for (const [table, id] of [
             ['notes', note.id],
             ['bookmarks', bookmark.id],
@@ -111,6 +122,7 @@ describe('Hidden item authorization', () => {
         ]) {
             expect((await db(table).where({ id }).first()).hidden).toBe(1);
         }
+
         await agent.post('/verify-hidden-password').send({ password: 'test-password' }).expect(302);
         await agent
             .put(`/api/notes/${note.id}`)
@@ -144,15 +156,18 @@ describe('Hidden item authorization', () => {
     it('should keep independently authenticated API-key access and ownership checks', async () => {
         const { agent, user } = await authenticateApiAgent(app);
         const { note, bookmark, action } = await createHiddenItems(user.id);
+
         for (const path of [
             `/api/notes/${note.id}`,
             `/api/bookmarks/${bookmark.id}`,
             `/api/actions/${action.id}`,
         ])
             await agent.get(path).expect(200);
+
         const { agent: other } = await authenticateAgent(app, {
             email: 'other-hidden@example.com',
         });
+
         for (const path of [
             `/api/notes/${note.id}`,
             `/notes/${note.id}/edit`,

@@ -42,11 +42,13 @@ export function createDate(context: AppContext) {
                 const date = context.libs.dayjs(utcDateString);
                 const jsDate = date.toDate();
                 const dateString = jsDate.toLocaleDateString('en-US');
+
                 const timeString = jsDate.toLocaleTimeString('en-US', {
                     hour: 'numeric',
                     minute: '2-digit',
                     hour12: true,
                 });
+
                 const fullString = `${dateString}, ${timeString}`;
                 const dateInputValue = date.format('YYYY-MM-DD');
                 const timeInputValue = date.format('HH:mm');

@@ -11,6 +11,7 @@ describe('Tabs Routes', () => {
                 const [tab1] = await db('tabs')
                     .insert({ user_id: user.id, title: 'Tab 1', trigger: '!tab1' })
                     .returning('*');
+
                 const [tab2] = await db('tabs')
                     .insert({ user_id: user.id, title: 'Tab 2', trigger: '!tab2' })
                     .returning('*');
@@ -74,6 +75,7 @@ describe('Tabs Routes', () => {
                 const [tab1] = await db('tabs')
                     .insert({ user_id: user.id, title: 'Tab 1', trigger: '!tab1' })
                     .returning('*');
+
                 const [tab2] = await db('tabs')
                     .insert({ user_id: user.id, title: 'Tab 2', trigger: '!tab2' })
                     .returning('*');
@@ -348,6 +350,7 @@ describe('Tabs Routes', () => {
             const indexes = await db.raw(
                 "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='tab_items'",
             );
+
             const indexNames = indexes.map((idx: any) => idx.name);
             expect(indexNames).toContain('tab_items_tab_id_idx');
         });
@@ -356,6 +359,7 @@ describe('Tabs Routes', () => {
             const indexes = await db.raw(
                 "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='tab_items'",
             );
+
             const indexNames = indexes.map((idx: any) => idx.name);
             expect(indexNames).toContain('tab_items_tab_id_created_idx');
         });
@@ -364,6 +368,7 @@ describe('Tabs Routes', () => {
             const indexes = await db.raw(
                 "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='tabs'",
             );
+
             const indexNames = indexes.map((idx: any) => idx.name);
             expect(indexNames).toContain('tabs_user_created_idx');
         });
@@ -388,6 +393,7 @@ describe('Tabs Routes', () => {
 
             // Query should complete quickly with indexes
             const startTime = Date.now();
+
             const tabs = await db
                 .select('tabs.*')
                 .select(
@@ -397,6 +403,7 @@ describe('Tabs Routes', () => {
                 )
                 .from('tabs')
                 .where('tabs.user_id', user.id);
+
             const duration = Date.now() - startTime;
 
             expect(tabs).toHaveLength(5);
@@ -408,6 +415,7 @@ describe('Tabs Routes', () => {
     describe('Tab Item Creation', () => {
         it('should prefetch assets when creating tab item', async () => {
             const { agent, user } = await authenticateApiAgent(app);
+
             const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
                 text: () => Promise.resolve(''),
             } as unknown as globalThis.Response);

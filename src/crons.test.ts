@@ -26,6 +26,7 @@ describe('cron service', () => {
         originalFetch = globalThis.fetch;
         globalThis.fetch = vi.fn(async (input: any) => {
             fetchedUrls.push(typeof input === 'string' ? input : input.url);
+
             return new Response('', { status: 200 });
         }) as any;
 
@@ -64,6 +65,7 @@ describe('cron service', () => {
                 .utc()
                 .subtract(PREFETCH_RECENT_DAYS + 5, 'day')
                 .toISOString();
+
             const recent = ctx.libs.dayjs.utc().subtract(1, 'hour').toISOString();
 
             await db('bookmarks').insert([
@@ -93,6 +95,7 @@ describe('cron service', () => {
 
         it('should fetch every recent bookmark when count is well under the limit', async () => {
             const recent = ctx.libs.dayjs.utc().subtract(1, 'hour').toISOString();
+
             const rows = Array.from({ length: 10 }, (_, i) => ({
                 user_id: 1,
                 url: `https://bm-${i}.example.com`,
@@ -100,6 +103,7 @@ describe('cron service', () => {
                 created_at: recent,
                 updated_at: recent,
             }));
+
             await db('bookmarks').insert(rows);
 
             await screenshotPrefetchTask(ctx);

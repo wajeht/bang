@@ -115,6 +115,7 @@ export function createSearchRouter(ctx: AppContext) {
         ctx.utils.html.applyHighlighting(remindersResult.data, ['title', 'content'], searchQuery);
 
         ctx.utils.html.applyHighlighting(tabsResult.data, ['title', 'trigger'], searchQuery);
+
         for (const tab of tabsResult.data) {
             if (tab.items) {
                 ctx.utils.html.applyHighlighting(tab.items, ['title', 'url'], searchQuery);
@@ -133,6 +134,7 @@ export function createSearchRouter(ctx: AppContext) {
                     reminders: remindersResult,
                 },
             });
+
             return;
         }
 

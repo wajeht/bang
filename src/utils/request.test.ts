@@ -14,6 +14,7 @@ beforeAll(async () => {
         info: vi.fn(),
         tag: vi.fn().mockReturnThis(),
     };
+
     const mockContext = {
         db,
         config,
@@ -202,6 +203,7 @@ describe.concurrent('getSafeRedirectPath', () => {
         const result = requestUtils.getSafeRedirectPath('/notes/42', {
             'verify-password-modal': 'true',
         });
+
         expect(result).toBe('/notes/42?verify-password-modal=true');
     });
 
@@ -209,6 +211,7 @@ describe.concurrent('getSafeRedirectPath', () => {
         const result = requestUtils.getSafeRedirectPath('/notes?modal=false', {
             modal: 'true',
         });
+
         expect(result).toBe('/notes?modal=true');
     });
 
@@ -216,6 +219,7 @@ describe.concurrent('getSafeRedirectPath', () => {
         const result = requestUtils.getSafeRedirectPath('//evil.com/x', {
             'verify-password-modal': 'true',
         });
+
         expect(result).toBe('/evil.com/x?verify-password-modal=true');
     });
 });
@@ -225,6 +229,7 @@ describe.concurrent('extractApiKey', () => {
         const req = {
             header: (name: string) => {
                 if (name === 'X-API-KEY') return 'test-api-key-123';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -237,6 +242,7 @@ describe.concurrent('extractApiKey', () => {
         const req = {
             header: (name: string) => {
                 if (name === 'Authorization') return 'Bearer my-bearer-token-456';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -249,7 +255,9 @@ describe.concurrent('extractApiKey', () => {
         const req = {
             header: (name: string) => {
                 if (name === 'X-API-KEY') return 'x-api-key-value';
+
                 if (name === 'Authorization') return 'Bearer bearer-token-value';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -271,6 +279,7 @@ describe.concurrent('extractApiKey', () => {
         const req = {
             header: (name: string) => {
                 if (name === 'Authorization') return 'Basic some-basic-auth';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -285,6 +294,7 @@ describe.concurrent('expectsJson', () => {
         const req = {
             header: (name: string) => {
                 if (name === 'Content-Type') return 'application/json';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -296,6 +306,7 @@ describe.concurrent('expectsJson', () => {
         const req = {
             header: (name: string) => {
                 if (name === 'Content-Type') return 'application/json; charset=utf-8';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -307,6 +318,7 @@ describe.concurrent('expectsJson', () => {
         const req = {
             header: (name: string) => {
                 if (name === 'Content-Type') return 'text/html';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -340,6 +352,7 @@ describe.concurrent('isApiRequest', () => {
             method: 'GET',
             header: (name: string) => {
                 if (name === 'X-API-KEY') return 'test-api-key';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -353,6 +366,7 @@ describe.concurrent('isApiRequest', () => {
             method: 'GET',
             header: (name: string) => {
                 if (name === 'Authorization') return 'Bearer test-token';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -366,6 +380,7 @@ describe.concurrent('isApiRequest', () => {
             method: 'GET',
             header: (name: string) => {
                 if (name === 'Accept') return 'application/json';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -379,6 +394,7 @@ describe.concurrent('isApiRequest', () => {
             method: 'HEAD',
             header: (name: string) => {
                 if (name === 'Accept') return 'application/json';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -392,7 +408,9 @@ describe.concurrent('isApiRequest', () => {
             method: 'POST',
             header: (name: string) => {
                 if (name === 'Accept') return 'application/json';
+
                 if (name === 'Content-Type') return 'application/json';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -406,6 +424,7 @@ describe.concurrent('isApiRequest', () => {
             method: 'POST',
             header: (name: string) => {
                 if (name === 'Accept') return 'application/json';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -419,6 +438,7 @@ describe.concurrent('isApiRequest', () => {
             method: 'POST',
             header: (name: string) => {
                 if (name === 'Content-Type') return 'application/json';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -432,6 +452,7 @@ describe.concurrent('isApiRequest', () => {
             method: 'GET',
             header: (name: string) => {
                 if (name === 'Accept') return 'text/html';
+
                 return undefined;
             },
         } as unknown as Request;
@@ -453,6 +474,7 @@ describe.concurrent('isApiRequest', () => {
 describe('canViewHiddenItems', () => {
     it('should return true when all conditions are met', () => {
         const now = Date.now();
+
         const req = {
             query: { hidden: 'true' },
             session: {
@@ -473,6 +495,7 @@ describe('canViewHiddenItems', () => {
 
     it('should return false when query.hidden is not "true"', () => {
         const now = Date.now();
+
         const req = {
             query: { hidden: 'false' },
             session: {
@@ -493,6 +516,7 @@ describe('canViewHiddenItems', () => {
 
     it('should return false when query.hidden is missing', () => {
         const now = Date.now();
+
         const req = {
             query: {},
             session: {
@@ -513,6 +537,7 @@ describe('canViewHiddenItems', () => {
 
     it('should return false when session is not verified', () => {
         const now = Date.now();
+
         const req = {
             query: { hidden: 'true' },
             session: {
@@ -533,6 +558,7 @@ describe('canViewHiddenItems', () => {
 
     it('should return false when session verification is expired (31 minutes old)', () => {
         const now = Date.now();
+
         const req = {
             query: { hidden: 'true' },
             session: {
@@ -553,6 +579,7 @@ describe('canViewHiddenItems', () => {
 
     it('should return true when verification is 29 minutes old (still valid)', () => {
         const now = Date.now();
+
         const req = {
             query: { hidden: 'true' },
             session: {
@@ -573,6 +600,7 @@ describe('canViewHiddenItems', () => {
 
     it('should return false when user does not have hidden_items_password', () => {
         const now = Date.now();
+
         const req = {
             query: { hidden: 'true' },
             session: {
@@ -593,6 +621,7 @@ describe('canViewHiddenItems', () => {
 
     it('should return false when user has empty hidden_items_password', () => {
         const now = Date.now();
+
         const req = {
             query: { hidden: 'true' },
             session: {
@@ -648,6 +677,7 @@ describe('canViewHiddenItems', () => {
 
     it('should return false when hiddenItemsVerified is missing', () => {
         const now = Date.now();
+
         const req = {
             query: { hidden: 'true' },
             session: {
@@ -667,6 +697,7 @@ describe('canViewHiddenItems', () => {
 
     it('should return true when verification is exactly at 30 minute boundary', () => {
         const now = Date.now();
+
         const req = {
             query: { hidden: 'true' },
             session: {

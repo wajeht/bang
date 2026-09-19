@@ -3,12 +3,14 @@ export function createValidation() {
     const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const REGEX_ALPHANUMERIC = /^[a-zA-Z0-9]+$/;
     const REGEX_URL_PROTOCOL = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
+
     const REGEX_DOMAIN_PATTERN =
         /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/i;
 
     function isValidUrl(url: string): boolean {
         try {
             new URL(url);
+
             return true;
         } catch {
             return false;
@@ -35,6 +37,7 @@ export function createValidation() {
         if (REGEX_WWW_PREFIX.test(trimmed)) {
             try {
                 new URL(`https://${trimmed}`);
+
                 return true;
             } catch {
                 return false;
@@ -45,6 +48,7 @@ export function createValidation() {
         if (REGEX_DOMAIN_PATTERN.test(trimmed)) {
             try {
                 new URL(`https://${trimmed}`);
+
                 return true;
             } catch {
                 return false;
@@ -58,6 +62,7 @@ export function createValidation() {
         text: string,
     ): { url: string; startIndex: number; endIndex: number } | null {
         const match = text.match(REGEX_URL_PROTOCOL);
+
         if (match && match.index !== undefined) {
             return {
                 url: match[0],
@@ -65,16 +70,19 @@ export function createValidation() {
                 endIndex: match.index + match[0].length,
             };
         }
+
         return null;
     }
 
     function findDomainUrlInWords(words: string[]): { urlIndex: number; url: string } | null {
         for (let i = 0; i < words.length; i++) {
             const word = words[i];
+
             if (word && isUrlLike(word)) {
                 return { urlIndex: i, url: word };
             }
         }
+
         return null;
     }
 

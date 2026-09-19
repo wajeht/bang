@@ -48,22 +48,28 @@ export function createHtml() {
         ) {
             if (text == null) return text;
             const original = String(text);
+
             const escaped = original.replace(
                 REGEX_HTML_CHARS,
                 (char) => HTML_ENTITIES[char] ?? char,
             );
+
             const trimmedSearch = searchTerm?.trim();
+
             if (!trimmedSearch) return escaped;
 
             const escapedWords: string[] = [];
+
             for (const word of trimmedSearch.split(REGEX_WHITESPACE)) {
                 if (word) escapedWords.push(word.replace(REGEX_ESCAPE_SPECIAL, '\\$&'));
             }
+
             if (!escapedWords.length) return escaped;
 
             const searchRegex = new RegExp(escapedWords.join('|'), 'gi');
             let result = '';
             let previousEnd = 0;
+
             for (const match of original.matchAll(searchRegex)) {
                 result += original
                     .slice(previousEnd, match.index)
@@ -71,6 +77,7 @@ export function createHtml() {
                 result += `<mark>${match[0].replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES[char] ?? char)}</mark>`;
                 previousEnd = match.index + match[0].length;
             }
+
             return (
                 result +
                 original
@@ -96,11 +103,13 @@ export function createHtml() {
                     }
                 }
             }
+
             return items;
         },
 
         stripHtmlTags(text: string | null | undefined): string {
             if (!text) return '';
+
             return String(text)
                 .replace(REGEX_HTML_TAGS, '')
                 .replace(REGEX_MULTI_WHITESPACE, ' ')

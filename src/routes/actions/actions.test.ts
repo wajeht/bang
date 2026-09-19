@@ -34,6 +34,7 @@ describe('Action creation validation', () => {
                 .get('/')
                 .query({ q: `!add ${trigger} ${url}` })
                 .expect(422);
+
             expect(commandResponse.text).toContain(message);
             await agent
                 .post('/actions')
@@ -43,11 +44,13 @@ describe('Action creation validation', () => {
                 .expect('Location', '/actions/create');
             const formResponse = await agent.get('/actions/create').expect(200);
             expect(formResponse.text).toContain(message);
+
             const apiResponse = await agent
                 .post('/api/actions')
                 .set('Accept', 'application/json')
                 .send({ name: 'Invalid shortcut', trigger, url, actionType: 'redirect' })
                 .expect(422);
+
             expect(Object.values(apiResponse.body.details)).toContain(message);
             expect(await db('bangs').where({ user_id: user.id })).toHaveLength(0);
         },
@@ -81,6 +84,7 @@ describe('Action creation validation', () => {
             expect(shortcuts[0].trigger).toBe('!api123');
             expect(shortcuts[1].trigger).toBe('!command123');
             expect(shortcuts[2].trigger).toBe('!form123');
+
             for (const shortcut of shortcuts) {
                 expect(shortcut.url).toBe(url);
             }
@@ -158,6 +162,7 @@ describe('Actions API', () => {
 
         it('should prefetch assets when creating redirect action', async () => {
             const { agent } = await authenticateApiAgent(app);
+
             const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
                 text: () => Promise.resolve(''),
             } as unknown as globalThis.Response);
@@ -191,6 +196,7 @@ describe('Actions API', () => {
 
         it('should NOT prefetch assets when creating search action', async () => {
             const { agent } = await authenticateApiAgent(app);
+
             const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
                 text: () => Promise.resolve(''),
             } as unknown as globalThis.Response);
@@ -210,6 +216,7 @@ describe('Actions API', () => {
             const screenshotCalls = fetchSpy.mock.calls.filter(
                 (call) => typeof call[0] === 'string' && call[0].includes('screenshot.jaw.dev'),
             );
+
             expect(screenshotCalls.length).toBe(0);
 
             fetchSpy.mockRestore();
@@ -264,6 +271,7 @@ describe('Actions API', () => {
                 const action = await db('bangs')
                     .where({ user_id: user.id, trigger: '!hidden' })
                     .first();
+
                 expect(action).toBeDefined();
                 expect(action.hidden).toBe(1);
             });
@@ -291,6 +299,7 @@ describe('Actions API', () => {
                 const action = await db('bangs')
                     .where({ user_id: user.id, trigger: '!hsearch' })
                     .first();
+
                 expect(action).toBeUndefined();
             });
         });

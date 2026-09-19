@@ -15,12 +15,14 @@ export function createAssets() {
 
     function computeFileHash(filePath: string): string {
         const cached = hashCache.get(filePath);
+
         if (cached) return cached;
 
         const absolutePath = path.resolve(PUBLIC_DIR, filePath);
         const content = fs.readFileSync(absolutePath);
         const hash = crypto.createHash('md5').update(content).digest('hex').slice(0, HASH_LENGTH);
         hashCache.set(filePath, hash);
+
         return hash;
     }
 
@@ -31,6 +33,7 @@ export function createAssets() {
             style: computeFileHash('style.css'),
             script: computeFileHash('script.js'),
         };
+
         return cachedVersions;
     }
 

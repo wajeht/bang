@@ -84,6 +84,7 @@ describe('Error classes', () => {
                 'Not implemented yet',
                 mockRequest as Request,
             );
+
             expect(error.statusCode).toBe(501);
             expect(error.message).toBe('Not implemented yet');
             expect(error.request).toEqual(mockRequest);

@@ -60,6 +60,7 @@ describe('Admin Routes', () => {
                 expect(response.text).toContain(
                     'data-username="audit &quot; data-audit=&quot;injected"',
                 );
+
                 if (search === 'audit') expect(response.text).toContain('<mark>audit</mark>');
             },
         );
@@ -73,11 +74,13 @@ describe('Admin Routes', () => {
         const response = await agent.get('/admin/users').expect(200);
         const handlers = response.text.match(/onclick="showDeleteUserModal[^"\n]*"/g) ?? [];
         expect(handlers.length).toBeGreaterThan(0);
+
         for (const handler of handlers) {
             expect(handler).toBe(
                 'onclick="showDeleteUserModal(this.dataset.userId, this.dataset.username)"',
             );
         }
+
         expect(response.text).toContain('data-user-id="' + user.id + '"');
         expect(response.text).toContain('data-username="audit \\\&#39; quoted"');
     });
@@ -144,6 +147,7 @@ describe('Admin Routes', () => {
                     .expect(302);
 
                 const remainingAdminUser2 = await db('users').where({ id: adminUser2.id }).first();
+
                 const remainingRegularUser = await db('users')
                     .where({ id: regularUser.id })
                     .first();
@@ -305,9 +309,11 @@ describe('Admin Routes', () => {
                 const showFooter = await db('settings')
                     .where({ key: 'branding.show_footer' })
                     .first();
+
                 const showSearch = await db('settings')
                     .where({ key: 'branding.show_search_page' })
                     .first();
+
                 const showAbout = await db('settings')
                     .where({ key: 'branding.show_about_page' })
                     .first();
@@ -325,9 +331,11 @@ describe('Admin Routes', () => {
                 const showFooter = await db('settings')
                     .where({ key: 'branding.show_footer' })
                     .first();
+
                 const showSearch = await db('settings')
                     .where({ key: 'branding.show_search_page' })
                     .first();
+
                 const showAbout = await db('settings')
                     .where({ key: 'branding.show_about_page' })
                     .first();

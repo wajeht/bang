@@ -3,6 +3,7 @@ import type { Action, Actions, ActionsQueryParams, AppContext } from '../../type
 
 export function createActionsRepository(ctx: AppContext): Actions {
     const REGEX_WHITESPACE = /\s+/;
+
     const ALLOWED_SORT_KEYS = new Set([
         'name',
         'trigger',
@@ -13,6 +14,7 @@ export function createActionsRepository(ctx: AppContext): Actions {
         'usage_count',
         'hidden',
     ]);
+
     const ALLOWED_UPDATE_FIELDS = new Set(['name', 'trigger', 'url', 'actionType', 'hidden']);
     const VALID_ACTION_TYPES = new Set(['search', 'redirect']);
 
@@ -78,8 +80,10 @@ export function createActionsRepository(ctx: AppContext): Actions {
                     // Split search into terms and escape SQL wildcards
                     const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
                     const searchTerms: string[] = [];
+
                     for (let i = 0; i < rawTerms.length; i++) {
                         const term = rawTerms[i];
+
                         if (term && term.length > 0) {
                             searchTerms.push(escapeLikePattern(term));
                         }
@@ -131,6 +135,7 @@ export function createActionsRepository(ctx: AppContext): Actions {
             const actionData = { ...rest, action_type: actionType };
 
             const [createdAction] = await ctx.db('bangs').insert(actionData).returning('*');
+
             return createdAction;
         },
 
@@ -165,10 +170,13 @@ export function createActionsRepository(ctx: AppContext): Actions {
             // Filter to only allowed update fields
             const updateData: Record<string, unknown> = {};
             const entries = Object.entries(updates);
+
             for (let i = 0; i < entries.length; i++) {
                 const entry = entries[i];
+
                 if (!entry) continue;
                 const [key, value] = entry;
+
                 if (ALLOWED_UPDATE_FIELDS.has(key)) {
                     updateData[key] = value;
                 }

@@ -45,6 +45,7 @@ export function createAdminRouter(ctx: AppContext) {
                 });
 
                 req.flash('success', 'Identity settings updated successfully');
+
                 return res.redirect('/admin/settings/identity');
             } catch (error) {
                 next(error);
@@ -85,6 +86,7 @@ export function createAdminRouter(ctx: AppContext) {
                 });
 
                 req.flash('success', 'Visibility settings updated successfully');
+
                 return res.redirect('/admin/settings/visibility');
             } catch (error) {
                 next(error);
@@ -140,12 +142,14 @@ export function createAdminRouter(ctx: AppContext) {
         ctx.middleware.adminOnly,
         deleteUserHandler,
     );
+
     async function deleteUserHandler(req: Request, res: Response) {
         if (req.params.id) {
             const userId = parseInt(req.params.id as unknown as string);
 
             if (req.user?.is_admin && req.user?.id === userId) {
                 req.flash('info', 'you cannot delete yourself');
+
                 return res.redirect('/admin/users');
             }
         }
@@ -169,6 +173,7 @@ export function createAdminRouter(ctx: AppContext) {
             'success',
             `${deletedCount} user${deletedCount !== 1 ? 's' : ''} deleted successfully`,
         );
+
         return res.redirect('/admin/users');
     }
 

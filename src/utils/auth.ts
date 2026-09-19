@@ -2,6 +2,7 @@ import type { ApiKeyPayload, MagicLinkPayload, AppContext } from '../type.js';
 
 export function createAuth(context: AppContext) {
     const logger = context.logger.tag('service', 'auth');
+
     return {
         async verifyApiKey(apiKey: string): Promise<ApiKeyPayload | null> {
             try {
@@ -24,6 +25,7 @@ export function createAuth(context: AppContext) {
                 return decodedApiKeyPayload;
             } catch (error) {
                 logger.error('Failed to verify API key', { error });
+
                 return null;
             }
         },
@@ -40,6 +42,7 @@ export function createAuth(context: AppContext) {
                 ) as MagicLinkPayload;
             } catch (error) {
                 logger.error('Failed to verify magic link token', { error });
+
                 return null;
             }
         },

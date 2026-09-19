@@ -87,6 +87,7 @@ export async function createServer() {
 
     server.on('listening', async () => {
         const addr: string | AddressInfo | null = server.address();
+
         const bind: string =
             typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port;
 
@@ -133,9 +134,11 @@ export async function closeServer({ server, ctx }: { server: Server; ctx: AppCon
         ctx.logger.info('Database connection closed');
 
         ctx.logger.info('Closing active connections', { count: activeSockets.size });
+
         for (const socket of activeSockets) {
             socket.destroy();
         }
+
         activeSockets.clear();
 
         await new Promise<void>((resolve, reject) => {
@@ -146,6 +149,7 @@ export async function closeServer({ server, ctx }: { server: Server; ctx: AppCon
 
             server.close((error) => {
                 clearTimeout(shutdownTimeout);
+
                 if (error) {
                     ctx.logger.error('Error closing HTTP server', { error });
                     reject(error);

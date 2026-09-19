@@ -53,6 +53,7 @@ describe('authenticationMiddleware', () => {
             headers: {},
             header: vi.fn((name: string) => {
                 const headers = (req as any).headers || {};
+
                 return headers[name.toLowerCase()];
             }),
         };
@@ -215,6 +216,7 @@ describe('authenticationMiddleware', () => {
         // Just verify that one of them was called
         const wasRedirectedOrNext =
             (res.redirect as any).mock.calls.length > 0 || (next as any).mock.calls.length > 0;
+
         expect(wasRedirectedOrNext).toBe(true);
 
         // Session save should still be called
@@ -242,6 +244,7 @@ describe('authenticationMiddleware', () => {
                 column_preferences: null,
             })
             .returning('*');
+
         const nullPrefUser = users[0];
 
         const sessionUser = {
@@ -331,6 +334,7 @@ describe('errorMiddleware', () => {
             flash: vi.fn().mockReturnValue([]),
             header: vi.fn((name: string) => {
                 const headers = (req as any).headers || {};
+
                 return headers[name.toLowerCase()];
             }),
         };
@@ -798,6 +802,7 @@ describe('RequestLoggerMiddleware', () => {
         let callCount = 0;
         vi.spyOn(Date, 'now').mockImplementation(() => {
             callCount++;
+
             // First call is at middleware start, second is at finish
             return callCount === 1 ? 0 : ctx.config.app.slowRequestMs + 100;
         });
@@ -849,6 +854,7 @@ describe('CsrfMiddleware', () => {
             } as unknown as Session,
             header: vi.fn((name: string) => {
                 const headers = (req as any).headers || {};
+
                 return headers[name.toLowerCase()];
             }),
         };

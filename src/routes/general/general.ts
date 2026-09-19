@@ -21,10 +21,12 @@ export function createGeneralRouter(ctx: AppContext) {
 
         if (ctx.utils.request.expectsJson(req)) {
             res.status(200).json({ status: 'ok', database: 'connected' });
+
             return;
         }
 
         res.setHeader('Content-Type', 'text/html').status(200).send('<p>ok</p>');
+
         return;
     });
 
@@ -115,8 +117,10 @@ export function createGeneralRouter(ctx: AppContext) {
         if (hasSearch) {
             filteredBangs = [];
             const len = bangsWithLowercase.length;
+
             for (let i = 0; i < len; i++) {
                 const bang = bangsWithLowercase[i]!;
+
                 if (
                     bang._tLower.includes(searchStr) ||
                     bang._sLower.includes(searchStr) ||
@@ -132,12 +136,16 @@ export function createGeneralRouter(ctx: AppContext) {
         const sortedBangs = hasSearch
             ? filteredBangs.sort((a, b) => {
                   if (a[key] < b[key]) return -sortMultiplier;
+
                   if (a[key] > b[key]) return sortMultiplier;
+
                   return 0;
               })
             : [...filteredBangs].sort((a, b) => {
                   if (a[key] < b[key]) return -sortMultiplier;
+
                   if (a[key] > b[key]) return sortMultiplier;
+
                   return 0;
               });
 
@@ -149,11 +157,13 @@ export function createGeneralRouter(ctx: AppContext) {
 
         // Only highlight the paginated data
         let highlightedData: Bang[];
+
         if (hasSearch) {
             const dataLen = data.length;
             // oxlint-disable-next-line unicorn/no-new-array
             highlightedData = new Array(dataLen);
             const searchTermStr = searchTerm;
+
             for (let i = 0; i < dataLen; i++) {
                 const bang = data[i]!;
                 highlightedData[i] = {
@@ -191,6 +201,7 @@ export function createGeneralRouter(ctx: AppContext) {
 
             if (activeBangsPrefetch.has(adminId)) {
                 req.flash('info', 'Screenshot caching already in progress...');
+
                 return res.redirect('/bangs');
             }
 
@@ -199,10 +210,13 @@ export function createGeneralRouter(ctx: AppContext) {
             try {
                 const urls: string[] = [];
                 const len = bangsArray.length;
+
                 for (let i = 0; i < len; i++) {
                     const bang = bangsArray[i];
+
                     if (!bang) continue;
                     const url = bang.u.replace('{{{s}}}', '');
+
                     if (url && url.startsWith('http')) {
                         urls.push(url);
                     }
@@ -210,6 +224,7 @@ export function createGeneralRouter(ctx: AppContext) {
 
                 if (urls.length === 0) {
                     req.flash('info', 'No URLs to prefetch');
+
                     return res.redirect('/bangs');
                 }
 
@@ -322,6 +337,7 @@ export function createGeneralRouter(ctx: AppContext) {
                 sortKey: actionsParams.sortKey, // or bookmarksParams.sortKey, the same sortKey for both
                 direction: actionsParams.direction, // or bookmarksParams.direction, the same direction for both
             });
+
             return;
         },
     );

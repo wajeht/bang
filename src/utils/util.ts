@@ -10,7 +10,9 @@ import { fetchPublicPageTitle } from './page-title.js';
 import type { Request } from 'express';
 
 const DEFAULT_SCREENSHOT_PREFETCH_BATCH_SIZE = 5;
+
 const DEFAULT_SCREENSHOT_PREFETCH_TIMEOUT_MS = 10000;
+
 const DEFAULT_SCREENSHOT_PREFETCH_USER_AGENT = 'Bang/1.0 (https://bang.jaw.dev)';
 
 interface ScreenshotPrefetchOptions {
@@ -155,6 +157,7 @@ export function createUtil(context: AppContext) {
             if (trigger.startsWith('!')) {
                 return trigger;
             }
+
             return `!${trigger}`;
         },
 
@@ -208,6 +211,7 @@ export function createUtil(context: AppContext) {
                 return `https://favicon.jaw.dev/?url=${encodeURIComponent(new URL(url).hostname)}`;
             } catch {
                 const withHttps = url.startsWith('http') ? url : `https://${url}`;
+
                 try {
                     return `https://favicon.jaw.dev/?url=${encodeURIComponent(new URL(withHttps).hostname)}`;
                 } catch {
@@ -219,11 +223,14 @@ export function createUtil(context: AppContext) {
         getScreenshotUrl(url: string): string {
             try {
                 new URL(url);
+
                 return `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`;
             } catch {
                 const withHttps = url.startsWith('http') ? url : `https://${url}`;
+
                 try {
                     new URL(withHttps);
+
                     return `https://screenshot.jaw.dev?url=${encodeURIComponent(withHttps)}`;
                 } catch {
                     return `https://screenshot.jaw.dev?url=${encodeURIComponent(url)}`;
@@ -272,6 +279,7 @@ export function createUtil(context: AppContext) {
                                     headers: { 'User-Agent': userAgent },
                                     signal: AbortSignal.timeout(timeoutMs),
                                 });
+
                                 await response.text().catch(() => {});
                             } catch {
                                 // Ignore screenshot cache failures.
@@ -291,6 +299,7 @@ export function createUtil(context: AppContext) {
         createBookmarkHtml(bookmark: BookmarkToExport): string {
             const escapedUrl = context.utils.html.escapeHtml(bookmark.url);
             const escapedTitle = context.utils.html.escapeHtml(bookmark.title);
+
             return `<DT><A HREF="${escapedUrl}" ADD_DATE="${bookmark.add_date}">${escapedTitle}</A>`;
         },
 
@@ -368,9 +377,11 @@ export function createUtil(context: AppContext) {
                 if (title) {
                     return await db('bookmarks').where({ user_id: userId, url, title }).first();
                 }
+
                 return await db('bookmarks').where({ user_id: userId, url }).first();
             } catch (error) {
                 logger.error('Error checking duplicate bookmark URL', { error, url });
+
                 return null;
             }
         },
@@ -429,6 +440,7 @@ export function createUtil(context: AppContext) {
             const idCount = [bookmarkId, actionId, reminderId].filter(
                 (id) => id !== undefined,
             ).length;
+
             if (idCount !== 1) {
                 throw new errors.HttpError(
                     500,
@@ -566,12 +578,14 @@ export function createUtil(context: AppContext) {
                         if (!acc[item.tab_id]) {
                             acc[item.tab_id] = [];
                         }
+
                         acc[item.tab_id].push({
                             title: item.title,
                             url: item.url,
                             created_at: item.created_at,
                             updated_at: item.updated_at,
                         });
+
                         return acc;
                     },
                     {} as Record<number, any[]>,
@@ -626,15 +640,20 @@ export function createUtil(context: AppContext) {
             ]);
 
             if (includeBookmarks) exportData.bookmarks = bookmarks;
+
             if (includeActions) exportData.actions = actions;
+
             if (includeNotes) exportData.notes = notes;
+
             if (includeTabs) exportData.tabs = tabs;
+
             if (includeReminders) exportData.reminders = reminders;
 
             if (includeUserPreferences && userPrefs) {
                 if (typeof userPrefs.column_preferences === 'string') {
                     userPrefs.column_preferences = JSON.parse(userPrefs.column_preferences);
                 }
+
                 exportData.user_preferences = userPrefs;
             }
 

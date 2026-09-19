@@ -49,8 +49,10 @@ export function createNotesRepository(ctx: AppContext): Notes {
                     // Split search into terms and escape SQL wildcards
                     const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
                     const searchTerms: string[] = [];
+
                     for (let i = 0; i < rawTerms.length; i++) {
                         const term = rawTerms[i];
+
                         if (term && term.length > 0) {
                             searchTerms.push(escapeLikePattern(term));
                         }
@@ -88,6 +90,7 @@ export function createNotesRepository(ctx: AppContext): Notes {
             }
 
             const [createdNote] = await ctx.db('notes').insert(note).returning('*');
+
             return createdNote;
         },
 
@@ -109,10 +112,13 @@ export function createNotesRepository(ctx: AppContext): Notes {
             // Filter to only allowed update fields
             const updateData: Record<string, unknown> = {};
             const entries = Object.entries(updates);
+
             for (let i = 0; i < entries.length; i++) {
                 const entry = entries[i];
+
                 if (!entry) continue;
                 const [key, value] = entry;
+
                 if (ALLOWED_UPDATE_FIELDS.has(key)) {
                     updateData[key] = value;
                 }

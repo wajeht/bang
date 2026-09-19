@@ -15,17 +15,23 @@ function mockResponse(chunks: Buffer[], statusCode = 200, end = true) {
     const destroy = vi.fn(() => response.destroy());
     const request = Object.assign(new EventEmitter(), { destroy });
     let requestOptions: RequestOptions | undefined;
+
     function get(_url: URL, options: RequestOptions, callback: (res: typeof response) => void) {
         requestOptions = options;
         queueMicrotask(() => {
             callback(response);
+
             for (const chunk of chunks) response.write(chunk);
+
             if (end) response.end();
         });
+
         return request;
     }
+
     network.http.mockImplementation(get);
     network.https.mockImplementation(get);
+
     return { destroy, request, response, options: () => requestOptions };
 }
 
@@ -36,6 +42,7 @@ beforeEach(() => {
     vi.spyOn(https, 'get').mockImplementation(network.https);
     network.lookup.mockResolvedValue([{ address: '93.184.215.14', family: 4 }]);
 });
+
 afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
@@ -114,6 +121,7 @@ describe('Public page title fetching', () => {
             Buffer.from('tle>Safe '),
             Buffer.from('title</title>'),
         ]);
+
         expect(await fetchPublicPageTitle('https://example.com/page')).toBe('Safe title');
         expect(network.lookup).toHaveBeenCalledExactlyOnceWith('example.com', {
             all: true,
@@ -148,10 +156,12 @@ describe('Public page title fetching', () => {
         vi.useFakeTimers();
         const transport = mockResponse([Buffer.from('<html>')], 200, false);
         const result = fetchPublicPageTitle('http://example.com');
+
         for (let i = 0; i < 4; i++) {
             await vi.advanceTimersByTimeAsync(1000);
             transport.response.write(Buffer.from('still waiting'));
         }
+
         await vi.advanceTimersByTimeAsync(1001);
         expect(await result).toBe('Untitled');
         expect(transport.destroy).toHaveBeenCalled();

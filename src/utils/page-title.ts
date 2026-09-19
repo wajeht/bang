@@ -6,12 +6,17 @@ import { BlockList, isIP } from 'node:net';
 import { StringDecoder } from 'node:string_decoder';
 
 const TITLE_FETCH_TIMEOUT_MS = 5000;
+
 const TITLE_FETCH_MAX_BYTES = 256 * 1024;
+
 const REGEX_TITLE = /<title\b[^>]*>([^<]*)<\/title\s*>/i;
+
 const PUBLIC_IPV6 = new BlockList();
+
 PUBLIC_IPV6.addSubnet('2000::', 3, 'ipv6');
 
 const NON_PUBLIC_ADDRESSES = new BlockList();
+
 const IPV4_EXCLUSIONS: Array<[string, number]> = [
     ['0.0.0.0', 8],
     ['10.0.0.0', 8],
@@ -29,8 +34,10 @@ const IPV4_EXCLUSIONS: Array<[string, number]> = [
     ['224.0.0.0', 4],
     ['240.0.0.0', 4],
 ];
+
 for (const [address, prefix] of IPV4_EXCLUSIONS)
     NON_PUBLIC_ADDRESSES.addSubnet(address, prefix, 'ipv4');
+
 // Exclude special-purpose, transition/tunnel, and documentation ranges within global unicast.
 for (const [address, prefix] of [
     ['2001::', 23],
@@ -43,7 +50,9 @@ for (const [address, prefix] of [
 
 export function isPublicAddress(address: string): boolean {
     const family = isIP(address);
+
     if (family === 4) return !NON_PUBLIC_ADDRESSES.check(address, 'ipv4');
+
     // Also excludes IPv4-mapped/translated IPv6, local, multicast and unallocated ranges.
     return (
         family === 6 &&
@@ -54,11 +63,13 @@ export function isPublicAddress(address: string): boolean {
 
 export async function fetchPublicPageTitle(rawUrl: string): Promise<string> {
     let url: URL;
+
     try {
         url = new URL(rawUrl);
     } catch {
         return 'Untitled';
     }
+
     if ((url.protocol !== 'https:' && url.protocol !== 'http:') || url.username || url.password)
         return 'Untitled';
 
@@ -79,14 +90,19 @@ export async function fetchPublicPageTitle(rawUrl: string): Promise<string> {
             const hostname = url.hostname.startsWith('[')
                 ? url.hostname.slice(1, -1)
                 : url.hostname;
+
             const family = isIP(hostname);
+
             const addresses = family
                 ? [{ address: hostname, family }]
                 : await dns.lookup(hostname, { all: true, verbatim: true });
+
             if (settled) return;
             const address = addresses[0];
+
             if (!address || addresses.some((entry) => !isPublicAddress(entry.address))) {
                 finish();
+
                 return;
             }
 
@@ -108,21 +124,28 @@ export async function fetchPublicPageTitle(rawUrl: string): Promise<string> {
                 (response) => {
                     response.on('error', () => finish());
                     response.on('aborted', () => finish());
+
                     if (response.statusCode !== 200) {
                         finish();
+
                         return;
                     }
+
                     let bytes = 0;
                     let content = '';
                     const decoder = new StringDecoder('utf8');
                     response.on('data', (chunk: Buffer) => {
                         bytes += chunk.length;
+
                         if (bytes > TITLE_FETCH_MAX_BYTES) {
                             finish();
+
                             return;
                         }
+
                         content += decoder.write(chunk);
                         const match = REGEX_TITLE.exec(content);
+
                         if (match?.[1]) finish(match[1].slice(0, 100).trim());
                     });
                     response.on('end', () => finish());

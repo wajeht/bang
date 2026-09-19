@@ -31,8 +31,10 @@ export function createActionsRouter(ctx: AppContext) {
      */
     router.get('/api/actions', ctx.middleware.authentication, getActionsHandler);
     router.get('/actions', ctx.middleware.authentication, getActionsHandler);
+
     async function getActionsHandler(req: Request, res: Response) {
         const user = req.user as User;
+
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'actions');
 
@@ -55,6 +57,7 @@ export function createActionsRouter(ctx: AppContext) {
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.json({ data, pagination, search, sortKey, direction });
+
             return;
         }
 
@@ -102,6 +105,7 @@ export function createActionsRouter(ctx: AppContext) {
             if (!action) {
                 throw new ctx.errors.NotFoundError('Action not found');
             }
+
             ctx.utils.request.assertCanAccessHiddenItem(req, action, 'bang');
 
             return res.render('actions/actions-edit.html', {
@@ -118,6 +122,7 @@ export function createActionsRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const id = parseInt(req.params.id as unknown as string);
+
             const action = await ctx
                 .db('bangs')
                 .where({
@@ -129,6 +134,7 @@ export function createActionsRouter(ctx: AppContext) {
             if (!action) {
                 throw new ctx.errors.NotFoundError('Actions not found');
             }
+
             ctx.utils.request.assertCanAccessHiddenItem(req, action, 'bang');
 
             const tabs = await ctx.db('tabs').where({ user_id: req.session.user?.id });
@@ -160,6 +166,7 @@ export function createActionsRouter(ctx: AppContext) {
      */
     router.post('/api/actions', ctx.middleware.authentication, postActionHandler);
     router.post('/actions', ctx.middleware.authentication, postActionHandler);
+
     async function postActionHandler(req: Request, res: Response) {
         const { url, name, actionType, trigger, hidden } = req.body;
         const user = req.user as User;
@@ -196,6 +203,7 @@ export function createActionsRouter(ctx: AppContext) {
 
         if (hidden === 'on' || hidden === true) {
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
+
             if (!dbUser?.hidden_items_password) {
                 throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
@@ -235,10 +243,12 @@ export function createActionsRouter(ctx: AppContext) {
             res.status(201).json({
                 message: `Action ${formattedTrigger} created successfully!`,
             });
+
             return;
         }
 
         req.flash('success', `Action ${formattedTrigger} created successfully!`);
+
         return res.redirect('/actions');
     }
 
@@ -261,6 +271,7 @@ export function createActionsRouter(ctx: AppContext) {
      */
     router.patch('/api/actions/:id', ctx.middleware.authentication, updateActionHandler);
     router.post('/actions/:id/update', ctx.middleware.authentication, updateActionHandler);
+
     async function updateActionHandler(req: Request, res: Response) {
         const { url, name, actionType, trigger, hidden } = req.body;
         const user = req.user as User;
@@ -300,6 +311,7 @@ export function createActionsRouter(ctx: AppContext) {
 
         if (hidden === 'on' || hidden === true) {
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
+
             if (!dbUser?.hidden_items_password) {
                 throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
@@ -333,6 +345,7 @@ export function createActionsRouter(ctx: AppContext) {
         if (!currentAction) {
             throw new ctx.errors.NotFoundError('Action not found');
         }
+
         ctx.utils.request.assertCanAccessHiddenItem(req, currentAction, 'bang');
 
         const updatedAction = await ctx.models.actions.update(actionId, user.id, {
@@ -352,6 +365,7 @@ export function createActionsRouter(ctx: AppContext) {
             res.status(200).json({
                 message: `Action ${updatedAction.trigger} updated successfully!`,
             });
+
             return;
         }
 
@@ -359,6 +373,7 @@ export function createActionsRouter(ctx: AppContext) {
 
         if (updatedAction.hidden && !currentAction.hidden) {
             req.flash('success', 'Action hidden successfully');
+
             return res.redirect('/actions');
         }
 
@@ -385,6 +400,7 @@ export function createActionsRouter(ctx: AppContext) {
     router.post('/api/actions/delete', ctx.middleware.authentication, deleteActionHandler);
     router.post('/actions/:id/delete', ctx.middleware.authentication, deleteActionHandler);
     router.post('/actions/delete', ctx.middleware.authentication, deleteActionHandler);
+
     async function deleteActionHandler(req: Request, res: Response) {
         const user = req.user as User;
         const actionIds = ctx.utils.request.extractIdsForDelete(req);
@@ -401,6 +417,7 @@ export function createActionsRouter(ctx: AppContext) {
                 message: `${deletedCount} action${deletedCount !== 1 ? 's' : ''} deleted successfully`,
                 data: { deletedCount },
             });
+
             return;
         }
 
@@ -408,6 +425,7 @@ export function createActionsRouter(ctx: AppContext) {
             'success',
             `${deletedCount} action${deletedCount !== 1 ? 's' : ''} deleted successfully`,
         );
+
         return res.redirect('/actions');
     }
 
@@ -428,11 +446,13 @@ export function createActionsRouter(ctx: AppContext) {
      */
     router.post('/actions/:id/hide', ctx.middleware.authentication, toggleActionHideHandler);
     router.post('/api/actions/:id/hide', ctx.middleware.authentication, toggleActionHideHandler);
+
     async function toggleActionHideHandler(req: Request, res: Response) {
         const user = req.user as User;
         const actionId = parseInt(req.params.id as unknown as string);
 
         const dbUser = await ctx.db('users').where({ id: user.id }).first();
+
         if (!dbUser?.hidden_items_password) {
             throw new ctx.errors.ValidationError({
                 hidden: 'You must set a global password in settings before hiding items',
@@ -444,6 +464,7 @@ export function createActionsRouter(ctx: AppContext) {
         if (!currentAction) {
             throw new ctx.errors.NotFoundError('Action not found');
         }
+
         ctx.utils.request.assertCanAccessHiddenItem(req, currentAction, 'bang');
 
         if (!currentAction.hidden && currentAction.action_type !== 'redirect') {
@@ -462,11 +483,13 @@ export function createActionsRouter(ctx: AppContext) {
                 message: `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`,
                 data: updatedAction,
             });
+
             return;
         }
 
         req.flash('success', `Action ${updatedAction.hidden ? 'hidden' : 'unhidden'} successfully`);
         const showHidden = req.body.showHidden === 'true';
+
         return res.redirect('/actions' + (showHidden ? '?hidden=true' : ''));
     }
 
@@ -491,6 +514,7 @@ export function createActionsRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
+
             const action = await ctx.models.actions.read(
                 parseInt(req.params.id as unknown as string),
                 user.id,
@@ -499,6 +523,7 @@ export function createActionsRouter(ctx: AppContext) {
             if (!action) {
                 throw new ctx.errors.NotFoundError('Action not found');
             }
+
             ctx.utils.request.assertCanAccessHiddenItem(req, action, 'bang');
 
             res.status(200).json({
@@ -517,6 +542,7 @@ export function createActionsRouter(ctx: AppContext) {
             const id = parseInt(req.params.id as unknown as string);
 
             const item = await ctx.models.actions.read(id, user.id);
+
             if (!item) throw new ctx.errors.NotFoundError('Item not found');
             ctx.utils.request.assertCanAccessHiddenItem(req, item, 'bang');
 
@@ -524,10 +550,12 @@ export function createActionsRouter(ctx: AppContext) {
 
             if (ctx.utils.request.isApiRequest(req)) {
                 res.status(201).json({ message: 'Tab added successfully' });
+
                 return;
             }
 
             req.flash('success', 'Tab added!');
+
             return res.redirect('/actions');
         },
     );
@@ -542,6 +570,7 @@ export function createActionsRouter(ctx: AppContext) {
 
             if (activePrefetches.has(user.id)) {
                 req.flash('info', 'Screenshot caching already in progress...');
+
                 return res.redirect('/actions');
             }
 
@@ -554,6 +583,7 @@ export function createActionsRouter(ctx: AppContext) {
 
             if (actions.length === 0) {
                 req.flash('warning', "You don't have any actions at the moment!");
+
                 return res.redirect('/actions');
             }
 
@@ -561,6 +591,7 @@ export function createActionsRouter(ctx: AppContext) {
 
             if (urls.length === 0) {
                 req.flash('info', 'No URLs to cache');
+
                 return res.redirect('/actions');
             }
 
@@ -571,6 +602,7 @@ export function createActionsRouter(ctx: AppContext) {
                 .finally(() => activePrefetches.delete(user.id));
 
             req.flash('success', `Caching ${urls.length} preview images in background...`);
+
             return res.redirect('/actions');
         },
     );

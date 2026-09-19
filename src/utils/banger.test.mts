@@ -42,6 +42,7 @@ describe('banger', () => {
                     u: 'https://www.example.com/workout-videos/?frm_search={{{s}}}',
                 },
             ];
+
             fetchMock.mockResolvedValueOnce({
                 json: () => Promise.resolve(mockBangs),
             });
@@ -63,6 +64,7 @@ describe('banger', () => {
                     u: 'https://www.example.com/workout-videos/?frm_search={{{s}}}',
                 },
             ];
+
             fetchMock.mockResolvedValueOnce({
                 json: () => Promise.resolve({ bangs: mockBangs }),
             });

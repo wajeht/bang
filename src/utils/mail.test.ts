@@ -374,9 +374,11 @@ describe('Mail Utils', () => {
 
         it('should retain failed deliveries and still process other users', async () => {
             const dueDate = dayjs.utc().add(5, 'minutes').toISOString();
+
             const [otherUser] = await db('users')
                 .insert({ username: 'other', email: 'other@example.com', timezone: 'UTC' })
                 .returning('*');
+
             await db('reminders').insert([
                 {
                     user_id: testUser.id,
@@ -398,14 +400,19 @@ describe('Mail Utils', () => {
                     due_date: dueDate,
                 },
             ]);
+
             const originalReminders = await db('reminders')
                 .where('user_id', testUser.id)
                 .orderBy('id');
+
             const transporter = libs.nodemailer.createTransport({ streamTransport: true });
+
             const sendMail = vi
                 .spyOn(transporter, 'sendMail')
                 .mockRejectedValueOnce(new Error('SMTP unavailable'));
+
             vi.spyOn(libs.nodemailer, 'createTransport').mockReturnValue(transporter);
+
             const mail = createMail({
                 ...ctx,
                 config: { ...ctx.config, app: { ...ctx.config.app, env: 'production' } },
@@ -729,10 +736,12 @@ describe('Mail Utils', () => {
                 const transporter = libs.nodemailer.createTransport({ streamTransport: true });
                 const sendMail = vi.spyOn(transporter, 'sendMail');
                 vi.spyOn(libs.nodemailer, 'createTransport').mockReturnValue(transporter);
+
                 const mail = createMail({
                     ...ctx,
                     config: { ...ctx.config, app: { ...ctx.config.app, env: 'production' } },
                 });
+
                 return { mail, sendMail };
             }
 
@@ -751,6 +760,7 @@ describe('Mail Utils', () => {
                     vi.useFakeTimers({ toFake: ['Date'] });
                     vi.setSystemTime(dayjs.tz(current, zone).toDate());
                     await db('users').where('id', testUser.id).update({ timezone: zone });
+
                     const [reminder] = await db('reminders')
                         .insert({
                             user_id: testUser.id,
@@ -760,6 +770,7 @@ describe('Mail Utils', () => {
                             due_date: dayjs.tz(due, zone).toISOString(),
                         })
                         .returning('*');
+
                     const { mail, sendMail } = createDelivery();
 
                     await mail.processReminderDigests();
@@ -797,6 +808,7 @@ describe('Mail Utils', () => {
 
                 const pending = await db('reminders').where('user_id', testUser.id);
                 expect(pending).toHaveLength(2);
+
                 for (const reminder of pending) expect(reminder.due_date).toBe(dueDate);
 
                 await mail.processReminderDigests();
