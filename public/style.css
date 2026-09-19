@@ -27,6 +27,8 @@ html {
     --link-color: #0000ee;
     --visited-link-color: #551a8b;
     --border-color: #1a1a1a;
+    --input-border: #8a8a8a;
+    --input-error-color: #b42318;
     --button-hover-background: #e5e5e5;
     --sub-table-background: #f8f9fa;
     --tr-border-color: #ddd;
@@ -55,7 +57,8 @@ html {
     --border-color: #ffffff;
     --input-background: #333333;
     --input-text: #ffffff;
-    --input-border: #4a4a4a;
+    --input-border: #888888;
+    --input-error-color: #ff8a80;
     --button-background: #4a4a4a;
     --button-text: #ffffff;
     --checkbox-background: #333333;
@@ -156,7 +159,7 @@ textarea {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    border: 1px solid var(--tr-border-color);
+    border: 1px solid var(--input-border);
     border-radius: 4px;
     background-color: var(--background-color);
     color: var(--text-color);
@@ -235,7 +238,7 @@ legend {
 [data-theme='dark'] button {
     background-color: var(--button-background);
     color: var(--button-text);
-    border: 1px solid var(--input-border);
+    border: 1px solid var(--tr-border-color);
     border-radius: 4px;
 }
 
@@ -255,6 +258,15 @@ legend {
 [data-theme='dark'] input[type='radio']:checked {
     background-color: var(--checkbox-check);
     border-radius: 4px;
+}
+
+input[aria-invalid='true'],
+textarea[aria-invalid='true'],
+select[aria-invalid='true'],
+[data-theme='dark'] input[aria-invalid='true'],
+[data-theme='dark'] textarea[aria-invalid='true'],
+[data-theme='dark'] select[aria-invalid='true'] {
+    border-color: var(--input-error-color);
 }
 
 p,
@@ -725,7 +737,7 @@ a:hover .sort-icon {
 [data-theme='dark'] .question-mark-btn {
     background-color: var(--button-background);
     color: var(--button-text);
-    border: 1px solid var(--input-border);
+    border: 1px solid var(--tr-border-color);
     border-radius: 50%;
 }
 

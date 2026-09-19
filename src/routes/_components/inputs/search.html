@@ -6,7 +6,7 @@
     type="search"
     id="<%= id %>"
     name="<%= name %>"
-    style="flex: 1; padding-right: 2rem; <%= typeof style !== 'undefined' ? style : '' %>"
+    style="flex: 1; padding-right: 2.5rem; <%= typeof style !== 'undefined' ? style : '' %>"
     <% if (typeof placeholder !== 'undefined') { %>placeholder="<%= placeholder %>"<% } %>
     <% if (typeof value !== 'undefined') { %>value="<%= value %>"<% } %>
     <% if (typeof ariaLabel !== 'undefined') { %>aria-label="<%= ariaLabel %>"<% } %>
@@ -17,7 +17,7 @@
   >
   <button
     type="button"
-    style="position: absolute; right: 0.25rem; top: 50%; transform: translateY(-50%); padding: 0.25rem; background: none; border: none; cursor: pointer; font-size: 0.7em; align-items: center; justify-content: center; display: <%= (typeof value !== 'undefined' && value) ? 'flex' : 'none' %>;"
+    style="position: absolute; right: 2px; width: 2rem; height: 2rem; top: 50%; transform: translateY(-50%); padding: 0.25rem; background: none; border: none; cursor: pointer; font-size: 0.7em; align-items: center; justify-content: center; display: <%= (typeof value !== 'undefined' && value) ? 'flex' : 'none' %>;"
     aria-label="Clear search"
     aria-controls="<%= id %>"
     onclick="var i=this.previousElementSibling;i.value='';this.style.display='none';<%= (typeof submitOnClear === 'undefined' || submitOnClear) ? 'i.form.submit()' : 'i.focus()' %>"

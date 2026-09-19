@@ -10,12 +10,15 @@
     <% if (typeof readonly !== 'undefined' && readonly) { %>readonly<% } %>
     <% if (typeof autocomplete !== 'undefined') { %>autocomplete="<%= autocomplete %>"<% } %>
     <% if (typeof style !== 'undefined') { %>style="<%= style %>"<% } %>
-    aria-describedby="<%= id %>-help<% if (typeof error !== 'undefined' && error) { %> <%= id %>-error<% } %>"
+    <% if (typeof error !== 'undefined' && error) { %>aria-invalid="true"<% } %>
+    <% if (typeof helpText !== 'undefined' || (typeof error !== 'undefined' && error)) { %>
+    aria-describedby="<% if (typeof helpText !== 'undefined') { %><%= id %>-help<% } %><% if (typeof error !== 'undefined' && error) { %> <%= id %>-error<% } %>"
+    <% } %>
   >
   <% if (typeof helpText !== 'undefined') { %>
     <small id="<%= id %>-help"><%= helpText %></small>
   <% } %>
   <% if (typeof error !== 'undefined' && error) { %>
-    <small id="<%= id %>-error" style="color: red;" role="alert"><%= error %></small>
+    <small id="<%= id %>-error" style="color: var(--input-error-color);" role="alert"><%= error %></small>
   <% } %>
 </div>
