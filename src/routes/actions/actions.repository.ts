@@ -138,6 +138,7 @@ export function createActionsRepository(ctx: AppContext): Actions {
             const action = await ctx.db
                 .select(
                     'bangs.id',
+                    'bangs.user_id',
                     'bangs.name',
                     'bangs.trigger',
                     'bangs.url',

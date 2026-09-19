@@ -313,9 +313,14 @@ describe('Actions API', () => {
             it('should toggle hidden status when global password is set', async () => {
                 const { agent, user } = await authenticateAgent(app);
 
-                await db('users')
-                    .where({ id: user.id })
-                    .update({ hidden_items_password: 'hashed_password' });
+                await agent
+                    .post('/settings/hidden-password')
+                    .send({ newPassword: 'test-password' })
+                    .expect(302);
+                await agent
+                    .post('/verify-hidden-password')
+                    .send({ password: 'test-password' })
+                    .expect(302);
 
                 const [action] = await db('bangs')
                     .insert({
@@ -386,9 +391,14 @@ describe('Actions API', () => {
             it('should preserve showHidden query param in redirect', async () => {
                 const { agent, user } = await authenticateAgent(app);
 
-                await db('users')
-                    .where({ id: user.id })
-                    .update({ hidden_items_password: 'hashed_password' });
+                await agent
+                    .post('/settings/hidden-password')
+                    .send({ newPassword: 'test-password' })
+                    .expect(302);
+                await agent
+                    .post('/verify-hidden-password')
+                    .send({ password: 'test-password' })
+                    .expect(302);
 
                 const [action] = await db('bangs')
                     .insert({

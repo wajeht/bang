@@ -127,6 +127,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             if (!bookmark) {
                 throw new ctx.errors.NotFoundError('Bookmark not found');
             }
+            ctx.utils.request.assertCanAccessHiddenItem(req, bookmark, 'bookmark');
 
             return res.render('bookmarks/bookmarks-edit.html', {
                 title: 'Bookmarks / Edit',
@@ -153,6 +154,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             if (!bookmark) {
                 throw new ctx.errors.NotFoundError('Bookmark not found');
             }
+            ctx.utils.request.assertCanAccessHiddenItem(req, bookmark, 'bookmark');
 
             const tabs = await ctx.db('tabs').where({ user_id: req.session.user?.id });
 
@@ -177,6 +179,9 @@ export function createBookmarksRouter(ctx: AppContext) {
                     user_id: req.session.user?.id,
                 })
                 .first();
+
+            if (!bookmark) throw new ctx.errors.NotFoundError('Bookmark not found');
+            ctx.utils.request.assertCanAccessHiddenItem(req, bookmark, 'bookmark');
 
             return res.render('bookmarks/bookmarks-actions-new.html', {
                 title: `Bookmarks / ${String(req.params.id)} / Actions / Create`,
@@ -335,6 +340,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         if (!currentBookmark) {
             throw new ctx.errors.NotFoundError('Bookmark not found');
         }
+        ctx.utils.request.assertCanAccessHiddenItem(req, currentBookmark, 'bookmark');
 
         const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
             url,
@@ -430,6 +436,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         if (!currentBookmark) {
             throw new ctx.errors.NotFoundError('Bookmark not found');
         }
+        ctx.utils.request.assertCanAccessHiddenItem(req, currentBookmark, 'bookmark');
 
         const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
             pinned: !currentBookmark.pinned,
@@ -487,6 +494,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         if (!currentBookmark) {
             throw new ctx.errors.NotFoundError('Bookmark not found');
         }
+        ctx.utils.request.assertCanAccessHiddenItem(req, currentBookmark, 'bookmark');
 
         const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
             hidden: !currentBookmark.hidden,
@@ -537,6 +545,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             if (!bookmark) {
                 throw new ctx.errors.NotFoundError('Bookmark not found');
             }
+            ctx.utils.request.assertCanAccessHiddenItem(req, bookmark, 'bookmark');
 
             res.status(200).json({
                 message: 'Bookmark retrieved successfully',
@@ -552,6 +561,10 @@ export function createBookmarksRouter(ctx: AppContext) {
             const user = req.user as User;
             const tab_id = parseInt(req.body.tab_id as unknown as string);
             const id = parseInt(req.params.id as unknown as string);
+
+            const item = await ctx.models.bookmarks.read(id, user.id);
+            if (!item) throw new ctx.errors.NotFoundError('Item not found');
+            ctx.utils.request.assertCanAccessHiddenItem(req, item, 'bookmark');
 
             await ctx.utils.util.addToTabs(user.id, tab_id, 'bookmarks', id);
 

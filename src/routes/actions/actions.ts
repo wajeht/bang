@@ -101,6 +101,7 @@ export function createActionsRouter(ctx: AppContext) {
             if (!action) {
                 throw new ctx.errors.NotFoundError('Action not found');
             }
+            ctx.utils.request.assertCanAccessHiddenItem(req, action, 'bang');
 
             return res.render('actions/actions-edit.html', {
                 title: 'Actions / Edit',
@@ -127,6 +128,7 @@ export function createActionsRouter(ctx: AppContext) {
             if (!action) {
                 throw new ctx.errors.NotFoundError('Actions not found');
             }
+            ctx.utils.request.assertCanAccessHiddenItem(req, action, 'bang');
 
             const tabs = await ctx.db('tabs').where({ user_id: req.session.user?.id });
 
@@ -340,6 +342,7 @@ export function createActionsRouter(ctx: AppContext) {
         if (!currentAction) {
             throw new ctx.errors.NotFoundError('Action not found');
         }
+        ctx.utils.request.assertCanAccessHiddenItem(req, currentAction, 'bang');
 
         const updatedAction = await ctx.models.actions.update(actionId, user.id, {
             trigger: formattedTrigger,
@@ -450,6 +453,7 @@ export function createActionsRouter(ctx: AppContext) {
         if (!currentAction) {
             throw new ctx.errors.NotFoundError('Action not found');
         }
+        ctx.utils.request.assertCanAccessHiddenItem(req, currentAction, 'bang');
 
         if (!currentAction.hidden && currentAction.action_type !== 'redirect') {
             throw new ctx.errors.ValidationError({
@@ -504,6 +508,7 @@ export function createActionsRouter(ctx: AppContext) {
             if (!action) {
                 throw new ctx.errors.NotFoundError('Action not found');
             }
+            ctx.utils.request.assertCanAccessHiddenItem(req, action, 'bang');
 
             res.status(200).json({
                 message: 'action retrieved successfully',
@@ -519,6 +524,10 @@ export function createActionsRouter(ctx: AppContext) {
             const user = req.user as User;
             const tab_id = parseInt(req.body.tab_id as unknown as string);
             const id = parseInt(req.params.id as unknown as string);
+
+            const item = await ctx.models.actions.read(id, user.id);
+            if (!item) throw new ctx.errors.NotFoundError('Item not found');
+            ctx.utils.request.assertCanAccessHiddenItem(req, item, 'bang');
 
             await ctx.utils.util.addToTabs(user.id, tab_id, 'bangs', id);
 
