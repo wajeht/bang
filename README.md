@@ -52,7 +52,8 @@ Before you can use the Bang command from your browser's search bar, you need to 
 - `!find [search term]` - Global search across all resources (bookmarks, actions, notes, tabs, reminders)
 - `!bm [url]` - Add a bookmark
 - `!bm [title] [url]` - Add a bookmark
-    - `[title]` is optional, if not provided, we will auto fetch the title
+    - `[title]` is optional; if omitted, Bang tries to fetch it from public HTTP(S) pages
+    - Local/private URLs can still be saved. Supply a title, or the bookmark will use `Untitled`. Failed title fetches also use `Untitled`.
     - `[url]` is required
     - eg: `!bm this title can be super long https://bang.jaw.dev`
 - `!bm --hide [url]` - Add a hidden bookmark (requires global password)

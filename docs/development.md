@@ -59,6 +59,16 @@ Lint code
 $ npm run lint
 ```
 
+Check formatting, lint rules, and types before committing
+
+```bash
+$ npm run check
+```
+
+Linting includes the vendored anti-slop rules configured in `vite.config.ts`.
+See [anti-slop maintenance notes](../tools/oxlint/anti-slop/UPSTREAM.md) for
+provenance, dependency pins, and update instructions.
+
 ## 🐳 Docker
 
 Copy `.env.example` to `.env` and update all the necessary environment variables.
