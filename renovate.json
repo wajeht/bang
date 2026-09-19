@@ -10,14 +10,17 @@
     },
     "packageRules": [
         {
-            "description": "Group Vite+ and Vitest stack updates so pinned tool versions stay in lockstep",
-            "matchPackageNames": [
-                "vitest",
-                "vite-plus",
-                "@vitest/coverage-v8",
-                "@voidzero-dev/vite-plus-core"
-            ],
-            "groupName": "vitest stack"
+            "description": "Group Vite+ packages; update bundled-tool pins when reviewing this group",
+            "matchPackageNames": ["vite-plus", "@voidzero-dev/vite-plus-core"],
+            "groupName": "vitest stack",
+            "prBodyNotes": [
+                "Match vitest and @vitest/coverage-v8 to the Vitest version bundled by Vite+. Match @oxlint/plugins to its bundled Oxlint version. See docs/development.md."
+            ]
+        },
+        {
+            "description": "Vite+ owns the Vitest version; update these exact pins with Vite+ instead of independently",
+            "matchPackageNames": ["vitest", "@vitest/coverage-v8"],
+            "enabled": false
         }
     ]
 }
