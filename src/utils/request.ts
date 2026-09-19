@@ -193,11 +193,9 @@ export function createRequest(context: AppContext) {
             const showHidden = req.query?.hidden === 'true';
 
             const hasVerifiedPassword = !!(
-                (
-                    req.session?.hiddenItemsVerified &&
-                    req.session?.hiddenItemsVerifiedAt &&
-                    Date.now() - req.session.hiddenItemsVerifiedAt < 30 * 60 * 1000
-                ) // 30 minutes
+                req.session?.hiddenItemsVerified &&
+                req.session?.hiddenItemsVerifiedAt &&
+                Date.now() - req.session.hiddenItemsVerifiedAt < 30 * 60 * 1000 // 30 minutes
             );
 
             const canViewHidden =

@@ -19,8 +19,8 @@ Agent tooling and vendored plugin files are ignored by both lint and formatting.
 The application TypeScript build excludes this tooling directory because these
 runtime-loaded TypeScript rules use `.ts` import extensions.
 
-`@oxlint/plugins` is pinned to 1.75.0, matching Oxlint 1.75.0 supplied by
-Vite+ 0.2.7. Vite+'s own nested helper dependency is unchanged. Upgrade the
+`@oxlint/plugins` is pinned to 1.83.0, matching Oxlint 1.83.0 supplied by
+Vite+ 0.3.3. Vite+'s own nested helper dependency is unchanged. Upgrade the
 project's helper pin alongside future Oxlint upgrades.
 
 ## Nested upstream license
