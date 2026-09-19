@@ -1,6 +1,14 @@
 import type { Request } from 'express';
 import type { User, PageType, AppContext } from '../type.js';
 
+interface HiddenItem {
+    readonly id?: number;
+    readonly user_id: number;
+    readonly hidden?: boolean | number;
+}
+
+type HiddenItemType = 'note' | 'bookmark' | 'bang';
+
 export function createRequest(context: AppContext) {
     type PreferenceKey = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders' | 'users';
     const PAGE_TYPE_TO_PREFERENCE: Record<PageType | 'admin', PreferenceKey> = {
@@ -116,6 +124,43 @@ export function createRequest(context: AppContext) {
             }
 
             return acceptsJson === true && sendsJson === true;
+        },
+
+        canAccessHiddenItem(req: Request, item: HiddenItem, resourceType: HiddenItemType): boolean {
+            if (!req.user || item.user_id !== req.user.id) return false;
+            if (!item.hidden) return true;
+
+            // Authentication middleware verifies this credential before protected handlers run.
+            // Response negotiation and a session alone never grant API-key authority.
+            if (this.extractApiKey(req)) return true;
+
+            const now = Date.now();
+            const verifiedAt = req.session?.hiddenItemsVerifiedAt;
+            if (
+                req.session?.hiddenItemsVerified &&
+                verifiedAt != null &&
+                now >= verifiedAt &&
+                now - verifiedAt < 30 * 60 * 1000
+            )
+                return true;
+
+            const expiresAt = req.session?.verifiedHiddenItems?.[`${resourceType}_${item.id}`];
+            return expiresAt != null && expiresAt > now;
+        },
+
+        assertCanAccessHiddenItem(
+            req: Request,
+            item: HiddenItem,
+            resourceType: HiddenItemType,
+        ): void {
+            if (!req.user || item.user_id !== req.user.id) {
+                throw new context.errors.NotFoundError('Item not found');
+            }
+            if (!this.canAccessHiddenItem(req, item, resourceType)) {
+                throw new context.errors.ForbiddenError(
+                    'Verify your hidden-items password before accessing this item.',
+                );
+            }
         },
 
         canViewHiddenItems(req: Request, user: User) {

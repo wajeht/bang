@@ -135,6 +135,7 @@ export function createNotesRouter(ctx: AppContext) {
             if (!note) {
                 throw new ctx.errors.NotFoundError('Note not found');
             }
+            ctx.utils.request.assertCanAccessHiddenItem(req, note, 'note');
 
             return res.render('notes/notes-edit.html', {
                 title: 'Notes / Edit',
@@ -172,15 +173,13 @@ export function createNotesRouter(ctx: AppContext) {
         if (!note) {
             throw new ctx.errors.NotFoundError('Note not found');
         }
+        if (!ctx.utils.request.canAccessHiddenItem(req, note, 'note')) {
+            if (ctx.utils.request.isApiRequest(req)) {
+                ctx.utils.request.assertCanAccessHiddenItem(req, note, 'note');
+            }
+            const csrfToken = res.locals.csrfToken || '';
 
-        if (note.hidden && !ctx.utils.request.isApiRequest(req)) {
-            const verificationKey = `note_${note.id}`;
-            const verifiedTime = req.session?.verifiedHiddenItems?.[verificationKey];
-
-            if (!verifiedTime || verifiedTime < Date.now()) {
-                const csrfToken = res.locals.csrfToken || '';
-
-                return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
+            return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
                     <!DOCTYPE html>
                     <html>
                     <head><title>Password Required</title></head>
@@ -231,7 +230,6 @@ export function createNotesRouter(ctx: AppContext) {
                     </body>
                     </html>
                 `);
-            }
         }
 
         if (ctx.utils.request.isApiRequest(req)) {
@@ -395,6 +393,7 @@ export function createNotesRouter(ctx: AppContext) {
         if (!currentNote) {
             throw new ctx.errors.NotFoundError('Note not found');
         }
+        ctx.utils.request.assertCanAccessHiddenItem(req, currentNote, 'note');
 
         const updatedNote = await ctx.models.notes.update(noteId, user.id, {
             title: title.trim(),
@@ -485,6 +484,7 @@ export function createNotesRouter(ctx: AppContext) {
         if (!currentNote) {
             throw new ctx.errors.NotFoundError('Note not found');
         }
+        ctx.utils.request.assertCanAccessHiddenItem(req, currentNote, 'note');
 
         const updatedNote = await ctx.models.notes.update(noteId, user.id, {
             pinned: !currentNote.pinned,
@@ -529,6 +529,7 @@ export function createNotesRouter(ctx: AppContext) {
             if (!note) {
                 throw new ctx.errors.NotFoundError('Note not found');
             }
+            ctx.utils.request.assertCanAccessHiddenItem(req, note, 'note');
 
             const fileName = note.title
                 .toLowerCase()
