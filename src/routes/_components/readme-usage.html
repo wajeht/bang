@@ -41,7 +41,8 @@
 <li><code>!find [search term]</code> - Global search across all resources (bookmarks, actions, notes, tabs, reminders)</li>
 <li><code>!bm [url]</code> - Add a bookmark</li>
 <li><code>!bm [title] [url]</code> - Add a bookmark<ul>
-<li><code>[title]</code> is optional, if not provided, we will auto fetch the title</li>
+<li><code>[title]</code> is optional; if omitted, Bang tries to fetch it from public HTTP(S) pages</li>
+<li>Local/private URLs can still be saved. Supply a title, or the bookmark will use <code>Untitled</code>. Failed title fetches also use <code>Untitled</code>.</li>
 <li><code>[url]</code> is required</li>
 <li>eg: <code>!bm this title can be super long https://bang.jaw.dev</code></li>
 </ul>
