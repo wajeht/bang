@@ -660,14 +660,8 @@ export function createUtil(context: AppContext) {
                           .first()
                     : Promise.resolve(null);
 
-            const [
-                bookmarksResult,
-                actionsResult,
-                notesResult,
-                userPreferencesResult,
-                tabsResult,
-                remindersResult,
-            ] = await Promise.allSettled([
+            // A requested backup must be complete before callers can rely on it.
+            const [bookmarks, actions, notes, userPrefs, tabs, reminders] = await Promise.all([
                 fetchBookmarks(),
                 fetchActions(),
                 fetchNotes(),
@@ -676,63 +670,17 @@ export function createUtil(context: AppContext) {
                 fetchReminders(),
             ]);
 
-            if (includeBookmarks) {
-                if (bookmarksResult.status === 'fulfilled') {
-                    exportData.bookmarks = bookmarksResult.value;
-                } else {
-                    logger.error('Failed to fetch bookmarks', { error: bookmarksResult.reason });
-                }
-            }
+            if (includeBookmarks) exportData.bookmarks = bookmarks;
+            if (includeActions) exportData.actions = actions;
+            if (includeNotes) exportData.notes = notes;
+            if (includeTabs) exportData.tabs = tabs;
+            if (includeReminders) exportData.reminders = reminders;
 
-            if (includeActions) {
-                if (actionsResult.status === 'fulfilled') {
-                    exportData.actions = actionsResult.value;
-                } else {
-                    logger.error('Failed to fetch actions', { error: actionsResult.reason });
+            if (includeUserPreferences && userPrefs) {
+                if (typeof userPrefs.column_preferences === 'string') {
+                    userPrefs.column_preferences = JSON.parse(userPrefs.column_preferences);
                 }
-            }
-
-            if (includeNotes) {
-                if (notesResult.status === 'fulfilled') {
-                    exportData.notes = notesResult.value;
-                } else {
-                    logger.error('Failed to fetch notes', { error: notesResult.reason });
-                }
-            }
-
-            if (includeUserPreferences) {
-                if (userPreferencesResult.status === 'fulfilled' && userPreferencesResult.value) {
-                    const userPrefs = userPreferencesResult.value;
-                    if (typeof userPrefs.column_preferences === 'string') {
-                        try {
-                            userPrefs.column_preferences = JSON.parse(userPrefs.column_preferences);
-                        } catch (error) {
-                            logger.error('Failed to parse column_preferences', { error });
-                            userPrefs.column_preferences = {};
-                        }
-                    }
-                    exportData.user_preferences = userPrefs;
-                } else if (userPreferencesResult.status === 'rejected') {
-                    logger.error('Failed to fetch user preferences', {
-                        error: userPreferencesResult.reason,
-                    });
-                }
-            }
-
-            if (includeTabs) {
-                if (tabsResult.status === 'fulfilled') {
-                    exportData.tabs = tabsResult.value;
-                } else {
-                    logger.error('Failed to fetch tabs', { error: tabsResult.reason });
-                }
-            }
-
-            if (includeReminders) {
-                if (remindersResult.status === 'fulfilled') {
-                    exportData.reminders = remindersResult.value;
-                } else {
-                    logger.error('Failed to fetch reminders', { error: remindersResult.reason });
-                }
+                exportData.user_preferences = userPrefs;
             }
 
             return exportData;
