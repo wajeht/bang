@@ -1,3 +1,4 @@
+import { escapeLikePattern } from '../../utils/sql-like.js';
 import type { Bookmark, Bookmarks, BookmarksQueryParams, AppContext } from '../../type.js';
 
 export function createBookmarksRepository(ctx: AppContext): Bookmarks {
@@ -53,7 +54,7 @@ export function createBookmarksRepository(ctx: AppContext): Bookmarks {
                     for (let i = 0; i < rawTerms.length; i++) {
                         const term = rawTerms[i];
                         if (term && term.length > 0) {
-                            searchTerms.push(term.replace(/[%_]/g, '\\$&'));
+                            searchTerms.push(escapeLikePattern(term));
                         }
                     }
 
@@ -62,10 +63,9 @@ export function createBookmarksRepository(ctx: AppContext): Bookmarks {
                         for (let i = 0; i < searchTerms.length; i++) {
                             const term = searchTerms[i]!;
                             q.andWhere((subQ: any) => {
-                                subQ.whereRaw('LOWER(title) LIKE ?', [`%${term}%`]).orWhereRaw(
-                                    'LOWER(url) LIKE ?',
-                                    [`%${term}%`],
-                                );
+                                subQ.whereRaw("LOWER(title) LIKE ? ESCAPE '\\'", [
+                                    `%${term}%`,
+                                ]).orWhereRaw("LOWER(url) LIKE ? ESCAPE '\\'", [`%${term}%`]);
                             });
                         }
                     });

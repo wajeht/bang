@@ -1,3 +1,4 @@
+import { escapeLikePattern } from '../../utils/sql-like.js';
 import type { Tab, Tabs, TabsQueryParams, AppContext } from '../../type.js';
 
 export function createTabsRepository(ctx: AppContext): Tabs {
@@ -50,7 +51,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                     for (let i = 0; i < rawTerms.length; i++) {
                         const term = rawTerms[i];
                         if (term && term.length > 0) {
-                            searchTerms.push(term.replace(/[%_]/g, '\\$&'));
+                            searchTerms.push(escapeLikePattern(term));
                         }
                     }
 
@@ -59,8 +60,10 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                         for (let i = 0; i < searchTerms.length; i++) {
                             const term = searchTerms[i]!;
                             q.andWhere((subQ: any) => {
-                                subQ.whereRaw('LOWER(tabs.title) LIKE ?', [`%${term}%`])
-                                    .orWhereRaw('LOWER(tabs.trigger) LIKE ?', [`%${term}%`])
+                                subQ.whereRaw("LOWER(tabs.title) LIKE ? ESCAPE '\\'", [`%${term}%`])
+                                    .orWhereRaw("LOWER(tabs.trigger) LIKE ? ESCAPE '\\'", [
+                                        `%${term}%`,
+                                    ])
                                     .orWhereExists((subquery: any) => {
                                         subquery
                                             .select(ctx.db.raw('1'))
@@ -68,12 +71,14 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                                             .whereRaw('tab_items.tab_id = tabs.id')
                                             .where((itemBuilder: any) => {
                                                 itemBuilder
-                                                    .whereRaw('LOWER(tab_items.title) LIKE ?', [
-                                                        `%${term}%`,
-                                                    ])
-                                                    .orWhereRaw('LOWER(tab_items.url) LIKE ?', [
-                                                        `%${term}%`,
-                                                    ]);
+                                                    .whereRaw(
+                                                        "LOWER(tab_items.title) LIKE ? ESCAPE '\\'",
+                                                        [`%${term}%`],
+                                                    )
+                                                    .orWhereRaw(
+                                                        "LOWER(tab_items.url) LIKE ? ESCAPE '\\'",
+                                                        [`%${term}%`],
+                                                    );
                                             });
                                     });
                             });
@@ -123,12 +128,20 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                                 .whereRaw('tab_items_fts MATCH ?', [ftsQuery]),
                         );
                     } else {
-                        const searchLower = search.toLowerCase();
-                        itemsQuery = itemsQuery.where((builder: any) => {
-                            builder
-                                .whereRaw('LOWER(tab_items.title) LIKE ?', [`%${searchLower}%`])
-                                .orWhereRaw('LOWER(tab_items.url) LIKE ?', [`%${searchLower}%`]);
-                        });
+                        const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
+                        for (const term of rawTerms) {
+                            if (!term) continue;
+                            const pattern = `%${escapeLikePattern(term)}%`;
+                            itemsQuery = itemsQuery.andWhere((builder) => {
+                                builder
+                                    .whereRaw("LOWER(tab_items.title) LIKE ? ESCAPE '\\'", [
+                                        pattern,
+                                    ])
+                                    .orWhereRaw("LOWER(tab_items.url) LIKE ? ESCAPE '\\'", [
+                                        pattern,
+                                    ]);
+                            });
+                        }
                     }
                 }
 
