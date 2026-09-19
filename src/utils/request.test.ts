@@ -4,7 +4,7 @@ import { createRequestFixture } from '../tests/http-fixtures.js';
 import { createRequest } from './request.js';
 import { ctx } from '../tests/test-setup.js';
 import { ValidationError } from '../error.js';
-import { describe, expect, it, beforeAll } from 'vite-plus/test';
+import { describe, expect, expectTypeOf, it, beforeAll } from 'vite-plus/test';
 
 let requestUtils: ReturnType<typeof createRequest>;
 
@@ -217,11 +217,7 @@ describe.concurrent('getSafeRedirectPath', () => {
 describe.concurrent('extractApiKey', () => {
     it('should extract API key from X-API-KEY header', () => {
         const req = createRequestFixture({
-            header: (name: string) => {
-                if (name === 'X-API-KEY') return 'test-api-key-123';
-
-                return undefined;
-            },
+            headers: { 'x-api-key': 'test-api-key-123' },
         });
 
         const apiKey = requestUtils.extractApiKey(req);
@@ -230,11 +226,7 @@ describe.concurrent('extractApiKey', () => {
 
     it('should extract API key from Authorization Bearer token', () => {
         const req = createRequestFixture({
-            header: (name: string) => {
-                if (name === 'Authorization') return 'Bearer my-bearer-token-456';
-
-                return undefined;
-            },
+            headers: { authorization: 'Bearer my-bearer-token-456' },
         });
 
         const apiKey = requestUtils.extractApiKey(req);
@@ -243,13 +235,7 @@ describe.concurrent('extractApiKey', () => {
 
     it('should prioritize Authorization Bearer over X-API-KEY', () => {
         const req = createRequestFixture({
-            header: (name: string) => {
-                if (name === 'X-API-KEY') return 'x-api-key-value';
-
-                if (name === 'Authorization') return 'Bearer bearer-token-value';
-
-                return undefined;
-            },
+            headers: { 'x-api-key': 'x-api-key-value', authorization: 'Bearer bearer-token-value' },
         });
 
         const apiKey = requestUtils.extractApiKey(req);
@@ -267,11 +253,7 @@ describe.concurrent('extractApiKey', () => {
 
     it('should return undefined for non-Bearer Authorization header', () => {
         const req = createRequestFixture({
-            header: (name: string) => {
-                if (name === 'Authorization') return 'Basic some-basic-auth';
-
-                return undefined;
-            },
+            headers: { authorization: 'Basic some-basic-auth' },
         });
 
         const apiKey = requestUtils.extractApiKey(req);
@@ -282,11 +264,7 @@ describe.concurrent('extractApiKey', () => {
 describe.concurrent('expectsJson', () => {
     it('should return true when Content-Type includes application/json', () => {
         const req = createRequestFixture({
-            header: (name: string) => {
-                if (name === 'Content-Type') return 'application/json';
-
-                return undefined;
-            },
+            headers: { 'content-type': 'application/json' },
         });
 
         expect(requestUtils.expectsJson(req)).toBe(true);
@@ -294,11 +272,7 @@ describe.concurrent('expectsJson', () => {
 
     it('should return true when Content-Type includes application/json with charset', () => {
         const req = createRequestFixture({
-            header: (name: string) => {
-                if (name === 'Content-Type') return 'application/json; charset=utf-8';
-
-                return undefined;
-            },
+            headers: { 'content-type': 'application/json; charset=utf-8' },
         });
 
         expect(requestUtils.expectsJson(req)).toBe(true);
@@ -306,11 +280,7 @@ describe.concurrent('expectsJson', () => {
 
     it('should return false when Content-Type is not JSON', () => {
         const req = createRequestFixture({
-            header: (name: string) => {
-                if (name === 'Content-Type') return 'text/html';
-
-                return undefined;
-            },
+            headers: { 'content-type': 'text/html' },
         });
 
         expect(requestUtils.expectsJson(req)).toBe(false);
@@ -340,11 +310,7 @@ describe.concurrent('isApiRequest', () => {
         const req = createRequestFixture({
             path: '/some-path',
             method: 'GET',
-            header: (name: string) => {
-                if (name === 'X-API-KEY') return 'test-api-key';
-
-                return undefined;
-            },
+            headers: { 'x-api-key': 'test-api-key' },
         });
 
         expect(requestUtils.isApiRequest(req)).toBe(true);
@@ -354,11 +320,7 @@ describe.concurrent('isApiRequest', () => {
         const req = createRequestFixture({
             path: '/some-path',
             method: 'GET',
-            header: (name: string) => {
-                if (name === 'Authorization') return 'Bearer test-token';
-
-                return undefined;
-            },
+            headers: { authorization: 'Bearer test-token' },
         });
 
         expect(requestUtils.isApiRequest(req)).toBe(true);
@@ -368,11 +330,7 @@ describe.concurrent('isApiRequest', () => {
         const req = createRequestFixture({
             path: '/some-path',
             method: 'GET',
-            header: (name: string) => {
-                if (name === 'Accept') return 'application/json';
-
-                return undefined;
-            },
+            headers: { accept: 'application/json' },
         });
 
         expect(requestUtils.isApiRequest(req)).toBe(true);
@@ -382,11 +340,7 @@ describe.concurrent('isApiRequest', () => {
         const req = createRequestFixture({
             path: '/some-path',
             method: 'HEAD',
-            header: (name: string) => {
-                if (name === 'Accept') return 'application/json';
-
-                return undefined;
-            },
+            headers: { accept: 'application/json' },
         });
 
         expect(requestUtils.isApiRequest(req)).toBe(true);
@@ -396,13 +350,7 @@ describe.concurrent('isApiRequest', () => {
         const req = createRequestFixture({
             path: '/some-path',
             method: 'POST',
-            header: (name: string) => {
-                if (name === 'Accept') return 'application/json';
-
-                if (name === 'Content-Type') return 'application/json';
-
-                return undefined;
-            },
+            headers: { accept: 'application/json', 'content-type': 'application/json' },
         });
 
         expect(requestUtils.isApiRequest(req)).toBe(true);
@@ -412,11 +360,7 @@ describe.concurrent('isApiRequest', () => {
         const req = createRequestFixture({
             path: '/some-path',
             method: 'POST',
-            header: (name: string) => {
-                if (name === 'Accept') return 'application/json';
-
-                return undefined;
-            },
+            headers: { accept: 'application/json' },
         });
 
         expect(requestUtils.isApiRequest(req)).toBe(false);
@@ -426,11 +370,7 @@ describe.concurrent('isApiRequest', () => {
         const req = createRequestFixture({
             path: '/some-path',
             method: 'POST',
-            header: (name: string) => {
-                if (name === 'Content-Type') return 'application/json';
-
-                return undefined;
-            },
+            headers: { 'content-type': 'application/json' },
         });
 
         expect(requestUtils.isApiRequest(req)).toBe(false);
@@ -440,11 +380,7 @@ describe.concurrent('isApiRequest', () => {
         const req = createRequestFixture({
             path: '/some-page',
             method: 'GET',
-            header: (name: string) => {
-                if (name === 'Accept') return 'text/html';
-
-                return undefined;
-            },
+            headers: { accept: 'text/html' },
         });
 
         expect(requestUtils.isApiRequest(req)).toBe(false);
@@ -704,5 +640,15 @@ describe('canViewHiddenItems', () => {
         expect(result.canViewHidden).toBe(true);
         expect(result.hasVerifiedPassword).toBe(true);
         expect(result.showHidden).toBe(true);
+    });
+});
+
+describe('request fixture types', () => {
+    it('should reject invalid users and sessions at compile time', () => {
+        type Options = Parameters<typeof createRequestFixture>[0];
+
+        expectTypeOf<{ user: string }>().not.toExtend<Options>();
+        expectTypeOf<{ session: number }>().not.toExtend<Options>();
+        expectTypeOf<{ session: { user: string } }>().not.toExtend<Options>();
     });
 });
