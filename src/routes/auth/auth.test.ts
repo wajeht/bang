@@ -171,22 +171,27 @@ describe('Auth Routes', () => {
             expect(response.headers.location).toBe('/');
         });
 
-        it('should set user session after successful authentication', async () => {
-            await db('users').insert({
-                username: 'sessionuser',
-                email: 'session@example.com',
-                is_admin: false,
-                default_search_provider: 'duckduckgo',
-            });
+        it.each(['session@example.com', 'josé@example.com', 'user@bücher.example'])(
+            'should set user session for an accepted email address: %s',
+            async (email) => {
+                await db('users').insert({
+                    username: 'sessionuser',
+                    email,
+                    is_admin: false,
+                    default_search_provider: 'duckduckgo',
+                });
 
-            const token = ctx.utils.auth.generateMagicLink({ email: 'session@example.com' });
+                expect(ctx.utils.validation.isValidEmail(email)).toBe(true);
 
-            const agent = request.agent(app);
-            await agent.get(`/auth/magic/${token}`).expect(302);
+                const token = ctx.utils.auth.generateMagicLink({ email });
 
-            const protectedResponse = await agent.get('/actions').expect(200);
-            expect(protectedResponse.text).toContain('Actions');
-        });
+                const agent = request.agent(app);
+                await agent.get(`/auth/magic/${token}`).expect(302);
+
+                const protectedResponse = await agent.get('/actions').expect(200);
+                expect(protectedResponse.text).toContain('Actions');
+            },
+        );
 
         it('should set email_verified_at in session on first login only', async () => {
             const [user] = await db('users')
