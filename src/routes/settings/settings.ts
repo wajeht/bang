@@ -1047,6 +1047,9 @@ export function createSettingsRouter(ctx: AppContext) {
                     }
                 });
 
+                if (userId != null) {
+                    ctx.utils.search.invalidateTriggerCache(userId);
+                }
                 req.flash('success', 'Data imported successfully!');
             } catch (error) {
                 ctx.logger.error('Import error', { error });
