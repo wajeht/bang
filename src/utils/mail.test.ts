@@ -2,7 +2,7 @@ import { config } from '../config.js';
 import { createMail } from './mail.js';
 import { createAuth } from './auth.js';
 import { dayjs, libs } from '../libs.js';
-import { db } from '../tests/test-setup.js';
+import { db, ctx } from '../tests/test-setup.js';
 import { createLogger } from '../utils/logger.js';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vite-plus/test';
 
@@ -369,6 +369,54 @@ describe('Mail Utils', () => {
                 timezone: 'UTC',
             });
             testUser = await db('users').where({ id: 1 }).first();
+        });
+
+        it('should retain failed deliveries and still process other users', async () => {
+            const dueDate = dayjs.utc().add(5, 'minutes').toISOString();
+            const [otherUser] = await db('users')
+                .insert({ username: 'other', email: 'other@example.com', timezone: 'UTC' })
+                .returning('*');
+            await db('reminders').insert([
+                {
+                    user_id: testUser.id,
+                    title: 'Failed once',
+                    reminder_type: 'once',
+                    due_date: dueDate,
+                },
+                {
+                    user_id: testUser.id,
+                    title: 'Failed daily',
+                    reminder_type: 'recurring',
+                    frequency: 'daily',
+                    due_date: dueDate,
+                },
+                {
+                    user_id: otherUser.id,
+                    title: 'Successful once',
+                    reminder_type: 'once',
+                    due_date: dueDate,
+                },
+            ]);
+            const originalReminders = await db('reminders')
+                .where('user_id', testUser.id)
+                .orderBy('id');
+            const transporter = libs.nodemailer.createTransport({ streamTransport: true });
+            const sendMail = vi
+                .spyOn(transporter, 'sendMail')
+                .mockRejectedValueOnce(new Error('SMTP unavailable'));
+            vi.spyOn(libs.nodemailer, 'createTransport').mockReturnValue(transporter);
+            const mail = createMail({
+                ...ctx,
+                config: { ...ctx.config, app: { ...ctx.config.app, env: 'production' } },
+            });
+
+            await mail.processReminderDigests();
+
+            expect(sendMail).toHaveBeenCalledTimes(2);
+            expect(await db('reminders').where('user_id', testUser.id).orderBy('id')).toEqual(
+                originalReminders,
+            );
+            expect(await db('reminders').where('user_id', otherUser.id)).toHaveLength(0);
         });
 
         it('should process one-time reminders and delete them', async () => {

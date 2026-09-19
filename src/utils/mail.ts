@@ -384,6 +384,7 @@ ${formatReminderListHTML}
                 });
             } catch (error) {
                 logger.error('Failed to send reminder digest email', { error, email });
+                throw error;
             }
         },
 
@@ -446,12 +447,19 @@ ${formatReminderListHTML}
                 for (const userData of Object.values(remindersByUser)) {
                     // Use user's timezone for email date formatting
                     const userNow = now.tz(userData.timezone);
-                    await this.sendReminderDigestEmail({
-                        email: userData.email,
-                        username: userData.username,
-                        reminders: userData.reminders,
-                        date: userNow.format('YYYY-MM-DD'),
-                    });
+                    try {
+                        await this.sendReminderDigestEmail({
+                            email: userData.email,
+                            username: userData.username,
+                            reminders: userData.reminders,
+                            date: userNow.format('YYYY-MM-DD'),
+                        });
+                    } catch (error) {
+                        logger.error('Reminder delivery failed; retaining reminders for retry', {
+                            error,
+                        });
+                        continue;
+                    }
 
                     // Process each reminder
                     for (const reminder of userData.reminders) {
