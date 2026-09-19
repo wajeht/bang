@@ -34,6 +34,7 @@
         "**/*.spec.ts",
         "**/*.browser-test.ts",
         "src/tests/**/*",
+        "tools/oxlint/anti-slop",
         "dist",
         "coverage",
         "public",
