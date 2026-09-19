@@ -146,10 +146,12 @@ export function createRemindersRouter(ctx: AppContext) {
 
             if (ctx.utils.request.isApiRequest(req)) {
                 res.status(201).json({ message: successMessage });
+
                 return;
             }
 
             req.flash('success', successMessage);
+
             return res.redirect('/reminders');
         },
     );
@@ -171,10 +173,12 @@ export function createRemindersRouter(ctx: AppContext) {
 
                 if (recurringReminders.length === 0) {
                     req.flash('warning', "You don't have any recurring reminders at the moment!");
+
                     return res.redirect('/reminders');
                 }
 
                 const updates: { id: number; due_date: string }[] = [];
+
                 for (const reminder of recurringReminders) {
                     const timing = ctx.utils.search.parseReminderTiming(
                         reminder.frequency.toLowerCase(),
@@ -225,8 +229,10 @@ export function createRemindersRouter(ctx: AppContext) {
      */
     router.get('/api/reminders', ctx.middleware.authentication, getRemindersHandler);
     router.get('/reminders', ctx.middleware.authentication, getRemindersHandler);
+
     async function getRemindersHandler(req: Request, res: Response) {
         const user = req.user as User;
+
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'reminders');
 
@@ -243,6 +249,7 @@ export function createRemindersRouter(ctx: AppContext) {
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.json({ data: remindersData, pagination, search, sortKey, direction });
+
             return;
         }
 
@@ -279,6 +286,7 @@ export function createRemindersRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
+
             const reminder = await ctx.models.reminders.read(
                 parseInt(req.params.id as unknown as string),
                 user.id,
@@ -292,6 +300,7 @@ export function createRemindersRouter(ctx: AppContext) {
                 message: 'Reminder retrieved successfully',
                 data: reminder,
             });
+
             return;
         },
     );
@@ -312,6 +321,7 @@ export function createRemindersRouter(ctx: AppContext) {
      */
     router.post('/api/reminders', ctx.middleware.authentication, postReminderHandler);
     router.post('/reminders', ctx.middleware.authentication, postReminderHandler);
+
     async function postReminderHandler(req: Request, res: Response) {
         const { title, content, when, custom_date, custom_time } = req.body;
         const user = req.user as User;
@@ -333,15 +343,18 @@ export function createRemindersRouter(ctx: AppContext) {
         }
 
         const timeInput = when === 'custom' ? custom_date : when;
+
         const timeToUse =
             when === 'custom' && custom_time
                 ? custom_time
                 : req.user?.column_preferences?.reminders?.default_reminder_time;
+
         const timing = ctx.utils.search.parseReminderTiming(
             timeInput.toLowerCase(),
             timeToUse,
             user.timezone,
         );
+
         if (!timing.isValid) {
             throw new ctx.errors.ValidationError({
                 when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
@@ -369,10 +382,12 @@ export function createRemindersRouter(ctx: AppContext) {
                 message: 'Reminder created successfully',
                 data: reminder,
             });
+
             return;
         }
 
         req.flash('success', 'Reminder created successfully');
+
         return res.redirect('/reminders');
     }
 
@@ -394,6 +409,7 @@ export function createRemindersRouter(ctx: AppContext) {
      */
     router.patch('/api/reminders/:id', ctx.middleware.authentication, updateReminderHandler);
     router.post('/reminders/:id/update', ctx.middleware.authentication, updateReminderHandler);
+
     async function updateReminderHandler(req: Request, res: Response) {
         const user = req.user as User;
         const reminderId = parseInt(req.params.id as string);
@@ -416,15 +432,18 @@ export function createRemindersRouter(ctx: AppContext) {
         }
 
         const timeInput = when === 'custom' ? custom_date : when;
+
         const timeToUse =
             when === 'custom' && custom_time
                 ? custom_time
                 : user.column_preferences?.reminders?.default_reminder_time;
+
         const timing = ctx.utils.search.parseReminderTiming(
             timeInput.toLowerCase(),
             timeToUse,
             user.timezone,
         );
+
         if (!timing.isValid) {
             throw new ctx.errors.ValidationError({
                 when: 'Invalid time format. Use: tomorrow, friday, weekly, monthly, daily, etc.',
@@ -455,10 +474,12 @@ export function createRemindersRouter(ctx: AppContext) {
                 message: 'Reminder updated successfully',
                 data: updatedReminder,
             });
+
             return;
         }
 
         req.flash('success', 'Reminder updated successfully');
+
         return res.redirect('/reminders');
     }
 
@@ -480,6 +501,7 @@ export function createRemindersRouter(ctx: AppContext) {
     router.post('/api/reminders/delete', ctx.middleware.authentication, deleteReminderHandler);
     router.post('/reminders/:id/delete', ctx.middleware.authentication, deleteReminderHandler);
     router.post('/reminders/delete', ctx.middleware.authentication, deleteReminderHandler);
+
     async function deleteReminderHandler(req: Request, res: Response) {
         const user = req.user as User;
         const reminderIds = ctx.utils.request.extractIdsForDelete(req);
@@ -494,6 +516,7 @@ export function createRemindersRouter(ctx: AppContext) {
                 message: `${deletedCount} reminder${deletedCount !== 1 ? 's' : ''} deleted successfully`,
                 data: { deletedCount },
             });
+
             return;
         }
 
@@ -501,6 +524,7 @@ export function createRemindersRouter(ctx: AppContext) {
             'success',
             `${deletedCount} reminder${deletedCount !== 1 ? 's' : ''} deleted successfully`,
         );
+
         return res.redirect('/reminders');
     }
 
@@ -514,6 +538,7 @@ export function createRemindersRouter(ctx: AppContext) {
 
             if (activePrefetches.has(user.id)) {
                 req.flash('info', 'Screenshot caching already in progress...');
+
                 return res.redirect('/reminders');
             }
 
@@ -524,10 +549,12 @@ export function createRemindersRouter(ctx: AppContext) {
                 .limit(500);
 
             const urls: string[] = [];
+
             for (const r of reminders) {
                 if (r.title && ctx.utils.validation.isUrlLike(r.title)) {
                     urls.push(r.title.startsWith('http') ? r.title : 'https://' + r.title);
                 }
+
                 if (r.content && ctx.utils.validation.isUrlLike(r.content)) {
                     urls.push(r.content.startsWith('http') ? r.content : 'https://' + r.content);
                 }
@@ -535,6 +562,7 @@ export function createRemindersRouter(ctx: AppContext) {
 
             if (urls.length === 0) {
                 req.flash('info', 'No URLs to cache');
+
                 return res.redirect('/reminders');
             }
 
@@ -545,6 +573,7 @@ export function createRemindersRouter(ctx: AppContext) {
                 .finally(() => activePrefetches.delete(user.id));
 
             req.flash('success', `Caching ${urls.length} preview images in background...`);
+
             return res.redirect('/reminders');
         },
     );

@@ -148,8 +148,10 @@ export function createTabsRouter(ctx: AppContext) {
      */
     router.get('/api/tabs', ctx.middleware.authentication, getTabsPageHandler);
     router.get('/tabs', ctx.middleware.authentication, getTabsPageHandler);
+
     async function getTabsPageHandler(req: Request, res: Response) {
         const user = req.user as User;
+
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'tabs');
 
@@ -173,6 +175,7 @@ export function createTabsRouter(ctx: AppContext) {
                 sortKey,
                 direction,
             });
+
             return;
         }
 
@@ -207,6 +210,7 @@ export function createTabsRouter(ctx: AppContext) {
      */
     router.post('/api/tabs', ctx.middleware.authentication, postTabsPageHandler);
     router.post('/tabs', ctx.middleware.authentication, postTabsPageHandler);
+
     async function postTabsPageHandler(req: Request, res: Response) {
         const user = req.user as User;
         const { title, trigger } = req.body;
@@ -260,10 +264,12 @@ export function createTabsRouter(ctx: AppContext) {
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({ message: 'Tab group created successfully' });
+
             return;
         }
 
         req.flash('success', 'Tab group created!');
+
         return res.redirect('/tabs');
     }
 
@@ -287,6 +293,7 @@ export function createTabsRouter(ctx: AppContext) {
      */
     router.patch('/api/tabs/:id', ctx.middleware.authentication, updateTabHandler);
     router.post('/tabs/:id/update', ctx.middleware.authentication, updateTabHandler);
+
     async function updateTabHandler(req: Request, res: Response) {
         const user = req.user as User;
         const { title, trigger } = req.body;
@@ -348,10 +355,12 @@ export function createTabsRouter(ctx: AppContext) {
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({ message: 'Tab group updated successfully' });
+
             return;
         }
 
         req.flash('success', 'Tab group updated!');
+
         return res.redirect('/tabs');
     }
 
@@ -375,6 +384,7 @@ export function createTabsRouter(ctx: AppContext) {
     router.post('/api/tabs/delete', ctx.middleware.authentication, deleteTabHandler);
     router.post('/tabs/:id/delete', ctx.middleware.authentication, deleteTabHandler);
     router.post('/tabs/delete', ctx.middleware.authentication, deleteTabHandler);
+
     async function deleteTabHandler(req: Request, res: Response) {
         const user = req.user as User;
         const tabIds = ctx.utils.request.extractIdsForDelete(req);
@@ -391,10 +401,12 @@ export function createTabsRouter(ctx: AppContext) {
                 message: `${deletedCount} tab group${deletedCount !== 1 ? 's' : ''} deleted successfully`,
                 data: { deletedCount },
             });
+
             return;
         }
 
         req.flash('success', `${deletedCount} tab group${deletedCount !== 1 ? 's' : ''} deleted!`);
+
         return res.redirect('/tabs');
     }
 
@@ -429,6 +441,7 @@ export function createTabsRouter(ctx: AppContext) {
      */
     router.post('/api/tabs/:id/items', ctx.middleware.authentication, postTabItemCreateHandler);
     router.post('/tabs/:id/items/create', ctx.middleware.authentication, postTabItemCreateHandler);
+
     async function postTabItemCreateHandler(req: Request, res: Response) {
         const user = req.user as User;
         const tabId = req.params.id;
@@ -462,10 +475,12 @@ export function createTabsRouter(ctx: AppContext) {
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({ message: 'Tab item created successfully' });
+
             return;
         }
 
         req.flash('success', 'Tab item added!');
+
         return res.redirect('/tabs');
     }
 
@@ -497,6 +512,7 @@ export function createTabsRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         postTabItemUpdateHandler,
     );
+
     async function postTabItemUpdateHandler(req: Request, res: Response) {
         const user = req.user as User;
         const { id, itemId } = req.params;
@@ -539,10 +555,12 @@ export function createTabsRouter(ctx: AppContext) {
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({ message: 'Tab item updated successfully' });
+
             return;
         }
 
         req.flash('success', 'Tab item updated!');
+
         return res.redirect(`/tabs`);
     }
 
@@ -573,6 +591,7 @@ export function createTabsRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         deleteTabItemHandler,
     );
+
     async function deleteTabItemHandler(req: Request, res: Response) {
         const user = req.user as User;
         const tabId = parseInt(req.params.id as unknown as string);
@@ -597,10 +616,12 @@ export function createTabsRouter(ctx: AppContext) {
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({ message: 'Tab item deleted successfully' });
+
             return;
         }
 
         req.flash('success', 'Tab item deleted!');
+
         return res.redirect(`/tabs`);
     }
 
@@ -614,6 +635,7 @@ export function createTabsRouter(ctx: AppContext) {
 
             if (activePrefetches.has(user.id)) {
                 req.flash('info', 'Screenshot caching already in progress...');
+
                 return res.redirect('/tabs');
             }
 
@@ -628,6 +650,7 @@ export function createTabsRouter(ctx: AppContext) {
 
             if (urls.length === 0) {
                 req.flash('info', 'No URLs to cache');
+
                 return res.redirect('/tabs');
             }
 
@@ -638,6 +661,7 @@ export function createTabsRouter(ctx: AppContext) {
                 .finally(() => activePrefetches.delete(user.id));
 
             req.flash('success', `Caching ${urls.length} preview images in background...`);
+
             return res.redirect('/tabs');
         },
     );

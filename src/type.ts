@@ -360,18 +360,29 @@ import type { config } from './config.js';
 import type { Libs } from './libs.js';
 
 export type DateUtils = ReturnType<typeof createDate>;
+
 export type HtmlUtils = ReturnType<typeof createHtml>;
+
 export type ValidationUtils = ReturnType<typeof createValidation>;
+
 export type AssetUtils = ReturnType<typeof createAssets>;
+
 export type AuthUtils = ReturnType<typeof createAuth>;
+
 export type RequestUtils = ReturnType<typeof createRequest>;
+
 export type UtilUtils = ReturnType<typeof createUtil>;
+
 export type SearchUtils = ReturnType<typeof createSearch>;
+
 export type MailUtils = ReturnType<typeof createMail>;
+
 export type NtfyUtils = ReturnType<typeof createNtfy>;
 
 export type Config = typeof config;
+
 export type CronService = CronServiceType;
+
 export type Database = ReturnType<typeof createDatabase>;
 
 export interface Models {

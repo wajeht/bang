@@ -37,16 +37,19 @@ export async function fetchBangsFromSource(url: string, fetcher = fetch): Promis
     if (url.startsWith('http')) {
         const response = await fetcher(url);
         const data = (await response.json()) as any;
+
         return Array.isArray(data) ? data : data.bangs || [];
     } else {
         const fileContent = await fs.promises.readFile(url, 'utf8');
         const module = JSON.parse(fileContent) as any;
+
         return Array.isArray(module) ? module : module.bangs || [];
     }
 }
 
 export function generateBangFile(bangs: Map<string, Bang>): string {
     const plainObject = Object.fromEntries(bangs);
+
     return `export const bangs: Record<string, any> = ${JSON.stringify(plainObject, null, 2)};`;
 }
 
@@ -83,6 +86,7 @@ export function parseCliArgs(args: string[]): { sources?: BangSource[]; outputPa
     // Multiple args: last is output, rest are sources
     const outputPath = args[args.length - 1];
     const sourceUrls = args.slice(0, -1);
+
     const sources = sourceUrls.map((url, index) => ({
         name: `Source ${index + 1}`,
         url,

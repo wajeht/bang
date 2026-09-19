@@ -21,6 +21,7 @@ import timezone from 'dayjs/plugin/timezone.js';
 import * as dompurify from 'isomorphic-dompurify';
 
 dayjsBase.extend(utc);
+
 dayjsBase.extend(timezone);
 
 export const dayjs = dayjsBase;

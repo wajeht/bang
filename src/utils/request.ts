@@ -11,6 +11,7 @@ type HiddenItemType = 'note' | 'bookmark' | 'bang';
 
 export function createRequest(context: AppContext) {
     type PreferenceKey = 'actions' | 'bookmarks' | 'notes' | 'tabs' | 'reminders' | 'users';
+
     const PAGE_TYPE_TO_PREFERENCE: Record<PageType | 'admin', PreferenceKey> = {
         actions: 'actions',
         bookmarks: 'bookmarks',
@@ -53,8 +54,10 @@ export function createRequest(context: AppContext) {
                 if (Array.isArray(req.body.id)) {
                     const bodyIds = req.body.id;
                     ids = [];
+
                     for (let i = 0; i < bodyIds.length; i++) {
                         const parsed = parseInt(bodyIds[i]);
+
                         if (!isNaN(parsed)) {
                             ids.push(parsed);
                         }
@@ -64,6 +67,7 @@ export function createRequest(context: AppContext) {
                     if (!req.params.id) {
                         throw new context.errors.ValidationError({ id: 'IDs array is required' });
                     }
+
                     ids = [parseInt(req.body.id)];
                 }
             }
@@ -84,11 +88,13 @@ export function createRequest(context: AppContext) {
             extraQuery?: Record<string, string>,
         ): string {
             const url = new URL('http://localhost' + (rawRedirect || '/'));
+
             if (extraQuery) {
                 for (const [key, value] of Object.entries(extraQuery)) {
                     url.searchParams.set(key, value);
                 }
             }
+
             return url.pathname.replace(/^\/+/, '/') + url.search;
         },
 
@@ -128,6 +134,7 @@ export function createRequest(context: AppContext) {
 
         canAccessHiddenItem(req: Request, item: HiddenItem, resourceType: HiddenItemType): boolean {
             if (!req.user || item.user_id !== req.user.id) return false;
+
             if (!item.hidden) return true;
 
             // Authentication middleware verifies this credential before protected handlers run.
@@ -136,6 +143,7 @@ export function createRequest(context: AppContext) {
 
             const now = Date.now();
             const verifiedAt = req.session?.hiddenItemsVerifiedAt;
+
             if (
                 req.session?.hiddenItemsVerified &&
                 verifiedAt != null &&
@@ -145,6 +153,7 @@ export function createRequest(context: AppContext) {
                 return true;
 
             const expiresAt = req.session?.verifiedHiddenItems?.[`${resourceType}_${item.id}`];
+
             return expiresAt != null && expiresAt > now;
         },
 
@@ -156,6 +165,7 @@ export function createRequest(context: AppContext) {
             if (!req.user || item.user_id !== req.user.id) {
                 throw new context.errors.NotFoundError('Item not found');
             }
+
             if (!this.canAccessHiddenItem(req, item, resourceType)) {
                 throw new context.errors.ForbiddenError(
                     'Verify your hidden-items password before accessing this item.',
@@ -165,6 +175,7 @@ export function createRequest(context: AppContext) {
 
         canViewHiddenItems(req: Request, user: User) {
             const showHidden = req.query?.hidden === 'true';
+
             const hasVerifiedPassword = !!(
                 (
                     req.session?.hiddenItemsVerified &&

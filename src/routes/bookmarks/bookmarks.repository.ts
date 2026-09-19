@@ -51,8 +51,10 @@ export function createBookmarksRepository(ctx: AppContext): Bookmarks {
                     // Split search into terms and escape SQL wildcards
                     const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
                     const searchTerms: string[] = [];
+
                     for (let i = 0; i < rawTerms.length; i++) {
                         const term = rawTerms[i];
+
                         if (term && term.length > 0) {
                             searchTerms.push(escapeLikePattern(term));
                         }
@@ -90,6 +92,7 @@ export function createBookmarksRepository(ctx: AppContext): Bookmarks {
             }
 
             const [createdBookmark] = await ctx.db('bookmarks').insert(bookmark).returning('*');
+
             return createdBookmark;
         },
 
@@ -111,10 +114,13 @@ export function createBookmarksRepository(ctx: AppContext): Bookmarks {
             // Filter to only allowed update fields
             const updateData: Record<string, unknown> = {};
             const entries = Object.entries(updates);
+
             for (let i = 0; i < entries.length; i++) {
                 const entry = entries[i];
+
                 if (!entry) continue;
                 const [key, value] = entry;
+
                 if (ALLOWED_UPDATE_FIELDS.has(key)) {
                     updateData[key] = value;
                 }

@@ -24,6 +24,7 @@ export function createSettingsRepository(ctx: AppContext): Settings {
 
     async function get(key: string): Promise<string | null> {
         const all = await getAll();
+
         return all[key] ?? null;
     }
 
@@ -62,6 +63,7 @@ export function createSettingsRepository(ctx: AppContext): Settings {
         showAboutPage: boolean;
     }> {
         const all = await getAll();
+
         return {
             appName: all['branding.app_name'] || 'Bang',
             appUrl: all['branding.app_url'] || ctx.config.app.appUrl,

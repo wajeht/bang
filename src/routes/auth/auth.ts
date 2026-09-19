@@ -72,15 +72,18 @@ export function createAuthRouter(ctx: AppContext) {
             `📧 Magic link sent to ${email}! Check your email and click the link to log in.`,
         );
         const referer = req.headers.referer;
+
         if (referer) {
             try {
                 const refererUrl = new URL(referer);
                 const appUrl = new URL(ctx.config.app.appUrl);
+
                 if (refererUrl.host === appUrl.host) {
                     return res.redirect(refererUrl.pathname + refererUrl.search);
                 }
             } catch {}
         }
+
         return res.redirect('/');
     });
 
@@ -133,7 +136,9 @@ export function createAuthRouter(ctx: AppContext) {
                 if (saveErr) {
                     ctx.logger.error('Failed to save session', { error: saveErr });
                 }
+
                 req.flash('success', `🎉 Welcome ${user.username}! You're now logged in.`);
+
                 return res.redirect(redirectTo);
             });
         });
@@ -150,17 +155,20 @@ export function createAuthRouter(ctx: AppContext) {
 
             if (!password) {
                 req.flash('error', 'Password is required');
+
                 return res.redirect(
                     ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
                 );
             }
 
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
+
             if (!dbUser?.hidden_items_password) {
                 req.flash(
                     'error',
                     'No password set for hidden items. Please set a password in settings first.',
                 );
+
                 return res.redirect(
                     ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
                 );
@@ -171,6 +179,7 @@ export function createAuthRouter(ctx: AppContext) {
             if (!isValid) {
                 if (resource_type === 'note') {
                     req.flash('error', 'Invalid password. Please try again.');
+
                     return res.redirect(
                         ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
                     );
@@ -178,12 +187,14 @@ export function createAuthRouter(ctx: AppContext) {
 
                 if (resource_type === 'bang' && original_query) {
                     req.flash('error', 'Invalid password. Please try again.');
+
                     return res.redirect(
                         ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
                     );
                 }
 
                 req.flash('error', 'Invalid password. Please try again.');
+
                 return res.redirect(
                     ctx.utils.request.getSafeRedirectPath(redirect_url, modalQuery),
                 );
@@ -193,6 +204,7 @@ export function createAuthRouter(ctx: AppContext) {
             const verifiedItems: Record<string, number> = req.session.verifiedHiddenItems;
 
             const now = Date.now();
+
             for (const [key, expiry] of Object.entries(verifiedItems)) {
                 if (expiry < now) {
                     delete verifiedItems[key];

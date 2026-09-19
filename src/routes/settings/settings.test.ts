@@ -345,9 +345,11 @@ describe('Settings Routes', () => {
                 .query({ q: '!g' })
                 .expect(302)
                 .expect('Location', 'https://example.com/override');
+
             const tab = await db('tabs')
                 .where({ user_id: user.id, trigger: '!importedtabs' })
                 .first();
+
             await agent
                 .get('/')
                 .query({ q: '!importedtabs' })
@@ -729,12 +731,15 @@ describe('Settings Routes', () => {
             const exportData = JSON.parse(response.text);
 
             expect(exportData.bookmarks).toHaveLength(2);
+
             const publicBookmark = exportData.bookmarks.find(
                 (b: any) => b.title === 'Public Bookmark',
             );
+
             const hiddenBookmark = exportData.bookmarks.find(
                 (b: any) => b.title === 'Hidden Bookmark',
             );
+
             expect(publicBookmark.hidden).toBe(0);
             expect(hiddenBookmark.hidden).toBe(1);
 
@@ -797,10 +802,12 @@ describe('Settings Routes', () => {
                 .expect(302);
 
             const updatedUser = await db('users').where({ id: user.id }).first();
+
             const isNewPassword = await bcrypt.compare(
                 'newpass1234',
                 updatedUser.hidden_items_password,
             );
+
             expect(isNewPassword).toBe(true);
         });
 
@@ -1081,6 +1088,7 @@ describe('Account deletion with a requested export', () => {
             ...ctx,
             config: { ...ctx.config, app: { ...ctx.config.app, env: 'production' } },
         });
+
         return sendMail;
     }
 
@@ -1110,6 +1118,7 @@ describe('Account deletion with a requested export', () => {
         const { agent, user } = await authenticateAgent(app);
         const sendMail = prepareTransport();
         await db.schema.renameTable('notes', 'unavailable_export_notes');
+
         try {
             await agent
                 .post('/settings/danger-zone/delete')
@@ -1121,6 +1130,7 @@ describe('Account deletion with a requested export', () => {
         } finally {
             await db.schema.renameTable('unavailable_export_notes', 'notes');
         }
+
         await agent.get('/settings/account').expect(200);
     });
 

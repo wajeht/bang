@@ -4,8 +4,11 @@ import fs from 'node:fs/promises';
 import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger({ service: 'migrations' });
+
 const isTesting = process.env.NODE_ENV === 'testing' || process.env.APP_ENV === 'testing';
+
 const MIGRATION_RECORD_EXTENSION = '.js';
+
 const MIGRATION_SOURCE_EXTENSIONS = new Set(['.js', '.ts']);
 
 export class CustomMigrationSource implements Knex.MigrationSource<string> {
@@ -20,13 +23,17 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
     async getMigrations(): Promise<string[]> {
         try {
             logger.info('Reading migrations directory');
+
             const dirents = await fs.readdir(this.migrationsPath, {
                 withFileTypes: true,
             });
+
             const preferredExtension = this.migrationsPath.includes(`${path.sep}dist${path.sep}`)
                 ? '.js'
                 : '.ts';
+
             const migrationFiles = new Map<string, string>();
+
             const files = dirents
                 .filter((dirent) => dirent.isFile())
                 .map((dirent) => dirent.name)
@@ -52,9 +59,11 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
                     filename: this.migrationFiles.get(name) ?? name,
                     name,
                 }));
+
                 logger.table(migrationList);
                 logger.info('getMigrations returning', { count: migrations.length });
             }
+
             return migrations;
         } catch (error) {
             logger.error('Error reading migrations directory', { error });
@@ -71,9 +80,11 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
         try {
             const migrationFile = await this.resolveMigrationFile(migration);
             const migrationPath = path.join(this.migrationsPath, migrationFile);
+
             if (!isTesting) {
                 logger.info('Loading migration', { path: migrationPath });
             }
+
             const migrationModule = await import(migrationPath);
 
             // Handle both named exports and default exports
@@ -101,6 +112,7 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
         }
 
         const parsed = path.parse(migration);
+
         const candidates = [
             migration,
             `${parsed.name}.ts`,
@@ -110,6 +122,7 @@ export class CustomMigrationSource implements Knex.MigrationSource<string> {
         for (const candidate of candidates) {
             try {
                 await fs.access(path.join(this.migrationsPath, candidate));
+
                 return candidate;
             } catch {
                 // Try the next runtime/source extension.

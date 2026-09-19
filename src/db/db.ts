@@ -81,8 +81,10 @@ function _createKnexInstance(libs: Libs): Knex {
     if (_db) {
         return _db;
     }
+
     _db = libs.knex(knexConfig);
     attachPaginate(libs.knex);
+
     return _db;
 }
 
@@ -94,6 +96,7 @@ export function createDatabase(ctx: { config: Config; logger: Logger; libs: Libs
         try {
             await db.raw('ANALYZE');
             await db.raw('PRAGMA optimize');
+
             if (ctx.config.app.env !== 'production') {
                 await db.raw('VACUUM');
             }
@@ -143,6 +146,7 @@ export function createDatabase(ctx: { config: Config; logger: Logger; libs: Libs
             return true;
         } catch (error) {
             logger.error('Database health check failed', { error });
+
             return false;
         }
     }
@@ -151,6 +155,7 @@ export function createDatabase(ctx: { config: Config; logger: Logger; libs: Libs
         try {
             if (ctx.config.app.env !== 'production' && force !== true) {
                 logger.info('cannot run auto database migration on non production');
+
                 return;
             }
 
@@ -176,6 +181,7 @@ export function createDatabase(ctx: { config: Config; logger: Logger; libs: Libs
 
             if (migrations.length === 0) {
                 logger.info('Database upgrade not required');
+
                 return;
             }
 

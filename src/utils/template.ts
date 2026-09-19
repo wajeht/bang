@@ -5,6 +5,7 @@ export function createTemplate(context: AppContext) {
     const { libs, config } = context;
 
     const viewsDir = path.join(process.cwd(), 'src/routes');
+
     const eta = new libs.Eta({
         views: viewsDir,
         cache: config.app.env === 'production',

@@ -2,10 +2,15 @@ import type { AppContext } from './type.js';
 import { type ScheduledTask } from 'node-cron';
 
 export const PREFETCH_RECENT_DAYS = 7;
+
 export const PREFETCH_PER_TABLE_LIMIT = 5000;
+
 export const PREFETCH_REMINDERS_LIMIT = 2000;
+
 const PREFETCH_BATCH_SIZE = 5;
+
 const PREFETCH_BATCH_DELAY_MS = 2000;
+
 const PREFETCH_REQUEST_TIMEOUT_MS = 10000;
 
 export interface CronService {
@@ -17,6 +22,7 @@ export interface CronService {
 export async function reminderCheckTask(context: AppContext): Promise<void> {
     const log = context.logger.tag('job', 'reminder-check');
     const timer = log.time('job');
+
     try {
         await context.utils.mail.processReminderDigests();
         timer.stop({ status: 'success' });
@@ -28,6 +34,7 @@ export async function reminderCheckTask(context: AppContext): Promise<void> {
 export async function verificationReminderTask(context: AppContext): Promise<void> {
     const log = context.logger.tag('job', 'verification-reminder');
     const timer = log.time('job');
+
     try {
         await context.utils.mail.processVerificationReminders(context.config.app.appUrl);
         timer.stop({ status: 'success' });
@@ -39,6 +46,7 @@ export async function verificationReminderTask(context: AppContext): Promise<voi
 export async function screenshotPrefetchTask(context: AppContext): Promise<void> {
     const log = context.logger.tag('job', 'screenshot-prefetch');
     const timer = log.time('job');
+
     try {
         const recentCutoff = context.libs.dayjs
             .utc()
@@ -87,6 +95,7 @@ export async function screenshotPrefetchTask(context: AppContext): Promise<void>
             if (r.title && context.utils.validation.isUrlLike(r.title)) {
                 urls.add(r.title.startsWith('http') ? r.title : `https://${r.title}`);
             }
+
             if (r.content && context.utils.validation.isUrlLike(r.content)) {
                 urls.add(r.content.startsWith('http') ? r.content : `https://${r.content}`);
             }
@@ -144,6 +153,7 @@ export function createCronService(context: AppContext): CronService {
             void job.stop();
             void job.destroy();
         }
+
         cronJobs = [];
         isRunning = false;
         context.logger.tag('service', 'cron').info('stopped');

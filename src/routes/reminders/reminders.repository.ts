@@ -4,6 +4,7 @@ import type { Reminder, Reminders, RemindersQueryParams, AppContext } from '../.
 export function createRemindersRepository(ctx: AppContext): Reminders {
     const REGEX_WHITESPACE = /\s+/;
     const ALLOWED_SORT_KEYS = new Set(['title', 'content', 'due_date', 'frequency', 'created_at']);
+
     const ALLOWED_UPDATE_FIELDS = new Set([
         'title',
         'content',
@@ -51,8 +52,10 @@ export function createRemindersRepository(ctx: AppContext): Reminders {
                     // Split search into terms and escape SQL wildcards
                     const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
                     const searchTerms: string[] = [];
+
                     for (let i = 0; i < rawTerms.length; i++) {
                         const term = rawTerms[i];
+
                         if (term && term.length > 0) {
                             searchTerms.push(escapeLikePattern(term));
                         }
@@ -89,6 +92,7 @@ export function createRemindersRepository(ctx: AppContext): Reminders {
             }
 
             const [createdReminder] = await ctx.db('reminders').insert(reminder).returning('*');
+
             return createdReminder;
         },
 
@@ -110,10 +114,13 @@ export function createRemindersRepository(ctx: AppContext): Reminders {
             // Filter to only allowed update fields
             const updateData: Record<string, unknown> = {};
             const entries = Object.entries(updates);
+
             for (let i = 0; i < entries.length; i++) {
                 const entry = entries[i];
+
                 if (!entry) continue;
                 const [key, value] = entry;
+
                 if (ALLOWED_UPDATE_FIELDS.has(key)) {
                     updateData[key] = value;
                 }

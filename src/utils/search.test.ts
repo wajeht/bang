@@ -8,10 +8,15 @@ import type { SessionData } from 'express-session';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 let ctx: AppContext;
+
 let searchUtils: ReturnType<typeof createSearch>;
+
 let isValidUrl: any;
+
 let insertBookmark: any;
+
 let insertPageTitle: any;
+
 let checkDuplicateBookmarkUrl: any;
 
 const mockLogger = (): any => ({
@@ -334,6 +339,7 @@ describe('search', () => {
                 query: { q: '@settings' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -364,6 +370,7 @@ describe('search', () => {
                 query: { q: '@NOTES' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -390,6 +397,7 @@ describe('search', () => {
                 query: { q: '@notes search query' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -422,6 +430,7 @@ describe('search', () => {
                 query: { q: '@bookmarks search query' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -448,6 +457,7 @@ describe('search', () => {
                 query: { q: '@actions search query' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -474,6 +484,7 @@ describe('search', () => {
                 query: { q: '@reminders search query' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -506,6 +517,7 @@ describe('search', () => {
                 query: { q: '@tabs search query' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -538,6 +550,7 @@ describe('search', () => {
                 query: { q: '@notes test & special + characters?' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -556,6 +569,7 @@ describe('search', () => {
 
         it('should handle bookmark creation with title', async () => {
             const req = { logger: mockLogger() } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -593,6 +607,7 @@ describe('search', () => {
 
         it('should handle bookmark creation without title', async () => {
             const req = { logger: mockLogger() } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -623,6 +638,7 @@ describe('search', () => {
                 query: { q: '!bm invalid-url' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -639,6 +655,7 @@ describe('search', () => {
 
         it('should reject bookmark creation with title longer than 255 characters', async () => {
             const req = { logger: mockLogger() } as unknown as Request;
+
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -674,6 +691,7 @@ describe('search', () => {
                     query: { q: '!bm Secret Site https://secret.com --hide' },
                     user: userWithPassword,
                 } as unknown as Request;
+
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -706,6 +724,7 @@ describe('search', () => {
                     query: { q: '!bm Secret Site https://secret.com --hide' },
                     user: userWithoutPassword,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -735,6 +754,7 @@ describe('search', () => {
                     query: { q: '!bm https://secret.com --hide' },
                     user: userWithPassword,
                 } as unknown as Request;
+
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -766,6 +786,7 @@ describe('search', () => {
                     query: { q: '!bm Title with --hide in middle https://example.com' },
                     user: userWithPassword,
                 } as unknown as Request;
+
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -792,6 +813,7 @@ describe('search', () => {
                 query: { q: '!add !new https://newsite.com' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -816,6 +838,7 @@ describe('search', () => {
                     query: { q: '!add !secret https://secret.com Secret Site --hide' },
                     user: userWithPassword,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -832,6 +855,7 @@ describe('search', () => {
                 const createdAction = await db('bangs')
                     .where({ user_id: userWithPassword.id, trigger: '!secret' })
                     .first();
+
                 expect(createdAction).toBeDefined();
                 expect(createdAction.hidden).toBe(1);
                 expect(createdAction.action_type).toBe('redirect');
@@ -849,6 +873,7 @@ describe('search', () => {
                     query: { q: '!add !secret https://secret.com Secret Site --hide' },
                     user: userWithoutPassword,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -867,6 +892,7 @@ describe('search', () => {
                 const createdAction = await db('bangs')
                     .where({ user_id: userWithoutPassword.id, trigger: '!secret' })
                     .first();
+
                 expect(createdAction).toBeUndefined();
             });
 
@@ -881,6 +907,7 @@ describe('search', () => {
                     query: { q: '!add !secretsearch https://example.com/search?q=%s --hide' },
                     user: userWithPassword,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -896,6 +923,7 @@ describe('search', () => {
                 const createdAction = await db('bangs')
                     .where({ user_id: userWithPassword.id, trigger: '!secretsearch' })
                     .first();
+
                 expect(createdAction).toBeDefined();
                 expect(createdAction.hidden).toBe(1);
                 expect(createdAction.action_type).toBe('redirect'); // Always 'redirect' for !add
@@ -912,6 +940,7 @@ describe('search', () => {
                     query: { q: '!add !test https://example.com Name with --hide in middle' },
                     user: userWithPassword,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -925,6 +954,7 @@ describe('search', () => {
                 const createdAction = await db('bangs')
                     .where({ user_id: userWithPassword.id, trigger: '!test' })
                     .first();
+
                 expect(createdAction).toBeDefined();
                 expect(createdAction.hidden).toBe(1);
                 expect(createdAction.name).toBe('Fetching title...'); // Actions are created with placeholder name
@@ -943,6 +973,7 @@ describe('search', () => {
                 query: { q: '!add !prefetchadd https://prefetch-add-test.com' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -1000,6 +1031,7 @@ describe('search', () => {
                 query: { q: '!custom test search' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1031,6 +1063,7 @@ describe('search', () => {
                 query: { q: '!querytest test search' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1064,6 +1097,7 @@ describe('search', () => {
                 query: { q: '!stest test search' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1107,11 +1141,13 @@ describe('search', () => {
                 })
                 .onConflict(['user_id', 'trigger'])
                 .ignore();
+
             const req = {
                 logger: mockLogger(),
                 query: { q: '!mysite' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1135,6 +1171,7 @@ describe('search', () => {
                 query: { q: 'test search' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1156,6 +1193,7 @@ describe('search', () => {
                 query: { q: '!nonexistent' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1195,11 +1233,13 @@ describe('search', () => {
                 })
                 .onConflict(['user_id', 'trigger'])
                 .ignore();
+
             const req = {
                 logger: mockLogger(),
                 query: { q: '!add !custom https://newsite.com' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn().mockReturnThis(),
@@ -1221,6 +1261,7 @@ describe('search', () => {
                 query: { q: '!add !bm https://newsite.com' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -1241,6 +1282,7 @@ describe('search', () => {
                 query: { q: '!add' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -1261,6 +1303,7 @@ describe('search', () => {
                 query: { q: '!bm This is a very long title https://example.com' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1292,6 +1335,7 @@ describe('search', () => {
                 query: { q: '!add test https://test.com' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -1315,6 +1359,7 @@ describe('search', () => {
                 query: { q: 'test search' },
                 user: googleUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -1338,6 +1383,7 @@ describe('search', () => {
                 query: { q: '!bm title https://example.com' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
@@ -1366,6 +1412,7 @@ describe('search', () => {
                     query: { q: '!find javascript' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -1387,6 +1434,7 @@ describe('search', () => {
                     query: { q: '!find react hooks tutorial' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -1405,6 +1453,7 @@ describe('search', () => {
                     query: { q: '!find' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1425,6 +1474,7 @@ describe('search', () => {
                     query: { q: '!find   ' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1445,6 +1495,7 @@ describe('search', () => {
                     query: { q: '!find test & special + characters?' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -1465,6 +1516,7 @@ describe('search', () => {
                     query: { q: '!note My Note Title | This is the content of the note' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1481,6 +1533,7 @@ describe('search', () => {
                 const createdNote = await db('notes')
                     .where({ user_id: testUser.id, title: 'My Note Title' })
                     .first();
+
                 expect(createdNote).toBeDefined();
                 expect(createdNote.content).toBe('This is the content of the note');
             });
@@ -1491,6 +1544,7 @@ describe('search', () => {
                     query: { q: '!note This is just content without a title' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1507,6 +1561,7 @@ describe('search', () => {
                 const createdNote = await db('notes')
                     .where({ user_id: testUser.id, title: 'Untitled' })
                     .first();
+
                 expect(createdNote).toBeDefined();
                 expect(createdNote.content).toBe('This is just content without a title');
             });
@@ -1517,6 +1572,7 @@ describe('search', () => {
                     query: { q: '!note Test Note | Test content' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1530,12 +1586,14 @@ describe('search', () => {
                 const createdNote = await db('notes')
                     .where({ user_id: testUser.id, title: 'Test Note' })
                     .first();
+
                 expect(createdNote).toBeDefined();
                 expect(createdNote.pinned).toBe(0); // SQLite stores boolean as 0/1
             });
 
             it('should reject note creation with title longer than 255 characters', async () => {
                 const req = { logger: mockLogger() } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1564,6 +1622,7 @@ describe('search', () => {
                     query: { q: '!note My Title |' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1584,6 +1643,7 @@ describe('search', () => {
                     query: { q: '!note My Title |   ' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1604,6 +1664,7 @@ describe('search', () => {
                     query: { q: '!note' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1624,6 +1685,7 @@ describe('search', () => {
                     query: { q: '!note   ' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1646,6 +1708,7 @@ describe('search', () => {
                     },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1659,6 +1722,7 @@ describe('search', () => {
                 const createdNote = await db('notes')
                     .where({ user_id: testUser.id, title: 'Special @#$% Title' })
                     .first();
+
                 expect(createdNote).toBeDefined();
                 expect(createdNote.content).toBe('Content with special chars: !@#$%^&*()');
             });
@@ -1669,6 +1733,7 @@ describe('search', () => {
                     query: { q: '!note Title with | pipe | Content also has | more pipes' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1682,6 +1747,7 @@ describe('search', () => {
                 const createdNote = await db('notes')
                     .where({ user_id: testUser.id, title: 'Title with' })
                     .first();
+
                 expect(createdNote).toBeDefined();
                 expect(createdNote.content).toBe('pipe | Content also has | more pipes');
             });
@@ -1696,6 +1762,7 @@ describe('search', () => {
 
                 for (const query of queries) {
                     const req = { logger: mockLogger() } as unknown as Request;
+
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
@@ -1749,6 +1816,7 @@ describe('search', () => {
                         query: { q: '!note Hidden Note | Secret content --hide' },
                         user: userWithPassword,
                     } as unknown as Request;
+
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
@@ -1765,6 +1833,7 @@ describe('search', () => {
                     const createdNote = await db('notes')
                         .where({ user_id: testUser.id, title: 'Hidden Note' })
                         .first();
+
                     expect(createdNote).toBeDefined();
                     expect(createdNote.content).toBe('Secret content');
                     expect(createdNote.hidden).toBe(1); // SQLite stores boolean as 0/1
@@ -1781,6 +1850,7 @@ describe('search', () => {
                         query: { q: '!note Hidden Note | Secret content --hide' },
                         user: userWithoutPassword,
                     } as unknown as Request;
+
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
@@ -1799,6 +1869,7 @@ describe('search', () => {
                     const createdNote = await db('notes')
                         .where({ user_id: testUser.id, title: 'Hidden Note' })
                         .first();
+
                     expect(createdNote).toBeUndefined();
                 });
 
@@ -1813,6 +1884,7 @@ describe('search', () => {
                         query: { q: '!note Test Note | Content with --hide flag in middle' },
                         user: userWithPassword,
                     } as unknown as Request;
+
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
@@ -1826,6 +1898,7 @@ describe('search', () => {
                     const createdNote = await db('notes')
                         .where({ user_id: testUser.id, title: 'Test Note' })
                         .first();
+
                     expect(createdNote).toBeDefined();
                     expect(createdNote.content).toBe('Content with  flag in middle'); // --hide removed leaves double space
                     expect(createdNote.hidden).toBe(1);
@@ -1842,6 +1915,7 @@ describe('search', () => {
                         query: { q: '!note --hide this is hidden content without title' },
                         user: userWithPassword,
                     } as unknown as Request;
+
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
@@ -1858,6 +1932,7 @@ describe('search', () => {
                     const createdNote = await db('notes')
                         .where({ user_id: testUser.id, title: 'Untitled' })
                         .first();
+
                     expect(createdNote).toBeDefined();
                     expect(createdNote.content).toBe('this is hidden content without title');
                     expect(createdNote.hidden).toBe(1);
@@ -1874,6 +1949,7 @@ describe('search', () => {
                         query: { q: '!note --hide Secret Title | Secret content here' },
                         user: userWithPassword,
                     } as unknown as Request;
+
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
@@ -1887,6 +1963,7 @@ describe('search', () => {
                     const createdNote = await db('notes')
                         .where({ user_id: testUser.id, title: 'Secret Title' })
                         .first();
+
                     expect(createdNote).toBeDefined();
                     expect(createdNote.content).toBe('Secret content here');
                     expect(createdNote.hidden).toBe(1);
@@ -1912,6 +1989,7 @@ describe('search', () => {
                     query: { q: '!del !deleteme' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1928,6 +2006,7 @@ describe('search', () => {
                 const deletedBang = await db('bangs')
                     .where({ user_id: 1, trigger: '!deleteme' })
                     .first();
+
                 expect(deletedBang).toBeUndefined();
             });
 
@@ -1945,6 +2024,7 @@ describe('search', () => {
                     query: { q: '!del deleteme2' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1965,6 +2045,7 @@ describe('search', () => {
                     query: { q: '!del !nonexistent' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -1987,6 +2068,7 @@ describe('search', () => {
                     query: { q: '!del' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2010,6 +2092,7 @@ describe('search', () => {
                     query: { q: '!del !test' },
                     user: unauthenticatedUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     redirect: vi.fn(),
@@ -2042,6 +2125,7 @@ describe('search', () => {
                     query: { q: '!del !tabonly' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2058,6 +2142,7 @@ describe('search', () => {
                 const deletedTab = await db('tabs')
                     .where({ user_id: 1, trigger: '!tabonly' })
                     .first();
+
                 expect(deletedTab).toBeUndefined();
 
                 await db('tabs').where({ id: 2000 }).delete();
@@ -2092,6 +2177,7 @@ describe('search', () => {
                     query: { q: '!edit !editme !newname' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2108,6 +2194,7 @@ describe('search', () => {
                 const updatedBang = await db('bangs')
                     .where({ user_id: 1, trigger: '!newname' })
                     .first();
+
                 expect(updatedBang).toBeDefined();
                 expect(updatedBang.url).toBe('https://edit-test.com');
             });
@@ -2118,6 +2205,7 @@ describe('search', () => {
                     query: { q: '!edit !editme https://new-url.com' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2142,6 +2230,7 @@ describe('search', () => {
                 const updatedBang = await db('bangs')
                     .where({ user_id: 1, trigger: '!editme' })
                     .first();
+
                 expect(updatedBang).toBeDefined();
                 expect(updatedBang.url).toBe('https://new-url.com');
 
@@ -2160,6 +2249,7 @@ describe('search', () => {
                     query: { q: '!edit !editme https://prefetch-edit-test.com' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2193,6 +2283,7 @@ describe('search', () => {
                     query: { q: '!edit !editme !newboth https://both-new.com' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2214,6 +2305,7 @@ describe('search', () => {
                 const updatedBang = await db('bangs')
                     .where({ user_id: 1, trigger: '!newboth' })
                     .first();
+
                 expect(updatedBang).toBeDefined();
                 expect(updatedBang.url).toBe('https://both-new.com');
 
@@ -2226,6 +2318,7 @@ describe('search', () => {
                     query: { q: '!edit !nonexistent !newtrigger' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2248,6 +2341,7 @@ describe('search', () => {
                     query: { q: '!edit !editme' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2270,6 +2364,7 @@ describe('search', () => {
                     query: { q: '!edit !editme !add' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2292,6 +2387,7 @@ describe('search', () => {
                     query: { q: '!edit !editme !existing' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2314,6 +2410,7 @@ describe('search', () => {
                     query: { q: '!edit !editme invalid-url' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2336,6 +2433,7 @@ describe('search', () => {
                     query: { q: '!edit !editme !invalid@trigger' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2361,6 +2459,7 @@ describe('search', () => {
                     query: { q: '!edit !test !newtrigger' },
                     user: unauthenticatedUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     redirect: vi.fn(),
@@ -2384,6 +2483,7 @@ describe('search', () => {
                     query: { q: '!edit editme https://new-without-prefix.com' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2402,6 +2502,7 @@ describe('search', () => {
                 const updatedBang = await db('bangs')
                     .where({ user_id: 1, trigger: '!editme' })
                     .first();
+
                 expect(updatedBang).toBeDefined();
                 expect(updatedBang.url).toBe('https://new-without-prefix.com');
 
@@ -2424,6 +2525,7 @@ describe('search', () => {
                     query: { q: '!edit !edittab !newtab' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2441,6 +2543,7 @@ describe('search', () => {
                 const updatedTab = await db('tabs')
                     .where({ user_id: 1, trigger: '!newtab' })
                     .first();
+
                 expect(updatedTab).toBeDefined();
                 expect(updatedTab.title).toBe('Edit Tab Test');
 
@@ -2455,6 +2558,7 @@ describe('search', () => {
 
         it('should handle all direct navigation commands', async () => {
             const req = { logger: mockLogger() } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -2492,6 +2596,7 @@ describe('search', () => {
                 query: { q: '!g' },
                 user: testUser,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -2533,6 +2638,7 @@ describe('search', () => {
                     query: { q: '!bm New Title https://existing.com' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2567,6 +2673,7 @@ describe('search', () => {
                     query: { q: '!bm https://existing.com' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2606,6 +2713,7 @@ describe('search', () => {
                     query: { q: '!bm https://existing.com' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2640,6 +2748,7 @@ describe('search', () => {
                     query: { q: '!bm Unique Title https://unique.com' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -2678,6 +2787,7 @@ describe('search', () => {
                     query: { q: '!bm Same URL https://existing.com' },
                     user: otherUser,
                 } as unknown as Request;
+
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -2706,6 +2816,7 @@ describe('search', () => {
                     query: { q: '!bm Different Title https://existing.com' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     redirect: vi.fn(),
                     set: vi.fn(),
@@ -2734,6 +2845,7 @@ describe('search', () => {
                     query: { q: '!bm Same Title https://existing.com' },
                     user: testUser,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2790,6 +2902,7 @@ describe('search', () => {
                     query: { q: '!remind take out trash' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2808,6 +2921,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: testUserWithPreferences.id, title: 'take out trash' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.reminder_type).toBe('recurring');
                 expect(createdReminder.frequency).toBe('weekly');
@@ -2819,6 +2933,7 @@ describe('search', () => {
                     query: { q: '!remind daily google.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2835,6 +2950,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: testUserWithPreferences.id, title: 'Untitled' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.reminder_type).toBe('recurring');
                 expect(createdReminder.frequency).toBe('daily');
@@ -2847,6 +2963,7 @@ describe('search', () => {
                     query: { q: '!remind weekly | check bills | https://bank.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2863,6 +2980,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: testUser.id, title: 'check bills' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.reminder_type).toBe('recurring');
                 expect(createdReminder.frequency).toBe('weekly');
@@ -2875,6 +2993,7 @@ describe('search', () => {
                     query: { q: '!remind 2025-12-25 | christmas reminder' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2891,6 +3010,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: testUser.id, title: 'christmas reminder' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.reminder_type).toBe('once');
                 expect(createdReminder.frequency).toBeNull();
@@ -2903,6 +3023,7 @@ describe('search', () => {
 
                 for (const timing of timingKeywords) {
                     const req = { logger: mockLogger() } as unknown as Request;
+
                     const res = {
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
@@ -2921,6 +3042,7 @@ describe('search', () => {
                             title: `test ${timing} reminder`,
                         })
                         .first();
+
                     expect(createdReminder).toBeDefined();
                     expect(createdReminder.frequency).toBe(timing);
                 }
@@ -2932,6 +3054,7 @@ describe('search', () => {
                     query: { q: '!remind' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2952,6 +3075,7 @@ describe('search', () => {
                     query: { q: '!remind daily |' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2968,11 +3092,13 @@ describe('search', () => {
 
             it('should treat invalid timing as description when not a valid keyword', async () => {
                 isValidUrl.mockRestore();
+
                 const req = {
                     logger: mockLogger(),
                     query: { q: '!remind invalid-timing test reminder' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -2989,12 +3115,14 @@ describe('search', () => {
                         title: 'invalid-timing test reminder',
                     })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('weekly');
             });
 
             it('should handle user without preferences (fallback to defaults)', async () => {
                 isValidUrl.mockRestore();
+
                 const userWithoutPrefs = {
                     id: 1,
                     username: 'Test User',
@@ -3010,6 +3138,7 @@ describe('search', () => {
                     query: { q: '!remind test reminder without prefs' },
                     user: userWithoutPrefs,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3023,6 +3152,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'test reminder without prefs' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('daily'); // Default fallback
             });
@@ -3033,6 +3163,7 @@ describe('search', () => {
                     query: { q: '!remind daily check website https://example.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3046,6 +3177,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'check website' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('daily');
                 expect(createdReminder.content).toBe('https://example.com');
@@ -3057,6 +3189,7 @@ describe('search', () => {
                     query: { q: '!remind daily google.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3070,6 +3203,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'Untitled' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('daily');
                 expect(createdReminder.content).toBe('google.com');
@@ -3081,6 +3215,7 @@ describe('search', () => {
                     query: { q: '!remind weekly https://example.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3094,6 +3229,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'Untitled' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('weekly');
                 expect(createdReminder.content).toBe('https://example.com');
@@ -3105,6 +3241,7 @@ describe('search', () => {
                     query: { q: '!remind https://github.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3118,6 +3255,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'Untitled' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('weekly');
                 expect(createdReminder.content).toBe('https://github.com');
@@ -3125,11 +3263,13 @@ describe('search', () => {
 
             it('should split description and URL content when text precedes URL', async () => {
                 isValidUrl.mockRestore();
+
                 const req = {
                     logger: mockLogger(),
                     query: { q: '!remind title google.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3143,6 +3283,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: testUserWithPreferences.id, title: 'title' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('weekly');
                 expect(createdReminder.content).toBe('google.com');
@@ -3154,6 +3295,7 @@ describe('search', () => {
                     query: { q: '!remind monthly check website https://example.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3167,6 +3309,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'check website' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('monthly');
                 expect(createdReminder.content).toBe('https://example.com');
@@ -3180,6 +3323,7 @@ describe('search', () => {
                     },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3193,6 +3337,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'special chars: !@#$%^&*()' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.content).toBe('content with symbols');
             });
@@ -3203,6 +3348,7 @@ describe('search', () => {
                     query: { q: '!remind title | google' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3216,6 +3362,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'title' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('weekly');
                 expect(createdReminder.content).toBe('google');
@@ -3227,6 +3374,7 @@ describe('search', () => {
                     query: { q: '!remind check website | https://example.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3240,6 +3388,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'check website' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('weekly');
                 expect(createdReminder.content).toBe('https://example.com');
@@ -3251,6 +3400,7 @@ describe('search', () => {
                     query: { q: '!remind daily title | google.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3264,6 +3414,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'title' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('daily');
                 expect(createdReminder.content).toBe('google.com');
@@ -3275,6 +3426,7 @@ describe('search', () => {
                     query: { q: '!remind google.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3290,6 +3442,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'Untitled' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('weekly');
                 expect(createdReminder.content).toBe('google.com');
@@ -3303,6 +3456,7 @@ describe('search', () => {
                     query: { q: '!remind https://example.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3318,6 +3472,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'Untitled' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
                 expect(createdReminder.frequency).toBe('weekly');
                 expect(createdReminder.content).toBe('https://example.com');
@@ -3331,6 +3486,7 @@ describe('search', () => {
                     query: { q: '!remind https://example.com' },
                     user: testUserWithPreferences,
                 } as unknown as Request;
+
                 const res = {
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
@@ -3346,6 +3502,7 @@ describe('search', () => {
                 const createdReminder = await db('reminders')
                     .where({ user_id: 1, title: 'Untitled' })
                     .first();
+
                 expect(createdReminder).toBeDefined();
 
                 await vi.waitFor(() => expect(insertPageTitle).toHaveBeenCalled());
@@ -3437,6 +3594,7 @@ describe('parseSearchQuery', () => {
         const result = searchUtils.parseSearchQuery(
             '!bm Title https://example.com/search?q=hello%20world&lang=en',
         );
+
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!bm',
@@ -3511,6 +3669,7 @@ describe('parseSearchQuery', () => {
         const result = searchUtils.parseSearchQuery(
             '!bm Title https://example.com https://test.com',
         );
+
         expect(result).toEqual({
             commandType: 'bang',
             trigger: '!bm',
@@ -3656,6 +3815,7 @@ describe('processDelayedSearch', () => {
 
     it('should delay for the specified time', async () => {
         const delayMs = 10;
+
         const req = {
             logger: mockLogger(),
             session: {
@@ -3672,6 +3832,7 @@ describe('processDelayedSearch', () => {
 
     it('should not block other operations while waiting', async () => {
         const delayMs = 20;
+
         const req = {
             logger: mockLogger(),
             session: {
@@ -3682,6 +3843,7 @@ describe('processDelayedSearch', () => {
         const delayPromise = searchUtils.processDelayedSearch(req);
 
         let counter = 0;
+
         const counterPromise = new Promise<number>((resolve) => {
             setTimeout(() => {
                 counter++;
@@ -3782,6 +3944,7 @@ describe('search command handling', () => {
                 query: { q: '@notes test' },
                 user: user,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -3816,6 +3979,7 @@ describe('search command handling', () => {
                 query: { q: '!unknown' },
                 user: user,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -3848,6 +4012,7 @@ describe('search command handling', () => {
                 query: { q: 'regular search' },
                 user: user,
             } as unknown as Request;
+
             const res = {
                 redirect: vi.fn(),
                 set: vi.fn(),
@@ -3954,6 +4119,7 @@ describe('Trigger Caching (in-memory)', () => {
         // Each test gets a fresh search instance (and therefore a fresh trigger cache)
         // so cache state never bleeds between tests.
         isolatedSearch = createSearch(ctx);
+
         const [user] = await db('users')
             .insert({
                 username: `cachetest_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -3962,6 +4128,7 @@ describe('Trigger Caching (in-memory)', () => {
                 api_key: `test_api_key_cache_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             })
             .returning('*');
+
         testUser = user;
     });
 
@@ -4163,6 +4330,7 @@ describe('Bang Search Optimization', () => {
 
     beforeEach(async () => {
         searchUtils = createSearch(ctx);
+
         const [user] = await db('users')
             .insert({
                 username: `bangopt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -4172,6 +4340,7 @@ describe('Bang Search Optimization', () => {
                 column_preferences: JSON.stringify({}),
             })
             .returning('*');
+
         testUser = {
             ...user,
             column_preferences: {},
@@ -4355,6 +4524,7 @@ describe('Bang Search Performance', () => {
 
     beforeEach(async () => {
         searchUtils = createSearch(ctx);
+
         const [user] = await db('users')
             .insert({
                 username: `perftest_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -4364,6 +4534,7 @@ describe('Bang Search Performance', () => {
                 column_preferences: JSON.stringify({}),
             })
             .returning('*');
+
         testUser = { ...user, column_preferences: {} };
 
         await db('bangs').insert([
@@ -4397,6 +4568,7 @@ describe('Bang Search Performance', () => {
             query: { q: '!g test' },
             user: testUser,
         } as unknown as Request;
+
         const startCold = performance.now();
         await searchUtils.search({ req: reqCold, res });
         const coldTime = performance.now() - startCold;

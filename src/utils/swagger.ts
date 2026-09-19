@@ -10,6 +10,7 @@ export async function expressJSDocSwaggerHandler(app: Application, context: AppC
     }
 
     const expressJSDocSwaggerModule = await import('express-jsdoc-swagger');
+
     const expressJSDocSwagger = expressJSDocSwaggerModule.default as unknown as (
         app: Application,
     ) => (options: Options) => void;

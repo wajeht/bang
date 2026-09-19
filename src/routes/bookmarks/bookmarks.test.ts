@@ -43,10 +43,12 @@ describe('Bookmarks Routes', () => {
                     async () => {
                         const result = await db('bookmarks').where({ user_id: user.id }).first();
                         expect(result).toBeDefined();
+
                         return result;
                     },
                     { timeout: 1000 },
                 );
+
                 expect(bookmark.title).toBe('Hidden Bookmark');
                 expect(bookmark.hidden).toBe(1);
             });
@@ -117,10 +119,12 @@ describe('Bookmarks Routes', () => {
                     async () => {
                         const result = await db('bookmarks').where({ user_id: user.id }).first();
                         expect(result).toBeDefined();
+
                         return result;
                     },
                     { timeout: 1000 },
                 );
+
                 expect(bookmark?.hidden).toBe(1);
             });
         });
@@ -540,6 +544,7 @@ describe('Bookmarks Routes', () => {
                     async () => {
                         const result = await db('bookmarks').where({ user_id: user.id });
                         expect(result.length).toBe(2);
+
                         return result;
                     },
                     { timeout: 1000 },
@@ -618,6 +623,7 @@ describe('Bookmarks Routes', () => {
                     async () => {
                         const result = await db('bookmarks').where({ user_id: user.id });
                         expect(result.length).toBe(2);
+
                         return result;
                     },
                     { timeout: 1000 },

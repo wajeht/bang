@@ -14,10 +14,15 @@ import type { ApiKeyPayload, BookmarkToExport } from '../type.js';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 let validationUtils: ReturnType<typeof createValidation>;
+
 let authUtils: ReturnType<typeof createAuth>;
+
 let utilUtils: ReturnType<typeof createUtil>;
+
 let htmlUtils: ReturnType<typeof createHtml>;
+
 let dateUtils: ReturnType<typeof createDate>;
+
 let requestUtils: ReturnType<typeof createRequest>;
 
 beforeAll(async () => {
@@ -278,6 +283,7 @@ describe.concurrent('createBookmarksDocument', () => {
 <DT><A HREF="https://example.com" ADD_DATE="1695748000">Example</A>
 <DT><A HREF="https://another.com" ADD_DATE="1695752000">Another Example</A>
 </DL><p>`;
+
         expect(utilUtils.createBookmarkDocument(bms)).toBe(expectedDocument);
     });
 
@@ -618,8 +624,10 @@ describe.concurrent('highlightSearchTerm', () => {
 
     it('should handle complex HTML with nested elements', () => {
         const text = '<div><p>This is a <strong>test</strong> of HTML</p></div>';
+
         const expected =
             '&lt;div&gt;&lt;p&gt;This is a &lt;strong&gt;<mark>test</mark>&lt;/strong&gt; of <mark>HTML</mark>&lt;/p&gt;&lt;/div&gt;';
+
         expect(htmlUtils.highlightSearchTerm(text, 'test HTML')).toBe(expected);
     });
 
@@ -829,6 +837,7 @@ describe('checkDuplicateBookmarkUrl', () => {
             'https://example.com',
             'Original Title',
         );
+
         expect(result).not.toBeNull();
         expect(result?.url).toBe('https://example.com');
         expect(result?.title).toBe('Original Title');
@@ -840,6 +849,7 @@ describe('checkDuplicateBookmarkUrl', () => {
             'https://example.com',
             'Different Title',
         );
+
         expect(result).toBeFalsy();
     });
 
@@ -860,6 +870,7 @@ describe.concurrent('.dockerignore', () => {
             path.resolve(path.join(process.cwd(), '.dockerignore')),
             'utf8',
         );
+
         expect(result).not.toContain('README.md');
         expect(result).not.toContain('*.md');
     });
@@ -871,6 +882,7 @@ describe.concurrent('README.md', () => {
             path.resolve(path.join(process.cwd(), 'README.md')),
             'utf8',
         );
+
         expect(result).toContain('<!-- starts -->');
         expect(result).toContain('<!-- ends -->');
     });
@@ -996,6 +1008,7 @@ describe('convertMarkdownToPlainText (hoisted Marked instance)', () => {
         const out = await utilUtils.convertMarkdownToPlainText(
             '# Title\n\n**bold** and _italic_ with [link](https://x.com).',
         );
+
         expect(out).toContain('Title');
         expect(out).toContain('bold');
         expect(out).toContain('italic');
@@ -1029,9 +1042,11 @@ describe('convertMarkdownToPlainText (hoisted Marked instance)', () => {
         // callers with different options could see each other's settings. Run many calls
         // and assert all produce the same well-defined output.
         const md = '**bold** *italic*';
+
         const results = await Promise.all(
             Array.from({ length: 50 }, () => utilUtils.convertMarkdownToPlainText(md)),
         );
+
         const unique = new Set(results);
         expect(unique.size).toBe(1);
         expect([...unique][0]).toBe('bold italic');
@@ -1041,6 +1056,7 @@ describe('convertMarkdownToPlainText (hoisted Marked instance)', () => {
 describe('generateUserDataExport', () => {
     it('should reject a backup when a selected data section cannot be read', async () => {
         await db.schema.renameTable('notes', 'unavailable_export_notes');
+
         try {
             await expect(utilUtils.generateUserDataExport(1)).rejects.toThrow();
         } finally {
@@ -1050,6 +1066,7 @@ describe('generateUserDataExport', () => {
 
     it('should not require a section that was excluded from the export', async () => {
         await db.schema.renameTable('notes', 'unavailable_export_notes');
+
         try {
             const exported = await utilUtils.generateUserDataExport(1, { includeNotes: false });
             expect(exported.notes).toBeUndefined();

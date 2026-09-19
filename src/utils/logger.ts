@@ -20,16 +20,20 @@ export const Log = {
         const tags: Record<string, string> = {};
 
         if (options.service) tags['service'] = options.service;
+
         if (options.tags) {
             for (const key in options.tags) {
                 tags[key] = options.tags[key]!;
             }
         }
+
         if (options.level) this.state.globalLevel = options.level;
 
         const service = options.service;
+
         if (service && !options.tags) {
             const cached = this.state.loggers.get(service);
+
             if (cached) return cached;
         }
 
@@ -37,6 +41,7 @@ export const Log = {
 
         function formatError(error: Error, depth = 0): string {
             const result = error.message;
+
             return error.cause instanceof Error && depth < 10
                 ? result + ' Caused by: ' + formatError(error.cause, depth + 1)
                 : result;
@@ -44,6 +49,7 @@ export const Log = {
 
         function formatValue(value: unknown): string {
             if (value instanceof Error) return formatError(value);
+
             if (typeof value === 'object' && value !== null) {
                 try {
                     return JSON.stringify(value);
@@ -51,6 +57,7 @@ export const Log = {
                     return '[Circular]';
                 }
             }
+
             return String(value);
         }
 
@@ -66,25 +73,31 @@ export const Log = {
         function appendTags(result: string, obj: Record<string, any>): string {
             for (const key in obj) {
                 const value = obj[key];
+
                 if (value !== undefined && value !== null) {
                     result = result ? result + ' ' + key + '=' + value : key + '=' + value;
                 }
             }
+
             return result;
         }
 
         function appendExtraTags(result: string, obj: Record<string, any>): string {
             for (const key in obj) {
                 const value = obj[key];
+
                 if (value !== undefined && value !== null) {
                     const formatted = formatValue(value);
+
                     const tag =
                         typeof value === 'string' && value.includes(' ')
                             ? key + '="' + formatted + '"'
                             : key + '=' + formatted;
+
                     result = result ? result + ' ' + tag : tag;
                 }
             }
+
             return result;
         }
 
@@ -125,6 +138,7 @@ export const Log = {
         function log(level: LogLevel, message: string, args: any[]): void {
             if (priority[level] < priority[state.globalLevel]) return;
             const output = build(level, message, args);
+
             if (level === 'ERROR') {
                 console.error(output);
             } else if (level === 'WARN') {
@@ -149,6 +163,7 @@ export const Log = {
 
             time(message: string, extra?: Record<string, any>) {
                 const start = Date.now();
+
                 return {
                     stop(stopExtra?: Record<string, any>) {
                         logger.info(message, {
@@ -176,7 +191,9 @@ export const Log = {
 
                 const drawLine = (char: string) =>
                     styleText('dim', `${char}${'─'.repeat(width - 2)}${char}`);
+
                 const stripAnsi = (str: string) => str.replace(regex, '');
+
                 const pad = (line: string) =>
                     line + ' '.repeat(Math.max(0, maxLen - stripAnsi(line).length));
 
@@ -186,8 +203,10 @@ export const Log = {
                 console.log(drawLine('├'));
 
                 const lines = Array.isArray(content) ? content : content.split('\n');
+
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i]!;
+
                     if (stripAnsi(line).length <= maxLen) {
                         console.log(`${border} ${pad(line)} ${border}`);
                     } else {

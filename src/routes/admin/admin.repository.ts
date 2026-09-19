@@ -5,6 +5,7 @@ export function createUsersRepository(ctx: AppContext) {
         read: async (id: number) => {
             try {
                 const user = await ctx.db('users').where({ id }).first();
+
                 if (user) {
                     // Convert SQLite integer values to booleans
                     user.is_admin = Boolean(user.is_admin);
@@ -12,6 +13,7 @@ export function createUsersRepository(ctx: AppContext) {
                         user.autocomplete_search_on_homepage,
                     );
                 }
+
                 return user;
             } catch {
                 return null;
@@ -20,6 +22,7 @@ export function createUsersRepository(ctx: AppContext) {
         readByEmail: async (email: string) => {
             try {
                 const user = await ctx.db('users').where({ email }).first();
+
                 if (user) {
                     // Convert SQLite integer values to booleans
                     user.is_admin = Boolean(user.is_admin);
@@ -27,6 +30,7 @@ export function createUsersRepository(ctx: AppContext) {
                         user.autocomplete_search_on_homepage,
                     );
                 }
+
                 return user;
             } catch {
                 return null;

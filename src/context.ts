@@ -57,6 +57,7 @@ export async function createContext(): Promise<AppContext> {
     } else {
         Log.setLevel(config.app.env === 'development' ? 'DEBUG' : 'INFO');
     }
+
     const logger = createLogger({ service: 'http' });
 
     const errors = {

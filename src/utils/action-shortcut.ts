@@ -10,6 +10,7 @@ export function validateActionShortcut(ctx: AppContext, trigger: unknown, url: u
     }
 
     const normalizedTrigger = ctx.utils.util.normalizeBangTrigger(trigger);
+
     if (!ctx.utils.validation.isOnlyLettersAndNumbers(normalizedTrigger.slice(1))) {
         throw new ctx.errors.ValidationError({
             trigger: 'Trigger can only contain letters and numbers',

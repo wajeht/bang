@@ -16,6 +16,7 @@ export function createSettingsRouter(ctx: AppContext) {
         'Asia/Kolkata',
         'Australia/Sydney',
     ]);
+
     const VALID_REMINDER_TIMINGS = new Set(['daily', 'weekly', 'monthly']);
     const VALID_NOTE_VIEW_TYPES = new Set(['card', 'table']);
     const VALID_ACTION_TYPES = new Set(['search', 'redirect']);
@@ -117,6 +118,7 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             let parsedAutocompleteSearchOnHomepage = false;
+
             if (autocomplete_search_on_homepage === undefined) {
                 parsedAutocompleteSearchOnHomepage = false;
             } else if (autocomplete_search_on_homepage !== 'on') {
@@ -129,18 +131,21 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             const validThemes = ['system', 'light', 'dark'];
+
             if (!theme || !validThemes.includes(theme)) {
                 throw new ctx.errors.ValidationError({ theme: 'Invalid theme selected' });
             }
 
             // Check if username is being changed and if it's already taken by another user
             const currentUserId = (req.user as User).id;
+
             if (username !== (req.user as User).username) {
                 const existingUser = await ctx
                     .db('users')
                     .where({ username })
                     .whereNot({ id: currentUserId })
                     .first();
+
                 if (existingUser) {
                     throw new ctx.errors.ValidationError({
                         username: 'Username is already taken',
@@ -155,6 +160,7 @@ export function createSettingsRouter(ctx: AppContext) {
                     .where({ email })
                     .whereNot({ id: currentUserId })
                     .first();
+
                 if (existingUser) {
                     throw new ctx.errors.ValidationError({
                         email: 'Email address is already in use',
@@ -195,6 +201,7 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             req.flash('success', '🔄 updated!');
+
             return res.redirect('/settings/account');
         },
     );
@@ -504,8 +511,10 @@ export function createSettingsRouter(ctx: AppContext) {
             // Merge submitted preferences with existing user preferences to preserve unmodified sections
             const updatedPreferences = { ...user.column_preferences } as any;
             const sections = Object.keys(column_preferences);
+
             for (let i = 0; i < sections.length; i++) {
                 const section = sections[i] as keyof typeof column_preferences;
+
                 if (
                     column_preferences[section] &&
                     typeof column_preferences[section] === 'object'
@@ -532,6 +541,7 @@ export function createSettingsRouter(ctx: AppContext) {
 
             const basePath = path || '/settings/preferences';
             const redirectUrl = hidden === 'true' ? `${basePath}?hidden=true` : basePath;
+
             return res.redirect(redirectUrl);
         },
     );
@@ -610,6 +620,7 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             req.flash('success', '📱 api key created');
+
             return res.redirect(`/settings/account`);
         },
     );
@@ -678,6 +689,7 @@ export function createSettingsRouter(ctx: AppContext) {
                 }
 
                 req.flash('success', '🔓 Password removed and all items unhidden');
+
                 return res.redirect('/settings/account');
             }
 
@@ -744,6 +756,7 @@ export function createSettingsRouter(ctx: AppContext) {
                 'success',
                 user.hidden_items_password ? '🔄 Password updated' : '🔐 Password set',
             );
+
             return res.redirect('/settings/account');
         },
     );
@@ -783,6 +796,7 @@ export function createSettingsRouter(ctx: AppContext) {
             )
                 .setHeader('Content-Type', 'application/json')
                 .send(JSON.stringify(exportData, null, 2));
+
             return;
         },
     );
@@ -798,6 +812,7 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             let importData;
+
             try {
                 importData = JSON.parse(req.body.config);
             } catch {
@@ -829,6 +844,7 @@ export function createSettingsRouter(ctx: AppContext) {
                                 created_at: ctx.db.fn.now(),
                             }),
                         );
+
                         await trx('bookmarks').insert(bookmarks);
                     }
 
@@ -893,6 +909,7 @@ export function createSettingsRouter(ctx: AppContext) {
                                 .first();
 
                             let tabId;
+
                             if (!existingTab) {
                                 // Insert the tab if it doesn't exist
                                 const [newTabId] = await trx('tabs')
@@ -903,6 +920,7 @@ export function createSettingsRouter(ctx: AppContext) {
                                         created_at: ctx.db.fn.now(),
                                     })
                                     .returning('id');
+
                                 tabId = newTabId;
                             } else {
                                 tabId = existingTab.id;
@@ -943,6 +961,7 @@ export function createSettingsRouter(ctx: AppContext) {
                                 created_at: ctx.db.fn.now(),
                             }),
                         );
+
                         await trx('reminders').insert(reminders);
                     }
 
@@ -955,26 +974,32 @@ export function createSettingsRouter(ctx: AppContext) {
                         if (userPrefs.username) {
                             updateData.username = userPrefs.username;
                         }
+
                         if (userPrefs.default_search_provider) {
                             updateData.default_search_provider = userPrefs.default_search_provider;
                         }
+
                         if (userPrefs.autocomplete_search_on_homepage !== undefined) {
                             updateData.autocomplete_search_on_homepage =
                                 userPrefs.autocomplete_search_on_homepage;
                         }
+
                         if (userPrefs.column_preferences) {
                             updateData.column_preferences =
                                 typeof userPrefs.column_preferences === 'string'
                                     ? userPrefs.column_preferences
                                     : JSON.stringify(userPrefs.column_preferences);
                         }
+
                         if (userPrefs.timezone) {
                             if (VALID_TIMEZONES.has(userPrefs.timezone)) {
                                 updateData.timezone = userPrefs.timezone;
                             }
                         }
+
                         if (userPrefs.theme) {
                             const validThemes = ['system', 'light', 'dark'];
+
                             if (validThemes.includes(userPrefs.theme)) {
                                 updateData.theme = userPrefs.theme;
                             }
@@ -987,14 +1012,17 @@ export function createSettingsRouter(ctx: AppContext) {
                                 if (updateData.username) {
                                     req.session.user.username = updateData.username;
                                 }
+
                                 if (updateData.default_search_provider) {
                                     req.session.user.default_search_provider =
                                         updateData.default_search_provider;
                                 }
+
                                 if (updateData.autocomplete_search_on_homepage !== undefined) {
                                     req.session.user.autocomplete_search_on_homepage =
                                         updateData.autocomplete_search_on_homepage;
                                 }
+
                                 if (updateData.column_preferences) {
                                     try {
                                         req.session.user.column_preferences =
@@ -1005,12 +1033,15 @@ export function createSettingsRouter(ctx: AppContext) {
                                         // Handle parsing error gracefully
                                     }
                                 }
+
                                 if (updateData.timezone) {
                                     req.session.user.timezone = updateData.timezone;
                                 }
+
                                 if (updateData.theme) {
                                     req.session.user.theme = updateData.theme;
                                 }
+
                                 req.session.save();
                             }
 
@@ -1018,14 +1049,17 @@ export function createSettingsRouter(ctx: AppContext) {
                                 if (updateData.username) {
                                     req.user.username = updateData.username;
                                 }
+
                                 if (updateData.default_search_provider) {
                                     req.user.default_search_provider =
                                         updateData.default_search_provider;
                                 }
+
                                 if (updateData.autocomplete_search_on_homepage !== undefined) {
                                     req.user.autocomplete_search_on_homepage =
                                         updateData.autocomplete_search_on_homepage;
                                 }
+
                                 if (updateData.column_preferences) {
                                     try {
                                         req.user.column_preferences =
@@ -1036,9 +1070,11 @@ export function createSettingsRouter(ctx: AppContext) {
                                         // Handle parsing error gracefully
                                     }
                                 }
+
                                 if (updateData.timezone) {
                                     req.user.timezone = updateData.timezone;
                                 }
+
                                 if (updateData.theme) {
                                     req.user.theme = updateData.theme;
                                 }
@@ -1050,6 +1086,7 @@ export function createSettingsRouter(ctx: AppContext) {
                 if (userId != null) {
                     ctx.utils.search.invalidateTriggerCache(userId);
                 }
+
                 req.flash('success', 'Data imported successfully!');
             } catch (error) {
                 ctx.logger.error('Import error', { error });
@@ -1071,6 +1108,7 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             const confirmation = req.body.confirmation?.trim();
+
             if (confirmation !== 'DELETE ACCOUNT') {
                 throw new ctx.errors.ValidationError({
                     confirmation: 'You must type "DELETE ACCOUNT" to confirm account deletion',
@@ -1078,9 +1116,11 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             const exportOptions = req.body.export_options || [];
+
             const includeJson = Array.isArray(exportOptions)
                 ? exportOptions.includes('json')
                 : exportOptions === 'json';
+
             const includeHtml = Array.isArray(exportOptions)
                 ? exportOptions.includes('html')
                 : exportOptions === 'html';
@@ -1133,21 +1173,27 @@ export function createSettingsRouter(ctx: AppContext) {
             }
 
             const deleteOptions = req.body.delete_options || [];
+
             const deleteActions = Array.isArray(deleteOptions)
                 ? deleteOptions.includes('actions')
                 : deleteOptions === 'actions';
+
             const deleteTabs = Array.isArray(deleteOptions)
                 ? deleteOptions.includes('tabs')
                 : deleteOptions === 'tabs';
+
             const deleteBookmarks = Array.isArray(deleteOptions)
                 ? deleteOptions.includes('bookmarks')
                 : deleteOptions === 'bookmarks';
+
             const deleteNotes = Array.isArray(deleteOptions)
                 ? deleteOptions.includes('notes')
                 : deleteOptions === 'notes';
+
             const deleteReminders = Array.isArray(deleteOptions)
                 ? deleteOptions.includes('reminders')
                 : deleteOptions === 'reminders';
+
             const deleteApiKeys = Array.isArray(deleteOptions)
                 ? deleteOptions.includes('api_keys')
                 : deleteOptions === 'api_keys';
@@ -1163,6 +1209,7 @@ export function createSettingsRouter(ctx: AppContext) {
 
             if (allOptionsSelected) {
                 const confirmation = req.body.confirmation?.trim();
+
                 if (confirmation !== 'DELETE DATA') {
                     throw new ctx.errors.ValidationError({
                         confirmation:
@@ -1236,26 +1283,32 @@ export function createSettingsRouter(ctx: AppContext) {
                     }
 
                     const processedItems = [];
+
                     if (deleteActions) {
                         const count = deleteCounts.actions ?? 0;
                         processedItems.push(count > 0 ? `${count} actions` : '0 actions');
                     }
+
                     if (deleteTabs) {
                         const count = deleteCounts.tabs ?? 0;
                         processedItems.push(count > 0 ? `${count} tabs` : '0 tabs');
                     }
+
                     if (deleteBookmarks) {
                         const count = deleteCounts.bookmarks ?? 0;
                         processedItems.push(count > 0 ? `${count} bookmarks` : '0 bookmarks');
                     }
+
                     if (deleteNotes) {
                         const count = deleteCounts.notes ?? 0;
                         processedItems.push(count > 0 ? `${count} notes` : '0 notes');
                     }
+
                     if (deleteReminders) {
                         const count = deleteCounts.reminders ?? 0;
                         processedItems.push(count > 0 ? `${count} reminders` : '0 reminders');
                     }
+
                     if (deleteApiKeys) {
                         processedItems.push('API keys');
                     }

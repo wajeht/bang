@@ -48,8 +48,10 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                     // Split search into terms and escape SQL wildcards
                     const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
                     const searchTerms: string[] = [];
+
                     for (let i = 0; i < rawTerms.length; i++) {
                         const term = rawTerms[i];
+
                         if (term && term.length > 0) {
                             searchTerms.push(escapeLikePattern(term));
                         }
@@ -107,6 +109,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
             if (result.data.length > 0) {
                 // Collect all tab IDs for batch query
                 const tabIds: number[] = [];
+
                 for (let i = 0; i < result.data.length; i++) {
                     tabIds.push((result.data[i] as any).id);
                 }
@@ -129,6 +132,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                         );
                     } else {
                         const rawTerms = search.toLowerCase().trim().split(REGEX_WHITESPACE);
+
                         for (const term of rawTerms) {
                             if (!term) continue;
                             const pattern = `%${escapeLikePattern(term)}%`;
@@ -149,8 +153,10 @@ export function createTabsRepository(ctx: AppContext): Tabs {
 
                 // Group items by tab_id for efficient assignment
                 const itemsByTab: Record<number, any[]> = {};
+
                 for (let i = 0; i < allItems.length; i++) {
                     const item = allItems[i]!;
+
                     if (!itemsByTab[item.tab_id]) itemsByTab[item.tab_id] = [];
                     itemsByTab[item.tab_id]!.push(item);
                 }
@@ -178,6 +184,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                     user_id: tab.user_id,
                 })
                 .returning('*');
+
             return createdTab;
         },
 
@@ -205,6 +212,7 @@ export function createTabsRepository(ctx: AppContext): Tabs {
                 .orderBy('created_at', 'asc');
 
             tab.items = items;
+
             return tab;
         },
 
@@ -212,10 +220,13 @@ export function createTabsRepository(ctx: AppContext): Tabs {
             // Filter to only allowed update fields
             const updateData: Record<string, unknown> = {};
             const entries = Object.entries(updates);
+
             for (let i = 0; i < entries.length; i++) {
                 const entry = entries[i];
+
                 if (!entry) continue;
                 const [key, value] = entry;
+
                 if (ALLOWED_UPDATE_FIELDS.has(key)) {
                     updateData[key] = value;
                 }

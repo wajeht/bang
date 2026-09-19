@@ -8,6 +8,7 @@ const logger = createLogger({ service: 'seeds' });
 export async function seed(knex: Knex): Promise<void> {
     try {
         const [{ count }] = (await knex('users').count('* as count')) as any;
+
         if (count > 0) {
             return;
         }
@@ -379,6 +380,7 @@ Today was an interesting day...
         await knex('tab_items').insert(tabItems);
 
         const now = dayjs();
+
         const dueNow = now
             .add(5, 'minute') // 5 minutes from now
             .format('YYYY-MM-DD HH:mm:ss');

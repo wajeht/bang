@@ -30,8 +30,10 @@ export function createBookmarksRouter(ctx: AppContext) {
      */
     router.get('/api/bookmarks', ctx.middleware.authentication, getBookmarksHandler);
     router.get('/bookmarks', ctx.middleware.authentication, getBookmarksHandler);
+
     async function getBookmarksHandler(req: Request, res: Response) {
         const user = req.user as User;
+
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'bookmarks');
 
@@ -54,6 +56,7 @@ export function createBookmarksRouter(ctx: AppContext) {
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.json({ data, pagination, search, sortKey, direction });
+
             return;
         }
 
@@ -101,6 +104,7 @@ export function createBookmarksRouter(ctx: AppContext) {
 
             if (!bookmarksData.length) {
                 req.flash('info', 'no bookmarks to export yet.');
+
                 return res.redirect('/bookmarks');
             }
 
@@ -127,6 +131,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             if (!bookmark) {
                 throw new ctx.errors.NotFoundError('Bookmark not found');
             }
+
             ctx.utils.request.assertCanAccessHiddenItem(req, bookmark, 'bookmark');
 
             return res.render('bookmarks/bookmarks-edit.html', {
@@ -143,6 +148,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const id = parseInt(req.params.id as unknown as string);
+
             const bookmark = await ctx
                 .db('bookmarks')
                 .where({
@@ -154,6 +160,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             if (!bookmark) {
                 throw new ctx.errors.NotFoundError('Bookmark not found');
             }
+
             ctx.utils.request.assertCanAccessHiddenItem(req, bookmark, 'bookmark');
 
             const tabs = await ctx.db('tabs').where({ user_id: req.session.user?.id });
@@ -209,6 +216,7 @@ export function createBookmarksRouter(ctx: AppContext) {
      */
     router.post('/api/bookmarks', ctx.middleware.authentication, postBookmarkHandler);
     router.post('/bookmarks', ctx.middleware.authentication, postBookmarkHandler);
+
     async function postBookmarkHandler(req: Request, res: Response) {
         const { url, title, pinned, hidden } = req.body;
 
@@ -236,12 +244,14 @@ export function createBookmarksRouter(ctx: AppContext) {
 
         if (hidden === 'on' || hidden === true) {
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
+
             if (!dbUser?.hidden_items_password) {
                 throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
                 });
             }
         }
+
         const existingBookmark = await ctx.utils.util.checkDuplicateBookmarkUrl(
             user.id,
             url,
@@ -271,10 +281,12 @@ export function createBookmarksRouter(ctx: AppContext) {
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({ message: `Bookmark ${title} created successfully!` });
+
             return;
         }
 
         req.flash('success', `Bookmark ${title} created successfully!`);
+
         return res.redirect('/bookmarks');
     }
 
@@ -297,6 +309,7 @@ export function createBookmarksRouter(ctx: AppContext) {
      */
     router.patch('/api/bookmarks/:id', ctx.middleware.authentication, updateBookmarkHandler);
     router.post('/bookmarks/:id/update', ctx.middleware.authentication, updateBookmarkHandler);
+
     async function updateBookmarkHandler(req: Request, res: Response) {
         const { url, title, pinned, hidden } = req.body;
 
@@ -329,6 +342,7 @@ export function createBookmarksRouter(ctx: AppContext) {
 
         if (hidden === 'on' || hidden === true) {
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
+
             if (!dbUser?.hidden_items_password) {
                 throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
@@ -337,9 +351,11 @@ export function createBookmarksRouter(ctx: AppContext) {
         }
 
         const currentBookmark = await ctx.models.bookmarks.read(bookmarkId, user.id);
+
         if (!currentBookmark) {
             throw new ctx.errors.NotFoundError('Bookmark not found');
         }
+
         ctx.utils.request.assertCanAccessHiddenItem(req, currentBookmark, 'bookmark');
 
         const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
@@ -354,6 +370,7 @@ export function createBookmarksRouter(ctx: AppContext) {
                 message: `Bookmark ${updatedBookmark.title} updated successfully!`,
                 data: updatedBookmark,
             });
+
             return;
         }
 
@@ -361,6 +378,7 @@ export function createBookmarksRouter(ctx: AppContext) {
 
         if (updatedBookmark.hidden && !currentBookmark.hidden) {
             req.flash('success', 'Bookmark hidden successfully');
+
             return res.redirect('/bookmarks');
         }
 
@@ -387,6 +405,7 @@ export function createBookmarksRouter(ctx: AppContext) {
     router.post('/api/bookmarks/delete', ctx.middleware.authentication, deleteBookmarkHandler);
     router.post('/bookmarks/:id/delete', ctx.middleware.authentication, deleteBookmarkHandler);
     router.post('/bookmarks/delete', ctx.middleware.authentication, deleteBookmarkHandler);
+
     async function deleteBookmarkHandler(req: Request, res: Response) {
         const user = req.user as User;
         const bookmarkIds = ctx.utils.request.extractIdsForDelete(req);
@@ -401,6 +420,7 @@ export function createBookmarksRouter(ctx: AppContext) {
                 message: `${deletedCount} bookmark${deletedCount !== 1 ? 's' : ''} deleted successfully`,
                 data: { deletedCount },
             });
+
             return;
         }
 
@@ -408,6 +428,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             'success',
             `${deletedCount} bookmark${deletedCount !== 1 ? 's' : ''} deleted successfully`,
         );
+
         return res.redirect('/bookmarks');
     }
 
@@ -427,6 +448,7 @@ export function createBookmarksRouter(ctx: AppContext) {
      */
     router.post('/bookmarks/:id/pin', ctx.middleware.authentication, toggleBookmarkPinHandler);
     router.post('/api/bookmarks/:id/pin', ctx.middleware.authentication, toggleBookmarkPinHandler);
+
     async function toggleBookmarkPinHandler(req: Request, res: Response) {
         const user = req.user as User;
         const bookmarkId = parseInt(req.params.id as unknown as string);
@@ -436,6 +458,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         if (!currentBookmark) {
             throw new ctx.errors.NotFoundError('Bookmark not found');
         }
+
         ctx.utils.request.assertCanAccessHiddenItem(req, currentBookmark, 'bookmark');
 
         const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
@@ -447,6 +470,7 @@ export function createBookmarksRouter(ctx: AppContext) {
                 message: `Bookmark ${updatedBookmark.pinned ? 'pinned' : 'unpinned'} successfully`,
                 data: updatedBookmark,
             });
+
             return;
         }
 
@@ -454,6 +478,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             'success',
             `Bookmark ${updatedBookmark.pinned ? 'pinned' : 'unpinned'} successfully`,
         );
+
         return res.redirect('/bookmarks');
     }
 
@@ -478,11 +503,13 @@ export function createBookmarksRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         toggleBookmarkHideHandler,
     );
+
     async function toggleBookmarkHideHandler(req: Request, res: Response) {
         const user = req.user as User;
         const bookmarkId = parseInt(req.params.id as unknown as string);
 
         const dbUser = await ctx.db('users').where({ id: user.id }).first();
+
         if (!dbUser?.hidden_items_password) {
             throw new ctx.errors.ValidationError({
                 hidden: 'You must set a global password in settings before hiding items',
@@ -494,6 +521,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         if (!currentBookmark) {
             throw new ctx.errors.NotFoundError('Bookmark not found');
         }
+
         ctx.utils.request.assertCanAccessHiddenItem(req, currentBookmark, 'bookmark');
 
         const updatedBookmark = await ctx.models.bookmarks.update(bookmarkId, user.id, {
@@ -505,6 +533,7 @@ export function createBookmarksRouter(ctx: AppContext) {
                 message: `Bookmark ${updatedBookmark.hidden ? 'hidden' : 'unhidden'} successfully`,
                 data: updatedBookmark,
             });
+
             return;
         }
 
@@ -513,6 +542,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             `Bookmark ${updatedBookmark.hidden ? 'hidden' : 'unhidden'} successfully`,
         );
         const showHidden = req.body.showHidden === 'true';
+
         return res.redirect('/bookmarks' + (showHidden ? '?hidden=true' : ''));
     }
 
@@ -537,6 +567,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
+
             const bookmark = await ctx.models.bookmarks.read(
                 parseInt(req.params.id as unknown as string),
                 user.id,
@@ -545,6 +576,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             if (!bookmark) {
                 throw new ctx.errors.NotFoundError('Bookmark not found');
             }
+
             ctx.utils.request.assertCanAccessHiddenItem(req, bookmark, 'bookmark');
 
             res.status(200).json({
@@ -563,6 +595,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             const id = parseInt(req.params.id as unknown as string);
 
             const item = await ctx.models.bookmarks.read(id, user.id);
+
             if (!item) throw new ctx.errors.NotFoundError('Item not found');
             ctx.utils.request.assertCanAccessHiddenItem(req, item, 'bookmark');
 
@@ -570,10 +603,12 @@ export function createBookmarksRouter(ctx: AppContext) {
 
             if (ctx.utils.request.isApiRequest(req)) {
                 res.status(201).json({ message: 'Tab added successfully' });
+
                 return;
             }
 
             req.flash('success', 'Tab added!');
+
             return res.redirect('/bookmarks');
         },
     );
@@ -588,6 +623,7 @@ export function createBookmarksRouter(ctx: AppContext) {
 
             if (activePrefetches.has(user.id)) {
                 req.flash('info', 'Screenshot caching already in progress...');
+
                 return res.redirect('/bookmarks');
             }
 
@@ -601,6 +637,7 @@ export function createBookmarksRouter(ctx: AppContext) {
 
             if (urls.length === 0) {
                 req.flash('info', 'No URLs to cache');
+
                 return res.redirect('/bookmarks');
             }
 
@@ -611,6 +648,7 @@ export function createBookmarksRouter(ctx: AppContext) {
                 .finally(() => activePrefetches.delete(user.id));
 
             req.flash('success', `Caching ${urls.length} preview images in background...`);
+
             return res.redirect('/bookmarks');
         },
     );

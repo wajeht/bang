@@ -10,8 +10,10 @@ export function createNotesRouter(ctx: AppContext) {
     noteRenderer.code = function ({ text, lang }) {
         if (lang && ctx.libs.hljs.getLanguage(lang)) {
             const highlighted = ctx.libs.hljs.highlight(text, { language: lang }).value;
+
             return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>`;
         }
+
         return `<pre><code>${text}</code></pre>`;
     };
 
@@ -46,8 +48,10 @@ export function createNotesRouter(ctx: AppContext) {
      */
     router.get('/api/notes', ctx.middleware.authentication, getNotesHandler);
     router.get('/notes', ctx.middleware.authentication, getNotesHandler);
+
     async function getNotesHandler(req: Request, res: Response) {
         const user = req.user as User;
+
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'notes');
 
@@ -69,14 +73,17 @@ export function createNotesRouter(ctx: AppContext) {
         if (ctx.utils.request.isApiRequest(req)) {
             ctx.utils.html.applyHighlighting(data, ['title', 'content'], search);
             res.json({ data, pagination, search, sortKey, direction });
+
             return;
         }
 
         const limitedData = data.slice(0, perPage);
+
         const markdownRemovedData = await Promise.all(
             limitedData.map(async (d: any) => {
                 const content = String(d.content ?? '');
                 const isSourceTruncated = content.length > NOTE_CONTENT_PREVIEW_SOURCE_LIMIT;
+
                 let preview = await ctx.utils.util.convertMarkdownToPlainText(
                     content.slice(0, NOTE_CONTENT_PREVIEW_SOURCE_LIMIT),
                     NOTE_CONTENT_PREVIEW_LENGTH,
@@ -127,6 +134,7 @@ export function createNotesRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
+
             const note = await ctx.models.notes.read(
                 parseInt(req.params.id as unknown as string),
                 user.id,
@@ -135,6 +143,7 @@ export function createNotesRouter(ctx: AppContext) {
             if (!note) {
                 throw new ctx.errors.NotFoundError('Note not found');
             }
+
             ctx.utils.request.assertCanAccessHiddenItem(req, note, 'note');
 
             return res.render('notes/notes-edit.html', {
@@ -163,8 +172,10 @@ export function createNotesRouter(ctx: AppContext) {
      */
     router.get('/api/notes/:id', ctx.middleware.authentication, getNoteHandler);
     router.get('/notes/:id', ctx.middleware.authentication, getNoteHandler);
+
     async function getNoteHandler(req: Request, res: Response) {
         const user = req.user as User;
+
         let note = await ctx.models.notes.read(
             parseInt(req.params.id as unknown as string),
             user.id,
@@ -173,10 +184,12 @@ export function createNotesRouter(ctx: AppContext) {
         if (!note) {
             throw new ctx.errors.NotFoundError('Note not found');
         }
+
         if (!ctx.utils.request.canAccessHiddenItem(req, note, 'note')) {
             if (ctx.utils.request.isApiRequest(req)) {
                 ctx.utils.request.assertCanAccessHiddenItem(req, note, 'note');
             }
+
             const csrfToken = res.locals.csrfToken || '';
 
             return res.set({ 'Content-Type': 'text/html' }).status(200).send(`
@@ -237,6 +250,7 @@ export function createNotesRouter(ctx: AppContext) {
                 message: 'note retrieved successfully',
                 data: note,
             });
+
             return;
         }
 
@@ -284,6 +298,7 @@ export function createNotesRouter(ctx: AppContext) {
      */
     router.post('/api/notes', ctx.middleware.authentication, postNoteHandler);
     router.post('/notes', ctx.middleware.authentication, postNoteHandler);
+
     async function postNoteHandler(req: Request, res: Response) {
         const { title, content, pinned, hidden } = req.body;
 
@@ -311,6 +326,7 @@ export function createNotesRouter(ctx: AppContext) {
 
         if (hidden === 'on' || hidden === true) {
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
+
             if (!dbUser?.hidden_items_password) {
                 throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
@@ -328,10 +344,12 @@ export function createNotesRouter(ctx: AppContext) {
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(201).json({ message: `Note ${note.title} created successfully!` });
+
             return;
         }
 
         req.flash('success', 'Note created successfully');
+
         return res.redirect(`/notes/${note.id}`);
     }
 
@@ -353,6 +371,7 @@ export function createNotesRouter(ctx: AppContext) {
      */
     router.put('/api/notes/:id', ctx.middleware.authentication, updateNoteHandler);
     router.post('/notes/:id/update', ctx.middleware.authentication, updateNoteHandler);
+
     async function updateNoteHandler(req: Request, res: Response) {
         const { title, content, pinned, hidden } = req.body;
 
@@ -381,6 +400,7 @@ export function createNotesRouter(ctx: AppContext) {
 
         if (hidden === 'on' || hidden === true) {
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
+
             if (!dbUser?.hidden_items_password) {
                 throw new ctx.errors.ValidationError({
                     hidden: 'You must set a global password in settings before hiding items',
@@ -393,6 +413,7 @@ export function createNotesRouter(ctx: AppContext) {
         if (!currentNote) {
             throw new ctx.errors.NotFoundError('Note not found');
         }
+
         ctx.utils.request.assertCanAccessHiddenItem(req, currentNote, 'note');
 
         const updatedNote = await ctx.models.notes.update(noteId, user.id, {
@@ -404,6 +425,7 @@ export function createNotesRouter(ctx: AppContext) {
 
         if (ctx.utils.request.isApiRequest(req)) {
             res.status(200).json({ message: 'note updated successfully' });
+
             return;
         }
 
@@ -411,6 +433,7 @@ export function createNotesRouter(ctx: AppContext) {
 
         if (updatedNote.hidden && !currentNote.hidden) {
             req.flash('success', 'Note hidden successfully');
+
             return res.redirect('/notes');
         }
 
@@ -435,6 +458,7 @@ export function createNotesRouter(ctx: AppContext) {
     router.post('/api/notes/delete', ctx.middleware.authentication, deleteNoteHandler);
     router.post('/notes/:id/delete', ctx.middleware.authentication, deleteNoteHandler);
     router.post('/notes/delete', ctx.middleware.authentication, deleteNoteHandler);
+
     async function deleteNoteHandler(req: Request, res: Response) {
         const user = req.user as User;
         const noteIds = ctx.utils.request.extractIdsForDelete(req);
@@ -449,6 +473,7 @@ export function createNotesRouter(ctx: AppContext) {
                 message: `${deletedCount} note${deletedCount !== 1 ? 's' : ''} deleted successfully`,
                 data: { deletedCount },
             });
+
             return;
         }
 
@@ -456,6 +481,7 @@ export function createNotesRouter(ctx: AppContext) {
             'success',
             `${deletedCount} note${deletedCount !== 1 ? 's' : ''} deleted successfully`,
         );
+
         return res.redirect('/notes');
     }
 
@@ -475,6 +501,7 @@ export function createNotesRouter(ctx: AppContext) {
      */
     router.post('/api/notes/:id/pin', ctx.middleware.authentication, toggleNotePinHandler);
     router.post('/notes/:id/pin', ctx.middleware.authentication, toggleNotePinHandler);
+
     async function toggleNotePinHandler(req: Request, res: Response) {
         const user = req.user as User;
         const noteId = parseInt(req.params.id as unknown as string);
@@ -484,6 +511,7 @@ export function createNotesRouter(ctx: AppContext) {
         if (!currentNote) {
             throw new ctx.errors.NotFoundError('Note not found');
         }
+
         ctx.utils.request.assertCanAccessHiddenItem(req, currentNote, 'note');
 
         const updatedNote = await ctx.models.notes.update(noteId, user.id, {
@@ -495,10 +523,12 @@ export function createNotesRouter(ctx: AppContext) {
                 message: `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`,
                 data: updatedNote,
             });
+
             return;
         }
 
         req.flash('success', `Note ${updatedNote.pinned ? 'pinned' : 'unpinned'} successfully`);
+
         return res.redirect('/notes');
     }
 
@@ -521,6 +551,7 @@ export function createNotesRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const user = req.user as User;
+
             const note = await ctx.models.notes.read(
                 parseInt(req.params.id as unknown as string),
                 user.id,
@@ -529,6 +560,7 @@ export function createNotesRouter(ctx: AppContext) {
             if (!note) {
                 throw new ctx.errors.NotFoundError('Note not found');
             }
+
             ctx.utils.request.assertCanAccessHiddenItem(req, note, 'note');
 
             const fileName = note.title

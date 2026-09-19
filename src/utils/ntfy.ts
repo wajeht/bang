@@ -12,10 +12,13 @@ const SENSITIVE_KEYS = new Set([
 
 function sanitizeObject(obj: unknown, depth = 0): unknown {
     if (depth > 3 || obj == null) return obj;
+
     if (typeof obj !== 'object') return obj;
+
     if (Array.isArray(obj)) return obj.slice(0, 5).map((v) => sanitizeObject(v, depth + 1));
 
     const result: Record<string, unknown> = {};
+
     for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
         if (SENSITIVE_KEYS.has(key.toLowerCase())) {
             result[key] = '[REDACTED]';
@@ -23,6 +26,7 @@ function sanitizeObject(obj: unknown, depth = 0): unknown {
             result[key] = sanitizeObject(value, depth + 1);
         }
     }
+
     return result;
 }
 
@@ -32,8 +36,11 @@ function truncate(str: string, max: number): string {
 
 function describeCause(cause: unknown): string | undefined {
     if (cause == null) return undefined;
+
     if (cause instanceof Error) return `${cause.name}: ${cause.message}`;
+
     if (typeof cause === 'string') return cause;
+
     try {
         return JSON.stringify(cause);
     } catch {
@@ -52,6 +59,7 @@ export function createNtfy(ctx: AppContext) {
             const stack = appLines.slice(0, 8).join('\n') || 'No stack trace';
             const query = Object.keys(req.query).length > 0 ? JSON.stringify(req.query) : undefined;
             const body = sanitizeObject(req.body);
+
             const bodyStr =
                 body && Object.keys(body as object).length > 0 ? JSON.stringify(body) : undefined;
 
@@ -74,6 +82,7 @@ export function createNtfy(ctx: AppContext) {
             };
 
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+
             if (ctx.config.ntfy.token) {
                 headers.Authorization = `Bearer ${ctx.config.ntfy.token}`;
             }

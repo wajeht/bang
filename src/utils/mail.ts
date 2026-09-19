@@ -27,6 +27,7 @@ export function createMail(context: AppContext) {
                 (await this.isMailpitRunning()) === false
             ) {
                 this.logEmailToConsole(mailOptions, emailType);
+
                 return;
             }
 
@@ -49,11 +50,13 @@ export function createMail(context: AppContext) {
             if (mailOptions.attachments && mailOptions.attachments.length > 0) {
                 headerLines.push(divider);
                 headerLines.push(styleText('blue', '📎 Attachments:'));
+
                 for (let i = 0; i < mailOptions.attachments.length; i++) {
                     const att = mailOptions.attachments[i] as {
                         filename: string;
                         contentType: string;
                     };
+
                     headerLines.push(
                         styleText('dim', `  ${i + 1}. `) +
                             styleText('white', att.filename) +
@@ -75,6 +78,7 @@ export function createMail(context: AppContext) {
             }
 
             const contentLines = content.split('\n');
+
             const footerLines = [
                 divider,
                 styleText('yellow', '⚠️  Mailpit not running') +
@@ -103,9 +107,11 @@ export function createMail(context: AppContext) {
                 const url = process.env.DOCKER_CONTAINER
                     ? 'http://mailpit:8025/'
                     : 'http://localhost:8025/';
+
                 const response = await fetch(url, {
                     signal: AbortSignal.timeout(1500),
                 });
+
                 return response.ok;
             } catch {
                 return false;
@@ -209,6 +215,7 @@ ${branding.appUrl}`,
             try {
                 if (!includeJson && !includeHtml) {
                     logger.info(`No export options selected for ${email}, skipping export email`);
+
                     return;
                 }
 
@@ -228,6 +235,7 @@ ${branding.appUrl}`,
                         includeTabs: true,
                         includeReminders: true,
                     });
+
                     const jsonBuffer = Buffer.from(JSON.stringify(jsonExportData, null, 2));
                     attachments.push({
                         filename: `${appNameLower}-data-export-${currentDate}.json`,
@@ -244,6 +252,7 @@ ${branding.appUrl}`,
                 if (includeHtml) {
                     const htmlBookmarksExport =
                         await context.utils.util.generateBookmarkHtmlExport(userId);
+
                     const htmlBuffer = Buffer.from(htmlBookmarksExport);
                     attachments.push({
                         filename: `bookmarks-${currentDate}.html`,
@@ -321,7 +330,9 @@ ${branding.appUrl}`,
             const frequencies = new Set(
                 reminders.filter((r) => r.reminder_type === 'recurring').map((r) => r.frequency),
             );
+
             let reminderTypeText = 'reminders';
+
             if (frequencies.size === 1 && reminders.every((r) => r.reminder_type === 'recurring')) {
                 const freq = Array.from(frequencies)[0];
                 reminderTypeText = `${freq} reminders`;
@@ -408,6 +419,7 @@ ${formatReminderListHTML}
 
                 if (dueReminders.length === 0) {
                     logger.info('No pending reminders due within 15 minutes');
+
                     return;
                 }
 
@@ -421,6 +433,7 @@ ${formatReminderListHTML}
                         reminder: any,
                     ) => {
                         const userId = reminder.user_id;
+
                         if (!acc[userId]) {
                             acc[userId] = {
                                 email: reminder.email,
@@ -429,6 +442,7 @@ ${formatReminderListHTML}
                                 reminders: [],
                             };
                         }
+
                         acc[userId].reminders.push({
                             id: reminder.id,
                             title: reminder.title,
@@ -437,6 +451,7 @@ ${formatReminderListHTML}
                             frequency: reminder.frequency,
                             due_date: reminder.due_date,
                         });
+
                         return acc;
                     },
                     {},
@@ -446,6 +461,7 @@ ${formatReminderListHTML}
                 for (const userData of Object.values(remindersByUser)) {
                     // Use user's timezone for email date formatting
                     const userNow = now.tz(userData.timezone);
+
                     try {
                         await this.sendReminderDigestEmail({
                             email: userData.email,
@@ -478,24 +494,31 @@ ${formatReminderListHTML}
                             }
 
                             let nextDue: typeof reference;
+
                             switch (reminder.frequency) {
                                 case 'daily':
                                     nextDue = atReminderTime(reference);
+
                                     if (!nextDue.isAfter(now) || !nextDue.isAfter(currentDue)) {
                                         nextDue = atReminderTime(nextDue.add(1, 'day'));
                                     }
+
                                     break;
                                 case 'weekly':
                                     nextDue = atReminderTime(reference.day(6));
+
                                     if (!nextDue.isAfter(now) || !nextDue.isAfter(currentDue)) {
                                         nextDue = atReminderTime(nextDue.add(1, 'week'));
                                     }
+
                                     break;
                                 case 'monthly':
                                     nextDue = atReminderTime(reference.date(1));
+
                                     if (!nextDue.isAfter(now) || !nextDue.isAfter(currentDue)) {
                                         nextDue = atReminderTime(nextDue.add(1, 'month'));
                                     }
+
                                     break;
                                 default:
                                     continue;
@@ -518,6 +541,7 @@ ${formatReminderListHTML}
                     username: userData.username,
                     reminderCount: userData.reminders.length,
                 }));
+
                 logger.table(userSummary);
                 logger.info('Processed reminder digests', {
                     userCount: Object.keys(remindersByUser).length,
@@ -541,6 +565,7 @@ ${formatReminderListHTML}
 
                 if (unverifiedUsers.length === 0) {
                     logger.info('No unverified users found who need reminders');
+
                     return;
                 }
 
@@ -549,6 +574,7 @@ ${formatReminderListHTML}
                 });
 
                 const emailsSent: string[] = [];
+
                 for (const user of unverifiedUsers) {
                     const token = context.utils.auth.generateMagicLink({ email: user.email });
 
@@ -566,6 +592,7 @@ ${formatReminderListHTML}
                     email: user.email,
                     username: user.username,
                 }));
+
                 logger.table(userSummary);
                 logger.info('Sent verification reminders', {
                     count: emailsSent.length,

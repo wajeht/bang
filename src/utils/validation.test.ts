@@ -81,6 +81,7 @@ describe('ValidationUtils', () => {
             const result = validationUtils.extractUrlFromText(
                 'Check out https://example.com for more',
             );
+
             expect(result).not.toBeNull();
             expect(result!.url).toBe('https://example.com');
             expect(result!.startIndex).toBe(10);
@@ -118,6 +119,7 @@ describe('ValidationUtils', () => {
             const result = validationUtils.extractUrlFromText(
                 'Link: https://example.com/path?q=1&b=2',
             );
+
             expect(result).not.toBeNull();
             expect(result!.url).toBe('https://example.com/path?q=1&b=2');
         });
@@ -132,6 +134,7 @@ describe('ValidationUtils', () => {
             const result = validationUtils.extractUrlFromText(
                 'First https://one.com then https://two.com',
             );
+
             expect(result).not.toBeNull();
             expect(result!.url).toBe('https://one.com');
         });
