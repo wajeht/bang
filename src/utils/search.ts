@@ -1,4 +1,5 @@
 import { bangs as bangsTable } from '../db/bang.js';
+import { validateActionShortcut } from './action-shortcut.js';
 import type { Request, Response } from 'express';
 import type { Bang, Search, ReminderTimingResult, AppContext, User } from '../type.js';
 
@@ -1147,7 +1148,17 @@ export function createSearch(context: AppContext) {
                         return this.goBackWithValidationAlert(res, 'Invalid trigger or empty URL');
                     }
 
-                    const bangTrigger = context.utils.util.normalizeBangTrigger(rawTrigger);
+                    let bangTrigger: string;
+                    try {
+                        bangTrigger = validateActionShortcut(context, rawTrigger, bangUrl);
+                    } catch (error) {
+                        if (!(error instanceof context.errors.ValidationError)) throw error;
+                        timer.stop({ outcome: 'error', trigger, error: 'invalid-shortcut' });
+                        return this.goBackWithValidationAlert(
+                            res,
+                            error.errors?.url ?? error.errors?.trigger ?? error.message,
+                        );
+                    }
 
                     const hasSystemBangCommands = searchConfig.systemBangs.has(bangTrigger);
 
@@ -1173,14 +1184,6 @@ export function createSearch(context: AppContext) {
 
                         if (hasSystemBangCommands) {
                             message = `${bangTrigger} is a bang's systems command. Please enter a new trigger:`;
-                        }
-
-                        if (
-                            context.utils.validation.isOnlyLettersAndNumbers(
-                                bangTrigger.slice(1),
-                            ) === false
-                        ) {
-                            message = `${bangTrigger} trigger can only contain letters and numbers. Please enter a new trigger:`;
                         }
 
                         const safeBangUrl = context.utils.html.escapeHtml(bangUrl);
