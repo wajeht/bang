@@ -1,7 +1,8 @@
 import { authenticateAgent, createUnauthenticatedAgent } from '../../tests/api-test-utils.js';
 import request from 'supertest';
 import { db, app, ctx } from '../../tests/test-setup.js';
-import { describe, it, expect } from 'vite-plus/test';
+import { createMail } from '../../utils/mail.js';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vite-plus/test';
 
 describe('Settings Routes', () => {
     describe('GET /settings', () => {
@@ -1057,5 +1058,97 @@ describe('Settings Routes', () => {
             expect(responseAfterDelete.text).toContain('"api_key":null');
             expect(responseAfterDelete.text).toContain('"api_key_version":0');
         });
+    });
+});
+
+describe('Account deletion with a requested export', () => {
+    let originalMail: typeof ctx.utils.mail;
+
+    beforeEach(() => {
+        originalMail = ctx.utils.mail;
+    });
+
+    afterEach(() => {
+        ctx.utils.mail = originalMail;
+        vi.restoreAllMocks();
+    });
+
+    function prepareTransport() {
+        const transporter = ctx.libs.nodemailer.createTransport({ streamTransport: true });
+        const sendMail = vi.spyOn(transporter, 'sendMail');
+        vi.spyOn(ctx.libs.nodemailer, 'createTransport').mockReturnValue(transporter);
+        ctx.utils.mail = createMail({
+            ...ctx,
+            config: { ...ctx.config, app: { ...ctx.config.app, env: 'production' } },
+        });
+        return sendMail;
+    }
+
+    it('should retain the account, data, and session when export delivery fails', async () => {
+        const { agent, user } = await authenticateAgent(app);
+        await db('bookmarks').insert({
+            user_id: user.id,
+            title: 'Keep me',
+            url: 'https://example.com',
+        });
+        const sendMail = prepareTransport();
+        sendMail.mockRejectedValueOnce(new Error('SMTP unavailable'));
+
+        const response = await agent
+            .post('/settings/danger-zone/delete')
+            .set('Accept', 'application/json')
+            .send({ confirmation: 'DELETE ACCOUNT', export_options: ['json'] })
+            .expect(503);
+
+        expect(response.body.message).toContain('Your account and data have been kept');
+        expect(await db('users').where('id', user.id).first()).toBeDefined();
+        expect(await db('bookmarks').where('user_id', user.id)).toHaveLength(1);
+        await agent.get('/settings/account').expect(200);
+    });
+
+    it('should retain the account when a requested export section cannot be read', async () => {
+        const { agent, user } = await authenticateAgent(app);
+        const sendMail = prepareTransport();
+        await db.schema.renameTable('notes', 'unavailable_export_notes');
+        try {
+            await agent
+                .post('/settings/danger-zone/delete')
+                .set('Accept', 'application/json')
+                .send({ confirmation: 'DELETE ACCOUNT', export_options: ['json'] })
+                .expect(503);
+            expect(await db('users').where('id', user.id).first()).toBeDefined();
+            expect(sendMail).not.toHaveBeenCalled();
+        } finally {
+            await db.schema.renameTable('unavailable_export_notes', 'notes');
+        }
+        await agent.get('/settings/account').expect(200);
+    });
+
+    it('should delete the account after the requested export is accepted by the transport', async () => {
+        const { agent, user } = await authenticateAgent(app);
+        const sendMail = prepareTransport();
+
+        await agent
+            .post('/settings/danger-zone/delete')
+            .send({ confirmation: 'DELETE ACCOUNT', export_options: ['json', 'html'] })
+            .expect(302);
+
+        expect(sendMail).toHaveBeenCalledOnce();
+        expect(sendMail.mock.calls[0]?.[0].attachments).toHaveLength(2);
+        expect(await db('users').where('id', user.id).first()).toBeUndefined();
+        await agent.get('/settings/account').expect(302).expect('Location', '/?modal=login');
+    });
+
+    it('should delete without sending mail when no export is requested', async () => {
+        const { agent, user } = await authenticateAgent(app);
+        const sendMail = prepareTransport();
+
+        await agent
+            .post('/settings/danger-zone/delete')
+            .send({ confirmation: 'DELETE ACCOUNT' })
+            .expect(302);
+
+        expect(sendMail).not.toHaveBeenCalled();
+        expect(await db('users').where('id', user.id).first()).toBeUndefined();
     });
 });

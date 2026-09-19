@@ -1098,6 +1098,11 @@ export function createSettingsRouter(ctx: AppContext) {
                     ctx.logger.error('Failed to send export email before account deletion', {
                         error,
                     });
+                    throw new ctx.errors.HttpError(
+                        503,
+                        'Your requested export could not be completed. Your account and data have been kept. Please try again.',
+                        req,
+                    );
                 }
             }
 

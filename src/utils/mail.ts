@@ -291,6 +291,7 @@ ${branding.appUrl}`,
                 });
             } catch (error) {
                 logger.error('Failed to send data export email', { error, email });
+                throw error;
             }
         },
 

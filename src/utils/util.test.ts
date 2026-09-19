@@ -1057,3 +1057,26 @@ describe('convertMarkdownToPlainText (hoisted Marked instance)', () => {
         expect([...unique][0]).toBe('bold italic');
     });
 });
+
+describe('generateUserDataExport', () => {
+    it('should reject a backup when a selected data section cannot be read', async () => {
+        await db.schema.renameTable('notes', 'unavailable_export_notes');
+        try {
+            await expect(utilUtils.generateUserDataExport(1)).rejects.toThrow();
+        } finally {
+            await db.schema.renameTable('unavailable_export_notes', 'notes');
+        }
+    });
+
+    it('should not require a section that was excluded from the export', async () => {
+        await db.schema.renameTable('notes', 'unavailable_export_notes');
+        try {
+            const exported = await utilUtils.generateUserDataExport(1, { includeNotes: false });
+            expect(exported.notes).toBeUndefined();
+            expect(exported.bookmarks).toEqual([]);
+            expect(exported.user_preferences).toMatchObject({ username: 'testuser' });
+        } finally {
+            await db.schema.renameTable('unavailable_export_notes', 'notes');
+        }
+    });
+});
