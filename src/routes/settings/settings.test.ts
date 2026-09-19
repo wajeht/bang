@@ -221,7 +221,8 @@ describe('Settings Routes', () => {
                     default_per_page: '20',
                 },
                 notes: {
-                    title: 'on',
+                    view_type: 'card',
+                    title: 'off',
                     content: 'on',
                     created_at: 'on',
                     default_per_page: '20',
@@ -248,6 +249,17 @@ describe('Settings Routes', () => {
             expect(preferences.bookmarks.url).toBe(true);
             expect(preferences.actions.name).toBe(true);
             expect(preferences.actions.trigger).toBe(true);
+
+            const freshAgent = request.agent(app);
+            const token = ctx.utils.auth.generateMagicLink({ email: user.email });
+            await freshAgent.get(`/auth/magic/${token}`).expect(302);
+
+            const notesResponse = await freshAgent.get('/notes').expect(200);
+            expect(notesResponse.text).toMatch(/value="card"\s+checked/);
+            expect(notesResponse.text).toMatch(/name="column_preferences\[notes\]\[title\]"\s*>/);
+            expect(notesResponse.text).toMatch(
+                /name="column_preferences\[notes\]\[default_per_page\]"\s+value="20"/,
+            );
         });
 
         it('should handle reminder preferences with timing settings', async () => {

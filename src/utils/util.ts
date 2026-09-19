@@ -87,7 +87,7 @@ export function createUtil(context: AppContext) {
                     default_per_page: z.number().optional(),
                     created_at: z.boolean().optional(),
                     pinned: z.boolean().optional(),
-                    view_type: z.enum(['table', 'list']).optional(),
+                    view_type: z.enum(['table', 'card']).optional(),
                     hidden: z.boolean().optional(),
                 })
                 .partial()

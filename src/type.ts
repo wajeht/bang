@@ -91,7 +91,7 @@ export type ColumnPreferences = {
         default_per_page: number;
         created_at: boolean;
         pinned: boolean;
-        view_type: 'table' | 'list';
+        view_type: 'table' | 'card';
         hidden: boolean;
     };
     tabs: {
