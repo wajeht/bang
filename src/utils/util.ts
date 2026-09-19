@@ -6,8 +6,7 @@ import type {
     PaginateArrayOptions,
     CapVerifyResponse,
 } from '../type.js';
-import http from 'node:http';
-import https from 'node:https';
+import { fetchPublicPageTitle } from './page-title.js';
 import type { Request } from 'express';
 
 const DEFAULT_SCREENSHOT_PREFETCH_BATCH_SIZE = 5;
@@ -315,55 +314,7 @@ export function createUtil(context: AppContext) {
         },
 
         async fetchPageTitle(url: string): Promise<string> {
-            try {
-                new URL(url);
-            } catch {
-                return 'Untitled';
-            }
-
-            const client = url.startsWith('https') ? https : http;
-
-            return new Promise<string>((resolve) => {
-                const req = client.get(
-                    url,
-                    {
-                        timeout: 5000,
-                        headers: {
-                            Accept: 'text/html',
-                            'User-Agent':
-                                'Mozilla/5.0 (compatible; Bang/1.0; +https://github.com/wajeht/bang)',
-                        },
-                    },
-                    (res) => {
-                        if (res.statusCode !== 200) {
-                            req.destroy();
-                            return resolve('Untitled');
-                        }
-
-                        let isTitleFound = false;
-                        const titleRegex = /<title[^>]*>([^<]+)/i;
-
-                        res.setEncoding('utf8');
-                        res.on('data', (chunk) => {
-                            if (!isTitleFound) {
-                                const match = titleRegex.exec(chunk);
-                                if (match && match[1]) {
-                                    isTitleFound = true;
-                                    resolve(match[1].slice(0, 100).trim());
-                                    req.destroy();
-                                }
-                            }
-                        });
-
-                        res.on('end', () => {
-                            if (!isTitleFound) resolve('Untitled');
-                        });
-                    },
-                );
-
-                req.on('error', () => resolve('Untitled'));
-                req.end();
-            });
+            return fetchPublicPageTitle(url);
         },
 
         async convertMarkdownToPlainText(

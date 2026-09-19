@@ -372,26 +372,6 @@ describe.concurrent('escapeHtml', () => {
     });
 });
 
-describe.concurrent('fetchPageTitle', () => {
-    it('should return the title of a valid page', async () => {
-        const url = 'https://example.com';
-        const title = await utilUtils.fetchPageTitle(url);
-        expect(title).toBeDefined();
-    });
-
-    it('should return "Untitled" for a non-200 response', async () => {
-        const url = 'http://localhost/404';
-        const title = await utilUtils.fetchPageTitle(url);
-        expect(title).toBe('Untitled');
-    });
-
-    it('should return "Untitled" for an invalid URL', async () => {
-        const url = 'invalid-url';
-        const title = await utilUtils.fetchPageTitle(url);
-        expect(title).toBe('Untitled');
-    });
-});
-
 describe.concurrent('getApiKey', () => {
     it('should return the API key from the X-API-KEY header', () => {
         const req = {
