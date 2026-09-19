@@ -76,6 +76,7 @@
         "nodemailer": "9.1.1"
     },
     "devDependencies": {
+        "@oxlint/plugins": "1.75.0",
         "@playwright/test": "1.63.0",
         "@types/bcrypt": "6.0.0",
         "@types/clean-css": "4.2.11",
