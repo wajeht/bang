@@ -43,9 +43,30 @@ describe('HtmlUtils', () => {
             expect(htmlUtils.highlightSearchTerm('Hello World', null)).toBe('Hello World');
         });
 
+        it.each(['', ' ', null, undefined])('should escape markup when search is %s', (search) => {
+            expect(htmlUtils.highlightSearchTerm('<b>"name" & value</b>', search)).toBe(
+                '&lt;b&gt;&quot;name&quot; &amp; value&lt;/b&gt;',
+            );
+        });
+
+        it('should highlight source characters without splitting escaped entities', () => {
+            expect(htmlUtils.highlightSearchTerm('& <', '& <')).toBe(
+                '<mark>&amp;</mark> <mark>&lt;</mark>',
+            );
+        });
+
         it('should escape HTML in original text', () => {
             const result = htmlUtils.highlightSearchTerm('<script>test</script>', 'test');
             expect(result).toBe('&lt;script&gt;<mark>test</mark>&lt;/script&gt;');
+        });
+    });
+
+    describe('serializeForScript', () => {
+        it('should preserve JSON values without closing a script element', () => {
+            const value = { text: '</script><b>"quoted"</b> `${value}` & \u2028' };
+            const serialized = htmlUtils.serializeForScript(value);
+            expect(serialized).not.toContain('<');
+            expect(JSON.parse(serialized)).toEqual(value);
         });
     });
 
