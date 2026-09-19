@@ -22,6 +22,7 @@ describe('Mail Utils', () => {
     const mailUtils = createMail(mockContext);
 
     afterEach(() => {
+        vi.useRealTimers();
         vi.restoreAllMocks();
     });
 
@@ -643,7 +644,7 @@ describe('Mail Utils', () => {
             );
         });
 
-        it('should not process reminders outside the 15 minute window', async () => {
+        it('should catch up overdue reminders while leaving later reminders pending', async () => {
             const tooSoon = dayjs.utc().subtract(1, 'minute').toISOString();
             const tooLate = dayjs.utc().add(20, 'minutes').toISOString();
 
@@ -669,7 +670,9 @@ describe('Mail Utils', () => {
 
             await mailUtils.processReminderDigests();
 
-            expect(sendEmailSpy).not.toHaveBeenCalled();
+            expect(sendEmailSpy).toHaveBeenCalledOnce();
+            expect(await db('reminders').where('title', 'Past reminder')).toHaveLength(0);
+            expect(await db('reminders').where('title', 'Future reminder')).toHaveLength(1);
         });
 
         it('should handle no due reminders gracefully', async () => {
@@ -719,6 +722,90 @@ describe('Mail Utils', () => {
             expect(updatedChicago.startOf('day').diff(originalChicago.startOf('day'), 'day')).toBe(
                 1,
             );
+        });
+
+        describe('Missed reminder recovery', () => {
+            function createDelivery() {
+                const transporter = libs.nodemailer.createTransport({ streamTransport: true });
+                const sendMail = vi.spyOn(transporter, 'sendMail');
+                vi.spyOn(libs.nodemailer, 'createTransport').mockReturnValue(transporter);
+                const mail = createMail({
+                    ...ctx,
+                    config: { ...ctx.config, app: { ...ctx.config.app, env: 'production' } },
+                });
+                return { mail, sendMail };
+            }
+
+            it.each([
+                ['daily', '2026-01-01 09:00', '2026-09-19 10:00', '2026-09-20T09:00:00-05:00'],
+                ['daily', '2026-01-01 09:00', '2026-09-19 08:00', '2026-09-19T09:00:00-05:00'],
+                ['weekly', '2026-01-03 09:00', '2026-09-19 10:00', '2026-09-26T09:00:00-05:00'],
+                ['monthly', '2025-01-01 09:00', '2026-10-01 10:00', '2026-11-01T09:00:00-06:00'],
+                ['daily', '2026-03-06 09:00', '2026-03-07 10:00', '2026-03-08T09:00:00-05:00'],
+                ['daily', '2026-10-30 09:00', '2026-10-31 10:00', '2026-11-01T09:00:00-06:00'],
+                ['weekly', '2026-02-07 09:00', '2026-03-07 10:00', '2026-03-14T09:00:00-05:00'],
+            ])(
+                'should catch up %s from %s at %s and advance directly to %s',
+                async (frequency, due, current, expected) => {
+                    const zone = 'America/Chicago';
+                    vi.useFakeTimers({ toFake: ['Date'] });
+                    vi.setSystemTime(dayjs.tz(current, zone).toDate());
+                    await db('users').where('id', testUser.id).update({ timezone: zone });
+                    const [reminder] = await db('reminders')
+                        .insert({
+                            user_id: testUser.id,
+                            title: 'Missed occurrence',
+                            reminder_type: 'recurring',
+                            frequency,
+                            due_date: dayjs.tz(due, zone).toISOString(),
+                        })
+                        .returning('*');
+                    const { mail, sendMail } = createDelivery();
+
+                    await mail.processReminderDigests();
+                    await mail.processReminderDigests();
+
+                    expect(sendMail).toHaveBeenCalledOnce();
+                    const updated = await db('reminders').where('id', reminder.id).first();
+                    expect(dayjs.utc(updated.due_date).tz(zone).format()).toBe(expected);
+                },
+            );
+
+            it('should retain failed catch-up reminders and retry them after recovery', async () => {
+                vi.useFakeTimers({ toFake: ['Date'] });
+                vi.setSystemTime(new Date('2026-09-19T10:00:00Z'));
+                const dueDate = '2026-09-01T09:00:00.000Z';
+                await db('reminders').insert([
+                    {
+                        user_id: testUser.id,
+                        title: 'Overdue once',
+                        reminder_type: 'once',
+                        due_date: dueDate,
+                    },
+                    {
+                        user_id: testUser.id,
+                        title: 'Overdue daily',
+                        reminder_type: 'recurring',
+                        frequency: 'daily',
+                        due_date: dueDate,
+                    },
+                ]);
+                const { mail, sendMail } = createDelivery();
+                sendMail.mockRejectedValueOnce(new Error('SMTP unavailable'));
+
+                await mail.processReminderDigests();
+
+                const pending = await db('reminders').where('user_id', testUser.id);
+                expect(pending).toHaveLength(2);
+                for (const reminder of pending) expect(reminder.due_date).toBe(dueDate);
+
+                await mail.processReminderDigests();
+
+                expect(sendMail).toHaveBeenCalledTimes(2);
+                const remaining = await db('reminders').where('user_id', testUser.id);
+                expect(remaining).toHaveLength(1);
+                expect(remaining[0].due_date).toBe('2026-09-20T09:00:00.000Z');
+            });
         });
 
         describe('DST handling', () => {

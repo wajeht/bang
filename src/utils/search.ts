@@ -770,26 +770,17 @@ export function createSearch(context: AppContext) {
                 }
 
                 case 'weekly': {
-                    // Always schedule weekly reminders for Saturday
-                    let nextSaturday = nowInUserTz.day(6); // 6 = Saturday
-
-                    // If today is Saturday and we haven't passed the reminder time yet,
-                    // schedule for today. Otherwise, schedule for next Saturday.
-                    if (
-                        nextSaturday.isBefore(nowInUserTz) ||
-                        (nextSaturday.isSame(nowInUserTz, 'day') &&
-                            nowInUserTz.hour() >= defaultHour &&
-                            nowInUserTz.minute() > defaultMinute)
-                    ) {
-                        nextSaturday = nextSaturday.add(1, 'week');
-                    }
-
-                    nextSaturday = nextSaturday
+                    let nextSaturday = nowInUserTz
+                        .day(6)
                         .hour(defaultHour)
                         .minute(defaultMinute)
                         .second(0)
                         .millisecond(0)
                         .tz(userTimezone, true);
+
+                    if (!nextSaturday.isAfter(nowInUserTz)) {
+                        nextSaturday = nextSaturday.add(1, 'week').tz(userTimezone, true);
+                    }
 
                     return {
                         isValid: true,
@@ -801,26 +792,17 @@ export function createSearch(context: AppContext) {
                 }
 
                 case 'monthly': {
-                    // Always schedule monthly reminders for the 1st of the month
-                    let nextFirst = nowInUserTz.date(1);
-
-                    // If today is the 1st and we haven't passed the reminder time yet,
-                    // schedule for today. Otherwise, schedule for the 1st of next month.
-                    if (
-                        nextFirst.isBefore(nowInUserTz) ||
-                        (nextFirst.isSame(nowInUserTz, 'day') &&
-                            nowInUserTz.hour() >= defaultHour &&
-                            nowInUserTz.minute() > defaultMinute)
-                    ) {
-                        nextFirst = nextFirst.add(1, 'month');
-                    }
-
-                    nextFirst = nextFirst
+                    let nextFirst = nowInUserTz
+                        .date(1)
                         .hour(defaultHour)
                         .minute(defaultMinute)
                         .second(0)
                         .millisecond(0)
                         .tz(userTimezone, true);
+
+                    if (!nextFirst.isAfter(nowInUserTz)) {
+                        nextFirst = nextFirst.add(1, 'month').tz(userTimezone, true);
+                    }
 
                     return {
                         isValid: true,
