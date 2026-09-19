@@ -1,15 +1,24 @@
 import type { ApiKeyPayload, MagicLinkPayload, AppContext } from '../type.js';
 
 export function createAuth(context: AppContext) {
+    const apiKeyPayload = context.libs.z.object({
+        userId: context.libs.z.number().int().positive(),
+        apiKeyVersion: context.libs.z.number().int().nonnegative(),
+    });
+
+    const magicLinkPayload = context.libs.z.object({
+        email: context.libs.z.email(),
+        exp: context.libs.z.number().optional(),
+    });
+
     const logger = context.logger.tag('service', 'auth');
 
     return {
         async verifyApiKey(apiKey: string): Promise<ApiKeyPayload | null> {
             try {
-                const decodedApiKeyPayload = context.libs.jwt.verify(
-                    apiKey,
-                    context.config.app.apiKeySecret,
-                ) as ApiKeyPayload;
+                const decodedApiKeyPayload = apiKeyPayload.parse(
+                    context.libs.jwt.verify(apiKey, context.config.app.apiKeySecret),
+                );
 
                 const app = await context
                     .db('users')
@@ -36,10 +45,9 @@ export function createAuth(context: AppContext) {
 
         verifyMagicLink(token: string): MagicLinkPayload | null {
             try {
-                return context.libs.jwt.verify(
-                    token,
-                    context.config.app.secretSalt,
-                ) as MagicLinkPayload;
+                return magicLinkPayload.parse(
+                    context.libs.jwt.verify(token, context.config.app.secretSalt),
+                );
             } catch (error) {
                 logger.error('Failed to verify magic link token', { error });
 

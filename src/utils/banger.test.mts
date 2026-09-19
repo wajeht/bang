@@ -245,12 +245,12 @@ describe('banger', () => {
                     promises: {
                         writeFile: vi.fn(),
                     },
-                } as any,
+                },
                 console: {
                     log: vi.fn(),
                     error: vi.fn(),
-                } as any,
-                process: {} as any,
+                },
+                process: {},
             };
 
             fetchMock
@@ -283,12 +283,12 @@ describe('banger', () => {
                     promises: {
                         writeFile: vi.fn(),
                     },
-                } as any,
+                },
                 console: {
                     log: vi.fn(),
                     error: vi.fn(),
-                } as any,
-                process: {} as any,
+                },
+                process: {},
             };
 
             fetchMock

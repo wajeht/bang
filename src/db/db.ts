@@ -24,57 +24,39 @@ export interface PaginationResult<T = unknown> {
     };
 }
 
-declare module 'knex' {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace Knex {
-        interface QueryBuilder {
-            paginate(options?: PaginationOptions): Promise<PaginationResult>;
-        }
-    }
-}
-
 let _db: Knex | null = null;
 
-function attachPaginate(knex: typeof import('knex')) {
-    async function paginate(
-        this: Knex.QueryBuilder,
-        { perPage = 10, currentPage = 1, isLengthAware = false }: PaginationOptions = {},
-    ): Promise<PaginationResult> {
-        perPage = Math.max(1, Math.floor(perPage));
-        currentPage = Math.max(1, Math.floor(currentPage));
+async function paginateQuery<T extends {}>(
+    query: Knex.QueryBuilder<T, T[]>,
+    { perPage = 10, currentPage = 1, isLengthAware = false }: PaginationOptions = {},
+) {
+    perPage = Math.max(1, Math.floor(perPage));
+    currentPage = Math.max(1, Math.floor(currentPage));
 
-        const offset = (currentPage - 1) * perPage;
+    const offset = (currentPage - 1) * perPage;
 
-        const data = await this.clone().offset(offset).limit(perPage);
+    const data = await query.clone().offset(offset).limit(perPage);
 
-        const pagination: PaginationResult['pagination'] = {
-            perPage,
-            currentPage,
-            from: offset + 1,
-            to: offset + data.length,
-            hasNext: data.length === perPage,
-            hasPrev: currentPage > 1,
-        };
+    const pagination: PaginationResult['pagination'] = {
+        perPage,
+        currentPage,
+        from: offset + 1,
+        to: offset + data.length,
+        hasNext: data.length === perPage,
+        hasPrev: currentPage > 1,
+    };
 
-        if (isLengthAware) {
-            const countQuery = this.clone().clearSelect().clearOrder().count('* as total').first();
-            const countResult = await countQuery;
-            const total = +(countResult?.total || 0);
+    if (isLengthAware) {
+        const countQuery = query.clone().clearSelect().clearOrder().count('* as total').first();
+        const countResult = await countQuery;
+        const total = +(countResult?.total || 0);
 
-            pagination.total = total;
-            pagination.lastPage = Math.ceil(total / perPage);
-            pagination.hasNext = currentPage < pagination.lastPage;
-        }
-
-        return { data, pagination };
+        pagination.total = total;
+        pagination.lastPage = Math.ceil(total / perPage);
+        pagination.hasNext = currentPage < pagination.lastPage;
     }
 
-    try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (knex as any).QueryBuilder.extend('paginate', paginate);
-    } catch (error: unknown) {
-        console.error('Error attaching paginate method to Knex QueryBuilder:', error);
-    }
+    return { data, pagination };
 }
 
 function _createKnexInstance(libs: Libs): Knex {
@@ -83,7 +65,6 @@ function _createKnexInstance(libs: Libs): Knex {
     }
 
     _db = libs.knex(knexConfig);
-    attachPaginate(libs.knex);
 
     return _db;
 }
@@ -203,6 +184,7 @@ export function createDatabase(ctx: { config: Config; logger: Logger; libs: Libs
 
     return {
         instance: db,
+        paginate: paginateQuery,
         optimizeDatabase,
         inittializeDatabase,
         checkDatabaseHealth,

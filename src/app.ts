@@ -3,7 +3,7 @@ import { Server } from 'node:http';
 import { createContext } from './context.js';
 import type { AppContext } from './type.js';
 import { createRouter } from './routes/routes.js';
-import { AddressInfo, Socket } from 'node:net';
+import { Socket } from 'node:net';
 import { expressJSDocSwaggerHandler } from './utils/swagger.js';
 
 export const activeSockets = new Set<Socket>();
@@ -86,10 +86,14 @@ export async function createServer() {
     });
 
     server.on('listening', async () => {
-        const addr: string | AddressInfo | null = server.address();
+        const addr = server.address();
 
-        const bind: string =
-            typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr as AddressInfo).port;
+        if (!addr) throw new Error('Server has no listening address');
+        const pipe = ctx.libs.z.string().safeParse(addr);
+
+        const bind = pipe.success
+            ? `pipe ${pipe.data}`
+            : `port ${ctx.libs.z.object({ port: ctx.libs.z.number() }).parse(addr).port}`;
 
         ctx.logger.info('Server is listening', { bind });
 
@@ -101,10 +105,7 @@ export async function createServer() {
             throw error;
         }
 
-        const bind: string =
-            typeof config.app.port === 'string'
-                ? 'Pipe ' + config.app.port
-                : 'Port ' + config.app.port;
+        const bind: string = 'Port ' + config.app.port;
 
         switch (error.code) {
             case 'EACCES':

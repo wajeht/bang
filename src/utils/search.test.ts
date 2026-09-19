@@ -1,10 +1,12 @@
+import { createUserFixture } from '../tests/test-db.js';
+import { createRequestFixture, createResponseFixture } from '../tests/http-fixtures.js';
 import { dayjs } from '../libs.js';
 import { createContext } from '../context.js';
 import { db } from '../tests/test-setup.js';
-import { Request, Response } from 'express';
+
 import { createSearch } from '../utils/search.js';
 import type { User, AppContext } from '../type.js';
-import type { SessionData } from 'express-session';
+
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 let ctx: AppContext;
@@ -49,24 +51,24 @@ describe('search', () => {
 
     describe('unauthenticated', () => {
         it('should redirect to google when !g is used', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 session: {
                     searchCount: 0,
                 },
                 query: { q: '!g python' },
-                user: undefined as unknown as User,
-            } as unknown as Request;
+                user: undefined,
+            });
 
-            const res = {
-                status: 200,
+            const res = createResponseFixture({
+                statusCode: 200,
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
-            expect(res.status).toBe(200);
+            expect(res.statusCode).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -79,26 +81,26 @@ describe('search', () => {
         });
 
         it('should redirect to google when !g is used without a search term', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 session: {
                     searchCount: 0,
                 },
                 query: { q: '!g' },
-                user: undefined as unknown as User,
-            } as unknown as Request;
+                user: undefined,
+            });
 
-            const res = {
-                status: 200,
+            const res = createResponseFixture({
+                statusCode: 200,
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             isValidUrl.mockReturnValue(true);
 
             await searchUtils.search({ req, res });
 
-            expect(res.status).toBe(200);
+            expect(res.statusCode).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'private, max-age=3600',
@@ -113,24 +115,24 @@ describe('search', () => {
         });
 
         it('should redirect ddg without a exclamation mark when !doesnotexistanywhere is used', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 session: {
                     searchCount: 0,
                 },
                 query: { q: '!doesnotexistanywhere' },
                 user: undefined,
-            } as unknown as Request;
+            });
 
-            const res = {
-                status: 200,
+            const res = createResponseFixture({
+                statusCode: 200,
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
-            expect(res.status).toBe(200);
+            expect(res.statusCode).toBe(200);
             expect(res.set).toHaveBeenCalledWith(
                 expect.objectContaining({
                     'Cache-Control': 'no-store', // Unknown bangs should not be cached
@@ -144,27 +146,27 @@ describe('search', () => {
         });
 
         it('should not redirect to bang service homepage when bang has invalid URL for bang-only queries', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 session: {
                     searchCount: 0,
                 },
                 query: { q: '!g' },
                 user: undefined,
-            } as unknown as Request;
+            });
 
-            const res = {
-                status: 200,
+            const res = createResponseFixture({
+                statusCode: 200,
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             isValidUrl.mockReturnValue(false);
 
             try {
                 await searchUtils.search({ req, res });
 
-                expect(res.status).toBe(200);
+                expect(res.statusCode).toBe(200);
                 expect(res.set).toHaveBeenCalledWith(
                     expect.objectContaining({
                         'Cache-Control': 'private, max-age=3600',
@@ -180,7 +182,7 @@ describe('search', () => {
         });
 
         it('should redirect back with a warning when a user has reached to its 10th search', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 session: {
                     searchCount: 10,
@@ -188,14 +190,14 @@ describe('search', () => {
                 },
                 query: { q: '!g python' },
                 user: undefined,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 status: vi.fn().mockReturnThis(),
                 redirect: vi.fn(),
                 set: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -217,7 +219,7 @@ describe('search', () => {
         });
 
         it('should redirect back with a warning when a user has reached to its 60th search', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 session: {
                     searchCount: 60,
@@ -225,14 +227,14 @@ describe('search', () => {
                 },
                 query: { q: '!g python' },
                 user: undefined,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 status: vi.fn().mockReturnThis(),
                 redirect: vi.fn(),
                 set: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -254,7 +256,7 @@ describe('search', () => {
         });
 
         it('should have slow down the search when a user has reached more than 60 searches', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 session: {
                     searchCount: 61,
@@ -262,14 +264,14 @@ describe('search', () => {
                 },
                 query: { q: '!g python' },
                 user: undefined,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 status: vi.fn().mockReturnThis(),
                 redirect: vi.fn(),
                 set: vi.fn().mockReturnThis(),
                 send: vi.fn().mockReturnThis(),
-            } as unknown as Response;
+            });
 
             const processDelayedSpy = vi
                 .spyOn(searchUtils, 'processDelayedSearch')
@@ -325,25 +327,25 @@ describe('search', () => {
             ]);
         });
 
-        const testUser = {
+        const testUser = createUserFixture({
             id: 1,
             username: 'Test User',
             email: 'test@example.com',
             is_admin: false,
             default_search_provider: 'duckduckgo',
-        } as User;
+        });
 
         it('should handle direct navigation commands', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '@settings' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
@@ -365,16 +367,16 @@ describe('search', () => {
         });
 
         it('should handle uppercased direct commands', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '@NOTES' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
@@ -392,16 +394,16 @@ describe('search', () => {
         });
 
         it('should handle direct commands with search terms for @notes', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '@notes search query' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
@@ -425,16 +427,16 @@ describe('search', () => {
         });
 
         it('should handle direct commands with search terms for @bookmarks', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '@bookmarks search query' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
@@ -452,16 +454,16 @@ describe('search', () => {
         });
 
         it('should handle direct commands with search terms for @actions', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '@actions search query' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
@@ -479,16 +481,16 @@ describe('search', () => {
         });
 
         it('should handle direct commands with search terms for @reminders', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '@reminders search query' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
@@ -512,16 +514,16 @@ describe('search', () => {
         });
 
         it('should handle direct commands with search terms for @tabs', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '@tabs search query' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
@@ -545,16 +547,16 @@ describe('search', () => {
         });
 
         it('should handle special characters in search terms', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '@notes test & special + characters?' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
             expect(res.set).toHaveBeenCalledWith(
@@ -568,15 +570,15 @@ describe('search', () => {
         });
 
         it('should handle bookmark creation with title', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = createRequestFixture({ logger: mockLogger() });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
                 setHeader: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             isValidUrl.mockReturnValue(true);
 
@@ -606,15 +608,15 @@ describe('search', () => {
         });
 
         it('should handle bookmark creation without title', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = createRequestFixture({ logger: mockLogger() });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
                 setHeader: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             isValidUrl.mockReturnValue(true);
 
@@ -633,17 +635,17 @@ describe('search', () => {
         });
 
         it('should handle invalid bookmark URLs', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!bm invalid-url' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -654,13 +656,13 @@ describe('search', () => {
         });
 
         it('should reject bookmark creation with title longer than 255 characters', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = createRequestFixture({ logger: mockLogger() });
 
-            const res = {
+            const res = createResponseFixture({
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             isValidUrl.mockReturnValue(true);
 
@@ -686,16 +688,16 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!bm Secret Site https://secret.com --hide' },
                     user: userWithPassword,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     redirect: vi.fn(),
                     set: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
 
@@ -719,17 +721,17 @@ describe('search', () => {
                     hidden_items_password: null,
                 };
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!bm Secret Site https://secret.com --hide' },
                     user: userWithoutPassword,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
 
@@ -749,16 +751,16 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!bm https://secret.com --hide' },
                     user: userWithPassword,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     redirect: vi.fn(),
                     set: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
                 await searchUtils.search({ req, res });
@@ -781,16 +783,16 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!bm Title with --hide in middle https://example.com' },
                     user: userWithPassword,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     redirect: vi.fn(),
                     set: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
 
@@ -808,17 +810,17 @@ describe('search', () => {
         });
 
         it('should handle custom bang creation', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!add !new https://newsite.com' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -833,17 +835,17 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!add !secret https://secret.com Secret Site --hide' },
                     user: userWithPassword,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -868,17 +870,17 @@ describe('search', () => {
                     hidden_items_password: null,
                 };
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!add !secret https://secret.com Secret Site --hide' },
                     user: userWithoutPassword,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -902,17 +904,17 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!add !secretsearch https://example.com/search?q=%s --hide' },
                     user: userWithPassword,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -935,17 +937,17 @@ describe('search', () => {
                     hidden_items_password: 'hashed_password',
                 };
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!add !test https://example.com Name with --hide in middle' },
                     user: userWithPassword,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -962,23 +964,23 @@ describe('search', () => {
         });
 
         it('should prefetch assets when creating bang with !add', async () => {
-            const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
-                text: () => Promise.resolve(''),
-            } as unknown as globalThis.Response);
+            const fetchSpy = vi
+                .spyOn(global, 'fetch')
+                .mockResolvedValue(new globalThis.Response(''));
 
             await db('bangs').where({ user_id: testUser.id, trigger: '!prefetchadd' }).delete();
 
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!add !prefetchadd https://prefetch-add-test.com' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -1026,16 +1028,16 @@ describe('search', () => {
                 .onConflict(['user_id', 'trigger'])
                 .ignore();
 
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!custom test search' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -1058,16 +1060,16 @@ describe('search', () => {
                 url: 'https://query-example.com/search?q={query}',
             });
 
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!querytest test search' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -1092,16 +1094,16 @@ describe('search', () => {
                 url: 'https://s-example.com/search?q={{{s}}}',
             });
 
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!stest test search' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -1142,16 +1144,16 @@ describe('search', () => {
                 .onConflict(['user_id', 'trigger'])
                 .ignore();
 
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!mysite' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -1166,16 +1168,16 @@ describe('search', () => {
         });
 
         it('should use default search provider when no bang matches', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: 'test search' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -1188,16 +1190,16 @@ describe('search', () => {
         });
 
         it('should handle non-existent bang as search term', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!nonexistent' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -1234,18 +1236,18 @@ describe('search', () => {
                 .onConflict(['user_id', 'trigger'])
                 .ignore();
 
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!add !custom https://newsite.com' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -1256,17 +1258,17 @@ describe('search', () => {
         });
 
         it('should prevent creation of system bang commands', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!add !bm https://newsite.com' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -1277,17 +1279,17 @@ describe('search', () => {
         });
 
         it('should handle malformed !add command', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!add' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -1298,19 +1300,19 @@ describe('search', () => {
         });
 
         it('should handle !bm with multi-word title', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!bm This is a very long title https://example.com' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
                 setHeader: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             const mockInsertBookmark = vi.fn().mockResolvedValue(undefined);
 
@@ -1330,17 +1332,17 @@ describe('search', () => {
         });
 
         it('should handle !add with implicit bang prefix', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!add test https://test.com' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -1352,18 +1354,18 @@ describe('search', () => {
             const googleUser = {
                 ...testUser,
                 default_search_provider: 'google',
-            } as User;
+            };
 
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: 'test search' },
                 user: googleUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             await searchUtils.search({ req, res });
 
@@ -1378,18 +1380,18 @@ describe('search', () => {
         });
 
         it('should handle bookmark creation errors', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!bm title https://example.com' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 set: vi.fn().mockReturnThis(),
                 status: vi.fn().mockReturnThis(),
                 send: vi.fn(),
                 redirect: vi.fn(),
-            } as unknown as Response;
+            });
 
             isValidUrl.mockReturnValue(true);
             checkDuplicateBookmarkUrl.mockRejectedValue(new Error('Database error'));
@@ -1407,16 +1409,16 @@ describe('search', () => {
 
         describe('!find command', () => {
             it('should redirect to global search page with search term', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!find javascript' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     redirect: vi.fn(),
                     set: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1429,16 +1431,16 @@ describe('search', () => {
             });
 
             it('should handle multi-word search terms', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!find react hooks tutorial' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     redirect: vi.fn(),
                     set: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1448,17 +1450,17 @@ describe('search', () => {
             });
 
             it('should reject !find without search term', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!find' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1469,17 +1471,17 @@ describe('search', () => {
             });
 
             it('should reject !find with only whitespace', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!find   ' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1490,16 +1492,16 @@ describe('search', () => {
             });
 
             it('should encode special characters in search term', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!find test & special + characters?' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     redirect: vi.fn(),
                     set: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1511,17 +1513,17 @@ describe('search', () => {
 
         describe('!note command', () => {
             it('should create note with title and content using pipe format', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!note My Note Title | This is the content of the note' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1539,17 +1541,17 @@ describe('search', () => {
             });
 
             it('should create note with just content (no title)', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!note This is just content without a title' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1567,17 +1569,17 @@ describe('search', () => {
             });
 
             it('should create notes with pinned defaulting to false', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!note Test Note | Test content' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1592,13 +1594,13 @@ describe('search', () => {
             });
 
             it('should reject note creation with title longer than 255 characters', async () => {
-                const req = { logger: mockLogger() } as unknown as Request;
+                const req = createRequestFixture({ logger: mockLogger() });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 const longTitle = 'A'.repeat(256);
                 const query = `!note ${longTitle} | This is the content`;
@@ -1617,17 +1619,17 @@ describe('search', () => {
             });
 
             it('should handle note creation with empty content after pipe', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!note My Title |' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1638,17 +1640,17 @@ describe('search', () => {
             });
 
             it('should handle note creation with empty content after pipe (whitespace only)', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!note My Title |   ' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1659,17 +1661,17 @@ describe('search', () => {
             });
 
             it('should reject note creation with no content', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!note' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1680,17 +1682,17 @@ describe('search', () => {
             });
 
             it('should reject note creation with only whitespace content', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!note   ' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1701,19 +1703,19 @@ describe('search', () => {
             });
 
             it('should handle note creation with special characters in title and content', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: {
                         q: '!note Special @#$% Title | Content with special chars: !@#$%^&*()',
                     },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1728,17 +1730,17 @@ describe('search', () => {
             });
 
             it('should handle note creation with multiple pipes (only first pipe is used as separator)', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!note Title with | pipe | Content also has | more pipes' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -1761,13 +1763,13 @@ describe('search', () => {
                 ];
 
                 for (const query of queries) {
-                    const req = { logger: mockLogger() } as unknown as Request;
+                    const req = createRequestFixture({ logger: mockLogger() });
 
-                    const res = {
+                    const res = createResponseFixture({
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
                         send: vi.fn(),
-                    } as unknown as Response;
+                    });
 
                     req.query = { q: query };
                     req.user = testUser;
@@ -1809,19 +1811,19 @@ describe('search', () => {
                     const userWithPassword = {
                         ...testUser,
                         hidden_items_password: '$2b$10$test-hash',
-                    } as User;
+                    };
 
-                    const req = {
+                    const req = createRequestFixture({
                         logger: mockLogger(),
                         query: { q: '!note Hidden Note | Secret content --hide' },
                         user: userWithPassword,
-                    } as unknown as Request;
+                    });
 
-                    const res = {
+                    const res = createResponseFixture({
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
                         send: vi.fn(),
-                    } as unknown as Response;
+                    });
 
                     await searchUtils.search({ req, res });
 
@@ -1843,19 +1845,19 @@ describe('search', () => {
                     const userWithoutPassword = {
                         ...testUser,
                         hidden_items_password: null,
-                    } as User;
+                    };
 
-                    const req = {
+                    const req = createRequestFixture({
                         logger: mockLogger(),
                         query: { q: '!note Hidden Note | Secret content --hide' },
                         user: userWithoutPassword,
-                    } as unknown as Request;
+                    });
 
-                    const res = {
+                    const res = createResponseFixture({
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
                         send: vi.fn(),
-                    } as unknown as Response;
+                    });
 
                     await searchUtils.search({ req, res });
 
@@ -1877,19 +1879,19 @@ describe('search', () => {
                     const userWithPassword = {
                         ...testUser,
                         hidden_items_password: '$2b$10$test-hash',
-                    } as User;
+                    };
 
-                    const req = {
+                    const req = createRequestFixture({
                         logger: mockLogger(),
                         query: { q: '!note Test Note | Content with --hide flag in middle' },
                         user: userWithPassword,
-                    } as unknown as Request;
+                    });
 
-                    const res = {
+                    const res = createResponseFixture({
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
                         send: vi.fn(),
-                    } as unknown as Response;
+                    });
 
                     await searchUtils.search({ req, res });
 
@@ -1908,19 +1910,19 @@ describe('search', () => {
                     const userWithPassword = {
                         ...testUser,
                         hidden_items_password: '$2b$10$test-hash',
-                    } as User;
+                    };
 
-                    const req = {
+                    const req = createRequestFixture({
                         logger: mockLogger(),
                         query: { q: '!note --hide this is hidden content without title' },
                         user: userWithPassword,
-                    } as unknown as Request;
+                    });
 
-                    const res = {
+                    const res = createResponseFixture({
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
                         send: vi.fn(),
-                    } as unknown as Response;
+                    });
 
                     await searchUtils.search({ req, res });
 
@@ -1942,19 +1944,19 @@ describe('search', () => {
                     const userWithPassword = {
                         ...testUser,
                         hidden_items_password: '$2b$10$test-hash',
-                    } as User;
+                    };
 
-                    const req = {
+                    const req = createRequestFixture({
                         logger: mockLogger(),
                         query: { q: '!note --hide Secret Title | Secret content here' },
                         user: userWithPassword,
-                    } as unknown as Request;
+                    });
 
-                    const res = {
+                    const res = createResponseFixture({
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
                         send: vi.fn(),
-                    } as unknown as Response;
+                    });
 
                     await searchUtils.search({ req, res });
 
@@ -1984,17 +1986,17 @@ describe('search', () => {
             });
 
             it('should successfully delete an existing bang', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!del !deleteme' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2019,17 +2021,17 @@ describe('search', () => {
                     url: 'https://delete-test2.com',
                 });
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!del deleteme2' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2040,17 +2042,17 @@ describe('search', () => {
             });
 
             it('should return error when trying to delete non-existent bang', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!del !nonexistent' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2063,17 +2065,17 @@ describe('search', () => {
             });
 
             it('should return error when no trigger is provided', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!del' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2084,19 +2086,19 @@ describe('search', () => {
             });
 
             it('should return error when user is not authenticated', async () => {
-                const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
+                const unauthenticatedUser = { ...testUser, id: undefined };
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
-                    session: {} as SessionData,
+                    session: {},
                     query: { q: '!del !test' },
                     user: unauthenticatedUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     redirect: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2120,17 +2122,17 @@ describe('search', () => {
                     updated_at: dayjs().toDate(),
                 });
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!del !tabonly' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2172,17 +2174,17 @@ describe('search', () => {
             });
 
             it('should successfully edit bang trigger only', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!edit !editme !newname' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2200,17 +2202,17 @@ describe('search', () => {
             });
 
             it('should successfully edit bang URL only', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!edit !editme https://new-url.com' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2238,23 +2240,23 @@ describe('search', () => {
             });
 
             it('should prefetch assets when editing bang URL with !edit', async () => {
-                const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
-                    text: () => Promise.resolve(''),
-                } as unknown as globalThis.Response);
+                const fetchSpy = vi
+                    .spyOn(global, 'fetch')
+                    .mockResolvedValue(new globalThis.Response(''));
 
                 isValidUrl.mockReturnValue(true);
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!edit !editme https://prefetch-edit-test.com' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2278,17 +2280,17 @@ describe('search', () => {
             });
 
             it('should successfully edit both trigger and URL', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!edit !editme !newboth https://both-new.com' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
 
@@ -2313,17 +2315,17 @@ describe('search', () => {
             });
 
             it('should return error when trying to edit non-existent bang', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!edit !nonexistent !newtrigger' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2336,17 +2338,17 @@ describe('search', () => {
             });
 
             it('should return error with invalid format', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!edit !editme' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2359,17 +2361,17 @@ describe('search', () => {
             });
 
             it('should return error when trying to use system command as new trigger', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!edit !editme !add' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2382,17 +2384,17 @@ describe('search', () => {
             });
 
             it('should return error when new trigger already exists', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!edit !editme !existing' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2405,17 +2407,17 @@ describe('search', () => {
             });
 
             it('should return error with invalid URL format', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!edit !editme invalid-url' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(false);
 
@@ -2428,17 +2430,17 @@ describe('search', () => {
             });
 
             it('should return error when trigger contains invalid characters', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!edit !editme !invalid@trigger' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2451,19 +2453,19 @@ describe('search', () => {
             });
 
             it('should return error when user is not authenticated', async () => {
-                const unauthenticatedUser = { ...testUser, id: undefined } as unknown as User;
+                const unauthenticatedUser = { ...testUser, id: undefined };
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
-                    session: {} as SessionData,
+                    session: {},
                     query: { q: '!edit !test !newtrigger' },
                     user: unauthenticatedUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     redirect: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2478,17 +2480,17 @@ describe('search', () => {
             });
 
             it('should handle editing with trigger without ! prefix', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!edit editme https://new-without-prefix.com' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
 
@@ -2520,17 +2522,17 @@ describe('search', () => {
                     updated_at: dayjs().toDate(),
                 });
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!edit !edittab !newtab' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2557,12 +2559,12 @@ describe('search', () => {
         });
 
         it('should handle all direct navigation commands', async () => {
-            const req = { logger: mockLogger() } as unknown as Request;
+            const req = createRequestFixture({ logger: mockLogger() });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             const commands = {
                 '@a': '/actions',
@@ -2591,16 +2593,16 @@ describe('search', () => {
         });
 
         it('should not redirect to bang service homepage when bang has invalid URL for authenticated bang-only queries', async () => {
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!g' },
                 user: testUser,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             isValidUrl.mockReturnValue(false);
 
@@ -2633,17 +2635,17 @@ describe('search', () => {
             });
 
             it('should detect duplicate URL and show error with title', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!bm New Title https://existing.com' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue({
@@ -2668,17 +2670,17 @@ describe('search', () => {
             });
 
             it('should detect duplicate URL and show error without title', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!bm https://existing.com' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue({
@@ -2708,17 +2710,17 @@ describe('search', () => {
                     title: 'Test "Quotes" & Special Chars',
                 });
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!bm https://existing.com' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue({
@@ -2743,16 +2745,16 @@ describe('search', () => {
             });
 
             it('should allow bookmark creation with unique URL', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!bm Unique Title https://unique.com' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     redirect: vi.fn(),
                     set: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate found
@@ -2780,18 +2782,18 @@ describe('search', () => {
                 const otherUser = {
                     ...testUser,
                     id: 2,
-                } as User;
+                };
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!bm Same URL https://existing.com' },
                     user: otherUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     redirect: vi.fn(),
                     set: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate found for other user
@@ -2811,16 +2813,16 @@ describe('search', () => {
             });
 
             it('should allow same URL with different title', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!bm Different Title https://existing.com' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     redirect: vi.fn(),
                     set: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue(null); // No duplicate because title is different
@@ -2840,17 +2842,17 @@ describe('search', () => {
             });
 
             it('should reject same URL with same title as duplicate', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!bm Same Title https://existing.com' },
                     user: testUser,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
                 checkDuplicateBookmarkUrl.mockResolvedValue({
@@ -2876,7 +2878,7 @@ describe('search', () => {
         });
 
         describe('!remind command', () => {
-            const testUserWithPreferences = {
+            const testUserWithPreferences = createUserFixture({
                 id: testUser.id,
                 username: 'Test User',
                 email: 'test@example.com',
@@ -2889,7 +2891,7 @@ describe('search', () => {
                     },
                 },
                 timezone: 'America/New_York',
-            } as User;
+            });
 
             beforeEach(async () => {
                 // Clean up any existing reminders before each test
@@ -2897,17 +2899,17 @@ describe('search', () => {
             });
 
             it('should create reminder with default timing (simple format)', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind take out trash' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockRestore();
 
@@ -2928,17 +2930,17 @@ describe('search', () => {
             });
 
             it('should create reminder with timing keyword (space-separated format)', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind daily google.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2958,17 +2960,17 @@ describe('search', () => {
             });
 
             it('should create reminder with pipe-separated format', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind weekly | check bills | https://bank.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -2988,17 +2990,17 @@ describe('search', () => {
             });
 
             it('should create reminder with specific date', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind 2025-12-25 | christmas reminder' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3022,13 +3024,13 @@ describe('search', () => {
                 const timingKeywords = ['daily', 'weekly', 'monthly'];
 
                 for (const timing of timingKeywords) {
-                    const req = { logger: mockLogger() } as unknown as Request;
+                    const req = createRequestFixture({ logger: mockLogger() });
 
-                    const res = {
+                    const res = createResponseFixture({
                         set: vi.fn().mockReturnThis(),
                         status: vi.fn().mockReturnThis(),
                         send: vi.fn(),
-                    } as unknown as Response;
+                    });
 
                     req.query = { q: `!remind ${timing} test ${timing} reminder` };
                     req.user = testUserWithPreferences;
@@ -3049,17 +3051,17 @@ describe('search', () => {
             });
 
             it('should reject reminder with no content', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3070,17 +3072,17 @@ describe('search', () => {
             });
 
             it('should reject reminder with empty description', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind daily |' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3093,17 +3095,17 @@ describe('search', () => {
             it('should treat invalid timing as description when not a valid keyword', async () => {
                 isValidUrl.mockRestore();
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind invalid-timing test reminder' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3131,19 +3133,19 @@ describe('search', () => {
                     default_search_provider: 'duckduckgo',
                     column_preferences: null,
                     timezone: null,
-                } as unknown as User;
+                };
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind test reminder without prefs' },
                     user: userWithoutPrefs,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3158,17 +3160,17 @@ describe('search', () => {
             });
 
             it('should handle reminder with URL in content', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind daily check website https://example.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3184,17 +3186,17 @@ describe('search', () => {
             });
 
             it('should detect URL as description without pipe (daily timing)', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind daily google.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3210,17 +3212,17 @@ describe('search', () => {
             });
 
             it('should detect URL as description without pipe (weekly timing)', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind weekly https://example.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3236,17 +3238,17 @@ describe('search', () => {
             });
 
             it('should detect URL as description with default timing', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind https://github.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3264,17 +3266,17 @@ describe('search', () => {
             it('should split description and URL content when text precedes URL', async () => {
                 isValidUrl.mockRestore();
 
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind title google.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3290,17 +3292,17 @@ describe('search', () => {
             });
 
             it('should split description and URL content with timing keyword', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind monthly check website https://example.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3316,19 +3318,19 @@ describe('search', () => {
             });
 
             it('should handle reminder with special characters', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: {
                         q: '!remind daily | special chars: !@#$%^&*() | content with symbols',
                     },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3343,17 +3345,17 @@ describe('search', () => {
             });
 
             it('should handle pipe format without timing keyword (uses default timing)', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind title | google' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3369,17 +3371,17 @@ describe('search', () => {
             });
 
             it('should handle pipe format with URL as content', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind check website | https://example.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3395,17 +3397,17 @@ describe('search', () => {
             });
 
             it('should handle pipe format with timing and URL domain', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind daily title | google.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 await searchUtils.search({ req, res });
 
@@ -3421,17 +3423,17 @@ describe('search', () => {
             });
 
             it('should handle URL-only reminder with default timing and set title to Untitled', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind google.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
 
@@ -3451,17 +3453,17 @@ describe('search', () => {
             });
 
             it('should handle URL-only reminder with https protocol and set title to Untitled', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind https://example.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
 
@@ -3481,17 +3483,17 @@ describe('search', () => {
             });
 
             it('should call insertPageTitle for URL-only reminders', async () => {
-                const req = {
+                const req = createRequestFixture({
                     logger: mockLogger(),
                     query: { q: '!remind https://example.com' },
                     user: testUserWithPreferences,
-                } as unknown as Request;
+                });
 
-                const res = {
+                const res = createResponseFixture({
                     set: vi.fn().mockReturnThis(),
                     status: vi.fn().mockReturnThis(),
                     send: vi.fn(),
-                } as unknown as Response;
+                });
 
                 isValidUrl.mockReturnValue(true);
 
@@ -3804,7 +3806,7 @@ describe('parseSearchQuery', () => {
 
 describe('processDelayedSearch', () => {
     it('should not delay if no cumulative delay is set', async () => {
-        const req = { logger: mockLogger(), session: {} } as unknown as Request;
+        const req = createRequestFixture({ logger: mockLogger(), session: {} });
 
         const start = Date.now();
         await searchUtils.processDelayedSearch(req);
@@ -3816,12 +3818,12 @@ describe('processDelayedSearch', () => {
     it('should delay for the specified time', async () => {
         const delayMs = 10;
 
-        const req = {
+        const req = createRequestFixture({
             logger: mockLogger(),
             session: {
                 cumulativeDelay: delayMs,
             },
-        } as unknown as Request;
+        });
 
         const start = Date.now();
         await searchUtils.processDelayedSearch(req);
@@ -3833,12 +3835,12 @@ describe('processDelayedSearch', () => {
     it('should not block other operations while waiting', async () => {
         const delayMs = 20;
 
-        const req = {
+        const req = createRequestFixture({
             logger: mockLogger(),
             session: {
                 cumulativeDelay: delayMs,
             },
-        } as unknown as Request;
+        });
 
         const delayPromise = searchUtils.processDelayedSearch(req);
 
@@ -3861,17 +3863,17 @@ describe('processDelayedSearch', () => {
 
 describe('handleAnonymousSearch', () => {
     it('should track search history synchronously', async () => {
-        const req = {
+        const req = createRequestFixture({
             logger: mockLogger(),
             session: {
                 searchCount: 1,
             },
-        } as unknown as Request;
+        });
 
-        const res = {
+        const res = createResponseFixture({
             redirect: vi.fn(),
             set: vi.fn(),
-        } as unknown as Response;
+        });
 
         const initialSearchCount = req.session.searchCount || 0;
 
@@ -3889,7 +3891,7 @@ describe('search command handling', () => {
                 {
                     u: 'https://www.google.com/search?q={{{s}}}',
                     d: 'google.com',
-                } as any,
+                },
                 'test',
             );
 
@@ -3903,7 +3905,7 @@ describe('search command handling', () => {
                 {
                     u: '/html/search?q={{{s}}}',
                     d: 'kagi.com',
-                } as any,
+                },
                 'python',
             );
 
@@ -3915,7 +3917,7 @@ describe('search command handling', () => {
                 {
                     u: '/html/search?q={{{s}}}',
                     d: 'kagi.com',
-                } as any,
+                },
                 '',
             );
 
@@ -3927,7 +3929,7 @@ describe('search command handling', () => {
                 {
                     u: '',
                     d: 'example.com',
-                } as any,
+                },
                 '',
             );
 
@@ -3937,18 +3939,18 @@ describe('search command handling', () => {
 
     describe('direct commands handling', () => {
         it('should handle direct commands with explicit commandType', async () => {
-            const user = { id: 1 } as User;
+            const user = createUserFixture({ id: 1 });
 
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '@notes test' },
                 user: user,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             const parseSearchQuerySpy = vi.spyOn(searchUtils, 'parseSearchQuery').mockReturnValue({
                 commandType: 'direct',
@@ -3969,21 +3971,21 @@ describe('search command handling', () => {
 
     describe('search function with commandType', () => {
         it('should handle bang commandType with unknown bang', async () => {
-            const user = {
+            const user = createUserFixture({
                 id: 1,
                 default_search_provider: 'duckduckgo',
-            } as User;
+            });
 
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: '!unknown' },
                 user: user,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             const parseSearchQuerySpy = vi.spyOn(searchUtils, 'parseSearchQuery').mockReturnValue({
                 commandType: 'bang',
@@ -4002,21 +4004,21 @@ describe('search command handling', () => {
         });
 
         it('should handle regular search with null commandType', async () => {
-            const user = {
+            const user = createUserFixture({
                 id: 1,
                 default_search_provider: 'duckduckgo',
-            } as User;
+            });
 
-            const req = {
+            const req = createRequestFixture({
                 logger: mockLogger(),
                 query: { q: 'regular search' },
                 user: user,
-            } as unknown as Request;
+            });
 
-            const res = {
+            const res = createResponseFixture({
                 redirect: vi.fn(),
                 set: vi.fn(),
-            } as unknown as Response;
+            });
 
             const parseSearchQuerySpy = vi.spyOn(searchUtils, 'parseSearchQuery').mockReturnValue({
                 commandType: null,
@@ -4341,14 +4343,14 @@ describe('Bang Search Optimization', () => {
             })
             .returning('*');
 
-        testUser = {
+        testUser = createUserFixture({
             ...user,
             column_preferences: {},
-        };
+        });
     });
 
     it('should skip DB query for system bang when user has no custom override', async () => {
-        const req = {
+        const req = createRequestFixture({
             logger: mockLogger(),
             session: {
                 bangTriggers: [],
@@ -4357,12 +4359,12 @@ describe('Bang Search Optimization', () => {
             },
             query: { q: '!g python' },
             user: testUser,
-        } as unknown as Request;
+        });
 
-        const res = {
+        const res = createResponseFixture({
             redirect: vi.fn(),
             set: vi.fn().mockReturnThis(),
-        } as unknown as Response;
+        });
 
         await searchUtils.search({ req, res });
 
@@ -4385,7 +4387,7 @@ describe('Bang Search Optimization', () => {
             action_type: 'search',
         });
 
-        const req = {
+        const req = createRequestFixture({
             logger: mockLogger(),
             session: {
                 bangTriggers: ['!g'],
@@ -4394,12 +4396,12 @@ describe('Bang Search Optimization', () => {
             },
             query: { q: '!g python' },
             user: testUser,
-        } as unknown as Request;
+        });
 
-        const res = {
+        const res = createResponseFixture({
             redirect: vi.fn(),
             set: vi.fn().mockReturnThis(),
-        } as unknown as Response;
+        });
 
         await searchUtils.search({ req, res });
 
@@ -4415,7 +4417,7 @@ describe('Bang Search Optimization', () => {
             })
             .returning('*');
 
-        const req = {
+        const req = createRequestFixture({
             logger: mockLogger(),
             session: {
                 bangTriggers: [],
@@ -4424,12 +4426,12 @@ describe('Bang Search Optimization', () => {
             },
             query: { q: '!mytabs' },
             user: testUser,
-        } as unknown as Request;
+        });
 
-        const res = {
+        const res = createResponseFixture({
             redirect: vi.fn(),
             set: vi.fn().mockReturnThis(),
-        } as unknown as Response;
+        });
 
         await searchUtils.search({ req, res });
 
@@ -4445,17 +4447,17 @@ describe('Bang Search Optimization', () => {
             action_type: 'redirect',
         });
 
-        const req = {
+        const req = createRequestFixture({
             logger: mockLogger(),
             session: {},
             query: { q: '!g python' },
             user: testUser,
-        } as unknown as Request;
+        });
 
-        const res = {
+        const res = createResponseFixture({
             redirect: vi.fn(),
             set: vi.fn().mockReturnThis(),
-        } as unknown as Response;
+        });
 
         await searchUtils.search({ req, res });
 
@@ -4473,7 +4475,7 @@ describe('Bang Search Optimization', () => {
     });
 
     it('should use system bang when custom bang not in cache', async () => {
-        const req = {
+        const req = createRequestFixture({
             logger: mockLogger(),
             session: {
                 bangTriggersMap: {},
@@ -4482,12 +4484,12 @@ describe('Bang Search Optimization', () => {
             },
             query: { q: '!yt video' },
             user: testUser,
-        } as unknown as Request;
+        });
 
-        const res = {
+        const res = createResponseFixture({
             redirect: vi.fn(),
             set: vi.fn().mockReturnThis(),
-        } as unknown as Response;
+        });
 
         await searchUtils.search({ req, res });
 
@@ -4497,7 +4499,7 @@ describe('Bang Search Optimization', () => {
     });
 
     it('should fall back to default search for unknown bang not in cache', async () => {
-        const req = {
+        const req = createRequestFixture({
             logger: mockLogger(),
             session: {
                 bangTriggers: [],
@@ -4505,13 +4507,13 @@ describe('Bang Search Optimization', () => {
                 triggersCachedAt: Date.now(),
             },
             query: { q: '!unknownbang' },
-            user: { ...testUser, default_search_provider: 'duckduckgo' },
-        } as unknown as Request;
+            user: createUserFixture({ ...testUser, default_search_provider: 'duckduckgo' }),
+        });
 
-        const res = {
+        const res = createResponseFixture({
             redirect: vi.fn(),
             set: vi.fn().mockReturnThis(),
-        } as unknown as Response;
+        });
 
         await searchUtils.search({ req, res });
 
@@ -4535,7 +4537,7 @@ describe('Bang Search Performance', () => {
             })
             .returning('*');
 
-        testUser = { ...user, column_preferences: {} };
+        testUser = createUserFixture({ ...user, column_preferences: {} });
 
         await db('bangs').insert([
             {
@@ -4557,17 +4559,17 @@ describe('Bang Search Performance', () => {
     });
 
     it('should be faster with cache hit vs cache miss', async () => {
-        const res = {
+        const res = createResponseFixture({
             redirect: vi.fn(),
             set: vi.fn().mockReturnThis(),
-        } as unknown as Response;
+        });
 
-        const reqCold = {
+        const reqCold = createRequestFixture({
             logger: mockLogger(),
             session: {},
             query: { q: '!g test' },
             user: testUser,
-        } as unknown as Request;
+        });
 
         const startCold = performance.now();
         await searchUtils.search({ req: reqCold, res });
@@ -4585,19 +4587,19 @@ describe('Bang Search Performance', () => {
     });
 
     it('should skip DB query when using system bang with empty custom triggers', async () => {
-        const res = {
+        const res = createResponseFixture({
             redirect: vi.fn(),
             set: vi.fn().mockReturnThis(),
-        } as unknown as Response;
+        });
 
-        const req = {
+        const req = createRequestFixture({
             logger: mockLogger(),
             session: {
                 bangTriggers: [],
                 tabTriggers: [],
                 triggersCachedAt: Date.now(),
             },
-        } as unknown as Request;
+        });
 
         const iterations = 10;
         const times: number[] = [];
@@ -4619,12 +4621,12 @@ describe('Bang Search Performance', () => {
     });
 
     it('should use custom bang when in cache', async () => {
-        const res = {
+        const res = createResponseFixture({
             redirect: vi.fn(),
             set: vi.fn().mockReturnThis(),
-        } as unknown as Response;
+        });
 
-        const req = {
+        const req = createRequestFixture({
             logger: mockLogger(),
             session: {
                 bangTriggers: ['!custom1', '!custom2'],
@@ -4633,7 +4635,7 @@ describe('Bang Search Performance', () => {
             },
             query: { q: '!custom1' },
             user: testUser,
-        } as unknown as Request;
+        });
 
         await searchUtils.search({ req, res });
 

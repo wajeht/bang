@@ -156,7 +156,7 @@ export function createSearch(context: AppContext) {
                 return req.body?.q?.toString().trim() || '';
             }
 
-            return typeof req.query.q === 'string' ? req.query.q.trim() : '';
+            return context.libs.z.string().catch('').parse(req.query.q).trim();
         },
 
         getSearchUser(req: Request): User | undefined {
@@ -263,69 +263,7 @@ export function createSearch(context: AppContext) {
 		`);
         },
 
-        parseSearchQuery(query: string): {
-            /**
-             * The type of command (bang or direct)
-             * Used to determine how to process the query
-             * @example "bang" for !g, !bm, etc.
-             * @example "direct" for @notes, @bookmarks, etc.
-             * @example null for regular searches without a command
-             */
-            commandType: 'bang' | 'direct' | null;
-
-            /**
-             * The full command trigger including prefix ("!" or "@")
-             * Used for command identification and routing
-             * @example "!g" for Google search
-             * @example "!bm" for bookmark command
-             * @example "@notes" for notes navigation
-             * @example null for regular searches
-             */
-            trigger: string | null;
-
-            /**
-             * Command trigger with prefix removed
-             * Used for looking up commands in bangs table or direct commands mapping
-             * @example "g" for Google search
-             * @example "bm" for bookmark command
-             * @example "notes" for notes navigation
-             * @example null for regular searches
-             */
-            triggerWithoutPrefix: string | null;
-
-            /**
-             * First valid URL found in the query string
-             * Used for bookmark creation and custom bang definition
-             * Supports both http and https protocols
-             * Only relevant for bang commands, not direct commands
-             * @example "https://example.com" from "!bm title https://example.com"
-             * @example null when no URL is present
-             */
-            url: string | null;
-
-            /**
-             * The search terms or content after removing trigger and URL
-             * Multiple uses based on context:
-             * - Search query for search bangs
-             * - Title for bookmarks
-             * - Trigger for custom bang creation
-             * - Search term for direct commands with search like @notes search
-             * @example "python" from "!g python"
-             * @example "My Bookmark" from "!bm My Bookmark https://example.com"
-             * @example "search term" from "@notes search term"
-             */
-            searchTerm: string;
-
-            /**
-             * Text after the trigger with internal whitespace preserved.
-             * Unlike searchTerm, this is not whitespace-collapsed and the URL is not stripped,
-             * so handlers that need the raw command body (e.g. !note, !remind, !add, !edit)
-             * can read this directly instead of slicing the original query.
-             * @example "title | content with   spaces" from "!note title | content with   spaces"
-             * @example "" when there is no trigger or no remainder
-             */
-            rawRemainder: string;
-        } {
+        parseSearchQuery(query: string): ParseSearchQueryResult {
             // empty/null queries
             if (!query?.trim()) {
                 return {
@@ -494,7 +432,7 @@ export function createSearch(context: AppContext) {
                     Expires: '0',
                 });
             } else {
-                const headers: Record<string, string> = {
+                const headers: RedirectHeaders = {
                     'Cache-Control': `${cacheType}, max-age=${cacheDuration * 60}`,
                     Expires: context.libs
                         .dayjs()
@@ -545,7 +483,7 @@ export function createSearch(context: AppContext) {
                 const message = `This search was delayed by ${req.session.cumulativeDelay / 1000} seconds due to rate limiting.`;
 
                 if (triggerWithoutBang) {
-                    const bang = searchConfig.bangs[triggerWithoutBang] as Bang;
+                    const bang = searchConfig.bangs[triggerWithoutBang];
 
                     if (bang) {
                         redirectUrl = this.getBangRedirectUrl(bang, searchTerm || '');
@@ -568,7 +506,7 @@ export function createSearch(context: AppContext) {
             }
 
             if (triggerWithoutBang) {
-                const bang = searchConfig.bangs[triggerWithoutBang] as Bang;
+                const bang = searchConfig.bangs[triggerWithoutBang];
 
                 if (bang) {
                     // Handle search queries with bang (e.g., "!g python")
@@ -615,7 +553,7 @@ export function createSearch(context: AppContext) {
             );
         },
 
-        getBangRedirectUrl(bang: Bang, searchTerm: string): string {
+        getBangRedirectUrl(bang: Pick<Bang, 'u' | 'd'>, searchTerm: string): string {
             let redirectUrl;
 
             if (searchTerm) {
@@ -643,11 +581,7 @@ export function createSearch(context: AppContext) {
             reminderContent: string,
             /** @param user - User object with preferences */
             user: { column_preferences?: { reminders?: { default_reminder_timing?: string } } },
-        ): {
-            when: string;
-            description: string;
-            content: string | null;
-        } {
+        ): ParseReminderContentResult {
             const defaultTiming =
                 user.column_preferences?.reminders?.default_reminder_timing || 'daily';
 
@@ -655,9 +589,7 @@ export function createSearch(context: AppContext) {
              * Helper to extract URL and description from text
              * Tries protocol URLs first, then domain-like patterns
              */
-            const extractUrlAndDescription = (
-                text: string,
-            ): { description: string; url: string | null } => {
+            const extractUrlAndDescription = (text: string): ResultResult => {
                 // Try protocol URL first
                 const protocolUrl = context.utils.validation.extractUrlFromText(text);
 
@@ -895,22 +827,24 @@ export function createSearch(context: AppContext) {
                         targetDate = targetDayjs.tz(userTimezone, true).utc().toDate();
                     } else if (pattern === datePatterns[2] && match[1] && match[2]) {
                         // Jan-15
-                        const monthMap: { [key: string]: number } = {
-                            jan: 0,
-                            feb: 1,
-                            mar: 2,
-                            apr: 3,
-                            may: 4,
-                            jun: 5,
-                            jul: 6,
-                            aug: 7,
-                            sep: 8,
-                            oct: 9,
-                            nov: 10,
-                            dec: 11,
-                        };
+                        const monthMap = new Map(
+                            Object.entries({
+                                jan: 0,
+                                feb: 1,
+                                mar: 2,
+                                apr: 3,
+                                may: 4,
+                                jun: 5,
+                                jul: 6,
+                                aug: 7,
+                                sep: 8,
+                                oct: 9,
+                                nov: 10,
+                                dec: 11,
+                            }),
+                        );
 
-                        const month = monthMap[match[1].toLowerCase()];
+                        const month = monthMap.get(match[1].toLowerCase());
 
                         if (month !== undefined && match[2]) {
                             let targetDayjs = nowInUserTz
@@ -1553,7 +1487,7 @@ export function createSearch(context: AppContext) {
                                 void context.utils.util
                                     .insertPageTitle({
                                         actionId: existingBang.id,
-                                        url: bangUpdates.url || ('' as string),
+                                        url: bangUpdates.url || '',
                                         req,
                                     })
                                     .catch((error) =>
@@ -1999,7 +1933,7 @@ export function createSearch(context: AppContext) {
 
             // Process system-defined bang commands
             if (commandType === 'bang' && triggerWithoutPrefix) {
-                const bang = searchConfig.bangs[triggerWithoutPrefix] as Bang;
+                const bang = searchConfig.bangs[triggerWithoutPrefix];
 
                 if (bang) {
                     // Handle search queries with bang (e.g., "!g python")
@@ -2030,15 +1964,17 @@ export function createSearch(context: AppContext) {
 
             const defaultProvider = user.default_search_provider || 'duckduckgo';
 
-            let searchUrl: string = searchConfig.defaultSearchProviders[
-                defaultProvider as keyof typeof searchConfig.defaultSearchProviders
-            ].replace('{{{s}}}', encodeURIComponent(searchTerm || query));
+            let searchUrl: string = searchConfig.defaultSearchProviders[defaultProvider].replace(
+                '{{{s}}}',
+                encodeURIComponent(searchTerm || query),
+            );
 
             // Handle unknown bang commands by searching for them without the "!"
             if (commandType === 'bang' && !searchTerm && triggerWithoutPrefix) {
-                searchUrl = searchConfig.defaultSearchProviders[
-                    defaultProvider as keyof typeof searchConfig.defaultSearchProviders
-                ].replace('{{{s}}}', encodeURIComponent(triggerWithoutPrefix));
+                searchUrl = searchConfig.defaultSearchProviders[defaultProvider].replace(
+                    '{{{s}}}',
+                    encodeURIComponent(triggerWithoutPrefix),
+                );
             }
 
             // Check if this is an unknown bang that fell through (not in system bangs)
@@ -2063,4 +1999,85 @@ export function createSearch(context: AppContext) {
             );
         },
     };
+}
+
+interface ParseSearchQueryResult {
+    /**
+     * The type of command (bang or direct)
+     * Used to determine how to process the query
+     * @example "bang" for !g, !bm, etc.
+     * @example "direct" for @notes, @bookmarks, etc.
+     * @example null for regular searches without a command
+     */
+    commandType: 'bang' | 'direct' | null;
+
+    /**
+     * The full command trigger including prefix ("!" or "@")
+     * Used for command identification and routing
+     * @example "!g" for Google search
+     * @example "!bm" for bookmark command
+     * @example "@notes" for notes navigation
+     * @example null for regular searches
+     */
+    trigger: string | null;
+
+    /**
+     * Command trigger with prefix removed
+     * Used for looking up commands in bangs table or direct commands mapping
+     * @example "g" for Google search
+     * @example "bm" for bookmark command
+     * @example "notes" for notes navigation
+     * @example null for regular searches
+     */
+    triggerWithoutPrefix: string | null;
+
+    /**
+     * First valid URL found in the query string
+     * Used for bookmark creation and custom bang definition
+     * Supports both http and https protocols
+     * Only relevant for bang commands, not direct commands
+     * @example "https://example.com" from "!bm title https://example.com"
+     * @example null when no URL is present
+     */
+    url: string | null;
+
+    /**
+     * The search terms or content after removing trigger and URL
+     * Multiple uses based on context:
+     * - Search query for search bangs
+     * - Title for bookmarks
+     * - Trigger for custom bang creation
+     * - Search term for direct commands with search like @notes search
+     * @example "python" from "!g python"
+     * @example "My Bookmark" from "!bm My Bookmark https://example.com"
+     * @example "search term" from "@notes search term"
+     */
+    searchTerm: string;
+
+    /**
+     * Text after the trigger with internal whitespace preserved.
+     * Unlike searchTerm, this is not whitespace-collapsed and the URL is not stripped,
+     * so handlers that need the raw command body (e.g. !note, !remind, !add, !edit)
+     * can read this directly instead of slicing the original query.
+     * @example "title | content with   spaces" from "!note title | content with   spaces"
+     * @example "" when there is no trigger or no remainder
+     */
+    rawRemainder: string;
+}
+
+interface ParseReminderContentResult {
+    when: string;
+    description: string;
+    content: string | null;
+}
+
+interface ResultResult {
+    description: string;
+    url: string | null;
+}
+
+interface RedirectHeaders {
+    'Cache-Control': string;
+    Expires: string;
+    Vary?: string;
 }

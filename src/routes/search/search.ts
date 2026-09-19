@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { AppContext, User } from '../../type.js';
+import type { AppContext } from '../../type.js';
 
 export function createSearchRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
@@ -9,9 +9,9 @@ export function createSearchRouter(ctx: AppContext) {
     });
 
     router.get('/search', ctx.middleware.authentication, async (req: Request, res: Response) => {
-        const user = req.user as User;
-        const searchQuery = (typeof req.query.q === 'string' ? req.query.q : '').trim();
-        const searchType = typeof req.query.type === 'string' ? req.query.type : 'global';
+        const user = ctx.utils.request.requireUser(req.user);
+        const searchQuery = ctx.libs.z.string().catch('').parse(req.query.q).trim();
+        const searchType = ctx.libs.z.string().catch('global').parse(req.query.type);
 
         if (!searchQuery) {
             return res.render('search/search-results.html', {

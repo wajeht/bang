@@ -25,10 +25,10 @@ describe('cron service', () => {
         fetchedUrls = [];
         originalFetch = globalThis.fetch;
         globalThis.fetch = vi.fn(async (input: any) => {
-            fetchedUrls.push(typeof input === 'string' ? input : input.url);
+            fetchedUrls.push(input instanceof Request ? input.url : String(input));
 
             return new Response('', { status: 200 });
-        }) as any;
+        });
 
         await db('bookmarks').delete();
         await db('bangs').delete();
@@ -170,21 +170,15 @@ describe('cron service', () => {
         });
 
         it('should swallow database errors without crashing the cron', async () => {
-            const brokenCtx = {
-                ...ctx,
-                db: () => {
-                    throw new Error('synthetic db error');
-                },
-                logger: {
-                    tag: () => ({
-                        time: () => ({ stop: () => {} }),
-                        error: () => {},
-                        info: () => {},
-                    }),
-                },
-            } as unknown as AppContext;
+            const select = vi.spyOn(ctx.db, 'select').mockImplementation(() => {
+                throw new Error('synthetic db error');
+            });
 
-            await expect(screenshotPrefetchTask(brokenCtx)).resolves.toBeUndefined();
+            try {
+                await expect(screenshotPrefetchTask(ctx)).resolves.toBeUndefined();
+            } finally {
+                select.mockRestore();
+            }
         });
     });
 

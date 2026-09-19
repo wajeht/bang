@@ -3,18 +3,26 @@ import type { LogLevel, Logger, LoggerOptions } from '../type.js';
 
 export type { LoggerOptions, LogLevel };
 
-export const Log = {
-    state: {
-        appMetadata: {} as Record<string, string>,
-        globalLevel: 'INFO' as LogLevel,
-        loggers: new Map<string, Logger>(),
-    },
+interface LogState {
+    appMetadata: Record<string, string>;
+    globalLevel: LogLevel;
+    loggers: Map<string, Logger>;
+}
 
-    priority: { DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3, SILENT: 4 } as Record<LogLevel, number>,
-    colors: { DEBUG: 'blue', INFO: 'green', WARN: 'yellow', ERROR: 'red' } as Record<
-        LogLevel,
-        'blue' | 'green' | 'yellow' | 'red'
-    >,
+const state: LogState = { appMetadata: {}, globalLevel: 'INFO', loggers: new Map() };
+
+const colors = {
+    DEBUG: 'blue',
+    INFO: 'green',
+    WARN: 'yellow',
+    ERROR: 'red',
+    SILENT: 'dim',
+} as const;
+
+export const Log = {
+    state,
+    priority: { DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3, SILENT: 4 },
+    colors,
 
     create(options: LoggerOptions = {}): Logger {
         const tags: Record<string, string> = {};
@@ -47,10 +55,10 @@ export const Log = {
                 : result;
         }
 
-        function formatValue(value: unknown): string {
+        function formatValue<T>(value: T): string {
             if (value instanceof Error) return formatError(value);
 
-            if (typeof value === 'object' && value !== null) {
+            if (value != null && Object(value) === value && !(value instanceof Function)) {
                 try {
                     return JSON.stringify(value);
                 } catch {
@@ -61,16 +69,17 @@ export const Log = {
             return String(value);
         }
 
-        function isPlainObject(value: unknown): value is Record<string, any> {
+        function isPlainObject<T>(value: T): value is T & object {
             return (
-                typeof value === 'object' &&
-                value !== null &&
+                value != null &&
+                Object(value) === value &&
                 !Array.isArray(value) &&
-                !(value instanceof Error)
+                !(value instanceof Error) &&
+                !(value instanceof Function)
             );
         }
 
-        function appendTags(result: string, obj: Record<string, any>): string {
+        function appendTags(result: string, obj: Record<string, string>): string {
             for (const key in obj) {
                 const value = obj[key];
 
@@ -82,7 +91,7 @@ export const Log = {
             return result;
         }
 
-        function appendExtraTags(result: string, obj: Record<string, any>): string {
+        function appendExtraTags<T extends object>(result: string, obj: T): string {
             for (const key in obj) {
                 const value = obj[key];
 
@@ -90,7 +99,7 @@ export const Log = {
                     const formatted = formatValue(value);
 
                     const tag =
-                        typeof value === 'string' && value.includes(' ')
+                        value === formatted && formatted.includes(' ')
                             ? key + '="' + formatted + '"'
                             : key + '=' + formatted;
 
@@ -161,11 +170,11 @@ export const Log = {
                 });
             },
 
-            time(message: string, extra?: Record<string, any>) {
+            time<T extends object>(message: string, extra?: T) {
                 const start = Date.now();
 
                 return {
-                    stop(stopExtra?: Record<string, any>) {
+                    stop<U extends object>(stopExtra?: U) {
                         logger.info(message, {
                             ...extra,
                             ...stopExtra,
@@ -179,7 +188,7 @@ export const Log = {
                 if (state.globalLevel === 'SILENT') return;
                 const timestamp = styleText('dim', new Date().toISOString().slice(0, 19));
                 console.log(timestamp + ' ' + styleText('cyan', 'TABLE:'));
-                console.table(tabularData, properties as string[] | undefined);
+                console.table(tabularData, properties ? [...properties] : undefined);
             },
 
             box(title: string, content: string | string[]) {

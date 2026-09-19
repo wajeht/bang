@@ -1,6 +1,6 @@
 import { Application } from 'express';
 import type { AppContext } from '../type.js';
-import type { Options } from 'express-jsdoc-swagger';
+
 import { createAuthenticationMiddleware } from '../routes/middleware.js';
 import { config } from '../config.js';
 
@@ -9,11 +9,7 @@ export async function expressJSDocSwaggerHandler(app: Application, context: AppC
         return;
     }
 
-    const expressJSDocSwaggerModule = await import('express-jsdoc-swagger');
-
-    const expressJSDocSwagger = expressJSDocSwaggerModule.default as unknown as (
-        app: Application,
-    ) => (options: Options) => void;
+    const { expressJSDocSwagger } = context.libs;
 
     const branding = await context.models.settings.getBranding();
 
@@ -49,7 +45,7 @@ export async function expressJSDocSwaggerHandler(app: Application, context: AppC
             },
         },
         multiple: {},
-    } as unknown as Options;
+    };
 
     app.use('/api-docs', createAuthenticationMiddleware(context));
     expressJSDocSwagger(app)(swaggerConfig);

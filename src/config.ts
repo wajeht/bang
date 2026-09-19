@@ -1,10 +1,9 @@
-import type { Env } from './type.js';
 import packageJson from '../package.json' with { type: 'json' };
 
 export const config = {
     app: {
         port: parseInt(process.env.APP_PORT || '80', 10),
-        env: (process.env.APP_ENV || process.env.NODE_ENV || 'development') as Env,
+        env: process.env.APP_ENV || process.env.NODE_ENV || 'development',
         version: packageJson.version,
         appUrl: process.env.APP_URL || 'localhost',
         adminEmail: process.env.APP_ADMIN_EMAIL || '',

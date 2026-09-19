@@ -1,12 +1,14 @@
 import { Log, createLogger } from './logger.js';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vite-plus/test';
 
+interface ConsoleSpies {
+    log: ReturnType<typeof vi.spyOn>;
+    warn: ReturnType<typeof vi.spyOn>;
+    error: ReturnType<typeof vi.spyOn>;
+}
+
 describe('Logger', () => {
-    let consoleSpy: {
-        log: ReturnType<typeof vi.spyOn>;
-        warn: ReturnType<typeof vi.spyOn>;
-        error: ReturnType<typeof vi.spyOn>;
-    };
+    let consoleSpy: ConsoleSpies;
 
     beforeEach(() => {
         consoleSpy = {
@@ -27,10 +29,10 @@ describe('Logger', () => {
         it('should create a logger', () => {
             const logger = Log.create();
             expect(logger).toBeDefined();
-            expect(typeof logger.info).toBe('function');
-            expect(typeof logger.debug).toBe('function');
-            expect(typeof logger.warn).toBe('function');
-            expect(typeof logger.error).toBe('function');
+            expect(logger.info).toBeTypeOf('function');
+            expect(logger.debug).toBeTypeOf('function');
+            expect(logger.warn).toBeTypeOf('function');
+            expect(logger.error).toBeTypeOf('function');
         });
 
         it('should create a logger with service tag', () => {
@@ -200,7 +202,7 @@ describe('Logger', () => {
             const timer = logger.time('operation');
 
             expect(timer).toBeDefined();
-            expect(typeof timer.stop).toBe('function');
+            expect(timer.stop).toBeTypeOf('function');
         });
 
         it('should log duration when stopped', () => {

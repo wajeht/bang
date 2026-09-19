@@ -30,17 +30,21 @@ export class NotFoundError extends HttpError {
     }
 }
 
+function isFieldErrors(value: string | Record<string, string>): value is Record<string, string> {
+    return value != null && Object(value) === value;
+}
+
 export class ValidationError extends HttpError {
     public errors: Record<string, string> = {};
 
     constructor(messageOrErrors: string | Record<string, string>, request?: Request) {
         let message = 'validation error';
 
-        if (typeof messageOrErrors === 'string') {
+        if (messageOrErrors != null && !isFieldErrors(messageOrErrors)) {
             message = messageOrErrors;
             super(422, message, request);
             this.errors = { general: message };
-        } else if (typeof messageOrErrors === 'object') {
+        } else if (isFieldErrors(messageOrErrors)) {
             super(422, message, request);
             this.errors = messageOrErrors;
         } else {

@@ -5,17 +5,11 @@ export function createDate(context: AppContext) {
         formatDateInTimezone(
             utcDateString: string | Date,
             timezone: string = 'UTC',
-        ): {
-            dateString: string;
-            timeString: string;
-            fullString: string;
-            dateInputValue: string;
-            timeInputValue: string;
-        } {
+        ): FormatDateInTimezoneResult {
             try {
                 let dayjsDate;
 
-                if (typeof utcDateString === 'string') {
+                if (!(utcDateString instanceof Date)) {
                     // Handle database format "2025-07-31 03:55:07" as UTC
                     if (!utcDateString.includes('T') && !utcDateString.endsWith('Z')) {
                         // Database format: "2025-07-31 03:55:07" -> treat as UTC
@@ -57,4 +51,12 @@ export function createDate(context: AppContext) {
             }
         },
     };
+}
+
+interface FormatDateInTimezoneResult {
+    dateString: string;
+    timeString: string;
+    fullString: string;
+    dateInputValue: string;
+    timeInputValue: string;
 }

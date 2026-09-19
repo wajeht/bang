@@ -163,9 +163,9 @@ describe('Actions API', () => {
         it('should prefetch assets when creating redirect action', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
-                text: () => Promise.resolve(''),
-            } as unknown as globalThis.Response);
+            const fetchSpy = vi
+                .spyOn(global, 'fetch')
+                .mockResolvedValue(new globalThis.Response(''));
 
             await agent
                 .post('/api/actions')
@@ -197,9 +197,9 @@ describe('Actions API', () => {
         it('should NOT prefetch assets when creating search action', async () => {
             const { agent } = await authenticateApiAgent(app);
 
-            const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
-                text: () => Promise.resolve(''),
-            } as unknown as globalThis.Response);
+            const fetchSpy = vi
+                .spyOn(global, 'fetch')
+                .mockResolvedValue(new globalThis.Response(''));
 
             await agent
                 .post('/api/actions')
@@ -214,7 +214,9 @@ describe('Actions API', () => {
             await new Promise((resolve) => setTimeout(resolve, 50));
 
             const screenshotCalls = fetchSpy.mock.calls.filter(
-                (call) => typeof call[0] === 'string' && call[0].includes('screenshot.jaw.dev'),
+                (call) =>
+                    new URL(call[0] instanceof Request ? call[0].url : call[0]).hostname ===
+                    'screenshot.jaw.dev',
             );
 
             expect(screenshotCalls.length).toBe(0);

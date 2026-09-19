@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { User, BookmarkToExport, AppContext } from '../../type.js';
+import type { AppContext } from '../../type.js';
 
 export function createBookmarksRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
@@ -32,7 +32,7 @@ export function createBookmarksRouter(ctx: AppContext) {
     router.get('/bookmarks', ctx.middleware.authentication, getBookmarksHandler);
 
     async function getBookmarksHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
 
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'bookmarks');
@@ -97,10 +97,10 @@ export function createBookmarksRouter(ctx: AppContext) {
                 throw new ctx.errors.NotFoundError('User not found');
             }
 
-            const bookmarksData = (await ctx.db
+            const bookmarksData = await ctx.db
                 .select('url', 'title', ctx.db.raw("strftime('%s', created_at) as add_date"))
                 .from('bookmarks')
-                .where({ user_id: userId })) as BookmarkToExport[];
+                .where({ user_id: userId });
 
             if (!bookmarksData.length) {
                 req.flash('info', 'no bookmarks to export yet.');
@@ -124,8 +124,8 @@ export function createBookmarksRouter(ctx: AppContext) {
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
             const bookmark = await ctx.models.bookmarks.read(
-                req.params.id as unknown as number,
-                (req.user as User).id,
+                Number(req.params.id),
+                ctx.utils.request.requireUser(req.user).id,
             );
 
             if (!bookmark) {
@@ -147,7 +147,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         '/bookmarks/:id/tabs/create',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const id = parseInt(req.params.id as unknown as string);
+            const id = parseInt(String(req.params.id ?? ''));
 
             const bookmark = await ctx
                 .db('bookmarks')
@@ -228,19 +228,19 @@ export function createBookmarksRouter(ctx: AppContext) {
             throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
         }
 
-        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
+        if (!ctx.utils.validation.formFlag.safeParse(pinned).success) {
             throw new ctx.errors.ValidationError({
                 pinned: 'Pinned must be a boolean or checkbox value',
             });
         }
 
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+        if (!ctx.utils.validation.formFlag.safeParse(hidden).success) {
             throw new ctx.errors.ValidationError({
                 hidden: 'Hidden must be a boolean or checkbox value',
             });
         }
 
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
 
         if (hidden === 'on' || hidden === true) {
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
@@ -268,7 +268,7 @@ export function createBookmarksRouter(ctx: AppContext) {
             try {
                 await ctx.utils.util.insertBookmark({
                     url,
-                    userId: (req.user as User).id,
+                    userId: ctx.utils.request.requireUser(req.user).id,
                     title,
                     pinned: pinned === 'on' || pinned === true,
                     hidden: hidden === 'on' || hidden === true,
@@ -325,20 +325,20 @@ export function createBookmarksRouter(ctx: AppContext) {
             throw new ctx.errors.ValidationError({ url: 'Invalid URL format' });
         }
 
-        if (pinned !== undefined && typeof pinned !== 'boolean' && pinned !== 'on') {
+        if (!ctx.utils.validation.formFlag.safeParse(pinned).success) {
             throw new ctx.errors.ValidationError({
                 pinned: 'Pinned must be a boolean or checkbox value',
             });
         }
 
-        if (hidden !== undefined && typeof hidden !== 'boolean' && hidden !== 'on') {
+        if (!ctx.utils.validation.formFlag.safeParse(hidden).success) {
             throw new ctx.errors.ValidationError({
                 hidden: 'Hidden must be a boolean or checkbox value',
             });
         }
 
-        const user = req.user as User;
-        const bookmarkId = req.params.id as unknown as number;
+        const user = ctx.utils.request.requireUser(req.user);
+        const bookmarkId = Number(req.params.id);
 
         if (hidden === 'on' || hidden === true) {
             const dbUser = await ctx.db('users').where({ id: user.id }).first();
@@ -407,7 +407,7 @@ export function createBookmarksRouter(ctx: AppContext) {
     router.post('/bookmarks/delete', ctx.middleware.authentication, deleteBookmarkHandler);
 
     async function deleteBookmarkHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
         const bookmarkIds = ctx.utils.request.extractIdsForDelete(req);
         const deletedCount = await ctx.models.bookmarks.delete(bookmarkIds, user.id);
 
@@ -450,8 +450,8 @@ export function createBookmarksRouter(ctx: AppContext) {
     router.post('/api/bookmarks/:id/pin', ctx.middleware.authentication, toggleBookmarkPinHandler);
 
     async function toggleBookmarkPinHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const bookmarkId = parseInt(req.params.id as unknown as string);
+        const user = ctx.utils.request.requireUser(req.user);
+        const bookmarkId = parseInt(String(req.params.id ?? ''));
 
         const currentBookmark = await ctx.models.bookmarks.read(bookmarkId, user.id);
 
@@ -505,8 +505,8 @@ export function createBookmarksRouter(ctx: AppContext) {
     );
 
     async function toggleBookmarkHideHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const bookmarkId = parseInt(req.params.id as unknown as string);
+        const user = ctx.utils.request.requireUser(req.user);
+        const bookmarkId = parseInt(String(req.params.id ?? ''));
 
         const dbUser = await ctx.db('users').where({ id: user.id }).first();
 
@@ -566,10 +566,10 @@ export function createBookmarksRouter(ctx: AppContext) {
         '/api/bookmarks/:id',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
 
             const bookmark = await ctx.models.bookmarks.read(
-                parseInt(req.params.id as unknown as string),
+                parseInt(String(req.params.id ?? '')),
                 user.id,
             );
 
@@ -590,9 +590,9 @@ export function createBookmarksRouter(ctx: AppContext) {
         '/bookmarks/:id/tabs',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const tab_id = parseInt(req.body.tab_id as unknown as string);
-            const id = parseInt(req.params.id as unknown as string);
+            const user = ctx.utils.request.requireUser(req.user);
+            const tab_id = parseInt(req.body.tab_id);
+            const id = parseInt(String(req.params.id ?? ''));
 
             const item = await ctx.models.bookmarks.read(id, user.id);
 
@@ -619,7 +619,7 @@ export function createBookmarksRouter(ctx: AppContext) {
         '/bookmarks/prefetch',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
 
             if (activePrefetches.has(user.id)) {
                 req.flash('info', 'Screenshot caching already in progress...');

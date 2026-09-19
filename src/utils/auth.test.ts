@@ -1,24 +1,14 @@
 import { libs } from '../libs.js';
 import { config } from '../config.js';
 import { createAuth } from './auth.js';
-import { db } from '../tests/test-setup.js';
+import { db, ctx } from '../tests/test-setup.js';
 import type { ApiKeyPayload, MagicLinkPayload } from '../type.js';
-import { describe, expect, it, beforeAll, vi } from 'vite-plus/test';
+import { describe, expect, it, beforeAll } from 'vite-plus/test';
 
 let authUtils: ReturnType<typeof createAuth>;
 
-beforeAll(async () => {
-    const mockContext = {
-        db,
-        config,
-        libs,
-        logger: { error: vi.fn(), info: vi.fn(), tag: vi.fn().mockReturnThis() },
-        utils: {} as any,
-        models: {} as any,
-        errors: {} as any,
-    } as any;
-
-    authUtils = createAuth(mockContext);
+beforeAll(() => {
+    authUtils = ctx.utils.auth;
 });
 
 describe.concurrent('generateApiKey', () => {
@@ -31,11 +21,20 @@ describe.concurrent('generateApiKey', () => {
         const apiKey = await authUtils.generateApiKey(payload);
 
         expect(apiKey).toBeDefined();
-        expect(typeof apiKey).toBe('string');
+        expect(apiKey).toBeTypeOf('string');
         expect(apiKey.length).toBeGreaterThan(0);
 
         // Verify it's a valid JWT by decoding it
-        const decoded = libs.jwt.verify(apiKey, config.app.apiKeySecret) as ApiKeyPayload;
+        const decoded = libs.z
+            .object({
+                userId: libs.z.number().optional(),
+                apiKeyVersion: libs.z.number().optional(),
+                email: libs.z.string().optional(),
+                exp: libs.z.number().optional(),
+                iat: libs.z.number(),
+            })
+            .parse(libs.jwt.verify(apiKey, config.app.apiKeySecret));
+
         expect(decoded.userId).toBe(payload.userId);
         expect(decoded.apiKeyVersion).toBe(payload.apiKeyVersion);
     });
@@ -147,11 +146,20 @@ describe.concurrent('generateMagicLink', () => {
         const token = authUtils.generateMagicLink(payload);
 
         expect(token).toBeDefined();
-        expect(typeof token).toBe('string');
+        expect(token).toBeTypeOf('string');
         expect(token.length).toBeGreaterThan(0);
 
         // Verify it's a valid JWT by decoding it
-        const decoded = libs.jwt.verify(token, config.app.secretSalt) as MagicLinkPayload;
+        const decoded = libs.z
+            .object({
+                userId: libs.z.number().optional(),
+                apiKeyVersion: libs.z.number().optional(),
+                email: libs.z.string().optional(),
+                exp: libs.z.number(),
+                iat: libs.z.number(),
+            })
+            .parse(libs.jwt.verify(token, config.app.secretSalt));
+
         expect(decoded.email).toBe(payload.email);
     });
 
@@ -161,7 +169,16 @@ describe.concurrent('generateMagicLink', () => {
         };
 
         const token = authUtils.generateMagicLink(payload);
-        const decoded = libs.jwt.decode(token) as any;
+
+        const decoded = libs.z
+            .object({
+                userId: libs.z.number().optional(),
+                apiKeyVersion: libs.z.number().optional(),
+                email: libs.z.string().optional(),
+                exp: libs.z.number(),
+                iat: libs.z.number(),
+            })
+            .parse(libs.jwt.decode(token));
 
         expect(decoded.exp).toBeDefined();
         expect(decoded.iat).toBeDefined();
@@ -234,4 +251,22 @@ describe.concurrent('verifyMagicLink', () => {
 
         expect(result).toBeNull();
     });
+});
+
+describe('token payload validation', () => {
+    it('should reject signed API keys whose identifiers have the wrong types', async () => {
+        const token = libs.jwt.sign({ userId: '1', apiKeyVersion: 1 }, config.app.apiKeySecret);
+        await db('users').where({ id: 1 }).update({ api_key: token, api_key_version: 1 });
+
+        expect(await authUtils.verifyApiKey(token)).toBeNull();
+    });
+
+    it.each([{ email: ['test@example.com'] }, { email: 'invalid' }, {}])(
+        'should reject malformed signed magic-link claims: %j',
+        (payload) => {
+            const token = libs.jwt.sign(payload, config.app.secretSalt, { expiresIn: '15m' });
+
+            expect(authUtils.verifyMagicLink(token)).toBeNull();
+        },
+    );
 });

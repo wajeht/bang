@@ -16,15 +16,19 @@ export function createTemplate(context: AppContext) {
     return {
         engine(
             filePath: string,
-            opts: object,
+            opts: Parameters<typeof eta.render>[1],
             callback: (err: Error | null, html?: string) => void,
         ) {
             try {
                 const viewName = './' + path.relative(viewsDir, filePath);
-                const renderedTemplate = eta.render(viewName, opts as Record<string, unknown>);
+                const renderedTemplate = eta.render(viewName, opts);
                 callback(null, renderedTemplate);
             } catch (error) {
-                callback(error as Error);
+                callback(
+                    error instanceof Error
+                        ? error
+                        : new Error('Template rendering failed', { cause: error }),
+                );
             }
         },
     };

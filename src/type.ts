@@ -4,8 +4,8 @@ declare module 'express-session' {
     interface SessionData {
         redirectTo: string | null;
         user: User | null;
-        input: Record<string, unknown> | null;
-        errors: Record<string, unknown> | null;
+        input: Record<string, import('zod').core.util.JSONType> | null;
+        errors: Record<string, string> | null;
         /** The number of searches performed during the session. */
         searchCount: number;
         /** The total cumulative delay time (in milliseconds) encountered during the session. */
@@ -325,7 +325,7 @@ export type Logger = {
     warn(message: string, ...args: any[]): void;
     error(message: string, ...args: any[]): void;
     tag(key: string, value: string): Logger;
-    time(message: string, extra?: Record<string, any>): { stop(extra?: Record<string, any>): void };
+    time<T extends object>(message: string, extra?: T): { stop<U extends object>(extra?: U): void };
     table(tabularData: any, properties?: readonly string[]): void;
     box(title: string, content: string | string[]): void;
 };
@@ -352,6 +352,7 @@ import { createNtfy } from './utils/ntfy.js';
 import { createUtil } from './utils/util.js';
 import { createSearch } from './utils/search.js';
 import { createRequest } from './utils/request.js';
+import { createTemplate } from './utils/template.js';
 import { createValidation } from './utils/validation.js';
 import { createAssets } from './utils/assets.js';
 import type { CronService as CronServiceType } from './crons.js';
@@ -399,13 +400,7 @@ export interface Services {
     crons: CronService;
 }
 
-export interface TemplateUtils {
-    engine: (
-        filePath: string,
-        opts: object,
-        callback: (err: Error | null, html?: string) => void,
-    ) => void;
-}
+export type TemplateUtils = ReturnType<typeof createTemplate>;
 
 export interface Utilities {
     date: DateUtils;
@@ -439,40 +434,12 @@ export interface Middlewares {
 }
 
 export interface ErrorClasses {
-    HttpError: new (
-        statusCode: number,
-        message: string,
-        req?: express.Request,
-    ) => Error & {
-        statusCode: number;
-        request?: express.Request;
-    };
-    NotFoundError: new (
-        message: string,
-        req?: express.Request,
-    ) => Error & {
-        statusCode: number;
-        request?: express.Request;
-    };
-    ValidationError: new (errors: Record<string, string> | string) => Error & {
-        statusCode: number;
-        errors?: Record<string, string>;
-    };
-    UnauthorizedError: new (
-        message: string,
-        req?: express.Request,
-    ) => Error & {
-        statusCode: number;
-        request?: express.Request;
-    };
-    ForbiddenError: new (
-        message: string,
-        req?: express.Request,
-    ) => Error & {
-        statusCode: number;
-        request?: express.Request;
-    };
-    UnimplementedFunctionError: new (message: string) => Error & { statusCode: number };
+    HttpError: typeof import('./error.js').HttpError;
+    NotFoundError: typeof import('./error.js').NotFoundError;
+    ValidationError: typeof import('./error.js').ValidationError;
+    UnauthorizedError: typeof import('./error.js').UnauthorizedError;
+    ForbiddenError: typeof import('./error.js').ForbiddenError;
+    UnimplementedFunctionError: typeof import('./error.js').UnimplementedFunctionError;
 }
 
 export interface AppContext {

@@ -14,24 +14,28 @@ export function createHtml() {
     const REGEX_SCRIPT_UNSAFE = /[<>&\u2028\u2029]/g;
     const REGEX_HTML_CHARS = /[&<>"']/g;
 
-    const HTML_ENTITIES: Record<string, string> = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;',
-    };
+    const HTML_ENTITIES = new Map(
+        Object.entries({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+        }),
+    );
 
-    const NL2BR_MAP: Record<string, string> = {
-        '\r\n': '<br>',
-        '\r': '<br>',
-        '\n': '<br>',
-        '\t': '&nbsp;&nbsp;&nbsp;&nbsp;',
-        ' ': '&nbsp;',
-    };
+    const NL2BR_MAP = new Map(
+        Object.entries({
+            '\r\n': '<br>',
+            '\r': '<br>',
+            '\n': '<br>',
+            '\t': '&nbsp;&nbsp;&nbsp;&nbsp;',
+            ' ': '&nbsp;',
+        }),
+    );
 
     return {
-        serializeForScript(value: unknown): string {
+        serializeForScript<T>(value: T): string {
             return (JSON.stringify(value) ?? 'null').replace(
                 REGEX_SCRIPT_UNSAFE,
                 (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`,
@@ -39,7 +43,7 @@ export function createHtml() {
         },
 
         escapeHtml(text: string): string {
-            return text.replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES[char] || char);
+            return text.replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES.get(char) || char);
         },
 
         highlightSearchTerm(
@@ -51,7 +55,7 @@ export function createHtml() {
 
             const escaped = original.replace(
                 REGEX_HTML_CHARS,
-                (char) => HTML_ENTITIES[char] ?? char,
+                (char) => HTML_ENTITIES.get(char) ?? char,
             );
 
             const trimmedSearch = searchTerm?.trim();
@@ -73,8 +77,8 @@ export function createHtml() {
             for (const match of original.matchAll(searchRegex)) {
                 result += original
                     .slice(previousEnd, match.index)
-                    .replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES[char] ?? char);
-                result += `<mark>${match[0].replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES[char] ?? char)}</mark>`;
+                    .replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES.get(char) ?? char);
+                result += `<mark>${match[0].replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES.get(char) ?? char)}</mark>`;
                 previousEnd = match.index + match[0].length;
             }
 
@@ -82,11 +86,11 @@ export function createHtml() {
                 result +
                 original
                     .slice(previousEnd)
-                    .replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES[char] ?? char)
+                    .replace(REGEX_HTML_CHARS, (char) => HTML_ENTITIES.get(char) ?? char)
             );
         },
 
-        applyHighlighting<T extends Record<string, any>>(
+        applyHighlighting<T extends object>(
             items: T[],
             fields: (keyof T)[],
             searchTerm: string | null | undefined,
@@ -96,10 +100,9 @@ export function createHtml() {
             for (const item of items) {
                 for (const field of fields) {
                     if (item[field] != null) {
-                        item[field] = this.highlightSearchTerm(
-                            String(item[field]),
-                            searchTerm,
-                        ) as T[keyof T];
+                        Object.assign(item, {
+                            [field]: this.highlightSearchTerm(String(item[field]), searchTerm),
+                        });
                     }
                 }
             }
@@ -129,12 +132,12 @@ export function createHtml() {
                 .trim();
         },
 
-        nl2br(str: string): string {
+        nl2br(str: string | null | undefined): string {
             if (str === null || str === undefined || str === '') {
                 return '';
             }
 
-            return String(str).replace(REGEX_NL2BR, (match) => NL2BR_MAP[match] || match);
+            return String(str).replace(REGEX_NL2BR, (match) => NL2BR_MAP.get(match) || match);
         },
     };
 }

@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { User, AppContext } from '../../type.js';
+import type { AppContext } from '../../type.js';
 
 export function createTabsRouter(ctx: AppContext) {
     const router = ctx.libs.express.Router();
@@ -33,8 +33,8 @@ export function createTabsRouter(ctx: AppContext) {
         '/tabs/:id/edit',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
-            const tab = await ctx.models.tabs.read(parseInt(req.params.id as string), user.id);
+            const user = ctx.utils.request.requireUser(req.user);
+            const tab = await ctx.models.tabs.read(parseInt(String(req.params.id ?? '')), user.id);
 
             if (!tab) {
                 throw new ctx.errors.NotFoundError('Tab group not found');
@@ -54,10 +54,10 @@ export function createTabsRouter(ctx: AppContext) {
         '/tabs/:id/launch',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.session.user as User;
+            const user = ctx.utils.request.requireUser(req.session.user);
             const id = req.params.id;
 
-            const tabGroup = await ctx.models.tabs.read(parseInt(id as string), user.id);
+            const tabGroup = await ctx.models.tabs.read(parseInt(String(id)), user.id);
 
             if (!tabGroup) {
                 throw new ctx.errors.NotFoundError('Tab group not found');
@@ -78,7 +78,7 @@ export function createTabsRouter(ctx: AppContext) {
         '/tabs/:id/items/create',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.session.user as User;
+            const user = ctx.utils.request.requireUser(req.session.user);
             const tabId = req.params.id;
             const tab = await ctx.db('tabs').where({ id: tabId, user_id: user.id }).first();
 
@@ -100,7 +100,7 @@ export function createTabsRouter(ctx: AppContext) {
         '/tabs/:id/items/:itemId/edit',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
             const { id, itemId } = req.params;
 
             const tab = await ctx.db
@@ -150,7 +150,7 @@ export function createTabsRouter(ctx: AppContext) {
     router.get('/tabs', ctx.middleware.authentication, getTabsPageHandler);
 
     async function getTabsPageHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
 
         const { perPage, page, search, sortKey, direction } =
             ctx.utils.request.extractPaginationParams(req, 'tabs');
@@ -212,7 +212,7 @@ export function createTabsRouter(ctx: AppContext) {
     router.post('/tabs', ctx.middleware.authentication, postTabsPageHandler);
 
     async function postTabsPageHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
         const { title, trigger } = req.body;
 
         if (!title) {
@@ -295,10 +295,10 @@ export function createTabsRouter(ctx: AppContext) {
     router.post('/tabs/:id/update', ctx.middleware.authentication, updateTabHandler);
 
     async function updateTabHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
         const { title, trigger } = req.body;
 
-        const tab = await ctx.models.tabs.read(parseInt(req.params.id as string), user.id);
+        const tab = await ctx.models.tabs.read(parseInt(String(req.params.id ?? '')), user.id);
 
         if (!tab) {
             throw new ctx.errors.NotFoundError('Tab group not found');
@@ -344,7 +344,7 @@ export function createTabsRouter(ctx: AppContext) {
             throw new ctx.errors.ValidationError({ trigger: 'This trigger already exists' });
         }
 
-        await ctx.models.tabs.update(parseInt(req.params.id as string), user.id, {
+        await ctx.models.tabs.update(parseInt(String(req.params.id ?? '')), user.id, {
             title,
             trigger: formattedTrigger,
         });
@@ -386,7 +386,7 @@ export function createTabsRouter(ctx: AppContext) {
     router.post('/tabs/delete', ctx.middleware.authentication, deleteTabHandler);
 
     async function deleteTabHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
         const tabIds = ctx.utils.request.extractIdsForDelete(req);
         const deletedCount = await ctx.models.tabs.delete(tabIds, user.id);
 
@@ -443,7 +443,7 @@ export function createTabsRouter(ctx: AppContext) {
     router.post('/tabs/:id/items/create', ctx.middleware.authentication, postTabItemCreateHandler);
 
     async function postTabItemCreateHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
         const tabId = req.params.id;
         const { title, url } = req.body;
 
@@ -514,7 +514,7 @@ export function createTabsRouter(ctx: AppContext) {
     );
 
     async function postTabItemUpdateHandler(req: Request, res: Response) {
-        const user = req.user as User;
+        const user = ctx.utils.request.requireUser(req.user);
         const { id, itemId } = req.params;
 
         const tab = await ctx.db('tabs').where({ id, user_id: user.id }).first();
@@ -593,9 +593,9 @@ export function createTabsRouter(ctx: AppContext) {
     );
 
     async function deleteTabItemHandler(req: Request, res: Response) {
-        const user = req.user as User;
-        const tabId = parseInt(req.params.id as unknown as string);
-        const itemId = parseInt(req.params.itemId as unknown as string);
+        const user = ctx.utils.request.requireUser(req.user);
+        const tabId = parseInt(String(req.params.id ?? ''));
+        const itemId = parseInt(String(req.params.itemId ?? ''));
 
         const tab = await ctx.db('tabs').where({ id: tabId, user_id: user.id }).first();
 
@@ -631,7 +631,7 @@ export function createTabsRouter(ctx: AppContext) {
         '/tabs/prefetch',
         ctx.middleware.authentication,
         async (req: Request, res: Response) => {
-            const user = req.user as User;
+            const user = ctx.utils.request.requireUser(req.user);
 
             if (activePrefetches.has(user.id)) {
                 req.flash('info', 'Screenshot caching already in progress...');

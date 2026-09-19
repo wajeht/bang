@@ -1,25 +1,15 @@
 import { config } from '../config.js';
 import { createMail } from './mail.js';
-import { createAuth } from './auth.js';
+
 import { dayjs, libs } from '../libs.js';
 import { db, ctx } from '../tests/test-setup.js';
-import { createLogger } from '../utils/logger.js';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vite-plus/test';
 
-const logger = createLogger();
-
 describe('Mail Utils', () => {
-    const mockContext = {
-        libs,
-        config,
-        logger,
-        db,
-        utils: {
-            auth: createAuth({ libs, config, logger, db } as any),
-        },
-    } as any;
-
-    const mailUtils = createMail(mockContext);
+    let mailUtils: ReturnType<typeof createMail>;
+    beforeEach(() => {
+        mailUtils = createMail(ctx);
+    });
 
     afterEach(() => {
         vi.useRealTimers();
@@ -148,7 +138,7 @@ describe('Mail Utils', () => {
             const callArgs = sendEmailSpy.mock.calls[0][0];
             const token = callArgs.token;
 
-            const decoded = mockContext.utils.auth.verifyMagicLink(token);
+            const decoded = ctx.utils.auth.verifyMagicLink(token);
             expect(decoded).not.toBeNull();
             expect(decoded?.email).toBe('unverified@example.com');
         });
@@ -226,6 +216,7 @@ describe('Mail Utils', () => {
             sendMailMock = vi.fn().mockResolvedValue({ messageId: 'test-id' });
 
             const mockNodemailer = {
+                ...libs.nodemailer,
                 createTransport: vi.fn().mockReturnValue({ sendMail: sendMailMock }),
             };
 
@@ -235,6 +226,7 @@ describe('Mail Utils', () => {
             };
 
             const mockLogger = {
+                ...ctx.logger,
                 error: vi.fn(),
                 info: vi.fn(),
                 box: vi.fn(),
@@ -243,12 +235,13 @@ describe('Mail Utils', () => {
             };
 
             testMailUtils = createMail({
+                ...ctx,
                 db,
                 config: prodConfig,
                 libs: { ...libs, nodemailer: mockNodemailer },
                 logger: mockLogger,
-                models: { settings: createSettingsRepository({ db, config, libs } as any) },
-            } as any);
+                models: { ...ctx.models, settings: createSettingsRepository(ctx) },
+            });
         });
 
         it('should not send email when reminders array is empty', async () => {

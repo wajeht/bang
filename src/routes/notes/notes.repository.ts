@@ -81,7 +81,7 @@ export function createNotesRepository(ctx: AppContext): Notes {
                 query.orderBy('created_at', 'desc');
             }
 
-            return query.paginate({ perPage, currentPage: page, isLengthAware });
+            return ctx.database.paginate(query, { perPage, currentPage: page, isLengthAware });
         },
 
         create: async (note: Note) => {
@@ -110,7 +110,7 @@ export function createNotesRepository(ctx: AppContext): Notes {
 
         update: async (id: number, userId: number, updates: Partial<Note>) => {
             // Filter to only allowed update fields
-            const updateData: Record<string, unknown> = {};
+            const updateData: Partial<Note> = {};
             const entries = Object.entries(updates);
 
             for (let i = 0; i < entries.length; i++) {
@@ -120,7 +120,7 @@ export function createNotesRepository(ctx: AppContext): Notes {
                 const [key, value] = entry;
 
                 if (ALLOWED_UPDATE_FIELDS.has(key)) {
-                    updateData[key] = value;
+                    Object.assign(updateData, { [key]: value });
                 }
             }
 

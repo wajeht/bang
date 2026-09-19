@@ -40,8 +40,8 @@ export function createAdminRouter(ctx: AppContext) {
                 const { app_name, app_url } = req.body;
 
                 await ctx.models.settings.setMany({
-                    'branding.app_name': (app_name as string)?.trim() || 'Bang',
-                    'branding.app_url': (app_url as string)?.trim() || '',
+                    'branding.app_name': app_name?.trim() || 'Bang',
+                    'branding.app_url': app_url?.trim() || '',
                 });
 
                 req.flash('success', 'Identity settings updated successfully');
@@ -112,9 +112,10 @@ export function createAdminRouter(ctx: AppContext) {
                 );
             }
 
-            const { data, pagination } = await query
-                .orderBy(sortKey || 'created_at', direction || 'desc')
-                .paginate({ perPage, currentPage: page, isLengthAware: true });
+            const { data, pagination } = await ctx.database.paginate(
+                query.orderBy(sortKey || 'created_at', direction || 'desc'),
+                { perPage, currentPage: page, isLengthAware: true },
+            );
 
             return res.render('admin/admin-users-index.html', {
                 user: req.session?.user,
@@ -145,7 +146,7 @@ export function createAdminRouter(ctx: AppContext) {
 
     async function deleteUserHandler(req: Request, res: Response) {
         if (req.params.id) {
-            const userId = parseInt(req.params.id as unknown as string);
+            const userId = parseInt(String(req.params.id ?? ''));
 
             if (req.user?.is_admin && req.user?.id === userId) {
                 req.flash('info', 'you cannot delete yourself');

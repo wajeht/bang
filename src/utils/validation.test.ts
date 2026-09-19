@@ -1,7 +1,8 @@
+import { libs } from '../libs.js';
 import { describe, expect, it } from 'vite-plus/test';
 import { createValidation } from './validation.js';
 
-const validationUtils = createValidation();
+const validationUtils = createValidation({ libs });
 
 describe('ValidationUtils', () => {
     describe('isValidUrl', () => {
@@ -72,7 +73,7 @@ describe('ValidationUtils', () => {
             expect(validationUtils.isUrlLike('not a url')).toBe(false);
             expect(validationUtils.isUrlLike('hello')).toBe(false);
             expect(validationUtils.isUrlLike('')).toBe(false);
-            expect(validationUtils.isUrlLike(null as unknown as string)).toBe(false);
+            expect(validationUtils.isUrlLike(null)).toBe(false);
         });
     });
 
