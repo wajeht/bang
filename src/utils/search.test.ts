@@ -1351,10 +1351,10 @@ describe('search', () => {
         });
 
         it('should handle user with different default search provider', async () => {
-            const googleUser = {
+            const googleUser = createUserFixture({
                 ...testUser,
                 default_search_provider: 'google',
-            };
+            });
 
             const req = createRequestFixture({
                 logger: mockLogger(),
@@ -2086,13 +2086,11 @@ describe('search', () => {
             });
 
             it('should return error when user is not authenticated', async () => {
-                const unauthenticatedUser = { ...testUser, id: undefined };
-
                 const req = createRequestFixture({
                     logger: mockLogger(),
                     session: {},
                     query: { q: '!del !test' },
-                    user: unauthenticatedUser,
+                    user: undefined,
                 });
 
                 const res = createResponseFixture({
@@ -2453,13 +2451,11 @@ describe('search', () => {
             });
 
             it('should return error when user is not authenticated', async () => {
-                const unauthenticatedUser = { ...testUser, id: undefined };
-
                 const req = createRequestFixture({
                     logger: mockLogger(),
                     session: {},
                     query: { q: '!edit !test !newtrigger' },
-                    user: unauthenticatedUser,
+                    user: undefined,
                 });
 
                 const res = createResponseFixture({
@@ -3125,15 +3121,9 @@ describe('search', () => {
             it('should handle user without preferences (fallback to defaults)', async () => {
                 isValidUrl.mockRestore();
 
-                const userWithoutPrefs = {
-                    id: 1,
-                    username: 'Test User',
-                    email: 'test@example.com',
-                    is_admin: false,
-                    default_search_provider: 'duckduckgo',
-                    column_preferences: null,
-                    timezone: null,
-                };
+                const userWithoutPrefs = createUserFixture();
+                // Exercise legacy stored data before preference normalization.
+                Object.assign(userWithoutPrefs, { column_preferences: null, timezone: null });
 
                 const req = createRequestFixture({
                     logger: mockLogger(),
@@ -4350,13 +4340,11 @@ describe('Bang Search Optimization', () => {
     });
 
     it('should skip DB query for system bang when user has no custom override', async () => {
+        await searchUtils.loadCachedTriggers(testUser.id);
+
         const req = createRequestFixture({
             logger: mockLogger(),
-            session: {
-                bangTriggers: [],
-                tabTriggers: [],
-                triggersCachedAt: Date.now(),
-            },
+            session: {},
             query: { q: '!g python' },
             user: testUser,
         });
@@ -4387,13 +4375,11 @@ describe('Bang Search Optimization', () => {
             action_type: 'search',
         });
 
+        await searchUtils.loadCachedTriggers(testUser.id);
+
         const req = createRequestFixture({
             logger: mockLogger(),
-            session: {
-                bangTriggers: ['!g'],
-                tabTriggers: [],
-                triggersCachedAt: Date.now(),
-            },
+            session: {},
             query: { q: '!g python' },
             user: testUser,
         });
@@ -4417,13 +4403,11 @@ describe('Bang Search Optimization', () => {
             })
             .returning('*');
 
+        await searchUtils.loadCachedTriggers(testUser.id);
+
         const req = createRequestFixture({
             logger: mockLogger(),
-            session: {
-                bangTriggers: [],
-                tabTriggers: ['!mytabs'],
-                triggersCachedAt: Date.now(),
-            },
+            session: {},
             query: { q: '!mytabs' },
             user: testUser,
         });
@@ -4475,13 +4459,11 @@ describe('Bang Search Optimization', () => {
     });
 
     it('should use system bang when custom bang not in cache', async () => {
+        await searchUtils.loadCachedTriggers(testUser.id);
+
         const req = createRequestFixture({
             logger: mockLogger(),
-            session: {
-                bangTriggersMap: {},
-                tabTriggersMap: {},
-                triggersCachedAt: Date.now(),
-            },
+            session: {},
             query: { q: '!yt video' },
             user: testUser,
         });
@@ -4499,13 +4481,11 @@ describe('Bang Search Optimization', () => {
     });
 
     it('should fall back to default search for unknown bang not in cache', async () => {
+        await searchUtils.loadCachedTriggers(testUser.id);
+
         const req = createRequestFixture({
             logger: mockLogger(),
-            session: {
-                bangTriggers: [],
-                tabTriggers: [],
-                triggersCachedAt: Date.now(),
-            },
+            session: {},
             query: { q: '!unknownbang' },
             user: createUserFixture({ ...testUser, default_search_provider: 'duckduckgo' }),
         });
@@ -4592,13 +4572,11 @@ describe('Bang Search Performance', () => {
             set: vi.fn().mockReturnThis(),
         });
 
+        await searchUtils.loadCachedTriggers(testUser.id);
+
         const req = createRequestFixture({
             logger: mockLogger(),
-            session: {
-                bangTriggers: [],
-                tabTriggers: [],
-                triggersCachedAt: Date.now(),
-            },
+            session: {},
         });
 
         const iterations = 10;
@@ -4626,13 +4604,11 @@ describe('Bang Search Performance', () => {
             set: vi.fn().mockReturnThis(),
         });
 
+        await searchUtils.loadCachedTriggers(testUser.id);
+
         const req = createRequestFixture({
             logger: mockLogger(),
-            session: {
-                bangTriggers: ['!custom1', '!custom2'],
-                tabTriggers: ['!mytab'],
-                triggersCachedAt: Date.now(),
-            },
+            session: {},
             query: { q: '!custom1' },
             user: testUser,
         });

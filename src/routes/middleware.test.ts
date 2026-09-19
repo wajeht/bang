@@ -53,11 +53,6 @@ describe('authenticationMiddleware', () => {
             path: '/dashboard',
             user: undefined,
             headers: {},
-            header: vi.fn((name: string) => {
-                const headers = req.headers || {};
-
-                return headers[name.toLowerCase()];
-            }),
         });
 
         res = createResponseFixture({
@@ -334,11 +329,6 @@ describe('errorMiddleware', () => {
                 cookie: { maxAge: 30000, originalMaxAge: 30000 },
             },
             flash: vi.fn().mockReturnValue([]),
-            header: vi.fn((name: string) => {
-                const headers = req.headers || {};
-
-                return headers[name.toLowerCase()];
-            }),
         });
         res = createResponseFixture({
             status: vi.fn().mockReturnThis(),
@@ -821,11 +811,6 @@ describe('CsrfMiddleware', () => {
                 id: 'test-session-id',
                 cookie: { maxAge: 30000, originalMaxAge: 30000 },
             },
-            header: vi.fn((name: string) => {
-                const headers = req.headers || {};
-
-                return headers[name.toLowerCase()];
-            }),
         });
 
         res = createResponseFixture({
