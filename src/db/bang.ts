@@ -114275,6 +114275,15 @@ export const bangs: Record<string, any> = {
         c: 'Tech',
         sc: 'Blogs',
     },
+    khi: {
+        s: 'KHInsider Video Game Music',
+        d: 'downloads.khinsider.com',
+        t: 'khi',
+        ts: ['vgm'],
+        u: 'https://downloads.khinsider.com/search?search={{{s}}}',
+        c: 'Multimedia',
+        sc: 'Music',
+    },
     klipy: {
         s: 'KLIPY',
         d: 'klipy.com',
