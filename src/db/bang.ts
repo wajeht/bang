@@ -281,6 +281,7 @@ export const bangs: Record<string, any> = {
     '11st': {
         s: '11번가',
         d: 'search.11st.co.kr',
+        ad: '11st.co.kr',
         t: '11st',
         u: 'https://search.11st.co.kr/SearchPrdAction.tmall?method=getTotalSearchSeller&kwd={{{s}}}',
         c: 'Shopping',
@@ -848,6 +849,7 @@ export const bangs: Record<string, any> = {
     '4shared': {
         s: '4shared',
         d: 'search.4shared.com',
+        ad: '4shared.com',
         t: '4shared',
         u: 'https://search.4shared.com/q/CCAD/1/{{{s}}}',
         c: 'Multimedia',
@@ -1387,6 +1389,7 @@ export const bangs: Record<string, any> = {
     abcau: {
         s: 'ABC Australia',
         d: 'search.abc.net.au',
+        ad: 'abc.net.au',
         t: 'abcau',
         u: 'https://search.abc.net.au/s/search.html?query={{{s}}}&collection=abcall_meta&form=simple',
         c: 'News',
@@ -4128,6 +4131,7 @@ export const bangs: Record<string, any> = {
     ameblo: {
         s: 'Ameblo',
         d: 'search.ameba.jp',
+        ad: 'ameba.jp',
         t: 'ameblo',
         u: 'https://search.ameba.jp/search.html?q={{{s}}}',
         c: 'Entertainment',
@@ -5207,6 +5211,7 @@ export const bangs: Record<string, any> = {
     aol: {
         s: 'AOL',
         d: 'search.aol.com',
+        ad: 'aol.com',
         t: 'aol',
         u: 'https://search.aol.com/aol/search?enabled_terms=&s_it=comsearch&q={{{s}}}',
         c: 'Research',
@@ -7606,6 +7611,7 @@ export const bangs: Record<string, any> = {
     auone: {
         s: 'au one Web Portal',
         d: 'search.auone.jp',
+        ad: 'auone.jp',
         t: 'auone',
         u: 'https://search.auone.jp/?q={{{s}}}',
         c: 'Online Services',
@@ -7854,6 +7860,7 @@ export const bangs: Record<string, any> = {
     avg: {
         s: 'AVG Secure Search',
         d: 'search.avg.com',
+        ad: 'avg.com',
         t: 'avg',
         u: 'https://search.avg.com/search?q={{{s}}}',
         c: 'Online Services',
@@ -8138,6 +8145,7 @@ export const bangs: Record<string, any> = {
     azl: {
         s: 'Az Lyrics',
         d: 'search.azlyrics.com',
+        ad: 'azlyrics.com',
         t: 'azl',
         ts: ['azlyrics'],
         u: 'https://search.azlyrics.com/search.php?q={{{s}}}',
@@ -10535,6 +10543,7 @@ export const bangs: Record<string, any> = {
     bilibili: {
         s: 'bilibili',
         d: 'search.bilibili.com',
+        ad: 'bilibili.com',
         t: 'bilibili',
         ts: ['bili', 'blbl'],
         u: 'https://search.bilibili.com/all?keyword={{{s}}}',
@@ -11005,6 +11014,7 @@ export const bangs: Record<string, any> = {
     bkkpost: {
         s: 'Bangkok Post',
         d: 'search.bangkokpost.com',
+        ad: 'bangkokpost.com',
         t: 'bkkpost',
         u: 'https://search.bangkokpost.com/search/result_advanced?category=all&xChannel=&q={{{s}}}',
         c: 'News',
@@ -11013,6 +11023,7 @@ export const bangs: Record<string, any> = {
     bkl: {
         s: '博客來',
         d: 'search.books.com.tw',
+        ad: 'books.com.tw',
         t: 'bkl',
         u: 'https://search.books.com.tw/search/query/key/{{{s}}}/cat/all',
         c: 'Shopping',
@@ -12464,6 +12475,7 @@ export const bangs: Record<string, any> = {
     brave: {
         s: 'Brave Search',
         d: 'search.brave.com',
+        ad: 'brave.com',
         t: 'brave',
         u: 'https://search.brave.com/search?q={{{s}}}',
         c: 'Online Services',
@@ -14108,6 +14120,7 @@ export const bangs: Record<string, any> = {
     cam: {
         s: 'University of Cambridge',
         d: 'search.cam.ac.uk',
+        ad: 'cam.ac.uk',
         t: 'cam',
         u: 'https://search.cam.ac.uk/web?query={{{s}}}',
         c: 'Research',
@@ -14411,6 +14424,7 @@ export const bangs: Record<string, any> = {
     carrot: {
         s: 'Carrot2 Clustering Engine',
         d: 'search.carrot2.org',
+        ad: 'carrot2.org',
         t: 'carrot',
         u: 'https://search.carrot2.org/stable/search?source=web&view=folders&skin=fancy-compact&query={{{s}}}&results=100&algorithm=lingo',
         c: 'Online Services',
@@ -14640,6 +14654,7 @@ export const bangs: Record<string, any> = {
     cbsnews: {
         s: 'CBSNews',
         d: 'search.cbsnews.com',
+        ad: 'cbsnews.com',
         t: 'cbsnews',
         u: 'https://search.cbsnews.com/?source=cbs&q={{{s}}}',
         c: 'News',
@@ -15883,6 +15898,7 @@ export const bangs: Record<string, any> = {
     cheezburger: {
         s: 'Cheezburger',
         d: 'search.cheezburger.com',
+        ad: 'cheezburger.com',
         t: 'cheezburger',
         u: 'https://search.cheezburger.com/?q={{{s}}}',
         c: 'Multimedia',
@@ -16477,6 +16493,7 @@ export const bangs: Record<string, any> = {
     cisco: {
         s: 'Cisco',
         d: 'search.cisco.com',
+        ad: 'cisco.com',
         t: 'cisco',
         u: 'https://search.cisco.com/search?query={{{s}}}',
         c: 'Tech',
@@ -17229,6 +17246,7 @@ export const bangs: Record<string, any> = {
     cnbc: {
         s: 'CNBC',
         d: 'search.cnbc.com',
+        ad: 'cnbc.com',
         t: 'cnbc',
         u: 'https://search.cnbc.com/main.do?target=all&keywords={{{s}}}',
         c: 'News',
@@ -19214,6 +19232,7 @@ export const bangs: Record<string, any> = {
     cricinfo: {
         s: 'Cricinfo',
         d: 'search.espncricinfo.com',
+        ad: 'espncricinfo.com',
         t: 'cricinfo',
         u: 'https://search.espncricinfo.com/ci/content/site/search.html?search={{{s}}}&gblsearch=',
         c: 'Entertainment',
@@ -19328,6 +19347,7 @@ export const bangs: Record<string, any> = {
     crossref: {
         s: 'crossref',
         d: 'search.crossref.org',
+        ad: 'crossref.org',
         t: 'crossref',
         ts: ['xref'],
         u: 'https://search.crossref.org/?q={{{s}}}',
@@ -20617,6 +20637,7 @@ export const bangs: Record<string, any> = {
     danawa: {
         s: 'Danawa',
         d: 'search.danawa.com',
+        ad: 'danawa.com',
         t: 'danawa',
         ts: ['dnw'],
         u: 'https://search.danawa.com/dsearch.php?query={{{s}}}',
@@ -20774,6 +20795,7 @@ export const bangs: Record<string, any> = {
     dartlib: {
         s: 'Dartmouth College Libraries',
         d: 'search.library.dartmouth.edu',
+        ad: 'library.dartmouth.edu',
         t: 'dartlib',
         u: 'https://search.library.dartmouth.edu/discovery/search?vid=01DCL_INST:01DCL&tab=All&search_scope=MyInst_and_CI&mode=basic&displayMode=full&bulkSize=10&highlight=true&dum=true&query=any,contains,{{{s}}}&displayField=all&pcAvailabilityMode=true',
         c: 'Research',
@@ -20839,6 +20861,7 @@ export const bangs: Record<string, any> = {
     datacite: {
         s: 'datacite.org',
         d: 'search.datacite.org',
+        ad: 'datacite.org',
         t: 'datacite',
         u: 'https://search.datacite.org/works?query={{{s}}}',
         c: 'Research',
@@ -20939,6 +20962,7 @@ export const bangs: Record<string, any> = {
     daum: {
         s: 'Daum',
         d: 'search.daum.net',
+        ad: 'daum.net',
         t: 'daum',
         u: 'https://search.daum.net/search?w=tot&q={{{s}}}',
         c: 'Online Services',
@@ -21344,6 +21368,7 @@ export const bangs: Record<string, any> = {
     dcinside: {
         s: 'dcinside',
         d: 'search.dcinside.com',
+        ad: 'dcinside.com',
         t: 'dcinside',
         u: 'https://search.dcinside.com/combine/q/{{{s}}}',
         c: 'Entertainment',
@@ -22081,6 +22106,7 @@ export const bangs: Record<string, any> = {
     debian: {
         s: 'Debian',
         d: 'search.debian.org',
+        ad: 'debian.org',
         t: 'debian',
         u: 'https://search.debian.org/cgi-bin/omega?DB=en&P={{{s}}}',
         c: 'Tech',
@@ -23940,6 +23966,7 @@ export const bangs: Record<string, any> = {
     disconnect: {
         s: 'Disconnect Search',
         d: 'search.disconnect.me',
+        ad: 'disconnect.me',
         t: 'disconnect',
         u: 'https://search.disconnect.me/searchTerms/search?query={{{s}}}&ses=Google',
         c: 'Online Services',
@@ -23948,6 +23975,7 @@ export const bangs: Record<string, any> = {
     disconnectimg: {
         s: 'Disconnect Image Search',
         d: 'search.disconnect.me',
+        ad: 'disconnect.me',
         t: 'disconnectimg',
         u: 'https://search.disconnect.me/searchTerms/search?query={{{s}}}&option=Images',
         c: 'Online Services',
@@ -24015,6 +24043,7 @@ export const bangs: Record<string, any> = {
     disney: {
         s: 'Disney.com',
         d: 'search.disney.go.com',
+        ad: 'disney.go.com',
         t: 'disney',
         u: 'https://search.disney.go.com/?q={{{s}}}',
         c: 'Entertainment',
@@ -24514,12 +24543,13 @@ export const bangs: Record<string, any> = {
         u: 'https://dyn.manpages.debian.org/jump?q={{{s}}}',
     },
     dmap: {
-        s: 'Daum Map',
-        d: 'map.daum.net',
-        t: 'dmap',
-        u: 'https://map.daum.net/?q={{{s}}}',
         c: 'Online Services',
+        d: 'map.daum.net',
+        r: 4,
+        s: 'Daum Map',
         sc: 'Maps',
+        t: 'dmap',
+        u: 'http://map.daum.net/?q={{{s}}}',
     },
     dmarc: {
         s: 'MXToolbox DMARC',
@@ -25330,6 +25360,7 @@ export const bangs: Record<string, any> = {
     dover: {
         s: 'Dover Publications',
         d: 'search.doverpublications.com',
+        ad: 'doverpublications.com',
         t: 'dover',
         u: 'https://search.doverpublications.com/search?keywords={{{s}}}',
         c: 'Shopping',
@@ -26188,6 +26219,7 @@ export const bangs: Record<string, any> = {
     dsrt: {
         s: 'Disroot Search',
         d: 'search.disroot.org',
+        ad: 'disroot.org',
         t: 'dsrt',
         u: 'https://search.disroot.org/?q={{{s}}}',
         c: 'Online Services',
@@ -26943,6 +26975,7 @@ export const bangs: Record<string, any> = {
     earth911: {
         s: 'Earth911.com',
         d: 'search.earth911.com',
+        ad: 'earth911.com',
         t: 'earth911',
         ts: ['recycle'],
         u: 'https://search.earth911.com/?what={{{s}}}',
@@ -28901,6 +28934,7 @@ export const bangs: Record<string, any> = {
     elreg: {
         s: 'The Register',
         d: 'search.theregister.co.uk',
+        ad: 'theregister.co.uk',
         t: 'elreg',
         ts: ['register', 'theregister'],
         u: 'https://search.theregister.co.uk/?q={{{s}}}',
@@ -29019,6 +29053,7 @@ export const bangs: Record<string, any> = {
     emedicine: {
         s: 'Medscape Reference',
         d: 'search.medscape.com',
+        ad: 'medscape.com',
         t: 'emedicine',
         ts: ['medscape'],
         u: 'https://search.medscape.com/reference-search?newSearchHeader=1&queryText={{{s}}}',
@@ -29945,6 +29980,7 @@ export const bangs: Record<string, any> = {
     epa: {
         s: 'US Environmental Protection Agency',
         d: 'search.epa.gov',
+        ad: 'epa.gov',
         t: 'epa',
         u: 'https://search.epa.gov/epasearch/?querytext={{{s}}}&areaname=&areacontacts=&areasearchurl=&typeofsearch=epa&result_template=#/',
         c: 'Research',
@@ -29987,6 +30023,7 @@ export const bangs: Record<string, any> = {
     epfldir: {
         s: 'EPFL Directory',
         d: 'search.epfl.ch',
+        ad: 'epfl.ch',
         t: 'epfldir',
         u: 'https://search.epfl.ch/psearch.action?q={{{s}}}&f=directory&lang=en&pageSize=10&sort=',
         c: 'Research',
@@ -29995,6 +30032,7 @@ export const bangs: Record<string, any> = {
     epfl: {
         s: 'EPFL',
         d: 'search.epfl.ch',
+        ad: 'epfl.ch',
         t: 'epfl',
         u: 'https://search.epfl.ch/web.action?q={{{s}}}',
         c: 'Research',
@@ -30698,6 +30736,7 @@ export const bangs: Record<string, any> = {
     ethl: {
         s: 'ETH Library',
         d: 'search.library.ethz.ch',
+        ad: 'library.ethz.ch',
         t: 'ethl',
         u: 'https://search.library.ethz.ch/primo-explore/search?query=any,contains,{{{s}}}&tab=default_tab&search_scope=default_scope&vid=DADS&lang=en_US&offset=0',
         c: 'Multimedia',
@@ -32453,6 +32492,7 @@ export const bangs: Record<string, any> = {
     fcode: {
         s: 'freeCodeCamp',
         d: 'search.freecodecamp.org',
+        ad: 'freecodecamp.org',
         t: 'fcode',
         u: 'https://search.freecodecamp.org/?q={{{s}}}',
         c: 'Online Services',
@@ -32495,6 +32535,7 @@ export const bangs: Record<string, any> = {
     fda: {
         s: 'FDA',
         d: 'search.usa.gov',
+        ad: 'usa.gov',
         t: 'fda',
         u: 'https://search.usa.gov/search?utf8=%E2%9C%93&affiliate=fda&query={{{s}}}&commit=Search',
         c: 'Research',
@@ -32593,6 +32634,7 @@ export const bangs: Record<string, any> = {
     fdroid: {
         s: 'F-Droid search',
         d: 'search.f-droid.org',
+        ad: 'f-droid.org',
         t: 'fdroid',
         u: 'https://search.f-droid.org/?q={{{s}}}',
         c: 'Tech',
@@ -33678,6 +33720,7 @@ export const bangs: Record<string, any> = {
     fiueds: {
         s: 'FIU Libraries EDS',
         d: 'search.ebscohost.com.ezproxy.fiu.edu',
+        ad: 'ebscohost.com.ezproxy.fiu.edu',
         t: 'fiueds',
         u: 'https://search.ebscohost.com.ezproxy.fiu.edu/login.aspx?direct=true&scope=site&type=0&site=eds-live&lang=en&bquery=[{{{s}}}]',
         c: 'Research',
@@ -34259,6 +34302,7 @@ export const bangs: Record<string, any> = {
     folha: {
         s: 'Folha de S. Paulo',
         d: 'search.folha.com.br',
+        ad: 'folha.com.br',
         t: 'folha',
         u: 'https://search.folha.com.br/search?q={{{s}}}',
         c: 'News',
@@ -34423,6 +34467,7 @@ export const bangs: Record<string, any> = {
     foodsubs: {
         s: "Cook's Thesaurus",
         d: 'search.freefind.com',
+        ad: 'freefind.com',
         t: 'foodsubs',
         u: 'https://search.freefind.com/find.html?id=81296093&pageid=r&query={{{s}}}',
         c: 'Research',
@@ -37891,6 +37936,7 @@ export const bangs: Record<string, any> = {
     gex: {
         s: 'gexsi',
         d: 'search.gexsi.com',
+        ad: 'gexsi.com',
         t: 'gex',
         u: 'https://search.gexsi.com/en/search/?q={{{s}}}',
         c: 'Online Services',
@@ -39319,6 +39365,7 @@ export const bangs: Record<string, any> = {
     gmarket: {
         s: 'GMarket',
         d: 'search.gmarket.co.kr',
+        ad: 'gmarket.co.kr',
         t: 'gmarket',
         u: 'https://search.gmarket.co.kr/search.aspx?keyword={{{s}}}',
         c: 'Shopping',
@@ -40382,6 +40429,7 @@ export const bangs: Record<string, any> = {
     goo: {
         s: 'goo検索',
         d: 'search.goo.ne.jp',
+        ad: 'goo.ne.jp',
         t: 'goo',
         u: 'https://search.goo.ne.jp/web.jsp?MT={{{s}}}&IE=UTF-8&OE=UTF-8',
         c: 'Online Services',
@@ -40608,6 +40656,7 @@ export const bangs: Record<string, any> = {
     govimages: {
         s: 'US Government Image Search',
         d: 'search.usa.gov',
+        ad: 'usa.gov',
         t: 'govimages',
         u: 'https://search.usa.gov/search/images?affiliate=usagov&query={{{s}}}',
         c: 'Research',
@@ -40642,6 +40691,7 @@ export const bangs: Record<string, any> = {
     gov: {
         s: 'US Government Search',
         d: 'search.usa.gov',
+        ad: 'usa.gov',
         t: 'gov',
         u: 'https://search.usa.gov/search?affiliate=usagov&query={{{s}}}',
         c: 'Research',
@@ -45836,6 +45886,7 @@ export const bangs: Record<string, any> = {
     hds: {
         s: 'All Datasheet Catalog',
         d: 'search.datasheetcatalog.net',
+        ad: 'datasheetcatalog.net',
         t: 'hds',
         u: 'https://search.datasheetcatalog.net/key/{{{s}}}',
         c: 'Shopping',
@@ -47432,6 +47483,7 @@ export const bangs: Record<string, any> = {
     hp: {
         s: 'HP',
         d: 'search.hp.com',
+        ad: 'hp.com',
         t: 'hp',
         u: 'https://search.hp.com/query.html?lang=en&submit.x=0&submit.y=0&qt={{{s}}}&la=en&cc=us',
         c: 'Tech',
@@ -48631,6 +48683,7 @@ export const bangs: Record<string, any> = {
     icpl: {
         s: 'Iowa City Public Library',
         d: 'search.icpl.org',
+        ad: 'icpl.org',
         t: 'icpl',
         u: 'https://search.icpl.org/Search/Results?lookfor={{{s}}}',
         c: 'Research',
@@ -49414,6 +49467,7 @@ export const bangs: Record<string, any> = {
     ilstu: {
         s: 'Illinois State University',
         d: 'search.illinoisstate.edu',
+        ad: 'illinoisstate.edu',
         t: 'ilstu',
         u: 'https://search.illinoisstate.edu/?q={{{s}}}',
         c: 'Research',
@@ -50868,6 +50922,7 @@ export const bangs: Record<string, any> = {
     irs: {
         s: 'IRS',
         d: 'search.irs.gov',
+        ad: 'irs.gov',
         t: 'irs',
         u: 'https://search.irs.gov/search?q={{{s}}}&proxystylesheet=irs_portals_frontend',
         c: 'Research',
@@ -51704,6 +51759,7 @@ export const bangs: Record<string, any> = {
     java4: {
         s: 'Java4 Docs',
         d: 'search.oracle.com',
+        ad: 'oracle.com',
         t: 'java4',
         u: 'https://search.oracle.com/search/search?tzoffset=420&default=true&q={{{s}}}+url:/javase/1.4.2/docs&start=1&nodeid=&fid=&showSimilarDoc=true&group=Documentation&keyword=&x=0&y=0',
         c: 'Tech',
@@ -51712,6 +51768,7 @@ export const bangs: Record<string, any> = {
     java5: {
         s: 'Java5 Docs',
         d: 'search.oracle.com',
+        ad: 'oracle.com',
         t: 'java5',
         u: 'https://search.oracle.com/search/search?tzoffset=420&default=true&q={{{s}}}+url:/javase/1.5.0/docs&start=1&nodeid=&fid=&showSimilarDoc=true&group=Documentation&keyword=&x=0&y=0',
         c: 'Tech',
@@ -51720,6 +51777,7 @@ export const bangs: Record<string, any> = {
     java6: {
         s: 'Java6 Docs',
         d: 'search.oracle.com',
+        ad: 'oracle.com',
         t: 'java6',
         u: 'https://search.oracle.com/search/search?tzoffset=420&default=true&q={{{s}}}+url:/javase/6/docs&start=1&nodeid=&fid=&showSimilarDoc=true&group=Documentation&keyword=&x=0&y=0',
         c: 'Tech',
@@ -51754,6 +51812,7 @@ export const bangs: Record<string, any> = {
     javafx: {
         s: 'Oracle JavaFX',
         d: 'search.oracle.com',
+        ad: 'oracle.com',
         t: 'javafx',
         u: 'https://search.oracle.com/search/search?num=10&exttimeout=false&q={{{s}}}+url:/javase/8/javafx/api&group=Documentation',
         c: 'Tech',
@@ -52008,6 +52067,7 @@ export const bangs: Record<string, any> = {
     jd: {
         s: '京东网上商城',
         d: 'search.jd.com',
+        ad: 'jd.com',
         t: 'jd',
         u: 'https://search.jd.com/Search?keyword={{{s}}}&enc=utf-8',
         c: 'Shopping',
@@ -52914,6 +52974,7 @@ export const bangs: Record<string, any> = {
     jtut: {
         s: 'Java Tutorial (Oracle)',
         d: 'search.oracle.com',
+        ad: 'oracle.com',
         t: 'jtut',
         u: 'https://search.oracle.com/search/search?search_p_main_operator=all&group=Documentation&q={{{s}}}+url:/javase/tutorial',
         c: 'Tech',
@@ -54777,6 +54838,7 @@ export const bangs: Record<string, any> = {
     kompas: {
         s: 'Kompas',
         d: 'search.kompas.com',
+        ad: 'kompas.com',
         t: 'kompas',
         u: 'https://search.kompas.com/search/?q={{{s}}}&submit=Submit+Query',
         c: 'News',
@@ -55494,6 +55556,7 @@ export const bangs: Record<string, any> = {
     kyobo: {
         s: 'Kyobo Book Centre',
         d: 'search.kyobobook.co.kr',
+        ad: 'kyobobook.co.kr',
         t: 'kyobo',
         u: 'https://search.kyobobook.co.kr/web/search?vPstrKeyWord={{{s}}}',
         c: 'Shopping',
@@ -55976,6 +56039,7 @@ export const bangs: Record<string, any> = {
     latimes: {
         s: 'LATimes',
         d: 'search.latimes.com',
+        ad: 'latimes.com',
         t: 'latimes',
         u: 'https://search.latimes.com/search?q={{{s}}}',
         c: 'News',
@@ -56889,6 +56953,7 @@ export const bangs: Record<string, any> = {
     letssingit: {
         s: 'Letssingit',
         d: 'search.letssingit.com',
+        ad: 'letssingit.com',
         t: 'letssingit',
         u: 'https://search.letssingit.com/?s={{{s}}}&a=search&l=archive',
         c: 'Multimedia',
@@ -57518,6 +57583,7 @@ export const bangs: Record<string, any> = {
     lilo: {
         s: 'Lilo',
         d: 'search.lilo.org',
+        ad: 'lilo.org',
         t: 'lilo',
         u: 'https://search.lilo.org/searchweb.php?q={{{s}}}',
         c: 'Online Services',
@@ -58156,6 +58222,7 @@ export const bangs: Record<string, any> = {
     liu: {
         s: 'Linköping University',
         d: 'search.liu.se',
+        ad: 'liu.se',
         t: 'liu',
         u: 'https://search.liu.se/en/?query={{{s}}}',
         c: 'Research',
@@ -59073,6 +59140,7 @@ export const bangs: Record<string, any> = {
     lsi: {
         s: "Let's sing it",
         d: 'search.letssingit.com',
+        ad: 'letssingit.com',
         t: 'lsi',
         u: 'https://search.letssingit.com/cgi-exe/am.cgi?a=search&l=archive&typeid=2&s={{{s}}}',
         c: 'Entertainment',
@@ -59214,6 +59282,7 @@ export const bangs: Record<string, any> = {
     ltulib: {
         s: 'La Trobe University Library',
         d: 'search.lib.latrobe.edu.au',
+        ad: 'lib.latrobe.edu.au',
         t: 'ltulib',
         u: 'https://search.lib.latrobe.edu.au/primo_library/libweb/action/dlSearch.do?vid=LATROBE&institution=LATROBE&search_scope=All&query=any,contains,{{{s}}}',
         c: 'Research',
@@ -59603,6 +59672,7 @@ export const bangs: Record<string, any> = {
     lycos: {
         s: 'Lycos',
         d: 'search.lycos.com',
+        ad: 'lycos.com',
         t: 'lycos',
         u: 'https://search.lycos.com/web?q={{{s}}}',
         c: 'Online Services',
@@ -62556,6 +62626,7 @@ export const bangs: Record<string, any> = {
     mercola: {
         s: 'Mercola',
         d: 'search.mercola.com',
+        ad: 'mercola.com',
         t: 'mercola',
         u: 'https://search.mercola.com/results.aspx?q={{{s}}}',
         c: 'Research',
@@ -63110,6 +63181,7 @@ export const bangs: Record<string, any> = {
     mib: {
         s: 'Mibbit',
         d: 'search.mibbit.com',
+        ad: 'mibbit.com',
         t: 'mib',
         u: 'https://search.mibbit.com/search/{{{s}}}',
         c: 'Online Services',
@@ -63150,6 +63222,7 @@ export const bangs: Record<string, any> = {
     microsoft: {
         s: 'Microsoft',
         d: 'search.microsoft.com',
+        ad: 'microsoft.com',
         t: 'microsoft',
         ts: ['ms'],
         u: 'https://search.microsoft.com/results.aspx?mkt=en-US&form=MSHOME&setlang=en-US&q={{{s}}}',
@@ -63192,6 +63265,7 @@ export const bangs: Record<string, any> = {
     migros_de: {
         s: 'Migros (DE)',
         d: 'search.migros.ch',
+        ad: 'migros.ch',
         t: 'migros_de',
         ts: ['migros_fr', 'migros_it'],
         u: 'https://search.migros.ch/de/q:{{{s}}}',
@@ -63561,6 +63635,7 @@ export const bangs: Record<string, any> = {
     mitocw: {
         s: 'MIT OpenCourseWare',
         d: 'search.mit.edu',
+        ad: 'mit.edu',
         t: 'mitocw',
         ts: ['ocw'],
         u: 'https://search.mit.edu/search?site=ocw&client=mit&output=xml_no_dtd&proxystylesheet=http://ocw.mit.edu/search/google-ocw.xsl&proxyreload=1&q={{{s}}}',
@@ -63652,6 +63727,7 @@ export const bangs: Record<string, any> = {
     mkp: {
         s: 'Městská knihovna v Praze',
         d: 'search.mlp.cz',
+        ad: 'mlp.cz',
         t: 'mkp',
         u: 'https://search.mlp.cz/cz/?query={{{s}}}',
         c: 'Multimedia',
@@ -64217,6 +64293,7 @@ export const bangs: Record<string, any> = {
     mobilefriendly: {
         s: 'Mobile-Friendly Test - Google',
         d: 'search.google.com',
+        ad: 'google.com',
         t: 'mobilefriendly',
         u: 'https://search.google.com/test/mobile-friendly?url={{{s}}}',
         c: 'Online Services',
@@ -66197,6 +66274,7 @@ export const bangs: Record<string, any> = {
     muzli: {
         s: 'Muzli Search',
         d: 'search.muz.li',
+        ad: 'muz.li',
         t: 'muzli',
         u: 'https://search.muz.li/search/{{{s}}}',
         c: 'Tech',
@@ -67007,6 +67085,7 @@ export const bangs: Record<string, any> = {
     nasp: {
         s: 'Naver Shopping',
         d: 'search.shopping.naver.com',
+        ad: 'shopping.naver.com',
         t: 'nasp',
         u: 'https://search.shopping.naver.com/search/all.nhn?query={{{s}}}&cat_id=&frm=NVSHATC',
         c: 'Shopping',
@@ -67172,12 +67251,13 @@ export const bangs: Record<string, any> = {
         u: 'http://search.naver.com/search.naver?where=nexearch&sm=osd&ie={inputEncoding}&query={{{s}}}',
     },
     navm: {
-        s: 'Naver Maps',
-        d: 'map.naver.com',
-        t: 'navm',
-        u: 'https://map.naver.com/p/search/{{{s}}}',
         c: 'Online Services',
+        d: 'beta.map.naver.com',
+        r: 0,
+        s: 'Naver Maps (yanndch)',
         sc: 'Maps',
+        t: 'navm',
+        u: 'https://beta.map.naver.com/search/{{{s}}}',
     },
     nav: {
         s: 'Navigium',
@@ -67387,6 +67467,7 @@ export const bangs: Record<string, any> = {
     ncsulib: {
         s: 'NCSU Libraries',
         d: 'search.lib.ncsu.edu',
+        ad: 'lib.ncsu.edu',
         t: 'ncsulib',
         u: 'https://search.lib.ncsu.edu/?q={{{s}}}',
         c: 'Research',
@@ -68038,6 +68119,7 @@ export const bangs: Record<string, any> = {
     newscomau: {
         s: 'News.com.au',
         d: 'search.news.com.au',
+        ad: 'news.com.au',
         t: 'newscomau',
         u: 'https://search.news.com.au/search?us=ndmnews&as=NEWS&q={{{s}}}',
         c: 'News',
@@ -68522,6 +68604,7 @@ export const bangs: Record<string, any> = {
     nifty: {
         s: 'Nifty',
         d: 'search.nifty.com',
+        ad: 'nifty.com',
         t: 'nifty',
         u: 'https://search.nifty.com/websearch/search?cflg=検索&q={{{s}}}',
         c: 'Online Services',
@@ -68538,6 +68621,7 @@ export const bangs: Record<string, any> = {
     nih: {
         s: 'NIH',
         d: 'search.nih.gov',
+        ad: 'nih.gov',
         t: 'nih',
         u: 'https://search.nih.gov/search?utf8=%E2%9C%93&affiliate=nih&query={{{s}}}&commit=Search&btnG.x=0&btnG.y=0&btnG=search',
         c: 'Research',
@@ -68610,6 +68694,7 @@ export const bangs: Record<string, any> = {
     ni: {
         s: 'National Instruments',
         d: 'search.ni.com',
+        ad: 'ni.com',
         t: 'ni',
         u: 'https://search.ni.com/nisearch/app/main/p/bot/no/ap/global/lang/en/pg/1/q/{{{s}}}/',
         c: 'Tech',
@@ -68758,6 +68843,7 @@ export const bangs: Record<string, any> = {
     nixopt: {
         s: 'NixOS Options Search',
         d: 'search.nixos.org',
+        ad: 'nixos.org',
         t: 'nixopt',
         u: 'https://search.nixos.org/options?query={{{s}}}',
         c: 'Tech',
@@ -68792,6 +68878,7 @@ export const bangs: Record<string, any> = {
     nixpkgs: {
         s: 'NixOS Packages Search',
         d: 'search.nixos.org',
+        ad: 'nixos.org',
         t: 'nixpkgs',
         u: 'https://search.nixos.org/packages?query={{{s}}}',
         c: 'Tech',
@@ -68969,6 +69056,7 @@ export const bangs: Record<string, any> = {
         s: 'Naver Map',
         d: 'map.naver.com',
         t: 'nmap',
+        ts: ['navm'],
         u: 'https://map.naver.com/?query={{{s}}}',
         c: 'Online Services',
         sc: 'Maps',
@@ -69025,6 +69113,7 @@ export const bangs: Record<string, any> = {
     nndb: {
         s: 'NNDB',
         d: 'search.nndb.com',
+        ad: 'nndb.com',
         t: 'nndb',
         u: 'https://search.nndb.com/search/nndb.cgi?nndb=1&omenu=unspecified&query={{{s}}}',
         c: 'Entertainment',
@@ -69918,6 +70007,7 @@ export const bangs: Record<string, any> = {
     nvi: {
         s: 'Naver Images',
         d: 'search.naver.com',
+        ad: 'naver.com',
         t: 'nvi',
         u: 'https://search.naver.com/search.naver?sm=tab_hty.top&where=image&query={{{s}}}',
         c: 'Online Services',
@@ -69934,6 +70024,7 @@ export const bangs: Record<string, any> = {
     nv: {
         s: 'NAVER',
         d: 'search.naver.com',
+        ad: 'naver.com',
         t: 'nv',
         ts: ['naver', 'na', 'ㄴ'],
         u: 'https://search.naver.com/search.naver?query={{{s}}}',
@@ -70119,6 +70210,7 @@ export const bangs: Record<string, any> = {
     nzqa: {
         s: 'New Zealand Qualifications Authority',
         d: 'search.nzqa.govt.nz',
+        ad: 'nzqa.govt.nz',
         t: 'nzqa',
         u: 'https://search.nzqa.govt.nz/apps/search/?q={{{s}}}',
         c: 'Research',
@@ -70945,6 +71037,7 @@ export const bangs: Record<string, any> = {
     oldcpan: {
         s: 'CPAN',
         d: 'search.cpan.org',
+        ad: 'cpan.org',
         t: 'oldcpan',
         ts: ['searchcpan'],
         u: 'https://search.cpan.org/search?query={{{s}}}&mode=all',
@@ -71032,6 +71125,7 @@ export const bangs: Record<string, any> = {
     ol: {
         s: 'OregonLive',
         d: 'search.oregonlive.com',
+        ad: 'oregonlive.com',
         t: 'ol',
         u: 'https://search.oregonlive.com/{{{s}}}',
         c: 'News',
@@ -72006,6 +72100,7 @@ export const bangs: Record<string, any> = {
     openuni: {
         s: 'Open University',
         d: 'search.open.ac.uk',
+        ad: 'open.ac.uk',
         t: 'openuni',
         u: 'https://search.open.ac.uk/public/search/results?q={{{s}}}',
         c: 'Research',
@@ -77081,6 +77176,7 @@ export const bangs: Record<string, any> = {
     pomagalo: {
         s: 'pomagalo.com',
         d: 'search.pomagalo.com',
+        ad: 'pomagalo.com',
         t: 'pomagalo',
         u: 'https://search.pomagalo.com/?keywords_id=&keywords={{{s}}}',
         c: 'Research',
@@ -79065,6 +79161,7 @@ export const bangs: Record<string, any> = {
     purplemath: {
         s: 'PurpleMath',
         d: 'search.freefind.com',
+        ad: 'freefind.com',
         t: 'purplemath',
         u: 'https://search.freefind.com/find.html?id=5014414&pageid=r&mode=ALL&n=0&query={{{s}}}',
         c: 'Research',
@@ -80093,6 +80190,7 @@ export const bangs: Record<string, any> = {
     r10: {
         s: 'Rakuten Ichiba',
         d: 'search.rakuten.co.jp',
+        ad: 'rakuten.co.jp',
         t: 'r10',
         ts: ['rakuten'],
         u: 'https://search.rakuten.co.jp/search/mall/{{{s}}}/',
@@ -80350,6 +80448,7 @@ export const bangs: Record<string, any> = {
     ralit: {
         s: 'Rockwell Automation Literature',
         d: 'search.rockwellautomation.com',
+        ad: 'rockwellautomation.com',
         t: 'ralit',
         u: 'https://search.rockwellautomation.com/search?q={{{s}}}&client=literature&filter=0&ie=UTF-8&oe=UTF-8&output=xml_no_dtd&proxystylesheet=literature&site=literature&getfields=*&lang=en&hl=en&num=20&requiredfields=xlanguage:MU|xlanguage:EN',
         c: 'Tech',
@@ -85652,6 +85751,7 @@ export const bangs: Record<string, any> = {
     scielo: {
         s: 'Scientific Electronic Library Online',
         d: 'search.scielo.org',
+        ad: 'scielo.org',
         t: 'scielo',
         u: 'https://search.scielo.org/?q={{{s}}}&where=ORG',
         c: 'Research',
@@ -85800,6 +85900,7 @@ export const bangs: Record<string, any> = {
     scn: {
         s: 'SAP Community Network',
         d: 'search.sap.com',
+        ad: 'sap.com',
         t: 'scn',
         u: 'https://search.sap.com/ui/scn#query={{{s}}}',
         c: 'Tech',
@@ -86915,6 +87016,7 @@ export const bangs: Record<string, any> = {
     seznam: {
         s: 'Seznam',
         d: 'search.seznam.cz',
+        ad: 'seznam.cz',
         t: 'seznam',
         ts: ['szn'],
         u: 'https://search.seznam.cz/?q={{{s}}}',
@@ -87057,6 +87159,7 @@ export const bangs: Record<string, any> = {
     sfulib: {
         s: 'Simon Fraser University Library',
         d: 'search.lib.sfu.ca',
+        ad: 'lib.sfu.ca',
         t: 'sfulib',
         u: 'https://search.lib.sfu.ca/?q={{{s}}}',
         c: 'Research',
@@ -87777,6 +87880,7 @@ export const bangs: Record<string, any> = {
     sindonews: {
         s: 'SINDOnews',
         d: 'search.sindonews.com',
+        ad: 'sindonews.com',
         t: 'sindonews',
         u: 'https://search.sindonews.com/search?type=artikel&q={{{s}}}',
         c: 'News',
@@ -89083,6 +89187,7 @@ export const bangs: Record<string, any> = {
     smzdm: {
         s: '什么值得买',
         d: 'search.smzdm.com',
+        ad: 'smzdm.com',
         t: 'smzdm',
         u: 'https://search.smzdm.com/?c=home&s={{{s}}}',
         c: 'Shopping',
@@ -90698,6 +90803,7 @@ export const bangs: Record<string, any> = {
     spr: {
         s: 'SitePoint Reference',
         d: 'search.sitepoint.com',
+        ad: 'sitepoint.com',
         t: 'spr',
         u: 'https://search.sitepoint.com/?q={{{s}}}&refinements[reference]=1',
         c: 'Tech',
@@ -92469,6 +92575,7 @@ export const bangs: Record<string, any> = {
     sulekha: {
         s: 'Sulekha',
         d: 'search.sulekha.com',
+        ad: 'sulekha.com',
         t: 'sulekha',
         u: 'https://search.sulekha.com/sulekhasearch.aspx?txtsearch={{{s}}}',
         c: 'Online Services',
@@ -98649,6 +98756,7 @@ export const bangs: Record<string, any> = {
     tug: {
         s: 'Graz University of Technology',
         d: 'search.tugraz.at',
+        ad: 'tugraz.at',
         t: 'tug',
         u: 'https://search.tugraz.at/search?q={{{s}}}&site=Alle&btnG=Suchen&client=tug_portal&output=xml_no_dtd&proxystylesheet=tug_portal&sitesearch=www.tugraz.at',
         c: 'Research',
@@ -98905,6 +99013,7 @@ export const bangs: Record<string, any> = {
     tv2: {
         s: 'TV2',
         d: 'search.tv2.dk',
+        ad: 'tv2.dk',
         t: 'tv2',
         u: 'https://search.tv2.dk/?query={{{s}}}&sort=relevance&page=1',
         c: 'Entertainment',
@@ -99756,6 +99865,7 @@ export const bangs: Record<string, any> = {
     ubu: {
         s: 'UbuWeb',
         d: 'search.freefind.com',
+        ad: 'freefind.com',
         t: 'ubu',
         u: 'https://search.freefind.com/find.html?si=61902956&pid=r&n=0&_charset_=UTF-8&bcd=÷&query={{{s}}}',
         c: 'Multimedia',
@@ -99772,6 +99882,7 @@ export const bangs: Record<string, any> = {
     ucern: {
         s: 'uCern',
         d: 'search.ucern.com',
+        ad: 'ucern.com',
         t: 'ucern',
         u: 'https://search.ucern.com/search?cp=connect&q={{{s}}}',
         c: 'Tech',
@@ -99780,6 +99891,7 @@ export const bangs: Record<string, any> = {
     ucfl: {
         s: 'University of Central Florida',
         d: 'search.ucf.edu',
+        ad: 'ucf.edu',
         t: 'ucfl',
         u: 'https://search.ucf.edu/#?q={{{s}}}',
         c: 'Online Services',
@@ -100370,6 +100482,7 @@ export const bangs: Record<string, any> = {
     umelb: {
         s: 'University of Melbourne',
         d: 'search.unimelb.edu.au',
+        ad: 'unimelb.edu.au',
         t: 'umelb',
         u: 'https://search.unimelb.edu.au/?q={{{s}}}',
         c: 'Research',
@@ -100402,6 +100515,7 @@ export const bangs: Record<string, any> = {
     umn: {
         s: 'University of Minnesota',
         d: 'search.umn.edu',
+        ad: 'umn.edu',
         t: 'umn',
         u: 'https://search.umn.edu/tc/index.php?q={{{s}}}',
         c: 'Research',
@@ -100426,6 +100540,7 @@ export const bangs: Record<string, any> = {
     uncg: {
         s: 'University of North Caroline at Greensboro',
         d: 'search.uncg.edu',
+        ad: 'uncg.edu',
         t: 'uncg',
         u: 'https://search.uncg.edu/search?q={{{s}}}&site=default_collection&client=default_frontend&output=xml_no_dtd&proxystylesheet=default_frontend',
         c: 'Research',
@@ -100753,6 +100868,7 @@ export const bangs: Record<string, any> = {
     unm: {
         s: 'University of New Mexico',
         d: 'search.unm.edu',
+        ad: 'unm.edu',
         t: 'unm',
         u: 'https://search.unm.edu/search?q={{{s}}}',
         c: 'Research',
@@ -100895,6 +101011,7 @@ export const bangs: Record<string, any> = {
     un: {
         s: 'United Nations',
         d: 'search.un.org',
+        ad: 'un.org',
         t: 'un',
         u: 'https://search.un.org/search?ie=utf8&site=un_org&output=xml_no_dtd&client=UN_Website_en&num=10&lr=lang_en&proxystylesheet=UN_Website_en&oe=utf8&q={{{s}}}&Submit=Go',
         c: 'Research',
@@ -100937,6 +101054,7 @@ export const bangs: Record<string, any> = {
     uoal: {
         s: 'University of Alberta Library',
         d: 'search.library.ualberta.ca',
+        ad: 'library.ualberta.ca',
         t: 'uoal',
         u: 'https://search.library.ualberta.ca/symphony?q={{{s}}}',
         c: 'Research',
@@ -100945,6 +101063,7 @@ export const bangs: Record<string, any> = {
     uoa: {
         s: 'University of Auckland',
         d: 'search.auckland.ac.nz',
+        ad: 'auckland.ac.nz',
         t: 'uoa',
         u: 'https://search.auckland.ac.nz/search?site=All_university_websites&client=uoa_frontend&proxystylesheet=uoa_frontend&proxyreload=0&output=xml_no_dtd&q={{{s}}}',
         c: 'Research',
@@ -101112,6 +101231,7 @@ export const bangs: Record<string, any> = {
     uql: {
         s: 'University of Queensland Library',
         d: 'search.library.uq.edu.au',
+        ad: 'library.uq.edu.au',
         t: 'uql',
         u: 'https://search.library.uq.edu.au/primo-explore/search?query=any,contains,{{{s}}}&tab=61uq_all&search_scope=61UQ_All&sortby=rank&vid=61UQ&offset=0',
         c: 'Research',
@@ -101261,6 +101381,7 @@ export const bangs: Record<string, any> = {
     usa: {
         s: 'USA.gov',
         d: 'search.usa.gov',
+        ad: 'usa.gov',
         t: 'usa',
         u: 'https://search.usa.gov/search?utf8=%E2%9C%93&affiliate=usagov&query={{{s}}}',
         c: 'Research',
@@ -101399,6 +101520,7 @@ export const bangs: Record<string, any> = {
     usmint: {
         s: 'The United States Mint',
         d: 'search.usmint.gov',
+        ad: 'usmint.gov',
         t: 'usmint',
         u: 'https://search.usmint.gov/search?affiliate=usmint.gov&formFocused=0&query={{{s}}}',
         c: 'Research',
@@ -101644,6 +101766,7 @@ export const bangs: Record<string, any> = {
     uvac: {
         s: 'University of Virginia Library Catalog',
         d: 'search.lib.virginia.edu',
+        ad: 'lib.virginia.edu',
         t: 'uvac',
         ts: ['uvalib'],
         u: 'https://search.lib.virginia.edu/search?q=keyword:+{{{{s}}}}&pool=uva_library&sort=SortRelevance_desc',
@@ -101718,6 +101841,7 @@ export const bangs: Record<string, any> = {
     uwlib: {
         s: 'University of Wisconsin Libraries',
         d: 'search.library.wisc.edu',
+        ad: 'library.wisc.edu',
         t: 'uwlib',
         u: 'https://search.library.wisc.edu/search/catalog?q={{{s}}}',
         c: 'Research',
@@ -103676,6 +103800,7 @@ export const bangs: Record<string, any> = {
     vtech: {
         s: 'Virginia Tech',
         d: 'search.vt.edu',
+        ad: 'vt.edu',
         t: 'vtech',
         u: 'https://search.vt.edu/search/pages.html;sa=Search&q={{{s}}}',
         c: 'Research',
@@ -104267,6 +104392,7 @@ export const bangs: Record<string, any> = {
     warwick: {
         s: 'University of Warwick',
         d: 'search.warwick.ac.uk',
+        ad: 'warwick.ac.uk',
         t: 'warwick',
         u: 'https://search.warwick.ac.uk/?q={{{s}}}',
         c: 'Online Services',
@@ -106443,6 +106569,7 @@ export const bangs: Record<string, any> = {
     wikileaks: {
         s: 'WikiLeaks',
         d: 'search.wikileaks.org',
+        ad: 'wikileaks.org',
         t: 'wikileaks',
         ts: ['wl'],
         u: 'https://search.wikileaks.org/?q={{{s}}}',
@@ -110865,6 +110992,7 @@ export const bangs: Record<string, any> = {
     yahoo: {
         s: 'Yahoo!',
         d: 'search.yahoo.com',
+        ad: 'yahoo.com',
         t: 'yahoo',
         ts: ['y'],
         u: 'https://search.yahoo.com/search?p={{{s}}}',
@@ -111391,6 +111519,7 @@ export const bangs: Record<string, any> = {
     yjr: {
         s: 'Yahoo! Japan Realtime',
         d: 'search.yahoo.co.jp',
+        ad: 'yahoo.co.jp',
         t: 'yjr',
         ts: ['yrtjp'],
         u: 'https://search.yahoo.co.jp/realtime/search?p={{{s}}}',
@@ -111416,6 +111545,7 @@ export const bangs: Record<string, any> = {
     yj: {
         s: 'Yahoo Japan',
         d: 'search.yahoo.co.jp',
+        ad: 'yahoo.co.jp',
         t: 'yj',
         ts: ['yjp'],
         u: 'https://search.yahoo.co.jp/search?p={{{s}}}',
@@ -111777,6 +111907,7 @@ export const bangs: Record<string, any> = {
     ysports: {
         s: 'Yahoo Sports',
         d: 'search.yahoo.com',
+        ad: 'yahoo.com',
         t: 'ysports',
         u: 'https://search.yahoo.com/search?p=/{{{s}}}',
         c: 'Entertainment',
@@ -112745,6 +112876,7 @@ export const bangs: Record<string, any> = {
     zoho: {
         s: 'Zoho',
         d: 'search.zoho.com',
+        ad: 'zoho.com',
         t: 'zoho',
         u: 'https://search.zoho.com/searchresult?query={{{s}}}&search_type=all&index_key=-1&embed=false',
         c: 'Tech',
@@ -112836,6 +112968,7 @@ export const bangs: Record<string, any> = {
     zum: {
         s: 'zum',
         d: 'search.zum.com',
+        ad: 'zum.com',
         t: 'zum',
         u: 'https://search.zum.com/search.zum?query={{{s}}}',
         c: 'Online Services',
@@ -113795,10 +113928,10 @@ export const bangs: Record<string, any> = {
     },
     cdomain: {
         s: 'Cloudflare Domains',
-        d: 'domains.cloudflare.com',
+        d: 'www.cloudflare.com',
         t: 'cdomain',
         ts: ['cdmn'],
-        u: 'https://domains.cloudflare.com/?domain={{{s}}}',
+        u: 'https://www.cloudflare.com/domains/search?q={{{s}}}',
         c: 'Tech',
         sc: 'domains',
     },
@@ -113834,6 +113967,15 @@ export const bangs: Record<string, any> = {
         u: 'https://deltarune.wiki/index.php?search={{{s}}}&title=Special:Search',
         c: 'Entertainment',
         sc: 'Games (specific)',
+    },
+    kamap: {
+        s: 'Kakao Map',
+        d: 'map.kakao.com',
+        t: 'kamap',
+        ts: ['kmap', 'dmap'],
+        u: 'https://map.kakao.com/?q={{{s}}}',
+        c: 'Online Services',
+        sc: 'Maps',
     },
     doordash: {
         s: 'DoorDash',
@@ -114397,6 +114539,7 @@ export const bangs: Record<string, any> = {
     marginalia: {
         s: 'Marginalia Search',
         d: 'search.marginalia.nu',
+        ad: 'marginalia.nu',
         t: 'marginalia',
         u: 'https://search.marginalia.nu/search?query={{{s}}}',
         c: 'Online Services',
@@ -114615,6 +114758,7 @@ export const bangs: Record<string, any> = {
     nls: {
         s: 'National Library of Scotland=Leabharlann Nàiseanta na h-Alba',
         d: 'search.nls.uk',
+        ad: 'nls.uk',
         t: 'nls',
         u: 'https://search.nls.uk/discovery/search?query=any,contains,{{{s}}}&tab=MainCatalogue&search_scope=MainCatalogue&vid=44NLS_INST:44NLS_VU1&offset=0',
         c: 'Research',
@@ -115423,6 +115567,7 @@ export const bangs: Record<string, any> = {
     nixhopt: {
         s: 'NixOS Home Manager Options Search',
         d: 'search.nixos.org',
+        ad: 'nixos.org',
         t: 'nixhopt',
         ts: ['nixhmopt', 'nixhmo'],
         u: 'https://search.nixos.org/options?query={{{s}}}&source=home_manager',
@@ -116787,7 +116932,7 @@ export const bangs: Record<string, any> = {
         s: 'Cloudflare Developer Documentation',
         d: 'developers.cloudflare.com',
         t: 'cdev',
-        u: 'https://developers.cloudflare.com/search/?query={{{s}}}',
+        u: 'https://developers.cloudflare.com//?q={{{s}}}',
         c: 'Tech',
         sc: 'Sysadmin (man)',
         fmt: ['open_base_path'],
