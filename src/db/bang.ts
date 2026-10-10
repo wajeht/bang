@@ -113960,6 +113960,15 @@ export const bangs: Record<string, any> = {
         c: 'Online Services',
         sc: 'Search (DDG)',
     },
+    deadlock: {
+        s: 'Deadlock Wiki',
+        d: 'deadlock.wiki',
+        t: 'deadlock',
+        ts: ['dlock', 'dlwiki'],
+        u: 'https://deadlock.wiki/index.php?search={{{s}}}',
+        c: 'Entertainment',
+        sc: 'Games (specific)',
+    },
     deltarune: {
         s: 'Deltarune Wiki',
         d: 'deltarune.wiki',
