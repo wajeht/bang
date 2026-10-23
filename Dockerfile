@@ -1,4 +1,6 @@
-FROM node:26.12.0-slim@sha256:e556a144463cc8dc53afe8de6d2fa0db5c132fd39ffa232c17641bd40df2bf11 AS build
+FROM node:26.12.1-slim@sha256:36793bcbb160a6a16cede1e62b93f84e26b78a972a8a4c0b879c1c12f22761ec AS build
+
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
 
@@ -7,7 +9,7 @@ COPY package*.json .npmrc ./
 
 # Install all dependencies including dev for build tools, then rebuild native modules
 RUN npm ci --no-audit --no-fund && \
-    npm rebuild bcrypt esbuild --ignore-scripts=false
+    npm rebuild bcrypt better-sqlite3 esbuild --ignore-scripts=false
 
 # Copy only TypeScript config first (changes less frequently)
 COPY tsconfig*.json ./
@@ -29,9 +31,10 @@ RUN node --run build:prod && \
     rm -f dist/src/type.js && \
     rm -rf vitest.config.* && \
     rm -rf eslint.config.* && \
-    rm -rf playwright.config.*
+    rm -rf playwright.config.* && \
+    npm prune --omit=dev --no-audit --no-fund
 
-FROM node:26.12.0-slim@sha256:e556a144463cc8dc53afe8de6d2fa0db5c132fd39ffa232c17641bd40df2bf11
+FROM node:26.12.1-slim@sha256:36793bcbb160a6a16cede1e62b93f84e26b78a972a8a4c0b879c1c12f22761ec
 
 # Install runtime dependencies.
 # sqlite3 lets dcdb dump/inspect the production SQLite database.
@@ -44,9 +47,7 @@ WORKDIR /usr/src/app
 
 # Copy only production dependencies and built files
 COPY --chown=node:node package*.json .npmrc ./
-RUN npm ci --only=production --no-audit --no-fund && \
-    npm rebuild bcrypt esbuild --ignore-scripts=false && \
-    npm cache clean --force
+COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 
 # Copy built application
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist

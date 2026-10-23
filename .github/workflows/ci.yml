@@ -68,7 +68,7 @@ jobs:
               run: npm ci
 
             - name: Rebuild native modules
-              run: npm rebuild bcrypt esbuild --ignore-scripts=false
+              run: npm rebuild bcrypt better-sqlite3 esbuild --ignore-scripts=false
 
             - name: Verify package signatures
               run: npm audit signatures
@@ -101,7 +101,7 @@ jobs:
               run: npm ci
 
             - name: Rebuild native modules
-              run: npm rebuild bcrypt esbuild --ignore-scripts=false
+              run: npm rebuild bcrypt better-sqlite3 esbuild --ignore-scripts=false
 
             - name: Cache Playwright browsers
               uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -153,7 +153,7 @@ jobs:
               run: npm ci
 
             - name: Rebuild native modules
-              run: npm rebuild bcrypt esbuild --ignore-scripts=false
+              run: npm rebuild bcrypt better-sqlite3 esbuild --ignore-scripts=false
 
             - name: Lint codes
               run: node --run lint
@@ -180,7 +180,7 @@ jobs:
               run: npm ci
 
             - name: Rebuild native modules
-              run: npm rebuild bcrypt esbuild --ignore-scripts=false
+              run: npm rebuild bcrypt better-sqlite3 esbuild --ignore-scripts=false
 
             - name: Format codes
               run: node --run format
@@ -196,7 +196,7 @@ jobs:
     build:
         name: Build
         runs-on: ubuntu-latest
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' || github.event.action != 'closed'
         outputs:
             tag: ${{ steps.image-name.outputs.TAG }}
         steps:
@@ -210,6 +210,7 @@ jobs:
               uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
             - name: Login to Container Registry
+              if: github.event_name == 'push'
               uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
               with:
                   registry: ghcr.io
@@ -229,12 +230,19 @@ jobs:
               with:
                   context: .
                   file: ./Dockerfile
-                  push: true
+                  push: ${{ github.event_name == 'push' }}
+                  load: ${{ github.event_name == 'pull_request' }}
                   tags: ${{ steps.image-name.outputs.IMAGE_URL }}
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
                   provenance: false
                   sbom: false
+
+            - name: Verify runtime and native SQLite
+              if: github.event_name == 'pull_request'
+              run: |
+                  docker run --rm --network none --entrypoint node ${{ steps.image-name.outputs.IMAGE_URL }} --version
+                  docker run --rm --network none --entrypoint node ${{ steps.image-name.outputs.IMAGE_URL }} -e "const Database=require('better-sqlite3'); const db=new Database(':memory:'); if(db.prepare('SELECT 1 AS ok').get().ok!==1) process.exit(1); db.close();"
 
     deploy:
         if: github.event_name == 'push'
