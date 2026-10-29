@@ -9,6 +9,7 @@ export function createMail(context: AppContext) {
 
     const emailTransporter = context.libs.nodemailer.createTransport({
         host: context.config.email.host,
+        proxy: process.env.SMTP_PROXY,
         port: context.config.email.port,
         secure: context.config.email.secure,
         auth:

@@ -75,6 +75,7 @@ export async function fetchPublicPageTitle(rawUrl: string): Promise<string> {
 
     return new Promise<string>((resolve) => {
         let request: ClientRequest | undefined;
+        let proxyAgent: http.Agent | https.Agent | undefined;
         let settled = false;
         const deadline = setTimeout(() => finish(), TITLE_FETCH_TIMEOUT_MS);
 
@@ -83,6 +84,7 @@ export async function fetchPublicPageTitle(rawUrl: string): Promise<string> {
             settled = true;
             clearTimeout(deadline);
             request?.destroy();
+            proxyAgent?.destroy();
             resolve(title);
         }
 
@@ -93,26 +95,50 @@ export async function fetchPublicPageTitle(rawUrl: string): Promise<string> {
 
             const family = isIP(hostname);
 
-            const addresses = family
-                ? [{ address: hostname, family }]
-                : await dns.lookup(hostname, { all: true, verbatim: true });
+            const proxy = process.env.PAGE_TITLE_PROXY_URL;
+            let address: { address: string; family: number } | undefined;
 
-            if (settled) return;
-            const address = addresses[0];
+            if (proxy) {
+                // The explicitly configured proxy must enforce public-only destinations.
+                // Delegate DNS to it; isolated containers cannot resolve external names.
+                if (family && !isPublicAddress(hostname)) {
+                    finish();
 
-            if (!address || addresses.some((entry) => !isPublicAddress(entry.address))) {
-                finish();
+                    return;
+                }
 
-                return;
+                const Agent = url.protocol === 'https:' ? https.Agent : http.Agent;
+                proxyAgent = new Agent({
+                    proxyEnv: { HTTP_PROXY: proxy, HTTPS_PROXY: proxy, NO_PROXY: '' },
+                });
+            } else {
+                const addresses = family
+                    ? [{ address: hostname, family }]
+                    : await dns.lookup(hostname, { all: true, verbatim: true });
+
+                if (settled) return;
+                address = addresses[0];
+
+                if (!address || addresses.some((entry) => !isPublicAddress(entry.address))) {
+                    finish();
+
+                    return;
+                }
             }
 
             const get = url.protocol === 'https:' ? https.get : http.get;
             request = get(
                 url,
                 {
-                    agent: false,
+                    agent: proxyAgent ?? false,
                     // Pin the validated answer: the socket never resolves the hostname again.
                     lookup(_hostname, options, callback) {
+                        if (!address) {
+                            callback(new Error('Direct DNS is disabled in proxy mode'), '', 0);
+
+                            return;
+                        }
+
                         if (options.all) callback(null, [address]);
                         else callback(null, address.address, address.family);
                     },
