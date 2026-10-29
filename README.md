@@ -129,6 +129,8 @@ Before you can use the Bang command from your browser's search bar, you need to 
 - See [CONTRIBUTION](./docs/contribution.md) for `contribution` guide.
 - See [SEARCH ARCHITECTURE](./docs/search-architecture.md) for `search architecture` guide.
 
+For an isolated deployment, set `NODE_USE_ENV_PROXY=1`, `HTTP_PROXY` and `HTTPS_PROXY` for web requests, and `SMTP_PROXY` for email (HTTP CONNECT). The proxy must allow the configured mail server and port. Leave `SMTP_PROXY` unset for direct SMTP. Set `PAGE_TITLE_PROXY_URL` to a trusted public-only proxy for website titles; it handles DNS and must block private destinations. Direct mode retains DNS validation and address pinning.
+
 ## License
 
 Distributed under the MIT License © [wajeht](https://github.com/wajeht). See [LICENSE](./LICENSE) for more information.

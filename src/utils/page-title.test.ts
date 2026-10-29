@@ -37,6 +37,7 @@ function mockResponse(chunks: Buffer[], statusCode = 200, end = true) {
 
 beforeEach(() => {
     vi.resetAllMocks();
+    vi.stubEnv('PAGE_TITLE_PROXY_URL', '');
     vi.spyOn(dns, 'lookup').mockImplementation(network.lookup);
     vi.spyOn(http, 'get').mockImplementation(network.http);
     vi.spyOn(https, 'get').mockImplementation(network.https);
@@ -46,6 +47,7 @@ beforeEach(() => {
 afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
 });
 
@@ -203,5 +205,37 @@ describe('Public page title fetching', () => {
         await Promise.resolve();
         transport.request.emit('error', new Error('Connection failed'));
         expect(await result).toBe('Untitled');
+    });
+});
+
+describe('Page titles through a trusted proxy', () => {
+    it('delegates DNS to the proxy and keeps the bounded title parser', async () => {
+        vi.stubEnv('PAGE_TITLE_PROXY_URL', 'http://proxy.example:3128');
+        const response = mockResponse([Buffer.from('<title>Proxy title</title>')]);
+        expect(await fetchPublicPageTitle('https://example.com')).toBe('Proxy title');
+        expect(network.lookup).not.toHaveBeenCalled();
+        expect(response.options()?.agent).toBeInstanceOf(https.Agent);
+    });
+
+    it('rejects private literals before contacting the proxy', async () => {
+        vi.stubEnv('PAGE_TITLE_PROXY_URL', 'http://proxy.example:3128');
+        expect(await fetchPublicPageTitle('http://127.0.0.1')).toBe('Untitled');
+        expect(network.http).not.toHaveBeenCalled();
+    });
+
+    it('does not follow redirects returned by the proxy', async () => {
+        vi.stubEnv('PAGE_TITLE_PROXY_URL', 'http://proxy.example:3128');
+        mockResponse([Buffer.from('<title>Redirect</title>')], 302);
+        expect(await fetchPublicPageTitle('https://example.com')).toBe('Untitled');
+        expect(network.https).toHaveBeenCalledTimes(1);
+    });
+
+    it('fails closed on a proxy error without retrying direct DNS', async () => {
+        vi.stubEnv('PAGE_TITLE_PROXY_URL', 'http://proxy.example:3128');
+        network.https.mockImplementation(() => {
+            throw new Error('Proxy unavailable');
+        });
+        expect(await fetchPublicPageTitle('https://example.com')).toBe('Untitled');
+        expect(network.lookup).not.toHaveBeenCalled();
     });
 });
