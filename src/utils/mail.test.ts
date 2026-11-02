@@ -685,6 +685,9 @@ describe('Mail Utils', () => {
         });
 
         it('should allow daily reminders to be processed multiple times', async () => {
+            vi.useFakeTimers({ toFake: ['Date'] });
+            vi.setSystemTime(new Date('2026-10-31T16:24:00Z'));
+
             const dueDate = dayjs.utc().add(5, 'minutes');
 
             await db('reminders').insert({
@@ -715,12 +718,8 @@ describe('Mail Utils', () => {
             reminder = await db('reminders').where('title', 'Multi-day daily reminder').first();
             expect(reminder).toBeTruthy();
 
-            const originalChicago = dayjs.tz(nextDueDate.toDate(), 'UTC').tz('America/Chicago');
-            const updatedChicago = dayjs.tz(reminder.due_date, 'UTC').tz('America/Chicago');
-            expect(updatedChicago.hour()).toBe(originalChicago.hour());
-            expect(updatedChicago.minute()).toBe(originalChicago.minute());
-            expect(updatedChicago.startOf('day').diff(originalChicago.startOf('day'), 'day')).toBe(
-                1,
+            expect(dayjs.utc(reminder.due_date).toISOString()).toBe(
+                nextDueDate.add(1, 'day').toISOString(),
             );
         });
 
