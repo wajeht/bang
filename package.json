@@ -101,7 +101,7 @@
         "vite-plus": "0.3.3"
     },
     "overrides": {
-        "glob": "13.0.6",
+        "glob": "13.0.7",
         "postcss": "8.5.32",
         "rimraf": "6.1.4",
         "vite": "npm:@voidzero-dev/vite-plus-core@0.3.3",
