@@ -102,7 +102,7 @@
     },
     "overrides": {
         "glob": "13.0.7",
-        "postcss": "8.5.32",
+        "postcss": "8.5.33",
         "rimraf": "6.1.4",
         "vite": "npm:@voidzero-dev/vite-plus-core@0.3.3",
         "vitest": "4.1.11"
