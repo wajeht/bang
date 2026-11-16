@@ -91,21 +91,21 @@
         "@types/node": "26.6.6",
         "@types/supertest": "7.2.1",
         "@typescript/native-preview": "7.0.0-dev.20260707.2",
-        "@vitest/coverage-v8": "4.1.11",
+        "@vitest/coverage-v8": "5.1.0",
         "@wajeht/express-templates-reload": "3.0.0",
         "clean-css": "5.3.3",
         "html-minifier-terser": "7.2.0",
         "node-mocks-http": "1.18.1",
         "supertest": "7.3.2",
         "tsx": "4.23.15",
-        "vite-plus": "0.3.3"
+        "vite-plus": "1.6.0"
     },
     "overrides": {
         "glob": "14.0.6",
         "postcss": "8.5.33",
         "rimraf": "6.1.4",
-        "vite": "npm:@voidzero-dev/vite-plus-core@0.3.3",
-        "vitest": "4.1.11"
+        "vite": "npm:@voidzero-dev/vite-plus-core@1.6.0",
+        "vitest": "5.1.0"
     },
     "engines": {
         "node": ">=26.1.0",
