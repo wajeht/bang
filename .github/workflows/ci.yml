@@ -64,6 +64,11 @@ jobs:
             - name: Create .env file from .env.ci
               run: cp .env.ci .env
 
+            - name: Install pinned npm
+              run: |
+                  npm install --global "$(node -p 'require("./package.json").packageManager')" --ignore-scripts --no-audit --no-fund
+                  npm --version
+
             - name: Install dependencies
               run: npm ci
 
@@ -96,6 +101,11 @@ jobs:
 
             - name: Create .env file from .env.ci
               run: cp .env.ci .env
+
+            - name: Install pinned npm
+              run: |
+                  npm install --global "$(node -p 'require("./package.json").packageManager')" --ignore-scripts --no-audit --no-fund
+                  npm --version
 
             - name: Install dependencies
               run: npm ci
@@ -149,6 +159,11 @@ jobs:
                   node-version-file: '.nvmrc'
                   cache: 'npm'
 
+            - name: Install pinned npm
+              run: |
+                  npm install --global "$(node -p 'require("./package.json").packageManager')" --ignore-scripts --no-audit --no-fund
+                  npm --version
+
             - name: Install dependencies
               run: npm ci
 
@@ -175,6 +190,11 @@ jobs:
               with:
                   node-version-file: '.nvmrc'
                   cache: 'npm'
+
+            - name: Install pinned npm
+              run: |
+                  npm install --global "$(node -p 'require("./package.json").packageManager')" --ignore-scripts --no-audit --no-fund
+                  npm --version
 
             - name: Install dependencies
               run: npm ci

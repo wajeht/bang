@@ -8,7 +8,8 @@ WORKDIR /usr/src/app
 COPY package*.json .npmrc ./
 
 # Install all dependencies including dev for build tools, then rebuild native modules
-RUN npm ci --no-audit --no-fund && \
+RUN npm install --global "$(node -p 'require("./package.json").packageManager')" --ignore-scripts --no-audit --no-fund && \
+    npm ci --no-audit --no-fund && \
     npm rebuild bcrypt better-sqlite3 esbuild --ignore-scripts=false
 
 # Copy only TypeScript config first (changes less frequently)
