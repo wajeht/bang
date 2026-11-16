@@ -69,17 +69,16 @@ Linting includes the vendored anti-slop rules configured in `vite.config.ts`.
 See [anti-slop maintenance notes](../tools/oxlint/anti-slop/UPSTREAM.md) for
 provenance, dependency pins, and update instructions.
 
-When upgrading Vite+, match the `vitest` override and `@vitest/coverage-v8` pin
-to its bundled Vitest version, and `@oxlint/plugins` to its bundled Oxlint version.
-Read the installed versions with:
+Renovate skips the Vite+ stack because its dependencies follow the versions
+bundled in each Vite+ release. Use the target release's migrator to upgrade.
 
 ```bash
-$ node --input-type=module -e "import { versions } from 'vite-plus/versions'; console.log(versions)"
+$ npm exec --yes --package=vite-plus@latest -- vp migrate --no-agent --no-editor --no-hooks --no-interactive
 ```
 
-Renovate groups Vite+ updates and leaves the Vitest pins for manual updates in
-that PR. Updating Vitest or coverage independently can break the bundled runner.
-After updating, run `npm run check`, `npm run build`, and `npm run test:coverage`.
+Review the diff and make sure `@oxlint/plugins` matches the version shown by
+`npm exec -- vp toolchain oxlint`. Then run `npm run check`, `npm run build`,
+and `npm run test:coverage`.
 
 ## 🐳 Docker
 
