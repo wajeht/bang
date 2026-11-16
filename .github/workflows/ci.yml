@@ -248,7 +248,7 @@ jobs:
         if: github.event_name == 'push'
         needs: [lint, unit-test, browser-test, format, build]
         name: Deploy
-        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/deploy.yaml@22eff51583297b7492bc6ae4a06be80c301f2180 # v0.0.28
+        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/deploy.yaml@0bc04980ed44366020f68363a15a923b36307059 # v0.0.29
         with:
             app-path: apps/bang
             service-name: bang
@@ -319,14 +319,16 @@ jobs:
         needs: temp-build
         permissions:
             deployments: write
-        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-deploy.yaml@22eff51583297b7492bc6ae4a06be80c301f2180 # v0.0.28
+        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-deploy.yaml@0bc04980ed44366020f68363a15a923b36307059 # v0.0.29
         with:
             app-path: apps/bang
             service-name: bang
             tag: ${{ needs.temp-build.outputs.tag }}
-            auth-middleware: ${{ contains(github.event.pull_request.labels.*.name, 'temp-deploy-with-auth') && 'oauth2-admin@file' || '' }}
+            auth-middleware: ${{ contains(github.event.pull_request.labels.*.name, 'temp-deploy-with-auth') && 'tinyauth@file' || '' }}
         secrets:
             GH_TOKEN: ${{ secrets.GH_TOKEN }}
+            DOCKER_CD_URL: ${{ secrets.DOCKER_CD_URL }}
+            DOCKER_CD_API_SECRET: ${{ secrets.DOCKER_CD_API_SECRET }}
 
     temp-cleanup:
         name: Temp Cleanup
@@ -339,7 +341,7 @@ jobs:
             !contains(github.event.pull_request.labels.*.name, 'temp-deploy-with-auth'))
         permissions:
             deployments: write
-        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-cleanup.yaml@22eff51583297b7492bc6ae4a06be80c301f2180 # v0.0.28
+        uses: wajeht/docker-cd-deploy-workflow/.github/workflows/temp-cleanup.yaml@0bc04980ed44366020f68363a15a923b36307059 # v0.0.29
         with:
             app-path: apps/bang
         secrets:
