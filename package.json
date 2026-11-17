@@ -71,7 +71,7 @@
         "isomorphic-dompurify": "4.7.0",
         "jsonwebtoken": "9.0.3",
         "knex": "3.3.0",
-        "marked": "18.2.0",
+        "marked": "18.2.1",
         "node-cron": "4.6.0",
         "nodemailer": "10.6.0",
         "zod": "4.6.7"
