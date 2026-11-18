@@ -111,7 +111,7 @@
         "node": ">=26.1.0",
         "npm": ">=11.13.0"
     },
-    "packageManager": "npm@12.2.2",
+    "packageManager": "npm@12.2.3",
     "allowScripts": {
         "bcrypt": true,
         "better-sqlite3": true,
