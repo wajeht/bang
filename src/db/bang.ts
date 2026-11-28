@@ -3694,7 +3694,7 @@ export const bangs: Record<string, any> = {
         s: 'alternativeTo',
         sc: 'Tools',
         t: 'alt',
-        u: 'http://alternativeto.net/SearchResult.aspx?search={{{s}}}',
+        u: 'https://alternativeto.net/browse/search/?q={{{s}}}',
     },
     altbe: {
         s: 'Alternate België',
@@ -6279,12 +6279,12 @@ export const bangs: Record<string, any> = {
     },
     archpkg: {
         c: 'Tech',
-        d: 'www.archlinux.org',
+        d: 'archlinux.org',
         r: 690,
         s: 'Arch Linux Packages',
         sc: 'Sysadmin (Arch)',
         t: 'archpkg',
-        u: 'https://www.archlinux.org/packages/?sort=&q={{{s}}}&maintainer=&flagged=',
+        u: 'https://archlinux.org/packages/?sort=&q={{{s}}}&maintainer=&flagged=',
     },
     archpl: {
         s: 'archlinux wiki pl',
@@ -7405,7 +7405,7 @@ export const bangs: Record<string, any> = {
         s: 'Arch Linux User Repository',
         sc: 'Downloads (software)',
         t: 'au',
-        u: 'https://aur.archlinux.org/packages/?K={{{s}}}',
+        u: 'https://aur.archlinux.org/packages?K={{{s}}}',
     },
     aub: {
         s: 'Aalborg Universitetsbibliotek',
@@ -8615,7 +8615,7 @@ export const bangs: Record<string, any> = {
         s: 'Search all !bangs',
         sc: 'Search (DDG)',
         t: 'bangs',
-        u: 'https://duckduckgo.com/bang?q={{{s}}}',
+        u: 'https://duckduckgo.com/bangs?q={{{s}}}',
     },
     banned: {
         s: 'banned.video',
@@ -21583,7 +21583,7 @@ export const bangs: Record<string, any> = {
         s: 'DuckDuckGo',
         sc: 'Search (DDG)',
         t: 'ddg',
-        u: 'http://duckduckgo.com/?q={{{s}}}',
+        u: 'https://duckduckgo.com/?q={{{s}}}',
     },
     ddgee: {
         s: 'DuckDuckGo Estonia',
@@ -22307,7 +22307,7 @@ export const bangs: Record<string, any> = {
         s: 'dict.cc free dictionary (de<>en)',
         sc: 'Tools',
         t: 'deen',
-        u: 'http://www.dict.cc/?s={{{s}}}',
+        u: 'https://www.dict.cc/?s={{{s}}}',
     },
     deeo: {
         s: 'dict.cc: Esperanto-Deutsch',
@@ -22501,7 +22501,7 @@ export const bangs: Record<string, any> = {
         s: 'The Free Dictionary',
         sc: 'Academic',
         t: 'def',
-        u: 'http://www.thefreedictionary.com/{{{s}}}',
+        u: 'https://www.thefreedictionary.com/{{{s}}}',
     },
     de: {
         c: 'Research',
@@ -23522,7 +23522,7 @@ export const bangs: Record<string, any> = {
         s: 'dict.cc',
         sc: 'Academic',
         t: 'dict.cc',
-        u: 'http://www.dict.cc/?s={{{s}}}',
+        u: 'https://www.dict.cc/?s={{{s}}}',
     },
     dict: {
         s: 'Dict.org',
@@ -23557,7 +23557,7 @@ export const bangs: Record<string, any> = {
         s: 'The Free Dictionary',
         sc: 'Academic',
         t: 'dictionary',
-        u: 'http://www.thefreedictionary.com/{{{s}}}',
+        u: 'https://www.thefreedictionary.com/{{{s}}}',
     },
     dictleode: {
         s: 'Leo Translation EN<->DE',
@@ -24300,12 +24300,12 @@ export const bangs: Record<string, any> = {
     },
     dk: {
         c: 'Tech',
-        d: 'store.docker.com',
+        d: 'hub.docker.com',
         r: 13,
         s: 'docker hub',
         sc: 'Sysadmin',
         t: 'dk',
-        u: 'https://store.docker.com/search?q={{{s}}}',
+        u: 'https://hub.docker.com/search?q={{{s}}}',
     },
     dkes: {
         s: 'Digikey ES',
@@ -26375,7 +26375,7 @@ export const bangs: Record<string, any> = {
         s: 'The Free Dictionary',
         sc: 'Academic',
         t: 'd',
-        u: 'http://www.thefreedictionary.com/{{{s}}}',
+        u: 'https://www.thefreedictionary.com/{{{s}}}',
     },
     dthority: {
         c: 'Tech',
@@ -26503,7 +26503,7 @@ export const bangs: Record<string, any> = {
         s: 'DuckDuckGo',
         sc: 'Search (DDG)',
         t: '?',
-        u: 'http://duckduckgo.com/?q={{{s}}}',
+        u: 'https://duckduckgo.com/?q={{{s}}}',
     },
     duckgoes: {
         s: 'Duck Duck Go Español',
@@ -27648,7 +27648,7 @@ export const bangs: Record<string, any> = {
         s: 'ebay.co.uk',
         sc: 'Online (marketplace)',
         t: 'ebuk',
-        u: 'https://www.ebay.co.uk/sch/items/?_nkw={{{s}}}',
+        u: 'https://www.ebay.co.uk/sch/i.html?_nkw={{{s}}}',
     },
     ebuyer: {
         s: 'eBuyer',
@@ -30924,7 +30924,7 @@ export const bangs: Record<string, any> = {
         s: 'ebay.co.uk',
         sc: 'Online (marketplace)',
         t: 'euk',
-        u: 'https://www.ebay.co.uk/sch/items/?_nkw={{{s}}}',
+        u: 'https://www.ebay.co.uk/sch/i.html?_nkw={{{s}}}',
     },
     'e.uk': {
         s: 'Ebay UK',
@@ -38719,12 +38719,12 @@ export const bangs: Record<string, any> = {
     },
     gimages: {
         c: 'Online Services',
-        d: 'google.com',
+        d: 'www.google.com',
         r: 418,
         s: 'Google Images',
         sc: 'Google',
         t: 'gimages',
-        u: 'http://google.com/search?tbm=isch&q={{{s}}}&tbs=imgo:1',
+        u: 'https://www.google.com/search?q={{{s}}}&tbs=imgo:1&udm=2',
     },
     gimg: {
         c: 'Online Services',
@@ -38733,16 +38733,16 @@ export const bangs: Record<string, any> = {
         s: 'Google Images',
         sc: 'Google',
         t: 'gimg',
-        u: 'https://www.google.com/search?tbm=isch&q={{{s}}}&tbs=imgo:1',
+        u: 'https://www.google.com/search?q={{{s}}}&tbs=imgo:1&udm=2',
     },
     gim: {
         c: 'Online Services',
-        d: 'google.com',
+        d: 'www.google.com',
         r: 564,
         s: 'Google Images',
         sc: 'Google',
         t: 'gim',
-        u: 'https://google.com/search?tbm=isch&q={{{s}}}&tbs=imgo:1',
+        u: 'https://www.google.com/search?q={{{s}}}&tbs=imgo:1&udm=2',
     },
     gin: {
         s: 'Google India',
@@ -38870,7 +38870,7 @@ export const bangs: Record<string, any> = {
         s: 'GitHub.com',
         sc: 'Downloads (code)',
         t: 'github',
-        u: 'http://github.com/search?q={{{s}}}&type=Everything&repo=&langOverride=&start_value=1',
+        u: 'https://github.com/search?q={{{s}}}&type=Everything&repo=&langOverride=&start_value=1',
     },
     githubhelp: {
         s: 'GitHub Help',
@@ -40288,21 +40288,21 @@ export const bangs: Record<string, any> = {
     },
     googleimages: {
         c: 'Online Services',
-        d: 'google.com',
+        d: 'www.google.com',
         r: 130,
         s: 'Google Images',
         sc: 'Google',
         t: 'googleimages',
-        u: 'http://google.com/search?tbm=isch&q={{{s}}}&tbs=imgo:1',
+        u: 'https://www.google.com/search?q={{{s}}}&tbs=imgo:1&udm=2',
     },
     googleimg: {
         c: 'Research',
-        d: 'google.com',
+        d: 'www.google.com',
         r: 3,
         s: 'Google Image',
         sc: 'Reference',
         t: 'googleimg',
-        u: 'https://google.com/search?tbm=isch&q={{{s}}}&tbs=imgo:1',
+        u: 'https://www.google.com/search?q={{{s}}}&tbs=imgo:1&udm=2',
     },
     googlein: {
         c: 'Online Services',
@@ -40340,21 +40340,21 @@ export const bangs: Record<string, any> = {
     },
     googlemap: {
         c: 'Online Services',
-        d: 'maps.google.com',
+        d: 'www.google.com',
         r: 31,
         s: 'Google Maps',
         sc: 'Google',
         t: 'googlemap',
-        u: 'http://maps.google.com/maps?q={{{s}}}',
+        u: 'https://www.google.com/maps?q={{{s}}}',
     },
     googlemaps: {
         c: 'Online Services',
-        d: 'maps.google.com',
+        d: 'www.google.com',
         r: 381,
         s: 'Google Maps',
         sc: 'Google',
         t: 'googlemaps',
-        u: 'http://maps.google.com/maps?q={{{s}}}',
+        u: 'https://www.google.com/maps?q={{{s}}}',
     },
     googleoz: {
         c: 'Online Services',
@@ -46794,7 +46794,7 @@ export const bangs: Record<string, any> = {
         s: 'How Long To Beat',
         sc: 'Games (general)',
         t: 'hltb',
-        u: 'http://howlongtobeat.com/?q={{{s}}}',
+        u: 'https://howlongtobeat.com/?q={{{s}}}',
     },
     hltv: {
         s: 'HLTV.org',
@@ -52335,7 +52335,7 @@ export const bangs: Record<string, any> = {
         s: 'Jisho',
         sc: 'Tools',
         t: 'jisho',
-        u: 'http://jisho.org/search/{{{s}}}',
+        u: 'https://jisho.org/search/{{{s}}}',
     },
     jit: {
         s: 'Jobintree',
@@ -55560,7 +55560,7 @@ export const bangs: Record<string, any> = {
         s: 'Know Your Meme',
         sc: 'Reference (fun)',
         t: 'kym',
-        u: 'http://knowyourmeme.com/search?utf8=%E2%9C%93&q={{{s}}}',
+        u: 'https://knowyourmeme.com/search?utf8=%E2%9C%93&q={{{s}}}',
     },
     kyobo: {
         s: 'Kyobo Book Centre',
@@ -62458,7 +62458,7 @@ export const bangs: Record<string, any> = {
         s: 'Know Your Meme',
         sc: 'Reference (fun)',
         t: 'meme',
-        u: 'http://knowyourmeme.com/search?utf8=%E2%9C%93&q={{{s}}}',
+        u: 'https://knowyourmeme.com/search?utf8=%E2%9C%93&q={{{s}}}',
     },
     memento: {
         s: 'Memento Project',
@@ -62685,7 +62685,7 @@ export const bangs: Record<string, any> = {
         s: 'Merriam-Webster',
         sc: 'Reference (words)',
         t: 'merriamwebster',
-        u: 'http://www.merriam-webster.com/dictionary/{{{s}}}',
+        u: 'https://www.merriam-webster.com/dictionary/{{{s}}}',
     },
     mesh: {
         s: 'Medical Subject Headings',
@@ -62769,7 +62769,7 @@ export const bangs: Record<string, any> = {
         s: 'Metacritic',
         sc: 'Misc',
         t: 'metacritic',
-        u: 'http://www.metacritic.com/search/all/{{{s}}}/results',
+        u: 'https://www.metacritic.com/search/all/{{{s}}}/results',
     },
     metaculus: {
         s: 'Metaculus',
@@ -66373,7 +66373,7 @@ export const bangs: Record<string, any> = {
         s: 'Merriam-Webster Dictionary',
         sc: 'Reference (words)',
         t: 'mwd',
-        u: 'http://www.merriam-webster.com/dictionary/{{{s}}}',
+        u: 'https://www.merriam-webster.com/dictionary/{{{s}}}',
     },
     mweb: {
         c: 'Research',
@@ -66418,7 +66418,7 @@ export const bangs: Record<string, any> = {
         s: 'Merriam-Webster Dictionary',
         sc: 'Reference (words)',
         t: 'mw',
-        u: 'http://www.merriam-webster.com/dictionary/{{{s}}}',
+        u: 'https://www.merriam-webster.com/dictionary/{{{s}}}',
     },
     mwm: {
         s: 'Wikimedia Meta',
@@ -67260,7 +67260,7 @@ export const bangs: Record<string, any> = {
         s: 'Naver',
         sc: 'Search',
         t: 'naver',
-        u: 'http://search.naver.com/search.naver?where=nexearch&sm=osd&ie={inputEncoding}&query={{{s}}}',
+        u: 'https://search.naver.com/search.naver?where=nexearch&sm=osd&ie={inputEncoding}&query={{{s}}}',
     },
     navm: {
         c: 'Online Services',
@@ -68579,7 +68579,7 @@ export const bangs: Record<string, any> = {
         s: 'Niconico',
         sc: 'Misc',
         t: 'niconico',
-        u: 'http://www.nicovideo.jp/search/{{{s}}}',
+        u: 'https://www.nicovideo.jp/search/{{{s}}}',
     },
     niebezpiecznik: {
         s: 'Niebezpiecznik',
@@ -73571,12 +73571,12 @@ export const bangs: Record<string, any> = {
     },
     pac: {
         c: 'Tech',
-        d: 'www.archlinux.org',
+        d: 'archlinux.org',
         r: 150,
         s: 'Arch Linux Package Database',
         sc: 'Sysadmin (Arch)',
         t: 'pac',
-        u: 'https://www.archlinux.org/packages/?sort=&q={{{s}}}&maintainer=&flagged=',
+        u: 'https://archlinux.org/packages/?sort=&q={{{s}}}&maintainer=&flagged=',
     },
     pacific: {
         s: 'Pacific Packaging Products',
@@ -73647,12 +73647,12 @@ export const bangs: Record<string, any> = {
     },
     pacman: {
         c: 'Tech',
-        d: 'www.archlinux.org',
+        d: 'archlinux.org',
         r: 294,
         s: 'Arch Package Repo',
         sc: 'Sysadmin (Arch)',
         t: 'pacman',
-        u: 'https://www.archlinux.org/packages/?sort=&q={{{s}}}',
+        u: 'https://archlinux.org/packages/?sort=&q={{{s}}}',
     },
     paco: {
         s: 'Paco Games',
@@ -76094,12 +76094,12 @@ export const bangs: Record<string, any> = {
     },
     pkg: {
         c: 'Tech',
-        d: 'www.archlinux.org',
+        d: 'archlinux.org',
         r: 547,
         s: 'Arch Linux Packages',
         sc: 'Sysadmin (Arch)',
         t: 'pkg',
-        u: 'https://www.archlinux.org/packages/?sort=&q={{{s}}}',
+        u: 'https://archlinux.org/packages/?sort=&q={{{s}}}',
     },
     pkgrd: {
         s: 'PackageRadar',
@@ -84066,7 +84066,7 @@ export const bangs: Record<string, any> = {
         s: 'Rotten Tomatoes',
         sc: 'Video',
         t: 'rt',
-        u: 'https://www.rottentomatoes.com/search/?search={{{s}}}',
+        u: 'https://www.rottentomatoes.com/search?search={{{s}}}',
     },
     rts: {
         s: 'Radio télévision suisse',
@@ -91967,7 +91967,7 @@ export const bangs: Record<string, any> = {
         s: 'Steam',
         sc: 'Games (general)',
         t: 'ste',
-        u: 'http://store.steampowered.com/search/?term={{{s}}}',
+        u: 'https://store.steampowered.com/search/?term={{{s}}}',
     },
     stex: {
         c: 'Online Services',
@@ -95456,7 +95456,7 @@ export const bangs: Record<string, any> = {
         s: 'The Free Dictionary',
         sc: 'Reference (words)',
         t: 'tfd',
-        u: 'http://www.thefreedictionary.com/{{{s}}}',
+        u: 'https://www.thefreedictionary.com/{{{s}}}',
     },
     tfes: {
         s: 'The Flat Earth Society forum',
@@ -95781,7 +95781,7 @@ export const bangs: Record<string, any> = {
         s: 'The Free Dictionary',
         sc: 'Search',
         t: 'thefreedictionary',
-        u: 'http://www.thefreedictionary.com/{{{s}}}',
+        u: 'https://www.thefreedictionary.com/{{{s}}}',
     },
     thefunny: {
         c: 'Entertainment',
@@ -96010,7 +96010,7 @@ export const bangs: Record<string, any> = {
         s: 'Thesaurus',
         sc: 'Reference (words)',
         t: 'thes',
-        u: 'http://www.thesaurus.com/browse/{{{s}}}',
+        u: 'https://www.thesaurus.com/browse/{{{s}}}',
     },
     thetoptens: {
         s: 'TheTopTens',
@@ -98127,7 +98127,7 @@ export const bangs: Record<string, any> = {
         s: 'Thesaurus at Reference.com',
         sc: 'Reference',
         t: 'tref',
-        u: 'http://www.thesaurus.com/browse/{{{s}}}',
+        u: 'https://www.thesaurus.com/browse/{{{s}}}',
     },
     trello: {
         s: 'Trello',
@@ -98627,7 +98627,7 @@ export const bangs: Record<string, any> = {
         s: 'Thesaurus.com',
         sc: 'Reference (words)',
         t: 't',
-        u: 'http://www.thesaurus.com/browse/{{{s}}}',
+        u: 'https://www.thesaurus.com/browse/{{{s}}}',
     },
     tti: {
         s: 'Tutti ticino',
@@ -99386,12 +99386,12 @@ export const bangs: Record<string, any> = {
     },
     twitch: {
         c: 'Entertainment',
-        d: 'twitch.tv',
+        d: 'www.twitch.tv',
         r: 2516,
         s: 'Twitch.tv',
         sc: 'Games (general)',
         t: 'twitch',
-        u: 'https://twitch.tv/{{{s}}}',
+        u: 'https://www.twitch.tv/{{{s}}}',
     },
     twitters: {
         s: 'Twitter User',
@@ -101283,7 +101283,7 @@ export const bangs: Record<string, any> = {
         s: 'Urban Dictionary',
         sc: 'Reference (fun)',
         t: 'urbandictionary',
-        u: 'http://www.urbandictionary.com/define.php?term={{{s}}}',
+        u: 'https://www.urbandictionary.com/define.php?term={{{s}}}',
     },
     urbanfx: {
         s: 'urbaneffect.net',
@@ -101300,7 +101300,7 @@ export const bangs: Record<string, any> = {
         s: 'Urban Dictionary',
         sc: 'Reference (fun)',
         t: 'urban',
-        u: 'http://www.urbandictionary.com/define.php?term={{{s}}}',
+        u: 'https://www.urbandictionary.com/define.php?term={{{s}}}',
     },
     urbout: {
         s: 'Urban Outfitters',
@@ -101749,7 +101749,7 @@ export const bangs: Record<string, any> = {
         s: 'Urban Dictionary',
         sc: 'Learning',
         t: 'u',
-        u: 'http://www.urbandictionary.com/define.php?term={{{s}}}',
+        u: 'https://www.urbandictionary.com/define.php?term={{{s}}}',
     },
     uu: {
         c: 'Tech',
@@ -105597,7 +105597,7 @@ export const bangs: Record<string, any> = {
         s: 'Wikipedia',
         sc: 'Reference',
         t: 'we',
-        u: 'http://en.wikipedia.org/wiki/{{{s}}}',
+        u: 'https://en.wikipedia.org/wiki/{{{s}}}',
     },
     wfa: {
         s: 'Persian Wikipedia',
@@ -106483,7 +106483,7 @@ export const bangs: Record<string, any> = {
         s: 'Wikipedia',
         sc: 'Reference',
         t: 'wikide',
-        u: 'http://de.wikipedia.org/w/index.php?search={{{s}}} ',
+        u: 'https://de.wikipedia.org/w/index.php?search={{{s}}}',
     },
     wikidex: {
         s: 'WikiDex',
@@ -106675,7 +106675,7 @@ export const bangs: Record<string, any> = {
         s: 'Wikipedia Deutschland',
         sc: 'Tools',
         t: 'wikipediade',
-        u: 'http://de.wikipedia.org/w/index.php?search={{{s}}}',
+        u: 'https://de.wikipedia.org/w/index.php?search={{{s}}}',
     },
     wikipediait: {
         c: 'Research',
@@ -107132,7 +107132,7 @@ export const bangs: Record<string, any> = {
         s: 'Wiktionary',
         sc: 'Reference (words)',
         t: 'wiktionary',
-        u: 'http://en.wiktionary.org/wiki/Special:Search?search={{{s}}}&go=Define',
+        u: 'https://en.wiktionary.org/wiki/Special:Search?search={{{s}}}&go=Define',
     },
     wiktit: {
         s: 'Wikizionario',
@@ -109351,7 +109351,7 @@ export const bangs: Record<string, any> = {
         s: 'WordReference (EN)',
         sc: 'Tools',
         t: 'wrn',
-        u: 'http://www.wordreference.com/definition/{{{s}}}',
+        u: 'https://www.wordreference.com/definition/{{{s}}}',
     },
     wro: {
         s: 'Romanian Wikipedia',
@@ -109490,7 +109490,7 @@ export const bangs: Record<string, any> = {
         s: 'WordReference Definition',
         sc: 'Learning',
         t: 'wr',
-        u: 'http://www.wordreference.com/definition/{{{s}}}',
+        u: 'https://www.wordreference.com/definition/{{{s}}}',
     },
     wrze: {
         s: 'WordReference (zh-en)',
